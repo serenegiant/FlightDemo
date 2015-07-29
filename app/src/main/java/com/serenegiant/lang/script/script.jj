@@ -201,8 +201,10 @@ void TranslationUnit() : {}
 /** \u5916\u90e8\u5ba3\u8a00 */
 void ExternalDeclaration() : {}
 {
+	// \u95a2\u6570\u5ba3\u8a00\u307e\u305f\u306f\u5ba3\u8a00
 	(	LOOKAHEAD( FunctionDefinition() ) FunctionDefinition() |
-		Declaration()
+		Declaration() |
+		";"
 	)
 }
 
@@ -216,7 +218,7 @@ void FunctionDefinition() : {}
 /** \u5ba3\u8a00 */
 void Declaration() : {}
 {
-	DeclarationSpecifiers() [ InitDeclaratorList() ] ";"
+	DeclarationSpecifiers() ( InitDeclaratorList() )? ";"
 }
 
 /** \u5ba3\u8a00\u306e\u7a2e\u985e(\u578b)\u30ea\u30b9\u30c8 */
@@ -325,10 +327,8 @@ void InitDeclarator() : {}
 /** \u30a2\u30af\u30bb\u30b9\u6307\u5b9a\u5b50 */
 void SpecifierQualifierList() : {}
 {
-	TypeSpecifier() [ LOOKAHEAD(SpecifierQualifierList())
-		SpecifierQualifierList() ] |
-	TypeQualifier() [ LOOKAHEAD(SpecifierQualifierList())
-		SpecifierQualifierList() ]
+	TypeSpecifier() [ LOOKAHEAD(SpecifierQualifierList()) SpecifierQualifierList() ] |
+	TypeQualifier() [ LOOKAHEAD(SpecifierQualifierList()) SpecifierQualifierList() ]
 }
 
 /** \u5217\u6319\u578b */
@@ -358,6 +358,7 @@ void Declarator() : {}
 /** \u76f4\u63a5\u5ba3\u8a00\u5b50 */
 void DirectDeclarator() : { Token t;}
 {
+	// \u8b58\u5225\u5b50\u307e\u305f\u306f\u95a2\u6570\u547c\u3073\u51fa\u3057
 	(	t = <IDENTIFIER>
 		{
 			if(!(typedefParsingStack.empty()) && ((Boolean)typedefParsingStack.peek()).booleanValue()) {
@@ -404,7 +405,11 @@ void ParameterList() : {}
 /** \u30d1\u30e9\u30e1\u30fc\u30bf\u5ba3\u8a00 */
 void ParameterDeclaration() : {}
 {
-	DeclarationSpecifiers() ( LOOKAHEAD(Declarator()) Declarator() | [ AbstractDeclarator() ] )
+	DeclarationSpecifiers()
+	(	LOOKAHEAD(Declarator()) Declarator() |
+		AbstractDeclarator()
+	)
+	(	"=" AssignmentExpression() )?
 }
 
 /** \u8b58\u5225\u5b50\u30ea\u30b9\u30c8 */
@@ -416,15 +421,15 @@ void IdentifierList() : {}
 /** \u30a4\u30cb\u30b7\u30e3\u30e9\u30a4\u30b6 */
 void Initializer() : {}
 {
-	(	AssignmentExpression() |
-		"{" InitializerList() [","] "}"
-	)
+	"{" InitializerList() [","] "}" |
+	AssignmentExpression()
 }
 
 /** \u30a4\u30cb\u30b7\u30e3\u30e9\u30a4\u30b6\u30ea\u30b9\u30c8 */
 void InitializerList() : {}
 {
-	Initializer() (LOOKAHEAD(2) "," Initializer())*
+	Initializer()
+	(	LOOKAHEAD(2) "," Initializer() )*
 }
 
 /** \u578b\u540d */
@@ -435,18 +440,19 @@ void TypeName() : {}
 
 void AbstractDeclarator() : {}
 {
-	( LOOKAHEAD(3) Pointer() |
-		[Pointer()] DirectAbstractDeclarator()
-	)
+	LOOKAHEAD(3) Pointer() |
+	[ Pointer() ] DirectAbstractDeclarator()
 }
 
 void DirectAbstractDeclarator() : {}
 {
-	( LOOKAHEAD(2) "(" AbstractDeclarator() ")" |
-	               "[" [ConstantExpression()] "]" |
-	               "(" [ParameterTypeList()] ")" )
+	(	LOOKAHEAD(2) "(" AbstractDeclarator() ")" |
+		"[" [ConstantExpression()] "]" |
+		"(" [ParameterTypeList()] ")"
+	)
 
-	  ( "[" [ ConstantExpression() ] "]" | "(" [ ParameterTypeList() ] ")" )*
+	(	"[" [ ConstantExpression() ] "]" | "(" [ ParameterTypeList() ] ")"
+	)*
 }
 
 /** typedef\u540d */
@@ -455,15 +461,23 @@ void TypedefName() : {}
 	<IDENTIFIER>
 }
 
+/** \u547d\u4ee4\u6587\u30ea\u30b9\u30c8 */
+void StatementList() : {}
+{
+	( LOOKAHEAD(Statement()) Statement() )+
+}
+
 /** \u547d\u4ee4\u6587 */
 void Statement() : {}
 {
-	( LOOKAHEAD(2) LabeledStatement() |
-	  ExpressionStatement() |
-	  CompoundStatement() |
-	  SelectionStatement() |
-	  IterationStatement() |
-	  JumpStatement() )
+	LOOKAHEAD( Declaration() ) Declaration() |
+	LOOKAHEAD( Expression() ";" ) Expression() ";" |
+	CompoundStatement() |
+	SelectionStatement() |
+	JumpStatement() |
+	";" |
+	LOOKAHEAD(2) LabeledStatement() |
+	IterationStatement()
 }
 
 /** \u30e9\u30d9\u30eb\u547d\u4ee4: */
@@ -475,24 +489,12 @@ void LabeledStatement() : {}
 	)
 }
 
-/** \u6f14\u7b97\u547d\u4ee4\u6587 */
-void ExpressionStatement() : {}
-{
-	[ Expression() ] ";"
-}
-
-/** \u547d\u4ee4\u6587 */
+/** \u8907\u547d\u4ee4\u6587 */
 void CompoundStatement() : {}
 {
-	"{" [ LOOKAHEAD(DeclarationList()) DeclarationList() ]
-	    [ StatementList() ]
+	"{"
+    (	StatementList() )?
 	"}"
-}
-
-/** \u547d\u4ee4\u6587\u30ea\u30b9\u30c8 */
-void StatementList() : {}
-{
-	(Statement())+
 }
 
 /** \u9078\u629e\u547d\u4ee4\u6587 */
@@ -519,21 +521,24 @@ void JumpStatement() : {}
 	(	<GOTO> <IDENTIFIER> ";" |
 		<CONTINUE> ";" |
 		<BREAK> ";" |
-		<RETURN> [ Expression() ] ";"
+		<RETURN> ( Expression() )? ";"
 	)
 }
 
 /** \u5f0f */
 void Expression() : {}
 {
-	AssignmentExpression() ( "," AssignmentExpression() )*
+	AssignmentExpression() ( LOOKAHEAD(2) "," AssignmentExpression() )*
 }
 
 /**  \u4ee3\u5165\u5f0f */
 void AssignmentExpression() : {}
 {
-	LOOKAHEAD(UnaryExpression() AssignmentOperator()) UnaryExpression() AssignmentOperator() AssignmentExpression() |
-	LOOKAHEAD(3) ConditionalExpression()
+	ConditionalExpression()
+	(
+		AssignmentOperator()
+		AssignmentExpression()
+	)?
 }
 
 /** \u4ee3\u5165\u6f14\u7b97\u5b50 */
@@ -545,7 +550,8 @@ void AssignmentOperator() : {}
 /** \u6bd4\u8f03\u6f14\u7b97\u5f0f */
 void ConditionalExpression() : {}
 {
-	LogicalORExpression() [ "?" Expression() ":" ConditionalExpression() ]
+	LogicalORExpression()
+	( "?" ConditionalExpression() ":" ConditionalExpression() )?
 }
 
 /** \u5b9a\u6570\u5f0f */
@@ -557,79 +563,100 @@ void ConstantExpression() : {}
 /** \u8ad6\u7406\u548c\u5f0f */
 void LogicalORExpression() : {}
 {
-	LogicalANDExpression() [ "||" LogicalORExpression() ]
+	LogicalANDExpression()
+	( "||" LogicalANDExpression() )*
 }
 
 /** \u8ad6\u7406\u7a4d\u5f0f */
 void LogicalANDExpression() : {}
 {
-	InclusiveORExpression() [ "&&" LogicalANDExpression() ]
+	InclusiveORExpression()
+	( "&&" InclusiveORExpression() )*
 }
 
 /** \u30d3\u30c3\u30c8\u8ad6\u7406\u548c\u5f0f */
 void InclusiveORExpression() : {}
 {
-	ExclusiveORExpression() [ "|" InclusiveORExpression() ]
+	ExclusiveORExpression()
+	( "|" ExclusiveORExpression() )*
 }
 
 /** \u6392\u4ed6\u7684\u30d3\u30c3\u30c8\u8ad6\u7406\u548c */
 void ExclusiveORExpression() : {}
 {
-	ANDExpression() [ "^" ExclusiveORExpression() ]
+	ANDExpression()
+	( "^" ANDExpression() )*
 }
 
 /** \u30d3\u30c3\u30c8\u8ad6\u7406\u7a4d\u5f0f */
 void ANDExpression() : {}
 {
-	EqualityExpression() [ "&" ANDExpression() ]
+	EqualityExpression()
+	( LOOKAHEAD(2) "&" EqualityExpression() )*
 }
 
 /** \u6bd4\u8f03\u6f14\u7b97\u5f0f */
 void EqualityExpression() : {}
 {
-	RelationalExpression() [ ( "==" | "!=" ) EqualityExpression() ]
+	RelationalExpression()
+	( ( "==" | "!=" ) RelationalExpression() )*
 }
 
 /** \u6bd4\u8f03\u6f14\u7b97\u5f0f */
 void RelationalExpression() : {}
 {
-	ShiftExpression() [ ( "<" | ">" | "<=" | ">=" ) RelationalExpression() ]
+	ShiftExpression()
+	( LOOKAHEAD(2) ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
 }
 
 /** \u30b7\u30d5\u30c8\u6f14\u7b97\u5f0f */
 void ShiftExpression() : {}
 {
-	AdditiveExpression() [ ( "<<" | ">>" ) ShiftExpression() ]
+	AdditiveExpression()
+	( ( "<<" | ">>" ) AdditiveExpression() )*
 }
 
 /** \u7b97\u8853\u548c/\u7b97\u8853\u5dee\u5f0f */
 void AdditiveExpression() : {}
 {
-	MultiplicativeExpression() [ ( "+" | "-" ) AdditiveExpression() ]
+	MultiplicativeExpression()
+	( LOOKAHEAD(2) ( "+" | "-" ) MultiplicativeExpression() )*
 }
 
 /** \u7b97\u8853\u9664\u7a4d\u5f0f */
 void MultiplicativeExpression() : {}
 {
-	CastExpression() [ ( "*" | "/" | "%" ) MultiplicativeExpression() ]
+	PmExpression()
+	( LOOKAHEAD(2) ( "*" | "/" | "%" ) PmExpression() )*
+}
+
+/** \u30dd\u30a4\u30f3\u30bf\u53c2\u7167\u5f0f */
+void PmExpression() : {}
+{
+    CastExpression()
+    (	( ".*" | "->*" )
+    	CastExpression()
+    )*
 }
 
 /** \u30ad\u30e3\u30b9\u30c8\u6f14\u7b97\u5f0f */
 void CastExpression() : {}
 {
-	( LOOKAHEAD("(" TypeName() ")" CastExpression() ) "(" TypeName() ")" CastExpression() |
-	  UnaryExpression() )
+	LOOKAHEAD( "(" TypeName() ")" ) "(" TypeName() ")" CastExpression() |
+	UnaryExpression()
 }
 
 /** \u5358\u9805\u6f14\u7b97\u5f0f */
 void UnaryExpression() : {}
 {
-	( LOOKAHEAD(3) PostfixExpression() |
-		"++" UnaryExpression() |
-		"--" UnaryExpression() |
-		UnaryOperator() CastExpression() |
-		<SIZEOF> ( LOOKAHEAD(UnaryExpression() ) UnaryExpression() | "(" TypeName() ")" )
-	)
+	"++" UnaryExpression() |
+	"--" UnaryExpression() |
+	LOOKAHEAD(3) UnaryOperator() CastExpression() |
+	<SIZEOF> (
+		LOOKAHEAD( "(" TypeName() ")" ) "(" TypeName() ")" |
+		UnaryExpression()
+	) |
+	PostfixExpression()
 }
 
 /** \u5358\u9805\u6f14\u7b97\u5b50 */
@@ -641,12 +668,17 @@ void UnaryOperator() : {}
 /** \u5f8c\u7f6e\u6f14\u7b97\u5f0f */
 void PostfixExpression() : {}
 {
-	PrimaryExpression() ( "[" Expression() "]" |
-	                      "(" [ LOOKAHEAD(ArgumentExpressionList() ) ArgumentExpressionList() ] ")" |
-	  					  "." <IDENTIFIER> |
-	  					  "->" <IDENTIFIER> |
-	  					  "++" |
-	  					  "--" )*
+	LOOKAHEAD(3) PrimaryExpression()
+	(	LOOKAHEAD(2) (
+			"[" Expression() "]" |
+			"(" ( ArgumentExpressionList() )? ")" |
+			"." <IDENTIFIER> |
+			"->" <IDENTIFIER> |
+			"++" |
+			"--"
+		)
+	)* |
+	TypeSpecifier() "(" ( ArgumentExpressionList() )? ")"
 }
 
 /** \u512a\u5148\u6f14\u7b97\u5f0f */
@@ -661,7 +693,8 @@ void PrimaryExpression() : {}
 /** \u5f15\u6570\u5f0f\u30ea\u30b9\u30c8 */
 void ArgumentExpressionList() : {}
 {
-	AssignmentExpression() ( "," AssignmentExpression() )*
+	AssignmentExpression()
+	( "," AssignmentExpression() )*
 }
 
 /** \u5b9a\u6570 */

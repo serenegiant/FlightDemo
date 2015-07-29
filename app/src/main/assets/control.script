@@ -1,23 +1,35 @@
+int k = 1;
+float f = 1.2345f;
+
+void wait_secs(int secs, float dummy) {
+	for (int i = 0; i < secs; i++) {
+		wait(1000);
+	}
+}
+
 void main() {
-	// 今のパーサーは定数や変数の定義は最初にないとダメ
 	const static int max_loop = 5;
-	int i = 0;
 	//
 	take_off();
-	wait(2000);
-	for (int i = 0; i < max_loop; i++) {
-		move(0, 50, 0, 0, 0, 1000);
-		wait(300);
-		move(0, 0, 50, 0, 0, 1000);
-		wait(300);
-		move(0, 0, 0, 50, 0, 1000);
-		wait(300);
-		move(0, -50, 0, 0, 0, 1000);
-		wait(300);
-		move(0, 0, -50, 0, 0, 1000);
-		wait(300);
-		move(0, 0, 0, -50, 0, 1000);
-		wait(300);
+	wait_secs(2, f);
+	int j = 1;
+	if (k >= 1) {
+		for (int i = 0; i < max_loop; i++) {
+			move(0, 50, 0, 0, 0, 1000);
+			wait(300);
+			move(0, 0, 50, 0, 0, 1000);
+			wait(300);
+			move(0, 0, 0, 50, 0, 1000);
+			wait(300);
+			move(0, -50, 0, 0, 0, 1000);
+			wait(300);
+			move(0, 0, -50, 0, 0, 1000);
+			wait(300);
+			move(0, 0, 0, -50, 0, 1000);
+			wait(300);
+		}
+		j = (int)f;
+		k = k << 1;
 	}
 	landing();
 }
