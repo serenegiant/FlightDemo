@@ -298,6 +298,7 @@ void StructDeclaratorList() : {}
 void StructDeclarator() : {}
 {
 	( LOOKAHEAD(3) Declarator() | [ Declarator() ] ":" ConstantExpression() )
+//	( Declarator() [ ":" ConstantExpression() ] | ":" ConstantExpression() )	// ビットフィールドアクセス時のエラー修正?
 }
 
 /** 初期化付き宣言リスト */
@@ -392,7 +393,7 @@ void ParameterTypeList() : {}
 	ParameterList() ["," "..." ]
 }
 
-/** パラメータリスト */
+/** パラメータ宣言リスト */
 void ParameterList() : {}
 {
 	ParameterDeclaration() (LOOKAHEAD(2) "," ParameterDeclaration())*
@@ -414,18 +415,18 @@ void IdentifierList() : {}
 	<IDENTIFIER> ("," <IDENTIFIER>)*
 }
 
-/** イニシャライザ */
-void Initializer() : {}
-{
-	"{" InitializerList() [","] "}" |
-	AssignmentExpression()
-}
-
 /** イニシャライザリスト */
 void InitializerList() : {}
 {
 	Initializer()
 	(	LOOKAHEAD(2) "," Initializer() )*
+}
+
+/** イニシャライザ */
+void Initializer() : {}
+{
+	"{" InitializerList() [","] "}" |
+	AssignmentExpression()
 }
 
 /** 型名 */
@@ -443,8 +444,8 @@ void AbstractDeclarator() : {}
 void DirectAbstractDeclarator() : {}
 {
 	(	LOOKAHEAD(2) "(" AbstractDeclarator() ")" |
-	               "[" [ConstantExpression()] "]" |
-	               "(" [ParameterTypeList()] ")"
+		"[" [ConstantExpression()] "]" |
+		"(" [ParameterTypeList()] ")"
 	)
 	(	"[" [ ConstantExpression() ] "]" | "(" [ ParameterTypeList() ] ")"
 	)*
@@ -459,7 +460,7 @@ void TypedefName() : {}
 /** 命令文リスト */
 void StatementList() : {}
 {
-	( LOOKAHEAD(Statement()) Statement() )+
+	(	LOOKAHEAD(Statement()) Statement() )+
 }
 
 /** 命令文 */
@@ -529,11 +530,8 @@ void Expression() : {}
 /**  代入式 */
 void AssignmentExpression() : {}
 {
-//	LOOKAHEAD(UnaryExpression() AssignmentOperator()) UnaryExpression() AssignmentOperator() AssignmentExpression() |
-//	LOOKAHEAD(3) ConditionalExpression()
 	ConditionalExpression()
-	(
-		AssignmentOperator()
+	(	AssignmentOperator()
 		AssignmentExpression()
 	)?
 }
@@ -548,7 +546,7 @@ void AssignmentOperator() : {}
 void ConditionalExpression() : {}
 {
 	LogicalORExpression()
-	( "?" ConditionalExpression() ":" ConditionalExpression() )
+	(	"?" ConditionalExpression() ":" ConditionalExpression() )?
 }
 
 /** 定数式 */
@@ -561,70 +559,70 @@ void ConstantExpression() : {}
 void LogicalORExpression() : {}
 {
 	LogicalANDExpression()
-	( "||" LogicalANDExpression() )*
+	(	"||" LogicalANDExpression() )*
 }
 
 /** 論理積式 */
 void LogicalANDExpression() : {}
 {
 	InclusiveORExpression()
-	( "&&" InclusiveORExpression() )*
+	(	"&&" InclusiveORExpression() )*
 }
 
 /** ビット論理和式 */
 void InclusiveORExpression() : {}
 {
 	ExclusiveORExpression()
-	( "|" ExclusiveORExpression() )*
+	(	"|" ExclusiveORExpression() )*
 }
 
 /** 排他的ビット論理和 */
 void ExclusiveORExpression() : {}
 {
 	ANDExpression()
-	( "^" ANDExpression() )*
+	(	"^" ANDExpression() )*
 }
 
 /** ビット論理積式 */
 void ANDExpression() : {}
 {
 	EqualityExpression()
-	( LOOKAHEAD(2) "&" EqualityExpression() )*
+	(	LOOKAHEAD(2) "&" EqualityExpression() )*
 }
 
 /** 比較演算式 */
 void EqualityExpression() : {}
 {
 	RelationalExpression()
-	( ( "==" | "!=" ) RelationalExpression() )*
+	(	( "==" | "!=" ) RelationalExpression() )*
 }
 
 /** 比較演算式 */
 void RelationalExpression() : {}
 {
 	ShiftExpression()
-	( LOOKAHEAD(2) ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
+	(	LOOKAHEAD(2) ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
 }
 
 /** シフト演算式 */
 void ShiftExpression() : {}
 {
 	AdditiveExpression()
-	( ( "<<" | ">>" ) AdditiveExpression() )*
+	(	( "<<" | ">>" ) AdditiveExpression() )*
 }
 
 /** 算術和/算術差式 */
 void AdditiveExpression() : {}
 {
 	MultiplicativeExpression()
-	( LOOKAHEAD(2) ( "+" | "-" ) MultiplicativeExpression() )*
+	(	LOOKAHEAD(2) ( "+" | "-" ) MultiplicativeExpression() )*
 }
 
 /** 算術除積式 */
 void MultiplicativeExpression() : {}
 {
 	PmExpression()
-	( LOOKAHEAD(2) ( "*" | "/" | "%" ) PmExpression() )*
+	(	LOOKAHEAD(2) ( "*" | "/" | "%" ) PmExpression() )*
 }
 
 /** ポインタ参照式 */
@@ -691,7 +689,7 @@ void PrimaryExpression() : {}
 void ArgumentExpressionList() : {}
 {
 	AssignmentExpression()
-	( "," AssignmentExpression() )*
+	(	"," AssignmentExpression() )*
 }
 
 /** 定数 */

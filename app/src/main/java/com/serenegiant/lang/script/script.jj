@@ -302,6 +302,7 @@ void StructDeclaratorList() : {}
 void StructDeclarator() : {}
 {
 	( LOOKAHEAD(3) Declarator() | [ Declarator() ] ":" ConstantExpression() )
+//	( Declarator() [ ":" ConstantExpression() ] | ":" ConstantExpression() )	// \u30d3\u30c3\u30c8\u30d5\u30a3\u30fc\u30eb\u30c9\u30a2\u30af\u30bb\u30b9\u6642\u306e\u30a8\u30e9\u30fc\u4fee\u6b63?
 }
 
 /** \u521d\u671f\u5316\u4ed8\u304d\u5ba3\u8a00\u30ea\u30b9\u30c8 */
@@ -396,7 +397,7 @@ void ParameterTypeList() : {}
 	ParameterList() ["," "..." ]
 }
 
-/** \u30d1\u30e9\u30e1\u30fc\u30bf\u30ea\u30b9\u30c8 */
+/** \u30d1\u30e9\u30e1\u30fc\u30bf\u5ba3\u8a00\u30ea\u30b9\u30c8 */
 void ParameterList() : {}
 {
 	ParameterDeclaration() (LOOKAHEAD(2) "," ParameterDeclaration())*
@@ -418,18 +419,18 @@ void IdentifierList() : {}
 	<IDENTIFIER> ("," <IDENTIFIER>)*
 }
 
-/** \u30a4\u30cb\u30b7\u30e3\u30e9\u30a4\u30b6 */
-void Initializer() : {}
-{
-	"{" InitializerList() [","] "}" |
-	AssignmentExpression()
-}
-
 /** \u30a4\u30cb\u30b7\u30e3\u30e9\u30a4\u30b6\u30ea\u30b9\u30c8 */
 void InitializerList() : {}
 {
 	Initializer()
 	(	LOOKAHEAD(2) "," Initializer() )*
+}
+
+/** \u30a4\u30cb\u30b7\u30e3\u30e9\u30a4\u30b6 */
+void Initializer() : {}
+{
+	"{" InitializerList() [","] "}" |
+	AssignmentExpression()
 }
 
 /** \u578b\u540d */
@@ -447,8 +448,8 @@ void AbstractDeclarator() : {}
 void DirectAbstractDeclarator() : {}
 {
 	(	LOOKAHEAD(2) "(" AbstractDeclarator() ")" |
-	               "[" [ConstantExpression()] "]" |
-	               "(" [ParameterTypeList()] ")"
+		"[" [ConstantExpression()] "]" |
+		"(" [ParameterTypeList()] ")"
 	)
 	(	"[" [ ConstantExpression() ] "]" | "(" [ ParameterTypeList() ] ")"
 	)*
@@ -463,7 +464,7 @@ void TypedefName() : {}
 /** \u547d\u4ee4\u6587\u30ea\u30b9\u30c8 */
 void StatementList() : {}
 {
-	( LOOKAHEAD(Statement()) Statement() )+
+	(	LOOKAHEAD(Statement()) Statement() )+
 }
 
 /** \u547d\u4ee4\u6587 */
@@ -533,11 +534,8 @@ void Expression() : {}
 /**  \u4ee3\u5165\u5f0f */
 void AssignmentExpression() : {}
 {
-//	LOOKAHEAD(UnaryExpression() AssignmentOperator()) UnaryExpression() AssignmentOperator() AssignmentExpression() |
-//	LOOKAHEAD(3) ConditionalExpression()
 	ConditionalExpression()
-	(
-		AssignmentOperator()
+	(	AssignmentOperator()
 		AssignmentExpression()
 	)?
 }
@@ -552,7 +550,7 @@ void AssignmentOperator() : {}
 void ConditionalExpression() : {}
 {
 	LogicalORExpression()
-	( "?" ConditionalExpression() ":" ConditionalExpression() )
+	(	"?" ConditionalExpression() ":" ConditionalExpression() )?
 }
 
 /** \u5b9a\u6570\u5f0f */
@@ -565,70 +563,70 @@ void ConstantExpression() : {}
 void LogicalORExpression() : {}
 {
 	LogicalANDExpression()
-	( "||" LogicalANDExpression() )*
+	(	"||" LogicalANDExpression() )*
 }
 
 /** \u8ad6\u7406\u7a4d\u5f0f */
 void LogicalANDExpression() : {}
 {
 	InclusiveORExpression()
-	( "&&" InclusiveORExpression() )*
+	(	"&&" InclusiveORExpression() )*
 }
 
 /** \u30d3\u30c3\u30c8\u8ad6\u7406\u548c\u5f0f */
 void InclusiveORExpression() : {}
 {
 	ExclusiveORExpression()
-	( "|" ExclusiveORExpression() )*
+	(	"|" ExclusiveORExpression() )*
 }
 
 /** \u6392\u4ed6\u7684\u30d3\u30c3\u30c8\u8ad6\u7406\u548c */
 void ExclusiveORExpression() : {}
 {
 	ANDExpression()
-	( "^" ANDExpression() )*
+	(	"^" ANDExpression() )*
 }
 
 /** \u30d3\u30c3\u30c8\u8ad6\u7406\u7a4d\u5f0f */
 void ANDExpression() : {}
 {
 	EqualityExpression()
-	( LOOKAHEAD(2) "&" EqualityExpression() )*
+	(	LOOKAHEAD(2) "&" EqualityExpression() )*
 }
 
 /** \u6bd4\u8f03\u6f14\u7b97\u5f0f */
 void EqualityExpression() : {}
 {
 	RelationalExpression()
-	( ( "==" | "!=" ) RelationalExpression() )*
+	(	( "==" | "!=" ) RelationalExpression() )*
 }
 
 /** \u6bd4\u8f03\u6f14\u7b97\u5f0f */
 void RelationalExpression() : {}
 {
 	ShiftExpression()
-	( LOOKAHEAD(2) ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
+	(	LOOKAHEAD(2) ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
 }
 
 /** \u30b7\u30d5\u30c8\u6f14\u7b97\u5f0f */
 void ShiftExpression() : {}
 {
 	AdditiveExpression()
-	( ( "<<" | ">>" ) AdditiveExpression() )*
+	(	( "<<" | ">>" ) AdditiveExpression() )*
 }
 
 /** \u7b97\u8853\u548c/\u7b97\u8853\u5dee\u5f0f */
 void AdditiveExpression() : {}
 {
 	MultiplicativeExpression()
-	( LOOKAHEAD(2) ( "+" | "-" ) MultiplicativeExpression() )*
+	(	LOOKAHEAD(2) ( "+" | "-" ) MultiplicativeExpression() )*
 }
 
 /** \u7b97\u8853\u9664\u7a4d\u5f0f */
 void MultiplicativeExpression() : {}
 {
 	PmExpression()
-	( LOOKAHEAD(2) ( "*" | "/" | "%" ) PmExpression() )*
+	(	LOOKAHEAD(2) ( "*" | "/" | "%" ) PmExpression() )*
 }
 
 /** \u30dd\u30a4\u30f3\u30bf\u53c2\u7167\u5f0f */
@@ -695,7 +693,7 @@ void PrimaryExpression() : {}
 void ArgumentExpressionList() : {}
 {
 	AssignmentExpression()
-	( "," AssignmentExpression() )*
+	(	"," AssignmentExpression() )*
 }
 
 /** \u5b9a\u6570 */
