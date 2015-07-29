@@ -1,0 +1,23 @@
+void main() {
+	// 今のパーサーは定数や変数の定義は最初にないとダメ
+	const static int max_loop = 5;
+	int i = 0;
+	//
+	take_off();
+	wait(2000);
+	for (i = 0; i < max_loop; i++) {
+		move(0, 50, 0, 0, 0, 1000);
+		wait(300);
+		move(0, 0, 50, 0, 0, 1000);
+		wait(300);
+		move(0, 0, 0, 50, 0, 1000);
+		wait(300);
+		move(0, -50, 0, 0, 0, 1000);
+		wait(300);
+		move(0, 0, -50, 0, 0, 1000);
+		wait(300);
+		move(0, 0, 0, -50, 0, 1000);
+		wait(300);
+	}
+	landing();
+}
