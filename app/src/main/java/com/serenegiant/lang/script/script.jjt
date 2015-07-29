@@ -197,8 +197,10 @@ void TranslationUnit() : {}
 /** 外部宣言 */
 void ExternalDeclaration() : {}
 {
+	// 関数宣言または宣言
 	(	LOOKAHEAD( FunctionDefinition() ) FunctionDefinition() |
-		Declaration()
+		Declaration() |
+		";"
 	)
 }
 
@@ -212,7 +214,7 @@ void FunctionDefinition() : {}
 /** 宣言 */
 void Declaration() : {}
 {
-	DeclarationSpecifiers() [ InitDeclaratorList() ] ";"
+	DeclarationSpecifiers() ( InitDeclaratorList() )? ";"
 }
 
 /** 宣言の種類(型)リスト */
@@ -321,10 +323,8 @@ void InitDeclarator() : {}
 /** アクセス指定子 */
 void SpecifierQualifierList() : {}
 {
-	TypeSpecifier() [ LOOKAHEAD(SpecifierQualifierList())
-		SpecifierQualifierList() ] |
-	TypeQualifier() [ LOOKAHEAD(SpecifierQualifierList())
-		SpecifierQualifierList() ]
+	TypeSpecifier() [ LOOKAHEAD(SpecifierQualifierList()) SpecifierQualifierList() ] |
+	TypeQualifier() [ LOOKAHEAD(SpecifierQualifierList()) SpecifierQualifierList() ]
 }
 
 /** 列挙型 */
@@ -354,6 +354,7 @@ void Declarator() : {}
 /** 直接宣言子 */
 void DirectDeclarator() : { Token t;}
 {
+	// 識別子または関数呼び出し
 	(	t = <IDENTIFIER>
 		{
 			if(!(typedefParsingStack.empty()) && ((Boolean)typedefParsingStack.peek()).booleanValue()) {
@@ -400,7 +401,11 @@ void ParameterList() : {}
 /** パラメータ宣言 */
 void ParameterDeclaration() : {}
 {
-	DeclarationSpecifiers() ( LOOKAHEAD(Declarator()) Declarator() | [ AbstractDeclarator() ] )
+	DeclarationSpecifiers()
+	(	LOOKAHEAD(Declarator()) Declarator() |
+		AbstractDeclarator()
+	)
+	(	"=" AssignmentExpression() )?
 }
 
 /** 識別子リスト */
@@ -412,15 +417,15 @@ void IdentifierList() : {}
 /** イニシャライザ */
 void Initializer() : {}
 {
-	(	AssignmentExpression() |
-		"{" InitializerList() [","] "}"
-	)
+	"{" InitializerList() [","] "}" |
+	AssignmentExpression()
 }
 
 /** イニシャライザリスト */
 void InitializerList() : {}
 {
-	Initializer() (LOOKAHEAD(2) "," Initializer())*
+	Initializer()
+	(	LOOKAHEAD(2) "," Initializer() )*
 }
 
 /** 型名 */
@@ -431,18 +436,18 @@ void TypeName() : {}
 
 void AbstractDeclarator() : {}
 {
-	( LOOKAHEAD(3) Pointer() |
-		[Pointer()] DirectAbstractDeclarator()
-	)
+	LOOKAHEAD(3) Pointer() |
+	[ Pointer() ] DirectAbstractDeclarator()
 }
 
 void DirectAbstractDeclarator() : {}
 {
-	( LOOKAHEAD(2) "(" AbstractDeclarator() ")" |
+	(	LOOKAHEAD(2) "(" AbstractDeclarator() ")" |
 	               "[" [ConstantExpression()] "]" |
-	               "(" [ParameterTypeList()] ")" )
-
-	  ( "[" [ ConstantExpression() ] "]" | "(" [ ParameterTypeList() ] ")" )*
+	               "(" [ParameterTypeList()] ")"
+	)
+	(	"[" [ ConstantExpression() ] "]" | "(" [ ParameterTypeList() ] ")"
+	)*
 }
 
 /** typedef名 */
@@ -451,15 +456,23 @@ void TypedefName() : {}
 	<IDENTIFIER>
 }
 
+/** 命令文リスト */
+void StatementList() : {}
+{
+	( LOOKAHEAD(Statement()) Statement() )+
+}
+
 /** 命令文 */
 void Statement() : {}
 {
-	( LOOKAHEAD(2) LabeledStatement() |
-	  ExpressionStatement() |
-	  CompoundStatement() |
-	  SelectionStatement() |
-	  IterationStatement() |
-	  JumpStatement() )
+	LOOKAHEAD( Declaration() ) Declaration() |
+	LOOKAHEAD( Expression() ";" ) Expression() ";" |
+	CompoundStatement() |
+	SelectionStatement() |
+	JumpStatement() |
+	";" |
+	LOOKAHEAD(2) LabeledStatement() |
+	IterationStatement()
 }
 
 /** ラベル命令: */
@@ -471,24 +484,12 @@ void LabeledStatement() : {}
 	)
 }
 
-/** 演算命令文 */
-void ExpressionStatement() : {}
-{
-	[ Expression() ] ";"
-}
-
-/** 命令文 */
+/** 複命令文 */
 void CompoundStatement() : {}
 {
-	"{" [ LOOKAHEAD(DeclarationList()) DeclarationList() ]
-	    [ StatementList() ]
+	"{"
+    (	StatementList() )?
 	"}"
-}
-
-/** 命令文リスト */
-void StatementList() : {}
-{
-	(Statement())+
 }
 
 /** 選択命令文 */
@@ -504,7 +505,8 @@ void IterationStatement() : {}
 {
 	(	<WHILE> "(" Expression() ")" Statement() |
 		<DO> Statement() <WHILE> "(" Expression() ")" ";" |
-		<FOR> "(" [ Expression() ] ";" [ Expression() ] ";" [ Expression() ] ")" Statement()
+		<FOR> "(" ( LOOKAHEAD(3) Declaration() | Expression() ";" | ";")
+			( Expression() )? ";" ( Expression() )? ")" Statement()
 	)
 }
 
@@ -514,21 +516,26 @@ void JumpStatement() : {}
 	(	<GOTO> <IDENTIFIER> ";" |
 		<CONTINUE> ";" |
 		<BREAK> ";" |
-		<RETURN> [ Expression() ] ";"
+		<RETURN> ( Expression() )? ";"
 	)
 }
 
 /** 式 */
 void Expression() : {}
 {
-	AssignmentExpression() ( "," AssignmentExpression() )*
+	AssignmentExpression() ( LOOKAHEAD(2) "," AssignmentExpression() )*
 }
 
 /**  代入式 */
 void AssignmentExpression() : {}
 {
-	LOOKAHEAD(UnaryExpression() AssignmentOperator()) UnaryExpression() AssignmentOperator() AssignmentExpression() |
-	LOOKAHEAD(3) ConditionalExpression()
+//	LOOKAHEAD(UnaryExpression() AssignmentOperator()) UnaryExpression() AssignmentOperator() AssignmentExpression() |
+//	LOOKAHEAD(3) ConditionalExpression()
+	ConditionalExpression()
+	(
+		AssignmentOperator()
+		AssignmentExpression()
+	)?
 }
 
 /** 代入演算子 */
@@ -540,7 +547,8 @@ void AssignmentOperator() : {}
 /** 比較演算式 */
 void ConditionalExpression() : {}
 {
-	LogicalORExpression() [ "?" Expression() ":" ConditionalExpression() ]
+	LogicalORExpression()
+	( "?" ConditionalExpression() ":" ConditionalExpression() )
 }
 
 /** 定数式 */
@@ -552,79 +560,100 @@ void ConstantExpression() : {}
 /** 論理和式 */
 void LogicalORExpression() : {}
 {
-	LogicalANDExpression() [ "||" LogicalORExpression() ]
+	LogicalANDExpression()
+	( "||" LogicalANDExpression() )*
 }
 
 /** 論理積式 */
 void LogicalANDExpression() : {}
 {
-	InclusiveORExpression() [ "&&" LogicalANDExpression() ]
+	InclusiveORExpression()
+	( "&&" InclusiveORExpression() )*
 }
 
 /** ビット論理和式 */
 void InclusiveORExpression() : {}
 {
-	ExclusiveORExpression() [ "|" InclusiveORExpression() ]
+	ExclusiveORExpression()
+	( "|" ExclusiveORExpression() )*
 }
 
 /** 排他的ビット論理和 */
 void ExclusiveORExpression() : {}
 {
-	ANDExpression() [ "^" ExclusiveORExpression() ]
+	ANDExpression()
+	( "^" ANDExpression() )*
 }
 
 /** ビット論理積式 */
 void ANDExpression() : {}
 {
-	EqualityExpression() [ "&" ANDExpression() ]
+	EqualityExpression()
+	( LOOKAHEAD(2) "&" EqualityExpression() )*
 }
 
 /** 比較演算式 */
 void EqualityExpression() : {}
 {
-	RelationalExpression() [ ( "==" | "!=" ) EqualityExpression() ]
+	RelationalExpression()
+	( ( "==" | "!=" ) RelationalExpression() )*
 }
 
 /** 比較演算式 */
 void RelationalExpression() : {}
 {
-	ShiftExpression() [ ( "<" | ">" | "<=" | ">=" ) RelationalExpression() ]
+	ShiftExpression()
+	( LOOKAHEAD(2) ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
 }
 
 /** シフト演算式 */
 void ShiftExpression() : {}
 {
-	AdditiveExpression() [ ( "<<" | ">>" ) ShiftExpression() ]
+	AdditiveExpression()
+	( ( "<<" | ">>" ) AdditiveExpression() )*
 }
 
 /** 算術和/算術差式 */
 void AdditiveExpression() : {}
 {
-	MultiplicativeExpression() [ ( "+" | "-" ) AdditiveExpression() ]
+	MultiplicativeExpression()
+	( LOOKAHEAD(2) ( "+" | "-" ) MultiplicativeExpression() )*
 }
 
 /** 算術除積式 */
 void MultiplicativeExpression() : {}
 {
-	CastExpression() [ ( "*" | "/" | "%" ) MultiplicativeExpression() ]
+	PmExpression()
+	( LOOKAHEAD(2) ( "*" | "/" | "%" ) PmExpression() )*
+}
+
+/** ポインタ参照式 */
+void PmExpression() : {}
+{
+    CastExpression()
+    (	( ".*" | "->*" )
+    	CastExpression()
+    )*
 }
 
 /** キャスト演算式 */
 void CastExpression() : {}
 {
-	( LOOKAHEAD("(" TypeName() ")" CastExpression() ) "(" TypeName() ")" CastExpression() |
-	  UnaryExpression() )
+	LOOKAHEAD( "(" TypeName() ")" ) "(" TypeName() ")" CastExpression() |
+	UnaryExpression()
 }
 
 /** 単項演算式 */
 void UnaryExpression() : {}
 {
-	( LOOKAHEAD(3) PostfixExpression() |
-		"++" UnaryExpression() |
-		"--" UnaryExpression() |
-		UnaryOperator() CastExpression() |
-		<SIZEOF> ( LOOKAHEAD(UnaryExpression() ) UnaryExpression() | "(" TypeName() ")" )
-	)
+	"++" UnaryExpression() |
+	"--" UnaryExpression() |
+	LOOKAHEAD(3) UnaryOperator() CastExpression() |
+	<SIZEOF> (
+		LOOKAHEAD( "(" TypeName() ")" ) "(" TypeName() ")" |
+		UnaryExpression()
+	) |
+	PostfixExpression()
 }
 
 /** 単項演算子 */
@@ -636,12 +665,17 @@ void UnaryOperator() : {}
 /** 後置演算式 */
 void PostfixExpression() : {}
 {
-	PrimaryExpression() ( "[" Expression() "]" |
-	                      "(" [ LOOKAHEAD(ArgumentExpressionList() ) ArgumentExpressionList() ] ")" |
-	  					  "." <IDENTIFIER> |
-	  					  "->" <IDENTIFIER> |
-	  					  "++" |
-	  					  "--" )*
+	LOOKAHEAD(3) PrimaryExpression()
+	(	LOOKAHEAD(2) (
+			"[" Expression() "]" |
+			"(" ( ArgumentExpressionList() )? ")" |
+			"." <IDENTIFIER> |
+			"->" <IDENTIFIER> |
+			"++" |
+			"--"
+		)
+	)* |
+	TypeSpecifier() "(" ( ArgumentExpressionList() )? ")"
 }
 
 /** 優先演算式 */
@@ -656,7 +690,8 @@ void PrimaryExpression() : {}
 /** 引数式リスト */
 void ArgumentExpressionList() : {}
 {
-	AssignmentExpression() ( "," AssignmentExpression() )*
+	AssignmentExpression()
+	( "," AssignmentExpression() )*
 }
 
 /** 定数 */
