@@ -504,7 +504,8 @@ void IterationStatement() : {}
 {
 	(	<WHILE> "(" Expression() ")" Statement() |
 		<DO> Statement() <WHILE> "(" Expression() ")" ";" |
-		<FOR> "(" [ Expression() ] ";" [ Expression() ] ";" [ Expression() ] ")" Statement()
+		<FOR> "(" ( LOOKAHEAD(3) Declaration() | Expression() ";" | ";")
+			( Expression() )? ";" ( Expression() )? ")" Statement()
 	)
 }
 
