@@ -7,7 +7,7 @@ public class SimpleNode implements Node {
 	protected Node parent;
 	protected Node[] children;
 	protected int id;
-	protected Object value;
+	protected String value;
 	protected ScriptParser parser;
 
 	public SimpleNode(int i) {
@@ -52,12 +52,36 @@ public class SimpleNode implements Node {
 		return (children == null) ? 0 : children.length;
 	}
 
-	public void jjtSetValue(Object value) {
+	public void jjtSetValue(String value) {
 		this.value = value;
 	}
 
-	public Object jjtGetValue() {
+	public String jjtGetValue() {
 		return value;
+	}
+
+	public int jjtGetAsInt() throws NumberFormatException {
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			try {
+				return (int)Double.parseDouble(value);
+			} catch (NumberFormatException e1) {
+				throw e1;
+			}
+		}
+	}
+
+	public float jjtGetAsFloat() throws NumberFormatException {
+		try {
+			return Float.parseFloat(value);
+		} catch (NumberFormatException e) {
+			try {
+				return (float)Double.parseDouble(value);
+			} catch (NumberFormatException e1) {
+				throw e1;
+			}
+		}
 	}
 
 	/**
@@ -67,9 +91,21 @@ public class SimpleNode implements Node {
 		return visitor.visit(this, data);
 	}
 
-	@Override
-	public void interpret() {
-		throw new UnsupportedOperationException("これが呼び出されるのはよくない");
+	public float jjtAcceptAsFloat(ScriptParserVisitor visitor, Object data) {
+		return ((Number)visitor.visit(this, data)).floatValue();
+	}
+
+	public int jjtAcceptAsInt(ScriptParserVisitor visitor, Object data) {
+		return ((Number)visitor.visit(this, data)).intValue();
+	}
+
+	public boolean jjtAcceptAsBool(ScriptParserVisitor visitor, Object data) {
+		Object v = visitor.visit(this, data);
+		if (v instanceof Boolean) {
+			return (boolean) v;
+		} else {
+			return ((Number)v).floatValue() != 0;
+		}
 	}
 
 	/**

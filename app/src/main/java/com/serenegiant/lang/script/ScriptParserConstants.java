@@ -96,6 +96,86 @@ public interface ScriptParserConstants {
   int LETTER = 53;
   /** RegularExpression Id. */
   int DIGIT = 54;
+  /** RegularExpression Id. */
+  int COMMA = 55;
+  /** RegularExpression Id. */
+  int QUESTION = 56;
+  /** RegularExpression Id. */
+  int ELLIPSIS = 57;
+  /** RegularExpression Id. */
+  int ASSIGN_EQ = 58;
+  /** RegularExpression Id. */
+  int MULT_EQ = 59;
+  /** RegularExpression Id. */
+  int DIV_EQ = 60;
+  /** RegularExpression Id. */
+  int MOD_EQ = 61;
+  /** RegularExpression Id. */
+  int PLUS_EQ = 62;
+  /** RegularExpression Id. */
+  int MINUS_EQ = 63;
+  /** RegularExpression Id. */
+  int SHIFT_LEFT_EQ = 64;
+  /** RegularExpression Id. */
+  int SHIFT_RIGHT_EQ = 65;
+  /** RegularExpression Id. */
+  int BIT_AND_EQ = 66;
+  /** RegularExpression Id. */
+  int BIT_XOR_EQ = 67;
+  /** RegularExpression Id. */
+  int BIT_OR_EQ = 68;
+  /** RegularExpression Id. */
+  int OR = 69;
+  /** RegularExpression Id. */
+  int AND = 70;
+  /** RegularExpression Id. */
+  int BIT_OR = 71;
+  /** RegularExpression Id. */
+  int BIT_XOR = 72;
+  /** RegularExpression Id. */
+  int AMPERSAND = 73;
+  /** RegularExpression Id. */
+  int EQ = 74;
+  /** RegularExpression Id. */
+  int NOT_EQ = 75;
+  /** RegularExpression Id. */
+  int LT = 76;
+  /** RegularExpression Id. */
+  int GT = 77;
+  /** RegularExpression Id. */
+  int LTE = 78;
+  /** RegularExpression Id. */
+  int GTE = 79;
+  /** RegularExpression Id. */
+  int SHIFT_LEFT = 80;
+  /** RegularExpression Id. */
+  int SHIFT_RIGHT = 81;
+  /** RegularExpression Id. */
+  int PLUS = 82;
+  /** RegularExpression Id. */
+  int MINUS = 83;
+  /** RegularExpression Id. */
+  int STAR = 84;
+  /** RegularExpression Id. */
+  int DIV = 85;
+  /** RegularExpression Id. */
+  int MOD = 86;
+  /** RegularExpression Id. */
+  int PLUSPLUS = 87;
+  /** RegularExpression Id. */
+  int MINUSMINUS = 88;
+  /** RegularExpression Id. */
+  int TILDE = 89;
+  /** RegularExpression Id. */
+  int NOT = 90;
+  /** RegularExpression Id. */
+  int DOT = 91;
+  /** RegularExpression Id. */
+  int POINTERTO = 92;
+  /** RegularExpression Id. */
+  int DOTSTAR = 93;
+  /** RegularExpression Id. */
+  int ARROWSTAR = 94;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -159,18 +239,10 @@ public interface ScriptParserConstants {
     "<IDENTIFIER>",
     "<LETTER>",
     "<DIGIT>",
-    "\";\"",
-    "\"{\"",
-    "\"}\"",
-    "\",\"",
     "\":\"",
-    "\"=\"",
-    "\"(\"",
-    "\")\"",
-    "\"[\"",
-    "\"]\"",
-    "\"*\"",
+    "\"?\"",
     "\"...\"",
+    "\"=\"",
     "\"*=\"",
     "\"/=\"",
     "\"%=\"",
@@ -181,7 +253,6 @@ public interface ScriptParserConstants {
     "\"&=\"",
     "\"^=\"",
     "\"|=\"",
-    "\"?\"",
     "\"||\"",
     "\"&&\"",
     "\"|\"",
@@ -197,16 +268,25 @@ public interface ScriptParserConstants {
     "\">>\"",
     "\"+\"",
     "\"-\"",
+    "\"*\"",
     "\"/\"",
     "\"%\"",
-    "\".*\"",
-    "\"->*\"",
     "\"++\"",
     "\"--\"",
     "\"~\"",
     "\"!\"",
     "\".\"",
     "\"->\"",
+    "\".*\"",
+    "\"->*\"",
+    "\";\"",
+    "\"{\"",
+    "\"}\"",
+    "\",\"",
+    "\"(\"",
+    "\")\"",
+    "\"[\"",
+    "\"]\"",
   };
 
 }

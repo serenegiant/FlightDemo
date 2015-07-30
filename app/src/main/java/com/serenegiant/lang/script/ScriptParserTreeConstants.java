@@ -3,11 +3,59 @@ package com.serenegiant.lang.script;
 
 public interface ScriptParserTreeConstants
 {
-  public int JJTVOID = 0;
+  public int JJTPARSE = 0;
+  public int JJTVOID = 1;
+  public int JJTCONDITIONAL = 2;
+  public int JJTCONSTANT = 3;
+  public int JJTLOGICALOR = 4;
+  public int JJTLOGICALAND = 5;
+  public int JJTINCLUSIVEOR = 6;
+  public int JJTEXCLUSIVEOR = 7;
+  public int JJTAND = 8;
+  public int JJTEQUALITY = 9;
+  public int JJTNOTEQUALITY = 10;
+  public int JJTRELATIONALLT = 11;
+  public int JJTRELATIONALGT = 12;
+  public int JJTRELATIONALLTE = 13;
+  public int JJTRELATIONALGTE = 14;
+  public int JJTSHIFTLEFT = 15;
+  public int JJTSHIFTRIGHT = 16;
+  public int JJTADDITIVEPLUS = 17;
+  public int JJTADDITIVEMINUS = 18;
+  public int JJTMULTIPLICATIVE = 19;
+  public int JJTIDENTIFIER = 20;
+  public int JJTINTEGERCONST = 21;
+  public int JJTFLOATCONST = 22;
+  public int JJTCHARCONST = 23;
+  public int JJTSTRINGCONST = 24;
 
 
   public String[] jjtNodeName = {
+    "Parse",
     "void",
+    "Conditional",
+    "Constant",
+    "LogicalOR",
+    "LogicalAND",
+    "InclusiveOR",
+    "ExclusiveOR",
+    "And",
+    "Equality",
+    "NotEquality",
+    "RelationalLT",
+    "RelationalGT",
+    "RelationalLTE",
+    "RelationalGTE",
+    "ShiftLeft",
+    "ShiftRight",
+    "AdditivePlus",
+    "AdditiveMinus",
+    "Multiplicative",
+    "Identifier",
+    "IntegerConst",
+    "FloatConst",
+    "CharConst",
+    "StringConst",
   };
 }
-/* JavaCC - OriginalChecksum=827eaa8e9634c5f303347f941014b54f (do not edit this line) */
+/* JavaCC - OriginalChecksum=1d5f5c6961229c9b9ee25b53e7e0954c (do not edit this line) */

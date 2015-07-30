@@ -118,7 +118,7 @@ public class MainActivity extends ActionBarActivity implements ARDiscoveryServic
 
 		try {
 			final ScriptParser parser = new ScriptParser(getResources().getAssets().open("control.script"));
-			parser.TranslationUnit();
+			parser.Parse();
 		} catch (IOException e) {
 			Log.w(TAG, e);
 		} catch (ParseException e) {

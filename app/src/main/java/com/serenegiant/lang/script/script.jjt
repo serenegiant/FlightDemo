@@ -182,15 +182,61 @@ TOKEN : {
 	<#DIGIT: ["0"-"9"]>
 }
 
+/** 演算子用のトークン */
+TOKEN :
+{
+	< COMMA: ":" > |
+	< QUESTION: "?" > |
+	< ELLIPSIS: "..." > |
+	< ASSIGN_EQ: "=" > |
+	< MULT_EQ: "*=" > |
+	< DIV_EQ: "/=" > |
+	< MOD_EQ: "%=" > |
+	< PLUS_EQ: "+=" > |
+	< MINUS_EQ: "-=" > |
+	< SHIFT_LEFT_EQ: "<<=" > |
+	< SHIFT_RIGHT_EQ: ">>=" > |
+	< BIT_AND_EQ: "&=" > |
+	< BIT_XOR_EQ: "^=" > |
+	< BIT_OR_EQ: "|=" > |
+	< OR: "||" > |
+	< AND: "&&" > |
+	< BIT_OR: "|" > |
+	< BIT_XOR: "^" > |
+	< AMPERSAND: "&" > |
+	< EQ: "==" > |
+	< NOT_EQ: "!=" > |
+	< LT: "<" > |
+	< GT: ">" > |
+	< LTE: "<=" > |
+	< GTE: ">=" > |
+	< SHIFT_LEFT: "<<" > |
+	< SHIFT_RIGHT: ">>" > |
+	< PLUS: "+" > |
+	< MINUS: "-" > |
+	< STAR: "*" > |
+	< DIV: "/" > |
+	< MOD: "%" > |
+	< PLUSPLUS: "++" > |
+	< MINUSMINUS: "--" > |
+	< TILDE: "~" > |
+	< NOT: "!" > |
+	< DOT: "." > |
+	< POINTERTO: "->" > |
+	< DOTSTAR: ".*" > |
+	< ARROWSTAR: "->*" >
+}
+
 /**************************************************
  * ここから下が文法(生成規則)
  **************************************************/
 /** これが解析のエントリポイント */
-void TranslationUnit() : {}
+ASTParse Parse() #Parse : {}
 {
 	(ExternalDeclaration())+
 	{	printTypes();
 		Log.i(TAG, "解析終了");
+		return jjtThis;
 	}
 }
 
@@ -249,7 +295,7 @@ void TypeSpecifier() : {}
 	)
 }
 
-/** 定数型 */
+/** 型修飾子 */
 void TypeQualifier() : {}
 {
 	( <CONST> | <VOLATILE> )
@@ -317,7 +363,7 @@ void InitDeclaratorList() : {}
 /** 初期化付き宣言 */
 void InitDeclarator() : {}
 {
-	Declarator() [ "=" Initializer() ]
+	Declarator() [ <ASSIGN_EQ> Initializer() ]
 	{ Log.v(TAG, "初期化付き宣言"); }
 }
 
@@ -343,7 +389,7 @@ void EnumeratorList() : {}
 /** 列挙型のアイテム１つ分 */
 void Enumerator() : {}
 {
-	<IDENTIFIER> [ "=" ConstantExpression() ]
+	<IDENTIFIER> [ <ASSIGN_EQ> ConstantExpression() ]
 }
 
 /** 宣言子 */
@@ -378,7 +424,7 @@ void DirectDeclarator() : { Token t;}
 /** ポインタ指定子 */
 void Pointer() : {}
 {
-	"*" [ TypeQualifierList() ] [ Pointer() ]
+	<STAR> [ TypeQualifierList() ] [ Pointer() ]
 }
 
 /** 型指定子 */
@@ -406,7 +452,7 @@ void ParameterDeclaration() : {}
 	(	LOOKAHEAD(Declarator()) Declarator() |
 		AbstractDeclarator()
 	)
-	(	"=" AssignmentExpression() )?
+	(	<ASSIGN_EQ> AssignmentExpression() )?
 }
 
 /** 識別子リスト */
@@ -539,103 +585,127 @@ void AssignmentExpression() : {}
 /** 代入演算子 */
 void AssignmentOperator() : {}
 {
-	( "=" | "*=" | "/=" | "%=" | "+=" | "-=" | "<<=" | ">>=" | "&=" | "^=" | "|=" )
+	(	<ASSIGN_EQ> |
+		<MULT_EQ> |
+		<DIV_EQ> |
+		<MOD_EQ> |
+		<PLUS_EQ> |
+		<MINUS_EQ> |
+		<SHIFT_LEFT_EQ> |
+		<SHIFT_RIGHT_EQ> |
+		<BIT_AND_EQ> |
+		<BIT_XOR_EQ> |
+		<BIT_OR_EQ> )
 }
 
 /** 比較演算式 */
 void ConditionalExpression() : {}
 {
 	LogicalORExpression()
-	(	"?" ConditionalExpression() ":" ConditionalExpression() )?
+	(	<QUESTION> ConditionalExpression() <COMMA> ConditionalExpression() #Conditional(3) )?
 }
 
 /** 定数式 */
 void ConstantExpression() : {}
 {
-	ConditionalExpression()
+	ConditionalExpression() #Constant(1)
 }
 
 /** 論理和式 */
 void LogicalORExpression() : {}
 {
 	LogicalANDExpression()
-	(	"||" LogicalANDExpression() )*
+	(	<OR> LogicalANDExpression() #LogicalOR(2) )*
 }
 
 /** 論理積式 */
 void LogicalANDExpression() : {}
 {
 	InclusiveORExpression()
-	(	"&&" InclusiveORExpression() )*
+	(	<AND> InclusiveORExpression() #LogicalAND(2) )*
 }
 
 /** ビット論理和式 */
 void InclusiveORExpression() : {}
 {
 	ExclusiveORExpression()
-	(	"|" ExclusiveORExpression() )*
+	(	<BIT_OR> ExclusiveORExpression() #InclusiveOR(2) )*
 }
 
 /** 排他的ビット論理和 */
 void ExclusiveORExpression() : {}
 {
 	ANDExpression()
-	(	"^" ANDExpression() )*
+	(	<BIT_XOR> ANDExpression() #ExclusiveOR(2) )*
 }
 
 /** ビット論理積式 */
 void ANDExpression() : {}
 {
 	EqualityExpression()
-	(	LOOKAHEAD(2) "&" EqualityExpression() )*
+	(	LOOKAHEAD(2) <AMPERSAND> EqualityExpression() #And(2) )*
 }
 
 /** 比較演算式 */
-void EqualityExpression() : {}
+void EqualityExpression() : { Token t; }
 {
 	RelationalExpression()
-	(	( "==" | "!=" ) RelationalExpression() )*
+	(	<EQ> RelationalExpression() #Equality(2) |
+		<NOT_EQ> RelationalExpression() #NotEquality(2)
+	)*
 }
 
 /** 比較演算式 */
-void RelationalExpression() : {}
+void RelationalExpression() : { Token t; }
 {
 	ShiftExpression()
-	(	LOOKAHEAD(2) ( "<" | ">" | "<=" | ">=" ) ShiftExpression() )*
+	(	LOOKAHEAD(2) (
+			<LT> ShiftExpression() #RelationalLT(2) |
+			<GT> ShiftExpression() #RelationalGT(2) |
+			<LTE> ShiftExpression() #RelationalLTE(2) |
+			<GTE> ShiftExpression() #RelationalGTE(2)
+		)
+	)*
 }
 
 /** シフト演算式 */
-void ShiftExpression() : {}
+void ShiftExpression() : { Token t; }
 {
 	AdditiveExpression()
-	(	( "<<" | ">>" ) AdditiveExpression() )*
+	(	<SHIFT_LEFT> AdditiveExpression() #ShiftLeft(2) |
+		<SHIFT_RIGHT> AdditiveExpression() #ShiftRight(2)
+	)*
 }
 
 /** 算術和/算術差式 */
-void AdditiveExpression() : {}
+void AdditiveExpression() : { Token t; }
 {
 	MultiplicativeExpression()
-	(	LOOKAHEAD(2) ( "+" | "-" ) MultiplicativeExpression() )*
+	(	LOOKAHEAD(2) (
+			t=<PLUS> MultiplicativeExpression() #AdditivePlus(2) |
+			t=<MINUS> MultiplicativeExpression() #AdditiveMinus(2)
+		)
+	)*
 }
 
 /** 算術除積式 */
-void MultiplicativeExpression() : {}
+void MultiplicativeExpression() : { Token t; }
 {
 	PmExpression()
-	(	LOOKAHEAD(2) ( "*" | "/" | "%" ) PmExpression() )*
+	(	LOOKAHEAD(2) ( <STAR> | <DIV> | <MOD> ) PmExpression() #Multiplicative(2) )*
 }
 
 /** ポインタ参照式 */
-void PmExpression() : {}
+void PmExpression() : { Token t; }
 {
     CastExpression()
-    (	( ".*" | "->*" )
+    (	( <DOTSTAR> | <ARROWSTAR> )
     	CastExpression()
     )*
 }
 
 /** キャスト演算式 */
-void CastExpression() : {}
+void CastExpression() : { Token t; }
 {
 	LOOKAHEAD( "(" TypeName() ")" ) "(" TypeName() ")" CastExpression() |
 	UnaryExpression()
@@ -644,8 +714,8 @@ void CastExpression() : {}
 /** 単項演算式 */
 void UnaryExpression() : {}
 {
-	"++" UnaryExpression() |
-	"--" UnaryExpression() |
+	<PLUSPLUS> UnaryExpression() |
+	<MINUSMINUS> UnaryExpression() |
 	LOOKAHEAD(3) UnaryOperator() CastExpression() |
 	<SIZEOF> (
 		LOOKAHEAD( "(" TypeName() ")" ) "(" TypeName() ")" |
@@ -655,22 +725,28 @@ void UnaryExpression() : {}
 }
 
 /** 単項演算子 */
-void UnaryOperator() : {}
+void UnaryOperator() : { Token t; }
 {
-	( "&" | "*" | "+" | "-" | "~" | "!" )
+	(	<AMPERSAND> |
+		<STAR> |
+		<PLUS> |
+		<MINUS> |
+		<TILDE> |
+		<NOT>
+	)
 }
 
 /** 後置演算式 */
-void PostfixExpression() : {}
+void PostfixExpression() : { Token t; }
 {
 	LOOKAHEAD(3) PrimaryExpression()
 	(	LOOKAHEAD(2) (
 			"[" Expression() "]" |
 			"(" ( ArgumentExpressionList() )? ")" |
 			"." <IDENTIFIER> |
-			"->" <IDENTIFIER> |
-			"++" |
-			"--"
+			<POINTERTO> <IDENTIFIER> |
+			<PLUSPLUS> |
+			<MINUSMINUS>
 		)
 	)* |
 	TypeSpecifier() "(" ( ArgumentExpressionList() )? ")"
@@ -692,11 +768,24 @@ void ArgumentExpressionList() : {}
 	(	"," AssignmentExpression() )*
 }
 
-/** 定数 */
-void Constant() : {}
+void Identifier() #Identifier : { Token t;}
 {
-	<INTEGER_LITERAL> |
-	<FLOATING_POINT_LITERAL> |
-	<CHARACTER_LITERAL> |
-	<STRING_LITERAL>
+	t=<IDENTIFIER> { jjtThis.setName(t.image); }
+}
+
+/** 定数 */
+void Constant() : { Token t; }
+{
+	t=<INTEGER_LITERAL> {
+		jjtThis.jjtSetValue(t.image);
+	} #IntegerConst |
+	t=<FLOATING_POINT_LITERAL> {
+		jjtThis.jjtSetValue(t.image);
+	} #FloatConst |
+	t=<CHARACTER_LITERAL> {
+		jjtThis.jjtSetValue(t.image);
+	} #CharConst |
+	t=<STRING_LITERAL> {
+		jjtThis.jjtSetValue(t.image);
+	} #StringConst
 }

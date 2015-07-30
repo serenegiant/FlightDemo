@@ -4,5 +4,29 @@ package com.serenegiant.lang.script;
 public interface ScriptParserVisitor
 {
   public Object visit(SimpleNode node, Object data);
+  public Object visit(ASTParse node, Object data);
+  public Object visit(ASTConditional node, Object data);
+  public Object visit(ASTConstant node, Object data);
+  public Object visit(ASTLogicalOR node, Object data);
+  public Object visit(ASTLogicalAND node, Object data);
+  public Object visit(ASTInclusiveOR node, Object data);
+  public Object visit(ASTExclusiveOR node, Object data);
+  public Object visit(ASTAnd node, Object data);
+  public Object visit(ASTEquality node, Object data);
+  public Object visit(ASTNotEquality node, Object data);
+  public Object visit(ASTRelationalLT node, Object data);
+  public Object visit(ASTRelationalGT node, Object data);
+  public Object visit(ASTRelationalLTE node, Object data);
+  public Object visit(ASTRelationalGTE node, Object data);
+  public Object visit(ASTShiftLeft node, Object data);
+  public Object visit(ASTShiftRight node, Object data);
+  public Object visit(ASTAdditivePlus node, Object data);
+  public Object visit(ASTAdditiveMinus node, Object data);
+  public Object visit(ASTMultiplicative node, Object data);
+  public Object visit(ASTIdentifier node, Object data);
+  public Object visit(ASTIntegerConst node, Object data);
+  public Object visit(ASTFloatConst node, Object data);
+  public Object visit(ASTCharConst node, Object data);
+  public Object visit(ASTStringConst node, Object data);
 }
-/* JavaCC - OriginalChecksum=5718c1b636e2254dbb0481868c5f4076 (do not edit this line) */
+/* JavaCC - OriginalChecksum=96792d77035819291c3ffdd1ebb00f51 (do not edit this line) */

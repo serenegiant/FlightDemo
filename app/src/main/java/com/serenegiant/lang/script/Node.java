@@ -37,8 +37,5 @@ interface Node {
 
   /** Accept the visitor. **/
   public Object jjtAccept(ScriptParserVisitor visitor, Object data);
-
-  /** Interpret method */
-  public void interpret();
 }
 /* JavaCC - OriginalChecksum=53e891f0b1bf6dbb9b34dcac26183e58 (do not edit this line) */
