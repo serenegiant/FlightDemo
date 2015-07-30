@@ -12,6 +12,9 @@ public class ScriptParserDefaultVisitor implements ScriptParserVisitor{
   public Object visit(ASTParse node, Object data){
     return defaultVisit(node, data);
   }
+  public Object visit(ASTCompoundStatement node, Object data){
+    return defaultVisit(node, data);
+  }
   public Object visit(ASTStatementIf node, Object data){
     return defaultVisit(node, data);
   }
@@ -24,6 +27,9 @@ public class ScriptParserDefaultVisitor implements ScriptParserVisitor{
   public Object visit(ASTStatementDoWhile node, Object data){
     return defaultVisit(node, data);
   }
+  public Object visit(ASTStatementFor node, Object data){
+    return defaultVisit(node, data);
+  }
   public Object visit(ASTForInitStatement node, Object data){
     return defaultVisit(node, data);
   }
@@ -31,6 +37,18 @@ public class ScriptParserDefaultVisitor implements ScriptParserVisitor{
     return defaultVisit(node, data);
   }
   public Object visit(ASTForUpdateStatement node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTStatementGoto node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTStatementContinue node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTStatementBreak node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTStatementReturn node, Object data){
     return defaultVisit(node, data);
   }
   public Object visit(ASTConditional node, Object data){
@@ -84,23 +102,17 @@ public class ScriptParserDefaultVisitor implements ScriptParserVisitor{
   public Object visit(ASTAdditiveMinus node, Object data){
     return defaultVisit(node, data);
   }
-  public Object visit(ASTMultiplicative node, Object data){
+  public Object visit(ASTMultiplicativeMult node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTMultiplicativeDiv node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTMultiplicativeMod node, Object data){
     return defaultVisit(node, data);
   }
   public Object visit(ASTIdentifier node, Object data){
     return defaultVisit(node, data);
   }
-  public Object visit(ASTIntegerConst node, Object data){
-    return defaultVisit(node, data);
-  }
-  public Object visit(ASTFloatConst node, Object data){
-    return defaultVisit(node, data);
-  }
-  public Object visit(ASTCharConst node, Object data){
-    return defaultVisit(node, data);
-  }
-  public Object visit(ASTStringConst node, Object data){
-    return defaultVisit(node, data);
-  }
 }
-/* JavaCC - OriginalChecksum=32ba14098a5128d418e4276a715c1934 (do not edit this line) */
+/* JavaCC - OriginalChecksum=a66cd0d5ce494f8c3303daeefba10106 (do not edit this line) */

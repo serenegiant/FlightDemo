@@ -19,8 +19,8 @@ public class ScriptParser {
 
 	private static final String TAG = "ScriptParser";
 
-	/** シンボルテーブル */
-	private final java.util.Map<String, Object> symbols = new java.util.LinkedHashMap<String, Object>();
+	/* シンボルテーブルマネージャー */
+	static SymbolTableManager symbols;
 
 	/** 演算用のスタック */
 	private Object[] stack = new Object[1024];
@@ -45,25 +45,6 @@ public class ScriptParser {
 	/* 演算用のスタックの上から指定した番号の値を取得(スタックからは取り出さない) */
 	public Object peek_op(int index) {
 		return stack[top + index];
-	}
-
-	/* シンボルを登録 */
-	public void add_symbol(String symbol, Object value) {
-		symbols.put(symbol, value);
-	}
-
-	/* シンボルに対応する値を取得, シンボルテーブルに存在しなければnull */
-	public Object get_symbol(String symbol) {
-		if (symbols.containsKey(symbol)) {
-			return symbols.get(symbol);
-		} else {
-			return null;
-		}
-	}
-
-	/* シンボルがシンボルテーブルに登録されているかどうかを取得 */
-	public boolean symbol_exist(String symbol) {
-		return symbols.containsKey(symbol);
 	}
 
     /** typedefで宣言した型名保持用 */
@@ -233,7 +214,10 @@ TOKEN :
 /** これが解析のエントリポイント */
 ASTParse Parse() #Parse : {}
 {
-	(ExternalDeclaration())+
+	{	symbols.OpenScope(null, false); }
+	(	ExternalDeclaration() )* <EOF>
+	{	symbols.CloseScope(); }
+
 	{	printTypes();
 		Log.i(TAG, "解析終了");
 		return jjtThis;
@@ -372,9 +356,12 @@ void SpecifierQualifierList() : {}
 }
 
 /** 列挙型 */
-void EnumSpecifier() : {}
+void EnumSpecifier() : { Token t; }
 {
-	<ENUM> ( LOOKAHEAD(3) [ <IDENTIFIER> ] "{" EnumeratorList() "}" | <IDENTIFIER> )
+	<ENUM> (
+		LOOKAHEAD(3) [ <IDENTIFIER> ] "{" EnumeratorList() "}" |
+		t=<IDENTIFIER> { symbols.PutTypeName(t.image); }
+	)
 }
 
 /** 列挙型の宣言リスト */
@@ -386,7 +373,7 @@ void EnumeratorList() : {}
 /** 列挙型のアイテム１つ分 */
 void Enumerator() : {}
 {
-	<IDENTIFIER> [ <ASSIGN_EQ> ConstantExpression() ]
+	<IDENTIFIER> ( <ASSIGN_EQ> ConstantExpression() )*
 }
 
 /** 宣言子 */
@@ -535,64 +522,77 @@ void LabeledStatement() : {}
 }
 
 /** 複命令文 */
-void CompoundStatement() : {}
+void CompoundStatement() #CompoundStatement : {}
 {
 	"{"
+	{	symbols.OpenScope(null, false); }
     (	StatementList() )?
+    {	symbols.CloseScope(); }
 	"}"
 }
 
 /** 選択命令文 */
 void SelectionStatement() : {}
 {
-	(	<IF> "(" Expression() ")" Statement() [ LOOKAHEAD(2) <ELSE> Statement() ] #StatementIf(>1) |
-		<SWITCH> "(" Expression() ")" Statement() #StatementSwitch(2)
+	(	(<IF> "(" Expression() ")" Statement() [ LOOKAHEAD(2) <ELSE> Statement() ] ) #StatementIf(>1) |
+		(<SWITCH> "(" Expression() ")" Statement() ) #StatementSwitch(2)
 	)
 }
 
 /** 列挙命令 */
 void IterationStatement() : {}
 {
-	(	<WHILE> "(" Expression() ")" Statement() #StatementWhile(2) |
-		<DO> Statement() <WHILE> "(" Expression() ")" ";" #StatementDoWhile(2) |
-		<FOR> "("
-			( LOOKAHEAD(3) Declaration() | Expression() ";" | ";")
-			( Expression() )? ";"
-			( Expression() )? ")"
-			Statement()
-/*		<FOR> "("
-			ForInitStatement() ";"
-			ExpressionStatement() ";"
-			ForUpdateStatement() ")"
-			Statement() #StatementFor(4) */
-	)
+	StatementWhile() |
+	StatementDoWhile() |
+	StatementFor()
+}
+
+void StatementWhile() #StatementWhile(2) : {}
+{
+	<WHILE> "(" Expression() ")" Statement()
+}
+
+void StatementDoWhile() #StatementDoWhile(2) : {}
+{
+	<DO> Statement() <WHILE> "(" Expression() ")" ";"
+}
+
+void StatementFor() #StatementFor : {}
+{
+	<FOR>
+	"("
+		( LOOKAHEAD(3) Declaration() | Expression() ";" | ";")
+		( Expression() )? ";"
+		( Expression() )?
+	")"
+	Statement()
 }
 
 /** for文の初期化文(1項目目) */
 void ForInitStatement() #ForInitStatement : {}
 {
-	[ LOOKAHEAD(3) Declaration() | Expression() ]
+	( LOOKAHEAD(3) Declaration() | Expression() ";" | ";")
 }
 
 /** for条件評価式(2項目目) */
 void ExpressionStatement() #ExpressionStatement : {}
 {
-	( Expression() )?
+	( Expression() )? ";"
 }
 
 /** for文のupdate文(3項目目) */
 void ForUpdateStatement() #ForUpdateStatement : {}
 {
-	[	Expression() ( "," Expression() )? ]
+	( Expression() )?
 }
 
 /** ジャンプ命令 */
 void JumpStatement() : {}
 {
-	(	<GOTO> <IDENTIFIER> ";" |
-		<CONTINUE> ";" |
-		<BREAK> ";" |
-		<RETURN> ( Expression() )? ";"
+	(	(<GOTO> <IDENTIFIER> ";" ) #StatementGoto(1) |
+		(<CONTINUE> ";" ) #StatementContinue |
+		(<BREAK> ";" ) #StatementBreak |
+		(<RETURN> ( Expression() )? ";" ) #StatementReturn
 	)
 }
 
@@ -643,50 +643,50 @@ void ConditionalExpression() : {}
 /** 定数式 */
 void ConstantExpression() : {}
 {
-	ConditionalExpression() #Constant(1)
+	(	ConditionalExpression() ) #Constant(1)
 }
 
 /** 論理和式 */
 void LogicalORExpression() : {}
 {
 	LogicalANDExpression()
-	(	<OR> LogicalANDExpression() #LogicalOR(2) )*
+	(	( <OR> LogicalANDExpression() ) #LogicalOR(2) )*
 }
 
 /** 論理積式 */
 void LogicalANDExpression() : {}
 {
 	InclusiveORExpression()
-	(	<AND> InclusiveORExpression() #LogicalAND(2) )*
+	(	( <AND> InclusiveORExpression() ) #LogicalAND(2) )*
 }
 
 /** ビット論理和式 */
 void InclusiveORExpression() : {}
 {
 	ExclusiveORExpression()
-	(	<BIT_OR> ExclusiveORExpression() #InclusiveOR(2) )*
+	(	( <BIT_OR> ExclusiveORExpression() ) #InclusiveOR(2) )*
 }
 
 /** 排他的ビット論理和 */
 void ExclusiveORExpression() : {}
 {
 	ANDExpression()
-	(	<BIT_XOR> ANDExpression() #ExclusiveOR(2) )*
+	(	( <BIT_XOR> ANDExpression() ) #ExclusiveOR(2) )*
 }
 
 /** ビット論理積式 */
 void ANDExpression() : {}
 {
 	EqualityExpression()
-	(	LOOKAHEAD(2) <AMPERSAND> EqualityExpression() #And(2) )*
+	(	LOOKAHEAD(2) ( <AMPERSAND> EqualityExpression() ) #And(2) )*
 }
 
 /** 比較演算式 */
 void EqualityExpression() : { Token t; }
 {
 	RelationalExpression()
-	(	<EQ> RelationalExpression() #Equality(2) |
-		<NOT_EQ> RelationalExpression() #NotEquality(2)
+	(	( <EQ> RelationalExpression() ) #Equality(2) |
+		( <NOT_EQ> RelationalExpression() ) #NotEquality(2)
 	)*
 }
 
@@ -695,10 +695,10 @@ void RelationalExpression() : { Token t; }
 {
 	ShiftExpression()
 	(	LOOKAHEAD(2) (
-			<LT> ShiftExpression() #RelationalLT(2) |
-			<GT> ShiftExpression() #RelationalGT(2) |
-			<LTE> ShiftExpression() #RelationalLTE(2) |
-			<GTE> ShiftExpression() #RelationalGTE(2)
+			( <LT> ShiftExpression() ) #RelationalLT(2) |
+			( <GT> ShiftExpression() ) #RelationalGT(2) |
+			( <LTE> ShiftExpression() ) #RelationalLTE(2) |
+			( <GTE> ShiftExpression() ) #RelationalGTE(2)
 		)
 	)*
 }
@@ -707,8 +707,8 @@ void RelationalExpression() : { Token t; }
 void ShiftExpression() : { Token t; }
 {
 	AdditiveExpression()
-	(	<SHIFT_LEFT> AdditiveExpression() #ShiftLeft(2) |
-		<SHIFT_RIGHT> AdditiveExpression() #ShiftRight(2)
+	(	( <SHIFT_LEFT> AdditiveExpression() ) #ShiftLeft(2) |
+		( <SHIFT_RIGHT> AdditiveExpression() ) #ShiftRight(2)
 	)*
 }
 
@@ -717,8 +717,8 @@ void AdditiveExpression() : { Token t; }
 {
 	MultiplicativeExpression()
 	(	LOOKAHEAD(2) (
-			t=<PLUS> MultiplicativeExpression() #AdditivePlus(2) |
-			t=<MINUS> MultiplicativeExpression() #AdditiveMinus(2)
+			( <PLUS> MultiplicativeExpression() ) #AdditivePlus(2) |
+			( <MINUS> MultiplicativeExpression() ) #AdditiveMinus(2)
 		)
 	)*
 }
@@ -727,15 +727,20 @@ void AdditiveExpression() : { Token t; }
 void MultiplicativeExpression() : { Token t; }
 {
 	PmExpression()
-	(	LOOKAHEAD(2) ( <STAR> | <DIV> | <MOD> ) PmExpression() #Multiplicative(2) )*
+	(	LOOKAHEAD(2) (
+			( <STAR> PmExpression() ) #MultiplicativeMult(2)
+			( <DIV>  PmExpression() ) #MultiplicativeDiv(2)
+			( <MOD>  PmExpression() ) #MultiplicativeMod(2)
+		)
+	)*
 }
 
 /** ポインタ参照式 */
 void PmExpression() : { Token t; }
 {
     CastExpression()
-    (	( <DOTSTAR> | <ARROWSTAR> )
-    	CastExpression()
+    (	( <DOTSTAR> CastExpression() ) |
+    	( <ARROWSTAR> CastExpression() )
     )*
 }
 
@@ -760,7 +765,7 @@ void UnaryExpression() : {}
 }
 
 /** 単項演算子 */
-void UnaryOperator() : { Token t; }
+void UnaryOperator() : {}
 {
 	(	<AMPERSAND> |
 		<STAR> |
@@ -772,7 +777,7 @@ void UnaryOperator() : { Token t; }
 }
 
 /** 後置演算式 */
-void PostfixExpression() : { Token t; }
+void PostfixExpression() : {}
 {
 	LOOKAHEAD(3) PrimaryExpression()
 	(	LOOKAHEAD(2) (
@@ -811,16 +816,8 @@ void Identifier() #Identifier : { Token t;}
 /** 定数 */
 void Constant() : { Token t; }
 {
-	t=<INTEGER_LITERAL> {
-		jjtThis.jjtSetValue(t.image);
-	} #IntegerConst |
-	t=<FLOATING_POINT_LITERAL> {
-		jjtThis.jjtSetValue(t.image);
-	} #FloatConst |
-	t=<CHARACTER_LITERAL> {
-		jjtThis.jjtSetValue(t.image);
-	} #CharConst |
-	t=<STRING_LITERAL> {
-		jjtThis.jjtSetValue(t.image);
-	} #StringConst
+	t=<INTEGER_LITERAL> { jjtThis.jjtSetValue(t.image); } |
+	t=<FLOATING_POINT_LITERAL> { jjtThis.jjtSetValue(t.image); } |
+	t=<CHARACTER_LITERAL> { jjtThis.jjtSetValue(t.image); } |
+	t=<STRING_LITERAL> { jjtThis.jjtSetValue(t.image); }
 }

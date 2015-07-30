@@ -5,13 +5,19 @@ public interface ScriptParserVisitor
 {
   public Object visit(SimpleNode node, Object data);
   public Object visit(ASTParse node, Object data);
+  public Object visit(ASTCompoundStatement node, Object data);
   public Object visit(ASTStatementIf node, Object data);
   public Object visit(ASTStatementSwitch node, Object data);
   public Object visit(ASTStatementWhile node, Object data);
   public Object visit(ASTStatementDoWhile node, Object data);
+  public Object visit(ASTStatementFor node, Object data);
   public Object visit(ASTForInitStatement node, Object data);
   public Object visit(ASTExpressionStatement node, Object data);
   public Object visit(ASTForUpdateStatement node, Object data);
+  public Object visit(ASTStatementGoto node, Object data);
+  public Object visit(ASTStatementContinue node, Object data);
+  public Object visit(ASTStatementBreak node, Object data);
+  public Object visit(ASTStatementReturn node, Object data);
   public Object visit(ASTConditional node, Object data);
   public Object visit(ASTConstant node, Object data);
   public Object visit(ASTLogicalOR node, Object data);
@@ -29,11 +35,9 @@ public interface ScriptParserVisitor
   public Object visit(ASTShiftRight node, Object data);
   public Object visit(ASTAdditivePlus node, Object data);
   public Object visit(ASTAdditiveMinus node, Object data);
-  public Object visit(ASTMultiplicative node, Object data);
+  public Object visit(ASTMultiplicativeMult node, Object data);
+  public Object visit(ASTMultiplicativeDiv node, Object data);
+  public Object visit(ASTMultiplicativeMod node, Object data);
   public Object visit(ASTIdentifier node, Object data);
-  public Object visit(ASTIntegerConst node, Object data);
-  public Object visit(ASTFloatConst node, Object data);
-  public Object visit(ASTCharConst node, Object data);
-  public Object visit(ASTStringConst node, Object data);
 }
-/* JavaCC - OriginalChecksum=99483119702f29de50fd9d4c4019174f (do not edit this line) */
+/* JavaCC - OriginalChecksum=b565feca6d2e0fb457821ace997f69dc (do not edit this line) */

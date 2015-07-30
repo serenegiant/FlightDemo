@@ -3,8 +3,9 @@ float f = 1.2345f;
 
 void wait_secs(int secs, float dummy) {
 	if (secs) {
-		for (int i = 0; i < secs; i++) {
+		for (int i = 0; ; i++) {
 			wait(1000);
+			if (i >= secs) break;
 		}
 	}
 }
@@ -29,9 +30,9 @@ void main() {
 			wait(300);
 			move(0, 0, 0, -50, 0, 1000);
 			wait(300);
+			j = (int)f;
+			k = k << j;
 		}
-		j = (int)f;
-		k = k << j;
 	}
 	landing();
 }

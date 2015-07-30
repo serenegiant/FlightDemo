@@ -17,6 +17,12 @@ public class ScriptParserVisitorImpl implements ScriptParserVisitor, ScriptParse
 	}
 
 	@Override
+	public Object visit(ASTCompoundStatement node, Object data) {
+		// FIXME 未実装
+		return defaultVisit(node, data);
+	}
+
+	@Override
 	public Object visit(ASTStatementIf node, Object data) {
 		final boolean v = ((SimpleNode)node.jjtGetChild(0)).jjtAcceptAsBool(this, null);
 		if (v) {
@@ -94,6 +100,30 @@ public class ScriptParserVisitorImpl implements ScriptParserVisitor, ScriptParse
 	}
 
 	@Override
+	public Object visit(ASTStatementGoto node, Object data) {
+		// FIXME 未実装
+		return defaultVisit(node, data);
+	}
+
+	@Override
+	public Object visit(ASTStatementContinue node, Object data) {
+		// FIXME 未実装
+		return defaultVisit(node, data);
+	}
+
+	@Override
+	public Object visit(ASTStatementBreak node, Object data) {
+		// FIXME 未実装
+		return defaultVisit(node, data);
+	}
+
+	@Override
+	public Object visit(ASTStatementReturn node, Object data) {
+		// FIXME 未実装
+		return defaultVisit(node, data);
+	}
+
+	@Override
 	public Object visit(ASTConditional node, Object data) {
 		// FIXME 未実装
 		return defaultVisit(node, data);
@@ -135,8 +165,8 @@ public class ScriptParserVisitorImpl implements ScriptParserVisitor, ScriptParse
 
 	@Override
 	public Object visit(ASTAnd node, Object data) {
-		final int v = ((SimpleNode)node.jjtGetChild(0)).jjtAcceptAsInt(this, null);
-		final int w = ((SimpleNode)node.jjtGetChild(1)).jjtAcceptAsInt(this, null);
+		final int v = ((SimpleNode) node.jjtGetChild(0)).jjtAcceptAsInt(this, null);
+		final int w = ((SimpleNode) node.jjtGetChild(1)).jjtAcceptAsInt(this, null);
 		return v & w;
 	}
 
@@ -192,7 +222,7 @@ public class ScriptParserVisitorImpl implements ScriptParserVisitor, ScriptParse
 	@Override
 	public Object visit(ASTShiftLeft node, Object data) {
 		final int v = ((SimpleNode)node.jjtGetChild(0)).jjtAcceptAsInt(this, null);
-		final int w = ((SimpleNode)node.jjtGetChild(1)).jjtAcceptAsInt(this, null);
+		final int w = ((SimpleNode) node.jjtGetChild(1)).jjtAcceptAsInt(this, null);
 		return v << w;
 	}
 
@@ -211,34 +241,29 @@ public class ScriptParserVisitorImpl implements ScriptParserVisitor, ScriptParse
 	}
 
 	@Override
-	public Object visit(ASTMultiplicative node, Object data) {
-		float result = ((SimpleNode)node.jjtGetChild(0)).jjtAcceptAsFloat(this, null);
-		result *= ((SimpleNode)node.jjtGetChild(1)).jjtAcceptAsFloat(this, null);
-		return result;
+	public Object visit(ASTMultiplicativeMult node, Object data) {
+		final float v = ((SimpleNode)node.jjtGetChild(0)).jjtAcceptAsFloat(this, null);
+		final float w = ((SimpleNode)node.jjtGetChild(1)).jjtAcceptAsFloat(this, null);
+		return v * w;
+	}
+
+	@Override
+	public Object visit(ASTMultiplicativeDiv node, Object data) {
+		final float v = ((SimpleNode)node.jjtGetChild(0)).jjtAcceptAsFloat(this, null);
+		final float w = ((SimpleNode)node.jjtGetChild(1)).jjtAcceptAsFloat(this, null);
+		return v / w;
+	}
+
+	@Override
+	public Object visit(ASTMultiplicativeMod node, Object data) {
+		final float v = ((SimpleNode)node.jjtGetChild(0)).jjtAcceptAsFloat(this, null);
+		final float w = ((SimpleNode)node.jjtGetChild(1)).jjtAcceptAsFloat(this, null);
+		return v % w;
 	}
 
 	@Override
 	public Object visit(ASTIdentifier node, Object data) {
+		// FIXME 未実装
 		return defaultVisit(node, data);
-	}
-
-	@Override
-	public Object visit(ASTIntegerConst node, Object data) {
-		return node.jjtGetAsInt();
-	}
-
-	@Override
-	public Object visit(ASTFloatConst node, Object data) {
-		return node.jjtGetAsFloat();
-	}
-
-	@Override
-	public Object visit(ASTCharConst node, Object data) {
-		return node.jjtGetValue();
-	}
-
-	@Override
-	public Object visit(ASTStringConst node, Object data) {
-		return node.jjtGetValue();
 	}
 }

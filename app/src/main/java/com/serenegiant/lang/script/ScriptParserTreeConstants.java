@@ -5,48 +5,58 @@ public interface ScriptParserTreeConstants
 {
   public int JJTPARSE = 0;
   public int JJTVOID = 1;
-  public int JJTSTATEMENTIF = 2;
-  public int JJTSTATEMENTSWITCH = 3;
-  public int JJTSTATEMENTWHILE = 4;
-  public int JJTSTATEMENTDOWHILE = 5;
-  public int JJTFORINITSTATEMENT = 6;
-  public int JJTEXPRESSIONSTATEMENT = 7;
-  public int JJTFORUPDATESTATEMENT = 8;
-  public int JJTCONDITIONAL = 9;
-  public int JJTCONSTANT = 10;
-  public int JJTLOGICALOR = 11;
-  public int JJTLOGICALAND = 12;
-  public int JJTINCLUSIVEOR = 13;
-  public int JJTEXCLUSIVEOR = 14;
-  public int JJTAND = 15;
-  public int JJTEQUALITY = 16;
-  public int JJTNOTEQUALITY = 17;
-  public int JJTRELATIONALLT = 18;
-  public int JJTRELATIONALGT = 19;
-  public int JJTRELATIONALLTE = 20;
-  public int JJTRELATIONALGTE = 21;
-  public int JJTSHIFTLEFT = 22;
-  public int JJTSHIFTRIGHT = 23;
-  public int JJTADDITIVEPLUS = 24;
-  public int JJTADDITIVEMINUS = 25;
-  public int JJTMULTIPLICATIVE = 26;
-  public int JJTIDENTIFIER = 27;
-  public int JJTINTEGERCONST = 28;
-  public int JJTFLOATCONST = 29;
-  public int JJTCHARCONST = 30;
-  public int JJTSTRINGCONST = 31;
+  public int JJTCOMPOUNDSTATEMENT = 2;
+  public int JJTSTATEMENTIF = 3;
+  public int JJTSTATEMENTSWITCH = 4;
+  public int JJTSTATEMENTWHILE = 5;
+  public int JJTSTATEMENTDOWHILE = 6;
+  public int JJTSTATEMENTFOR = 7;
+  public int JJTFORINITSTATEMENT = 8;
+  public int JJTEXPRESSIONSTATEMENT = 9;
+  public int JJTFORUPDATESTATEMENT = 10;
+  public int JJTSTATEMENTGOTO = 11;
+  public int JJTSTATEMENTCONTINUE = 12;
+  public int JJTSTATEMENTBREAK = 13;
+  public int JJTSTATEMENTRETURN = 14;
+  public int JJTCONDITIONAL = 15;
+  public int JJTCONSTANT = 16;
+  public int JJTLOGICALOR = 17;
+  public int JJTLOGICALAND = 18;
+  public int JJTINCLUSIVEOR = 19;
+  public int JJTEXCLUSIVEOR = 20;
+  public int JJTAND = 21;
+  public int JJTEQUALITY = 22;
+  public int JJTNOTEQUALITY = 23;
+  public int JJTRELATIONALLT = 24;
+  public int JJTRELATIONALGT = 25;
+  public int JJTRELATIONALLTE = 26;
+  public int JJTRELATIONALGTE = 27;
+  public int JJTSHIFTLEFT = 28;
+  public int JJTSHIFTRIGHT = 29;
+  public int JJTADDITIVEPLUS = 30;
+  public int JJTADDITIVEMINUS = 31;
+  public int JJTMULTIPLICATIVEMULT = 32;
+  public int JJTMULTIPLICATIVEDIV = 33;
+  public int JJTMULTIPLICATIVEMOD = 34;
+  public int JJTIDENTIFIER = 35;
 
 
   public String[] jjtNodeName = {
     "Parse",
     "void",
+    "CompoundStatement",
     "StatementIf",
     "StatementSwitch",
     "StatementWhile",
     "StatementDoWhile",
+    "StatementFor",
     "ForInitStatement",
     "ExpressionStatement",
     "ForUpdateStatement",
+    "StatementGoto",
+    "StatementContinue",
+    "StatementBreak",
+    "StatementReturn",
     "Conditional",
     "Constant",
     "LogicalOR",
@@ -64,12 +74,10 @@ public interface ScriptParserTreeConstants
     "ShiftRight",
     "AdditivePlus",
     "AdditiveMinus",
-    "Multiplicative",
+    "MultiplicativeMult",
+    "MultiplicativeDiv",
+    "MultiplicativeMod",
     "Identifier",
-    "IntegerConst",
-    "FloatConst",
-    "CharConst",
-    "StringConst",
   };
 }
-/* JavaCC - OriginalChecksum=1828c65f905c0880de46e8d49141782c (do not edit this line) */
+/* JavaCC - OriginalChecksum=5f8c8b2c74b6ddef9d56f310044c7f2c (do not edit this line) */
