@@ -5,6 +5,13 @@ public interface ScriptParserVisitor
 {
   public Object visit(SimpleNode node, Object data);
   public Object visit(ASTParse node, Object data);
+  public Object visit(ASTStatementIf node, Object data);
+  public Object visit(ASTStatementSwitch node, Object data);
+  public Object visit(ASTStatementWhile node, Object data);
+  public Object visit(ASTStatementDoWhile node, Object data);
+  public Object visit(ASTForInitStatement node, Object data);
+  public Object visit(ASTExpressionStatement node, Object data);
+  public Object visit(ASTForUpdateStatement node, Object data);
   public Object visit(ASTConditional node, Object data);
   public Object visit(ASTConstant node, Object data);
   public Object visit(ASTLogicalOR node, Object data);
@@ -29,4 +36,4 @@ public interface ScriptParserVisitor
   public Object visit(ASTCharConst node, Object data);
   public Object visit(ASTStringConst node, Object data);
 }
-/* JavaCC - OriginalChecksum=96792d77035819291c3ffdd1ebb00f51 (do not edit this line) */
+/* JavaCC - OriginalChecksum=99483119702f29de50fd9d4c4019174f (do not edit this line) */

@@ -27,6 +27,7 @@ import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpda
 import com.parrot.arsdk.arsal.ARSALPrint;
 import com.serenegiant.lang.script.ParseException;
 import com.serenegiant.lang.script.ScriptParser;
+import com.serenegiant.lang.script.ScriptParserVisitorImpl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -119,9 +120,12 @@ public class MainActivity extends ActionBarActivity implements ARDiscoveryServic
 		try {
 			final ScriptParser parser = new ScriptParser(getResources().getAssets().open("control.script"));
 			parser.Parse();
+//			parser.Parse().jjtAccept(new ScriptParserVisitorImpl(), null);
 		} catch (IOException e) {
 			Log.w(TAG, e);
 		} catch (ParseException e) {
+			Log.w(TAG, e);
+		} catch (Exception e) {
 			Log.w(TAG, e);
 		}
 	}

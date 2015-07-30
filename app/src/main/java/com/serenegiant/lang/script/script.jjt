@@ -299,7 +299,6 @@ void TypeSpecifier() : {}
 void TypeQualifier() : {}
 {
 	( <CONST> | <VOLATILE> )
-	{ Log.v(TAG, "定数型"); }
 }
 
 /** 構造体/ユニオンアクセス指定子 */
@@ -343,8 +342,8 @@ void StructDeclaratorList() : {}
 /** 構造体/ユニオンの定義内容 */
 void StructDeclarator() : {}
 {
-	( LOOKAHEAD(3) Declarator() | [ Declarator() ] ":" ConstantExpression() )
-//	( Declarator() [ ":" ConstantExpression() ] | ":" ConstantExpression() )	// ビットフィールドアクセス時のエラー修正?
+	( LOOKAHEAD(3) Declarator() | [ Declarator() ] <COMMA> ConstantExpression() )
+//	( Declarator() [ <COMMA> ConstantExpression() ] | <COMMA> ConstantExpression() )	// ビットフィールドアクセス時のエラー修正?
 }
 
 /** 初期化付き宣言リスト */
@@ -356,7 +355,6 @@ void InitDeclaratorList() : {}
 		if(!(typedefParsingStack.empty()) && ((Boolean)typedefParsingStack.peek()).booleanValue()) {
 			typedefParsingStack.pop();
 		}
-		Log.v(TAG, "初期化付き宣言リスト");
 	}
 }
 
@@ -364,7 +362,6 @@ void InitDeclaratorList() : {}
 void InitDeclarator() : {}
 {
 	Declarator() [ <ASSIGN_EQ> Initializer() ]
-	{ Log.v(TAG, "初期化付き宣言"); }
 }
 
 /** アクセス指定子 */
@@ -517,17 +514,23 @@ void Statement() : {}
 	CompoundStatement() |
 	SelectionStatement() |
 	JumpStatement() |
-	";" |
+	EmptyStatement() |
 	LOOKAHEAD(2) LabeledStatement() |
 	IterationStatement()
+}
+
+/** 空命令文 */
+void EmptyStatement() : {}
+{
+	";"
 }
 
 /** ラベル命令: */
 void LabeledStatement() : {}
 {
-	(	<IDENTIFIER> ":" Statement() |
-		<CASE> ConstantExpression() ":" Statement() |
-		<DFLT> ":" Statement()
+	(	<IDENTIFIER> <COMMA> Statement() |
+		<CASE> ConstantExpression() <COMMA> Statement() |
+		<DFLT> <COMMA> Statement()
 	)
 }
 
@@ -542,19 +545,45 @@ void CompoundStatement() : {}
 /** 選択命令文 */
 void SelectionStatement() : {}
 {
-	(	<IF> "(" Expression() ")" Statement() [ LOOKAHEAD(2) <ELSE> Statement() ] |
-		<SWITCH> "(" Expression() ")" Statement()
+	(	<IF> "(" Expression() ")" Statement() [ LOOKAHEAD(2) <ELSE> Statement() ] #StatementIf(>1) |
+		<SWITCH> "(" Expression() ")" Statement() #StatementSwitch(2)
 	)
 }
 
 /** 列挙命令 */
 void IterationStatement() : {}
 {
-	(	<WHILE> "(" Expression() ")" Statement() |
-		<DO> Statement() <WHILE> "(" Expression() ")" ";" |
-		<FOR> "(" ( LOOKAHEAD(3) Declaration() | Expression() ";" | ";")
-			( Expression() )? ";" ( Expression() )? ")" Statement()
+	(	<WHILE> "(" Expression() ")" Statement() #StatementWhile(2) |
+		<DO> Statement() <WHILE> "(" Expression() ")" ";" #StatementDoWhile(2) |
+		<FOR> "("
+			( LOOKAHEAD(3) Declaration() | Expression() ";" | ";")
+			( Expression() )? ";"
+			( Expression() )? ")"
+			Statement()
+/*		<FOR> "("
+			ForInitStatement() ";"
+			ExpressionStatement() ";"
+			ForUpdateStatement() ")"
+			Statement() #StatementFor(4) */
 	)
+}
+
+/** for文の初期化文(1項目目) */
+void ForInitStatement() #ForInitStatement : {}
+{
+	[ LOOKAHEAD(3) Declaration() | Expression() ]
+}
+
+/** for条件評価式(2項目目) */
+void ExpressionStatement() #ExpressionStatement : {}
+{
+	( Expression() )?
+}
+
+/** for文のupdate文(3項目目) */
+void ForUpdateStatement() #ForUpdateStatement : {}
+{
+	[	Expression() ( "," Expression() )? ]
 }
 
 /** ジャンプ命令 */
@@ -565,6 +594,12 @@ void JumpStatement() : {}
 		<BREAK> ";" |
 		<RETURN> ( Expression() )? ";"
 	)
+}
+
+/** 式リスト */
+void ExpressionList() : {}
+{
+	Expression() ( "," Expression() )*
 }
 
 /** 式 */

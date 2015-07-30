@@ -12,6 +12,27 @@ public class ScriptParserDefaultVisitor implements ScriptParserVisitor{
   public Object visit(ASTParse node, Object data){
     return defaultVisit(node, data);
   }
+  public Object visit(ASTStatementIf node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTStatementSwitch node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTStatementWhile node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTStatementDoWhile node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTForInitStatement node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTExpressionStatement node, Object data){
+    return defaultVisit(node, data);
+  }
+  public Object visit(ASTForUpdateStatement node, Object data){
+    return defaultVisit(node, data);
+  }
   public Object visit(ASTConditional node, Object data){
     return defaultVisit(node, data);
   }
@@ -82,4 +103,4 @@ public class ScriptParserDefaultVisitor implements ScriptParserVisitor{
     return defaultVisit(node, data);
   }
 }
-/* JavaCC - OriginalChecksum=19daad8ede0d60372f19fc5acbecc1da (do not edit this line) */
+/* JavaCC - OriginalChecksum=32ba14098a5128d418e4276a715c1934 (do not edit this line) */

@@ -5,34 +5,48 @@ public interface ScriptParserTreeConstants
 {
   public int JJTPARSE = 0;
   public int JJTVOID = 1;
-  public int JJTCONDITIONAL = 2;
-  public int JJTCONSTANT = 3;
-  public int JJTLOGICALOR = 4;
-  public int JJTLOGICALAND = 5;
-  public int JJTINCLUSIVEOR = 6;
-  public int JJTEXCLUSIVEOR = 7;
-  public int JJTAND = 8;
-  public int JJTEQUALITY = 9;
-  public int JJTNOTEQUALITY = 10;
-  public int JJTRELATIONALLT = 11;
-  public int JJTRELATIONALGT = 12;
-  public int JJTRELATIONALLTE = 13;
-  public int JJTRELATIONALGTE = 14;
-  public int JJTSHIFTLEFT = 15;
-  public int JJTSHIFTRIGHT = 16;
-  public int JJTADDITIVEPLUS = 17;
-  public int JJTADDITIVEMINUS = 18;
-  public int JJTMULTIPLICATIVE = 19;
-  public int JJTIDENTIFIER = 20;
-  public int JJTINTEGERCONST = 21;
-  public int JJTFLOATCONST = 22;
-  public int JJTCHARCONST = 23;
-  public int JJTSTRINGCONST = 24;
+  public int JJTSTATEMENTIF = 2;
+  public int JJTSTATEMENTSWITCH = 3;
+  public int JJTSTATEMENTWHILE = 4;
+  public int JJTSTATEMENTDOWHILE = 5;
+  public int JJTFORINITSTATEMENT = 6;
+  public int JJTEXPRESSIONSTATEMENT = 7;
+  public int JJTFORUPDATESTATEMENT = 8;
+  public int JJTCONDITIONAL = 9;
+  public int JJTCONSTANT = 10;
+  public int JJTLOGICALOR = 11;
+  public int JJTLOGICALAND = 12;
+  public int JJTINCLUSIVEOR = 13;
+  public int JJTEXCLUSIVEOR = 14;
+  public int JJTAND = 15;
+  public int JJTEQUALITY = 16;
+  public int JJTNOTEQUALITY = 17;
+  public int JJTRELATIONALLT = 18;
+  public int JJTRELATIONALGT = 19;
+  public int JJTRELATIONALLTE = 20;
+  public int JJTRELATIONALGTE = 21;
+  public int JJTSHIFTLEFT = 22;
+  public int JJTSHIFTRIGHT = 23;
+  public int JJTADDITIVEPLUS = 24;
+  public int JJTADDITIVEMINUS = 25;
+  public int JJTMULTIPLICATIVE = 26;
+  public int JJTIDENTIFIER = 27;
+  public int JJTINTEGERCONST = 28;
+  public int JJTFLOATCONST = 29;
+  public int JJTCHARCONST = 30;
+  public int JJTSTRINGCONST = 31;
 
 
   public String[] jjtNodeName = {
     "Parse",
     "void",
+    "StatementIf",
+    "StatementSwitch",
+    "StatementWhile",
+    "StatementDoWhile",
+    "ForInitStatement",
+    "ExpressionStatement",
+    "ForUpdateStatement",
     "Conditional",
     "Constant",
     "LogicalOR",
@@ -58,4 +72,4 @@ public interface ScriptParserTreeConstants
     "StringConst",
   };
 }
-/* JavaCC - OriginalChecksum=1d5f5c6961229c9b9ee25b53e7e0954c (do not edit this line) */
+/* JavaCC - OriginalChecksum=1828c65f905c0880de46e8d49141782c (do not edit this line) */

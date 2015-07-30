@@ -17,12 +17,91 @@ public class ScriptParserVisitorImpl implements ScriptParserVisitor, ScriptParse
 	}
 
 	@Override
+	public Object visit(ASTStatementIf node, Object data) {
+		final boolean v = ((SimpleNode)node.jjtGetChild(0)).jjtAcceptAsBool(this, null);
+		if (v) {
+			node.jjtGetChild(1).jjtAccept(this, data);
+		} else if (node.jjtGetNumChildren() > 1) {
+			node.jjtGetChild(2).jjtAccept(this, data);
+		}
+		return v;
+	}
+
+	@Override
+	public Object visit(ASTStatementSwitch node, Object data) {
+		// FIXME 未実装
+		return null;
+	}
+
+	@Override
+	public Object visit(ASTStatementWhile node, Object data) {
+		boolean v = ((SimpleNode)node.jjtGetChild(0)).jjtAcceptAsBool(this, null);
+		if (node.jjtGetNumChildren() > 1) {
+			while (v) {
+				node.jjtGetChild(1).jjtAccept(this, null);
+				v = ((SimpleNode)node.jjtGetChild(0)).jjtAcceptAsBool(this, null);
+			}
+		}
+		return v;
+	}
+
+	@Override
+	public Object visit(ASTStatementDoWhile node, Object data) {
+		boolean v = true;
+		do {
+			node.jjtGetChild(0).jjtAccept(this, data);
+			v = ((SimpleNode)node.jjtGetChild(1)).jjtAcceptAsBool(this, null);
+		} while (v);
+		return v;
+	}
+
+	public Object visit(ASTStatementFor node, Object data) {
+		node.jjtGetChild(0).jjtAccept(this, data);
+		boolean v = ((SimpleNode)node.jjtGetChild(1)).jjtAcceptAsBool(this, null);
+		while (v) {
+			node.jjtGetChild(3).jjtAccept(this, data);
+			v = ((SimpleNode)node.jjtGetChild(2)).jjtAcceptAsBool(this, null);
+		}
+		return v;
+	}
+
+	@Override
+	public Object visit(ASTForInitStatement node, Object data) {
+		final int n = node.jjtGetNumChildren();
+		if (n > 0) {
+			for (int i = 0; i < n; i++) {
+				node.jjtGetChild(i).jjtAccept(this, null);
+			}
+		}
+		return n;
+	}
+
+	@Override
+	public Object visit(ASTExpressionStatement node, Object data) {
+		// FIXME 未実装
+		return defaultVisit(node, data);
+	}
+
+	@Override
+	public Object visit(ASTForUpdateStatement node, Object data) {
+		final int n = node.jjtGetNumChildren();
+		if (n > 0) {
+			for (int i = 0; i < n; i++) {
+				node.jjtGetChild(i).jjtAccept(this, null);
+			}
+		}
+		return n;
+	}
+
+	@Override
 	public Object visit(ASTConditional node, Object data) {
+		// FIXME 未実装
 		return defaultVisit(node, data);
 	}
 
 	@Override
 	public Object visit(ASTConstant node, Object data) {
+		// FIXME 未実装
 		return defaultVisit(node, data);
 	}
 
