@@ -1708,10 +1708,42 @@ void Identifier()             : {/*@bgen(jjtree) Identifier */
 }
 
 /** \u5b9a\u6570 */
-void Constant() : { Token t; }
-{
-	t=<INTEGER_LITERAL> { jjtn000.jjtSetValue(t.image); } |
-	t=<FLOATING_POINT_LITERAL> { jjtn000.jjtSetValue(t.image); } |
-	t=<CHARACTER_LITERAL> { jjtn000.jjtSetValue(t.image); } |
-	t=<STRING_LITERAL> { jjtn000.jjtSetValue(t.image); }
+void Constant()           : {/*@bgen(jjtree) Constant */
+                              ASTConstant jjtn000 = new ASTConstant(JJTCONSTANT);
+                              boolean jjtc000 = true;
+                              jjtree.openNodeScope(jjtn000);
+/*@egen*/ Token t; }
+{/*@bgen(jjtree) Constant */
+        try {
+/*@egen*/
+	t=<INTEGER_LITERAL>/*@bgen(jjtree)*/
+                            {
+                              jjtree.closeNodeScope(jjtn000, true);
+                              jjtc000 = false;
+                            }
+/*@egen*/ { jjtn000.jjtSetValue(t.image); } |
+	t=<FLOATING_POINT_LITERAL>/*@bgen(jjtree)*/
+                                   {
+                                     jjtree.closeNodeScope(jjtn000, true);
+                                     jjtc000 = false;
+                                   }
+/*@egen*/ { jjtn000.jjtSetValue(t.image); } |
+	t=<CHARACTER_LITERAL>/*@bgen(jjtree)*/
+                              {
+                                jjtree.closeNodeScope(jjtn000, true);
+                                jjtc000 = false;
+                              }
+/*@egen*/ { jjtn000.jjtSetValue(t.image); } |
+	t=<STRING_LITERAL>/*@bgen(jjtree)*/
+                           {
+                             jjtree.closeNodeScope(jjtn000, true);
+                             jjtc000 = false;
+                           }
+/*@egen*/ { jjtn000.jjtSetValue(t.image); }/*@bgen(jjtree)*/
+        } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+          }
+        }
+/*@egen*/
 }

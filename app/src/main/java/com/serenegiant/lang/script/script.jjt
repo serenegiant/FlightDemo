@@ -814,7 +814,7 @@ void Identifier() #Identifier : { Token t;}
 }
 
 /** 定数 */
-void Constant() : { Token t; }
+void Constant() #Constant : { Token t; }
 {
 	t=<INTEGER_LITERAL> { jjtThis.jjtSetValue(t.image); } |
 	t=<FLOATING_POINT_LITERAL> { jjtThis.jjtSetValue(t.image); } |

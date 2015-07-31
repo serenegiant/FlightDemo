@@ -38,9 +38,6 @@ public class PilotingActivity extends Activity {
 
 	private TextView batteryLabel;
 
-	private AlertDialog alertDialog;
-
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -296,42 +293,40 @@ public class PilotingActivity extends Activity {
 	@Override
 	public void onStart() {
 		super.onStart();
+		startDeviceController();
+	}
 
+	private void startDeviceController() {
 		if (deviceController != null) {
+			// FIXME AlertDialogを使うのはあまり良くない ProgressDialogに変える
 			final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(PilotingActivity.this);
-
-			// set title
-			alertDialogBuilder.setTitle("Connecting ...");
-
-			// create alert dialog
-			alertDialog = alertDialogBuilder.create();
-
-			// show it
+			alertDialogBuilder.setTitle(R.string.connecting);
+			final AlertDialog alertDialog = alertDialogBuilder.create();
 			alertDialog.show();
 
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-				boolean failed = false;
+					boolean failed = false;
 
-				failed = deviceController.start();
+					failed = deviceController.start();
 
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						//alertDialog.hide();
-						alertDialog.dismiss();
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							//alertDialog.hide();
+							alertDialog.dismiss();
+						}
+					});
+
+					if (failed) {
+						getFragmentManager().popBackStack();
+					} else {
+						//only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
+						Date currentDate = new Date(System.currentTimeMillis());
+						deviceController.sendDate(currentDate);
+						deviceController.sendTime(currentDate);
 					}
-				});
-
-				if (failed) {
-					finish();
-				} else {
-					//only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
-					Date currentDate = new Date(System.currentTimeMillis());
-					deviceController.sendDate(currentDate);
-					deviceController.sendTime(currentDate);
-				}
 				}
 			}).start();
 
@@ -340,13 +335,14 @@ public class PilotingActivity extends Activity {
 
 	private void stopDeviceController() {
 		if (deviceController != null) {
+			// FIXME AlertDialogを使うのはあまり良くない ProgressDialogに変える
 			final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(PilotingActivity.this);
 
 			// set title
 			alertDialogBuilder.setTitle("Disconnecting ...");
 
 			// create alert dialog
-			alertDialog = alertDialogBuilder.create();
+			final AlertDialog alertDialog = alertDialogBuilder.create();
 
 			// show it
 			alertDialog.show();

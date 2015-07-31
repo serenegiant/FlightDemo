@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">FlightDemo</string>
+	<string name="stick_text_up">上</string>
+	<string name="stick_text_turn_right">右回転</string>
+	<string name="stick_text_turn_left">左回転</string>
+	<string name="stick_text_right">右</string>
+	<string name="stick_text_left">左</string>
+	<string name="stick_text_forward">前</string>
+	<string name="stick_text_down">下</string>
+	<string name="stick_text_back">後</string>
+	<string name="drone_not_found">ドローンが見つかりません</string>
+	<string name="button_text_takeoff">離陸</string>
+	<string name="button_text_landing">着陸</string>
+	<string name="action_settings">設定</string>
+	<string name="emergency">非常停止</string>
+	<string name="disconnecting">切断中…</string>
+	<string name="connecting">接続中…</string>
+</resources>

@@ -1,40 +1,14 @@
 package com.serenegiant.flightdemo;
 
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
+import android.app.Activity;
+import android.app.Fragment;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 
-import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
-import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiver;
-import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiverDelegate;
 import com.parrot.arsdk.arsal.ARSALPrint;
-import com.serenegiant.lang.script.ParseException;
-import com.serenegiant.lang.script.ScriptParser;
-import com.serenegiant.lang.script.ScriptParserVisitorImpl;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
-public class MainActivity extends ActionBarActivity implements ARDiscoveryServicesDevicesListUpdatedReceiverDelegate {
+public class MainActivity extends Activity { // ActionBarActivity implements ARDiscoveryServicesDevicesListUpdatedReceiverDelegate {
 	private static String TAG = MainActivity.class.getSimpleName();
 
 	private static boolean isLoaded = false;
@@ -60,7 +34,7 @@ public class MainActivity extends ActionBarActivity implements ARDiscoveryServic
 		}
 	}
 
-	private ListView listView;
+/*	private ListView listView;
 	private List<ARDiscoveryDeviceService> deviceList;
 	private String[] deviceNameList;
 
@@ -68,15 +42,19 @@ public class MainActivity extends ActionBarActivity implements ARDiscoveryServic
 	private boolean ardiscoveryServiceBound = false;
 	private ServiceConnection ardiscoveryServiceConnection;
 	public IBinder discoveryServiceBinder;
-
-	private BroadcastReceiver ardiscoveryServicesDevicesListUpdatedReceiver;
+	private BroadcastReceiver ardiscoveryServicesDevicesListUpdatedReceiver; */
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		if (savedInstanceState == null) {
+			final Fragment fragment = new ConnectionFragment();
+			getFragmentManager().beginTransaction()
+				.add(R.id.container, fragment).commit();
+		}
 
-		startServices();
+/*		startServices();
 		initBroadcastReceiver();
 		initServiceConnection();
 
@@ -108,15 +86,15 @@ public class MainActivity extends ActionBarActivity implements ARDiscoveryServic
 
 			ARDiscoveryDeviceService service = deviceList.get(position);
 
-			Intent intent = new Intent(MainActivity.this, PilotingActivity.class);
+			Intent intent = new Intent(ConnectionActivity.this, PilotingActivity.class);
 			intent.putExtra(PilotingActivity.EXTRA_DEVICE_SERVICE, service);
 
 
 			startActivity(intent);
 			}
 
-		});
-
+		}); */
+/*
 		try {
 			final ScriptParser parser = new ScriptParser(getResources().getAssets().open("control.script"));
 			parser.Parse();
@@ -127,10 +105,10 @@ public class MainActivity extends ActionBarActivity implements ARDiscoveryServic
 			Log.w(TAG, e);
 		} catch (Exception e) {
 			Log.w(TAG, e);
-		}
+		} */
 	}
 
-	private void startServices() {
+/*	private void startServices() {
 		//startService(new Intent(this, ARDiscoveryService.class));
 	}
 
@@ -161,8 +139,6 @@ public class MainActivity extends ActionBarActivity implements ARDiscoveryServic
 				ardiscoveryService = null;
 				}
 			}).start();
-
-
 		}
 	}
 
@@ -277,5 +253,5 @@ public class MainActivity extends ActionBarActivity implements ARDiscoveryServic
 			listView.setAdapter(adapter);
 		}
 
-	}
+	} */
 }
