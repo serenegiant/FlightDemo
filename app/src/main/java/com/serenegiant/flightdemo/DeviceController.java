@@ -6,8 +6,11 @@ import android.util.Log;
 
 import com.parrot.arsdk.arcommands.ARCOMMANDS_DECODER_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateBatteryStateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingFlatTrimListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateFlyingStateChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryConnection;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceNetService;
@@ -30,54 +33,56 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
-public class DeviceController implements ARCommandCommonCommonStateBatteryStateChangedListener {
+public class DeviceController {
 	private static String TAG = "DeviceController";
 
-	private static int iobufferC2dNack = 10;
-	private static int iobufferC2dAck = 11;
-	private static int iobufferC2dEmergency = 12;
-	private static int iobufferD2cNavdata = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 1;
-	private static int iobufferD2cEvents = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 2;
+	private static final int iobufferC2dNak = 10;
+	private static final int iobufferC2dAck = 11;
+	private static final int iobufferC2dEmergency = 12;
+	private static final int iobufferD2cNavdata = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 1;
+	private static final int iobufferD2cEvents = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 2;
 
-	private static int ackOffset = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2);
+	private static final int ackOffset = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2);
 
-	protected static List<ARNetworkIOBufferParam> c2dParams = new ArrayList<ARNetworkIOBufferParam>();
-	protected static List<ARNetworkIOBufferParam> d2cParams = new ArrayList<ARNetworkIOBufferParam>();
+	protected static final List<ARNetworkIOBufferParam> c2dParams = new ArrayList<ARNetworkIOBufferParam>();
+	protected static final List<ARNetworkIOBufferParam> d2cParams = new ArrayList<ARNetworkIOBufferParam>();
 	protected static int commandsBuffers[] = {};
 
-	protected static int bleNotificationIDs[] = new int[] {
+	protected static final int bleNotificationIDs[] = new int[] {
 		iobufferD2cNavdata,
 		iobufferD2cEvents,
 		(iobufferC2dAck + ackOffset),
 		(iobufferC2dEmergency + ackOffset)
 	};
 
-	private android.content.Context context;
+	private android.content.Context mContext;
 
-	private ARNetworkALManager alManager;
-	private ARNetworkManager netManager;
-	private boolean mediaOpened;
+	private ARNetworkALManager mARManager;
+	private ARNetworkManager mARNetManager;
+	private boolean mMediaOpened;
 
 	private int c2dPort;
 	private int d2cPort;
 	private Thread rxThread;
 	private Thread txThread;
 
-	private List<ReaderThread> readerThreads;
-	private Semaphore discoverSemaphore;
-	private ARDiscoveryConnection discoveryData;
+	private List<ReaderThread> mReaderThreads;
+	private Semaphore mDiscoverSemaphore;
+	private ARDiscoveryConnection mDiscoveryData;
 
-	private LooperThread looperThread;
+	private LooperThread mLooperThread;
 
-	private DataPCMD dataPCMD;
-	private ARDiscoveryDeviceService deviceService;
+	private final Object mDataSync = new Object();
+	private final DataPCMD mDataPCMD = new DataPCMD();
+	private ARDiscoveryDeviceService mDeviceService;
 
-	private DeviceControllerListener listener;
+	private DeviceControllerListener mListener;
 
 
 	static {
+		// コントローラー => 機体へのパラメータ
 		c2dParams.clear();
-		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dNack,
+		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dNak,
 			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
 			20,
 			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
@@ -102,6 +107,7 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
 			false));
 
+		// 機体 => コントローラーへのパラメータ
 		d2cParams.clear();
 		d2cParams.add(new ARNetworkIOBufferParam(iobufferD2cNavdata,
 			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
@@ -127,11 +133,10 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 
 	}
 
-	public DeviceController(android.content.Context context, ARDiscoveryDeviceService service) {
-		dataPCMD = new DataPCMD();
-		deviceService = service;
-		this.context = context;
-		readerThreads = new ArrayList<ReaderThread>();
+	public DeviceController(final android.content.Context context, final ARDiscoveryDeviceService service) {
+		mDeviceService = service;
+		mContext = context;
+		mReaderThreads = new ArrayList<ReaderThread>();
 	}
 
 	public boolean start() {
@@ -167,22 +172,21 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 	}
 
 	private boolean startNetwork() {
-		ARNETWORKAL_ERROR_ENUM netALError = ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK;
 		boolean failed = false;
 		int pingDelay = 0; /* 0 means default, -1 means no ping */
 
         /* Create the looper ARNetworkALManager */
-		alManager = new ARNetworkALManager();
+		mARManager = new ARNetworkALManager();
 
 
         /* setup ARNetworkAL for BLE */
 
-		final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) deviceService.getDevice();
+		final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) mDeviceService.getDevice();
 
-		netALError = alManager.initBLENetwork(context, bleDevice.getBluetoothDevice(), 1, bleNotificationIDs);
+		final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(mContext, bleDevice.getBluetoothDevice(), 1, bleNotificationIDs);
 
 		if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
-			mediaOpened = true;
+			mMediaOpened = true;
 			pingDelay = -1; /* Disable ping for BLE networks */
 		} else {
 			ARSALPrint.e(TAG, "error occured: " + netALError.toString());
@@ -191,9 +195,9 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 
 		if (!failed) {
 			/* Create the ARNetworkManager */
-			netManager = new ARNetworkManagerExtend(alManager, c2dParams.toArray(new ARNetworkIOBufferParam[c2dParams.size()]), d2cParams.toArray(new ARNetworkIOBufferParam[d2cParams.size()]), pingDelay);
+			mARNetManager = new ARNetworkManagerExtend(mARManager, c2dParams.toArray(new ARNetworkIOBufferParam[c2dParams.size()]), d2cParams.toArray(new ARNetworkIOBufferParam[d2cParams.size()]), pingDelay);
 
-			if (netManager.isCorrectlyInitialized() == false) {
+			if (mARNetManager.isCorrectlyInitialized() == false) {
 				ARSALPrint.e(TAG, "new ARNetworkManager failed");
 				failed = true;
 			}
@@ -201,10 +205,10 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 
 		if (!failed) {
             /* Create and start Tx and Rx threads */
-			rxThread = new Thread(netManager.m_receivingRunnable);
+			rxThread = new Thread(mARNetManager.m_receivingRunnable);
 			rxThread.start();
 
-			txThread = new Thread(netManager.m_sendingRunnable);
+			txThread = new Thread(mARNetManager.m_sendingRunnable);
 			txThread.start();
 		}
 
@@ -213,57 +217,57 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 
 	private void startReadThreads() {
         /* Create the reader threads */
-		for (int bufferId : commandsBuffers) {
-			ReaderThread readerThread = new ReaderThread(bufferId);
-			readerThreads.add(readerThread);
+		for (final int bufferId : commandsBuffers) {
+			final ReaderThread readerThread = new ReaderThread(bufferId);
+			mReaderThreads.add(readerThread);
 		}
 
         /* Mark all reader threads as started */
-		for (ReaderThread readerThread : readerThreads) {
+		for (final ReaderThread readerThread : mReaderThreads) {
 			readerThread.start();
 		}
 	}
 
 	private void startLooperThread() {
         /* Create the looper thread */
-		looperThread = new ControllerLooperThread();
+		mLooperThread = new ControllerLooperThread();
 
         /* Start the looper thread. */
-		looperThread.start();
+		mLooperThread.start();
 	}
 
 	private void stopLooperThread() {
         /* Cancel the looper thread and block until it is stopped. */
-		if (null != looperThread) {
-			looperThread.stopThread();
+		if (null != mLooperThread) {
+			mLooperThread.stopThread();
 			try {
-				looperThread.join();
-			} catch (InterruptedException e) {
+				mLooperThread.join();
+			} catch (final InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 	}
 
 	private void stopReaderThreads() {
-		if (readerThreads != null) {
+		if (mReaderThreads != null) {
             /* cancel all reader threads and block until they are all stopped. */
-			for (ReaderThread thread : readerThreads) {
+			for (final ReaderThread thread : mReaderThreads) {
 				thread.stopThread();
 			}
-			for (ReaderThread thread : readerThreads) {
+			for (final ReaderThread thread : mReaderThreads) {
 				try {
 					thread.join();
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
-			readerThreads.clear();
+			mReaderThreads.clear();
 		}
 	}
 
 	private void stopNetwork() {
-		if (netManager != null) {
-			netManager.stop();
+		if (mARNetManager != null) {
+			mARNetManager.stop();
 
 			try {
 				if (txThread != null) {
@@ -272,48 +276,98 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 				if (rxThread != null) {
 					rxThread.join();
 				}
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				e.printStackTrace();
 			}
 
-			netManager.dispose();
+			mARNetManager.dispose();
 		}
 
-		if ((alManager != null) && (mediaOpened)) {
-			if (deviceService.getDevice() instanceof ARDiscoveryDeviceNetService) {
-				alManager.closeWifiNetwork();
-			} else if (deviceService.getDevice() instanceof ARDiscoveryDeviceBLEService) {
-				alManager.closeBLENetwork(context);
+		if ((mARManager != null) && (mMediaOpened)) {
+			if (mDeviceService.getDevice() instanceof ARDiscoveryDeviceNetService) {
+				mARManager.closeWifiNetwork();
+			} else if (mDeviceService.getDevice() instanceof ARDiscoveryDeviceBLEService) {
+				mARManager.closeBLENetwork(mContext);
 			}
 
-			mediaOpened = false;
-			alManager.dispose();
+			mMediaOpened = false;
+			mARManager.dispose();
 		}
 	}
 
 
 	protected void registerARCommandsListener() {
-		ARCommand.setCommonCommonStateBatteryStateChangedListener(this);
+		ARCommand.setCommonCommonStateBatteryStateChangedListener(
+			mARCommandCommonCommonStateBatteryStateChangedListener);
+		ARCommand.setMiniDronePilotingFlatTrimListener(
+			mARCommandMiniDronePilotingFlatTrimListener);
+		ARCommand.setMiniDronePilotingStateFlyingStateChangedListener(
+			mARCommandMiniDronePilotingStateFlyingStateChangedListener
+		);
 	}
 
 	protected void unregisterARCommandsListener() {
 		ARCommand.setCommonCommonStateBatteryStateChangedListener(null);
+		ARCommand.setMiniDronePilotingFlatTrimListener(null);
+		ARCommand.setMiniDronePilotingStateFlyingStateChangedListener(null);
 	}
 
+	private final ARCommandCommonCommonStateBatteryStateChangedListener
+		mARCommandCommonCommonStateBatteryStateChangedListener
+			= new ARCommandCommonCommonStateBatteryStateChangedListener() {
+		@Override
+		public void onCommonCommonStateBatteryStateChangedUpdate(final byte b) {
+			Log.d(TAG, "onCommonCommonStateBatteryStateChangedUpdate ...");
+
+			if (mListener != null) {
+				mListener.onUpdateBattery(b);
+			}
+		}
+	};
+
+	private final ARCommandMiniDronePilotingFlatTrimListener
+		mARCommandMiniDronePilotingFlatTrimListener
+			= new ARCommandMiniDronePilotingFlatTrimListener() {
+		@Override
+		public void onMiniDronePilotingFlatTrimUpdate() {
+			Log.d(TAG, "onMiniDronePilotingFlatTrimUpdate ...");
+
+			if (mListener != null) {
+				mListener.onFlatTrimUpdate(true);
+			}
+		}
+	};
+
+	private final ARCommandMiniDronePilotingStateFlyingStateChangedListener
+		mARCommandMiniDronePilotingStateFlyingStateChangedListener
+			= new ARCommandMiniDronePilotingStateFlyingStateChangedListener() {
+		@Override
+		public void onMiniDronePilotingStateFlyingStateChangedUpdate(
+			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM arcommands_minidrone_pilotingstate_flyingstatechanged_state_enum) {
+			Log.d(TAG, "onMiniDronePilotingStateFlyingStateChangedUpdate ...");
+
+			if (mListener != null) {
+				mListener.onFlyingStateChangedUpdate(
+					arcommands_minidrone_pilotingstate_flyingstatechanged_state_enum.getValue());
+			}
+		}
+	};
 
 	private boolean sendPCMD() {
-		ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK;
 		boolean sentStatus = true;
-		ARCommand cmd = new ARCommand();
+		final ARCommand cmd = new ARCommand();
 
-		cmdError = cmd.setMiniDronePilotingPCMD(dataPCMD.flag, dataPCMD.roll, dataPCMD.pitch, dataPCMD.yaw, dataPCMD.gaz, dataPCMD.psi);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError;
+		synchronized (mDataSync) {
+			cmdError = cmd.setMiniDronePilotingPCMD(mDataPCMD.flag, mDataPCMD.roll, mDataPCMD.pitch, mDataPCMD.yaw, mDataPCMD.gaz, mDataPCMD.psi);
+		}
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
-			// The commands sent in loop should be sent to a buffer not acknowledged ; here iobufferC2dNack
-			ARNETWORK_ERROR_ENUM netError = netManager.sendData(iobufferC2dNack, cmd, null, true);
+			// The commands sent in loop should be sent to a buffer not acknowledged ; here iobufferC2dNak
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dNak, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "netManager.sendData() failed. " + netError.toString());
+				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
 				sentStatus = false;
 			}
 
@@ -328,18 +382,17 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 	}
 
 	public boolean sendTakeoff() {
-		ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK;
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		cmdError = cmd.setMiniDronePilotingTakeOff();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingTakeOff();
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = netManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "netManager.sendData() failed. " + netError.toString());
+				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
 				sentStatus = false;
 			}
 
@@ -354,18 +407,17 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 	}
 
 	public boolean sendLanding() {
-		ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK;
 		boolean sentStatus = true;
-		ARCommand cmd = new ARCommand();
+		final ARCommand cmd = new ARCommand();
 
-		cmdError = cmd.setMiniDronePilotingLanding();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingLanding();
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = netManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "netManager.sendData() failed. " + netError.toString());
+				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
 				sentStatus = false;
 			}
 
@@ -380,18 +432,17 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 	}
 
 	public boolean sendEmergency() {
-		ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK;
 		boolean sentStatus = true;
-		ARCommand cmd = new ARCommand();
+		final ARCommand cmd = new ARCommand();
 
-		cmdError = cmd.setMiniDronePilotingEmergency();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingEmergency();
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dEmergency
-			ARNETWORK_ERROR_ENUM netError = netManager.sendData(iobufferC2dEmergency, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dEmergency, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "netManager.sendData() failed. " + netError.toString());
+				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
 				sentStatus = false;
 			}
 
@@ -406,20 +457,19 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 	}
 
 	public boolean sendDate(Date currentDate) {
-		ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK;
 		boolean sentStatus = true;
-		ARCommand cmd = new ARCommand();
+		final ARCommand cmd = new ARCommand();
 
-		SimpleDateFormat formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+		final SimpleDateFormat formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
-		cmdError = cmd.setCommonCommonCurrentDate(formattedDate.format(currentDate));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonCurrentDate(formattedDate.format(currentDate));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = netManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "netManager.sendData() failed. " + netError.toString());
+				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
 				sentStatus = false;
 			}
 
@@ -434,20 +484,19 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 	}
 
 	public boolean sendTime(Date currentDate) {
-		ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK;
 		boolean sentStatus = true;
-		ARCommand cmd = new ARCommand();
+		final ARCommand cmd = new ARCommand();
 
-		SimpleDateFormat formattedTime = new SimpleDateFormat("'T'HHmmssZZZ", Locale.getDefault());
+		final SimpleDateFormat formattedTime = new SimpleDateFormat("'T'HHmmssZZZ", Locale.getDefault());
 
-		cmdError = cmd.setCommonCommonCurrentTime(formattedTime.format(currentDate));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonCurrentTime(formattedTime.format(currentDate));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = netManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "netManager.sendData() failed. " + netError.toString());
+				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
 				sentStatus = false;
 			}
 
@@ -461,51 +510,80 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 		return sentStatus;
 	}
 
-	public void setFlag(byte flag) {
-		dataPCMD.flag = flag;
-	}
+	public boolean sendFlatTrim() {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
 
-	public void setGaz(byte gaz) {
-		dataPCMD.gaz = gaz;
-	}
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingFlatTrim();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+            /* Send data with ARNetwork */
+			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
 
-	public void setRoll(byte roll) {
-		dataPCMD.roll = roll;
-	}
+			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
+				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
+				sentStatus = false;
+			}
 
-	public void setPitch(byte pitch) {
-		dataPCMD.pitch = pitch;
-	}
-
-	public void setYaw(byte yaw) {
-		dataPCMD.yaw = yaw;
-	}
-
-	public void setListener(DeviceControllerListener listener) {
-		this.listener = listener;
-	}
-
-	@Override
-	public void onCommonCommonStateBatteryStateChangedUpdate(byte b) {
-		Log.d(TAG, "onCommonCommonStateBatteryStateChangedUpdate ...");
-
-		if (listener != null) {
-			listener.onUpdateBattery(b);
+			cmd.dispose();
 		}
+
+		if (sentStatus == false) {
+			ARSALPrint.e(TAG, "Failed to send flattrim command.");
+			if (mListener != null) {
+				mListener.onFlatTrimUpdate(false);
+			}
+		}
+
+		return sentStatus;
+	}
+
+	public void setFlag(final byte flag) {
+		synchronized (mDataSync) {
+			mDataPCMD.flag = flag;
+		}
+	}
+
+	public void setGaz(final byte gaz) {
+		synchronized (mDataSync) {
+			mDataPCMD.gaz = gaz;
+		}
+	}
+
+	public void setRoll(final byte roll) {
+		synchronized (mDataSync) {
+			mDataPCMD.roll = roll;
+		}
+	}
+
+	public void setPitch(final byte pitch) {
+		synchronized (mDataSync) {
+			mDataPCMD.pitch = pitch;
+		}
+	}
+
+	public void setYaw(final byte yaw) {
+		synchronized (mDataSync) {
+			mDataPCMD.yaw = yaw;
+		}
+	}
+
+	public void setListener(final DeviceControllerListener mListener) {
+		this.mListener = mListener;
 	}
 
 	/**
 	 * Extend of ARNetworkManager implementing the callback
 	 */
 	private class ARNetworkManagerExtend extends ARNetworkManager {
-		public ARNetworkManagerExtend(ARNetworkALManager osSpecificManager, ARNetworkIOBufferParam[] inputParamArray, ARNetworkIOBufferParam[] outputParamArray, int timeBetweenPingsMs) {
+		public ARNetworkManagerExtend(final ARNetworkALManager osSpecificManager, final ARNetworkIOBufferParam[] inputParamArray, final ARNetworkIOBufferParam[] outputParamArray, final int timeBetweenPingsMs) {
 			super(osSpecificManager, inputParamArray, outputParamArray, timeBetweenPingsMs);
 		}
 
 		private static final String TAG = "ARNetworkManagerExtend";
 
 		@Override
-		public ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM onCallback(int ioBufferId, ARNativeData data, ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM status, Object customData) {
+		public ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM onCallback(final int ioBufferId, final ARNativeData data, final ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM status, final Object customData) {
 			ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM retVal = ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DEFAULT;
 
 			if (status == ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM.ARNETWORK_MANAGER_CALLBACK_STATUS_TIMEOUT) {
@@ -516,11 +594,11 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 		}
 
 		@Override
-		public void onDisconnect(ARNetworkALManager arNetworkALManager) {
+		public void onDisconnect(final ARNetworkALManager arNetworkALManager) {
 			Log.d(TAG, "onDisconnect ...");
 
-			if (listener != null) {
-				listener.onDisconnect();
+			if (mListener != null) {
+				mListener.onDisconnect();
 			}
 		}
 	}
@@ -545,54 +623,54 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 
 
 	private abstract class LooperThread extends Thread {
-		private boolean isAlive;
-		private boolean isRunning;
+		private boolean mIsAlive;
+		private boolean mIsRunning;
 
 		public LooperThread() {
-			this.isRunning = false;
-			this.isAlive = true;
+			mIsRunning = false;
+			mIsAlive = true;
 		}
 
 		@Override
 		public void run() {
-			this.isRunning = true;
+			mIsRunning = true;
 
 			onStart();
 
-			while (this.isAlive) {
-				onloop();
+			while (this.mIsAlive) {
+				onLoop();
 			}
 			onStop();
 
-			this.isRunning = false;
+			mIsRunning = false;
 		}
 
 		public void onStart() {
 
 		}
 
-		public abstract void onloop();
+		public abstract void onLoop();
 
 		public void onStop() {
 
 		}
 
 		public void stopThread() {
-			isAlive = false;
+			mIsAlive = false;
 		}
 
-		public boolean isRunning() {
-			return this.isRunning;
+		public boolean ismIsRunning() {
+			return mIsRunning;
 		}
 	}
 
+	private static final int MAX_READ_TIMEOUT_MS = 1000;
 	private class ReaderThread extends LooperThread {
-		int bufferId;
-		ARCommand dataRecv = new ARCommand(128 * 1024);//TODO define
+		final int mBufferId;
+		final ARCommand dataRecv = new ARCommand(128 * 1024);//TODO define
 
-		public ReaderThread(int bufferId) {
-			this.bufferId = bufferId;
-			dataRecv = new ARCommand(128 * 1024);//TODO define
+		public ReaderThread(final int bufferId) {
+			mBufferId = bufferId;
 		}
 
 		@Override
@@ -601,24 +679,24 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 		}
 
 		@Override
-		public void onloop() {
+		public void onLoop() {
 			boolean skip = false;
-			ARNETWORK_ERROR_ENUM netError = ARNETWORK_ERROR_ENUM.ARNETWORK_OK;
 
             /* read data*/
-			netError = netManager.readDataWithTimeout(bufferId, dataRecv, 1000); //TODO define
+			final ARNETWORK_ERROR_ENUM netError = mARNetManager.readDataWithTimeout(mBufferId, dataRecv, MAX_READ_TIMEOUT_MS);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_ERROR_BUFFER_EMPTY) {
-//                    ARSALPrint.e (TAG, "ReaderThread readDataWithTimeout() failed. " + netError + " bufferId: " + bufferId);
+//                    ARSALPrint.e (TAG, "ReaderThread readDataWithTimeout() failed. " + netError + " mBufferId: " + mBufferId);
 				}
-
 				skip = true;
 			}
 
-			if (skip == false) {
-				ARCOMMANDS_DECODER_ERROR_ENUM decodeStatus = dataRecv.decode();
-				if ((decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_OK) && (decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_ERROR_NO_CALLBACK) && (decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_ERROR_UNKNOWN_COMMAND)) {
+			if (!skip) {
+				final ARCOMMANDS_DECODER_ERROR_ENUM decodeStatus = dataRecv.decode();
+				if ((decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_OK)
+					&& (decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_ERROR_NO_CALLBACK)
+					&& (decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_ERROR_UNKNOWN_COMMAND)) {
 					ARSALPrint.e(TAG, "ARCommand.decode() failed. " + decodeStatus);
 				}
 			}
@@ -631,22 +709,23 @@ public class DeviceController implements ARCommandCommonCommonStateBatteryStateC
 		}
 	}
 
+	private static final long CMD_SENDING_INTERVALS_MS = 50;
 	protected class ControllerLooperThread extends LooperThread {
 		public ControllerLooperThread() {
 
 		}
 
 		@Override
-		public void onloop() {
-			long lastTime = SystemClock.elapsedRealtime();
+		public void onLoop() {
+			final long lastTime = SystemClock.elapsedRealtime();
 
 			sendPCMD();
 
-			long sleepTime = (SystemClock.elapsedRealtime() + 50) - lastTime;
+			final long sleepTime = (SystemClock.elapsedRealtime() + CMD_SENDING_INTERVALS_MS) - lastTime;
 
 			try {
 				Thread.sleep(sleepTime);
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				e.printStackTrace();
 			}
 		}

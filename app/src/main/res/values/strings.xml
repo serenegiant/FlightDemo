@@ -16,4 +16,5 @@
 	<string name="disconnecting">disconnecting…</string>
 	<string name="connecting">connecting…</string>
 	<string name="battery">Battery:</string>
+	<string name="flat_trim">FlatTrim</string>
 </resources>

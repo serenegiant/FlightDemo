@@ -17,4 +17,5 @@
 	<string name="disconnecting">切断中…</string>
 	<string name="connecting">接続中…</string>
 	<string name="battery">電池残量:</string>
+	<string name="flat_trim">水平調整</string>
 </resources>

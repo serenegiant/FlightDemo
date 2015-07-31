@@ -2,14 +2,18 @@
   <dictionary name="saki">
     <words>
       <w>arcommands</w>
+      <w>arcontroller</w>
       <w>ardiscovery</w>
       <w>arnetwork</w>
       <w>arnetworkal</w>
       <w>arsal</w>
+      <w>arstream</w>
       <w>bgen</w>
+      <w>flattrim</w>
       <w>flightdemo</w>
       <w>hasht</w>
       <w>hashtable</w>
+      <w>iobuffer</w>
       <w>jjtc</w>
       <w>jjtn</w>
       <w>jjtree</w>

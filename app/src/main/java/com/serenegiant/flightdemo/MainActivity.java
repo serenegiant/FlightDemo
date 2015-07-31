@@ -24,8 +24,13 @@ public class MainActivity extends Activity {
 				System.loadLibrary("arnetwork_android");
 				System.loadLibrary("arcommands");
 				System.loadLibrary("arcommands_android");
+				System.loadLibrary("json");
 				System.loadLibrary("ardiscovery");
 				System.loadLibrary("ardiscovery_android");
+				System.loadLibrary("arstream");
+				System.loadLibrary("arstream_android");
+				System.loadLibrary("arcontroller");
+				System.loadLibrary("arcontroller_android");
 
 				ARSALPrint.enableDebugPrints();
 				isLoaded = true;

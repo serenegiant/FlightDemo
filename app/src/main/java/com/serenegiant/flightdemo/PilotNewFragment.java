@@ -1,9 +1,8 @@
 package com.serenegiant.flightdemo;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,13 +12,24 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
+import com.parrot.arsdk.arcontroller.ARControllerDictionary;
+import com.parrot.arsdk.arcontroller.ARCONTROLLER_DEVICE_STATE_ENUM;
+import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
+import com.parrot.arsdk.arcontroller.ARCONTROLLER_ERROR_ENUM;
+import com.parrot.arsdk.arcontroller.ARControllerException;
+import com.parrot.arsdk.arcontroller.ARDeviceController;
+import com.parrot.arsdk.arcontroller.ARDeviceControllerListener;
+import com.parrot.arsdk.arcontroller.ARDeviceControllerStreamListener;
+import com.parrot.arsdk.arcontroller.ARFrame;
+
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 
 import java.sql.Date;
 
-public class PilotFragment extends Fragment {
+public class PilotNewFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static String TAG = PilotFragment.class.getSimpleName();
+	private static String TAG = PilotNewFragment.class.getSimpleName();
 	private static String EXTRA_DEVICE_SERVICE = "pilotingActivity.extra.device.service";
 
 	/**
@@ -28,8 +38,8 @@ public class PilotFragment extends Fragment {
 	 *
 	 * @return A new instance of fragment PilotFragment.
 	 */
-	public static PilotFragment newInstance(final ARDiscoveryDeviceService service) {
-		final PilotFragment fragment = new PilotFragment();
+	public static PilotNewFragment newInstance(final ARDiscoveryDeviceService service) {
+		final PilotNewFragment fragment = new PilotNewFragment();
 		fragment.service = service;
 		final Bundle args = new Bundle();
 		args.putParcelable(EXTRA_DEVICE_SERVICE, service);
@@ -56,7 +66,7 @@ public class PilotFragment extends Fragment {
 	private float mLeftScaleX, mLeftScaleY;
 	private final FlightRecorder mFlightRecorder = new FlightRecorder();
 
-	public PilotFragment() {
+	public PilotNewFragment() {
 		// Required empty public constructor
 	}
 
@@ -314,15 +324,11 @@ public class PilotFragment extends Fragment {
 
 	private void startDeviceController() {
 		if ((deviceController != null) && !mIsConnected) {
-			final ProgressDialog dialog = new ProgressDialog(getActivity());
-			dialog.setTitle(R.string.disconnecting);
-			dialog.setIndeterminate(true);
-			dialog.show();
-/*			// FIXME AlertDialogを使うのはあまり良くない ProgressDialogに変える?
+			// FIXME AlertDialogを使うのはあまり良くない ProgressDialogに変える?
 			final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
 			alertDialogBuilder.setTitle(R.string.connecting);
-			final AlertDialog dialog = alertDialogBuilder.create();
-			dialog.show(); */
+			final AlertDialog alertDialog = alertDialogBuilder.create();
+			alertDialog.show();
 
 			new Thread(new Runnable() {
 				@Override
@@ -332,17 +338,13 @@ public class PilotFragment extends Fragment {
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							dialog.dismiss();
+							alertDialog.dismiss();
 						}
 					});
 
 					mIsConnected = !failed;
 					if (failed) {
-						try {
-							getFragmentManager().popBackStack();
-						} catch (final Exception e) {
-							Log.w(TAG, e);
-						}
+						getFragmentManager().popBackStack();
 					} else {
 						//only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
 						final Date currentDate = new Date(System.currentTimeMillis());
@@ -377,16 +379,11 @@ public class PilotFragment extends Fragment {
 	private void stopDeviceController() {
 		stopMove();
 		if (deviceController != null) {
-			final ProgressDialog dialog = new ProgressDialog(getActivity());
-			dialog.setTitle(R.string.disconnecting);
-			dialog.setIndeterminate(true);
-			dialog.show();
-
-/*			// FIXME AlertDialogを使うのはあまり良くない ProgressDialogに変える?
+			// FIXME AlertDialogを使うのはあまり良くない ProgressDialogに変える?
 			final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
 			alertDialogBuilder.setTitle(R.string.disconnecting);
-			final AlertDialog dialog = alertDialogBuilder.create();
-			dialog.show(); */
+			final AlertDialog alertDialog = alertDialogBuilder.create();
+			alertDialog.show();
 
 			new Thread(new Runnable() {
 				@Override
@@ -397,8 +394,8 @@ public class PilotFragment extends Fragment {
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							dialog.dismiss();
-//							getFragmentManager().popBackStack();
+							alertDialog.dismiss();
+							getFragmentManager().popBackStack();
 						}
 					});
 				}

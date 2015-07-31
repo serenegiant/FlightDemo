@@ -37,6 +37,7 @@ public class FlightRecorder {
 	public static final int CMD_FLIP_FORWARD = 102;	// 前方フリップ
 	public static final int CMD_FLIP_BACK = 103;	// 後方フリップ
 
+	private boolean mStarted;
 	private long mStartTime;	// 記録開始時刻[ミリ秒]
 	private int mCurrentPos;	// 次の読み込み位置(再生時)
 
@@ -111,6 +112,7 @@ public class FlightRecorder {
 	 */
 	public synchronized void start() {
 		mStartTime = System.currentTimeMillis();
+		mStarted = true;
 	}
 
 	/**
@@ -118,6 +120,7 @@ public class FlightRecorder {
 	 */
 	public synchronized void stop() {
 		mCurrentPos = 0;
+		mStarted = false;
 	}
 
 	/**
@@ -126,9 +129,11 @@ public class FlightRecorder {
 	 * @param value, -100〜100, 0は移動終了
 	 */
 	public synchronized void record(final int cmd, final int value) {
-		final String cmd_str = String.format("%d,%d,%d", cmd, value, System.currentTimeMillis() - mStartTime);
-		mRecords.add(cmd_str);
-		mCurrentPos = mRecords.size() - 1;
+		if (mStarted) {
+			final String cmd_str = String.format("%d,%d,%d", cmd, value, System.currentTimeMillis() - mStartTime);
+			mRecords.add(cmd_str);
+			mCurrentPos = mRecords.size() - 1;
+		}
 	}
 
 	/**
