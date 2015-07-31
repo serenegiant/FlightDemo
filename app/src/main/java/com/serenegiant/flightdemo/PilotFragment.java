@@ -2,10 +2,9 @@ package com.serenegiant.flightdemo;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Intent;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -37,8 +36,10 @@ public class PilotFragment extends Fragment {
 		return fragment;
 	}
 
-	public DeviceController deviceController;
-	public ARDiscoveryDeviceService service;
+	private final Handler mHandler = new Handler();
+	private final long mUIThreadId = Thread.currentThread().getId();
+	private DeviceController deviceController;
+	private ARDiscoveryDeviceService service;
 
 	private Button mEmergencyBtn;
 	private Button mTakeOnOffBtn;
@@ -90,23 +91,6 @@ public class PilotFragment extends Fragment {
 
 		return rootView;
 	}
-
-/*	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		try {
-			mListener = (OnFragmentInteractionListener) activity;
-		} catch (ClassCastException e) {
-			throw new ClassCastException(activity.toString()
-											 + " must implement OnFragmentInteractionListener");
-		}
-	} */
-
-/*	@Override
-	public void onDetach() {
-		super.onDetach();
-		mListener = null;
-	} */
 
 	@Override
 	public void onResume() {
@@ -174,6 +158,7 @@ public class PilotFragment extends Fragment {
 		@Override
 		public void onDisconnect() {
 			stopDeviceController();
+			mIsFlying = false;
 		}
 
 		@Override
@@ -188,41 +173,46 @@ public class PilotFragment extends Fragment {
 	};
 
 	private float mFirstPtRightX, mFirstPtRightY;
-	private float mPrevRightDeltaX, mPrevRightDeltaY;
+	private int mPrevRightMX, mPrevRightMY;
 	private final void doRightStick(final MotionEvent event) {
 		final int action = event.getAction();
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:
 			mFirstPtRightX = event.getX();
 			mFirstPtRightY = event.getY();
-			mPrevRightDeltaX = mPrevRightDeltaY = 0;
+			mPrevRightMX = mPrevRightMY = 0;
 			break;
 		case MotionEvent.ACTION_MOVE:
 			final float dx = event.getX() - mFirstPtRightX;
-			final float dy = event.getY() - mFirstPtRightY;
-			if ((Math.abs(dx - mPrevRightDeltaX) > 10) && (Math.abs(dy - mPrevRightDeltaY) > 10)) {
-				mPrevRightDeltaX = dx;
-				mPrevRightDeltaY = dy;
+			int mx = (int) (dx * mRightScaleX);
+			if (mx < -100) mx = -100;
+			else if (mx > 100) mx = 100;
+			if (mx != mPrevRightMX) {
+				mPrevRightMX = mx;
 				if (deviceController != null) {
-					int mx = (int) (dx * mRightScaleX);
-					if (mx < -100) mx = -100;
-					else if (mx > 100) mx = 100;
-					int my = (int) (dy * mRightScaleY);
-					if (my < -100) my = -100;
-					else if (my > 100) my = 100;
-					deviceController.setYaw((byte) mx);
-					deviceController.setPitch((byte) my);
-					deviceController.setFlag((byte) (my != 0 ? 1 : 0));
+					deviceController.setRoll((byte) mx);
+					deviceController.setFlag((byte) (mx != 0 ? 1 : 0));
+				}
+			}
+			final float dy = event.getY() - mFirstPtRightY;
+			int my = (int) (dy * mRightScaleY);
+			if (my < -50) my = 100;
+			else if (my > 100) my = 100;
+			if (my != mPrevRightMY) {
+				mPrevRightMY = my;
+				if (deviceController != null) {
+					deviceController.setPitch((byte) -my);
 				}
 			}
 			break;
 		case MotionEvent.ACTION_UP:
 		case MotionEvent.ACTION_CANCEL:
 			if (deviceController != null) {
-				// 左右移動量をクリア, 正:右, 負:左
-				deviceController.setYaw((byte) 0);
 				// 前後移動量をクリア, 正:前, 負:後
 				deviceController.setPitch((byte) 0);
+				deviceController.setFlag((byte) 0);
+				// 左右移動量をクリア, 正:右, 負:左
+				deviceController.setRoll((byte) 0);
 				deviceController.setFlag((byte) 0);
 			}
 			break;
@@ -230,32 +220,36 @@ public class PilotFragment extends Fragment {
 	}
 
 	private float mFirstPtLeftX, mFirstPtLeftY;
-	private float mPrevLeftDeltaX, mPrevLeftDeltaY;
+	private int mPrevLeftMX, mPrevLeftMY;
 	private final void doLeftStick(final MotionEvent event) {
 		final int action = event.getAction();
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:
 			mFirstPtLeftX = event.getX();
 			mFirstPtLeftY = event.getY();
-			mPrevLeftDeltaX = mPrevLeftDeltaY = 0;
+			mPrevLeftMX = mPrevLeftMY = 0;
 			break;
 		case MotionEvent.ACTION_MOVE:
 			final float dx = event.getX() - mFirstPtLeftX;
-			final float dy = event.getY() - mFirstPtLeftY;
-			if ((Math.abs(dx - mPrevLeftDeltaX) > 10) && (Math.abs(dy - mPrevLeftDeltaY) > 10)) {
-				mPrevLeftDeltaX = dx;
-				mPrevLeftDeltaY = dy;
+			int mx = (int) (dx * mLeftScaleX);
+			if (mx < -100) mx = 100;
+			else if (mx > 100) mx = 100;
+			if ((Math.abs(mx) < 50)) mx = 0;
+			if (mx != mPrevLeftMX) {
+				mPrevLeftMX = mx;
 				if (deviceController != null) {
-					int mx = (int) (dx * mLeftScaleX);
-					if (mx < -50) mx = 50;
-					else if (mx > 50) mx = 50;
-					else mx = 0;
-					int my = (int) (dy * mLeftScaleY);
-					if (my < -50) my = 100;
-					else if (my > 100) my = 100;
-					deviceController.setRoll((byte) mx);
-					deviceController.setFlag((byte) (mx != 0 ? 1 : 0));
-					deviceController.setGaz((byte) my);
+					deviceController.setYaw((byte) mx);
+				}
+			}
+			final float dy = event.getY() - mFirstPtLeftY;
+			int my = (int) (dy * mLeftScaleY);
+			if (my < -100) my = -100;
+			else if (my > 100) my = 100;
+			if (my != mPrevLeftMY) {
+				mPrevLeftMY = my;
+				if (deviceController != null) {
+					deviceController.setPitch((byte) my);
+					deviceController.setFlag((byte) (my != 0 ? 1 : 0));
 				}
 			}
 			break;
@@ -265,8 +259,7 @@ public class PilotFragment extends Fragment {
 				// 上下移動量をクリア, 正:上, 負:下
 				deviceController.setGaz((byte) 0);
 				// 回転量をクリア, 正:右回り, 負:左回り
-				deviceController.setRoll((byte) 0);
-				deviceController.setFlag((byte) 0);
+				deviceController.setYaw((byte) 0);
 			}
 			break;
 		}
@@ -288,7 +281,6 @@ public class PilotFragment extends Fragment {
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							//alertDialog.hide();
 							alertDialog.dismiss();
 						}
 					});
@@ -325,7 +317,6 @@ public class PilotFragment extends Fragment {
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							//alertDialog.hide();
 							alertDialog.dismiss();
 							getFragmentManager().popBackStack();
 						}
@@ -336,9 +327,12 @@ public class PilotFragment extends Fragment {
 	}
 
 	private void runOnUiThread(final Runnable task) {
-		final Activity activity = getActivity();
-		if ((activity != null) && !activity.isFinishing()) {
-			activity.runOnUiThread(task);
+		if (task != null) {
+			if (mUIThreadId != Thread.currentThread().getId()) {
+				mHandler.post(task);
+			} else {
+				task.run();
+			}
 		}
 	}
 }

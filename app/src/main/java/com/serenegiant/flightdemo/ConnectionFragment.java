@@ -153,10 +153,6 @@ public class ConnectionFragment extends Fragment {
 
 				final ARDiscoveryDeviceService service = deviceList.get(position);
 
-/*				final Intent intent = new Intent(getActivity(), PilotingActivity.class);
-				intent.putExtra(PilotingActivity.EXTRA_DEVICE_SERVICE, service);
-				startActivity(intent);	// FIXME これはフラグメントに変える */
-
 				final Fragment fragment = PilotFragment.newInstance(service);
 				getFragmentManager().beginTransaction()
 					.addToBackStack(null)

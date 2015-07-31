@@ -27,12 +27,6 @@
 			</intent-filter>
 		</activity>
 
-		<activity
-			android:name=".PilotingActivity"
-			android:label="@string/app_name"
-			android:screenOrientation="userLandscape">
-		</activity>
-
 		<service android:name="com.parrot.arsdk.ardiscovery.ARDiscoveryService"/>
 	</application>
 

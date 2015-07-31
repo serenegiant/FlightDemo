@@ -16,4 +16,5 @@
 	<string name="emergency">非常停止</string>
 	<string name="disconnecting">切断中…</string>
 	<string name="connecting">接続中…</string>
+	<string name="battery">電池残量:</string>
 </resources>
