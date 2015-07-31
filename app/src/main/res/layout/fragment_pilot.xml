@@ -30,14 +30,14 @@
 			android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 		<TextView
+			android:id="@+id/batteryLabel"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:textAppearance="?android:attr/textAppearanceMedium"
-			android:text="XXX%"
-			android:id="@+id/batteryLabel"
 			android:layout_alignParentTop="true"
+			android:layout_toEndOf="@+id/textView"
 			android:layout_toRightOf="@+id/textView"
-			android:layout_toEndOf="@+id/textView"/>
+			android:text="XXX%"
+			android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 	</RelativeLayout>
 
@@ -56,7 +56,7 @@
 			android:layout_alignParentTop="true"
 			android:layout_weight="1">
 
-			<ImageView
+			<com.serenegiant.widget.MovableImageView
 				android:id="@+id/left_stick_image"
 				android:layout_width="@dimen/stick_size"
 				android:layout_height="@dimen/stick_size"
@@ -70,7 +70,8 @@
 				android:layout_height="wrap_content"
 				android:layout_above="@+id/left_stick_image"
 				android:layout_centerHorizontal="true"
-				android:text="@string/stick_text_up"/>
+				android:text="@string/stick_text_up"
+				android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 			<TextView
 				android:id="@+id/textView5"
@@ -79,7 +80,8 @@
 				android:layout_centerVertical="true"
 				android:layout_toEndOf="@+id/left_stick_image"
 				android:layout_toRightOf="@+id/left_stick_image"
-				android:text="@string/stick_text_turn_right"/>
+				android:text="@string/stick_text_turn_right"
+				android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 			<TextView
 				android:id="@+id/textView6"
@@ -88,7 +90,8 @@
 				android:layout_centerVertical="true"
 				android:layout_toLeftOf="@+id/left_stick_image"
 				android:layout_toStartOf="@+id/left_stick_image"
-				android:text="@string/stick_text_turn_left"/>
+				android:text="@string/stick_text_turn_left"
+				android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 			<TextView
 				android:id="@+id/textView7"
@@ -96,7 +99,8 @@
 				android:layout_height="wrap_content"
 				android:layout_below="@+id/left_stick_image"
 				android:layout_centerHorizontal="true"
-				android:text="@string/stick_text_down"/>
+				android:text="@string/stick_text_down"
+				android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 		</RelativeLayout>
 
@@ -110,7 +114,7 @@
 			android:layout_toRightOf="@+id/left_panel"
 			android:layout_weight="1">
 
-			<ImageView
+			<com.serenegiant.widget.MovableImageView
 				android:id="@+id/right_stick_image"
 				android:layout_width="@dimen/stick_size"
 				android:layout_height="@dimen/stick_size"
@@ -124,7 +128,8 @@
 				android:layout_height="wrap_content"
 				android:layout_above="@+id/right_stick_image"
 				android:layout_centerHorizontal="true"
-				android:text="@string/stick_text_forward"/>
+				android:text="@string/stick_text_forward"
+				android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 			<TextView
 				android:id="@+id/textView9"
@@ -133,7 +138,8 @@
 				android:layout_centerVertical="true"
 				android:layout_toEndOf="@+id/right_stick_image"
 				android:layout_toRightOf="@+id/right_stick_image"
-				android:text="@string/stick_text_right"/>
+				android:text="@string/stick_text_right"
+				android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 			<TextView
 				android:id="@+id/textView10"
@@ -141,7 +147,8 @@
 				android:layout_height="wrap_content"
 				android:layout_below="@+id/right_stick_image"
 				android:layout_centerHorizontal="true"
-				android:text="@string/stick_text_back"/>
+				android:text="@string/stick_text_back"
+				android:textAppearance="?android:attr/textAppearanceMedium"/>
 
 			<TextView
 				android:id="@+id/textView11"
@@ -150,7 +157,8 @@
 				android:layout_centerVertical="true"
 				android:layout_toLeftOf="@+id/right_stick_image"
 				android:layout_toStartOf="@+id/right_stick_image"
-				android:text="@string/stick_text_left"/>
+				android:text="@string/stick_text_left"
+				android:textAppearance="?android:attr/textAppearanceMedium"/>
 		</RelativeLayout>
 	</LinearLayout>
 

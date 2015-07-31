@@ -2,6 +2,7 @@ package com.serenegiant.flightdemo;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
@@ -11,16 +12,18 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.serenegiant.widget.MovableImageView;
 
 import java.sql.Date;
 
 public class PilotFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = PilotFragment.class.getSimpleName();
-	private static String EXTRA_DEVICE_SERVICE = "pilotingActivity.extra.device.service";
+	private static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";
 
 	/**
 	 * Use this factory method to create a new instance of
@@ -83,9 +86,15 @@ public class PilotFragment extends Fragment {
 
 		mRightStickPanel = rootView.findViewById(R.id.right_panel);
 		mRightStickPanel.setOnTouchListener(mOnTouchListener);
+		MovableImageView iv = (MovableImageView)rootView.findViewById(R.id.right_stick_image);
+		iv.setResizable(false);
+		iv.setMovable(false);
 
 		mLeftStickPanel = rootView.findViewById(R.id.left_panel);
 		mLeftStickPanel.setOnTouchListener(mOnTouchListener);
+		iv = (MovableImageView)rootView.findViewById(R.id.left_stick_image);
+		iv.setResizable(false);
+		iv.setMovable(false);
 
 		batteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
 
@@ -95,10 +104,23 @@ public class PilotFragment extends Fragment {
 	@Override
 	public void onResume() {
 		super.onResume();
-		mRightScaleX = 250 / (float)mRightStickPanel.getWidth();
-		mRightScaleY = 250 / (float)mRightStickPanel.getHeight();
-		mLeftScaleX = 250 / (float)mLeftStickPanel.getWidth();
-		mLeftScaleY = 250 / (float)mLeftStickPanel.getHeight();
+		if (mRightStickPanel.getWidth() != 0 && mRightStickPanel.getHeight() != 0) {
+			mRightScaleX = 250f / (float) mRightStickPanel.getWidth();
+			mRightScaleY = 250f / (float) mRightStickPanel.getHeight();
+			mLeftScaleX = 250f / (float) mLeftStickPanel.getWidth();
+			mLeftScaleY = 250f / (float) mLeftStickPanel.getHeight();
+		} else {
+			mRightScaleX = mRightScaleY = mLeftScaleX = mLeftScaleY = 0;
+		}
+		if (DEBUG) Log.w(TAG, String.format("scale:left(%f,%f)right(%f,%f)", mRightScaleX, mRightScaleY, mLeftScaleX, mLeftScaleY));
+		if (DEBUG) Log.w(TAG, String.format("mRightStickPanel:(%d,%d)mLeftStickPanel(%d,%d)",
+			mRightStickPanel.getWidth(), mRightStickPanel.getHeight(),
+			mLeftStickPanel.getWidth(), mLeftStickPanel.getHeight()));
+		final Rect r = new Rect();
+		mRightStickPanel.getDrawingRect(r);
+		if (DEBUG) Log.w(TAG, "mRightStickPanel:" + r);
+		mLeftStickPanel.getDrawingRect(r);
+		if (DEBUG) Log.w(TAG, "mLeftStickPanel:" + r);
 		startDeviceController();
 	}
 
@@ -217,21 +239,33 @@ public class PilotFragment extends Fragment {
 		}
 	};
 
+	private static final int CTRL_STEP = 5;
+
 	private float mFirstPtRightX, mFirstPtRightY;
 	private int mPrevRightMX, mPrevRightMY;
 	private final void doRightStick(final MotionEvent event) {
 		final int action = event.getAction();
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:
+			if (DEBUG) Log.v(TAG, "doRightStick:ACTION_DOWN");
+			if ((mRightScaleX == 0) || (mRightScaleY == 0)) {
+				mRightScaleX = 250f / (float) mRightStickPanel.getWidth();
+				mRightScaleY = 250f / (float) mRightStickPanel.getHeight();
+			}
+
 			mFirstPtRightX = event.getX();
 			mFirstPtRightY = event.getY();
 			mPrevRightMX = mPrevRightMY = 0;
 			break;
 		case MotionEvent.ACTION_MOVE:
 			final float dx = event.getX() - mFirstPtRightX;
+			final float dy = event.getY() - mFirstPtRightY;
+//			if (DEBUG) Log.v(TAG, String.format("doRightStick:(%5.1f,%5.1f", dx, dy));
+
 			int mx = (int) (dx * mRightScaleX);
 			if (mx < -100) mx = -100;
 			else if (mx > 100) mx = 100;
+			mx = (mx / CTRL_STEP) * CTRL_STEP;
 			if (mx != mPrevRightMX) {
 				mPrevRightMX = mx;
 				if (deviceController != null) {
@@ -239,26 +273,27 @@ public class PilotFragment extends Fragment {
 					deviceController.setFlag((byte) (mx != 0 ? 1 : 0));
 				}
 			}
-			final float dy = event.getY() - mFirstPtRightY;
 			int my = (int) (dy * mRightScaleY);
-			if (my < -50) my = 100;
+			if (my < -100) my = -100;
 			else if (my > 100) my = 100;
+			my = (my / CTRL_STEP) * CTRL_STEP;
 			if (my != mPrevRightMY) {
 				mPrevRightMY = my;
 				if (deviceController != null) {
 					deviceController.setPitch((byte) -my);
 				}
 			}
+			if (DEBUG) Log.v(TAG, String.format("doRightStick:(%d,%d", mx, my));
 			break;
 		case MotionEvent.ACTION_UP:
 		case MotionEvent.ACTION_CANCEL:
+			if (DEBUG) Log.v(TAG, "doRightStick:ACTION_UP");
 			if (deviceController != null) {
 				// 左右移動量をクリア, 正:右, 負:左
 				deviceController.setRoll((byte) 0);
 				deviceController.setFlag((byte) 0);
 				// 前後移動量をクリア, 正:前, 負:後
 				deviceController.setPitch((byte) 0);
-				deviceController.setFlag((byte) 0);
 			}
 			break;
 		}
@@ -270,36 +305,46 @@ public class PilotFragment extends Fragment {
 		final int action = event.getAction();
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:
+			if (DEBUG) Log.v(TAG, "doLeftStick:ACTION_DOWN");
+			if ((mLeftScaleX == 0) || (mLeftScaleY == 0)) {
+				mLeftScaleX = 250f / (float) mLeftStickPanel.getWidth();
+				mLeftScaleY = 250f / (float) mLeftStickPanel.getHeight();
+			}
 			mFirstPtLeftX = event.getX();
 			mFirstPtLeftY = event.getY();
 			mPrevLeftMX = mPrevLeftMY = 0;
 			break;
 		case MotionEvent.ACTION_MOVE:
 			final float dx = event.getX() - mFirstPtLeftX;
+			final float dy = event.getY() - mFirstPtLeftY;
+			if (DEBUG) Log.v(TAG, String.format("doLeftStick:(%5.1f,%5.1f", dx, dy));
+
 			int mx = (int) (dx * mLeftScaleX);
-			if (mx < -100) mx = 100;
+			if (mx < -100) mx = -100;
 			else if (mx > 100) mx = 100;
 			if ((Math.abs(mx) < 50)) mx = 0;
+			mx = (mx / CTRL_STEP) * CTRL_STEP;
 			if (mx != mPrevLeftMX) {
 				mPrevLeftMX = mx;
 				if (deviceController != null) {
 					deviceController.setYaw((byte) mx);
 				}
 			}
-			final float dy = event.getY() - mFirstPtLeftY;
 			int my = (int) (dy * mLeftScaleY);
 			if (my < -100) my = -100;
 			else if (my > 100) my = 100;
+			my = (my / CTRL_STEP) * CTRL_STEP;
 			if (my != mPrevLeftMY) {
 				mPrevLeftMY = my;
 				if (deviceController != null) {
-					deviceController.setPitch((byte) my);
-					deviceController.setFlag((byte) (my != 0 ? 1 : 0));
+					deviceController.setGaz((byte) -my);
 				}
 			}
+			if (DEBUG) Log.v(TAG, String.format("doLeftStick:(%d,%d", mx, my));
 			break;
 		case MotionEvent.ACTION_UP:
 		case MotionEvent.ACTION_CANCEL:
+			if (DEBUG) Log.v(TAG, "doLeftStick:ACTION_DOWN");
 			if (deviceController != null) {
 				// 上下移動量をクリア, 正:上, 負:下
 				deviceController.setGaz((byte) 0);
@@ -315,14 +360,9 @@ public class PilotFragment extends Fragment {
 	private void startDeviceController() {
 		if ((deviceController != null) && !mIsConnected) {
 			final ProgressDialog dialog = new ProgressDialog(getActivity());
-			dialog.setTitle(R.string.disconnecting);
+			dialog.setTitle(R.string.connecting);
 			dialog.setIndeterminate(true);
 			dialog.show();
-/*			// FIXME AlertDialogを使うのはあまり良くない ProgressDialogに変える?
-			final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-			alertDialogBuilder.setTitle(R.string.connecting);
-			final AlertDialog dialog = alertDialogBuilder.create();
-			dialog.show(); */
 
 			new Thread(new Runnable() {
 				@Override
@@ -382,12 +422,6 @@ public class PilotFragment extends Fragment {
 			dialog.setIndeterminate(true);
 			dialog.show();
 
-/*			// FIXME AlertDialogを使うのはあまり良くない ProgressDialogに変える?
-			final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-			alertDialogBuilder.setTitle(R.string.disconnecting);
-			final AlertDialog dialog = alertDialogBuilder.create();
-			dialog.show(); */
-
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -398,7 +432,6 @@ public class PilotFragment extends Fragment {
 						@Override
 						public void run() {
 							dialog.dismiss();
-//							getFragmentManager().popBackStack();
 						}
 					});
 				}

@@ -32,7 +32,7 @@ public class MainActivity extends Activity {
 				System.loadLibrary("arcontroller");
 				System.loadLibrary("arcontroller_android");
 
-				ARSALPrint.enableDebugPrints();
+//				ARSALPrint.enableDebugPrints();	// XXX ARライブラリのデバッグメッセージを表示する時
 				isLoaded = true;
 			} catch (Exception e) {
 				Log.e(TAG, "Oops (LoadLibrary)", e);
