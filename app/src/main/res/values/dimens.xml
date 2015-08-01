@@ -3,7 +3,10 @@
 	<dimen name="activity_horizontal_margin">16dp</dimen>
 	<dimen name="activity_vertical_margin">16dp</dimen>
 	<dimen name="half_padding">8dp</dimen>
-	<dimen name="bottom_panel_height">60dp</dimen>
-	<dimen name="stick_size">80dp</dimen>
+	<dimen name="quater_padding">4dp</dimen>
+	<dimen name="bottom_panel_height">48dp</dimen>
+	<dimen name="stick_size">60dp</dimen>
 	<dimen name="text_sz_message">32sp</dimen>
+	<dimen name="text_sz_button">16sp</dimen>
+	<dimen name="action_btn_size">48dp</dimen>
 </resources>

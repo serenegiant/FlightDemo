@@ -18,4 +18,11 @@
 	<string name="connecting">接続中…</string>
 	<string name="battery">電池残量:</string>
 	<string name="flat_trim">水平調整</string>
+	<string name="flip">フリップ</string>
+	<string name="load">読込</string>
+	<string name="play">再生</string>
+	<string name="loading">読み込み中…</string>
+	<string name="select">選択</string>
+	<string name="not_selected">ファイルが選択されていません！</string>
+	<string name="parent_dir">上へ‥</string>
 </resources>

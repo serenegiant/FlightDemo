@@ -1,4 +1,4 @@
-package com.serenegiant.flightdemo;
+package com.serenegiant.arflight;
 
 
 import android.os.SystemClock;
@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.parrot.arsdk.arcommands.ARCOMMANDS_DECODER_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateBatteryStateChangedListener;
@@ -35,6 +36,11 @@ import java.util.concurrent.Semaphore;
 
 public class DeviceController {
 	private static String TAG = "DeviceController";
+
+	public static final int FLIP_FRONT = 1;
+	public static final int FLIP_BACK = 2;
+	public static final int FLIP_RIGHT = 3;
+	public static final int FLIP_LEFT = 4;
 
 	private static final int iobufferC2dNak = 10;
 	private static final int iobufferC2dAck = 11;
@@ -77,7 +83,6 @@ public class DeviceController {
 	private ARDiscoveryDeviceService mDeviceService;
 
 	private DeviceControllerListener mListener;
-
 
 	static {
 		// コントローラー => 機体へのパラメータ
@@ -148,7 +153,7 @@ public class DeviceController {
 		if (!failed) {
 			/* start the reader threads */
 			startReadThreads();
-				/* start the looper thread */
+			/* start the looper thread */
 			startLooperThread();
 		}
 
@@ -456,11 +461,12 @@ public class DeviceController {
 		return sentStatus;
 	}
 
+	private static final SimpleDateFormat formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+	private static final SimpleDateFormat formattedTime = new SimpleDateFormat("'T'HHmmssZZZ", Locale.getDefault());
+
 	public boolean sendDate(Date currentDate) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
-
-		final SimpleDateFormat formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonCurrentDate(formattedDate.format(currentDate));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
@@ -487,7 +493,6 @@ public class DeviceController {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final SimpleDateFormat formattedTime = new SimpleDateFormat("'T'HHmmssZZZ", Locale.getDefault());
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonCurrentTime(formattedTime.format(currentDate));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
@@ -538,36 +543,155 @@ public class DeviceController {
 		return sentStatus;
 	}
 
+	/**
+	 * ミニドローンをフリップ, でもどれを選択肢しても同じ動きしなしてない気がする
+	 * @param direction
+	 * @return
+	 */
+	public boolean sendAnimationsFlip(final int direction) {
+
+		ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM _dir;
+		switch (direction) {
+		case FLIP_FRONT:
+			_dir = ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM.ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_FRONT;
+			break;
+		case FLIP_BACK:
+			_dir = ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM.ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_BACK;
+			break;
+		case FLIP_RIGHT:
+			_dir = ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM.ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_RIGHT;
+			break;
+		case FLIP_LEFT:
+			_dir = ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM.ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_LEFT;
+			break;
+		default:
+			return false;
+		}
+
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneAnimationsFlip(_dir);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+            /* Send data with ARNetwork */
+			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+
+			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
+				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
+				sentStatus = false;
+			}
+
+			cmd.dispose();
+		}
+
+		if (sentStatus == false) {
+			ARSALPrint.e(TAG, "Failed to send flip command.");
+			if (mListener != null) {
+				mListener.onFlatTrimUpdate(false);
+			}
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * ミニドローンを自動で指定した角度回転させる…みたい
+	 * @param degree
+	 * @return
+	 */
+	public boolean sendAnimationsCap(final int degree) {
+
+		final byte d = (byte)(degree > 180 ? 180 : (degree < -180 ? -180 : degree));
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneAnimationsCap(d);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+            /* Send data with ARNetwork */
+			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+
+			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
+				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
+				sentStatus = false;
+			}
+
+			cmd.dispose();
+		}
+
+		if (sentStatus == false) {
+			ARSALPrint.e(TAG, "Failed to send flip command.");
+			if (mListener != null) {
+				mListener.onFlatTrimUpdate(false);
+			}
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * rool/pitch変更時が移動なのか機体姿勢変更なのかを指示
+	 * @param flag 1:移動, 0:機体姿勢変更
+	 */
 	public void setFlag(final byte flag) {
 		synchronized (mDataSync) {
 			mDataPCMD.flag = flag;
 		}
 	}
 
+	/**
+	 * 機体の高度を上下させる
+	 * @param gaz 負:下降, 正:上昇
+	 */
 	public void setGaz(final byte gaz) {
 		synchronized (mDataSync) {
 			mDataPCMD.gaz = gaz;
 		}
 	}
 
+	/**
+	 * 機体を左右に傾ける。flag=1:左右に移動する, flag=0:機体姿勢変更のみ
+	 * @param roll 負:左, 正:右
+	 */
 	public void setRoll(final byte roll) {
 		synchronized (mDataSync) {
 			mDataPCMD.roll = roll;
 		}
 	}
 
+	/**
+	 * 機体の機首を上げ下げする。flag=1:前後に移動する, flag=0:機体姿勢変更のみ
+	 * @param pitch
+	 */
 	public void setPitch(final byte pitch) {
 		synchronized (mDataSync) {
 			mDataPCMD.pitch = pitch;
 		}
 	}
 
+	/**
+	 * 機体の機首を左右に動かす=水平方向に回転する
+	 * @param yaw 負:左回転, 正:右回転
+	 */
 	public void setYaw(final byte yaw) {
 		synchronized (mDataSync) {
 			mDataPCMD.yaw = yaw;
 		}
 	}
 
+	/**
+	 * 北磁極に対する角度を設定
+	 * @param psi
+	 */
+	public void setPsi(final float psi) {
+		synchronized (mDataSync) {
+			mDataPCMD.psi = psi;
+		}
+	}
+
+	/**
+	 * コールバックリスナーを設定
+	 * @param mListener
+	 */
 	public void setListener(final DeviceControllerListener mListener) {
 		this.mListener = mListener;
 	}
@@ -709,7 +833,9 @@ public class DeviceController {
 		}
 	}
 
+	/** sendPCMDを呼び出す間隔[ミリ秒] */
 	private static final long CMD_SENDING_INTERVALS_MS = 50;
+
 	protected class ControllerLooperThread extends LooperThread {
 		public ControllerLooperThread() {
 

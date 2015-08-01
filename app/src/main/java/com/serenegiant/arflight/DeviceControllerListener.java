@@ -1,4 +1,4 @@
-package com.serenegiant.flightdemo;
+package com.serenegiant.arflight;
 
 public interface DeviceControllerListener {
 	public void onDisconnect();

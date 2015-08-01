@@ -7,17 +7,8 @@
 	<RelativeLayout
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_weight="1"
-		android:gravity="bottom">
-
-		<Button
-			android:id="@+id/emergency_btn"
-			android:layout_width="wrap_content"
-			android:layout_height="@dimen/bottom_panel_height"
-			android:layout_centerInParent="true"
-			android:background="#ffff0000"
-			android:text="@string/emergency"
-			android:textColor="#ff0000ff"/>
+		android:id="@+id/top_panel"
+		android:gravity="top">
 
 		<TextView
 			android:id="@+id/textView"
@@ -27,7 +18,8 @@
 			android:layout_alignParentStart="true"
 			android:layout_alignParentTop="true"
 			android:text="@string/battery"
-			android:textAppearance="?android:attr/textAppearanceMedium"/>
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"/>
 
 		<TextView
 			android:id="@+id/batteryLabel"
@@ -37,7 +29,16 @@
 			android:layout_toEndOf="@+id/textView"
 			android:layout_toRightOf="@+id/textView"
 			android:text="XXX%"
-			android:textAppearance="?android:attr/textAppearanceMedium"/>
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"/>
+
+		<ImageButton
+			android:layout_width="@dimen/bottom_panel_height"
+			android:layout_height="@dimen/bottom_panel_height"
+			android:id="@+id/flat_trim_btn"
+			android:layout_centerInParent="true"
+			android:src="@android:drawable/ic_menu_mylocation"
+			android:scaleType="centerCrop"/>
 
 	</RelativeLayout>
 
@@ -46,6 +47,46 @@
 		android:layout_height="match_parent"
 		android:layout_weight="10"
 		android:orientation="horizontal">
+
+		<LinearLayout
+			android:id="@+id/left_side_panel"
+			android:orientation="vertical"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_alignParentTop="true"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentStart="true">
+
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="@string/stick_text_forward"
+				android:id="@+id/flip_front_btn"
+				android:textSize="@dimen/text_sz_button"/>
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="@string/stick_text_back"
+				android:id="@+id/flip_back_btn"
+				android:textSize="@dimen/text_sz_button"/>
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="@string/stick_text_right"
+				android:id="@+id/flip_right_btn"
+				android:textSize="@dimen/text_sz_button"/>
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="@string/stick_text_left"
+				android:id="@+id/flip_left_btn"
+				android:textSize="@dimen/text_sz_button"/>
+
+		</LinearLayout>
 
 		<RelativeLayout
 			android:id="@+id/left_panel"
@@ -56,7 +97,8 @@
 			android:layout_alignParentTop="true"
 			android:layout_weight="1">
 
-			<com.serenegiant.widget.MovableImageView
+			<!--com.serenegiant.widget.MovableImageView -->
+			<ImageView
 				android:id="@+id/left_stick_image"
 				android:layout_width="@dimen/stick_size"
 				android:layout_height="@dimen/stick_size"
@@ -71,7 +113,8 @@
 				android:layout_above="@+id/left_stick_image"
 				android:layout_centerHorizontal="true"
 				android:text="@string/stick_text_up"
-				android:textAppearance="?android:attr/textAppearanceMedium"/>
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:textSize="@dimen/text_sz_button"/>
 
 			<TextView
 				android:id="@+id/textView5"
@@ -81,7 +124,8 @@
 				android:layout_toEndOf="@+id/left_stick_image"
 				android:layout_toRightOf="@+id/left_stick_image"
 				android:text="@string/stick_text_turn_right"
-				android:textAppearance="?android:attr/textAppearanceMedium"/>
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:textSize="@dimen/text_sz_button"/>
 
 			<TextView
 				android:id="@+id/textView6"
@@ -91,7 +135,8 @@
 				android:layout_toLeftOf="@+id/left_stick_image"
 				android:layout_toStartOf="@+id/left_stick_image"
 				android:text="@string/stick_text_turn_left"
-				android:textAppearance="?android:attr/textAppearanceMedium"/>
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:textSize="@dimen/text_sz_button"/>
 
 			<TextView
 				android:id="@+id/textView7"
@@ -100,7 +145,32 @@
 				android:layout_below="@+id/left_stick_image"
 				android:layout_centerHorizontal="true"
 				android:text="@string/stick_text_down"
-				android:textAppearance="?android:attr/textAppearanceMedium"/>
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:textSize="@dimen/text_sz_button"/>
+
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="S"
+				android:id="@+id/south_btn"
+				android:layout_alignParentTop="true"
+				android:layout_alignParentRight="true"
+				android:layout_alignParentEnd="true"
+				android:layout_marginTop="@dimen/half_padding"
+				android:textSize="@dimen/text_sz_button"/>
+
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="N"
+				android:id="@+id/north_btn"
+				android:layout_alignParentTop="true"
+				android:layout_toLeftOf="@+id/south_btn"
+				android:layout_toStartOf="@+id/south_btn"
+				android:layout_marginTop="@dimen/half_padding"
+				android:textSize="@dimen/text_sz_button"/>
 
 		</RelativeLayout>
 
@@ -114,7 +184,8 @@
 			android:layout_toRightOf="@+id/left_panel"
 			android:layout_weight="1">
 
-			<com.serenegiant.widget.MovableImageView
+			<!--com.serenegiant.widget.MovableImageView -->
+			<ImageView
 				android:id="@+id/right_stick_image"
 				android:layout_width="@dimen/stick_size"
 				android:layout_height="@dimen/stick_size"
@@ -129,7 +200,8 @@
 				android:layout_above="@+id/right_stick_image"
 				android:layout_centerHorizontal="true"
 				android:text="@string/stick_text_forward"
-				android:textAppearance="?android:attr/textAppearanceMedium"/>
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:textSize="@dimen/text_sz_button"/>
 
 			<TextView
 				android:id="@+id/textView9"
@@ -139,7 +211,8 @@
 				android:layout_toEndOf="@+id/right_stick_image"
 				android:layout_toRightOf="@+id/right_stick_image"
 				android:text="@string/stick_text_right"
-				android:textAppearance="?android:attr/textAppearanceMedium"/>
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:textSize="@dimen/text_sz_button"/>
 
 			<TextView
 				android:id="@+id/textView10"
@@ -148,7 +221,8 @@
 				android:layout_below="@+id/right_stick_image"
 				android:layout_centerHorizontal="true"
 				android:text="@string/stick_text_back"
-				android:textAppearance="?android:attr/textAppearanceMedium"/>
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:textSize="@dimen/text_sz_button"/>
 
 			<TextView
 				android:id="@+id/textView11"
@@ -158,30 +232,131 @@
 				android:layout_toLeftOf="@+id/right_stick_image"
 				android:layout_toStartOf="@+id/right_stick_image"
 				android:text="@string/stick_text_left"
-				android:textAppearance="?android:attr/textAppearanceMedium"/>
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:textSize="@dimen/text_sz_button"/>
+
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="W"
+				android:id="@+id/west_btn"
+				android:layout_alignParentTop="true"
+				android:layout_alignParentLeft="true"
+				android:layout_alignParentStart="true"
+				android:layout_marginTop="@dimen/half_padding"
+				android:textSize="@dimen/text_sz_button"/>
+
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="E"
+				android:id="@+id/east_btn"
+				android:layout_alignParentTop="true"
+				android:layout_toRightOf="@+id/west_btn"
+				android:layout_toEndOf="@+id/west_btn"
+				android:layout_marginTop="@dimen/half_padding"
+				android:textSize="@dimen/text_sz_button"/>
 		</RelativeLayout>
+
+		<LinearLayout
+			android:id="@+id/right_side_panel"
+			android:orientation="vertical"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_alignParentTop="true"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentStart="true">
+
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="-45"
+				android:id="@+id/cap_m45_btn"
+				android:textSize="@dimen/text_sz_button"/>
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="-15"
+				android:id="@+id/cap_m15_btn"
+				android:textSize="@dimen/text_sz_button"/>
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="15"
+				android:id="@+id/cap_p15_btn"
+				android:textSize="@dimen/text_sz_button"/>
+			<Button
+				style="?android:attr/buttonStyleSmall"
+				android:layout_width="@dimen/action_btn_size"
+				android:layout_height="@dimen/action_btn_size"
+				android:text="45"
+				android:id="@+id/cap_p45_btn"
+				android:textSize="@dimen/text_sz_button"/>
+
+		</LinearLayout>
 	</LinearLayout>
 
 	<RelativeLayout
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_weight="1"
-		android:gravity="bottom">
+		android:gravity="bottom"
+		android:id="@+id/bottom_panel">
 
 		<Button
 			android:id="@+id/take_onoff_btn"
 			android:layout_width="wrap_content"
 			android:layout_height="@dimen/bottom_panel_height"
 			android:layout_centerInParent="true"
-			android:text="@string/button_text_takeoff"/>
+			android:text="@string/button_text_takeoff"
+			android:textSize="@dimen/text_sz_button"/>
 
 		<ImageButton
-			android:id="@+id/imageButton"
+			android:id="@+id/record_btn"
 			android:layout_width="@dimen/bottom_panel_height"
 			android:layout_height="@dimen/bottom_panel_height"
 			android:layout_centerVertical="true"
 			android:background="@null"
 			android:scaleType="fitXY"
-			android:src="@drawable/btn_new_shutter"/>
+			android:src="@drawable/btn_new_shutter"
+			android:layout_marginRight="@dimen/half_padding"
+			android:layout_marginLeft="@dimen/activity_horizontal_margin"/>
+
+		<Button
+			android:id="@+id/emergency_btn"
+			android:layout_width="wrap_content"
+			android:layout_height="@dimen/bottom_panel_height"
+			android:background="#ffff0000"
+			android:text="@string/emergency"
+			android:textColor="#ff0000ff"
+			android:layout_alignParentTop="false"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentEnd="false"
+			android:textSize="@dimen/text_sz_button"/>
+
+		<ImageButton
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/load_btn"
+			android:layout_centerVertical="true"
+			android:layout_toRightOf="@+id/record_btn"
+			android:layout_toEndOf="@+id/record_btn"
+			android:src="@android:drawable/ic_menu_gallery"
+			android:layout_marginRight="@dimen/half_padding"/>
+
+		<ImageButton
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/play_btn"
+			android:layout_centerVertical="true"
+			android:layout_toRightOf="@+id/load_btn"
+			android:layout_toEndOf="@+id/load_btn"
+			android:src="@android:drawable/ic_menu_slideshow"
+			android:layout_marginRight="@dimen/half_padding"/>
+
 	</RelativeLayout>
 </LinearLayout>
