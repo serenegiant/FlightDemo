@@ -72,6 +72,7 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 	private View mLeftStickPanel;
 
 	private volatile int mFlyingState = -1;
+	private volatile int mAlertState = -1;
 	private volatile int mBattery = -1;
 	private boolean mIsFlying = false;	// FIXME mFlyingStateを参照するようにしてmIsFlyingフラグは削除する
 	private boolean mIsConnected = false;
@@ -434,6 +435,33 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 			if (DEBUG) Log.v(TAG, "onFlyingStateChangedUpdate:state=" + state);
 			if (mFlyingState != state) {
 				mFlyingState = state;
+/*				switch (state) {
+				case 0: // Landed state
+				case 1:	// Taking off state
+				case 2:	// Hovering state
+				case 3:	// Flying state
+				case 4:	// Landing state
+				case 5:	// Emergency state
+				case 6: // Rolling state
+					break;
+				} */
+				updateButtons();
+			}
+		}
+
+		@Override
+		public void onAlertStateChangedUpdate(int alert_state) {
+			if (DEBUG) Log.v(TAG, "onAlertStateChangedUpdate:state=" + alert_state);
+			if (mAlertState != alert_state) {
+				mAlertState = alert_state;
+/*				switch (alert_state) {
+				case 0:	// No alert
+				case 1:	// User emergency alert
+				case 2:	// Cut out alert
+				case 3:	// Critical battery alert
+				case 4:	// Low battery alert
+					break;
+				} */
 				updateButtons();
 			}
 		}
@@ -773,6 +801,7 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 			@Override
 			public void run() {
 				final int state = mFlyingState;
+				final int alert_state = mAlertState;
 				final boolean is_connected = mIsConnected;
 				final boolean is_recording = mFlightRecorder.isRecording();
 				final boolean is_playing = mFlightRecorder.isPlaying();
@@ -789,6 +818,14 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 				case 4:	// Landing state
 				case 5:	// Emergency state
 				case 6: // Rolling state
+					break;
+				}
+				switch (alert_state) {
+				case 0:	// No alert
+				case 1:	// User emergency alert
+				case 2:	// Cut out alert
+				case 3:	// Critical battery alert
+				case 4:	// Low battery alert
 					break;
 				}
 

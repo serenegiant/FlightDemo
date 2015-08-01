@@ -158,7 +158,8 @@
 				android:layout_alignParentRight="true"
 				android:layout_alignParentEnd="true"
 				android:layout_marginTop="@dimen/half_padding"
-				android:textSize="@dimen/text_sz_button"/>
+				android:textSize="@dimen/text_sz_button"
+				android:visibility="gone"/>
 
 			<Button
 				style="?android:attr/buttonStyleSmall"
@@ -170,7 +171,8 @@
 				android:layout_toLeftOf="@+id/south_btn"
 				android:layout_toStartOf="@+id/south_btn"
 				android:layout_marginTop="@dimen/half_padding"
-				android:textSize="@dimen/text_sz_button"/>
+				android:textSize="@dimen/text_sz_button"
+				android:visibility="gone"/>
 
 		</RelativeLayout>
 
@@ -245,7 +247,8 @@
 				android:layout_alignParentLeft="true"
 				android:layout_alignParentStart="true"
 				android:layout_marginTop="@dimen/half_padding"
-				android:textSize="@dimen/text_sz_button"/>
+				android:textSize="@dimen/text_sz_button"
+				android:visibility="gone"/>
 
 			<Button
 				style="?android:attr/buttonStyleSmall"
@@ -257,7 +260,8 @@
 				android:layout_toRightOf="@+id/west_btn"
 				android:layout_toEndOf="@+id/west_btn"
 				android:layout_marginTop="@dimen/half_padding"
-				android:textSize="@dimen/text_sz_button"/>
+				android:textSize="@dimen/text_sz_button"
+				android:visibility="gone"/>
 		</RelativeLayout>
 
 		<LinearLayout

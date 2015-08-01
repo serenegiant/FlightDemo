@@ -7,10 +7,12 @@ import android.util.Log;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_DECODER_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateBatteryStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingFlatTrimListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateAlertStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateFlyingStateChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryConnection;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
@@ -35,6 +37,7 @@ import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
 public class DeviceController {
+	private static final boolean DEBUG = false;
 	private static String TAG = "DeviceController";
 
 	public static final int FLIP_FRONT = 1;
@@ -145,7 +148,7 @@ public class DeviceController {
 	}
 
 	public boolean start() {
-		Log.d(TAG, "start ...");
+		if (DEBUG) Log.d(TAG, "start ...");
 
 		registerARCommandsListener();
 
@@ -161,7 +164,7 @@ public class DeviceController {
 	}
 
 	public void stop() {
-		Log.d(TAG, "stop ...");
+		if (DEBUG) Log.d(TAG, "stop ...");
 
 		unregisterARCommandsListener();
 
@@ -300,60 +303,104 @@ public class DeviceController {
 		}
 	}
 
-
+	/**
+	 * コールバックを登録
+	 */
 	protected void registerARCommandsListener() {
 		ARCommand.setCommonCommonStateBatteryStateChangedListener(
 			mARCommandCommonCommonStateBatteryStateChangedListener);
 		ARCommand.setMiniDronePilotingFlatTrimListener(
 			mARCommandMiniDronePilotingFlatTrimListener);
 		ARCommand.setMiniDronePilotingStateFlyingStateChangedListener(
-			mARCommandMiniDronePilotingStateFlyingStateChangedListener
-		);
+			mARCommandMiniDronePilotingStateFlyingStateChangedListener);
+		ARCommand.setMiniDronePilotingStateAlertStateChangedListener(
+			mARCommandMiniDronePilotingStateAlertStateChangedListener);
 	}
 
+	/**
+	 * コールバックを登録解除
+	 */
 	protected void unregisterARCommandsListener() {
 		ARCommand.setCommonCommonStateBatteryStateChangedListener(null);
 		ARCommand.setMiniDronePilotingFlatTrimListener(null);
 		ARCommand.setMiniDronePilotingStateFlyingStateChangedListener(null);
+		ARCommand.setMiniDronePilotingStateAlertStateChangedListener(null);
 	}
 
+	/**
+	 * バッテリーの残量が変化した時のコールバックリスナー
+	 */
 	private final ARCommandCommonCommonStateBatteryStateChangedListener
 		mARCommandCommonCommonStateBatteryStateChangedListener
 			= new ARCommandCommonCommonStateBatteryStateChangedListener() {
 		@Override
 		public void onCommonCommonStateBatteryStateChangedUpdate(final byte b) {
-			Log.d(TAG, "onCommonCommonStateBatteryStateChangedUpdate ...");
 
 			if (mListener != null) {
-				mListener.onUpdateBattery(b);
+				try {
+					mListener.onUpdateBattery(b);
+				} catch (Exception e) {
+					if (DEBUG) Log.w(TAG, e);
+				}
 			}
 		}
 	};
 
+	/**
+	 * フラットトリム時のコールバックリスナー
+	 */
 	private final ARCommandMiniDronePilotingFlatTrimListener
 		mARCommandMiniDronePilotingFlatTrimListener
 			= new ARCommandMiniDronePilotingFlatTrimListener() {
 		@Override
 		public void onMiniDronePilotingFlatTrimUpdate() {
-			Log.d(TAG, "onMiniDronePilotingFlatTrimUpdate ...");
 
 			if (mListener != null) {
-				mListener.onFlatTrimUpdate(true);
+				try {
+					mListener.onFlatTrimUpdate(true);
+				} catch (Exception e) {
+					if (DEBUG) Log.w(TAG, e);
+				}
 			}
 		}
 	};
 
+	/**
+	 * 飛行状態が変更された時のコールバックリスナー
+	 */
 	private final ARCommandMiniDronePilotingStateFlyingStateChangedListener
 		mARCommandMiniDronePilotingStateFlyingStateChangedListener
 			= new ARCommandMiniDronePilotingStateFlyingStateChangedListener() {
 		@Override
 		public void onMiniDronePilotingStateFlyingStateChangedUpdate(
-			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM arcommands_minidrone_pilotingstate_flyingstatechanged_state_enum) {
-			Log.d(TAG, "onMiniDronePilotingStateFlyingStateChangedUpdate ...");
+			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
 
 			if (mListener != null) {
-				mListener.onFlyingStateChangedUpdate(
-					arcommands_minidrone_pilotingstate_flyingstatechanged_state_enum.getValue());
+				try {
+					mListener.onFlyingStateChangedUpdate(state.getValue());
+				} catch (Exception e) {
+					if (DEBUG) Log.w(TAG, e);
+				}
+			}
+		}
+	};
+
+	/**
+	 * 機体からの異常通知時のコールバックリスナー
+	 */
+	private final ARCommandMiniDronePilotingStateAlertStateChangedListener
+		mARCommandMiniDronePilotingStateAlertStateChangedListener
+			= new ARCommandMiniDronePilotingStateAlertStateChangedListener() {
+		@Override
+		public void onMiniDronePilotingStateAlertStateChangedUpdate(
+			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
+
+			if (mListener != null) {
+				try {
+					mListener.onAlertStateChangedUpdate(state.getValue());
+				} catch (Exception e) {
+					if (DEBUG) Log.w(TAG, e);
+				}
 			}
 		}
 	};
@@ -679,7 +726,7 @@ public class DeviceController {
 	}
 
 	/**
-	 * 北磁極に対する角度を設定
+	 * 北磁極に対する角度を設定・・・でも全然動かない
 	 * @param psi
 	 */
 	public void setPsi(final float psi) {
