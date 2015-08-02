@@ -1,10 +1,7 @@
 package com.serenegiant.flightdemo;
 
-import android.app.ProgressDialog;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.app.Fragment;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -15,19 +12,16 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.arflight.DeviceController;
-import com.serenegiant.arflight.DeviceControllerListener;
+import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
 
 import java.io.File;
-import java.sql.Date;
 
-public class PilotFragment extends Fragment implements SelectFileDialogFragment.OnFileSelectListener {
+public class PilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = PilotFragment.class.getSimpleName();
-	private static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";
 
 	static {
 		FileUtils.DIR_NAME = "FlightDemo";
@@ -40,17 +34,9 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 	 */
 	public static PilotFragment newInstance(final ARDiscoveryDeviceService service) {
 		final PilotFragment fragment = new PilotFragment();
-		fragment.service = service;
-		final Bundle args = new Bundle();
-		args.putParcelable(EXTRA_DEVICE_SERVICE, service);
-		fragment.setArguments(args);
+		fragment.setARService(service);
 		return fragment;
 	}
-
-	private final Handler mHandler = new Handler();
-	private final long mUIThreadId = Thread.currentThread().getId();
-	private DeviceController deviceController;
-	private ARDiscoveryDeviceService service;
 
 	// 上パネル
 	private TextView mBatteryLabel;
@@ -71,11 +57,6 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 	// 左スティックパネル
 	private View mLeftStickPanel;
 
-	private volatile int mFlyingState = -1;
-	private volatile int mAlertState = -1;
-	private volatile int mBattery = -1;
-	private boolean mIsFlying = false;	// FIXME mFlyingStateを参照するようにしてmIsFlyingフラグは削除する
-	private boolean mIsConnected = false;
 	// 画面座標値から移動量(±100)に変換するための係数
 	private float mRightScaleX, mRightScaleY;
 	private float mLeftScaleX, mLeftScaleY;
@@ -84,19 +65,6 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 	public PilotFragment() {
 		// デフォルトコンストラクタが必要
 		mFlightRecorder.setPlaybackListener(mPlaybackListener);
-	}
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		if (DEBUG) Log.v(TAG, "onCreate:" + savedInstanceState);
-		if (savedInstanceState == null)
-			savedInstanceState = getArguments();
-		if (savedInstanceState != null) {
-			service = savedInstanceState.getParcelable(EXTRA_DEVICE_SERVICE);
-			deviceController = new DeviceController(getActivity(), service);
-			deviceController.setListener(mDeviceControllerListener);
-		}
 	}
 
 	@Override
@@ -265,26 +233,26 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 				break;
 			case R.id.flip_front_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsFlip(DeviceController.FLIP_FRONT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceController.FLIP_FRONT);
+					deviceController.sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_FRONT);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_FRONT);
 				}
 				break;
 			case R.id.flip_back_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsFlip(DeviceController.FLIP_BACK);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceController.FLIP_BACK);
+					deviceController.sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_BACK);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_BACK);
 				}
 				break;
 			case R.id.flip_right_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsFlip(DeviceController.FLIP_RIGHT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceController.FLIP_RIGHT);
+					deviceController.sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_RIGHT);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_RIGHT);
 				}
 				break;
 			case R.id.flip_left_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsFlip(DeviceController.FLIP_LEFT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceController.FLIP_LEFT);
+					deviceController.sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_LEFT);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_LEFT);
 				}
 				break;
 			case R.id.cap_p15_btn:
@@ -377,71 +345,54 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 		}
 	};
 
-	private final DeviceControllerListener mDeviceControllerListener
-		= new DeviceControllerListener() {
-		@Override
-		public void onDisconnect() {
-			if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onDisconnect");
-			stopRecord();
-			stopDeviceController();
-			mIsFlying = false;
-		}
+	@Override
+	protected void onDisconnect() {
+		if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onDisconnect");
+		stopRecord();
+		stopDeviceController();
+		mIsFlying = false;
+	}
 
-		@Override
-		public void onUpdateBattery(final byte percent) {
-			mBattery = percent;
-			updateBattery();
-		}
+	@Override
+	protected void updateFlyingState(final int state) {
+		updateButtons();
+	}
 
-		@Override
-		public void onFlatTrimUpdate(final boolean success) {
-			if (DEBUG) Log.v(TAG, "onFlatTrimUpdate:success=" + success);
+	@Override
+	protected void updateAlertState(final int alert_state) {
+		switch (alert_state) {
+		case 0:	// No alert
+			break;
+		case 1:	// User emergency alert
+			mAlertMessage.setText(R.string.user_emergency);
+			break;
+		case 2:	// Cut out alert
+			mAlertMessage.setText(R.string.motor_cut_out);
+			break;
+		case 3:	// Critical battery alert
+			mAlertMessage.setText(R.string.low_battery_critical);
+			break;
+		case 4:	// Low battery alert
+			mAlertMessage.setText(R.string.low_battery);
+			break;
 		}
+		mAlertMessage.setVisibility(alert_state != 0 ? View.INVISIBLE : View.VISIBLE);
+		updateButtons();
+	}
 
-		@Override
-		public void onFlyingStateChangedUpdate(final int state) {
-			if (DEBUG) Log.v(TAG, "onFlyingStateChangedUpdate:state=" + state);
-			if (mFlyingState != state) {
-				mFlyingState = state;
-/*				switch (state) {
-				case 0: // Landed state
-				case 1:	// Taking off state
-				case 2:	// Hovering state
-				case 3:	// Flying state
-				case 4:	// Landing state
-				case 5:	// Emergency state
-				case 6: // Rolling state
-					break;
-				} */
-				updateButtons();
-			}
-		}
-
-		@Override
-		public void onAlertStateChangedUpdate(int alert_state) {
-			if (DEBUG) Log.v(TAG, "onAlertStateChangedUpdate:state=" + alert_state);
-			if (mAlertState != alert_state) {
-				mAlertState = alert_state;
-				switch (alert_state) {
-				case 0:	// No alert
-					break;
-				case 1:	// User emergency alert
-					mAlertMessage.setText(R.string.user_emergency);
-					break;
-				case 2:	// Cut out alert
-					mAlertMessage.setText(R.string.motor_cut_out);
-					break;
-				case 3:	// Critical battery alert
-					mAlertMessage.setText(R.string.low_battery_critical);
-					break;
-				case 4:	// Low battery alert
-					mAlertMessage.setText(R.string.low_battery);
-					break;
+	@Override
+	protected void updateBattery(final int battery) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (battery >= 0) {
+					mBatteryLabel.setText(String.format("%d%%", battery));
+				} else {
+					mBatteryLabel.setText("---");
 				}
-				updateButtons();
 			}
-		}
-	};
+		});
+	}
 
 	private static final int CTRL_STEP = 5;
 
@@ -565,93 +516,6 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 			}
 			break;
 		}
-	}
-
-	private void startDeviceController() {
-		if (DEBUG) Log.v(TAG, "startDeviceController:");
-		if ((deviceController != null) && !mIsConnected) {
-			mBattery = -1;
-			updateBattery();
-
-			final ProgressDialog dialog = new ProgressDialog(getActivity());
-			dialog.setTitle(R.string.connecting);
-			dialog.setIndeterminate(true);
-			dialog.show();
-
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					final boolean failed = deviceController.start();
-
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							dialog.dismiss();
-						}
-					});
-
-					mIsConnected = !failed;
-					if (failed) {
-						try {
-							getFragmentManager().popBackStack();
-						} catch (final Exception e) {
-							Log.w(TAG, e);
-						}
-					} else {
-						//only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
-						final Date currentDate = new Date(System.currentTimeMillis());
-						deviceController.sendDate(currentDate);
-						deviceController.sendTime(currentDate);
-						stopMove();
-					}
-					updateButtons();
-				}
-			}).start();
-
-		}
-	}
-
-	private void stopDeviceController() {
-		if (DEBUG) Log.v(TAG, "stopDeviceController:");
-		stopMove();
-		if (deviceController != null) {
-			final ProgressDialog dialog = new ProgressDialog(getActivity());
-			dialog.setTitle(R.string.disconnecting);
-			dialog.setIndeterminate(true);
-			dialog.show();
-
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					mIsConnected = mIsFlying = false;
-					mFlyingState = mBattery = -1;
-					deviceController.stop();
-					updateButtons();
-					updateBattery();
-
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							dialog.dismiss();
-						}
-					});
-				}
-			}).start();
-		}
-	}
-
-	/**
-	 * 非常停止指示
-	 */
-	private void emergencyStop() {
-		stopMove();
-		stopPlay();
-		if (deviceController != null) {
-			deviceController.sendEmergency();
-			mFlightRecorder.record(FlightRecorder.CMD_EMERGENCY);
-			mIsFlying = false;
-		}
-		updateButtons();
 	}
 
 	/**
@@ -831,7 +695,7 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 				final boolean can_load = is_connected && !is_playing && !is_recording;
 				final boolean can_fly = can_record && (state != 5);
 				final boolean can_flattrim = can_fly && (state == 0);
-				switch (state) {
+/*				switch (state) {
 				case 0: // Landed state
 				case 1:	// Taking off state
 				case 2:	// Hovering state
@@ -840,20 +704,19 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 				case 5:	// Emergency state
 				case 6: // Rolling state
 					break;
-				}
-				switch (alert_state) {
+				} */
+/*				switch (alert_state) {
 				case 0:	// No alert
 				case 1:	// User emergency alert
 				case 2:	// Cut out alert
 				case 3:	// Critical battery alert
 				case 4:	// Low battery alert
 					break;
-				}
+				} */
 
 				// 上パネル
 				mFlatTrimBtn.setEnabled(can_flattrim);	// フラットトリム
 				mBatteryLabel.setTextColor((alert_state == 3) || (alert_state == 4) ? 0xffff0000 : 0xff000000);
-				mAlertMessage.setVisibility(alert_state == 0 ? View.INVISIBLE : View.VISIBLE);
 				// 下パネル
 				mEmergencyBtn.setEnabled(is_connected);	// 非常停止
 				mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
@@ -882,33 +745,6 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 
 			}
 		});
-	}
-
-	private void updateBattery() {
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				if (mBattery >= 0) {
-					mBatteryLabel.setText(String.format("%d%%", mBattery));
-				} else {
-					mBatteryLabel.setText("---");
-				}
-			}
-		});
-	}
-
-	private void runOnUiThread(final Runnable task) {
-		if (task != null) {
-			try {
-				if (mUIThreadId != Thread.currentThread().getId()) {
-					mHandler.post(task);
-				} else {
-					task.run();
-				}
-			} catch (Exception e) {
-				Log.w(TAG, e);
-			}
-		}
 	}
 
 }

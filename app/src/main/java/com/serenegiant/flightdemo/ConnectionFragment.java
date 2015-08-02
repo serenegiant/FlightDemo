@@ -231,8 +231,9 @@ public class ConnectionFragment extends Fragment {
 		localBroadcastMgr.unregisterReceiver(mDevicesListUpdatedReceiver);
 	}
 
-	private final ARDiscoveryServicesDevicesListUpdatedReceiverDelegate mDeviceListUpdatedReceiverDelegate
-		= new ARDiscoveryServicesDevicesListUpdatedReceiverDelegate() {
+	private final ARDiscoveryServicesDevicesListUpdatedReceiverDelegate
+		mDeviceListUpdatedReceiverDelegate
+			= new ARDiscoveryServicesDevicesListUpdatedReceiverDelegate() {
 		@Override
 		public void onServicesDevicesListUpdated() {
 			Log.d(TAG, "onServicesDevicesListUpdated ...");

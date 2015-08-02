@@ -36,14 +36,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
-public class DeviceController {
+public class DeviceControllerMiniDrone implements IDeviceController {
 	private static final boolean DEBUG = false;
 	private static String TAG = "DeviceController";
-
-	public static final int FLIP_FRONT = 1;
-	public static final int FLIP_BACK = 2;
-	public static final int FLIP_RIGHT = 3;
-	public static final int FLIP_LEFT = 4;
 
 	private static final int iobufferC2dNak = 10;
 	private static final int iobufferC2dAck = 11;
@@ -141,12 +136,13 @@ public class DeviceController {
 
 	}
 
-	public DeviceController(final android.content.Context context, final ARDiscoveryDeviceService service) {
+	public DeviceControllerMiniDrone(final android.content.Context context, final ARDiscoveryDeviceService service) {
 		mDeviceService = service;
 		mContext = context;
 		mReaderThreads = new ArrayList<ReaderThread>();
 	}
 
+	@Override
 	public boolean start() {
 		if (DEBUG) Log.d(TAG, "start ...");
 
@@ -163,6 +159,7 @@ public class DeviceController {
 		return failed;
 	}
 
+	@Override
 	public void stop() {
 		if (DEBUG) Log.d(TAG, "stop ...");
 
@@ -433,6 +430,7 @@ public class DeviceController {
 		return sentStatus;
 	}
 
+	@Override
 	public boolean sendTakeoff() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -458,6 +456,7 @@ public class DeviceController {
 		return sentStatus;
 	}
 
+	@Override
 	public boolean sendLanding() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -483,6 +482,7 @@ public class DeviceController {
 		return sentStatus;
 	}
 
+	@Override
 	public boolean sendEmergency() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -511,6 +511,7 @@ public class DeviceController {
 	private static final SimpleDateFormat formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 	private static final SimpleDateFormat formattedTime = new SimpleDateFormat("'T'HHmmssZZZ", Locale.getDefault());
 
+	@Override
 	public boolean sendDate(Date currentDate) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -536,6 +537,7 @@ public class DeviceController {
 		return sentStatus;
 	}
 
+	@Override
 	public boolean sendTime(Date currentDate) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -562,6 +564,11 @@ public class DeviceController {
 		return sentStatus;
 	}
 
+	/**
+	 * フラットトリム実行(水平方向センサー調整)
+	 * @return
+	 */
+	@Override
 	public boolean sendFlatTrim() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -595,6 +602,7 @@ public class DeviceController {
 	 * @param direction
 	 * @return
 	 */
+	 @Override
 	public boolean sendAnimationsFlip(final int direction) {
 
 		ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM _dir;
@@ -642,8 +650,8 @@ public class DeviceController {
 	}
 
 	/**
-	 * ミニドローンを自動で指定した角度回転させる…みたい
-	 * @param degree
+	 * 自動で指定した角度回転させる
+	 * @param degree -360〜360度
 	 * @return
 	 */
 	public boolean sendAnimationsCap(final int degree) {
@@ -676,9 +684,10 @@ public class DeviceController {
 	}
 
 	/**
-	 * rool/pitch変更時が移動なのか機体姿勢変更なのかを指示
+	 * roll/pitch変更時が移動なのか機体姿勢変更なのかを指示
 	 * @param flag 1:移動, 0:機体姿勢変更
 	 */
+	@Override
 	public void setFlag(final byte flag) {
 		synchronized (mDataSync) {
 			mDataPCMD.flag = flag;
@@ -689,6 +698,7 @@ public class DeviceController {
 	 * 機体の高度を上下させる
 	 * @param gaz 負:下降, 正:上昇
 	 */
+	@Override
 	public void setGaz(final byte gaz) {
 		synchronized (mDataSync) {
 			mDataPCMD.gaz = gaz;
@@ -699,6 +709,7 @@ public class DeviceController {
 	 * 機体を左右に傾ける。flag=1:左右に移動する, flag=0:機体姿勢変更のみ
 	 * @param roll 負:左, 正:右
 	 */
+	@Override
 	public void setRoll(final byte roll) {
 		synchronized (mDataSync) {
 			mDataPCMD.roll = roll;
@@ -709,6 +720,7 @@ public class DeviceController {
 	 * 機体の機首を上げ下げする。flag=1:前後に移動する, flag=0:機体姿勢変更のみ
 	 * @param pitch
 	 */
+	@Override
 	public void setPitch(final byte pitch) {
 		synchronized (mDataSync) {
 			mDataPCMD.pitch = pitch;
@@ -719,6 +731,7 @@ public class DeviceController {
 	 * 機体の機首を左右に動かす=水平方向に回転する
 	 * @param yaw 負:左回転, 正:右回転
 	 */
+	@Override
 	public void setYaw(final byte yaw) {
 		synchronized (mDataSync) {
 			mDataPCMD.yaw = yaw;
@@ -726,9 +739,10 @@ public class DeviceController {
 	}
 
 	/**
-	 * 北磁極に対する角度を設定・・・でも全然動かない
+	 * 北磁極に対する角度を設定・・・でもローリングスパイダーでは動かない
 	 * @param psi
 	 */
+	@Override
 	public void setPsi(final float psi) {
 		synchronized (mDataSync) {
 			mDataPCMD.psi = psi;
@@ -739,6 +753,7 @@ public class DeviceController {
 	 * コールバックリスナーを設定
 	 * @param mListener
 	 */
+	@Override
 	public void setListener(final DeviceControllerListener mListener) {
 		this.mListener = mListener;
 	}
@@ -774,7 +789,7 @@ public class DeviceController {
 		}
 	}
 
-	private class DataPCMD {
+	private static final class DataPCMD {
 		public byte flag;
 		public byte roll;
 		public byte pitch;
