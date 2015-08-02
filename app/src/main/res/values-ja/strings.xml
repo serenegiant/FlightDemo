@@ -25,4 +25,8 @@
 	<string name="select">選択</string>
 	<string name="not_selected">ファイルが選択されていません！</string>
 	<string name="parent_dir">上へ‥</string>
+	<string name="low_battery">ローバッテリー</string>
+	<string name="low_battery_critical">致命的ローバッテリー</string>
+	<string name="user_emergency">ユーザー操作により非常停止</string>
+	<string name="motor_cut_out">モーター非常停止</string>
 </resources>

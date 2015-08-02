@@ -23,7 +23,6 @@ import com.serenegiant.utils.FileUtils;
 
 import java.io.File;
 import java.sql.Date;
-import java.util.Random;
 
 public class PilotFragment extends Fragment implements SelectFileDialogFragment.OnFileSelectListener {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -54,8 +53,9 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 	private ARDiscoveryDeviceService service;
 
 	// 上パネル
-	private TextView batteryLabel;
+	private TextView mBatteryLabel;
 	private ImageButton mFlatTrimBtn;
+	private TextView mAlertMessage;
 	// 下パネル
 	private Button mEmergencyBtn;	// 非常停止ボタン
 	private Button mTakeOnOffBtn;	// 離陸/着陸ボタン
@@ -174,7 +174,9 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 //		iv.setResizable(false);
 //		iv.setMovable(false);
 
-		batteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
+		mBatteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
+		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
+		mAlertMessage.setVisibility(View.INVISIBLE);
 
 		return rootView;
 	}
@@ -249,49 +251,15 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
-				stopMove();
-				stopPlay();
-				if (deviceController != null) {
-					deviceController.sendEmergency();
-					mFlightRecorder.record(FlightRecorder.CMD_EMERGENCY);
-					mIsFlying = false;
-				}
-				updateButtons();
+				emergencyStop();
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
-				if (deviceController != null) {
-					mIsFlying = !mIsFlying;
-					if (mIsFlying) {
-						// 離陸指示
-						deviceController.sendTakeoff();
-						mFlightRecorder.record(FlightRecorder.CMD_TAKEOFF);
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								mTakeOnOffBtn.setText(R.string.button_text_landing);
-							}
-						});
-					} else {
-						// 着陸指示
-						stopMove();
-						deviceController.sendLanding();
-						mFlightRecorder.record(FlightRecorder.CMD_LANDING);
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								mTakeOnOffBtn.setText(R.string.button_text_takeoff);
-							}
-						});
-					}
+				mIsFlying = !mIsFlying;
+				if (mIsFlying) {
+					takeOff();
 				} else {
-					mIsFlying = false;
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							mTakeOnOffBtn.setText(R.string.button_text_takeoff);
-						}
-					});
+					landing();
 				}
 				updateButtons();
 				break;
@@ -454,14 +422,22 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 			if (DEBUG) Log.v(TAG, "onAlertStateChangedUpdate:state=" + alert_state);
 			if (mAlertState != alert_state) {
 				mAlertState = alert_state;
-/*				switch (alert_state) {
+				switch (alert_state) {
 				case 0:	// No alert
-				case 1:	// User emergency alert
-				case 2:	// Cut out alert
-				case 3:	// Critical battery alert
-				case 4:	// Low battery alert
 					break;
-				} */
+				case 1:	// User emergency alert
+					mAlertMessage.setText(R.string.user_emergency);
+					break;
+				case 2:	// Cut out alert
+					mAlertMessage.setText(R.string.motor_cut_out);
+					break;
+				case 3:	// Critical battery alert
+					mAlertMessage.setText(R.string.low_battery_critical);
+					break;
+				case 4:	// Low battery alert
+					mAlertMessage.setText(R.string.low_battery);
+					break;
+				}
 				updateButtons();
 			}
 		}
@@ -664,6 +640,49 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 		}
 	}
 
+	/**
+	 * 非常停止指示
+	 */
+	private void emergencyStop() {
+		stopMove();
+		stopPlay();
+		if (deviceController != null) {
+			deviceController.sendEmergency();
+			mFlightRecorder.record(FlightRecorder.CMD_EMERGENCY);
+			mIsFlying = false;
+		}
+		updateButtons();
+	}
+
+	/**
+	 * 離陸指示
+	 */
+	private void takeOff() {
+		// 離陸指示
+		if (deviceController != null) {
+			deviceController.sendTakeoff();
+			mFlightRecorder.record(FlightRecorder.CMD_TAKEOFF);
+		} else {
+			mIsFlying = false;
+		}
+	}
+
+	/**
+	 * 着陸指示
+	 */
+	private void landing() {
+		// 着陸指示
+		stopMove();
+		if (deviceController != null) {
+			deviceController.sendLanding();
+			mFlightRecorder.record(FlightRecorder.CMD_LANDING);
+		}
+		mIsFlying = false;
+	}
+
+	/**
+	 * 移動停止
+	 */
 	private void stopMove() {
 		if (DEBUG) Log.v(TAG, "stopMove:");
 		if (deviceController != null) {
@@ -675,12 +694,11 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 			mFlightRecorder.record(FlightRecorder.CMD_TURN, 0);
 			// 前後移動量をクリア, 正:前, 負:後
 			deviceController.setPitch((byte) 0);
-			deviceController.setFlag((byte) 0);
 			mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, 0);
 			// 左右移動量をクリア, 正:右, 負:左
 			deviceController.setRoll((byte) 0);
-			deviceController.setFlag((byte) 0);
 			mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, 0);
+			deviceController.setFlag((byte) 0);	// pitch/roll移動フラグをクリア
 		}
 	}
 
@@ -736,6 +754,9 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 		}
 	}
 
+	/**
+	 * 飛行記録再生時のコールバックリスナー
+	 */
 	private final FlightRecorder.PlaybackListener mPlaybackListener = new FlightRecorder.PlaybackListener() {
 		@Override
 		public void onStart() {
@@ -831,6 +852,8 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 
 				// 上パネル
 				mFlatTrimBtn.setEnabled(can_flattrim);	// フラットトリム
+				mBatteryLabel.setTextColor((alert_state == 3) || (alert_state == 4) ? 0xffff0000 : 0xff000000);
+				mAlertMessage.setVisibility(alert_state == 0 ? View.INVISIBLE : View.VISIBLE);
 				// 下パネル
 				mEmergencyBtn.setEnabled(is_connected);	// 非常停止
 				mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
@@ -842,6 +865,12 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 				} else {
 					mRecordBtn.setImageResource(R.drawable.btn_shutter_default);
 				}
+				if (mIsFlying || (state != 0)) {
+					mTakeOnOffBtn.setText(R.string.button_text_landing);
+				} else {
+					mTakeOnOffBtn.setText(R.string.button_text_takeoff);
+				}
+
 				// 右サイドパネル(とmCapXXXBtn等)
 				mRightSidePanel.setEnabled(can_fly);
 				// 左サイドパネル(とmFlipXXXBtn等)
@@ -860,9 +889,9 @@ public class PilotFragment extends Fragment implements SelectFileDialogFragment.
 			@Override
 			public void run() {
 				if (mBattery >= 0) {
-					batteryLabel.setText(String.format("%d%%", mBattery));
+					mBatteryLabel.setText(String.format("%d%%", mBattery));
 				} else {
-					batteryLabel.setText("---");
+					mBatteryLabel.setText("---");
 				}
 			}
 		});

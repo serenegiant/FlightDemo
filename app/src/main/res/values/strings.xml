@@ -24,4 +24,8 @@
 	<string name="select">Select</string>
 	<string name="not_selected">No file selected！</string>
 	<string name="parent_dir">Up..</string>
+	<string name="low_battery">Low battery</string>
+	<string name="low_battery_critical">Critical low battery</string>
+	<string name="user_emergency">User emergency stop</string>
+	<string name="motor_cut_out">Motor cut out</string>
 </resources>

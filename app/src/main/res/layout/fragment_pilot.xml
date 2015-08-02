@@ -40,6 +40,17 @@
 			android:src="@android:drawable/ic_menu_mylocation"
 			android:scaleType="centerCrop"/>
 
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="message"
+			android:id="@+id/alert_message"
+			android:layout_centerVertical="true"
+			android:layout_toRightOf="@+id/flat_trim_btn"
+			android:textColor="#ffff0000"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentEnd="true"/>
+
 	</RelativeLayout>
 
 	<LinearLayout
