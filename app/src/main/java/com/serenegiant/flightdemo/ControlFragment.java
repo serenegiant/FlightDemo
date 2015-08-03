@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -19,8 +20,8 @@ public abstract class ControlFragment extends Fragment {
 
 	protected static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";
 
-	private final Handler mHandler = new Handler();
-	private final long mUIThreadId = Thread.currentThread().getId();
+	private final Handler mHandler = new Handler(Looper.getMainLooper());
+	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
 
 	private ARDiscoveryDeviceService mService;
 	protected IDeviceController deviceController;

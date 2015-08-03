@@ -3,6 +3,8 @@ package com.serenegiant.flightdemo;
 import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 import com.parrot.arsdk.arsal.ARSALPrint;
@@ -12,7 +14,9 @@ import com.serenegiant.lang.script.ScriptParser;
 import java.io.IOException;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
+	// ActionBarActivityを継承するとPilotFragmentから戻る際にクラッシュする
+	// Fragmentが切り替わらずに処理中にもかかわらずActivityが破棄されてしまう
 	private static String TAG = MainActivity.class.getSimpleName();
 
 	private static boolean isLoaded = false;
@@ -48,6 +52,8 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		final Toolbar tool_bar = (Toolbar)findViewById(R.id.sample_toolbar);
+		this.setSupportActionBar(tool_bar);
 		final ManagerFragment manager = ManagerFragment.getInstance(this);
 		if (savedInstanceState == null) {
 			final Fragment fragment = new ConnectionFragment();
@@ -66,6 +72,17 @@ public class MainActivity extends Activity {
 		} catch (Exception e) {
 			Log.w(TAG, e);
 		} */
+	}
+
+	@Override
+	public void onBackPressed() {
+		//　ActionBarActivity/AppCompatActivityはバックキーの処理がおかしくて
+		// バックスタックの処理が正常にできない事に対するworkaround
+		if (getFragmentManager().getBackStackEntryCount() > 0) {
+			getFragmentManager().popBackStack();
+		} else {
+			super.onBackPressed();
+		}
 	}
 
 }
