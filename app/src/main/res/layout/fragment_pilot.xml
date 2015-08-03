@@ -63,6 +63,15 @@
 				android:text="message"
 				android:textColor="#ffff0000"/>
 
+			<ImageButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:id="@+id/imageButton"
+				android:layout_alignParentTop="true"
+				android:layout_alignRight="@+id/alert_message"
+				android:layout_alignEnd="@+id/alert_message"
+				android:background="@null"/>
+
 		</RelativeLayout>
 
 		<LinearLayout

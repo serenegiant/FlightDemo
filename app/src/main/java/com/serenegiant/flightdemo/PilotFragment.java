@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.FlightRecorder;
+import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
 
@@ -65,6 +66,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public PilotFragment() {
 		// デフォルトコンストラクタが必要
 		mFlightRecorder.setPlaybackListener(mPlaybackListener);
+	}
+
+	@Override
+	protected IDeviceController createDeviceController(final ARDiscoveryDeviceService service) {
+		return new DeviceControllerMiniDrone(getActivity(), service);
 	}
 
 	@Override

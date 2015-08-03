@@ -8,7 +8,6 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.IDeviceController;
 
@@ -44,10 +43,12 @@ public abstract class ControlFragment extends Fragment {
 			savedInstanceState = getArguments();
 		if (savedInstanceState != null) {
 			mService = savedInstanceState.getParcelable(EXTRA_DEVICE_SERVICE);
-			deviceController = new DeviceControllerMiniDrone(getActivity(), mService);
+			deviceController = createDeviceController(mService);
 			deviceController.setListener(mDeviceControllerListener);
 		}
 	}
+
+	protected abstract IDeviceController createDeviceController(final ARDiscoveryDeviceService service);
 
 	protected void setARService(final ARDiscoveryDeviceService service) {
 		mService = service;
