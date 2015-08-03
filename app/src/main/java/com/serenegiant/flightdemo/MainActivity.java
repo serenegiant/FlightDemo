@@ -44,6 +44,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		final ManagerFragment manager = ManagerFragment.getInstance(this);
 		if (savedInstanceState == null) {
 			final Fragment fragment = new ConnectionFragment();
 			getFragmentManager().beginTransaction()

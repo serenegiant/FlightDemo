@@ -2,9 +2,6 @@ package com.serenegiant.arflight;
 
 import java.sql.Date;
 
-/**
- * Created by saki on 2015/08/03.
- */
 public interface IDeviceController {
 	public static final int FLIP_FRONT = 1;
 	public static final int FLIP_BACK = 2;
