@@ -90,8 +90,6 @@ public class ManagerFragment extends Fragment {
 	@Override
 	public void onDetach() {
 		if (DEBUG) Log.i(TAG, "onDetach:");
-		unregisterReceivers();
-		closeServices();
 		super.onDetach();
 	}
 
@@ -108,7 +106,7 @@ public class ManagerFragment extends Fragment {
 				mCallbacks.add(callback);
 			}
 		}
-		mDeviceListUpdatedReceiverDelegate.onServicesDevicesListUpdated();
+		callOnServicesDevicesListUpdated();
 	}
 
 	public void removeCallback(final ManagerCallback callback) {
@@ -204,13 +202,16 @@ public class ManagerFragment extends Fragment {
 	}
 
 	private void registerReceivers() {
-		final LocalBroadcastManager localBroadcastMgr = LocalBroadcastManager.getInstance(getActivity().getApplicationContext());
-		localBroadcastMgr.registerReceiver(mDevicesListUpdatedReceiver, new IntentFilter(ARDiscoveryService.kARDiscoveryServiceNotificationServicesDevicesListUpdated));
+		final LocalBroadcastManager localBroadcastMgr
+			= LocalBroadcastManager.getInstance(getActivity().getApplicationContext());
+		localBroadcastMgr.registerReceiver(mDevicesListUpdatedReceiver,
+			new IntentFilter(ARDiscoveryService.kARDiscoveryServiceNotificationServicesDevicesListUpdated));
 
 	}
 
 	private void unregisterReceivers() {
-		final LocalBroadcastManager localBroadcastMgr = LocalBroadcastManager.getInstance(getActivity().getApplicationContext());
+		final LocalBroadcastManager localBroadcastMgr = LocalBroadcastManager.getInstance(
+			getActivity().getApplicationContext());
 		localBroadcastMgr.unregisterReceiver(mDevicesListUpdatedReceiver);
 	}
 
@@ -224,22 +225,26 @@ public class ManagerFragment extends Fragment {
 			if (ardiscoveryService != null) {
 				final List<ARDiscoveryDeviceService> list = ardiscoveryService.getDeviceServicesArray();
 
-				final List<String> deviceNames = new ArrayList<String>();
-
 				if (list != null) {
-					mDevices.clear();
-					mDevices.addAll(list);
 					synchronized (mSync) {
-						for (ManagerCallback cb: mCallbacks) {
-							try {
-								cb.onServicesDevicesListUpdated(mDevices);
-							} catch (Exception e) {
-								Log.w(TAG, e);
-							}
-						}
+						mDevices.clear();
+						mDevices.addAll(list);
 					}
+					callOnServicesDevicesListUpdated();
 				}
 			}
 		}
 	};
+
+	private void callOnServicesDevicesListUpdated() {
+		synchronized (mSync) {
+			for (ManagerCallback cb: mCallbacks) {
+				try {
+					cb.onServicesDevicesListUpdated(mDevices);
+				} catch (Exception e) {
+					Log.w(TAG, e);
+				}
+			}
+		}
+	}
 }

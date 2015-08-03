@@ -49,11 +49,16 @@ public class ConnectionFragment extends Fragment {
 	}
 
 	@Override
-	public void onPause() {
-		Log.d(TAG, "onPause ...");
+	public void onResume() {
+		super.onResume();
+		if (DEBUG) Log.d(TAG, "onResume:");
+		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+		manager.addCallback(mManagerCallback);
+	}
 
-/*		unregisterReceivers();
-		closeServices(); */
+	@Override
+	public void onPause() {
+		if (DEBUG) Log.d(TAG, "onPause:");
 
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		manager.removeCallback(mManagerCallback);
@@ -66,12 +71,6 @@ public class ConnectionFragment extends Fragment {
 	 * @param rootView
 	 */
 	private void initView(final View rootView) {
-/*		startServices();
-		initBroadcastReceiver();
-		initServiceConnection(); */
-
-		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-		manager.addCallback(mManagerCallback);
 
 		final List<String> deviceNames = new ArrayList<String>();
 		final ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
@@ -82,10 +81,8 @@ public class ConnectionFragment extends Fragment {
 		listView.setEmptyView(empty_view);
 		listView.setAdapter(adapter);
 
-
 		// ListView Item Click Listener
 		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
@@ -100,7 +97,6 @@ public class ConnectionFragment extends Fragment {
 					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
 					.replace(R.id.container, fragment).commit();
 			}
-
 		});
 	}
 
