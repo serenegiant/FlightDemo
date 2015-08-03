@@ -6,6 +6,10 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.parrot.arsdk.arsal.ARSALPrint;
+import com.serenegiant.lang.script.ParseException;
+import com.serenegiant.lang.script.ScriptParser;
+
+import java.io.IOException;
 
 
 public class MainActivity extends Activity {
@@ -50,8 +54,8 @@ public class MainActivity extends Activity {
 			getFragmentManager().beginTransaction()
 				.add(R.id.container, fragment).commit();
 		}
-/*
-		try {
+
+/*		try {
 			final ScriptParser parser = new ScriptParser(getResources().getAssets().open("control.script"));
 			parser.Parse();
 //			parser.Parse().jjtAccept(new ScriptParserVisitorImpl(), null);
