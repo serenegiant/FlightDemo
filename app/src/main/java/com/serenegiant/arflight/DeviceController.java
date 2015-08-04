@@ -37,6 +37,32 @@ public abstract class DeviceController implements IDeviceController {
 	private static final boolean DEBUG = true;
 	private static String TAG = "DeviceController";
 
+	/**
+	 * 浮動小数点の設定
+	 */
+	public static class AttributeFloat {
+		public float current;
+		public float min;
+		public float max;
+	}
+
+	public static class AttributeVersion {
+		public String software;
+		public String hardware;
+	}
+	/**
+	 * モーターの種類とバージョン
+	 */
+	public static class AttributeMotor extends AttributeVersion {
+		public String type;
+	}
+
+	/**
+	 * フライトコントローラのバージョン
+	 */
+	public static class IMU extends AttributeVersion {
+	}
+
 	protected static final int iobufferC2dNak = 10;
 	protected static final int iobufferC2dAck = 11;
 	protected static final int iobufferC2dEmergency = 12;

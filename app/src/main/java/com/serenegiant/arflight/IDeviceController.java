@@ -70,18 +70,33 @@ public interface IDeviceController {
 	 */
 	public boolean sendFlatTrim();
 
+
 	/**
-	 * 指定した方向にフリップ実行
-	 * @param direction
+	 * 最大高度を設定
+	 * @param altitude [m]
 	 * @return
 	 */
-	public boolean sendAnimationsFlip(final int direction);
+	public boolean sendMaxAltitude(final float altitude);
 	/**
-	 * 自動で指定した角度回転させる
-	 * @param degree -360〜360度
+	 * 最大傾斜設定
+	 * @param tilt
 	 * @return
 	 */
-	public boolean sendAnimationsCap(final int degree);
+	public boolean sendMaxTilt(final float tilt);
+
+	/**
+	 * 最大上昇/下降速度を設定
+	 * @param speed m/s
+	 * @return
+	 */
+	public boolean sendMaxVerticalSpeed(final float speed);
+	/**
+	 * 最大回転速度
+	 * @param speed [度/秒]
+	 * @return
+	 */
+	public boolean sendMaxRotationSpeed(final float speed);
+
 	/**
 	 * roll/pitch変更時が移動なのか機体姿勢変更なのかを指示
 	 * @param flag 1:移動, 0:機体姿勢変更
