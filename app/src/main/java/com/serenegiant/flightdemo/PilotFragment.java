@@ -2,11 +2,13 @@ package com.serenegiant.flightdemo;
 
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterViewFlipper;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -34,6 +36,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		return fragment;
 	}
 
+	private View mControllerView;	// 操作パネル
+	private ViewPager mConfigViewPager;	// 設定パネル
 	// 上パネル
 	private TextView mBatteryLabel;
 	private ImageButton mFlatTrimBtn;
@@ -44,6 +48,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private ImageButton mRecordBtn;	// 記録ボタン
 	private ImageButton mPlayBtn;	// 再生ボタン
 	private ImageButton mLoadBtn;	// 読み込みボタン
+	private ImageButton mConfigShowBtn;	// 設定パネル表示ボタン
 	// 右サイドパネル
 	private View mRightSidePanel;
 	// 左サイドパネル
@@ -71,7 +76,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
-		final View rootView = inflater.inflate(R.layout.fragment_pilot, container, false);
+		final View rootView = inflater.inflate(R.layout.fragment_pilot_minidrone, container, false);
+
+		mControllerView = rootView.findViewById(R.id.controller_frame);
+		mConfigViewPager = (ViewPager)rootView.findViewById(R.id.config_adapter_view_pager);
+
 		mEmergencyBtn = (Button)rootView.findViewById(R.id.emergency_btn);
 		mEmergencyBtn.setOnClickListener(mOnClickListener);
 
@@ -92,6 +101,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		mFlatTrimBtn = (ImageButton)rootView.findViewById(R.id.flat_trim_btn);
 		mFlatTrimBtn.setOnLongClickListener(mOnLongClickListener);
+
+		mConfigShowBtn = (ImageButton)rootView.findViewById(R.id.config_show_btn);
+		mConfigShowBtn.setOnClickListener(mOnClickListener);
 
 		Button button;
 		// 右サイドパネル
@@ -218,6 +230,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					stopPlay();
 				}
 				break;
+			case R.id.config_show_btn:
+				// 設定パネル表示処理
+				showConfigView();
+				break;
+			case R.id.config_hide_btn:
+				// 設定パネル非表示処理
+				hideConfigView();
+				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
 				emergencyStop();
@@ -234,49 +254,49 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.flip_front_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_FRONT);
+					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_FRONT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_FRONT);
 				}
 				break;
 			case R.id.flip_back_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_BACK);
+					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_BACK);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_BACK);
 				}
 				break;
 			case R.id.flip_right_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_RIGHT);
+					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_RIGHT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_RIGHT);
 				}
 				break;
 			case R.id.flip_left_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_LEFT);
+					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_LEFT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_LEFT);
 				}
 				break;
 			case R.id.cap_p15_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsCap(15);
+					((DeviceControllerMiniDrone)deviceController).sendAnimationsCap(15);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, 15);
 				}
 				break;
 			case R.id.cap_p45_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsCap(45);
+					((DeviceControllerMiniDrone)deviceController).sendAnimationsCap(45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, 45);
 				}
 				break;
 			case R.id.cap_m15_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsCap(-15);
+					((DeviceControllerMiniDrone)deviceController).sendAnimationsCap(-15);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -15);
 				}
 				break;
 			case R.id.cap_m45_btn:
 				if (deviceController != null) {
-					deviceController.sendAnimationsCap(-45);
+					((DeviceControllerMiniDrone)deviceController).sendAnimationsCap(-45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -45);
 				}
 				break;
@@ -368,6 +388,19 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void updateBattery(final int battery) {
 		runOnUiThread(mUpdateBatteryTask);
+	}
+
+	/**
+	 * 設定パネルを表示
+	 */
+	private void showConfigView() {
+		mControllerView.setVisibility(View.GONE);
+		mConfigViewPager.setVisibility(View.VISIBLE);
+	}
+
+	private void hideConfigView() {
+		mControllerView.setVisibility(View.VISIBLE);
+		mConfigViewPager.setVisibility(View.GONE);
 	}
 
 	private static final int CTRL_STEP = 5;
@@ -635,10 +668,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					deviceController.setPsi(value);		// 実際は浮動小数点だけど
 					break;
 				case FlightRecorder.CMD_FLIP:			// フリップ
-					deviceController.sendAnimationsFlip(value);
+					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(value);
 					break;
 				case FlightRecorder.CMD_CAP:			// キャップ(指定角度水平回転)
-					deviceController.sendAnimationsCap(value);
+					((DeviceControllerMiniDrone)deviceController).sendAnimationsCap(value);
 					break;
 				}
 				return false;

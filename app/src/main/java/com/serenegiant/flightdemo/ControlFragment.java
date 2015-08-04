@@ -25,8 +25,8 @@ public abstract class ControlFragment extends Fragment {
 	private ARDiscoveryDeviceService mService;
 	protected IDeviceController deviceController;
 
-	protected volatile int mFlyingState = -1;
-	protected volatile int mAlertState = -1;
+	protected volatile int mFlyingState = 0;
+	protected volatile int mAlertState = 0;
 	protected volatile int mBattery = -1;
 	protected boolean mIsFlying = false;	// FIXME mFlyingStateを参照するようにしてmIsFlyingフラグは削除する
 	protected boolean mIsConnected = false;

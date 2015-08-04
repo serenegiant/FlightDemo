@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout
+	android:id="@+id/drawer_layout"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:foreground="?android:windowContentOverlay"
+	tools:context="com.serenegiant.flightdemo.PilotFragment">
+
+	<!--本体部 -->
+	<FrameLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent">
+
+		<LinearLayout
+			xmlns:android="http://schemas.android.com/apk/res/android"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:orientation="vertical"
+			android:id="@+id/controller_frame">
+
+			<RelativeLayout
+				android:id="@+id/top_panel"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="top">
+
+				<TextView
+					android:id="@+id/textView"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_alignParentLeft="true"
+					android:layout_alignParentStart="true"
+					android:layout_alignParentTop="true"
+					android:text="@string/battery"
+					android:textAppearance="?android:attr/textAppearanceMedium"
+					android:textSize="@dimen/text_sz_button"/>
+
+				<TextView
+					android:id="@+id/batteryLabel"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_alignParentTop="true"
+					android:layout_toEndOf="@+id/textView"
+					android:layout_toRightOf="@+id/textView"
+					android:text="XXX%"
+					android:textAppearance="?android:attr/textAppearanceMedium"
+					android:textSize="@dimen/text_sz_button"/>
+
+				<ImageButton
+					android:id="@+id/flat_trim_btn"
+					android:layout_width="@dimen/bottom_panel_height"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:layout_centerInParent="true"
+					android:scaleType="centerCrop"
+					android:src="@android:drawable/ic_menu_mylocation"
+					android:background="@null"/>
+
+				<TextView
+					android:id="@+id/alert_message"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_toRightOf="@+id/flat_trim_btn"
+					android:text="message"
+					android:textColor="#ffff0000"
+					android:layout_below="@+id/batteryLabel"
+					android:layout_toLeftOf="@+id/config_show_btn"
+					android:layout_toStartOf="@+id/config_show_btn"/>
+
+				<ImageButton
+					android:id="@+id/imageButton"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_alignEnd="@+id/alert_message"
+					android:layout_alignParentTop="true"
+					android:layout_alignRight="@+id/alert_message"
+					android:background="@null"/>
+
+				<ImageButton
+					android:layout_width="@dimen/bottom_panel_height"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:id="@+id/config_show_btn"
+					android:src="@mipmap/ic_settings_applications_black_48dp"
+					android:background="@null"
+					android:layout_alignParentTop="true"
+					android:layout_alignParentRight="true"
+					android:layout_alignParentEnd="true"/>
+
+			</RelativeLayout>
+
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_weight="10"
+				android:orientation="horizontal">
+
+				<LinearLayout
+					android:id="@+id/left_side_panel"
+					android:layout_width="wrap_content"
+					android:layout_height="match_parent"
+					android:layout_alignParentLeft="true"
+					android:layout_alignParentStart="true"
+					android:layout_alignParentTop="true"
+					android:orientation="vertical">
+
+					<Button
+						android:id="@+id/flip_front_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:text="@string/stick_text_forward"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<Button
+						android:id="@+id/flip_back_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:text="@string/stick_text_back"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<Button
+						android:id="@+id/flip_right_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:text="@string/stick_text_right"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<Button
+						android:id="@+id/flip_left_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:text="@string/stick_text_left"
+						android:textSize="@dimen/text_sz_button"/>
+
+				</LinearLayout>
+
+				<RelativeLayout
+					android:id="@+id/left_panel"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:layout_alignParentBottom="true"
+					android:layout_alignParentLeft="true"
+					android:layout_alignParentTop="true"
+					android:layout_weight="1">
+
+					<!--com.serenegiant.widget.MovableImageView -->
+					<ImageView
+						android:id="@+id/left_stick_image"
+						android:layout_width="@dimen/stick_size"
+						android:layout_height="@dimen/stick_size"
+						android:layout_centerHorizontal="true"
+						android:layout_centerVertical="true"
+						android:src="@drawable/stick"/>
+
+					<TextView
+						android:id="@+id/textView4"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_above="@+id/left_stick_image"
+						android:layout_centerHorizontal="true"
+						android:text="@string/stick_text_up"
+						android:textAppearance="?android:attr/textAppearanceMedium"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<TextView
+						android:id="@+id/textView5"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_centerVertical="true"
+						android:layout_toEndOf="@+id/left_stick_image"
+						android:layout_toRightOf="@+id/left_stick_image"
+						android:text="@string/stick_text_turn_right"
+						android:textAppearance="?android:attr/textAppearanceMedium"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<TextView
+						android:id="@+id/textView6"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_centerVertical="true"
+						android:layout_toLeftOf="@+id/left_stick_image"
+						android:layout_toStartOf="@+id/left_stick_image"
+						android:text="@string/stick_text_turn_left"
+						android:textAppearance="?android:attr/textAppearanceMedium"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<TextView
+						android:id="@+id/textView7"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_below="@+id/left_stick_image"
+						android:layout_centerHorizontal="true"
+						android:text="@string/stick_text_down"
+						android:textAppearance="?android:attr/textAppearanceMedium"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<Button
+						android:id="@+id/south_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:layout_alignParentEnd="true"
+						android:layout_alignParentRight="true"
+						android:layout_alignParentTop="true"
+						android:layout_marginTop="@dimen/half_padding"
+						android:text="S"
+						android:textSize="@dimen/text_sz_button"
+						android:visibility="gone"/>
+
+					<Button
+						android:id="@+id/north_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:layout_alignParentTop="true"
+						android:layout_marginTop="@dimen/half_padding"
+						android:layout_toLeftOf="@+id/south_btn"
+						android:layout_toStartOf="@+id/south_btn"
+						android:text="N"
+						android:textSize="@dimen/text_sz_button"
+						android:visibility="gone"/>
+
+				</RelativeLayout>
+
+				<RelativeLayout
+					android:id="@+id/right_panel"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:layout_alignParentBottom="true"
+					android:layout_alignParentRight="true"
+					android:layout_alignParentTop="true"
+					android:layout_toRightOf="@+id/left_panel"
+					android:layout_weight="1">
+
+					<!--com.serenegiant.widget.MovableImageView -->
+					<ImageView
+						android:id="@+id/right_stick_image"
+						android:layout_width="@dimen/stick_size"
+						android:layout_height="@dimen/stick_size"
+						android:layout_centerHorizontal="true"
+						android:layout_centerVertical="true"
+						android:src="@drawable/stick"/>
+
+					<TextView
+						android:id="@+id/textView8"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_above="@+id/right_stick_image"
+						android:layout_centerHorizontal="true"
+						android:text="@string/stick_text_forward"
+						android:textAppearance="?android:attr/textAppearanceMedium"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<TextView
+						android:id="@+id/textView9"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_centerVertical="true"
+						android:layout_toEndOf="@+id/right_stick_image"
+						android:layout_toRightOf="@+id/right_stick_image"
+						android:text="@string/stick_text_right"
+						android:textAppearance="?android:attr/textAppearanceMedium"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<TextView
+						android:id="@+id/textView10"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_below="@+id/right_stick_image"
+						android:layout_centerHorizontal="true"
+						android:text="@string/stick_text_back"
+						android:textAppearance="?android:attr/textAppearanceMedium"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<TextView
+						android:id="@+id/textView11"
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_centerVertical="true"
+						android:layout_toLeftOf="@+id/right_stick_image"
+						android:layout_toStartOf="@+id/right_stick_image"
+						android:text="@string/stick_text_left"
+						android:textAppearance="?android:attr/textAppearanceMedium"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<Button
+						android:id="@+id/west_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:layout_alignParentLeft="true"
+						android:layout_alignParentStart="true"
+						android:layout_alignParentTop="true"
+						android:layout_marginTop="@dimen/half_padding"
+						android:text="W"
+						android:textSize="@dimen/text_sz_button"
+						android:visibility="gone"/>
+
+					<Button
+						android:id="@+id/east_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:layout_alignParentTop="true"
+						android:layout_marginTop="@dimen/half_padding"
+						android:layout_toEndOf="@+id/west_btn"
+						android:layout_toRightOf="@+id/west_btn"
+						android:text="E"
+						android:textSize="@dimen/text_sz_button"
+						android:visibility="gone"/>
+				</RelativeLayout>
+
+				<LinearLayout
+					android:id="@+id/right_side_panel"
+					android:layout_width="wrap_content"
+					android:layout_height="match_parent"
+					android:layout_alignParentLeft="true"
+					android:layout_alignParentStart="true"
+					android:layout_alignParentTop="true"
+					android:orientation="vertical">
+
+					<Button
+						android:id="@+id/cap_m45_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:text="-45"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<Button
+						android:id="@+id/cap_m15_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:text="-15"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<Button
+						android:id="@+id/cap_p15_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:text="15"
+						android:textSize="@dimen/text_sz_button"/>
+
+					<Button
+						android:id="@+id/cap_p45_btn"
+						style="?android:attr/buttonStyleSmall"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:text="45"
+						android:textSize="@dimen/text_sz_button"/>
+
+				</LinearLayout>
+			</LinearLayout>
+
+			<RelativeLayout
+				android:id="@+id/bottom_panel"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="bottom">
+
+				<Button
+					android:id="@+id/take_onoff_btn"
+					android:layout_width="wrap_content"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:layout_centerInParent="true"
+					android:text="@string/button_text_takeoff"
+					android:textSize="@dimen/text_sz_button"/>
+
+				<ImageButton
+					android:id="@+id/record_btn"
+					android:layout_width="@dimen/bottom_panel_height"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:layout_centerVertical="true"
+					android:layout_marginLeft="@dimen/activity_horizontal_margin"
+					android:layout_marginRight="@dimen/half_padding"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@drawable/btn_new_shutter"/>
+
+				<Button
+					android:id="@+id/emergency_btn"
+					android:layout_width="wrap_content"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:layout_alignParentEnd="false"
+					android:layout_alignParentRight="true"
+					android:layout_alignParentTop="false"
+					android:background="#ffff0000"
+					android:text="@string/emergency"
+					android:textColor="#ff0000ff"
+					android:textSize="@dimen/text_sz_button"/>
+
+				<ImageButton
+					android:id="@+id/load_btn"
+					android:layout_width="@dimen/bottom_panel_height"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:layout_centerVertical="true"
+					android:layout_marginRight="@dimen/half_padding"
+					android:layout_toEndOf="@+id/record_btn"
+					android:layout_toRightOf="@+id/record_btn"
+					android:src="@android:drawable/ic_menu_gallery"
+					android:background="@null"
+					android:scaleType="centerCrop"/>
+
+				<ImageButton
+					android:id="@+id/play_btn"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_centerVertical="true"
+					android:layout_marginRight="@dimen/half_padding"
+					android:layout_toEndOf="@+id/load_btn"
+					android:layout_toRightOf="@+id/load_btn"
+					android:src="@android:drawable/ic_menu_slideshow"
+					android:background="@null"
+					android:scaleType="centerCrop"/>
+
+			</RelativeLayout>
+
+		</LinearLayout>
+
+		<android.support.v4.view.ViewPager
+			android:id="@+id/config_adapter_view_pager"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_weight="1">
+			<android.support.v4.view.PagerTitleStrip
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_gravity="top"
+				android:textColor="#000000"
+				android:paddingTop="10dp"
+				android:paddingBottom="10dp"/>
+		</android.support.v4.view.ViewPager>
+
+	</FrameLayout>
+
+	<!-- サイドメニュー部 -->
+	<com.serenegiant.widget.SideMenuFrameLayout
+		android:id="@+id/sidemenu_frame"
+		android:layout_width="120dp"
+		android:layout_height="match_parent"
+		android:layout_gravity="left"
+		android:paddingLeft="@dimen/activity_horizontal_margin">
+
+		<!--
+			<com.serenegiant.widget.SideMenuListView
+				android:id="@+id/side_menu_listview"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:background="@android:color/transparent"
+				android:choiceMode="singleChoice"
+				android:paddingLeft="@dimen/activity_horizontal_margin" >
+			</com.serenegiant.widget.SideMenuListView>
+		-->
+	</com.serenegiant.widget.SideMenuFrameLayout>
+
+</android.support.v4.widget.DrawerLayout>

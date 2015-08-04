@@ -29,4 +29,11 @@
 	<string name="low_battery_critical">致命的ローバッテリー</string>
 	<string name="user_emergency">ユーザー操作により非常停止</string>
 	<string name="motor_cut_out">モーター非常停止</string>
+	<string name="max_tilt">最大斜度</string>
+	<string name="max_vertical_speed">最大垂直速度</string>
+	<string name="max_altitude">最大高度</string>
+	<string name="max_rotating_speed">最大回転速度</string>
+	<string name="has_wheel">車輪</string>
+	<string name="has_hull">バンパー</string>
+	<string name="cut_out">カットアウト</string>
 </resources>

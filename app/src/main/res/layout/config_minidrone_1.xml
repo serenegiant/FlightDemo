@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:orientation="vertical"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent">
+
+	<ImageButton
+		android:layout_width="@dimen/btn_size_action"
+		android:layout_height="@dimen/btn_size_action"
+		android:id="@+id/config_hide_btn"
+		android:background="@null"
+		android:src="@android:drawable/ic_menu_close_clear_cancel"/>
+
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/max_altitude"
+		android:id="@+id/textView2"/>
+
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/seekBar"
+		android:layout_gravity="center_horizontal"/>
+
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/max_tilt"
+		android:id="@+id/textView3"/>
+
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/seekBar2"
+		android:layout_gravity="center_horizontal"/>
+
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/max_vertical_speed"
+		android:id="@+id/textView12"/>
+
+	<SeekBar
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/seekBar3"/>
+
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/max_rotating_speed"
+		android:id="@+id/textView13"/>
+
+	<SeekBar
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/seekBar4"/>
+
+</LinearLayout>

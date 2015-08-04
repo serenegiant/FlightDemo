@@ -28,4 +28,11 @@
 	<string name="low_battery_critical">Critical low battery</string>
 	<string name="user_emergency">User emergency stop</string>
 	<string name="motor_cut_out">Motor cut out</string>
+	<string name="max_tilt">Max Tilt</string>
+	<string name="max_vertical_speed">Max Vertical Speed</string>
+	<string name="max_altitude">Max altitude</string>
+	<string name="max_rotating_speed">Max rotating speed</string>
+	<string name="has_wheel">Wheel</string>
+	<string name="has_hull">Hull</string>
+	<string name="cut_out">Cutout</string>
 </resources>
