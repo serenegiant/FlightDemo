@@ -92,32 +92,32 @@
 				<Button
 					android:id="@+id/flip_front_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:text="@string/stick_text_forward"
 					android:textSize="@dimen/text_sz_button"/>
 
 				<Button
 					android:id="@+id/flip_back_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:text="@string/stick_text_back"
 					android:textSize="@dimen/text_sz_button"/>
 
 				<Button
 					android:id="@+id/flip_right_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:text="@string/stick_text_right"
 					android:textSize="@dimen/text_sz_button"/>
 
 				<Button
 					android:id="@+id/flip_left_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:text="@string/stick_text_left"
 					android:textSize="@dimen/text_sz_button"/>
 
@@ -186,8 +186,8 @@
 				<Button
 					android:id="@+id/south_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:layout_alignParentEnd="true"
 					android:layout_alignParentRight="true"
 					android:layout_alignParentTop="true"
@@ -199,8 +199,8 @@
 				<Button
 					android:id="@+id/north_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:layout_alignParentTop="true"
 					android:layout_marginTop="@dimen/half_padding"
 					android:layout_toLeftOf="@+id/south_btn"
@@ -275,8 +275,8 @@
 				<Button
 					android:id="@+id/west_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:layout_alignParentLeft="true"
 					android:layout_alignParentStart="true"
 					android:layout_alignParentTop="true"
@@ -288,8 +288,8 @@
 				<Button
 					android:id="@+id/east_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:layout_alignParentTop="true"
 					android:layout_marginTop="@dimen/half_padding"
 					android:layout_toEndOf="@+id/west_btn"
@@ -311,32 +311,32 @@
 				<Button
 					android:id="@+id/cap_m45_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:text="-45"
 					android:textSize="@dimen/text_sz_button"/>
 
 				<Button
 					android:id="@+id/cap_m15_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:text="-15"
 					android:textSize="@dimen/text_sz_button"/>
 
 				<Button
 					android:id="@+id/cap_p15_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:text="15"
 					android:textSize="@dimen/text_sz_button"/>
 
 				<Button
 					android:id="@+id/cap_p45_btn"
 					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/action_btn_size"
-					android:layout_height="@dimen/action_btn_size"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
 					android:text="45"
 					android:textSize="@dimen/text_sz_button"/>
 

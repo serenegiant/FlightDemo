@@ -2,16 +2,21 @@ package com.serenegiant.arflight;
 
 
 import android.content.Context;
-import android.os.SystemClock;
 import android.util.Log;
 
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneFloodControlStateFloodControlChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDroneMediaRecordEventPictureEventChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneMediaRecordStatePictureStateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingSettingsStateMaxAltitudeChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingSettingsStateMaxTiltChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateAlertStateChangedListener;
@@ -48,6 +53,8 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		ARCommand.setMiniDronePilotingStateAlertStateChangedListener(mPilotingStateAlertStateChangedListener);
 		ARCommand.setMiniDronePilotingStateAutoTakeOffModeChangedListener(mPilotingStateAutoTakeOffModeChangedListener);
 		ARCommand.setMiniDroneMediaRecordStatePictureStateChangedListener(mARCommandMiniDroneMediaRecordStatePictureStateChangedListener);
+		ARCommand.setMiniDroneMediaRecordStatePictureStateChangedV2Listener(mARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener);
+		ARCommand.setMiniDroneMediaRecordEventPictureEventChangedListener(mARCommandMiniDroneMediaRecordEventPictureEventChangedListener);
 		ARCommand.setMiniDronePilotingSettingsStateMaxAltitudeChangedListener(mPilotingSettingsStateMaxAltitudeChangedListener);
 		ARCommand.setMiniDronePilotingSettingsStateMaxTiltChangedListener(mPilotingSettingsStateMaxTiltChangedListener);
 		ARCommand.setMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener(mSettingsStateMaxVerticalSpeedChangedListener);
@@ -69,6 +76,8 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		ARCommand.setMiniDronePilotingStateAlertStateChangedListener(null);
 		ARCommand.setMiniDronePilotingStateAutoTakeOffModeChangedListener(null);
 		ARCommand.setMiniDroneMediaRecordStatePictureStateChangedListener(null);
+		ARCommand.setMiniDroneMediaRecordStatePictureStateChangedV2Listener(null);
+		ARCommand.setMiniDroneMediaRecordEventPictureEventChangedListener(null);
 		ARCommand.setMiniDronePilotingSettingsStateMaxAltitudeChangedListener(null);
 		ARCommand.setMiniDronePilotingSettingsStateMaxTiltChangedListener(null);
 		ARCommand.setMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener(null);
@@ -136,6 +145,36 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		public void onMiniDroneMediaRecordStatePictureStateChangedUpdate(
 			final byte state, final byte mass_storage_id) {
 			if (DEBUG) Log.v(TAG, "onMiniDroneMediaRecordStatePictureStateChangedUpdate:");
+		}
+	};
+
+	/**
+	 * 写真撮影状態が変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener
+		mARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener
+			= new ARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener() {
+		@Override
+		public void onMiniDroneMediaRecordStatePictureStateChangedV2Update(
+			final ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_ENUM state,
+			final ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR_ENUM error) {
+
+			if (DEBUG) Log.v(TAG, "onMiniDroneMediaRecordStatePictureStateChangedV2Update:state=" + state + ",error=" + error);
+		}
+	};
+
+	/**
+	 * 写真撮影状態が変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDroneMediaRecordEventPictureEventChangedListener
+		mARCommandMiniDroneMediaRecordEventPictureEventChangedListener
+			= new ARCommandMiniDroneMediaRecordEventPictureEventChangedListener() {
+		@Override
+		public void onMiniDroneMediaRecordEventPictureEventChangedUpdate(
+			final ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_ENUM event,
+			final ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM error) {
+
+			if (DEBUG) Log.v(TAG, "onMiniDroneMediaRecordEventPictureEventChangedUpdate:event=" + event + ",error=" + error);
 		}
 	};
 

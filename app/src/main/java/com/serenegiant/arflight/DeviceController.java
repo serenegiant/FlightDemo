@@ -4,10 +4,13 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_DECODER_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
+import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateAllStatesChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateBatteryStateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateSensorsStatesListChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryConnection;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceNetService;
@@ -155,8 +158,7 @@ public abstract class DeviceController implements IDeviceController {
 			/* start the looper thread */
 			startLooperThread();
 
-			sendAllSettings();
-			sendAllStates();
+			onStarted();
 		}
 
 		return failed;
@@ -177,6 +179,15 @@ public abstract class DeviceController implements IDeviceController {
         /* ARNetwork cleanup */
 		stopNetwork();
 
+	}
+
+	protected void onStarted() {
+		//only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
+		final Date currentDate = new Date(System.currentTimeMillis());
+		sendDate(currentDate);
+		sendTime(currentDate);
+		sendAllSettings();
+		sendAllStates();
 	}
 
 	private boolean startNetwork() {
@@ -303,21 +314,37 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+//================================================================================
+// 機体からのデータ/状態受信時の処理関係
+//================================================================================
 	/**
 	 * コールバックを登録
 	 */
 	protected void registerARCommandsListener() {
-		// 変更通知
+//		ARCommand.setCommonCommonStateAllStatesChangedListener(mARCommandCommonCommonStateAllStatesChangedListener);
 		ARCommand.setCommonCommonStateBatteryStateChangedListener(mCommonStateBatteryStateChangedListener);
+		ARCommand.setCommonCommonStateSensorsStatesListChangedListener(mARCommandCommonCommonStateSensorsStatesListChangedListener);
 	}
 
 	/**
 	 * コールバックを登録解除
 	 */
 	protected void unregisterARCommandsListener() {
-		// 変更通知
+//		ARCommand.setCommonCommonStateAllStatesChangedListener(null);
 		ARCommand.setCommonCommonStateBatteryStateChangedListener(null);
+		ARCommand.setCommonCommonStateSensorsStatesListChangedListener(null);
 	}
+
+	/**
+	 * AllStatesChangedListener・・・値を読める訳じゃないのでコメントアウト
+	 */
+/*	private final ARCommandCommonCommonStateAllStatesChangedListener
+		mARCommandCommonCommonStateAllStatesChangedListener
+			= new ARCommandCommonCommonStateAllStatesChangedListener() {
+		@Override
+		public void onCommonCommonStateAllStatesChangedUpdate() {
+		}
+	}; */
 
 	/**
 	 * バッテリーの残量が変化した時のコールバックリスナー
@@ -330,6 +357,40 @@ public abstract class DeviceController implements IDeviceController {
 			callOnUpdateBattery(b);
 		}
 	};
+
+	/**
+	 * センサー状態リストが変化した時のコールバックリスナー
+	 */
+	private final ARCommandCommonCommonStateSensorsStatesListChangedListener
+		mARCommandCommonCommonStateSensorsStatesListChangedListener
+			= new ARCommandCommonCommonStateSensorsStatesListChangedListener() {
+		@Override
+		public void onCommonCommonStateSensorsStatesListChangedUpdate(
+			final ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM sensor_name, final byte b) {
+
+			switch (sensor_name.getValue()) {
+			case SENSOR_IMU: // 0
+			case SENSOR_BAROMETER:	// 1
+			case SENSOR_ULTRASOUND: // 2
+			case SENSOR_GPS: // 3
+			case SENSOR_MAGNETOMETER: // 4
+			case SENSOR_VERTICAL_CAMERA: // 5
+			}
+			if (DEBUG) Log.v(TAG, String.format("SensorsStatesListChangedUpdate:%d=%d", sensor_name.getValue(), b));
+		}
+	};
+
+//================================================================================
+// コールバック関係
+//================================================================================
+	/**
+	 * コールバックリスナーを設定
+	 * @param mListener
+	 */
+	@Override
+	public void setListener(final DeviceControllerListener mListener) {
+		this.mListener = mListener;
+	}
 
 	protected void callOnDisconnect() {
 		if (mListener != null) {
@@ -371,6 +432,8 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+//================================================================================
+//================================================================================
 	/**
 	 * 操縦コマンドを送信
 	 * @return
@@ -552,15 +615,6 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/**
-	 * コールバックリスナーを設定
-	 * @param mListener
-	 */
-	@Override
-	public void setListener(final DeviceControllerListener mListener) {
-		this.mListener = mListener;
-	}
-
-	/**
 	 * Extend of ARNetworkManager implementing the callback
 	 */
 	private class ARNetworkManagerExtend extends ARNetworkManager {
@@ -649,7 +703,7 @@ public abstract class DeviceController implements IDeviceController {
 			mIsAlive = false;
 		}
 
-		public boolean ismIsRunning() {
+		public boolean isRunning() {
 			return mIsRunning;
 		}
 

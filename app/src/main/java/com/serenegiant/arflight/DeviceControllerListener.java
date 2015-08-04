@@ -13,12 +13,6 @@ public interface DeviceControllerListener {
 	public void onUpdateBattery(final byte percent);
 
 	/**
-	 * フラットトリムが更新された時のコールバック
-	 * @param success
-	 */
-	public void onFlatTrimUpdate(final boolean success);
-
-	/**
 	 * 飛行状態が変化した時のコールバック
 	 * @param state
 	 * 0: Landed state, 1:Taking off state, 2:Hovering state, 3:Flying state

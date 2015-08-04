@@ -109,11 +109,6 @@ public abstract class ControlFragment extends Fragment {
 						} catch (final Exception e) {
 							Log.w(TAG, e);
 						}
-					} else {
-						//only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
-						final Date currentDate = new Date(System.currentTimeMillis());
-						deviceController.sendDate(currentDate);
-						deviceController.sendTime(currentDate);
 					}
 				}
 			}).start();
@@ -167,9 +162,6 @@ public abstract class ControlFragment extends Fragment {
 	protected void updateAlertState(final int alert_state) {
 	}
 
-	protected void updateFlatTrim(final boolean success) {
-	}
-
 	protected void onDisconnect() {
 		stopDeviceController();
 	}
@@ -190,11 +182,6 @@ public abstract class ControlFragment extends Fragment {
 				mBattery = percent;
 				updateBattery(percent);
 			}
-		}
-
-		@Override
-		public void onFlatTrimUpdate(final boolean success) {
-			updateFlatTrim(success);
 		}
 
 		@Override

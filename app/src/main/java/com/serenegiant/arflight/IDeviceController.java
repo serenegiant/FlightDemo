@@ -3,10 +3,25 @@ package com.serenegiant.arflight;
 import java.sql.Date;
 
 public interface IDeviceController {
+	// フリップアクションの種類
 	public static final int FLIP_FRONT = 1;
 	public static final int FLIP_BACK = 2;
 	public static final int FLIP_RIGHT = 3;
 	public static final int FLIP_LEFT = 4;
+
+	// センサーの種類
+	/** 慣性測定(ジャイロ/加速度) */
+	public static final int SENSOR_IMU = 0;
+	/** 高度計(気圧計) */
+	public static final int SENSOR_BAROMETER = 1;
+	/** 高度計(超音波) */
+	public static final int SENSOR_ULTRASOUND = 2;
+	/** GPS */
+	public static final int SENSOR_GPS = 3;
+	/** 磁気センサー(コンパス/姿勢) */
+	public static final int SENSOR_MAGNETOMETER= 4;
+	/** 垂直カメラ(対地速度検出) */
+	public static final int SENSOR_VERTICAL_CAMERA = 5;
 
 	/**
 	 * コールバックリスナーを設定

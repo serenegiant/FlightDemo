@@ -74,7 +74,7 @@ public class ConnectionFragment extends Fragment {
 
 		final List<String> deviceNames = new ArrayList<String>();
 		final ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-			android.R.layout.simple_list_item_1, android.R.id.text1, deviceNames);
+			R.layout.list_item_1line, android.R.id.text1, deviceNames);
 
 		listView = (ListView)rootView.findViewById(R.id.list);
 		final View empty_view = rootView.findViewById(R.id.empty_view);

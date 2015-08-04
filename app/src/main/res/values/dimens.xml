@@ -8,6 +8,6 @@
 	<dimen name="stick_size">60dp</dimen>
 	<dimen name="text_sz_message">32sp</dimen>
 	<dimen name="text_sz_button">16sp</dimen>
-	<dimen name="action_btn_size">48dp</dimen>
 	<dimen name="text_sz_list">28sp</dimen>
+	<dimen name="btn_size_action">48dp</dimen>
 </resources>
