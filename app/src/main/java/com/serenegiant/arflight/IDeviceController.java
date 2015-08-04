@@ -36,12 +36,30 @@ public interface IDeviceController {
 	 * @return
 	 */
 	public boolean sendEmergency();
+
 	/**
-	 * フラットトリム実行(水平方向センサー調整)
+	 * 全ての設定要求?
+	 * @return
+	 */
+	public boolean sendAllSettings();
+
+	/**
+	 * すべての状態を要求?
+	 * @return
+	 */
+	public boolean sendAllStates();
+
+	/**
+	 * フラットトリム実行(姿勢センサー調整)
 	 * @return
 	 */
 	public boolean sendFlatTrim();
 
+	/**
+	 * 指定した方向にフリップ実行
+	 * @param direction
+	 * @return
+	 */
 	public boolean sendAnimationsFlip(final int direction);
 	/**
 	 * 自動で指定した角度回転させる

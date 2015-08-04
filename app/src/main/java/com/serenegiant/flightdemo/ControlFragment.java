@@ -44,17 +44,25 @@ public abstract class ControlFragment extends Fragment {
 		if (savedInstanceState != null) {
 			mService = savedInstanceState.getParcelable(EXTRA_DEVICE_SERVICE);
 			deviceController = createDeviceController(mService);
-			deviceController.setListener(mDeviceControllerListener);
+			if (deviceController != null) {
+				deviceController.setListener(mDeviceControllerListener);
+			}
 		}
 	}
 
+	/**
+	 * IDeviceControllerインスタンスを生成する
+	 * @param service
+	 * @return
+	 */
 	protected abstract IDeviceController createDeviceController(final ARDiscoveryDeviceService service);
 
-	protected void setARService(final ARDiscoveryDeviceService service) {
+	protected Bundle setARService(final ARDiscoveryDeviceService service) {
 		mService = service;
 		final Bundle args = new Bundle();
 		args.putParcelable(EXTRA_DEVICE_SERVICE, service);
 		setArguments(args);
+		return args;
 	}
 
 	protected void runOnUiThread(final Runnable task) {

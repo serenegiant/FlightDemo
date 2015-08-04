@@ -1,364 +1,95 @@
 package com.serenegiant.arflight;
 
 
+import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.parrot.arsdk.arcommands.ARCOMMANDS_DECODER_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
-import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateBatteryStateChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingFlatTrimListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDroneFloodControlStateFloodControlChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDroneMediaRecordStatePictureStateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingSettingsStateMaxAltitudeChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingSettingsStateMaxTiltChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateAlertStateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateAutoTakeOffModeChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateFlatTrimChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateFlyingStateChangedListener;
-import com.parrot.arsdk.ardiscovery.ARDiscoveryConnection;
-import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
-import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceNetService;
+import com.parrot.arsdk.arcommands.ARCommandMiniDroneSettingsStateCutOutModeChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDroneSettingsStateProductInertialVersionChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDroneSettingsStateProductMotorsVersionChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateMaxRotationSpeedChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_ERROR_ENUM;
-import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
-import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM;
-import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
-import com.parrot.arsdk.arnetwork.ARNetworkManager;
-import com.parrot.arsdk.arnetworkal.ARNETWORKAL_ERROR_ENUM;
-import com.parrot.arsdk.arnetworkal.ARNETWORKAL_FRAME_TYPE_ENUM;
-import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
-import com.parrot.arsdk.arsal.ARNativeData;
 import com.parrot.arsdk.arsal.ARSALPrint;
 
-import java.sql.Date;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.Semaphore;
 
-public class DeviceControllerMiniDrone implements IDeviceController {
+public class DeviceControllerMiniDrone extends DeviceController {
 	private static final boolean DEBUG = false;
-	private static String TAG = "DeviceController";
-
-	private static final int iobufferC2dNak = 10;
-	private static final int iobufferC2dAck = 11;
-	private static final int iobufferC2dEmergency = 12;
-	private static final int iobufferD2cNavdata = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 1;
-	private static final int iobufferD2cEvents = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 2;
-
-	private static final int ackOffset = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2);
-
-	protected static final List<ARNetworkIOBufferParam> c2dParams = new ArrayList<ARNetworkIOBufferParam>();
-	protected static final List<ARNetworkIOBufferParam> d2cParams = new ArrayList<ARNetworkIOBufferParam>();
-	protected static int commandsBuffers[] = {};
-
-	protected static final int bleNotificationIDs[] = new int[] {
-		iobufferD2cNavdata,
-		iobufferD2cEvents,
-		(iobufferC2dAck + ackOffset),
-		(iobufferC2dEmergency + ackOffset)
-	};
-
-	private android.content.Context mContext;
-
-	private ARNetworkALManager mARManager;
-	private ARNetworkManager mARNetManager;
-	private boolean mMediaOpened;
-
-	private int c2dPort;
-	private int d2cPort;
-	private Thread rxThread;
-	private Thread txThread;
-
-	private List<ReaderThread> mReaderThreads;
-	private Semaphore mDiscoverSemaphore;
-	private ARDiscoveryConnection mDiscoveryData;
-
-	private LooperThread mLooperThread;
-
-	private final Object mDataSync = new Object();
-	private final DataPCMD mDataPCMD = new DataPCMD();
-	private ARDiscoveryDeviceService mDeviceService;
-
-	private DeviceControllerListener mListener;
-
-	static {
-		// コントローラー => 機体へのパラメータ
-		c2dParams.clear();
-		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dNak,
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
-			20,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-			1,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
-			true));
-		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dAck,
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-			20,
-			500,
-			3,
-			20,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
-			false));
-		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dEmergency,
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-			1,
-			100,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-			1,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
-			false));
-
-		// 機体 => コントローラーへのパラメータ
-		d2cParams.clear();
-		d2cParams.add(new ARNetworkIOBufferParam(iobufferD2cNavdata,
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
-			20,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-			20,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
-			false));
-		d2cParams.add(new ARNetworkIOBufferParam(iobufferD2cEvents,
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-			20,
-			500,
-			3,
-			20,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
-			false));
-
-		commandsBuffers = new int[] {
-			iobufferD2cNavdata,
-			iobufferD2cEvents,
-		};
-
-	}
-
-	public DeviceControllerMiniDrone(final android.content.Context context, final ARDiscoveryDeviceService service) {
-		mDeviceService = service;
-		mContext = context;
-		mReaderThreads = new ArrayList<ReaderThread>();
-	}
-
-	@Override
-	public boolean start() {
-		if (DEBUG) Log.d(TAG, "start ...");
-
-		registerARCommandsListener();
-
-		final boolean failed = startNetwork();
-		if (!failed) {
-			/* start the reader threads */
-			startReadThreads();
-			/* start the looper thread */
-			startLooperThread();
-		}
-
-		return failed;
-	}
-
-	@Override
-	public void stop() {
-		if (DEBUG) Log.d(TAG, "stop ...");
-
-		unregisterARCommandsListener();
-
-        /* Cancel the looper thread and block until it is stopped. */
-		stopLooperThread();
-
-        /* cancel all reader threads and block until they are all stopped. */
-		stopReaderThreads();
-
-        /* ARNetwork cleanup */
-		stopNetwork();
-
-	}
-
-	private boolean startNetwork() {
-		boolean failed = false;
-		int pingDelay = 0; /* 0 means default, -1 means no ping */
-
-        /* Create the looper ARNetworkALManager */
-		mARManager = new ARNetworkALManager();
+	private static String TAG = "DeviceControllerMiniDrone";
 
 
-        /* setup ARNetworkAL for BLE */
-
-		final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) mDeviceService.getDevice();
-
-		final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(mContext, bleDevice.getBluetoothDevice(), 1, bleNotificationIDs);
-
-		if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
-			mMediaOpened = true;
-			pingDelay = -1; /* Disable ping for BLE networks */
-		} else {
-			ARSALPrint.e(TAG, "error occured: " + netALError.toString());
-			failed = true;
-		}
-
-		if (!failed) {
-			/* Create the ARNetworkManager */
-			mARNetManager = new ARNetworkManagerExtend(mARManager, c2dParams.toArray(new ARNetworkIOBufferParam[c2dParams.size()]), d2cParams.toArray(new ARNetworkIOBufferParam[d2cParams.size()]), pingDelay);
-
-			if (mARNetManager.isCorrectlyInitialized() == false) {
-				ARSALPrint.e(TAG, "new ARNetworkManager failed");
-				failed = true;
-			}
-		}
-
-		if (!failed) {
-            /* Create and start Tx and Rx threads */
-			rxThread = new Thread(mARNetManager.m_receivingRunnable);
-			rxThread.start();
-
-			txThread = new Thread(mARNetManager.m_sendingRunnable);
-			txThread.start();
-		}
-
-		return failed;
-	}
-
-	private void startReadThreads() {
-        /* Create the reader threads */
-		for (final int bufferId : commandsBuffers) {
-			final ReaderThread readerThread = new ReaderThread(bufferId);
-			mReaderThreads.add(readerThread);
-		}
-
-        /* Mark all reader threads as started */
-		for (final ReaderThread readerThread : mReaderThreads) {
-			readerThread.start();
-		}
-	}
-
-	private void startLooperThread() {
-        /* Create the looper thread */
-		mLooperThread = new ControllerLooperThread();
-
-        /* Start the looper thread. */
-		mLooperThread.start();
-	}
-
-	private void stopLooperThread() {
-        /* Cancel the looper thread and block until it is stopped. */
-		if (null != mLooperThread) {
-			mLooperThread.stopThread();
-			try {
-				mLooperThread.join();
-			} catch (final InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private void stopReaderThreads() {
-		if (mReaderThreads != null) {
-            /* cancel all reader threads and block until they are all stopped. */
-			for (final ReaderThread thread : mReaderThreads) {
-				thread.stopThread();
-			}
-			for (final ReaderThread thread : mReaderThreads) {
-				try {
-					thread.join();
-				} catch (final InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			mReaderThreads.clear();
-		}
-	}
-
-	private void stopNetwork() {
-		if (mARNetManager != null) {
-			mARNetManager.stop();
-
-			try {
-				if (txThread != null) {
-					txThread.join();
-				}
-				if (rxThread != null) {
-					rxThread.join();
-				}
-			} catch (final InterruptedException e) {
-				e.printStackTrace();
-			}
-
-			mARNetManager.dispose();
-		}
-
-		if ((mARManager != null) && (mMediaOpened)) {
-			if (mDeviceService.getDevice() instanceof ARDiscoveryDeviceNetService) {
-				mARManager.closeWifiNetwork();
-			} else if (mDeviceService.getDevice() instanceof ARDiscoveryDeviceBLEService) {
-				mARManager.closeBLENetwork(mContext);
-			}
-
-			mMediaOpened = false;
-			mARManager.dispose();
-		}
+	public DeviceControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service) {
+		super(context, service);
 	}
 
 	/**
 	 * コールバックを登録
 	 */
 	protected void registerARCommandsListener() {
-		ARCommand.setCommonCommonStateBatteryStateChangedListener(
-			mARCommandCommonCommonStateBatteryStateChangedListener);
-		ARCommand.setMiniDronePilotingFlatTrimListener(
-			mARCommandMiniDronePilotingFlatTrimListener);
-		ARCommand.setMiniDronePilotingStateFlyingStateChangedListener(
-			mARCommandMiniDronePilotingStateFlyingStateChangedListener);
-		ARCommand.setMiniDronePilotingStateAlertStateChangedListener(
-			mARCommandMiniDronePilotingStateAlertStateChangedListener);
+		super.registerARCommandsListener();
+		ARCommand.setMiniDronePilotingStateFlatTrimChangedListener(mPilotingStateFlatTrimChangedListener);
+		ARCommand.setMiniDronePilotingStateFlyingStateChangedListener(mPilotingStateFlyingStateChangedListener);
+		ARCommand.setMiniDronePilotingStateAlertStateChangedListener(mPilotingStateAlertStateChangedListener);
+		ARCommand.setMiniDronePilotingStateAutoTakeOffModeChangedListener(mPilotingStateAutoTakeOffModeChangedListener);
+		ARCommand.setMiniDroneMediaRecordStatePictureStateChangedListener(mARCommandMiniDroneMediaRecordStatePictureStateChangedListener);
+		ARCommand.setMiniDronePilotingSettingsStateMaxAltitudeChangedListener(mPilotingSettingsStateMaxAltitudeChangedListener);
+		ARCommand.setMiniDronePilotingSettingsStateMaxTiltChangedListener(mPilotingSettingsStateMaxTiltChangedListener);
+		ARCommand.setMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener(mSettingsStateMaxVerticalSpeedChangedListener);
+		ARCommand.setMiniDroneSpeedSettingsStateMaxRotationSpeedChangedListener(mSpeedSettingsStateMaxRotationSpeedChangedListener);
+		ARCommand.setMiniDroneSpeedSettingsStateWheelsChangedListener(mSpeedSettingsStateWheelsChangedListener);
+		ARCommand.setMiniDroneSettingsStateProductMotorsVersionChangedListener(mSettingsStateProductMotorsVersionChangedListener);
+		ARCommand.setMiniDroneSettingsStateProductInertialVersionChangedListener(mSettingsStateProductInertialVersionChangedListener);
+		ARCommand.setMiniDroneSettingsStateCutOutModeChangedListener(mSettingsStateCutOutModeChangedListener);
+		ARCommand.setMiniDroneFloodControlStateFloodControlChangedListener(mFloodControlStateFloodControlChangedListener);
+
 	}
 
 	/**
 	 * コールバックを登録解除
 	 */
 	protected void unregisterARCommandsListener() {
-		ARCommand.setCommonCommonStateBatteryStateChangedListener(null);
-		ARCommand.setMiniDronePilotingFlatTrimListener(null);
+		ARCommand.setMiniDronePilotingStateFlatTrimChangedListener(null);
 		ARCommand.setMiniDronePilotingStateFlyingStateChangedListener(null);
 		ARCommand.setMiniDronePilotingStateAlertStateChangedListener(null);
+		ARCommand.setMiniDronePilotingStateAutoTakeOffModeChangedListener(null);
+		ARCommand.setMiniDroneMediaRecordStatePictureStateChangedListener(null);
+		ARCommand.setMiniDronePilotingSettingsStateMaxAltitudeChangedListener(null);
+		ARCommand.setMiniDronePilotingSettingsStateMaxTiltChangedListener(null);
+		ARCommand.setMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener(null);
+		ARCommand.setMiniDroneSpeedSettingsStateMaxRotationSpeedChangedListener(null);
+		ARCommand.setMiniDroneSpeedSettingsStateWheelsChangedListener(null);
+		ARCommand.setMiniDroneSettingsStateProductMotorsVersionChangedListener(null);
+		ARCommand.setMiniDroneSettingsStateProductInertialVersionChangedListener(null);
+		ARCommand.setMiniDroneSettingsStateCutOutModeChangedListener(null);
+		ARCommand.setMiniDroneFloodControlStateFloodControlChangedListener(null);
+		super.unregisterARCommandsListener();
 	}
 
 	/**
-	 * バッテリーの残量が変化した時のコールバックリスナー
+	 * フラットトリムが変更された時のコールバックリスナー
 	 */
-	private final ARCommandCommonCommonStateBatteryStateChangedListener
-		mARCommandCommonCommonStateBatteryStateChangedListener
-			= new ARCommandCommonCommonStateBatteryStateChangedListener() {
+	private final ARCommandMiniDronePilotingStateFlatTrimChangedListener
+		mPilotingStateFlatTrimChangedListener
+			= new ARCommandMiniDronePilotingStateFlatTrimChangedListener() {
 		@Override
-		public void onCommonCommonStateBatteryStateChangedUpdate(final byte b) {
-
-			if (mListener != null) {
-				try {
-					mListener.onUpdateBattery(b);
-				} catch (Exception e) {
-					if (DEBUG) Log.w(TAG, e);
-				}
-			}
-		}
-	};
-
-	/**
-	 * フラットトリム時のコールバックリスナー
-	 */
-	private final ARCommandMiniDronePilotingFlatTrimListener
-		mARCommandMiniDronePilotingFlatTrimListener
-			= new ARCommandMiniDronePilotingFlatTrimListener() {
-		@Override
-		public void onMiniDronePilotingFlatTrimUpdate() {
-
-			if (mListener != null) {
-				try {
-					mListener.onFlatTrimUpdate(true);
-				} catch (Exception e) {
-					if (DEBUG) Log.w(TAG, e);
-				}
-			}
+		public void onMiniDronePilotingStateFlatTrimChangedUpdate() {
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateFlatTrimChangedUpdate:");
 		}
 	};
 
@@ -366,19 +97,226 @@ public class DeviceControllerMiniDrone implements IDeviceController {
 	 * 飛行状態が変更された時のコールバックリスナー
 	 */
 	private final ARCommandMiniDronePilotingStateFlyingStateChangedListener
-		mARCommandMiniDronePilotingStateFlyingStateChangedListener
-			= new ARCommandMiniDronePilotingStateFlyingStateChangedListener() {
+		mPilotingStateFlyingStateChangedListener
+		= new ARCommandMiniDronePilotingStateFlyingStateChangedListener() {
 		@Override
 		public void onMiniDronePilotingStateFlyingStateChangedUpdate(
 			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateFlyingStateChangedUpdate:");
+			callOnFlyingStateChangedUpdate(state.getValue());
+		}
+	};
 
-			if (mListener != null) {
-				try {
-					mListener.onFlyingStateChangedUpdate(state.getValue());
-				} catch (Exception e) {
-					if (DEBUG) Log.w(TAG, e);
-				}
+	/**
+	 * 自動離陸モードが変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDronePilotingStateAutoTakeOffModeChangedListener
+		mPilotingStateAutoTakeOffModeChangedListener
+			= new ARCommandMiniDronePilotingStateAutoTakeOffModeChangedListener() {
+		/**
+		 * @param state State of automatic take off mode
+		 */
+		@Override
+		public void onMiniDronePilotingStateAutoTakeOffModeChangedUpdate(final byte state) {
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateAutoTakeOffModeChangedUpdate:");
+		}
+	};
+
+	/**
+	 * 写真撮影状態が変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDroneMediaRecordStatePictureStateChangedListener
+		mARCommandMiniDroneMediaRecordStatePictureStateChangedListener
+			= new ARCommandMiniDroneMediaRecordStatePictureStateChangedListener() {
+		/**
+		 * @param state 1 if picture has been taken, 0 otherwise
+		 * @param mass_storage_id Mass storage id to record
+		 */
+		@Override
+		public void onMiniDroneMediaRecordStatePictureStateChangedUpdate(
+			final byte state, final byte mass_storage_id) {
+			if (DEBUG) Log.v(TAG, "onMiniDroneMediaRecordStatePictureStateChangedUpdate:");
+		}
+	};
+
+	/**
+	 * 最大高度設定が変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDronePilotingSettingsStateMaxAltitudeChangedListener
+		mPilotingSettingsStateMaxAltitudeChangedListener
+			= new ARCommandMiniDronePilotingSettingsStateMaxAltitudeChangedListener() {
+		/**
+		 * @param current Current altitude max
+		 * @param min Range min of altitude
+		 * @param max Range max of altitude
+		 */
+		@Override
+		public void onMiniDronePilotingSettingsStateMaxAltitudeChangedUpdate(
+			final float current, final float min, final float max) {
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxAltitudeChangedUpdate:");
+		}
+	};
+
+	/**
+	 * 最大傾斜設定が変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDronePilotingSettingsStateMaxTiltChangedListener
+		mPilotingSettingsStateMaxTiltChangedListener
+			= new ARCommandMiniDronePilotingSettingsStateMaxTiltChangedListener() {
+		/**
+		 * @param current Current max tilt
+		 * @param min Range min of tilt
+		 * @param max Range max of tilt
+		 */
+		@Override
+		public void onMiniDronePilotingSettingsStateMaxTiltChangedUpdate(
+			final float current, final float min, final float max) {
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxTiltChangedUpdate:");
+		}
+	};
+
+	private float mVerticalSpeedCurrent = 0;
+	private float mVerticalSpeedMin = 0;
+	private float mVerticalSpeedMax = 0;
+	/**
+	 * 水平移動速度設定が変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener
+		mSettingsStateMaxVerticalSpeedChangedListener
+			= new ARCommandMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener() {
+		/**
+		 * @param current Current max vertical speed in m/s
+		 * @param min Range min of vertical speed
+		 * @param max Range max of vertical speed
+		 */
+		@Override
+		public void onMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedUpdate(
+			final float current, final float min, final float max) {
+
+			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedUpdate:");
+			if ((mVerticalSpeedCurrent != current)
+				|| (mVerticalSpeedMin != min)
+				|| (mVerticalSpeedMax != max)) {
+
+				mVerticalSpeedCurrent = current;
+				mVerticalSpeedMin = min;
+				mVerticalSpeedMax = max;
+				// XXX
 			}
+		}
+	};
+
+	private float mMaxRotationSpeedCurrent = 0;
+	private float mMaxRotationSpeedMin = 0;
+	private float mMaxRotationSpeedMax = 0;
+	/**
+	 * 最大回転速度設定が変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDroneSpeedSettingsStateMaxRotationSpeedChangedListener
+		mSpeedSettingsStateMaxRotationSpeedChangedListener
+			= new ARCommandMiniDroneSpeedSettingsStateMaxRotationSpeedChangedListener() {
+		/**
+		 * @param current Current max rotation speed in degree/s
+		 * @param min Range min of rotation speed
+		 * @param max Range max of rotation speed
+		 */
+		@Override
+		public void onMiniDroneSpeedSettingsStateMaxRotationSpeedChangedUpdate(
+			final float current, final float min, final float max) {
+
+			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxRotationSpeedChangedUpdate:");
+			if ((mMaxRotationSpeedCurrent != current)
+				|| (mMaxRotationSpeedMin != min)
+				|| (mMaxRotationSpeedMax != max)) {
+				mMaxRotationSpeedCurrent = current;
+				mMaxRotationSpeedMin = min;
+				mMaxRotationSpeedMax = max;
+				// XXX
+			}
+		}
+	};
+
+	/**
+	 * ホイールの有無設定が変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener
+		mSpeedSettingsStateWheelsChangedListener
+			= new ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener() {
+		/**
+		 * @param present 1 if present, 0 if not present
+		 */
+		@Override
+		public void onMiniDroneSpeedSettingsStateWheelsChangedUpdate(final byte present) {
+			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateWheelsChangedUpdate:");
+		}
+	};
+
+	/**
+	 * 製品・モーターバージョンが変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDroneSettingsStateProductMotorsVersionChangedListener
+		mSettingsStateProductMotorsVersionChangedListener
+			= new ARCommandMiniDroneSettingsStateProductMotorsVersionChangedListener() {
+		/**
+		 * @param motor Product Motor number [1 - 4]
+		 * @param type Product Motor type
+		 * @param software Product Motors software version
+		 * @param hardware Product Motors hardware version
+		 */
+		@Override
+		public void onMiniDroneSettingsStateProductMotorsVersionChangedUpdate(
+			final byte motor, final String type, final String software, final String hardware) {
+
+			if (DEBUG) Log.v(TAG, "onMiniDroneSettingsStateProductMotorsVersionChangedUpdate:");
+		}
+	};
+
+	/**
+	 * 慣性バージョン?ってなんやろ?
+	 */
+	private final ARCommandMiniDroneSettingsStateProductInertialVersionChangedListener
+		mSettingsStateProductInertialVersionChangedListener
+			= new ARCommandMiniDroneSettingsStateProductInertialVersionChangedListener() {
+		/**
+		 * @param software Product Inertial software version
+		 * @param hardware Product Inertial hardware version
+		 */
+		@Override
+		public void onMiniDroneSettingsStateProductInertialVersionChangedUpdate(
+			final String software, final String hardware) {
+
+			if (DEBUG) Log.v(TAG, "onMiniDroneSettingsStateProductInertialVersionChangedUpdate:");
+		}
+	};
+
+	/**
+	 * カットオフモード設定が変更された時のコールバックリスナー
+	 */
+	private final ARCommandMiniDroneSettingsStateCutOutModeChangedListener
+		mSettingsStateCutOutModeChangedListener
+			= new ARCommandMiniDroneSettingsStateCutOutModeChangedListener() {
+		/**
+		 * @param enable State of cut out mode (1 if is activate, 0 otherwise)
+		 */
+		@Override
+		public void onMiniDroneSettingsStateCutOutModeChangedUpdate(final byte enable) {
+			if (DEBUG) Log.v(TAG, "onMiniDroneSettingsStateCutOutModeChangedUpdate:");
+		}
+	};
+
+	/**
+	 * FloodControl設定が変更された時のコールバックリスナー
+	 * 操縦コマンド(PCMD)を連続して送る時の最短間隔・・・これ以下の間隔で送った時に無視するってことかなぁ?
+	 */
+	private final ARCommandMiniDroneFloodControlStateFloodControlChangedListener
+		mFloodControlStateFloodControlChangedListener
+			= new ARCommandMiniDroneFloodControlStateFloodControlChangedListener() {
+		/**
+		 * @param delay Delay (in ms) between two PCMD
+		 */
+		@Override
+		public void onMiniDroneFloodControlStateFloodControlChangedUpdate(final short delay) {
+			if (DEBUG) Log.v(TAG, "onMiniDroneFloodControlStateFloodControlChangedUpdate:");
 		}
 	};
 
@@ -386,29 +324,29 @@ public class DeviceControllerMiniDrone implements IDeviceController {
 	 * 機体からの異常通知時のコールバックリスナー
 	 */
 	private final ARCommandMiniDronePilotingStateAlertStateChangedListener
-		mARCommandMiniDronePilotingStateAlertStateChangedListener
+		mPilotingStateAlertStateChangedListener
 			= new ARCommandMiniDronePilotingStateAlertStateChangedListener() {
 		@Override
 		public void onMiniDronePilotingStateAlertStateChangedUpdate(
 			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
 
-			if (mListener != null) {
-				try {
-					mListener.onAlertStateChangedUpdate(state.getValue());
-				} catch (Exception e) {
-					if (DEBUG) Log.w(TAG, e);
-				}
-			}
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateAlertStateChangedUpdate:");
+			callOnAlertStateChangedUpdate(state.getValue());
 		}
 	};
 
-	private boolean sendPCMD() {
+	/**
+	 * 操縦コマンドを送信
+	 * @return
+	 */
+	@Override
+	protected boolean sendPCMD(final byte flag, final byte roll, final byte pitch, final byte yaw, final byte gaz, final float psi) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError;
 		synchronized (mDataSync) {
-			cmdError = cmd.setMiniDronePilotingPCMD(mDataPCMD.flag, mDataPCMD.roll, mDataPCMD.pitch, mDataPCMD.yaw, mDataPCMD.gaz, mDataPCMD.psi);
+			cmdError = cmd.setMiniDronePilotingPCMD(flag, roll, pitch, yaw, gaz, psi);
 		}
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
@@ -508,66 +446,6 @@ public class DeviceControllerMiniDrone implements IDeviceController {
 		return sentStatus;
 	}
 
-	private static final SimpleDateFormat formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-	private static final SimpleDateFormat formattedTime = new SimpleDateFormat("'T'HHmmssZZZ", Locale.getDefault());
-
-	@Override
-	public boolean sendDate(Date currentDate) {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonCurrentDate(formattedDate.format(currentDate));
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-            /* Send data with ARNetwork */
-			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
-
-			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
-				sentStatus = false;
-			}
-
-			cmd.dispose();
-		}
-
-		if (sentStatus == false) {
-			ARSALPrint.e(TAG, "Failed to send date command.");
-		}
-
-		return sentStatus;
-	}
-
-	@Override
-	public boolean sendTime(Date currentDate) {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonCurrentTime(formattedTime.format(currentDate));
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-            /* Send data with ARNetwork */
-			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
-
-			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
-				sentStatus = false;
-			}
-
-			cmd.dispose();
-		}
-
-		if (sentStatus == false) {
-			ARSALPrint.e(TAG, "Failed to send time command.");
-		}
-
-		return sentStatus;
-	}
-
-	/**
-	 * フラットトリム実行(水平方向センサー調整)
-	 * @return
-	 */
 	@Override
 	public boolean sendFlatTrim() {
 		boolean sentStatus = true;
@@ -589,16 +467,13 @@ public class DeviceControllerMiniDrone implements IDeviceController {
 
 		if (sentStatus == false) {
 			ARSALPrint.e(TAG, "Failed to send flattrim command.");
-			if (mListener != null) {
-				mListener.onFlatTrimUpdate(false);
-			}
 		}
 
 		return sentStatus;
 	}
 
 	/**
-	 * ミニドローンをフリップ, でもどれを選択肢しても同じ動きしなしてない気がする
+	 * ミニドローンをフリップ
 	 * @param direction
 	 * @return
 	 */
@@ -641,9 +516,6 @@ public class DeviceControllerMiniDrone implements IDeviceController {
 
 		if (sentStatus == false) {
 			ARSALPrint.e(TAG, "Failed to send flip command.");
-			if (mListener != null) {
-				mListener.onFlatTrimUpdate(false);
-			}
 		}
 
 		return sentStatus;
@@ -675,247 +547,8 @@ public class DeviceControllerMiniDrone implements IDeviceController {
 
 		if (sentStatus == false) {
 			ARSALPrint.e(TAG, "Failed to send flip command.");
-			if (mListener != null) {
-				mListener.onFlatTrimUpdate(false);
-			}
 		}
 
 		return sentStatus;
-	}
-
-	/**
-	 * roll/pitch変更時が移動なのか機体姿勢変更なのかを指示
-	 * @param flag 1:移動, 0:機体姿勢変更
-	 */
-	@Override
-	public void setFlag(final byte flag) {
-		synchronized (mDataSync) {
-			mDataPCMD.flag = flag;
-		}
-	}
-
-	/**
-	 * 機体の高度を上下させる
-	 * @param gaz 負:下降, 正:上昇
-	 */
-	@Override
-	public void setGaz(final byte gaz) {
-		synchronized (mDataSync) {
-			mDataPCMD.gaz = gaz;
-		}
-	}
-
-	/**
-	 * 機体を左右に傾ける。flag=1:左右に移動する, flag=0:機体姿勢変更のみ
-	 * @param roll 負:左, 正:右
-	 */
-	@Override
-	public void setRoll(final byte roll) {
-		synchronized (mDataSync) {
-			mDataPCMD.roll = roll;
-		}
-	}
-
-	/**
-	 * 機体の機首を上げ下げする。flag=1:前後に移動する, flag=0:機体姿勢変更のみ
-	 * @param pitch
-	 */
-	@Override
-	public void setPitch(final byte pitch) {
-		synchronized (mDataSync) {
-			mDataPCMD.pitch = pitch;
-		}
-	}
-
-	/**
-	 * 機体の機首を左右に動かす=水平方向に回転する
-	 * @param yaw 負:左回転, 正:右回転
-	 */
-	@Override
-	public void setYaw(final byte yaw) {
-		synchronized (mDataSync) {
-			mDataPCMD.yaw = yaw;
-		}
-	}
-
-	/**
-	 * 北磁極に対する角度を設定・・・でもローリングスパイダーでは動かない
-	 * @param psi
-	 */
-	@Override
-	public void setPsi(final float psi) {
-		synchronized (mDataSync) {
-			mDataPCMD.psi = psi;
-		}
-	}
-
-	/**
-	 * コールバックリスナーを設定
-	 * @param mListener
-	 */
-	@Override
-	public void setListener(final DeviceControllerListener mListener) {
-		this.mListener = mListener;
-	}
-
-	/**
-	 * Extend of ARNetworkManager implementing the callback
-	 */
-	private class ARNetworkManagerExtend extends ARNetworkManager {
-		public ARNetworkManagerExtend(final ARNetworkALManager osSpecificManager, final ARNetworkIOBufferParam[] inputParamArray, final ARNetworkIOBufferParam[] outputParamArray, final int timeBetweenPingsMs) {
-			super(osSpecificManager, inputParamArray, outputParamArray, timeBetweenPingsMs);
-		}
-
-		private static final String TAG = "ARNetworkManagerExtend";
-
-		@Override
-		public ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM onCallback(final int ioBufferId, final ARNativeData data, final ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM status, final Object customData) {
-			ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM retVal = ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DEFAULT;
-
-			if (status == ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM.ARNETWORK_MANAGER_CALLBACK_STATUS_TIMEOUT) {
-				retVal = ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP;
-			}
-
-			return retVal;
-		}
-
-		@Override
-		public void onDisconnect(final ARNetworkALManager arNetworkALManager) {
-			Log.d(TAG, "onDisconnect ...");
-
-			if (mListener != null) {
-				mListener.onDisconnect();
-			}
-		}
-	}
-
-	private static final class DataPCMD {
-		public byte flag;
-		public byte roll;
-		public byte pitch;
-		public byte yaw;
-		public byte gaz;
-		public float psi;
-
-		public DataPCMD() {
-			flag = 0;
-			roll = 0;
-			pitch = 0;
-			yaw = 0;
-			gaz = 0;
-			psi = 0.0f;
-		}
-	}
-
-
-	private abstract class LooperThread extends Thread {
-		private boolean mIsAlive;
-		private boolean mIsRunning;
-
-		public LooperThread() {
-			mIsRunning = false;
-			mIsAlive = true;
-		}
-
-		@Override
-		public void run() {
-			mIsRunning = true;
-
-			onStart();
-
-			while (this.mIsAlive) {
-				onLoop();
-			}
-			onStop();
-
-			mIsRunning = false;
-		}
-
-		public void onStart() {
-
-		}
-
-		public abstract void onLoop();
-
-		public void onStop() {
-
-		}
-
-		public void stopThread() {
-			mIsAlive = false;
-		}
-
-		public boolean ismIsRunning() {
-			return mIsRunning;
-		}
-	}
-
-	private static final int MAX_READ_TIMEOUT_MS = 1000;
-	private class ReaderThread extends LooperThread {
-		final int mBufferId;
-		final ARCommand dataRecv = new ARCommand(128 * 1024);//TODO define
-
-		public ReaderThread(final int bufferId) {
-			mBufferId = bufferId;
-		}
-
-		@Override
-		public void onStart() {
-
-		}
-
-		@Override
-		public void onLoop() {
-			boolean skip = false;
-
-            /* read data*/
-			final ARNETWORK_ERROR_ENUM netError = mARNetManager.readDataWithTimeout(mBufferId, dataRecv, MAX_READ_TIMEOUT_MS);
-
-			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_ERROR_BUFFER_EMPTY) {
-//                    ARSALPrint.e (TAG, "ReaderThread readDataWithTimeout() failed. " + netError + " mBufferId: " + mBufferId);
-				}
-				skip = true;
-			}
-
-			if (!skip) {
-				final ARCOMMANDS_DECODER_ERROR_ENUM decodeStatus = dataRecv.decode();
-				if ((decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_OK)
-					&& (decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_ERROR_NO_CALLBACK)
-					&& (decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_ERROR_UNKNOWN_COMMAND)) {
-					ARSALPrint.e(TAG, "ARCommand.decode() failed. " + decodeStatus);
-				}
-			}
-		}
-
-		@Override
-		public void onStop() {
-			dataRecv.dispose();
-			super.onStop();
-		}
-	}
-
-	/** sendPCMDを呼び出す間隔[ミリ秒] */
-	private static final long CMD_SENDING_INTERVALS_MS = 50;
-
-	protected class ControllerLooperThread extends LooperThread {
-		public ControllerLooperThread() {
-
-		}
-
-		@Override
-		public void onLoop() {
-			final long lastTime = SystemClock.elapsedRealtime();
-
-			sendPCMD();
-
-			final long sleepTime = (SystemClock.elapsedRealtime() + CMD_SENDING_INTERVALS_MS) - lastTime;
-
-			try {
-				Thread.sleep(sleepTime);
-			} catch (final InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 }

@@ -27,12 +27,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	static {
 		FileUtils.DIR_NAME = "FlightDemo";
 	}
-	/**
-	 * Use this factory method to create a new instance of
-	 * this fragment using the provided parameters.
-	 *
-	 * @return A new instance of fragment PilotFragment.
-	 */
+
 	public static PilotFragment newInstance(final ARDiscoveryDeviceService service) {
 		final PilotFragment fragment = new PilotFragment();
 		fragment.setARService(service);
@@ -366,38 +361,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	@Override
 	protected void updateAlertState(final int alert_state) {
-		switch (alert_state) {
-		case 0:	// No alert
-			break;
-		case 1:	// User emergency alert
-			mAlertMessage.setText(R.string.user_emergency);
-			break;
-		case 2:	// Cut out alert
-			mAlertMessage.setText(R.string.motor_cut_out);
-			break;
-		case 3:	// Critical battery alert
-			mAlertMessage.setText(R.string.low_battery_critical);
-			break;
-		case 4:	// Low battery alert
-			mAlertMessage.setText(R.string.low_battery);
-			break;
-		}
-		mAlertMessage.setVisibility(alert_state != 0 ? View.INVISIBLE : View.VISIBLE);
+		runOnUiThread(mUpdateAlertMessageTask);
 		updateButtons();
 	}
 
 	@Override
 	protected void updateBattery(final int battery) {
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				if (battery >= 0) {
-					mBatteryLabel.setText(String.format("%d%%", battery));
-				} else {
-					mBatteryLabel.setText("---");
-				}
-			}
-		});
+		runOnUiThread(mUpdateBatteryTask);
 	}
 
 	private static final int CTRL_STEP = 5;
@@ -688,69 +658,114 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * ボタン表示の更新(UIスレッドで処理)
 	 */
 	private void updateButtons() {
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				final int state = mFlyingState;
-				final int alert_state = mAlertState;
-				final boolean is_connected = mIsConnected;
-				final boolean is_recording = mFlightRecorder.isRecording();
-				final boolean is_playing = mFlightRecorder.isPlaying();
-				final boolean can_play = is_connected && !is_recording && (state != 5) && (mFlightRecorder.size() > 0);
-				final boolean can_record = is_connected && !is_playing;
-				final boolean can_load = is_connected && !is_playing && !is_recording;
-				final boolean can_fly = can_record && (state != 5);
-				final boolean can_flattrim = can_fly && (state == 0);
-/*				switch (state) {
-				case 0: // Landed state
-				case 1:	// Taking off state
-				case 2:	// Hovering state
-				case 3:	// Flying state
-				case 4:	// Landing state
-				case 5:	// Emergency state
-				case 6: // Rolling state
-					break;
-				} */
-/*				switch (alert_state) {
-				case 0:	// No alert
-				case 1:	// User emergency alert
-				case 2:	// Cut out alert
-				case 3:	// Critical battery alert
-				case 4:	// Low battery alert
-					break;
-				} */
-
-				// 上パネル
-				mFlatTrimBtn.setEnabled(can_flattrim);	// フラットトリム
-				mBatteryLabel.setTextColor((alert_state == 3) || (alert_state == 4) ? 0xffff0000 : 0xff000000);
-				// 下パネル
-				mEmergencyBtn.setEnabled(is_connected);	// 非常停止
-				mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
-				mLoadBtn.setEnabled(can_load);			// 読み込み
-				mPlayBtn.setEnabled(can_play);			// 再生
-				mRecordBtn.setEnabled(can_record);		// 記録
-				if (is_recording) {
-					mRecordBtn.setImageResource(R.drawable.btn_shutter_video_recording);
-				} else {
-					mRecordBtn.setImageResource(R.drawable.btn_shutter_default);
-				}
-				if (mIsFlying || (state != 0)) {
-					mTakeOnOffBtn.setText(R.string.button_text_landing);
-				} else {
-					mTakeOnOffBtn.setText(R.string.button_text_takeoff);
-				}
-
-				// 右サイドパネル(とmCapXXXBtn等)
-				mRightSidePanel.setEnabled(can_fly);
-				// 左サイドパネル(とmFlipXXXBtn等)
-				mLeftSidePanel.setEnabled(can_fly);
-				// 右スティックパネル(東/西ボタン)
-				mRightStickPanel.setEnabled(can_fly);
-				// 左スティックパネル(北/南ボタン)
-				mLeftStickPanel.setEnabled(can_fly);
-
-			}
-		});
+		runOnUiThread(mUpdateButtonsTask);
 	}
+
+	/**
+	 * アラート表示の更新処理をUIスレッドで実行するためのRunnable
+	 */
+	private final Runnable mUpdateAlertMessageTask = new Runnable() {
+		@Override
+		public void run() {
+			switch (mAlertState) {
+			case 0:	// No alert
+				break;
+			case 1:	// User emergency alert
+				mAlertMessage.setText(R.string.user_emergency);
+				break;
+			case 2:	// Cut out alert
+				mAlertMessage.setText(R.string.motor_cut_out);
+				break;
+			case 3:	// Critical battery alert
+				mAlertMessage.setText(R.string.low_battery_critical);
+				break;
+			case 4:	// Low battery alert
+				mAlertMessage.setText(R.string.low_battery);
+				break;
+			}
+			mAlertMessage.setVisibility(mAlertState != 0 ? View.INVISIBLE : View.VISIBLE);
+		}
+	};
+
+	/**
+	 * バッテリー残量表示の更新処理をUIスレッドでするためのRunnable
+	 */
+	private final Runnable mUpdateBatteryTask = new Runnable() {
+		@Override
+		public void run() {
+			if (mBattery >= 0) {
+				mBatteryLabel.setText(String.format("%d%%", mBattery));
+			} else {
+				mBatteryLabel.setText("---");
+			}
+		}
+	};
+
+	/**
+	 *　ボタンの表示更新をUIスレッドで行うためのRunnable
+	 */
+	private final Runnable mUpdateButtonsTask = new Runnable() {
+		@Override
+		public void run() {
+			final int state = mFlyingState;
+			final int alert_state = mAlertState;
+			final boolean is_connected = mIsConnected;
+			final boolean is_recording = mFlightRecorder.isRecording();
+			final boolean is_playing = mFlightRecorder.isPlaying();
+			final boolean can_play = is_connected && !is_recording && (state != 5) && (mFlightRecorder.size() > 0);
+			final boolean can_record = is_connected && !is_playing;
+			final boolean can_load = is_connected && !is_playing && !is_recording;
+			final boolean can_fly = can_record && (state != 5);
+			final boolean can_flattrim = can_fly && (state == 0);
+/*				switch (state) {
+			case 0: // Landed state
+			case 1:	// Taking off state
+			case 2:	// Hovering state
+			case 3:	// Flying state
+			case 4:	// Landing state
+			case 5:	// Emergency state
+			case 6: // Rolling state
+				break;
+			} */
+/*				switch (alert_state) {
+			case 0:	// No alert
+			case 1:	// User emergency alert
+			case 2:	// Cut out alert
+			case 3:	// Critical battery alert
+			case 4:	// Low battery alert
+				break;
+			} */
+
+			// 上パネル
+			mFlatTrimBtn.setEnabled(can_flattrim);	// フラットトリム
+			mBatteryLabel.setTextColor((alert_state == 3) || (alert_state == 4) ? 0xffff0000 : 0xff000000);
+			// 下パネル
+			mEmergencyBtn.setEnabled(is_connected);	// 非常停止
+			mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
+			mLoadBtn.setEnabled(can_load);			// 読み込み
+			mPlayBtn.setEnabled(can_play);			// 再生
+			mRecordBtn.setEnabled(can_record);		// 記録
+			if (is_recording) {
+				mRecordBtn.setImageResource(R.drawable.btn_shutter_video_recording);
+			} else {
+				mRecordBtn.setImageResource(R.drawable.btn_shutter_default);
+			}
+			if (mIsFlying || (state != 0)) {
+				mTakeOnOffBtn.setText(R.string.button_text_landing);
+			} else {
+				mTakeOnOffBtn.setText(R.string.button_text_takeoff);
+			}
+
+			// 右サイドパネル(とmCapXXXBtn等)
+			mRightSidePanel.setEnabled(can_fly);
+			// 左サイドパネル(とmFlipXXXBtn等)
+			mLeftSidePanel.setEnabled(can_fly);
+			// 右スティックパネル(東/西ボタン)
+			mRightStickPanel.setEnabled(can_fly);
+			// 左スティックパネル(北/南ボタン)
+			mLeftStickPanel.setEnabled(can_fly);
+
+		}
+	};
 
 }
