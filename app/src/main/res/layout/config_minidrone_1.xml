@@ -4,57 +4,58 @@
 			  android:layout_width="match_parent"
 			  android:layout_height="match_parent">
 
-	<ImageButton
-		android:layout_width="@dimen/btn_size_action"
-		android:layout_height="@dimen/btn_size_action"
-		android:id="@+id/config_hide_btn"
-		android:background="@null"
-		android:src="@android:drawable/ic_menu_close_clear_cancel"/>
-
 	<TextView
-		android:layout_width="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:text="@string/max_altitude"
-		android:id="@+id/textView2"/>
+		android:id="@+id/max_altitude_textview"
+		android:textSize="@dimen/text_sz_list"/>
 
 	<SeekBar
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:id="@+id/seekBar"
-		android:layout_gravity="center_horizontal"/>
+		android:id="@+id/max_altitude_seekbar"
+		android:layout_gravity="center_horizontal"
+		android:minHeight="@dimen/text_sz_list"/>
 
 	<TextView
-		android:layout_width="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:text="@string/max_tilt"
-		android:id="@+id/textView3"/>
+		android:id="@+id/max_tilt_textview"
+		android:textSize="@dimen/text_sz_list"/>
 
 	<SeekBar
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:id="@+id/seekBar2"
-		android:layout_gravity="center_horizontal"/>
+		android:id="@+id/max_tilt_seekbar"
+		android:layout_gravity="center_horizontal"
+		android:minHeight="@dimen/text_sz_list"/>
 
 	<TextView
-		android:layout_width="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:text="@string/max_vertical_speed"
-		android:id="@+id/textView12"/>
+		android:id="@+id/max_vertical_speed_textview"
+		android:textSize="@dimen/text_sz_list"/>
 
 	<SeekBar
-		android:layout_width="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:id="@+id/seekBar3"/>
+		android:id="@+id/max_vertical_speed_seekbar"
+		android:minHeight="@dimen/text_sz_list"/>
 
 	<TextView
-		android:layout_width="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:text="@string/max_rotating_speed"
-		android:id="@+id/textView13"/>
+		android:id="@+id/max_rotation_speed_textview"
+		android:textSize="@dimen/text_sz_list"/>
 
 	<SeekBar
-		android:layout_width="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:id="@+id/seekBar4"/>
+		android:id="@+id/max_rotation_speed_seekbar"
+		android:minHeight="@dimen/text_sz_list"/>
 
 </LinearLayout>

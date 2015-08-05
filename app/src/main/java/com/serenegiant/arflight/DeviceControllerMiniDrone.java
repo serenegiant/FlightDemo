@@ -119,7 +119,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		}
 	};
 
-	private int mAutoTakeOffMode = -1;
 	/**
 	 * 自動離陸モードが変更された時のコールバックリスナー
 	 */
@@ -185,7 +184,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		}
 	};
 
-
 	/**
 	 * 最大高度設定が変更された時のコールバックリスナー
 	 */
@@ -201,6 +199,15 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		public void onMiniDronePilotingSettingsStateMaxAltitudeChangedUpdate(
 			final float current, final float min, final float max) {
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxAltitudeChangedUpdate:");
+			if ((mMaxAltitude.current != current)
+				|| (mMaxAltitude.min != min)
+				|| (mMaxAltitude.max != max)) {
+
+				mMaxAltitude.current = current;
+				mMaxAltitude.min = min;
+				mMaxAltitude.max = max;
+				// XXX
+			}
 		}
 	};
 
@@ -219,10 +226,18 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		public void onMiniDronePilotingSettingsStateMaxTiltChangedUpdate(
 			final float current, final float min, final float max) {
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxTiltChangedUpdate:");
+			if ((mMaxTilt.current != current)
+				|| (mMaxTilt.min != min)
+				|| (mMaxTilt.max != max)) {
+
+				mMaxTilt.current = current;
+				mMaxTilt.min = min;
+				mMaxTilt.max = max;
+				// XXX
+			}
 		}
 	};
 
-	private final AttributeFloat mVerticalSpeed = new AttributeFloat();
 	/**
 	 * 上昇/降下速度設定が変更された時のコールバックリスナー
 	 */
@@ -239,19 +254,18 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			final float current, final float min, final float max) {
 
 			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedUpdate:");
-			if ((mVerticalSpeed.current != current)
-				|| (mVerticalSpeed.min != min)
-				|| (mVerticalSpeed.max != max)) {
+			if ((mMaxVerticalSpeed.current != current)
+				|| (mMaxVerticalSpeed.min != min)
+				|| (mMaxVerticalSpeed.max != max)) {
 
-				mVerticalSpeed.current = current;
-				mVerticalSpeed.min = min;
-				mVerticalSpeed.max = max;
+				mMaxVerticalSpeed.current = current;
+				mMaxVerticalSpeed.min = min;
+				mMaxVerticalSpeed.max = max;
 				// XXX
 			}
 		}
 	};
 
-	private final AttributeFloat mMaxRotationSpeed = new AttributeFloat();
 	/**
 	 * 最大回転速度設定が変更された時のコールバックリスナー
 	 */
@@ -279,7 +293,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		}
 	};
 
-	private int mHasWheel = -1;
 	/**
 	 * ホイールの有無設定が変更された時のコールバックリスナー
 	 */
@@ -332,7 +345,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		}
 	};
 
-	public final IMU mIMU = new IMU();
+	public final AttributeIMU mIMU = new AttributeIMU();
 	/**
 	 * フライトコントローラのバージョン
 	 */
@@ -353,7 +366,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		}
 	};
 
-	private int mCutOffMode = -1;
 	/**
 	 * カットオフモード設定が変更された時のコールバックリスナー
 	 */
@@ -438,6 +450,16 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		}
 
 		return sentStatus;
+	}
+
+	@Override
+	public String getSoftwareVersion() {
+		return mIMU.software;
+	}
+
+	@Override
+	public String getHardwareVersion() {
+		return mIMU.hardware;
 	}
 
 	@Override
@@ -669,6 +691,34 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	}
 
 	/**
+	 * モーターの個数を返す
+	 * @return
+	 */
+	@Override
+	public int getMotorNums() {
+		return 4;
+	}
+
+	private int mCutOffMode = -1;
+
+	/**
+	 * モーターの自動カット機能が有効かどうかを取得する
+	 * @return
+	 */
+	public boolean isCutoffModeEnabled() {
+		return mCutOffMode == 0;
+	}
+
+	/**
+	 * モーターの自動カット機能のon/off
+	 * @param enabled
+	 * @return
+	 */
+	public boolean sendCutOutMode(final boolean enabled) {
+		return sendCutOutMode((byte)(enabled ? 1: 0));
+	}
+
+	/**
 	 * モーターの自動カット機能のon/off
 	 * @param enabled
 	 * @return
@@ -698,16 +748,29 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		return sentStatus;
 	}
 
+	private int mAutoTakeOffMode = -1;
+
 	/**
-	 * 自動離陸モードのon/off設定
-	 * @param on_off
+	 * 自動離陸モードが有効かどうかを取得する
 	 * @return
 	 */
-	public boolean sendAutoTakeOffMode(final byte on_off) {
+	public boolean isAutoTakeOffModeEnabled() {
+		return mAutoTakeOffMode == 1;
+	}
+
+	public boolean sendAutoTakeOffMode(final boolean enable) {
+		return sendAutoTakeOffMode((byte)(enable ? 1: 0));
+	}
+	/**
+	 * 自動離陸モードの有効/無効を設定
+	 * @param enable
+	 * @return
+	 */
+	public boolean sendAutoTakeOffMode(final byte enable) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingAutoTakeOffMode(on_off);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingAutoTakeOffMode(enable);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
@@ -723,6 +786,40 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 		if (sentStatus == false) {
 			ARSALPrint.e(TAG, "Failed to send AutoTakeOffMode command.");
+		}
+
+		return sentStatus;
+	}
+
+	private int mHasWheel = -1;
+	public boolean hasWheel() {
+		return mHasWheel == 1;
+	}
+
+	public boolean sendWheel(final boolean has_wheel) {
+		return sendWheel((byte)(has_wheel ? 1 : 0));
+	}
+
+	public boolean sendWheel(final byte has_wheel) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSpeedSettingsWheels(has_wheel);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+            /* Send data with ARNetwork */
+			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+
+			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
+				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
+				sentStatus = false;
+			}
+
+			cmd.dispose();
+		}
+
+		if (sentStatus == false) {
+			ARSALPrint.e(TAG, "Failed to send Wheels command.");
 		}
 
 		return sentStatus;

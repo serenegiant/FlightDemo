@@ -29,13 +29,19 @@
 	<string name="low_battery_critical">致命的ローバッテリー</string>
 	<string name="user_emergency">ユーザー操作により非常停止</string>
 	<string name="motor_cut_out">モーター非常停止</string>
-	<string name="max_tilt">最大斜度</string>
-	<string name="max_vertical_speed">最大垂直速度</string>
-	<string name="max_altitude">最大高度</string>
-	<string name="max_rotating_speed">最大回転速度</string>
-	<string name="has_wheel">車輪</string>
-	<string name="has_hull">バンパー</string>
+	<string name="max_tilt">最大斜度: %5.1f[°]</string>
+	<string name="max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>
+	<string name="max_altitude">最大高度: %5.1f[m]</string>
+	<string name="max_rotating_speed">最大回転速度: %5.0f[°/s]</string>
+	<string name="has_wheel">車輪有り</string>
+	<string name="has_hull">バンパー有り</string>
 	<string name="cut_out">カットアウト</string>
-	<string name="config_minidron_1">飛行設定</string>
-	<string name="config_minidron_2">ドローン設定</string>
+	<string name="config_1">飛行設定</string>
+	<string name="config_2">ドローン設定</string>
+	<string name="config_3">ドローン情報</string>
+	<string name="auto_takeoff">自動離陸モード</string>
+	<string name="product_name">製品名:</string>
+	<string name="version_software">ソフトウエアバージョン:</string>
+	<string name="version_hardware">ハードウエアバージョン:</string>
+	<string name="version_app">アプリバージョン:</string>
 </resources>

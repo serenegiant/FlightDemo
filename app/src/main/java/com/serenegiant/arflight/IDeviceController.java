@@ -26,6 +26,8 @@ public interface IDeviceController {
 	public static final int SENSOR_VERTICAL_CAMERA = 5;
 
 	public String getName();
+	public String getSoftwareVersion();
+	public String getHardwareVersion();
 	public ARDiscoveryDeviceService getDevice();
 
 	/**
@@ -90,12 +92,15 @@ public interface IDeviceController {
 	 * @return
 	 */
 	public boolean sendMaxAltitude(final float altitude);
+	public AttributeFloat getMaxAltitude();
+
 	/**
 	 * 最大傾斜設定
 	 * @param tilt
 	 * @return
 	 */
 	public boolean sendMaxTilt(final float tilt);
+	public AttributeFloat getMaxTilt();
 
 	/**
 	 * 最大上昇/下降速度を設定
@@ -103,12 +108,22 @@ public interface IDeviceController {
 	 * @return
 	 */
 	public boolean sendMaxVerticalSpeed(final float speed);
+	public AttributeFloat getMaxVerticalSpeed();
+
+		/**
+		 * 最大回転速度
+		 * @param speed [度/秒]
+		 * @return
+		 */
+	public boolean sendMaxRotationSpeed(final float speed);
+	public AttributeFloat getMaxRotationSpeed();
+
 	/**
-	 * 最大回転速度
-	 * @param speed [度/秒]
+	 * モーターの個数を返す
 	 * @return
 	 */
-	public boolean sendMaxRotationSpeed(final float speed);
+	public int getMotorNums();
+	public AttributeMotor getMotor(final int index);
 
 	/**
 	 * roll/pitch変更時が移動なのか機体姿勢変更なのかを指示

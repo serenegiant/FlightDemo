@@ -59,6 +59,15 @@ public abstract class ControlFragment extends Fragment {
 	}
 
 	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		final Bundle args = getArguments();
+		if (args != null) {
+			outState.putAll(args);
+		}
+	}
+
+	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
 		super.onDestroy();
@@ -82,10 +91,10 @@ public abstract class ControlFragment extends Fragment {
 		super.onPause();
 	}
 
-	protected Bundle setARService(final ARDiscoveryDeviceService service) {
-		mDevice = service;
+	protected Bundle setDevice(final ARDiscoveryDeviceService device) {
+		mDevice = device;
 		final Bundle args = new Bundle();
-		args.putParcelable(EXTRA_DEVICE_SERVICE, service);
+		args.putParcelable(EXTRA_DEVICE_SERVICE, device);
 		setArguments(args);
 		return args;
 	}
@@ -110,40 +119,43 @@ public abstract class ControlFragment extends Fragment {
 
 	protected void startDeviceController() {
 		if (DEBUG) Log.v(TAG, "startDeviceController:");
-		if ((deviceController != null) && !mIsConnected) {
-			mBattery = -1;
-			updateBattery(mBattery);
+		if (deviceController != null) {
+			if (!deviceController.isStarted()) {
+				mBattery = -1;
+				updateBattery(mBattery);
 
-			final ProgressDialog dialog = new ProgressDialog(getActivity());
-			dialog.setTitle(R.string.connecting);
-			dialog.setIndeterminate(true);
-			dialog.show();
+				final ProgressDialog dialog = new ProgressDialog(getActivity());
+				dialog.setTitle(R.string.connecting);
+				dialog.setIndeterminate(true);
+				dialog.show();
 
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					final boolean failed = deviceController.start();
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						final boolean failed = deviceController.start();
 
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							dialog.dismiss();
-						}
-					});
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								dialog.dismiss();
+							}
+						});
 
-					mIsConnected = !failed;
-					if (failed) {
-						try {
-							getFragmentManager().popBackStack();
-						} catch (final Exception e) {
-							Log.w(TAG, e);
+						mIsConnected = !failed;
+						if (failed) {
+							try {
+								getFragmentManager().popBackStack();
+							} catch (final Exception e) {
+								Log.w(TAG, e);
+							}
 						}
 					}
-				}
-			}).start();
-		} else {
-			deviceController.sendAllSettings();
-			deviceController.sendAllStates();
+				}).start();
+			} else {
+				if (DEBUG) Log.v(TAG, "設定読み込み＆ステータス要求");
+				deviceController.sendAllSettings();
+				deviceController.sendAllStates();
+			}
 		}
 	}
 

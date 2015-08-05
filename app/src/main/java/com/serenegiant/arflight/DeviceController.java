@@ -35,32 +35,6 @@ public abstract class DeviceController implements IDeviceController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceController";
 
-	/**
-	 * 浮動小数点の設定
-	 */
-	public static class AttributeFloat {
-		public float current;
-		public float min;
-		public float max;
-	}
-
-	public static class AttributeVersion {
-		public String software;
-		public String hardware;
-	}
-	/**
-	 * モーターの種類とバージョン
-	 */
-	public static class AttributeMotor extends AttributeVersion {
-		public String type;
-	}
-
-	/**
-	 * フライトコントローラのバージョン
-	 */
-	public static class IMU extends AttributeVersion {
-	}
-
 	protected static final int iobufferC2dNak = 10;
 	protected static final int iobufferC2dAck = 11;
 	protected static final int iobufferC2dEmergency = 12;
@@ -694,13 +668,53 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	protected final AttributeFloat mMaxAltitude = new AttributeFloat();
+	/**
+	 * 最大高度設定値を返す
+	 * @return
+	 */
+	@Override
+	public AttributeFloat getMaxAltitude() {
+		return mMaxAltitude;
+	}
+
+	protected final AttributeFloat mMaxTilt = new AttributeFloat();
+	@Override
+	public AttributeFloat getMaxTilt() {
+		return mMaxTilt;
+	}
+
+	protected final AttributeFloat mMaxVerticalSpeed = new AttributeFloat();
+	@Override
+	public AttributeFloat getMaxVerticalSpeed() {
+		return mMaxVerticalSpeed;
+	}
+
+	protected final AttributeFloat mMaxRotationSpeed = new AttributeFloat();
+	@Override
+	public AttributeFloat getMaxRotationSpeed() {
+		return mMaxRotationSpeed;
+	}
+
+	private static final int MOTOR_NUMS = 4;
+	protected final AttributeMotor[] mMotors = new AttributeMotor[MOTOR_NUMS];
+
+	@Override
+	public AttributeMotor getMotor(final int index) {
+		final int n = getMotorNums();
+		if ((index >= 0) && (index < n)) {
+			return mMotors[index];
+		}
+		return null;
+	}
+
 	/**
 	 * Extend of ARNetworkManager implementing the callback
 	 */
 	private class ARNetworkManagerExtend extends ARNetworkManager {
 		public ARNetworkManagerExtend(
-										 final ARNetworkALManager osSpecificManager, final ARNetworkIOBufferParam[] inputParamArray,
-										 final ARNetworkIOBufferParam[] outputParamArray, final int timeBetweenPingsMs) {
+			final ARNetworkALManager osSpecificManager, final ARNetworkIOBufferParam[] inputParamArray,
+			final ARNetworkIOBufferParam[] outputParamArray, final int timeBetweenPingsMs) {
 
 			super(osSpecificManager, inputParamArray, outputParamArray, timeBetweenPingsMs);
 		}

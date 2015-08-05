@@ -3,7 +3,6 @@ package com.serenegiant.flightdemo;
 import android.app.Activity;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -30,9 +29,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		FileUtils.DIR_NAME = "FlightDemo";
 	}
 
-	public static PilotFragment newInstance(final ARDiscoveryDeviceService service) {
+	public static PilotFragment newInstance(final ARDiscoveryDeviceService device) {
 		final PilotFragment fragment = new PilotFragment();
-		fragment.setARService(service);
+		fragment.setDevice(device);
 		return fragment;
 	}
 
@@ -243,11 +242,17 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.config_show_btn:
 				// 設定パネル表示処理
-				final ConfigFragment fragment = ConfigFragment.newInstance(getDevice());
-				getFragmentManager().beginTransaction()
-					.addToBackStack(null)
-					.replace(R.id.container, fragment)
-					.commit();
+				if (mIsConnected) {
+					if (mFlyingState == 0) {
+						final ConfigFragment fragment = ConfigFragment.newInstance(getDevice());
+						getFragmentManager().beginTransaction()
+							.addToBackStack(null)
+							.replace(R.id.container, fragment)
+							.commit();
+					} else {
+						landing();
+					}
+				}
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理

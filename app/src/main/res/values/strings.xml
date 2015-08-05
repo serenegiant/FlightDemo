@@ -28,13 +28,19 @@
 	<string name="low_battery_critical">Critical low battery</string>
 	<string name="user_emergency">User emergency stop</string>
 	<string name="motor_cut_out">Motor cut out</string>
-	<string name="max_tilt">Max Tilt</string>
-	<string name="max_vertical_speed">Max Vertical Speed</string>
-	<string name="max_altitude">Max altitude</string>
-	<string name="max_rotating_speed">Max rotating speed</string>
-	<string name="has_wheel">Wheel</string>
-	<string name="has_hull">Hull</string>
+	<string name="max_tilt">Max Tilt: %5.1f[deg.]</string>
+	<string name="max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
+	<string name="max_altitude">Max altitude: %5.1f[m]</string>
+	<string name="max_rotating_speed">Max rotating speed: %5.0f[deg./s]</string>
+	<string name="has_wheel">with wheel</string>
+	<string name="has_hull">with Hull</string>
 	<string name="cut_out">Cutout</string>
-	<string name="config_minidron_1">Flight settings</string>
-	<string name="config_minidron_2">Drone settings</string>
+	<string name="config_1">Flight settings</string>
+	<string name="config_2">Drone settings</string>
+	<string name="config_3">Drone info</string>
+	<string name="auto_takeoff">Enable auto take-off</string>
+	<string name="product_name">Product name:</string>
+	<string name="version_software">Software version:</string>
+	<string name="version_hardware">Hardware version:</string>
+	<string name="version_app">App version:</string>
 </resources>
