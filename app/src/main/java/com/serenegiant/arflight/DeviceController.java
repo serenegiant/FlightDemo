@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Locale;
 
 public abstract class DeviceController implements IDeviceController {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceController";
 
 	/**
@@ -102,7 +102,9 @@ public abstract class DeviceController implements IDeviceController {
 	private ARDiscoveryDeviceService mDeviceService;
 	private volatile boolean mIsStarted;
 
-	private DeviceControllerListener mListener;
+	private final Object mListenerSync = new Object();
+	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
+	private final List<DeviceControllerListener> mListeners = new ArrayList<DeviceControllerListener>();
 
 	static {
 		// コントローラー => 機体へのパラメータ
@@ -299,6 +301,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	private void stopLooperThread() {
+		if (DEBUG) Log.v(TAG, "stopLooperThread:");
         /* Cancel the looper thread and block until it is stopped. */
 		if (null != mLooperThread) {
 			mLooperThread.stopThread();
@@ -308,9 +311,11 @@ public abstract class DeviceController implements IDeviceController {
 				e.printStackTrace();
 			}
 		}
+		if (DEBUG) Log.v(TAG, "stopLooperThread:finished");
 	}
 
 	private void stopReaderThreads() {
+		if (DEBUG) Log.v(TAG, "stopReaderThreads:");
 		/* cancel all reader threads and block until they are all stopped. */
 		for (final ReaderThread thread : mReaderThreads) {
 			thread.stopThread();
@@ -323,9 +328,11 @@ public abstract class DeviceController implements IDeviceController {
 			}
 		}
 		mReaderThreads.clear();
+		if (DEBUG) Log.v(TAG, "stopReaderThreads:finished");
 	}
 
 	private void stopNetwork() {
+		if (DEBUG) Log.v(TAG, "stopNetwork:");
 		if (mARNetManager != null) {
 			mARNetManager.stop();
 
@@ -353,6 +360,7 @@ public abstract class DeviceController implements IDeviceController {
 			mMediaOpened = false;
 			mARManager.dispose();
 		}
+		if (DEBUG) Log.v(TAG, "stopNetwork:finished");
 	}
 
 //================================================================================
@@ -426,49 +434,80 @@ public abstract class DeviceController implements IDeviceController {
 //================================================================================
 	/**
 	 * コールバックリスナーを設定
-	 * @param mListener
+	 * @param listener
 	 */
 	@Override
-	public void setListener(final DeviceControllerListener mListener) {
-		this.mListener = mListener;
+	public void addListener(final DeviceConnectionListener listener) {
+		synchronized (mListenerSync) {
+			mConnectionListeners.add(listener);
+			if (listener instanceof DeviceControllerListener) {
+				mListeners.add((DeviceControllerListener)listener);
+			}
+		}
+	}
+
+	@Override
+	public void removeListener(final DeviceConnectionListener listener) {
+		synchronized (mListenerSync) {
+			mConnectionListeners.remove(listener);
+			if (listener instanceof DeviceControllerListener) {
+				mListeners.remove((DeviceControllerListener)listener);
+			}
+		}
 	}
 
 	protected void callOnDisconnect() {
-		if (mListener != null) {
-			try {
-				mListener.onDisconnect();
-			} catch (Exception e) {
-				if (DEBUG) Log.w(TAG, e);
+		synchronized (mListenerSync) {
+			for (DeviceConnectionListener listener: mConnectionListeners) {
+				if (listener != null) {
+					try {
+						listener.onDisconnect(this);
+					} catch (Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
 			}
 		}
 	}
 
 	protected void callOnUpdateBattery(final byte percent) {
-		if (mListener != null) {
-			try {
-				mListener.onUpdateBattery(percent);
-			} catch (Exception e) {
-				if (DEBUG) Log.w(TAG, e);
+		synchronized (mListenerSync) {
+			for (DeviceControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onUpdateBattery(percent);
+					} catch (Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
 			}
 		}
 	}
 
 	protected void callOnFlyingStateChangedUpdate(final int state) {
-		if (mListener != null) {
-			try {
-				mListener.onFlyingStateChangedUpdate(state);
-			} catch (Exception e) {
-				if (DEBUG) Log.w(TAG, e);
+		synchronized (mListenerSync) {
+			for (DeviceControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onFlyingStateChangedUpdate(state);
+					} catch (Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
 			}
 		}
 	}
 
 	protected void callOnAlertStateChangedUpdate(final int state) {
-		if (mListener != null) {
-			try {
-				mListener.onAlertStateChangedUpdate(state);
-			} catch (Exception e) {
-				if (DEBUG) Log.w(TAG, e);
+		synchronized (mListenerSync) {
+			for (DeviceControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onAlertStateChangedUpdate(state);
+					} catch (Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
 			}
 		}
 	}
@@ -716,7 +755,7 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-
+	private static int cnt = 0;
 	private abstract class LooperThread extends Thread {
 		private volatile boolean mIsRunning;
 
@@ -745,11 +784,13 @@ public abstract class DeviceController implements IDeviceController {
 		}
 
 		protected void onStart() {
+			if (DEBUG) Log.v("LooperThread", "onStart:" + cnt++);
 		}
 
 		protected abstract void onLoop();
 
 		protected void onStop() {
+			if (DEBUG) Log.v("LooperThread", "onStop:" + --cnt);
 		}
 
 	}
@@ -761,11 +802,6 @@ public abstract class DeviceController implements IDeviceController {
 
 		public ReaderThread(final int bufferId) {
 			mBufferId = bufferId;
-		}
-
-		@Override
-		public void onStart() {
-
 		}
 
 		@Override

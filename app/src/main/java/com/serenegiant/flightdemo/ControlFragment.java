@@ -1,5 +1,6 @@
 package com.serenegiant.flightdemo;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
@@ -11,18 +12,16 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.IDeviceController;
 
-import java.sql.Date;
-
 public abstract class ControlFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = ControlFragment.class.getSimpleName();
 
 	protected static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";
 
-	private final Handler mHandler = new Handler(Looper.getMainLooper());
+	private final Handler mUIHandler = new Handler(Looper.getMainLooper());
 	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
 
-	private ARDiscoveryDeviceService mService;
+	private ARDiscoveryDeviceService mDevice;
 	protected IDeviceController deviceController;
 
 	protected volatile int mFlyingState = 0;
@@ -36,29 +35,55 @@ public abstract class ControlFragment extends Fragment {
 	}
 
 	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		if (DEBUG) Log.v(TAG, "onAttach:");
+	}
+
+	@Override
+	public void onDetach() {
+		if (DEBUG) Log.v(TAG, "onDetach:");
+		super.onDetach();
+	}
+
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (DEBUG) Log.v(TAG, "onCreate:" + savedInstanceState);
 		if (savedInstanceState == null)
 			savedInstanceState = getArguments();
 		if (savedInstanceState != null) {
-			mService = savedInstanceState.getParcelable(EXTRA_DEVICE_SERVICE);
-			deviceController = createDeviceController(mService);
-			if (deviceController != null) {
-				deviceController.setListener(mDeviceControllerListener);
-			}
+			mDevice = savedInstanceState.getParcelable(EXTRA_DEVICE_SERVICE);
+			deviceController = ManagerFragment.getController(getActivity(), mDevice);
 		}
 	}
 
-	/**
-	 * IDeviceControllerインスタンスを生成する
-	 * @param service
-	 * @return
-	 */
-	protected abstract IDeviceController createDeviceController(final ARDiscoveryDeviceService service);
+	@Override
+	public void onDestroy() {
+		if (DEBUG) Log.v(TAG, "onDestroy:");
+		super.onDestroy();
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		if (DEBUG) Log.v(TAG, "onResume:");
+		if (deviceController != null) {
+			deviceController.addListener(mDeviceControllerListener);
+		}
+	}
+
+	@Override
+	public void onPause() {
+		if (DEBUG) Log.v(TAG, "onPause:");
+		if (deviceController != null) {
+			deviceController.removeListener(mDeviceControllerListener);
+		}
+		super.onPause();
+	}
 
 	protected Bundle setARService(final ARDiscoveryDeviceService service) {
-		mService = service;
+		mDevice = service;
 		final Bundle args = new Bundle();
 		args.putParcelable(EXTRA_DEVICE_SERVICE, service);
 		setArguments(args);
@@ -69,7 +94,7 @@ public abstract class ControlFragment extends Fragment {
 		if (task != null) {
 			try {
 				if (mUIThreadId != Thread.currentThread().getId()) {
-					mHandler.post(task);
+					mUIHandler.post(task);
 				} else {
 					task.run();
 				}
@@ -115,9 +140,13 @@ public abstract class ControlFragment extends Fragment {
 		}
 	}
 
-	protected void stopDeviceController() {
+	protected void stopDeviceController(final boolean disconnected) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
+		mIsConnected = mIsFlying = false;
+		mFlyingState = mBattery = -1;
 		if (deviceController != null) {
+			final IDeviceController controller = deviceController;
+			deviceController = null;
 			final ProgressDialog dialog = new ProgressDialog(getActivity());
 			dialog.setTitle(R.string.disconnecting);
 			dialog.setIndeterminate(true);
@@ -126,7 +155,7 @@ public abstract class ControlFragment extends Fragment {
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					doStopDeviceController();
+					controller.stop();
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
@@ -138,12 +167,6 @@ public abstract class ControlFragment extends Fragment {
 		}
 	}
 
-	protected void doStopDeviceController() {
-		mIsConnected = mIsFlying = false;
-		mFlyingState = mBattery = -1;
-		deviceController.stop();
-
-	}
 	/**
 	 * 非常停止指示
 	 */
@@ -162,8 +185,11 @@ public abstract class ControlFragment extends Fragment {
 	protected void updateAlertState(final int alert_state) {
 	}
 
-	protected void onDisconnect() {
-		stopDeviceController();
+	protected void onDisconnect(final IDeviceController controller) {
+		if (DEBUG) Log.v(TAG, "onDisconnect:");
+		if (controller.isStarted()) {
+			stopDeviceController(true);
+		}
 	}
 
 	protected void onAlertStateChangedUpdate(int alert_state) {
@@ -172,8 +198,12 @@ public abstract class ControlFragment extends Fragment {
 	private final DeviceControllerListener mDeviceControllerListener
 		= new DeviceControllerListener() {
 		@Override
-		public void onDisconnect() {
-			ControlFragment.this.onDisconnect();
+		public void onConnect(IDeviceController controller) {
+		}
+
+		@Override
+		public void onDisconnect(final IDeviceController controller) {
+			ControlFragment.this.onDisconnect(controller);
 		}
 
 		@Override

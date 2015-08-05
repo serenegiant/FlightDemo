@@ -1,11 +1,6 @@
 package com.serenegiant.arflight;
 
-public interface DeviceControllerListener {
-	/**
-	 * 切断された時のコールバック
-	 */
-	public void onDisconnect();
-
+public interface DeviceControllerListener extends DeviceConnectionListener {
 	/**
 	 * 電池残量が変化した時のコールバック
 	 * @param percent

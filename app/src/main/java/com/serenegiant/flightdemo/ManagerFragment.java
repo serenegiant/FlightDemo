@@ -3,13 +3,16 @@ package com.serenegiant.flightdemo;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -18,6 +21,8 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiver;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiverDelegate;
+import com.serenegiant.arflight.DeviceConnectionListener;
+import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.IDeviceController;
 
@@ -31,7 +36,7 @@ public class ManagerFragment extends Fragment {
 	private static final String TAG = "ManagerFragment";
 
 	public interface ManagerCallback {
-		public void onServicesDevicesListUpdated(List<ARDiscoveryDeviceService> devices);
+		public void onServicesDevicesListUpdated(final List<ARDiscoveryDeviceService> devices);
 	}
 
 	/**
@@ -108,15 +113,33 @@ public class ManagerFragment extends Fragment {
 		return result;
 	}
 
+	/**
+	 * 指定したARDiscoveryDeviceServiceインスタンスに対応するIDeviceControllerを取得する
+	 * @param activity
+	 * @param device
+	 * @return
+	 */
+	public static IDeviceController getController(final Activity activity, final ARDiscoveryDeviceService device) {
+		IDeviceController result = null;
+		final ManagerFragment fragment =  getInstance(activity);
+		if (fragment != null)
+			result = fragment.getController(device);
+		return result;
+	}
+
+	private final Handler mUIHandler = new Handler(Looper.getMainLooper());
+	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
+
 	private ARDiscoveryService ardiscoveryService;
 	private boolean ardiscoveryServiceBound = false;
 	private ServiceConnection ardiscoveryServiceConnection;
 	private IBinder discoveryServiceBinder;
 	private BroadcastReceiver mDevicesListUpdatedReceiver;
+	private final Object mDeviceSync = new Object();
 	private final List<ARDiscoveryDeviceService> mDevices = new ArrayList<ARDiscoveryDeviceService>();
+	private final Object mControllerSync = new Object();
 	private final Map<String, IDeviceController> mControllers = new HashMap<String, IDeviceController>();
 
-	private final Object mSync = new Object();
 	private final List<ManagerCallback> mCallbacks = new ArrayList<ManagerCallback>();
 
 	public ManagerFragment() {
@@ -160,7 +183,7 @@ public class ManagerFragment extends Fragment {
 	 * @param callback
 	 */
 	public void addCallback(final ManagerCallback callback) {
-		synchronized (mSync) {
+		synchronized (mDeviceSync) {
 			boolean found = false;
 			for (ManagerCallback cb: mCallbacks) {
 				if (cb.equals(callback)) {
@@ -180,7 +203,7 @@ public class ManagerFragment extends Fragment {
 	 * @param callback
 	 */
 	public void removeCallback(final ManagerCallback callback) {
-		synchronized (mSync) {
+		synchronized (mDeviceSync) {
 			for (; mCallbacks.remove(callback) ;) {};
 		}
 	}
@@ -191,7 +214,10 @@ public class ManagerFragment extends Fragment {
 	 * @return nameに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
 	public IDeviceController getController(final String name) {
-		IDeviceController result = mControllers.get(name);
+		IDeviceController result;
+		synchronized (mControllerSync) {
+			result = mControllers.get(name);
+		}
 		if (result == null && !TextUtils.isEmpty(name)) {
 			final ARDiscoveryDeviceService device = getDevice(name);
 			if (device != null) {
@@ -210,7 +236,9 @@ public class ManagerFragment extends Fragment {
 		IDeviceController result = null;
 		final ARDiscoveryDeviceService device = getDevice(index);
 		if (device != null) {
-			result = mControllers.get(device.getName());
+			synchronized (mControllerSync) {
+				result = mControllers.get(device.getName());
+			}
 			if (result == null) {
 				result = createController(device);
 			}
@@ -226,7 +254,9 @@ public class ManagerFragment extends Fragment {
 	public IDeviceController getController(final ARDiscoveryDeviceService device) {
 		IDeviceController result = null;
 		if (device != null) {
-			result = mControllers.get(device.getName());
+			synchronized (mControllerSync) {
+				result = mControllers.get(device.getName());
+			}
 			if (result == null) {
 				result = createController(device);
 			}
@@ -242,10 +272,12 @@ public class ManagerFragment extends Fragment {
 	public ARDiscoveryDeviceService getDevice(final String name) {
 		ARDiscoveryDeviceService result = null;
 		if (!TextUtils.isEmpty(name)) {
-			for (ARDiscoveryDeviceService device : mDevices) {
-				if (name.equals(device.getName())) {
-					result = device;
-					break;
+			synchronized (mDeviceSync) {
+				for (ARDiscoveryDeviceService device : mDevices) {
+					if (name.equals(device.getName())) {
+						result = device;
+						break;
+					}
 				}
 			}
 		}
@@ -259,8 +291,10 @@ public class ManagerFragment extends Fragment {
 	 */
 	public ARDiscoveryDeviceService getDevice(final int index) {
 		ARDiscoveryDeviceService device = null;
-		if ((index >= 0) && (index < mDevices.size())) {
-			device = mDevices.get(index);
+		synchronized (mDeviceSync) {
+			if ((index >= 0) && (index < mDevices.size())) {
+				device = mDevices.get(index);
+			}
 		}
 		return device;
 	}
@@ -275,7 +309,9 @@ public class ManagerFragment extends Fragment {
 		if (device != null) {
 			if (DEBUG) Log.v(TAG, "getProductID=" + device.getProductID());
 			result = new DeviceControllerMiniDrone(getActivity(), device);
-			mControllers.put(device.getName(), result);
+			synchronized (mControllerSync) {
+				mControllers.put(device.getName(), result);
+			}
 		}
 		return result;
 	}
@@ -285,8 +321,10 @@ public class ManagerFragment extends Fragment {
 	 * @param controller
 	 */
 	public void releaseController(final IDeviceController controller) {
-		if (mControllers.containsValue(controller)) {
-			mControllers.remove(controller.getName());
+		synchronized (mControllerSync) {
+			if (mControllers.containsValue(controller)) {
+				mControllers.remove(controller.getName());
+			}
 		}
 	}
 
@@ -355,7 +393,7 @@ public class ManagerFragment extends Fragment {
 		final LocalBroadcastManager localBroadcastMgr
 			= LocalBroadcastManager.getInstance(getActivity().getApplicationContext());
 		localBroadcastMgr.registerReceiver(mDevicesListUpdatedReceiver,
-			new IntentFilter(ARDiscoveryService.kARDiscoveryServiceNotificationServicesDevicesListUpdated));
+											  new IntentFilter(ARDiscoveryService.kARDiscoveryServiceNotificationServicesDevicesListUpdated));
 
 	}
 
@@ -376,7 +414,7 @@ public class ManagerFragment extends Fragment {
 				final List<ARDiscoveryDeviceService> list = ardiscoveryService.getDeviceServicesArray();
 
 				if (list != null) {
-					synchronized (mSync) {
+					synchronized (mDeviceSync) {
 						mDevices.clear();
 						mDevices.addAll(list);
 					}
@@ -387,7 +425,7 @@ public class ManagerFragment extends Fragment {
 	};
 
 	private void callOnServicesDevicesListUpdated() {
-		synchronized (mSync) {
+		synchronized (mDeviceSync) {
 			for (ManagerCallback cb: mCallbacks) {
 				try {
 					cb.onServicesDevicesListUpdated(mDevices);
@@ -397,4 +435,62 @@ public class ManagerFragment extends Fragment {
 			}
 		}
 	}
+
+	protected void runOnUiThread(final Runnable task) {
+		if (task != null) {
+			try {
+				if (mUIThreadId != Thread.currentThread().getId()) {
+					mUIHandler.post(task);
+				} else {
+					task.run();
+				}
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
+		}
+	}
+
+	protected void stopController(final IDeviceController controller) {
+		if (DEBUG) Log.v(TAG, "stopDeviceController:");
+		if (controller.isStarted()) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					final ProgressDialog dialog = new ProgressDialog(getActivity());
+					dialog.setTitle(R.string.disconnecting);
+					dialog.setIndeterminate(true);
+					dialog.show();
+
+					new Thread(new Runnable() {
+						@Override
+						public void run() {
+							controller.stop();
+							releaseController(controller);
+							runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									dialog.dismiss();
+								}
+							});
+						}
+					}).start();
+				}
+			});
+		} else {
+			releaseController(controller);
+		}
+	}
+
+	private final DeviceConnectionListener mConnectionListener
+		= new DeviceConnectionListener() {
+		@Override
+		public void onConnect(final IDeviceController controller) {
+		}
+
+		@Override
+		public void onDisconnect(final IDeviceController controller) {
+			if (DEBUG) Log.v(TAG, "onDisconnect:");
+			stopController(controller);
+		}
+	};
 }

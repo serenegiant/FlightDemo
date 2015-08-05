@@ -29,10 +29,16 @@ public interface IDeviceController {
 	public ARDiscoveryDeviceService getDevice();
 
 	/**
-	 * コールバックリスナーを設定
+	 * コールバックリスナーを追加
 	 * @param mListener
 	 */
-	public void setListener(final DeviceControllerListener mListener);
+	public void addListener(final DeviceConnectionListener mListener);
+
+	/**
+	 * コールバックリスナーを除去
+	 * @param mListener
+	 */
+	public void removeListener(final DeviceConnectionListener mListener);
 
 	public boolean start();
 	public void stop();

@@ -1,5 +1,6 @@
 package com.serenegiant.flightdemo;
 
+import android.app.Activity;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
@@ -69,8 +70,15 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	@Override
-	protected IDeviceController createDeviceController(final ARDiscoveryDeviceService service) {
-		return new DeviceControllerMiniDrone(getActivity(), service);
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		if (DEBUG) Log.v(TAG, "onAttach:");
+	}
+
+	@Override
+	public void onDetach() {
+		if (DEBUG) Log.v(TAG, "onDetach:");
+		super.onDetach();
 	}
 
 	@Override
@@ -163,6 +171,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	@Override
+	public void onDestroy() {
+		if (DEBUG) Log.v(TAG, "onDestroy:");
+		super.onDestroy();
+	}
+
+	@Override
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
@@ -190,7 +204,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		stopRecord();
-		stopDeviceController();
+		stopDeviceController(false);
 		super.onPause();
 	}
 
@@ -367,11 +381,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	};
 
 	@Override
-	protected void onDisconnect() {
+	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onDisconnect");
 		stopRecord();
-		stopDeviceController();
-		mIsFlying = false;
+		super.onDisconnect(controller);
 	}
 
 	@Override
