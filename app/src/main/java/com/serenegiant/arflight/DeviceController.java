@@ -10,6 +10,11 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateBatteryStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateSensorsStatesListChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonSettingsProductNameListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductNameChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductSerialHighChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductSerialLowChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductVersionChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryConnection;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceNetService;
@@ -345,6 +350,9 @@ public abstract class DeviceController implements IDeviceController {
 	 */
 	protected void registerARCommandsListener() {
 //		ARCommand.setCommonCommonStateAllStatesChangedListener(mARCommandCommonCommonStateAllStatesChangedListener);
+		ARCommand.setCommonSettingsStateProductNameChangedListener(mARCommandCommonSettingsStateProductNameChangedListener);
+		ARCommand.setCommonSettingsStateProductVersionChangedListener(mARCommandCommonSettingsStateProductVersionChangedListener);
+		ARCommand.setCommonSettingsStateProductSerialHighChangedListener(mARCommandCommonSettingsStateProductSerialHighChangedListener);
 		ARCommand.setCommonCommonStateBatteryStateChangedListener(mCommonStateBatteryStateChangedListener);
 		ARCommand.setCommonCommonStateSensorsStatesListChangedListener(mARCommandCommonCommonStateSensorsStatesListChangedListener);
 	}
@@ -354,6 +362,9 @@ public abstract class DeviceController implements IDeviceController {
 	 */
 	protected void unregisterARCommandsListener() {
 //		ARCommand.setCommonCommonStateAllStatesChangedListener(null);
+		ARCommand.setCommonSettingsStateProductNameChangedListener(null);
+		ARCommand.setCommonSettingsStateProductVersionChangedListener(null);
+		ARCommand.setCommonSettingsStateProductSerialHighChangedListener(null);
 		ARCommand.setCommonCommonStateBatteryStateChangedListener(null);
 		ARCommand.setCommonCommonStateSensorsStatesListChangedListener(null);
 	}
@@ -368,6 +379,61 @@ public abstract class DeviceController implements IDeviceController {
 		public void onCommonCommonStateAllStatesChangedUpdate() {
 		}
 	}; */
+
+	private String mProductName;
+	private final ARCommandCommonSettingsStateProductNameChangedListener
+		mARCommandCommonSettingsStateProductNameChangedListener
+		= new ARCommandCommonSettingsStateProductNameChangedListener() {
+		@Override
+		public void onCommonSettingsStateProductNameChangedUpdate(final String s) {
+			mProductName = s;
+		}
+	};
+
+	@Override
+	public String getSoftwareVersion() {
+		return mProduct.software;
+	}
+
+	@Override
+	public String getHardwareVersion() {
+		return mProduct.hardware;
+	}
+
+	private final AttributeVersion mProduct = new AttributeVersion();
+	private final ARCommandCommonSettingsStateProductVersionChangedListener
+		mARCommandCommonSettingsStateProductVersionChangedListener
+		= new ARCommandCommonSettingsStateProductVersionChangedListener() {
+		@Override
+		public void onCommonSettingsStateProductVersionChangedUpdate(final String software, final String hardware) {
+			mProduct.software = software;
+			mProduct.hardware = hardware;
+		}
+	};
+
+	@Override
+	public String getSerial() {
+		return mSerialHigh + mSerialLow;
+	}
+
+	private String mSerialHigh, mSerialLow;
+	private final ARCommandCommonSettingsStateProductSerialHighChangedListener
+		mARCommandCommonSettingsStateProductSerialHighChangedListener
+		= new ARCommandCommonSettingsStateProductSerialHighChangedListener() {
+		@Override
+		public void onCommonSettingsStateProductSerialHighChangedUpdate(final String high) {
+			mSerialHigh = high;
+		}
+	};
+
+	private final ARCommandCommonSettingsStateProductSerialLowChangedListener
+		mARCommandCommonSettingsStateProductSerialLowChangedListener
+		= new ARCommandCommonSettingsStateProductSerialLowChangedListener() {
+		@Override
+		public void onCommonSettingsStateProductSerialLowChangedUpdate(final String low) {
+			mSerialLow = low;
+		}
+	};
 
 	/**
 	 * バッテリーの残量が変化した時のコールバックリスナー
@@ -402,6 +468,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (DEBUG) Log.v(TAG, String.format("SensorsStatesListChangedUpdate:%d=%d", sensor_name.getValue(), b));
 		}
 	};
+
 
 //================================================================================
 // コールバック関係

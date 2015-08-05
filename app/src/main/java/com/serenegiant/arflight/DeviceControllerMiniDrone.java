@@ -453,16 +453,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	}
 
 	@Override
-	public String getSoftwareVersion() {
-		return mIMU.software;
-	}
-
-	@Override
-	public String getHardwareVersion() {
-		return mIMU.hardware;
-	}
-
-	@Override
 	public boolean sendTakeoff() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();

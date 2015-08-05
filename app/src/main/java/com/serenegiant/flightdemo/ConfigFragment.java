@@ -381,6 +381,9 @@ public class ConfigFragment extends ControlFragment {
 			case 1:
 				result = getString(R.string.config_2);
 				break;
+			case 2:
+				result = getString(R.string.config_3);
+				break;
 			}
 			return result;
 		}

@@ -28,6 +28,7 @@ public interface IDeviceController {
 	public String getName();
 	public String getSoftwareVersion();
 	public String getHardwareVersion();
+	public String getSerial();
 	public ARDiscoveryDeviceService getDevice();
 
 	/**
