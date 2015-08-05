@@ -35,4 +35,6 @@
 	<string name="has_wheel">Wheel</string>
 	<string name="has_hull">Hull</string>
 	<string name="cut_out">Cutout</string>
+	<string name="config_minidron_1">Flight settings</string>
+	<string name="config_minidron_2">Drone settings</string>
 </resources>

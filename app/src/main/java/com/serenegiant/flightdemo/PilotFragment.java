@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterViewFlipper;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -38,7 +37,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	private View mControllerView;	// 操作パネル
-	private ViewPager mConfigViewPager;	// 設定パネル
 	// 上パネル
 	private TextView mBatteryLabel;
 	private ImageButton mFlatTrimBtn;
@@ -87,7 +85,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		final View rootView = inflater.inflate(R.layout.fragment_pilot_minidrone, container, false);
 
 		mControllerView = rootView.findViewById(R.id.controller_frame);
-		mConfigViewPager = (ViewPager)rootView.findViewById(R.id.config_adapter_view_pager);
 
 		mEmergencyBtn = (Button)rootView.findViewById(R.id.emergency_btn);
 		mEmergencyBtn.setOnClickListener(mOnClickListener);
@@ -173,6 +170,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
+		stopDeviceController(false);
 		super.onDestroy();
 	}
 
@@ -204,7 +202,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		stopRecord();
-		stopDeviceController(false);
 		super.onPause();
 	}
 
@@ -246,11 +243,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.config_show_btn:
 				// 設定パネル表示処理
-				showConfigView();
-				break;
-			case R.id.config_hide_btn:
-				// 設定パネル非表示処理
-				hideConfigView();
+				final ConfigFragment fragment = ConfigFragment.newInstance(getDevice());
+				getFragmentManager().beginTransaction()
+					.addToBackStack(null)
+					.replace(R.id.container, fragment)
+					.commit();
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
@@ -401,19 +398,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void updateBattery(final int battery) {
 		runOnUiThread(mUpdateBatteryTask);
-	}
-
-	/**
-	 * 設定パネルを表示
-	 */
-	private void showConfigView() {
-		mControllerView.setVisibility(View.GONE);
-		mConfigViewPager.setVisibility(View.VISIBLE);
-	}
-
-	private void hideConfigView() {
-		mControllerView.setVisibility(View.VISIBLE);
-		mConfigViewPager.setVisibility(View.GONE);
 	}
 
 	private static final int CTRL_STEP = 5;

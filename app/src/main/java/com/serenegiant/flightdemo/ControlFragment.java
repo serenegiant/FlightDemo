@@ -90,6 +90,10 @@ public abstract class ControlFragment extends Fragment {
 		return args;
 	}
 
+	protected ARDiscoveryDeviceService getDevice() {
+		return mDevice;
+	}
+
 	protected void runOnUiThread(final Runnable task) {
 		if (task != null) {
 			try {
@@ -137,6 +141,9 @@ public abstract class ControlFragment extends Fragment {
 					}
 				}
 			}).start();
+		} else {
+			deviceController.sendAllSettings();
+			deviceController.sendAllStates();
 		}
 	}
 
