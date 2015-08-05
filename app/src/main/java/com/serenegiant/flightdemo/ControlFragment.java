@@ -13,7 +13,7 @@ import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.IDeviceController;
 
 public abstract class ControlFragment extends Fragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = ControlFragment.class.getSimpleName();
 
 	protected static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";

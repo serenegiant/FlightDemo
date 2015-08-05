@@ -1,5 +1,11 @@
 package com.serenegiant.utils;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.os.Environment;
+import android.text.TextUtils;
+import android.util.Log;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
@@ -7,15 +13,9 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.os.Environment;
-import android.text.TextUtils;
-import android.util.Log;
-
 public class FileUtils {
 
-    public static String DIR_NAME = "UsbWebCamera";
+    public static String DIR_NAME = "FlightDemo";
 	private static final SimpleDateFormat mDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.US);
 
     /**

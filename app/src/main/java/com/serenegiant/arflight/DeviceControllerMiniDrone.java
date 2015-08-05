@@ -35,7 +35,7 @@ import com.parrot.arsdk.arsal.ARSALPrint;
 
 
 public class DeviceControllerMiniDrone extends DeviceController {
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceControllerMiniDrone";
 
 
@@ -198,7 +198,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDronePilotingSettingsStateMaxAltitudeChangedUpdate(
 			final float current, final float min, final float max) {
-			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxAltitudeChangedUpdate:");
 			if ((mMaxAltitude.current != current)
 				|| (mMaxAltitude.min != min)
 				|| (mMaxAltitude.max != max)) {
@@ -206,8 +205,8 @@ public class DeviceControllerMiniDrone extends DeviceController {
 				mMaxAltitude.current = current;
 				mMaxAltitude.min = min;
 				mMaxAltitude.max = max;
-				// XXX
 			}
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxAltitudeChangedUpdate:" + mMaxAltitude);
 		}
 	};
 
@@ -225,7 +224,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDronePilotingSettingsStateMaxTiltChangedUpdate(
 			final float current, final float min, final float max) {
-			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxTiltChangedUpdate:");
 			if ((mMaxTilt.current != current)
 				|| (mMaxTilt.min != min)
 				|| (mMaxTilt.max != max)) {
@@ -233,8 +231,8 @@ public class DeviceControllerMiniDrone extends DeviceController {
 				mMaxTilt.current = current;
 				mMaxTilt.min = min;
 				mMaxTilt.max = max;
-				// XXX
 			}
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxTiltChangedUpdate:" + mMaxTilt);
 		}
 	};
 
@@ -252,8 +250,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedUpdate(
 			final float current, final float min, final float max) {
-
-			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedUpdate:");
 			if ((mMaxVerticalSpeed.current != current)
 				|| (mMaxVerticalSpeed.min != min)
 				|| (mMaxVerticalSpeed.max != max)) {
@@ -261,8 +257,8 @@ public class DeviceControllerMiniDrone extends DeviceController {
 				mMaxVerticalSpeed.current = current;
 				mMaxVerticalSpeed.min = min;
 				mMaxVerticalSpeed.max = max;
-				// XXX
 			}
+			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedUpdate:" + mMaxVerticalSpeed);
 		}
 	};
 
@@ -280,16 +276,14 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDroneSpeedSettingsStateMaxRotationSpeedChangedUpdate(
 			final float current, final float min, final float max) {
-
-			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxRotationSpeedChangedUpdate:");
 			if ((mMaxRotationSpeed.current != current)
 				|| (mMaxRotationSpeed.min != min)
 				|| (mMaxRotationSpeed.max != max)) {
 				mMaxRotationSpeed.current = current;
 				mMaxRotationSpeed.min = min;
 				mMaxRotationSpeed.max = max;
-				// XXX
 			}
+			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxRotationSpeedChangedUpdate:" + mMaxRotationSpeed);
 		}
 	};
 
@@ -314,7 +308,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	private static final int MOTOR_NUMS = 4;
 	private final AttributeMotor[] mMotors = new AttributeMotor[MOTOR_NUMS];
 	/**
-	 * 製品・モーターバージョンが変更された時のコールバックリスナー
+	 * モーターバージョンが変更された時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneSettingsStateProductMotorsVersionChangedListener
 		mSettingsStateProductMotorsVersionChangedListener
@@ -696,7 +690,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	 * @return
 	 */
 	public boolean isCutoffModeEnabled() {
-		return mCutOffMode == 0;
+		return mCutOffMode == 1;
 	}
 
 	/**

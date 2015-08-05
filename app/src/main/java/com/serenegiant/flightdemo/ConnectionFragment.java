@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConnectionFragment extends Fragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConnectionFragment.class.getSimpleName();
 
 	/**

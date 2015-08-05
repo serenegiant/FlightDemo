@@ -10,7 +10,6 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateBatteryStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateSensorsStatesListChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandCommonSettingsProductNameListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductNameChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductSerialHighChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductSerialLowChangedListener;
@@ -37,7 +36,7 @@ import java.util.List;
 import java.util.Locale;
 
 public abstract class DeviceController implements IDeviceController {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceController";
 
 	protected static final int iobufferC2dNak = 10;

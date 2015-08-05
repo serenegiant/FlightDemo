@@ -7,15 +7,6 @@ package com.serenegiant.dialog;
  *
 */
 
-import java.io.File;
-import java.io.FileFilter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Locale;
-import java.util.regex.Pattern;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -43,6 +34,15 @@ import android.widget.Toast;
 
 import com.serenegiant.flightdemo.R;
 import com.serenegiant.utils.BuildCheck;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 
 //Fragmentのライフサイクル

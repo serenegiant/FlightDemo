@@ -18,7 +18,7 @@ import com.serenegiant.arflight.AttributeFloat;
 import com.serenegiant.arflight.DeviceControllerMiniDrone;
 
 public class ConfigFragment extends ControlFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
 	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device) {
@@ -105,7 +105,11 @@ public class ConfigFragment extends ControlFragment {
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
 		mMaxAltitude = deviceController.getMaxAltitude();
-		seekbar.setProgress((int) ((mMaxAltitude.current - mMaxAltitude.min) / mMaxAltitude.max * 1000));
+		try {
+			seekbar.setProgress((int) ((mMaxAltitude.current - mMaxAltitude.min) / (mMaxAltitude.max - mMaxAltitude.min) * 1000));
+		} catch (Exception e) {
+			seekbar.setProgress(0);
+		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateMaxAltitude(mMaxAltitude.current);
 		// 最大傾斜設定
@@ -114,7 +118,11 @@ public class ConfigFragment extends ControlFragment {
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
 		mMaxTilt = deviceController.getMaxTilt();
-		seekbar.setProgress((int) ((mMaxTilt.current - mMaxTilt.min) / mMaxTilt.max * 1000));
+		try {
+			seekbar.setProgress((int) ((mMaxTilt.current - mMaxTilt.min) / (mMaxTilt.max - mMaxTilt.min) * 1000));
+		} catch (Exception e) {
+			seekbar.setProgress(0);
+		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateMaxTilt(mMaxTilt.current);
 		// 最大上昇/降下速度設定
@@ -123,7 +131,11 @@ public class ConfigFragment extends ControlFragment {
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
 		mMaxVerticalSpeed = deviceController.getMaxVerticalSpeed();
-		seekbar.setProgress((int) ((mMaxVerticalSpeed.current - mMaxVerticalSpeed.min) / mMaxVerticalSpeed.max * 1000));
+		try {
+			seekbar.setProgress((int) ((mMaxVerticalSpeed.current - mMaxVerticalSpeed.min) / (mMaxVerticalSpeed.max - mMaxVerticalSpeed.min) * 1000));
+		} catch (Exception e) {
+			seekbar.setProgress(0);
+		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateMaxVerticalSpeed(mMaxVerticalSpeed.current);
 		// 最大回転速度
@@ -132,7 +144,11 @@ public class ConfigFragment extends ControlFragment {
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
 		mMaxRotationSpeed = deviceController.getMaxRotationSpeed();
-		seekbar.setProgress((int)((mMaxRotationSpeed.current - mMaxRotationSpeed.min) / mMaxRotationSpeed.max * 1000));
+		try {
+			seekbar.setProgress((int) ((mMaxRotationSpeed.current - mMaxRotationSpeed.min) / (mMaxRotationSpeed.max - mMaxRotationSpeed.min) * 1000));
+		} catch (Exception e) {
+			seekbar.setProgress(0);
+		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateMaxRotationSpeed(mMaxRotationSpeed.current);
 	}
@@ -238,19 +254,19 @@ public class ConfigFragment extends ControlFragment {
 				// ユーザーのタッチ処理でシークバーの値が変更された時
 				switch (seekBar.getId()) {
 				case R.id.max_altitude_seekbar:
-					final float altitude = (int) (progress / 100f * mMaxAltitude.max) / 10f + mMaxAltitude.min;
+					final float altitude = (int) (progress / 100f * (mMaxAltitude.max - mMaxAltitude.min)) / 10f + mMaxAltitude.min;
 					updateMaxAltitude(altitude);
 					break;
 				case R.id.max_tilt_seekbar:
-					final float tilt = (int) (progress / 100f * mMaxTilt.max) / 10f + mMaxTilt.min;
+					final float tilt = (int) (progress / 100f * (mMaxTilt.max - mMaxTilt.min)) / 10f + mMaxTilt.min;
 					updateMaxTilt(tilt);
 					break;
 				case R.id.max_vertical_speed_seekbar:
-					final float vertical = (int) (progress / 100f * mMaxVerticalSpeed.max) / 10f + mMaxVerticalSpeed.min;
+					final float vertical = (int) (progress / 100f * (mMaxVerticalSpeed.max - mMaxVerticalSpeed.min)) / 10f + mMaxVerticalSpeed.min;
 					updateMaxVerticalSpeed(vertical);
 					break;
 				case R.id.max_rotation_speed_seekbar:
-					final float rotation = (int) (progress / 100f * mMaxRotationSpeed.max) / 10f + mMaxRotationSpeed.min;
+					final float rotation = (int) (progress / 1000f * (mMaxRotationSpeed.max - mMaxRotationSpeed.min)) + mMaxRotationSpeed.min;
 					updateMaxRotationSpeed(rotation);
 					break;
 				}
@@ -264,27 +280,31 @@ public class ConfigFragment extends ControlFragment {
 		 */
 		@Override
 		public void onStopTrackingTouch(SeekBar seekBar) {
+			if (deviceController == null) {
+				Log.w(TAG, "deviceControllerがnull");
+				return;
+			}
 			switch (seekBar.getId()) {
 			case R.id.max_altitude_seekbar:
-				final float altitude = (int)(seekBar.getProgress() / 100f * mMaxAltitude.max) / 10f + mMaxAltitude.min;
+				final float altitude = (int)(seekBar.getProgress() / 100f * (mMaxAltitude.max - mMaxAltitude.min)) / 10f + mMaxAltitude.min;
 				if (altitude != mMaxAltitude.current) {
 					deviceController.sendMaxAltitude(altitude);
 				}
 				break;
 			case R.id.max_tilt_seekbar:
-				final float tilt = (int)(seekBar.getProgress() / 100f * mMaxTilt.max) / 10f + mMaxTilt.min;
+				final float tilt = (int)(seekBar.getProgress() / 100f * (mMaxTilt.max - mMaxTilt.min)) / 10f + mMaxTilt.min;
 				if (tilt != mMaxTilt.current) {
 					deviceController.sendMaxTilt(tilt);
 				}
 				break;
 			case R.id.max_vertical_speed_seekbar:
-				final float vertical = (int)(seekBar.getProgress() / 100f * mMaxVerticalSpeed.max) / 10f + mMaxVerticalSpeed.min;
+				final float vertical = (int)(seekBar.getProgress() / 100f * (mMaxVerticalSpeed.max - mMaxVerticalSpeed.min)) / 10f + mMaxVerticalSpeed.min;
 				if (vertical != mMaxVerticalSpeed.current) {
 					deviceController.sendMaxVerticalSpeed(vertical);
 				}
 				break;
 			case R.id.max_rotation_speed_seekbar:
-				final float rotation = (int)(seekBar.getProgress() / 100f * mMaxRotationSpeed.max) / 10f + mMaxRotationSpeed.min;
+				final float rotation = (int)(seekBar.getProgress() / 1000f * (mMaxRotationSpeed.max - mMaxRotationSpeed.min)) + mMaxRotationSpeed.min;
 				if (rotation != mMaxRotationSpeed.current) {
 					deviceController.sendMaxRotationSpeed(rotation);
 				}

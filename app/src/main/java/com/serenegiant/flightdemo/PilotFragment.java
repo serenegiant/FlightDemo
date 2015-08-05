@@ -22,7 +22,7 @@ import com.serenegiant.utils.FileUtils;
 import java.io.File;
 
 public class PilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = PilotFragment.class.getSimpleName();
 
 	static {

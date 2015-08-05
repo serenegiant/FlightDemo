@@ -1,17 +1,10 @@
 package com.serenegiant.flightdemo;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-
-import com.parrot.arsdk.arsal.ARSALPrint;
-import com.serenegiant.lang.script.ParseException;
-import com.serenegiant.lang.script.ScriptParser;
-
-import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
