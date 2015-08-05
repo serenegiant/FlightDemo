@@ -8,7 +8,6 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLI
 import com.parrot.arsdk.arcommands.ARCOMMANDS_DECODER_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
-import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateAllStatesChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateBatteryStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateSensorsStatesListChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryConnection;
@@ -31,7 +30,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Semaphore;
 
 public abstract class DeviceController implements IDeviceController {
 	private static final boolean DEBUG = true;
@@ -93,8 +91,7 @@ public abstract class DeviceController implements IDeviceController {
 	private Thread rxThread;
 	private Thread txThread;
 
-	private List<ReaderThread> mReaderThreads;
-	private Semaphore mDiscoverSemaphore;
+	private final List<ReaderThread> mReaderThreads = new ArrayList<ReaderThread>();
 	private ARDiscoveryConnection mDiscoveryData;
 
 	private LooperThread mLooperThread;
@@ -103,6 +100,7 @@ public abstract class DeviceController implements IDeviceController {
 	private final DataPCMD mDataPCMD = new DataPCMD();
 	private final DataPCMD mSendingPCMD = new DataPCMD();
 	private ARDiscoveryDeviceService mDeviceService;
+	private volatile boolean mIsStarted;
 
 	private DeviceControllerListener mListener;
 
@@ -168,23 +166,36 @@ public abstract class DeviceController implements IDeviceController {
 	public DeviceController(final Context context, final ARDiscoveryDeviceService service) {
 		mDeviceService = service;
 		mContext = context;
-		mReaderThreads = new ArrayList<ReaderThread>();
+	}
+
+	@Override
+	public String getName() {
+		return mDeviceService != null ? mDeviceService.getName() : null;
+	}
+
+	@Override
+	public ARDiscoveryDeviceService getDevice() {
+		return mDeviceService;
 	}
 
 	@Override
 	public boolean start() {
 		if (DEBUG) Log.d(TAG, "start ...");
 
-		registerARCommandsListener();
+		boolean failed = mIsStarted;
+		if (!mIsStarted) {
+			registerARCommandsListener();
 
-		final boolean failed = startNetwork();
-		if (!failed) {
-			/* start the reader threads */
-			startReadThreads();
-			/* start the looper thread */
-			startLooperThread();
+			failed = startNetwork();
+			if (!failed) {
+				/* start the reader threads */
+				startReadThreads();
+				/* start the looper thread */
+				startLooperThread();
 
-			onStarted();
+				onStarted();
+				mIsStarted = true;
+			}
 		}
 
 		return failed;
@@ -194,6 +205,7 @@ public abstract class DeviceController implements IDeviceController {
 	public void stop() {
 		if (DEBUG) Log.d(TAG, "stop ...");
 
+		mIsStarted = false;
 		unregisterARCommandsListener();
 
         /* Cancel the looper thread and block until it is stopped. */
@@ -205,6 +217,11 @@ public abstract class DeviceController implements IDeviceController {
         /* ARNetwork cleanup */
 		stopNetwork();
 
+	}
+
+	@Override
+	public boolean isStarted() {
+		return mIsStarted;
 	}
 
 	protected void onStarted() {
@@ -294,20 +311,18 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	private void stopReaderThreads() {
-		if (mReaderThreads != null) {
-            /* cancel all reader threads and block until they are all stopped. */
-			for (final ReaderThread thread : mReaderThreads) {
-				thread.stopThread();
-			}
-			for (final ReaderThread thread : mReaderThreads) {
-				try {
-					thread.join();
-				} catch (final InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			mReaderThreads.clear();
+		/* cancel all reader threads and block until they are all stopped. */
+		for (final ReaderThread thread : mReaderThreads) {
+			thread.stopThread();
 		}
+		for (final ReaderThread thread : mReaderThreads) {
+			try {
+				thread.join();
+			} catch (final InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		mReaderThreads.clear();
 	}
 
 	private void stopNetwork() {
@@ -703,30 +718,26 @@ public abstract class DeviceController implements IDeviceController {
 
 
 	private abstract class LooperThread extends Thread {
-		private boolean mIsAlive;
-		private boolean mIsRunning;
+		private volatile boolean mIsRunning;
 
 		public LooperThread() {
-			mIsRunning = false;
-			mIsAlive = true;
+			mIsRunning = true;
 		}
 
 		@Override
 		public void run() {
-			mIsRunning = true;
-
 			onStart();
 
-			while (this.mIsAlive) {
+			for ( ; mIsRunning ; ) {
 				onLoop();
 			}
-			onStop();
 
 			mIsRunning = false;
+			onStop();
 		}
 
 		public void stopThread() {
-			mIsAlive = false;
+			mIsRunning = false;
 		}
 
 		public boolean isRunning() {
@@ -765,9 +776,9 @@ public abstract class DeviceController implements IDeviceController {
 			final ARNETWORK_ERROR_ENUM netError = mARNetManager.readDataWithTimeout(mBufferId, dataRecv, MAX_READ_TIMEOUT_MS);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_ERROR_BUFFER_EMPTY) {
-//                    ARSALPrint.e (TAG, "ReaderThread readDataWithTimeout() failed. " + netError + " mBufferId: " + mBufferId);
-				}
+//				if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_ERROR_BUFFER_EMPTY) {
+//                    ARSALPrint.e(TAG, "ReaderThread readDataWithTimeout() failed. " + netError + " mBufferId: " + mBufferId);
+//				}
 				skip = true;
 			}
 

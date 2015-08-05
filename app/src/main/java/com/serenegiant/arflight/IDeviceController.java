@@ -1,5 +1,7 @@
 package com.serenegiant.arflight;
 
+import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+
 import java.sql.Date;
 
 public interface IDeviceController {
@@ -23,6 +25,9 @@ public interface IDeviceController {
 	/** 垂直カメラ(対地速度検出) */
 	public static final int SENSOR_VERTICAL_CAMERA = 5;
 
+	public String getName();
+	public ARDiscoveryDeviceService getDevice();
+
 	/**
 	 * コールバックリスナーを設定
 	 * @param mListener
@@ -31,6 +36,8 @@ public interface IDeviceController {
 
 	public boolean start();
 	public void stop();
+	public boolean isStarted();
+
 	public boolean sendDate(Date currentDate);
 	public boolean sendTime(Date currentDate);
 
