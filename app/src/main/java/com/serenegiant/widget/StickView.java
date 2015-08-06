@@ -90,21 +90,20 @@ public class StickView extends FrameLayout {
 					updateParentDimension();
 				}
 				startTime = event.getEventTime();
-				mStickView.getHitRect(mWorkBounds);	// 親の座標系で矩形を取得
+//				mStickView.getHitRect(mWorkBounds);	// 親の座標系で矩形を取得
 				// 画面座標系でタッチ位置を取得
-				mStartX = mPrevX = (int) event.getRawX();
-				mStartY = mPrevY = (int) event.getRawY();
+				mStartX = mPrevX = (int) event.getX(); //  getRawX();
+				mStartY = mPrevY = (int) event.getY(); // getRawY();
 				move(mStartX, mStartY);
 				callOnStickMove(0, 0);
 				changed = true;
 				break;
 			}
 			case MotionEvent.ACTION_MOVE: {
-				if (DEBUG) Log.v(TAG, "ACTION_MOVE:");
 				final long t = event.getEventTime() - startTime;
 				// 画面座標系でタッチ位置を取得
-				int x = (int)event.getRawX();
-				int y = (int)event.getRawY();
+				int x = (int)event.getX(); // getRawX();
+				int y = (int)event.getY(); // getRawY();
 				int dx = x - mStartX;
 				int dy = y - mStartY;
 				final int dd = dx * dx + dy * dy;
@@ -245,10 +244,13 @@ public class StickView extends FrameLayout {
 	 */
 	private void move(final int x, final int y) {
 		mStickView.getHitRect(mWorkBounds);	// 親の座標系で矩形を取得
+		if (DEBUG) Log.v(TAG, "move:" + mWorkBounds);
 		final int w = mWorkBounds.width() / 2;
 		final int h = mWorkBounds.height() / 2;
 		mWorkBounds.set(x - w, y - h, x + w, y + h);
+		if (DEBUG) Log.v(TAG, "move:" + mWorkBounds);
 		mStickStartView.layout(mWorkBounds.left, mWorkBounds.top, mWorkBounds.right, mWorkBounds.bottom);
 		mStickView.layout(mWorkBounds.left, mWorkBounds.top, mWorkBounds.right, mWorkBounds.bottom);
+
 	}
 }

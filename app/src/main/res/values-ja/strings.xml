@@ -6,8 +6,8 @@
 	<string name="disconnecting">切断中…</string>
 	<string name="connecting">接続中…</string>
 	<string name="stick_text_up">上</string>
-	<string name="stick_text_turn_right">右回転</string>
-	<string name="stick_text_turn_left">左回転</string>
+	<string name="stick_text_turn_right">右\n回転</string>
+	<string name="stick_text_turn_left">左\n回転</string>
 	<string name="stick_text_right">右</string>
 	<string name="stick_text_left">左</string>
 	<string name="stick_text_forward">前</string>

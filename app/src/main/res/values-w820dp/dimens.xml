@@ -9,7 +9,8 @@
 	<dimen name="quater_padding">16dp</dimen>
 	<dimen name="bottom_panel_height">60dp</dimen>
 	<dimen name="stick_size">144dp</dimen>
-	<dimen name="stick_frame_size">216dp</dimen>
+	<dimen name="stick_frame_width">288dp</dimen>
+	<dimen name="stick_frame_height">216dp</dimen>
 	<dimen name="btn_width_takeoff">96dp</dimen>
 	<dimen name="btn_height_takeoff">72dp</dimen>
 	<dimen name="text_sz_message">48sp</dimen>

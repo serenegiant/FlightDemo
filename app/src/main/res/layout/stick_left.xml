@@ -25,7 +25,8 @@
 		android:layout_centerHorizontal="true"
 		android:text="@string/stick_text_up"
 		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"/>
+		android:textSize="@dimen/text_sz_button"
+		android:gravity="center"/>
 
 	<TextView
 		android:id="@+id/textView5"
@@ -36,7 +37,8 @@
 		android:layout_toRightOf="@+id/left_stick_image"
 		android:text="@string/stick_text_turn_right"
 		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"/>
+		android:textSize="@dimen/text_sz_button"
+		android:gravity="center"/>
 
 	<TextView
 		android:id="@+id/textView6"
@@ -47,7 +49,8 @@
 		android:layout_toStartOf="@+id/left_stick_image"
 		android:text="@string/stick_text_turn_left"
 		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"/>
+		android:textSize="@dimen/text_sz_button"
+		android:gravity="center"/>
 
 	<TextView
 		android:id="@+id/textView7"
@@ -57,6 +60,7 @@
 		android:layout_centerHorizontal="true"
 		android:text="@string/stick_text_down"
 		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"/>
+		android:textSize="@dimen/text_sz_button"
+		android:gravity="center"/>
 
 </RelativeLayout>

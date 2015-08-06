@@ -101,6 +101,7 @@
 				android:layout_alignParentLeft="true"
 				android:layout_alignParentStart="true"
 				android:layout_alignParentTop="true"
+				android:background="@color/QUATER_CLEAR_WHITE"
 				android:orientation="vertical">
 
 				<Button
@@ -145,10 +146,10 @@
 				android:layout_alignParentBottom="true"
 				android:layout_alignParentLeft="true"
 				android:layout_alignParentTop="true"
-				app:stick_width="@dimen/stick_frame_size"
-				app:stick_height="@dimen/stick_frame_size"
+				android:background="@color/QUATER_CLEAR_WHITE"
+				app:stick_width="@dimen/stick_frame_width"
+				app:stick_height="@dimen/stick_frame_width"
 				app:stick_image_layout="@layout/stick_left"
-				android:background="#3fffffff"
 				android:layout_weight="1">
 			</com.serenegiant.widget.StickView>
 
@@ -160,187 +161,13 @@
 				android:layout_alignParentBottom="true"
 				android:layout_alignParentRight="true"
 				android:layout_alignParentTop="true"
-				app:stick_width="@dimen/stick_frame_size"
-				app:stick_height="@dimen/stick_frame_size"
+				android:background="@color/QUATER_CLEAR_WHITE"
+				app:stick_width="@dimen/stick_frame_width"
+				app:stick_height="@dimen/stick_frame_width"
 				app:stick_image_layout="@layout/stick_right"
-				android:background="#3fffffff"
 				android:layout_weight="1">
 			</com.serenegiant.widget.StickView>
 
-<!--		<RelativeLayout
-				android:id="@+id/left_panel"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:layout_alignParentBottom="true"
-				android:layout_alignParentLeft="true"
-				android:layout_alignParentTop="true"
-				android:layout_weight="1">
-
-			<ImageView
-					android:id="@+id/left_stick_image"
-					android:layout_width="@dimen/stick_size"
-					android:layout_height="@dimen/stick_size"
-					android:layout_centerHorizontal="true"
-					android:layout_centerVertical="true"
-					android:src="@drawable/stick_front144x144"/>
-
-				<TextView
-					android:id="@+id/textView4"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_above="@+id/left_stick_image"
-					android:layout_centerHorizontal="true"
-					android:text="@string/stick_text_up"
-					android:textAppearance="?android:attr/textAppearanceMedium"
-					android:textSize="@dimen/text_sz_button"/>
-
-				<TextView
-					android:id="@+id/textView5"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_centerVertical="true"
-					android:layout_toEndOf="@+id/left_stick_image"
-					android:layout_toRightOf="@+id/left_stick_image"
-					android:text="@string/stick_text_turn_right"
-					android:textAppearance="?android:attr/textAppearanceMedium"
-					android:textSize="@dimen/text_sz_button"/>
-
-				<TextView
-					android:id="@+id/textView6"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_centerVertical="true"
-					android:layout_toLeftOf="@+id/left_stick_image"
-					android:layout_toStartOf="@+id/left_stick_image"
-					android:text="@string/stick_text_turn_left"
-					android:textAppearance="?android:attr/textAppearanceMedium"
-					android:textSize="@dimen/text_sz_button"/>
-
-				<TextView
-					android:id="@+id/textView7"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_below="@+id/left_stick_image"
-					android:layout_centerHorizontal="true"
-					android:text="@string/stick_text_down"
-					android:textAppearance="?android:attr/textAppearanceMedium"
-					android:textSize="@dimen/text_sz_button"/>
-
-				<Button
-					android:id="@+id/south_btn"
-					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:layout_alignParentEnd="true"
-					android:layout_alignParentRight="true"
-					android:layout_alignParentTop="true"
-					android:layout_marginTop="@dimen/half_padding"
-					android:text="S"
-					android:textSize="@dimen/text_sz_button"
-					android:visibility="gone"/>
-
-				<Button
-					android:id="@+id/north_btn"
-					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:layout_alignParentTop="true"
-					android:layout_marginTop="@dimen/half_padding"
-					android:layout_toLeftOf="@+id/south_btn"
-					android:layout_toStartOf="@+id/south_btn"
-					android:text="N"
-					android:textSize="@dimen/text_sz_button"
-					android:visibility="gone"/>
-
-			</RelativeLayout>
--->
-<!--		<RelativeLayout
-				android:id="@+id/right_panel"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:layout_alignParentBottom="true"
-				android:layout_alignParentRight="true"
-				android:layout_alignParentTop="true"
-				android:layout_toRightOf="@+id/left_panel"
-				android:layout_weight="1">
-
-				<ImageView
-					android:id="@+id/right_stick_image"
-					android:layout_width="@dimen/stick_size"
-					android:layout_height="@dimen/stick_size"
-					android:layout_centerHorizontal="true"
-					android:layout_centerVertical="true"
-					android:src="@drawable/stick_top144x144"/>
-
-				<TextView
-					android:id="@+id/textView8"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_above="@+id/right_stick_image"
-					android:layout_centerHorizontal="true"
-					android:text="@string/stick_text_forward"
-					android:textAppearance="?android:attr/textAppearanceMedium"
-					android:textSize="@dimen/text_sz_button"/>
-
-				<TextView
-					android:id="@+id/textView9"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_centerVertical="true"
-					android:layout_toEndOf="@+id/right_stick_image"
-					android:layout_toRightOf="@+id/right_stick_image"
-					android:text="@string/stick_text_right"
-					android:textAppearance="?android:attr/textAppearanceMedium"
-					android:textSize="@dimen/text_sz_button"/>
-
-				<TextView
-					android:id="@+id/textView10"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_below="@+id/right_stick_image"
-					android:layout_centerHorizontal="true"
-					android:text="@string/stick_text_back"
-					android:textAppearance="?android:attr/textAppearanceMedium"
-					android:textSize="@dimen/text_sz_button"/>
-
-				<TextView
-					android:id="@+id/textView11"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_centerVertical="true"
-					android:layout_toLeftOf="@+id/right_stick_image"
-					android:layout_toStartOf="@+id/right_stick_image"
-					android:text="@string/stick_text_left"
-					android:textAppearance="?android:attr/textAppearanceMedium"
-					android:textSize="@dimen/text_sz_button"/>
-
-				<Button
-					android:id="@+id/west_btn"
-					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:layout_alignParentLeft="true"
-					android:layout_alignParentStart="true"
-					android:layout_alignParentTop="true"
-					android:layout_marginTop="@dimen/half_padding"
-					android:text="W"
-					android:textSize="@dimen/text_sz_button"
-					android:visibility="gone"/>
-
-				<Button
-					android:id="@+id/east_btn"
-					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:layout_alignParentTop="true"
-					android:layout_marginTop="@dimen/half_padding"
-					android:layout_toEndOf="@+id/west_btn"
-					android:layout_toRightOf="@+id/west_btn"
-					android:text="E"
-					android:textSize="@dimen/text_sz_button"
-					android:visibility="gone"/>
-			</RelativeLayout>
--->
 			<LinearLayout
 				android:id="@+id/right_side_panel"
 				android:layout_width="wrap_content"
@@ -348,6 +175,7 @@
 				android:layout_alignParentLeft="true"
 				android:layout_alignParentStart="true"
 				android:layout_alignParentTop="true"
+				android:background="@color/QUATER_CLEAR_WHITE"
 				android:orientation="vertical">
 
 				<Button
@@ -398,7 +226,7 @@
 				android:layout_centerInParent="true"
 				android:background="@null"
 				android:src="@drawable/takeoff72x72"
-				android:scaleType="fitXY"
+				android:scaleType="fitCenter"
 				android:text="@string/button_text_takeoff"
 				android:textSize="@dimen/text_sz_button" />
 
@@ -411,21 +239,20 @@
 				android:layout_marginRight="@dimen/half_padding"
 				android:background="@null"
 				android:scaleType="fitXY"
-				android:src="@drawable/btn_new_shutter"/>
+				android:src="@drawable/rec"/>
 
 			<ImageButton
 				android:id="@+id/emergency_btn"
-				android:layout_width="wrap_content"
+				android:layout_width="@dimen/bottom_panel_height"
 				android:layout_height="@dimen/bottom_panel_height"
-				android:layout_alignParentEnd="false"
 				android:layout_alignParentRight="true"
-				android:layout_alignParentTop="false"
+				android:layout_centerVertical="true"
 				android:text="@string/emergency"
 				android:textColor="#ff0000ff"
 				android:textSize="@dimen/text_sz_button"
 				android:src="@drawable/stop72x72"
 				android:background="@null"
-				android:scaleType="fitCenter"/>
+				android:scaleType="fitXY" />
 
 			<ImageButton
 				android:id="@+id/load_btn"
@@ -436,20 +263,20 @@
 				android:layout_toEndOf="@+id/record_btn"
 				android:layout_toRightOf="@+id/record_btn"
 				android:background="@null"
-				android:scaleType="centerCrop"
-				android:src="@android:drawable/ic_menu_gallery"/>
+				android:scaleType="fitXY"
+				android:src="@drawable/map"/>
 
 			<ImageButton
 				android:id="@+id/play_btn"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
 				android:layout_centerVertical="true"
 				android:layout_marginRight="@dimen/half_padding"
 				android:layout_toEndOf="@+id/load_btn"
 				android:layout_toRightOf="@+id/load_btn"
 				android:background="@null"
-				android:scaleType="centerCrop"
-				android:src="@android:drawable/ic_menu_slideshow"/>
+				android:scaleType="fitXY"
+				android:src="@drawable/play"/>
 
 		</RelativeLayout>
 

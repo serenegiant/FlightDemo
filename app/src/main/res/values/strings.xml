@@ -9,8 +9,8 @@
 	<string name="stick_text_up">up</string>
 	<string name="stick_text_down">down</string>
 	<string name="button_text_landing">landing</string>
-	<string name="stick_text_turn_right">turnleft</string>
-	<string name="stick_text_turn_left">turnright</string>
+	<string name="stick_text_turn_right">turn\nleft</string>
+	<string name="stick_text_turn_left">turn\nright</string>
 	<string name="stick_text_right">right</string>
 	<string name="stick_text_forward">forward</string>
 	<string name="button_text_takeoff">takeoff</string>
