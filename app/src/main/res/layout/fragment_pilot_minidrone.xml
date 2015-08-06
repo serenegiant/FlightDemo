@@ -56,13 +56,15 @@
 			<TextView
 				android:id="@+id/alert_message"
 				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_below="@+id/batteryLabel"
-				android:layout_toLeftOf="@+id/config_show_btn"
-				android:layout_toRightOf="@+id/flat_trim_btn"
-				android:layout_toStartOf="@+id/config_show_btn"
+				android:layout_height="@dimen/bottom_panel_height"
 				android:text="message"
-				android:textColor="#ffff0000"/>
+				android:textColor="#ffff0000"
+				android:layout_toRightOf="@+id/flat_trim_btn"
+				android:layout_toLeftOf="@+id/config_show_btn"
+				android:layout_toStartOf="@+id/config_show_btn"
+				android:layout_below="@+id/imageButton"
+				android:gravity="center_vertical"
+				android:textSize="@dimen/text_sz_message"/>
 
 			<ImageButton
 				android:id="@+id/imageButton"
@@ -150,7 +152,7 @@
 					android:layout_height="@dimen/stick_size"
 					android:layout_centerHorizontal="true"
 					android:layout_centerVertical="true"
-					android:src="@drawable/stick"/>
+					android:src="@drawable/stick_front144x144"/>
 
 				<TextView
 					android:id="@+id/textView4"
@@ -239,7 +241,7 @@
 					android:layout_height="@dimen/stick_size"
 					android:layout_centerHorizontal="true"
 					android:layout_centerVertical="true"
-					android:src="@drawable/stick"/>
+					android:src="@drawable/stick_top144x144"/>
 
 				<TextView
 					android:id="@+id/textView8"
@@ -360,13 +362,16 @@
 			android:layout_height="wrap_content"
 			android:gravity="bottom">
 
-			<Button
+			<ImageButton
 				android:id="@+id/take_onoff_btn"
-				android:layout_width="wrap_content"
-				android:layout_height="@dimen/bottom_panel_height"
+				android:layout_width="@dimen/btn_width_takeoff"
+				android:layout_height="@dimen/btn_height_takeoff"
 				android:layout_centerInParent="true"
+				android:background="@null"
+				android:src="@drawable/takeoff72x72"
+				android:scaleType="fitXY"
 				android:text="@string/button_text_takeoff"
-				android:textSize="@dimen/text_sz_button"/>
+				android:textSize="@dimen/text_sz_button" />
 
 			<ImageButton
 				android:id="@+id/record_btn"
@@ -379,17 +384,19 @@
 				android:scaleType="fitXY"
 				android:src="@drawable/btn_new_shutter"/>
 
-			<Button
+			<ImageButton
 				android:id="@+id/emergency_btn"
 				android:layout_width="wrap_content"
 				android:layout_height="@dimen/bottom_panel_height"
 				android:layout_alignParentEnd="false"
 				android:layout_alignParentRight="true"
 				android:layout_alignParentTop="false"
-				android:background="#ffff0000"
 				android:text="@string/emergency"
 				android:textColor="#ff0000ff"
-				android:textSize="@dimen/text_sz_button"/>
+				android:textSize="@dimen/text_sz_button"
+				android:src="@drawable/stop72x72"
+				android:background="@null"
+				android:scaleType="fitCenter"/>
 
 			<ImageButton
 				android:id="@+id/load_btn"

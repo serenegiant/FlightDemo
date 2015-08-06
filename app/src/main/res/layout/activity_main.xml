@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.serenegiant.FlightDemo.MainActivity"
-    tools:ignore="MergeRootFrame" >
+    tools:ignore="MergeRootFrame"
+                android:background="@drawable/back">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/sample_toolbar"
@@ -19,7 +20,8 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/sample_toolbar">
+        android:layout_below="@+id/sample_toolbar"
+        android:background="@null">
 
     </FrameLayout>
 

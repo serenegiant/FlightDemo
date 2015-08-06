@@ -41,8 +41,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private ImageButton mFlatTrimBtn;
 	private TextView mAlertMessage;
 	// 下パネル
-	private Button mEmergencyBtn;	// 非常停止ボタン
-	private Button mTakeOnOffBtn;	// 離陸/着陸ボタン
+	private ImageButton mEmergencyBtn;	// 非常停止ボタン
+	private ImageButton mTakeOnOffBtn;	// 離陸/着陸ボタン
 	private ImageButton mRecordBtn;	// 記録ボタン
 	private ImageButton mPlayBtn;	// 再生ボタン
 	private ImageButton mLoadBtn;	// 読み込みボタン
@@ -85,10 +85,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		mControllerView = rootView.findViewById(R.id.controller_frame);
 
-		mEmergencyBtn = (Button)rootView.findViewById(R.id.emergency_btn);
+		mEmergencyBtn = (ImageButton)rootView.findViewById(R.id.emergency_btn);
 		mEmergencyBtn.setOnClickListener(mOnClickListener);
 
-		mTakeOnOffBtn = (Button)rootView.findViewById(R.id.take_onoff_btn);
+		mTakeOnOffBtn = (ImageButton)rootView.findViewById(R.id.take_onoff_btn);
 		mTakeOnOffBtn.setOnClickListener(mOnClickListener);
 
 		mRecordBtn = (ImageButton)rootView.findViewById(R.id.record_btn);
@@ -786,9 +786,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mRecordBtn.setImageResource(R.drawable.btn_shutter_default);
 			}
 			if (mIsFlying || (state != 0)) {
-				mTakeOnOffBtn.setText(R.string.button_text_landing);
+//				mTakeOnOffBtn.setText(R.string.button_text_landing);
+				mTakeOnOffBtn.setImageResource(R.drawable.landing72x72);
 			} else {
-				mTakeOnOffBtn.setText(R.string.button_text_takeoff);
+//				mTakeOnOffBtn.setText(R.string.button_text_takeoff);
+				mTakeOnOffBtn.setImageResource(R.drawable.takeoff72x72);
 			}
 
 			// 右サイドパネル(とmCapXXXBtn等)
