@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.DrawerLayout
-	android:id="@+id/drawer_layout"
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:id="@+id/drawer_layout"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:foreground="?android:windowContentOverlay"
@@ -136,7 +137,37 @@
 
 			</LinearLayout>
 
-			<RelativeLayout
+			<com.serenegiant.widget.StickView
+				android:id="@+id/stick_view_left"
+				android:layout_centerHorizontal="true"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_alignParentBottom="true"
+				android:layout_alignParentLeft="true"
+				android:layout_alignParentTop="true"
+				app:stick_width="@dimen/stick_frame_size"
+				app:stick_height="@dimen/stick_frame_size"
+				app:stick_image_layout="@layout/stick_left"
+				android:background="#3fffffff"
+				android:layout_weight="1">
+			</com.serenegiant.widget.StickView>
+
+			<com.serenegiant.widget.StickView
+				android:id="@+id/stick_view_right"
+				android:layout_centerHorizontal="true"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_alignParentBottom="true"
+				android:layout_alignParentRight="true"
+				android:layout_alignParentTop="true"
+				app:stick_width="@dimen/stick_frame_size"
+				app:stick_height="@dimen/stick_frame_size"
+				app:stick_image_layout="@layout/stick_right"
+				android:background="#3fffffff"
+				android:layout_weight="1">
+			</com.serenegiant.widget.StickView>
+
+<!--		<RelativeLayout
 				android:id="@+id/left_panel"
 				android:layout_width="match_parent"
 				android:layout_height="match_parent"
@@ -145,8 +176,7 @@
 				android:layout_alignParentTop="true"
 				android:layout_weight="1">
 
-				<!--com.serenegiant.widget.MovableImageView -->
-				<ImageView
+			<ImageView
 					android:id="@+id/left_stick_image"
 					android:layout_width="@dimen/stick_size"
 					android:layout_height="@dimen/stick_size"
@@ -223,8 +253,8 @@
 					android:visibility="gone"/>
 
 			</RelativeLayout>
-
-			<RelativeLayout
+-->
+<!--		<RelativeLayout
 				android:id="@+id/right_panel"
 				android:layout_width="match_parent"
 				android:layout_height="match_parent"
@@ -234,7 +264,6 @@
 				android:layout_toRightOf="@+id/left_panel"
 				android:layout_weight="1">
 
-				<!--com.serenegiant.widget.MovableImageView -->
 				<ImageView
 					android:id="@+id/right_stick_image"
 					android:layout_width="@dimen/stick_size"
@@ -311,7 +340,7 @@
 					android:textSize="@dimen/text_sz_button"
 					android:visibility="gone"/>
 			</RelativeLayout>
-
+-->
 			<LinearLayout
 				android:id="@+id/right_side_panel"
 				android:layout_width="wrap_content"

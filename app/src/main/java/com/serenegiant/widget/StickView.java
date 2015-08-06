@@ -23,7 +23,7 @@ public class StickView extends FrameLayout {
 		 * @param dx [-1,1]
 		 * @param dy [-1,1]
 		 */
-		public void onStickMove(final float dx, final float dy);
+		public void onStickMove(final View view, final float dx, final float dy);
 	}
 
 	private static final int TAP_TIMEOUT = ViewConfiguration.getTapTimeout();
@@ -167,7 +167,7 @@ public class StickView extends FrameLayout {
 	@Override
 	public boolean onInterceptTouchEvent(final MotionEvent event) {
 		if (mStickView != null) {
-			return true;
+			return true;	// スティックViewが設定されていれば常に横取りする
 		} else {
 			return super.onInterceptTouchEvent(event);
 		}
@@ -184,10 +184,18 @@ public class StickView extends FrameLayout {
 		}
 	}
 
+	/**
+	 * スティックを動かした時のコールバックリスナーを設定する
+	 * @param listener
+	 */
 	public void setOnStickMoveListener(final OnStickMoveListener listener) {
 		mOnStickMoveListener = listener;
 	}
 
+	/**
+	 * スティックを動かした時のコールバックリスナーを取得する
+	 * @return
+	 */
 	public OnStickMoveListener getOnStickMoveListener() {
 		return mOnStickMoveListener;
 	}
@@ -201,7 +209,7 @@ public class StickView extends FrameLayout {
 		if (mOnStickMoveListener != null) {
 			try {
 				// (dx,dy)を([-1,1],[-1,1])に変換してコールバックを呼び出す
-				mOnStickMoveListener.onStickMove(dx / mRadius, dy / mRadius);
+				mOnStickMoveListener.onStickMove(this, dx / mRadius, dy / mRadius);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}

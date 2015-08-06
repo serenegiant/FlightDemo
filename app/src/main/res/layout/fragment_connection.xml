@@ -21,22 +21,11 @@
 			android:minHeight="@dimen/text_sz_list">
 		</ListView>
 
-		<com.serenegiant.widget.StickView
-			android:id="@+id/stick_view"
-			android:layout_centerHorizontal="true"
-			android:layout_width="match_parent"
-			android:layout_height="400dp"
-			app:stick_width="@dimen/stick_frame_size"
-			app:stick_height="@dimen/stick_frame_size"
-			app:stick_image_layout="@layout/stick_right"
-			android:background="#3fffffff">
-		</com.serenegiant.widget.StickView>
-
 		<TextView
 			android:id="@+id/empty_view"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:layout_below="@+id/stick_view"
+			android:layout_below="@+id/list"
 			android:layout_centerHorizontal="true"
 			android:gravity="center"
 			android:text="@string/detecting"

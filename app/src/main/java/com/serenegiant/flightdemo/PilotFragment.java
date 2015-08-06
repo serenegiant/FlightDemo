@@ -18,6 +18,8 @@ import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
+import com.serenegiant.widget.StickView;
+import com.serenegiant.widget.StickView.OnStickMoveListener;
 
 import java.io.File;
 
@@ -52,9 +54,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	// 左サイドパネル
 	private View mLeftSidePanel;
 	// 右スティックパネル
-	private View mRightStickPanel;
+	private StickView mRightStickPanel;
 	// 左スティックパネル
-	private View mLeftStickPanel;
+	private StickView mLeftStickPanel;
 
 	// 画面座標値から移動量(±100)に変換するための係数
 	private float mRightScaleX, mRightScaleY;
@@ -138,23 +140,25 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		button.setOnClickListener(mOnClickListener);
 
 		// 右スティックパネル
-		mRightStickPanel = rootView.findViewById(R.id.right_panel);
-		mRightStickPanel.setOnTouchListener(mOnTouchListener);
+		mRightStickPanel = (StickView)rootView.findViewById(R.id.stick_view_right);
+		mRightStickPanel.setOnStickMoveListener(mOnStickMoveListener);
+//		mRightStickPanel.setOnTouchListener(mOnTouchListener);
 
-		button = (Button)rootView.findViewById(R.id.west_btn);
+/*		button = (Button)rootView.findViewById(R.id.west_btn);
 		button.setOnClickListener(mOnClickListener);
 		button = (Button)rootView.findViewById(R.id.east_btn);
-		button.setOnClickListener(mOnClickListener);
+		button.setOnClickListener(mOnClickListener); */
 //		MovableImageView iv = (MovableImageView)rootView.findViewById(R.id.right_stick_image);
 //		iv.setResizable(false);
 //		iv.setMovable(false);
 		// 左スティックパネル
-		mLeftStickPanel = rootView.findViewById(R.id.left_panel);
-		mLeftStickPanel.setOnTouchListener(mOnTouchListener);
-		button = (Button)rootView.findViewById(R.id.north_btn);
+		mLeftStickPanel = (StickView)rootView.findViewById(R.id.stick_view_left);
+		mLeftStickPanel.setOnStickMoveListener(mOnStickMoveListener);
+//		mLeftStickPanel.setOnTouchListener(mOnTouchListener);
+/*		button = (Button)rootView.findViewById(R.id.north_btn);
 		button.setOnClickListener(mOnClickListener);
 		button = (Button)rootView.findViewById(R.id.south_btn);
-		button.setOnClickListener(mOnClickListener);
+		button.setOnClickListener(mOnClickListener); */
 //		iv = (MovableImageView)rootView.findViewById(R.id.left_stick_image);
 //		iv.setResizable(false);
 //		iv.setMovable(false);
@@ -316,7 +320,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -45);
 				}
 				break;
-			case R.id.north_btn:
+/*			case R.id.north_btn:
 				if (deviceController != null) {
 					deviceController.setPsi(0);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 0);
@@ -339,7 +343,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					deviceController.setPsi(90);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 90);
 				}
-				break;
+				break; */
 			}
 		}
 	};
@@ -379,6 +383,58 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				return true;
 			}
 			return false;
+		}
+	};
+
+	private final OnStickMoveListener mOnStickMoveListener = new OnStickMoveListener() {
+		@Override
+		public void onStickMove(final View view, final float dx, final float dy) {
+			int mx = (int) (dx * 100);
+			if (mx < -100) mx = -100;
+			else if (mx > 100) mx = 100;
+			mx = (mx / CTRL_STEP) * CTRL_STEP;
+			int my = (int) (dy * 100);
+			if (my < -100) my = -100;
+			else if (my > 100) my = 100;
+			my = (my / CTRL_STEP) * CTRL_STEP;
+			switch (view.getId()) {
+			case R.id.stick_view_right: {
+				if (mx != mPrevRightMX) {
+					mPrevRightMX = mx;
+					if (deviceController != null) {
+						deviceController.setRoll((byte) mx);
+						deviceController.setFlag((byte) (mx != 0 ? 1 : 0));
+						mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, mx);
+					}
+				}
+				if (my != mPrevRightMY) {
+					mPrevRightMY = my;
+					if (deviceController != null) {
+						deviceController.setPitch((byte) -my);
+						mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -my);
+					}
+				}
+				break;
+			}
+			case R.id.stick_view_left: {
+				if ((Math.abs(mx) < 20)) mx = 0;
+				if (mx != mPrevLeftMX) {
+					mPrevLeftMX = mx;
+					if (deviceController != null) {
+						deviceController.setYaw((byte) mx);
+						mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
+					}
+				}
+				if (my != mPrevLeftMY) {
+					mPrevLeftMY = my;
+					if (deviceController != null) {
+						deviceController.setGaz((byte) -my);
+						mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -my);
+					}
+				}
+				break;
+			}
+			}
 		}
 	};
 
