@@ -17,6 +17,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiver;
@@ -307,9 +308,18 @@ public class ManagerFragment extends Fragment {
 		IDeviceController result = null;
 		if (device != null) {
 			if (DEBUG) Log.v(TAG, "getProductID=" + device.getProductID());
-			result = new DeviceControllerMiniDrone(getActivity(), device);
-			synchronized (mControllerSync) {
-				mControllers.put(device.getName(), result);
+			switch (ARDiscoveryService.getProductFromProductID(device.getProductID())) {
+			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+				break;
+			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+				result = new DeviceControllerMiniDrone(getActivity(), device);
+				break;
+			}
+			if (result != null) {
+				synchronized (mControllerSync) {
+					mControllers.put(device.getName(), result);
+				}
 			}
 		}
 		return result;

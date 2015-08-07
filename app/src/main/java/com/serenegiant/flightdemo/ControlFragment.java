@@ -26,7 +26,7 @@ public abstract class ControlFragment extends Fragment {
 
 	protected volatile int mFlyingState = 0;
 	protected volatile int mAlertState = 0;
-	protected volatile int mBattery = -1;
+	protected volatile int mBatteryState = 0;
 	protected boolean mIsFlying = false;	// FIXME mFlyingStateを参照するようにしてmIsFlyingフラグは削除する
 	protected boolean mIsConnected = false;
 
@@ -121,8 +121,8 @@ public abstract class ControlFragment extends Fragment {
 		if (DEBUG) Log.v(TAG, "startDeviceController:");
 		if (deviceController != null) {
 			if (!deviceController.isStarted()) {
-				mBattery = -1;
-				updateBattery(mBattery);
+				mBatteryState = -1;
+				updateBattery(mBatteryState);
 
 				final ProgressDialog dialog = new ProgressDialog(getActivity());
 				dialog.setTitle(R.string.connecting);
@@ -152,9 +152,11 @@ public abstract class ControlFragment extends Fragment {
 					}
 				}).start();
 			} else {
-				if (DEBUG) Log.v(TAG, "設定読み込み＆ステータス要求");
-				deviceController.sendAllSettings();
-				deviceController.sendAllStates();
+//				if (DEBUG) Log.v(TAG, "設定読み込み＆ステータス要求");
+//				deviceController.sendAllSettings();
+//				deviceController.sendAllStates();
+				// sendAllSettingsとかsendAllStatesは接続した直後に1回しか有効じゃないのかも
+				updateBattery(mBatteryState);
 			}
 		}
 	}
@@ -162,7 +164,7 @@ public abstract class ControlFragment extends Fragment {
 	protected void stopDeviceController(final boolean disconnected) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
 		mIsConnected = mIsFlying = false;
-		mFlyingState = mBattery = -1;
+		mFlyingState = mBatteryState = -1;
 		if (deviceController != null) {
 			final IDeviceController controller = deviceController;
 			deviceController = null;
@@ -227,8 +229,8 @@ public abstract class ControlFragment extends Fragment {
 
 		@Override
 		public void onUpdateBattery(final byte percent) {
-			if (mBattery != percent) {
-				mBattery = percent;
+			if (mBatteryState != percent) {
+				mBatteryState = percent;
 				updateBattery(percent);
 			}
 		}

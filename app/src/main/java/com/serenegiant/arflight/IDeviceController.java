@@ -25,11 +25,41 @@ public interface IDeviceController {
 	/** 垂直カメラ(対地速度検出) */
 	public static final int SENSOR_VERTICAL_CAMERA = 5;
 
+	/**
+	 * 機体名を取得, ローリングスパイダーだとrs_xxxxxって奴
+	 * @return
+	 */
 	public String getName();
+
+	/**
+	 * 機体のソフトウエアバージョンを取得
+	 * @return
+	 */
 	public String getSoftwareVersion();
+
+	/**
+	 * 機体のハードウエアバージョンを取得
+	 * @return
+	 */
 	public String getHardwareVersion();
+
+	/**
+	 * 機体のシリアル番号を取得
+	 * @return
+	 */
 	public String getSerial();
+
+	/**
+	 * コントローラーに関連付けられているARDiscoveryDeviceServiceを取得
+	 * @return
+	 */
 	public ARDiscoveryDeviceService getDevice();
+
+	/**
+	 * バッテリーの残量を取得
+	 * @return バッテリー残量[%]
+	 */
+	public int getBattery();
 
 	/**
 	 * コールバックリスナーを追加
@@ -153,7 +183,7 @@ public interface IDeviceController {
 	public void setYaw(final byte yaw);
 	/**
 	 * 北磁極に対する角度を設定・・・でもローリングスパイダーでは動かない
-	 * @param psi -360〜360度
+	 * @param heading -360〜360度
 	 */
-	public void setPsi(final float psi);
+	public void setHeading(final float heading);
 }

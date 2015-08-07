@@ -5,7 +5,6 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -142,26 +141,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		// 右スティックパネル
 		mRightStickPanel = (StickView)rootView.findViewById(R.id.stick_view_right);
 		mRightStickPanel.setOnStickMoveListener(mOnStickMoveListener);
-//		mRightStickPanel.setOnTouchListener(mOnTouchListener);
 
-/*		button = (Button)rootView.findViewById(R.id.west_btn);
-		button.setOnClickListener(mOnClickListener);
-		button = (Button)rootView.findViewById(R.id.east_btn);
-		button.setOnClickListener(mOnClickListener); */
-//		MovableImageView iv = (MovableImageView)rootView.findViewById(R.id.right_stick_image);
-//		iv.setResizable(false);
-//		iv.setMovable(false);
 		// 左スティックパネル
 		mLeftStickPanel = (StickView)rootView.findViewById(R.id.stick_view_left);
 		mLeftStickPanel.setOnStickMoveListener(mOnStickMoveListener);
-//		mLeftStickPanel.setOnTouchListener(mOnTouchListener);
-/*		button = (Button)rootView.findViewById(R.id.north_btn);
-		button.setOnClickListener(mOnClickListener);
-		button = (Button)rootView.findViewById(R.id.south_btn);
-		button.setOnClickListener(mOnClickListener); */
-//		iv = (MovableImageView)rootView.findViewById(R.id.left_stick_image);
-//		iv.setResizable(false);
-//		iv.setMovable(false);
 
 		mBatteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
@@ -322,25 +305,25 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 /*			case R.id.north_btn:
 				if (deviceController != null) {
-					deviceController.setPsi(0);
+					deviceController.setHeading(0);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 0);
 				}
 				break;
 			case R.id.south_btn:
 				if (deviceController != null) {
-					deviceController.setPsi(180);
+					deviceController.setHeading(180);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 180);
 				}
 				break;
 			case R.id.west_btn:
 				if (deviceController != null) {
-					deviceController.setPsi(-90);
+					deviceController.setHeading(-90);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, -90);
 				}
 				break;
 			case R.id.east_btn:
 				if (deviceController != null) {
-					deviceController.setPsi(90);
+					deviceController.setHeading(90);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 90);
 				}
 				break; */
@@ -371,21 +354,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	};
 
-	private final View.OnTouchListener mOnTouchListener = new View.OnTouchListener() {
-		@Override
-		public boolean onTouch(final View view, final MotionEvent event) {
-			switch (view.getId()) {
-			case R.id.right_panel:
-				doRightStick(event);
-				return true;
-			case R.id.left_panel:
-				doLeftStick(event);
-				return true;
-			}
-			return false;
-		}
-	};
-
+	private static final int CTRL_STEP = 5;
+	private float mFirstPtRightX, mFirstPtRightY;
+	private int mPrevRightMX, mPrevRightMY;
+	private float mFirstPtLeftX, mFirstPtLeftY;
+	private int mPrevLeftMX, mPrevLeftMY;
 	private final OnStickMoveListener mOnStickMoveListener = new OnStickMoveListener() {
 		@Override
 		public void onStickMove(final View view, final float dx, final float dy) {
@@ -459,130 +432,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void updateBattery(final int battery) {
 		runOnUiThread(mUpdateBatteryTask);
-	}
-
-	private static final int CTRL_STEP = 5;
-
-	private float mFirstPtRightX, mFirstPtRightY;
-	private int mPrevRightMX, mPrevRightMY;
-	private final void doRightStick(final MotionEvent event) {
-		final int action = event.getAction();
-		switch (action) {
-		case MotionEvent.ACTION_DOWN:
-			if (DEBUG) Log.v(TAG, "doRightStick:ACTION_DOWN");
-			if ((mRightScaleX == 0) || (mRightScaleY == 0)) {
-				mRightScaleX = 250f / (float) mRightStickPanel.getWidth();
-				mRightScaleY = 250f / (float) mRightStickPanel.getHeight();
-			}
-
-			mFirstPtRightX = event.getX();
-			mFirstPtRightY = event.getY();
-			mPrevRightMX = mPrevRightMY = 0;
-			break;
-		case MotionEvent.ACTION_MOVE:
-			final float dx = event.getX() - mFirstPtRightX;
-			final float dy = event.getY() - mFirstPtRightY;
-//			if (DEBUG) Log.v(TAG, String.format("doRightStick:(%5.1f,%5.1f)", dx, dy));
-
-			int mx = (int) (dx * mRightScaleX);
-			if (mx < -100) mx = -100;
-			else if (mx > 100) mx = 100;
-			mx = (mx / CTRL_STEP) * CTRL_STEP;
-			if (mx != mPrevRightMX) {
-				mPrevRightMX = mx;
-				if (deviceController != null) {
-					deviceController.setRoll((byte) mx);
-					deviceController.setFlag((byte) (mx != 0 ? 1 : 0));
-					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, mx);
-				}
-			}
-			int my = (int) (dy * mRightScaleY);
-			if (my < -100) my = -100;
-			else if (my > 100) my = 100;
-			my = (my / CTRL_STEP) * CTRL_STEP;
-			if (my != mPrevRightMY) {
-				mPrevRightMY = my;
-				if (deviceController != null) {
-					deviceController.setPitch((byte) -my);
-					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -my);
-				}
-			}
-//			if (DEBUG) Log.v(TAG, String.format("doRightStick:(%d,%d)", mx, my));
-			break;
-		case MotionEvent.ACTION_UP:
-		case MotionEvent.ACTION_CANCEL:
-			if (DEBUG) Log.v(TAG, "doRightStick:ACTION_UP");
-			if (deviceController != null) {
-				// 左右移動量をクリア, 正:右, 負:左
-				deviceController.setRoll((byte) 0);
-				deviceController.setFlag((byte) 0);
-				mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, 0);
-				// 前後移動量をクリア, 正:前, 負:後
-				deviceController.setPitch((byte) 0);
-				mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, 0);
-			}
-			break;
-		}
-	}
-
-	private float mFirstPtLeftX, mFirstPtLeftY;
-	private int mPrevLeftMX, mPrevLeftMY;
-	private final void doLeftStick(final MotionEvent event) {
-		final int action = event.getAction();
-		switch (action) {
-		case MotionEvent.ACTION_DOWN:
-			if (DEBUG) Log.v(TAG, "doLeftStick:ACTION_DOWN");
-			if ((mLeftScaleX == 0) || (mLeftScaleY == 0)) {
-				mLeftScaleX = 250f / (float) mLeftStickPanel.getWidth();
-				mLeftScaleY = 250f / (float) mLeftStickPanel.getHeight();
-			}
-			mFirstPtLeftX = event.getX();
-			mFirstPtLeftY = event.getY();
-			mPrevLeftMX = mPrevLeftMY = 0;
-			break;
-		case MotionEvent.ACTION_MOVE:
-			final float dx = event.getX() - mFirstPtLeftX;
-			final float dy = event.getY() - mFirstPtLeftY;
-//			if (DEBUG) Log.v(TAG, String.format("doLeftStick:(%5.1f,%5.1f)", dx, dy));
-
-			int mx = (int) (dx * mLeftScaleX);
-			if (mx < -100) mx = -100;
-			else if (mx > 100) mx = 100;
-			if ((Math.abs(mx) < 20)) mx = 0;
-			mx = (mx / CTRL_STEP) * CTRL_STEP;
-			if (mx != mPrevLeftMX) {
-				mPrevLeftMX = mx;
-				if (deviceController != null) {
-					deviceController.setYaw((byte) mx);
-					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
-				}
-			}
-			int my = (int) (dy * mLeftScaleY);
-			if (my < -100) my = -100;
-			else if (my > 100) my = 100;
-			my = (my / CTRL_STEP) * CTRL_STEP;
-			if (my != mPrevLeftMY) {
-				mPrevLeftMY = my;
-				if (deviceController != null) {
-					deviceController.setGaz((byte) -my);
-					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -my);
-				}
-			}
-//			if (DEBUG) Log.v(TAG, String.format("doLeftStick:(%d,%d)", mx, my));
-			break;
-		case MotionEvent.ACTION_UP:
-		case MotionEvent.ACTION_CANCEL:
-			if (DEBUG) Log.v(TAG, "doLeftStick:ACTION_DOWN");
-			if (deviceController != null) {
-				// 上下移動量をクリア, 正:上, 負:下
-				deviceController.setGaz((byte) 0);
-				mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, 0);
-				// 回転量をクリア, 正:右回り, 負:左回り
-				deviceController.setYaw((byte) 0);
-				mFlightRecorder.record(FlightRecorder.CMD_TURN, 0);
-			}
-			break;
-		}
 	}
 
 	/**
@@ -723,7 +572,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					deviceController.setYaw((byte) value);
 					break;
 				case FlightRecorder.CMD_COMPASS:		// 北磁極に対する角度 -360〜360度
-					deviceController.setPsi(value);		// 実際は浮動小数点だけど
+					deviceController.setHeading(value);		// 実際は浮動小数点だけど
 					break;
 				case FlightRecorder.CMD_FLIP:			// フリップ
 					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(value);
@@ -784,8 +633,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final Runnable mUpdateBatteryTask = new Runnable() {
 		@Override
 		public void run() {
-			if (mBattery >= 0) {
-				mBatteryLabel.setText(String.format("%d%%", mBattery));
+			if (mBatteryState >= 0) {
+				mBatteryLabel.setText(String.format("%d%%", mBatteryState));
 			} else {
 				mBatteryLabel.setText("---");
 			}

@@ -11,8 +11,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,16 +88,28 @@ public class ConnectionFragment extends Fragment {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-				final String itemValue = ((ArrayAdapter<String>)parent.getAdapter()).getItem(position);
-
 				final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-				final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
 
-				final Fragment fragment = PilotFragment.newInstance(service);
-				getFragmentManager().beginTransaction()
-					.addToBackStack(null)
-					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-					.replace(R.id.container, fragment).commit();
+				final String itemValue = ((ArrayAdapter<String>)parent.getAdapter()).getItem(position);
+				final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
+				// 製品名を取得
+				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
+
+				Fragment fragment = null;
+				switch (product) {
+				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+					break;
+				case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+					fragment = PilotFragment.newInstance(service);
+					break;
+				}
+				if (fragment != null) {
+					getFragmentManager().beginTransaction()
+						.addToBackStack(null)
+						.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+						.replace(R.id.container, fragment).commit();
+				}
 			}
 		});
 	}
@@ -107,9 +121,20 @@ public class ConnectionFragment extends Fragment {
 			adapter.clear();
 			for (ARDiscoveryDeviceService service : devices) {
 				Log.d(TAG, "service :  " + service);
+				// 今はローリングスパイダーだけを追加する
+				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
+				switch (product) {
+				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+					break;
+				case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+					adapter.add(service.getName());
+					break;
+				}
+/*				// ブルートゥース接続の時だけ追加する
 				if (service.getDevice() instanceof ARDiscoveryDeviceBLEService) {
 					adapter.add(service.getName());
-				}
+				} */
 			}
 			adapter.notifyDataSetChanged();
 		}

@@ -44,4 +44,5 @@
 	<string name="version_software">ソフトウエアバージョン:</string>
 	<string name="version_hardware">ハードウエアバージョン:</string>
 	<string name="version_app">アプリバージョン:</string>
+	<string name="record">記録</string>
 </resources>

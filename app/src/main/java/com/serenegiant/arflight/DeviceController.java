@@ -58,7 +58,7 @@ public abstract class DeviceController implements IDeviceController {
 		(iobufferC2dEmergency + ackOffset)
 	};
 
-	protected android.content.Context mContext;
+	protected Context mContext;
 
 	protected ARNetworkALManager mARManager;
 	protected ARNetworkManager mARNetManager;
@@ -87,53 +87,53 @@ public abstract class DeviceController implements IDeviceController {
 	static {
 		// コントローラー => 機体へのパラメータ
 		c2dParams.clear();
-		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dNak,
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
-			20,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-			1,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
-			true)
+		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dNak,						// ID
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,					// FRAME type
+			20,																			// Time between send, ミリ秒単かな?
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,				// ackTimeoutMs
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,				// numberOfRetry
+			1,																			// numberOfCell
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,		// copyMaxSize
+			true)																		// isOverwriting
 		);
-		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dAck,
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-			20,
-			500,
-			3,
-			20,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
-			false)
+		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dAck,						// ID
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,			// FRAME type
+			20,																			// Time between send, ミリ秒単かな?
+			500,																		// ackTimeoutMs
+			3,																			// numberOfRetry
+			20,																			// numberOfCell
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,		// copyMaxSize
+			false)																		// isOverwriting
 		);
-		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dEmergency,
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-			1,
-			100,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-			1,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
-			false)
+		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dEmergency,					// ID
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,			// FRAME type
+			1,																			// Time between send, ミリ秒単かな?
+			100,																		// ackTimeoutMs
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,				// numberOfRetry
+			1,																			// numberOfCell
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,		// copyMaxSize
+			false)																		// isOverwriting
 		);
 
 		// 機体 => コントローラーへのパラメータ
 		d2cParams.clear();
-		d2cParams.add(new ARNetworkIOBufferParam(iobufferD2cNavdata,
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
-			20,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-			20,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
-			false)
+		d2cParams.add(new ARNetworkIOBufferParam(iobufferD2cNavdata,					// ID
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,					// FRAME type
+			20,																			// Time between send, ミリ秒単かな?
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,				// ackTimeoutMs
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,				// numberOfRetry
+			20,																			// numberOfCell
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,		// copyMaxSize
+			false)																		// isOverwriting
 		);
-		d2cParams.add(new ARNetworkIOBufferParam(iobufferD2cEvents,
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-			20,
-			500,
-			3,
-			20,
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,
-			false)
+		d2cParams.add(new ARNetworkIOBufferParam(iobufferD2cEvents,						// ID
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,			// FRAME type
+			20,																			// Time between send, ミリ秒単かな?
+			500,																		// ackTimeoutMs
+			3,																			// numberOfRetry
+			20,																			// numberOfCell
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,		// copyMaxSize
+			false)																		// isOverwriting
 		);
 
 		commandsBuffers = new int[] {
@@ -382,7 +382,7 @@ public abstract class DeviceController implements IDeviceController {
 	private String mProductName;
 	private final ARCommandCommonSettingsStateProductNameChangedListener
 		mARCommandCommonSettingsStateProductNameChangedListener
-		= new ARCommandCommonSettingsStateProductNameChangedListener() {
+			= new ARCommandCommonSettingsStateProductNameChangedListener() {
 		@Override
 		public void onCommonSettingsStateProductNameChangedUpdate(final String s) {
 			mProductName = s;
@@ -402,7 +402,7 @@ public abstract class DeviceController implements IDeviceController {
 	private final AttributeVersion mProduct = new AttributeVersion();
 	private final ARCommandCommonSettingsStateProductVersionChangedListener
 		mARCommandCommonSettingsStateProductVersionChangedListener
-		= new ARCommandCommonSettingsStateProductVersionChangedListener() {
+			= new ARCommandCommonSettingsStateProductVersionChangedListener() {
 		@Override
 		public void onCommonSettingsStateProductVersionChangedUpdate(final String software, final String hardware) {
 			mProduct.software = software;
@@ -418,7 +418,7 @@ public abstract class DeviceController implements IDeviceController {
 	private String mSerialHigh, mSerialLow;
 	private final ARCommandCommonSettingsStateProductSerialHighChangedListener
 		mARCommandCommonSettingsStateProductSerialHighChangedListener
-		= new ARCommandCommonSettingsStateProductSerialHighChangedListener() {
+			= new ARCommandCommonSettingsStateProductSerialHighChangedListener() {
 		@Override
 		public void onCommonSettingsStateProductSerialHighChangedUpdate(final String high) {
 			mSerialHigh = high;
@@ -427,13 +427,19 @@ public abstract class DeviceController implements IDeviceController {
 
 	private final ARCommandCommonSettingsStateProductSerialLowChangedListener
 		mARCommandCommonSettingsStateProductSerialLowChangedListener
-		= new ARCommandCommonSettingsStateProductSerialLowChangedListener() {
+			= new ARCommandCommonSettingsStateProductSerialLowChangedListener() {
 		@Override
 		public void onCommonSettingsStateProductSerialLowChangedUpdate(final String low) {
 			mSerialLow = low;
 		}
 	};
 
+	@Override
+	public int getBattery() {
+		return mBatteryState;
+	}
+
+	private int mBatteryState;
 	/**
 	 * バッテリーの残量が変化した時のコールバックリスナー
 	 */
@@ -441,8 +447,11 @@ public abstract class DeviceController implements IDeviceController {
 		mCommonStateBatteryStateChangedListener
 		= new ARCommandCommonCommonStateBatteryStateChangedListener() {
 		@Override
-		public void onCommonCommonStateBatteryStateChangedUpdate(final byte b) {
-			callOnUpdateBattery(b);
+		public void onCommonCommonStateBatteryStateChangedUpdate(final byte percent) {
+			if (mBatteryState != percent) {
+				mBatteryState = percent;
+				callOnUpdateBattery(percent);
+			}
 		}
 	};
 
@@ -616,7 +625,7 @@ public abstract class DeviceController implements IDeviceController {
 	private static final SimpleDateFormat formattedTime = new SimpleDateFormat("'T'HHmmssZZZ", Locale.getDefault());
 
 	@Override
-	public boolean sendDate(Date currentDate) {
+	public boolean sendDate(final Date currentDate) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -642,7 +651,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	@Override
-	public boolean sendTime(Date currentDate) {
+	public boolean sendTime(final Date currentDate) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -725,12 +734,12 @@ public abstract class DeviceController implements IDeviceController {
 
 	/**
 	 * 北磁極に対する角度を設定・・・でもローリングスパイダーでは動かない
-	 * @param psi
+	 * @param heading
 	 */
 	@Override
-	public void setPsi(final float psi) {
+	public void setHeading(final float heading) {
 		synchronized (mDataSync) {
-			mDataPCMD.psi = psi;
+			mDataPCMD.heading = heading;
 		}
 	}
 
@@ -803,7 +812,7 @@ public abstract class DeviceController implements IDeviceController {
 
 		@Override
 		public void onDisconnect(final ARNetworkALManager arNetworkALManager) {
-			Log.d(TAG, "onDisconnect ...");
+			if (DEBUG) Log.d(TAG, "onDisconnect ...");
 			callOnDisconnect();
 		}
 	}
@@ -814,15 +823,11 @@ public abstract class DeviceController implements IDeviceController {
 		public byte pitch;
 		public byte yaw;
 		public byte gaz;
-		public float psi;
+		public float heading;
 
 		public DataPCMD() {
-			flag = 0;
-			roll = 0;
-			pitch = 0;
-			yaw = 0;
-			gaz = 0;
-			psi = 0.0f;
+			flag = roll = pitch = yaw = gaz = 0;
+			heading = 0.0f;
 		}
 
 		private void set(final DataPCMD other) {
@@ -831,7 +836,7 @@ public abstract class DeviceController implements IDeviceController {
 			pitch = other.pitch;
 			yaw = other.yaw;
 			gaz = other.gaz;
-			psi = other.psi;
+			heading = other.heading;
 		}
 	}
 
@@ -888,7 +893,7 @@ public abstract class DeviceController implements IDeviceController {
 		public void onLoop() {
 			boolean skip = false;
 
-            /* read data*/
+            /* read data */
 			final ARNETWORK_ERROR_ENUM netError = mARNetManager.readDataWithTimeout(mBufferId, dataRecv, MAX_READ_TIMEOUT_MS);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
@@ -935,7 +940,7 @@ public abstract class DeviceController implements IDeviceController {
 				pitch = mDataPCMD.pitch;
 				yaw = mDataPCMD.yaw;
 				gaz = mDataPCMD.gaz;
-				psi = mDataPCMD.psi;
+				psi = mDataPCMD.heading;
 			}
 			sendPCMD(flag, roll, pitch, yaw, gaz, psi);
 
@@ -947,6 +952,70 @@ public abstract class DeviceController implements IDeviceController {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public interface NetworkNotificationListener {
+		public void networkDidSendFrame (NetworkNotificationData notificationData);
+		public void networkDidReceiveAck (NetworkNotificationData notificationData);
+		public void networkTimeoutOccurred (NetworkNotificationData notificationData);
+		public void networkDidCancelFrame (NetworkNotificationData notificationData);
+	}
+
+	public static abstract class NetworkNotificationData {
+		public NetworkNotificationData() {
+		}
+
+		public void notificationRun() {
+		}
+	}
+
+	private static class ARNetworkSendInfo {
+		private ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy;
+		private NetworkNotificationListener notificationListener;
+		private NetworkNotificationData notificationData;
+		private DeviceController deviceController;
+
+		public ARNetworkSendInfo(final ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy,
+			final NetworkNotificationListener notificationListener,
+			final NetworkNotificationData notificationData, final DeviceController deviceController) {
+			this.timeoutPolicy = timeoutPolicy;
+			this.notificationListener = notificationListener;
+			this.notificationData = notificationData;
+			this.deviceController = deviceController;
+		}
+
+		public ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM getTimeoutPolicy() {
+			return this.timeoutPolicy;
+		}
+
+		public NetworkNotificationListener getNotificationListener() {
+			return this.notificationListener;
+		}
+
+		public NetworkNotificationData getNotificationData() {
+			return this.notificationData;
+		}
+
+		public DeviceController getDeviceController() {
+			return this.deviceController;
+		}
+
+		public void setTimeoutPolicy(final ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy) {
+			this.timeoutPolicy = timeoutPolicy;
+		}
+
+		public void setNotificationListener(final NetworkNotificationListener notificationListener) {
+			this.notificationListener = notificationListener;
+		}
+
+		public void setUserData(final NetworkNotificationData notificationData) {
+			this.notificationData = notificationData;
+		}
+
+		public void setDeviceController(DeviceController deviceController) {
+			this.deviceController = deviceController;
+		}
+
 	}
 
 }
