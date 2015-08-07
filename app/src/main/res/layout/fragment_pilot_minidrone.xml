@@ -111,7 +111,8 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:scaleType="fitXY"
 					android:background="@null"
-					android:src="@drawable/flip_front144x144" />
+					android:src="@drawable/flip_front144x144"
+					android:layout_marginTop="@dimen/quater_padding"/>
 
 				<ImageButton
 					android:id="@+id/flip_back_btn"
@@ -176,37 +177,88 @@
 				android:layout_alignParentTop="true"
 				android:orientation="vertical">
 
-				<Button
-					android:id="@+id/cap_m45_btn"
-					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:text="-45"
-					android:textSize="@dimen/text_sz_button"/>
+				<FrameLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null"
+					android:layout_marginTop="@dimen/quater_padding">
 
-				<Button
-					android:id="@+id/cap_m15_btn"
-					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:text="-15"
-					android:textSize="@dimen/text_sz_button"/>
+					<ImageButton
+						android:id="@+id/cap_p45_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:scaleType="fitXY"
+						android:background="@null"
+						android:src="@drawable/turn_right144x144" />
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:textSize="@dimen/text_sz_button"
+						android:text="+45"
+						android:gravity="center"
+						android:layout_gravity="center"/>
+				</FrameLayout>
 
-				<Button
-					android:id="@+id/cap_p15_btn"
-					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:text="15"
-					android:textSize="@dimen/text_sz_button"/>
 
-				<Button
-					android:id="@+id/cap_p45_btn"
-					style="?android:attr/buttonStyleSmall"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:text="45"
-					android:textSize="@dimen/text_sz_button"/>
+				<FrameLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null" >
+					<ImageButton
+						android:id="@+id/cap_p15_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:scaleType="fitXY"
+						android:background="@null"
+						android:src="@drawable/turn_right144x144" />
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:textSize="@dimen/text_sz_button"
+						android:text="+15"
+						android:gravity="center"
+						android:layout_gravity="center"/>
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null" >
+					<ImageButton
+						android:id="@+id/cap_m15_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:scaleType="fitXY"
+						android:background="@null"
+						android:src="@drawable/turn_left144x144" />
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:textSize="@dimen/text_sz_button"
+						android:text="-15"
+						android:gravity="center"
+						android:layout_gravity="center"/>
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null" >
+					<ImageButton
+						android:id="@+id/cap_m45_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:scaleType="fitXY"
+						android:background="@null"
+						android:src="@drawable/turn_left144x144" />
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:textSize="@dimen/text_sz_button"
+						android:text="-45"
+						android:gravity="center"
+						android:layout_gravity="center"/>
+				</FrameLayout>
 
 			</LinearLayout>
 		</LinearLayout>
@@ -214,7 +266,7 @@
 		<RelativeLayout
 			android:id="@+id/bottom_panel"
 			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
+			android:layout_height="@dimen/bottom_panel_height"
 			android:gravity="bottom"
 			android:background="@drawable/green_gradient">
 
@@ -226,18 +278,6 @@
 				android:background="@null"
 				android:src="@drawable/takeoff72x72"
 				android:scaleType="fitCenter"/>
-
-<!--			<ImageButton
-				android:id="@+id/record_btn"
-				android:layout_width="@dimen/bottom_panel_height"
-				android:layout_height="@dimen/bottom_panel_height"
-				android:layout_marginLeft="60dp"
-				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="@drawable/rec"
-				android:layout_alignTop="@+id/load_btn"
-				android:layout_alignParentLeft="true"
-				android:layout_alignParentStart="true"/> -->
 
 			<ImageButton
 				android:id="@+id/emergency_btn"

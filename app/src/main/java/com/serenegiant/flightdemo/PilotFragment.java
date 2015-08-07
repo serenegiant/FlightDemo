@@ -110,33 +110,33 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mConfigShowBtn = (ImageButton)rootView.findViewById(R.id.config_show_btn);
 		mConfigShowBtn.setOnClickListener(mOnClickListener);
 
-		Button button;
+		ImageButton button;
 		// 右サイドパネル
 		mRightSidePanel = rootView.findViewById(R.id.right_side_panel);
-		button = (Button)rootView.findViewById(R.id.cap_p15_btn);
+		button = (ImageButton)rootView.findViewById(R.id.cap_p15_btn);
 		button.setOnClickListener(mOnClickListener);
 
-		button = (Button)rootView.findViewById(R.id.cap_p45_btn);
+		button = (ImageButton)rootView.findViewById(R.id.cap_p45_btn);
 		button.setOnClickListener(mOnClickListener);
 
-		button = (Button)rootView.findViewById(R.id.cap_m15_btn);
+		button = (ImageButton)rootView.findViewById(R.id.cap_m15_btn);
 		button.setOnClickListener(mOnClickListener);
 
-		button = (Button)rootView.findViewById(R.id.cap_m45_btn);
+		button = (ImageButton)rootView.findViewById(R.id.cap_m45_btn);
 		button.setOnClickListener(mOnClickListener);
 		// 左サイドパネル
 		mLeftSidePanel = rootView.findViewById(R.id.left_side_panel);
-		ImageButton imgbtn = (ImageButton)rootView.findViewById(R.id.flip_right_btn);
-		imgbtn.setOnClickListener(mOnClickListener);
+		button = (ImageButton)rootView.findViewById(R.id.flip_right_btn);
+		button.setOnClickListener(mOnClickListener);
 
-		imgbtn = (ImageButton)rootView.findViewById(R.id.flip_left_btn);
-		imgbtn.setOnClickListener(mOnClickListener);
+		button = (ImageButton)rootView.findViewById(R.id.flip_left_btn);
+		button.setOnClickListener(mOnClickListener);
 
-		imgbtn = (ImageButton)rootView.findViewById(R.id.flip_front_btn);
-		imgbtn.setOnClickListener(mOnClickListener);
+		button = (ImageButton)rootView.findViewById(R.id.flip_front_btn);
+		button.setOnClickListener(mOnClickListener);
 
-		imgbtn = (ImageButton)rootView.findViewById(R.id.flip_back_btn);
-		imgbtn.setOnClickListener(mOnClickListener);
+		button = (ImageButton)rootView.findViewById(R.id.flip_back_btn);
+		button.setOnClickListener(mOnClickListener);
 
 		// 右スティックパネル
 		mRightStickPanel = (StickView)rootView.findViewById(R.id.stick_view_right);
