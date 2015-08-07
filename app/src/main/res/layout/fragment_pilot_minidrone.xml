@@ -227,7 +227,7 @@
 				android:src="@drawable/takeoff72x72"
 				android:scaleType="fitCenter"/>
 
-			<ImageButton
+<!--			<ImageButton
 				android:id="@+id/record_btn"
 				android:layout_width="@dimen/bottom_panel_height"
 				android:layout_height="@dimen/bottom_panel_height"
@@ -237,7 +237,7 @@
 				android:src="@drawable/rec"
 				android:layout_alignTop="@+id/load_btn"
 				android:layout_alignParentLeft="true"
-				android:layout_alignParentStart="true"/>
+				android:layout_alignParentStart="true"/> -->
 
 			<ImageButton
 				android:id="@+id/emergency_btn"
@@ -249,27 +249,77 @@
 				android:scaleType="fitXY"
 				android:layout_alignParentRight="true"/>
 
-			<ImageButton
-				android:id="@+id/load_btn"
-				android:layout_width="@dimen/bottom_panel_height"
-				android:layout_height="@dimen/bottom_panel_height"
-				android:layout_marginRight="@dimen/half_padding"
-				android:layout_toEndOf="@+id/record_btn"
-				android:layout_toRightOf="@+id/record_btn"
+			<FrameLayout
+				android:id="@+id/record_btn_frame"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
 				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="@drawable/map"/>
+				android:layout_marginLeft="60dp"
+				android:layout_alignParentLeft="true"
+				android:layout_alignParentStart="true" >
+					<ImageButton
+						android:id="@+id/record_btn"
+						android:layout_width="@dimen/bottom_panel_height"
+						android:layout_height="@dimen/bottom_panel_height"
+						android:scaleType="fitXY"
+						android:background="@null"
+						android:src="@drawable/rec"
+					/>
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:textSize="@dimen/text_sz_on_image_button"
+						android:text="@string/record"
+						android:gravity="fill_horizontal|fill"
+						android:layout_gravity="center_horizontal|bottom"/>
+			</FrameLayout>
 
-			<ImageButton
-				android:id="@+id/play_btn"
-				android:layout_width="@dimen/bottom_panel_height"
-				android:layout_height="@dimen/bottom_panel_height"
-				android:layout_marginRight="@dimen/half_padding"
-				android:layout_toEndOf="@+id/load_btn"
-				android:layout_toRightOf="@+id/load_btn"
+			<FrameLayout
+				android:id="@+id/load_btn_frame"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
 				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="@drawable/play"/>
+				android:layout_toEndOf="@+id/record_btn_frame"
+				android:layout_toRightOf="@+id/record_btn_frame">
+				<ImageButton
+					android:id="@+id/load_btn"
+					android:layout_width="@dimen/bottom_panel_height"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@drawable/map"/>
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:textSize="@dimen/text_sz_on_image_button"
+					android:text="@string/load"
+					android:gravity="fill_horizontal|fill"
+					android:layout_gravity="center_horizontal|bottom"/>
+			</FrameLayout>
+
+			<FrameLayout
+				android:id="@+id/play_btn_frame"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@null"
+				android:layout_marginRight="@dimen/half_padding"
+				android:layout_toEndOf="@+id/load_btn_frame"
+				android:layout_toRightOf="@+id/load_btn_frame">
+				<ImageButton
+					android:id="@+id/play_btn"
+					android:layout_width="@dimen/bottom_panel_height"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@drawable/play"/>
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:textSize="@dimen/text_sz_on_image_button"
+					android:text="@string/play"
+					android:gravity="fill_horizontal|fill"
+					android:layout_gravity="center_horizontal|bottom"/>
+			</FrameLayout>
 
 		</RelativeLayout>
 

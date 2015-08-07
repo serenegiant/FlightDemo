@@ -44,7 +44,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	// 下パネル
 	private ImageButton mEmergencyBtn;	// 非常停止ボタン
 	private ImageButton mTakeOnOffBtn;	// 離陸/着陸ボタン
-	private ImageButton mRecordBtn;	// 記録ボタン
+	private ImageButton mRecordBtn;// 記録ボタン
 	private ImageButton mPlayBtn;	// 再生ボタン
 	private ImageButton mLoadBtn;	// 読み込みボタン
 	private ImageButton mConfigShowBtn;	// 設定パネル表示ボタン
@@ -126,17 +126,17 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		button.setOnClickListener(mOnClickListener);
 		// 左サイドパネル
 		mLeftSidePanel = rootView.findViewById(R.id.left_side_panel);
-		button = (Button)rootView.findViewById(R.id.flip_right_btn);
-		button.setOnClickListener(mOnClickListener);
+		ImageButton imgbtn = (ImageButton)rootView.findViewById(R.id.flip_right_btn);
+		imgbtn.setOnClickListener(mOnClickListener);
 
-		button = (Button)rootView.findViewById(R.id.flip_left_btn);
-		button.setOnClickListener(mOnClickListener);
+		imgbtn = (ImageButton)rootView.findViewById(R.id.flip_left_btn);
+		imgbtn.setOnClickListener(mOnClickListener);
 
-		button = (Button)rootView.findViewById(R.id.flip_front_btn);
-		button.setOnClickListener(mOnClickListener);
+		imgbtn = (ImageButton)rootView.findViewById(R.id.flip_front_btn);
+		imgbtn.setOnClickListener(mOnClickListener);
 
-		button = (Button)rootView.findViewById(R.id.flip_back_btn);
-		button.setOnClickListener(mOnClickListener);
+		imgbtn = (ImageButton)rootView.findViewById(R.id.flip_back_btn);
+		imgbtn.setOnClickListener(mOnClickListener);
 
 		// 右スティックパネル
 		mRightStickPanel = (StickView)rootView.findViewById(R.id.stick_view_right);
@@ -686,9 +686,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mPlayBtn.setEnabled(can_play);			// 再生
 			mRecordBtn.setEnabled(can_record);		// 記録
 			if (is_recording) {
-				mRecordBtn.setImageResource(R.drawable.btn_shutter_video_recording);
+				mRecordBtn.setImageResource(R.drawable.rec);
 			} else {
-				mRecordBtn.setImageResource(R.drawable.btn_shutter_default);
+				mRecordBtn.setImageResource(R.drawable.rec);
 			}
 			if (mIsFlying || (state != 0)) {
 //				mTakeOnOffBtn.setText(R.string.button_text_landing);
