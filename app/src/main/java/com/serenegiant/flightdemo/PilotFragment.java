@@ -7,7 +7,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -39,14 +38,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private View mControllerView;	// 操作パネル
 	// 上パネル
 	private TextView mBatteryLabel;
-	private ImageButton mFlatTrimBtn;
+	private ImageButton mFlatTrimBtn;	// フラットトリム
 	private TextView mAlertMessage;
 	// 下パネル
 	private ImageButton mEmergencyBtn;	// 非常停止ボタン
 	private ImageButton mTakeOnOffBtn;	// 離陸/着陸ボタン
-	private ImageButton mRecordBtn;// 記録ボタン
-	private ImageButton mPlayBtn;	// 再生ボタン
-	private ImageButton mLoadBtn;	// 読み込みボタン
+	private ImageButton mRecordBtn;		// 記録ボタン
+	private ImageButton mPlayBtn;		// 再生ボタン
+	private ImageButton mLoadBtn;		// 読み込みボタン
 	private ImageButton mConfigShowBtn;	// 設定パネル表示ボタン
 	// 右サイドパネル
 	private View mRightSidePanel;
@@ -57,9 +56,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	// 左スティックパネル
 	private StickView mLeftStickPanel;
 
-	// 画面座標値から移動量(±100)に変換するための係数
-	private float mRightScaleX, mRightScaleY;
-	private float mLeftScaleX, mLeftScaleY;
 	private final FlightRecorder mFlightRecorder = new FlightRecorder();
 
 	public PilotFragment() {
@@ -164,23 +160,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
-		if (mRightStickPanel.getWidth() != 0 && mRightStickPanel.getHeight() != 0) {
-			mRightScaleX = 250f / (float) mRightStickPanel.getWidth();
-			mRightScaleY = 250f / (float) mRightStickPanel.getHeight();
-			mLeftScaleX = 250f / (float) mLeftStickPanel.getWidth();
-			mLeftScaleY = 250f / (float) mLeftStickPanel.getHeight();
-		} else {
-			mRightScaleX = mRightScaleY = mLeftScaleX = mLeftScaleY = 0;
-		}
-		if (DEBUG) Log.w(TAG, String.format("scale:left(%f,%f)right(%f,%f)", mRightScaleX, mRightScaleY, mLeftScaleX, mLeftScaleY));
-		if (DEBUG) Log.w(TAG, String.format("mRightStickPanel:(%d,%d)mLeftStickPanel(%d,%d)",
-			mRightStickPanel.getWidth(), mRightStickPanel.getHeight(),
-			mLeftStickPanel.getWidth(), mLeftStickPanel.getHeight()));
-		final Rect r = new Rect();
-		mRightStickPanel.getDrawingRect(r);
-		if (DEBUG) Log.w(TAG, "mRightStickPanel:" + r);
-		mLeftStickPanel.getDrawingRect(r);
-		if (DEBUG) Log.w(TAG, "mLeftStickPanel:" + r);
 		startDeviceController();
 	}
 
