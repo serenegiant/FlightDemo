@@ -81,8 +81,9 @@ public class StickView extends FrameLayout {
 		}
 	}
 
+	private boolean mOnTouchEvent;
 	@Override
-	public boolean onTouchEvent(final MotionEvent event) {
+	public synchronized boolean onTouchEvent(final MotionEvent event) {
 		if (mStickView != null) {
 			switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN: {
@@ -98,6 +99,7 @@ public class StickView extends FrameLayout {
 				move(mStartX, mStartY);
 				callOnStickMove(0, 0);
 				changed = true;
+				mOnTouchEvent = true;
 				break;
 			}
 			case MotionEvent.ACTION_MOVE: {
@@ -159,6 +161,7 @@ public class StickView extends FrameLayout {
 						performLongClick();
 					}
 				}
+				mOnTouchEvent = false;
 				break;
 			}
 			return true;
@@ -177,12 +180,14 @@ public class StickView extends FrameLayout {
 	}
 
 	@Override
-	protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+	protected void onLayout(final boolean changed, final int left, final int top, final int right, final int bottom) {
 		super.onLayout(changed, left, top, right, bottom);
-		if (DEBUG) Log.v(TAG, "onLayout:");
-		updateParentDimension();
-		// 中央に移動
-		if ((mMaxWidth != 0) && (mMaxHeight != 0)) {
+		if ((changed || (mMaxWidth == 0) || (mMaxHeight == 0)) && !mOnTouchEvent) {
+			if (DEBUG) Log.v(TAG, "onLayout:changed=" + changed + "l=" + left + ",t=" + top +",r=" + right + ",b=" + bottom);
+			updateParentDimension();
+			// 中央に移動
+		}
+		if ((mMaxWidth != 0) && (mMaxHeight != 0) && !mOnTouchEvent) {
 			move(mMaxWidth >>> 1, mMaxHeight >>> 1);
 		}
 	}
@@ -222,7 +227,7 @@ public class StickView extends FrameLayout {
 	/**
 	 * Viewの大きさ・移動可能距離等の更新
 	 */
-	private void updateParentDimension() {
+	private synchronized void updateParentDimension() {
 		getDrawingRect(mWorkBounds);
 		mParentPaddingLeft = getPaddingLeft();
 		mParentPaddingTop = getPaddingTop();
@@ -246,9 +251,9 @@ public class StickView extends FrameLayout {
 	 * @param x
 	 * @param y
 	 */
-	private void move(final int x, final int y) {
+	private synchronized void move(final int x, final int y) {
 		mStickView.getHitRect(mWorkBounds);	// 親の座標系で矩形を取得
-//		if (DEBUG) Log.v(TAG, "move:" + mWorkBounds);
+		if (DEBUG) Log.v(TAG, "move:" + mWorkBounds);
 		final int w = mWorkBounds.width() / 2;
 		final int h = mWorkBounds.height() / 2;
 		mWorkBounds.set(x - w, y - h, x + w, y + h);
