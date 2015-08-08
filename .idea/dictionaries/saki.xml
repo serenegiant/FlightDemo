@@ -24,6 +24,7 @@
       <w>nums</w>
       <w>onoff</w>
       <w>pcmd</w>
+      <w>recv</w>
       <w>symtab</w>
       <w>textview</w>
     </words>

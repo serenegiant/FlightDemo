@@ -39,52 +39,54 @@ public abstract class DeviceController implements IDeviceController {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceController";
 
-	protected static final int iobufferC2dNak = 10;
-	protected static final int iobufferC2dAck = 11;
-	protected static final int iobufferC2dEmergency = 12;
-	protected static final int iobufferD2cNavdata = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 1;
-	protected static final int iobufferD2cEvents = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 2;
+//	protected static final int iobufferC2dNak = 10;
+//	protected static final int iobufferC2dAck = 11;
+//	protected static final int iobufferC2dEmergency = 12;
+//	protected static final int iobufferD2cNavdata = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 1;
+//	protected static final int iobufferD2cEvents = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 2;
 
-	protected static final int ackOffset = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2);
+//	protected static final int ackOffset = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2);
 
-	protected static final List<ARNetworkIOBufferParam> c2dParams = new ArrayList<ARNetworkIOBufferParam>();
-	protected static final List<ARNetworkIOBufferParam> d2cParams = new ArrayList<ARNetworkIOBufferParam>();
-	protected static int commandsBuffers[] = {};
+//	protected static final List<ARNetworkIOBufferParam> c2dParams = new ArrayList<ARNetworkIOBufferParam>();
+//	protected static final List<ARNetworkIOBufferParam> d2cParams = new ArrayList<ARNetworkIOBufferParam>();
+//	protected static int commandsBuffers[] = {};
 
-	protected static final int bleNotificationIDs[] = new int[] {
-		iobufferD2cNavdata,
-		iobufferD2cEvents,
-		(iobufferC2dAck + ackOffset),
-		(iobufferC2dEmergency + ackOffset)
-	};
+//	protected static final int bleNotificationIDs[] = new int[] {
+//		iobufferD2cNavdata,
+//		iobufferD2cEvents,
+//		(iobufferC2dAck + ackOffset),
+//		(iobufferC2dEmergency + ackOffset)
+//	};
 
-	protected Context mContext;
+	protected final Context mContext;
+	protected final ARNetworkConfig mNetConfig;
+	private final ARDiscoveryDeviceService mDeviceService;
 
 	protected ARNetworkALManager mARManager;
 	protected ARNetworkManager mARNetManager;
 	protected boolean mMediaOpened;
 
-	private int c2dPort;
-	private int d2cPort;
+//	private int c2dPort;
+//	private int d2cPort;
 	private Thread rxThread;
 	private Thread txThread;
 
 	private final List<ReaderThread> mReaderThreads = new ArrayList<ReaderThread>();
-	private ARDiscoveryConnection mDiscoveryData;
 
 	private LooperThread mLooperThread;
+
+	private final Object mStateSync = new Object();
+	private int mState = STATE_STOPPED;
 
 	protected final Object mDataSync = new Object();
 	private final DataPCMD mDataPCMD = new DataPCMD();
 	private final DataPCMD mSendingPCMD = new DataPCMD();
-	private ARDiscoveryDeviceService mDeviceService;
-	private volatile boolean mIsStarted;
 
 	private final Object mListenerSync = new Object();
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 	private final List<DeviceControllerListener> mListeners = new ArrayList<DeviceControllerListener>();
 
-	static {
+/*	static {
 		// コントローラー => 機体へのパラメータ
 		c2dParams.clear();
 		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dNak,						// ID
@@ -141,11 +143,12 @@ public abstract class DeviceController implements IDeviceController {
 			iobufferD2cEvents,
 		};
 
-	}
+	} */
 
-	public DeviceController(final Context context, final ARDiscoveryDeviceService service) {
-		mDeviceService = service;
+	public DeviceController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		mContext = context;
+		mDeviceService = service;
+		mNetConfig = net_config;
 	}
 
 	@Override
@@ -154,28 +157,50 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	@Override
-	public ARDiscoveryDeviceService getDevice() {
+	public ARDiscoveryDeviceService getDeviceService() {
 		return mDeviceService;
+	}
+
+	public ARNetworkConfig getNetConfig() {
+		return mNetConfig;
+	}
+
+	@Override
+	public int getState() {
+		synchronized (mStateSync) {
+			return mState;
+		}
 	}
 
 	@Override
 	public boolean start() {
 		if (DEBUG) Log.d(TAG, "start ...");
 
-		boolean failed = mIsStarted;
-		if (!mIsStarted) {
-			registerARCommandsListener();
+		synchronized (mStateSync) {
+			if (mState != STATE_STOPPED) return false;
+			mState = STATE_STARTING;
+		}
+		registerARCommandsListener();
 
-			failed = startNetwork();
-			if (!failed) {
-				/* start the reader threads */
-				startReadThreads();
-				/* start the looper thread */
-				startLooperThread();
+		final boolean failed = startNetwork();
 
-				onStarted();
-				mIsStarted = true;
+		if (!failed) {
+            // ネットワークへの送受信スレッドを生成&開始
+			rxThread = new Thread(mARNetManager.m_receivingRunnable);
+			rxThread.start();
+
+			txThread = new Thread(mARNetManager.m_sendingRunnable);
+			txThread.start();
+
+			// 機体データ受信スレッドを生成&開始
+			startReadThreads();
+			// 操縦コマンド送信スレッドを生成&開始
+			startLooperThread();
+
+			synchronized (mStateSync) {
+				mState = STATE_STARTED;
 			}
+			onStarted();
 		}
 
 		return failed;
@@ -185,27 +210,40 @@ public abstract class DeviceController implements IDeviceController {
 	public void stop() {
 		if (DEBUG) Log.d(TAG, "stop ...");
 
-		mIsStarted = false;
+		synchronized (mStateSync) {
+			if (mState != STATE_STARTED) return;
+			mState = STATE_STOPPING;
+		}
+
 		unregisterARCommandsListener();
 
-        /* Cancel the looper thread and block until it is stopped. */
+		// 操縦コマンド送信スレッドを終了(終了するまで戻らない)
 		stopLooperThread();
 
-        /* cancel all reader threads and block until they are all stopped. */
+		// 機体データ受信スレッドを終了(終了するまで戻らない)
 		stopReaderThreads();
 
-        /* ARNetwork cleanup */
+		// ネットワークをクリーンアップ
 		stopNetwork();
+
+		synchronized (mStateSync) {
+			mState = STATE_STOPPED;
+		}
 
 	}
 
 	@Override
 	public boolean isStarted() {
-		return mIsStarted;
+		synchronized (mStateSync) {
+			return mState == STATE_STARTED;
+		}
 	}
 
+	/**
+	 * DeviceControllerがstartした時の処理
+	 */
 	protected void onStarted() {
-		//only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
+		// only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
 		final Date currentDate = new Date(System.currentTimeMillis());
 		sendDate(currentDate);
 		sendTime(currentDate);
@@ -213,53 +251,12 @@ public abstract class DeviceController implements IDeviceController {
 		sendAllStates();
 	}
 
-	private boolean startNetwork() {
-		boolean failed = false;
-		int pingDelay = 0; /* 0 means default, -1 means no ping */
+	protected abstract boolean startNetwork();
 
-        /* Create the looper ARNetworkALManager */
-		mARManager = new ARNetworkALManager();
-
-
-        /* setup ARNetworkAL for BLE */
-
-		final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) mDeviceService.getDevice();
-
-		final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(mContext, bleDevice.getBluetoothDevice(), 1, bleNotificationIDs);
-
-		if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
-			mMediaOpened = true;
-			pingDelay = -1; /* Disable ping for BLE networks */
-		} else {
-			ARSALPrint.e(TAG, "error occured: " + netALError.toString());
-			failed = true;
-		}
-
-		if (!failed) {
-			/* Create the ARNetworkManager */
-			mARNetManager = new ARNetworkManagerExtend(mARManager, c2dParams.toArray(new ARNetworkIOBufferParam[c2dParams.size()]), d2cParams.toArray(new ARNetworkIOBufferParam[d2cParams.size()]), pingDelay);
-
-			if (mARNetManager.isCorrectlyInitialized() == false) {
-				ARSALPrint.e(TAG, "new ARNetworkManager failed");
-				failed = true;
-			}
-		}
-
-		if (!failed) {
-            /* Create and start Tx and Rx threads */
-			rxThread = new Thread(mARNetManager.m_receivingRunnable);
-			rxThread.start();
-
-			txThread = new Thread(mARNetManager.m_sendingRunnable);
-			txThread.start();
-		}
-
-		return failed;
-	}
-
+	/** 機体からのデータ受信用スレッドを生成＆開始 */
 	private void startReadThreads() {
         /* Create the reader threads */
-		for (final int bufferId : commandsBuffers) {
+		for (final int bufferId : mNetConfig.getCommandsIOBuffers()/*commandsBuffers*/) {
 			final ReaderThread readerThread = new ReaderThread(bufferId);
 			mReaderThreads.add(readerThread);
 		}
@@ -270,7 +267,11 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/** 操縦コマンド送信スレッドを生成&開始 */
 	private void startLooperThread() {
+		if (mLooperThread != null) {
+			mLooperThread.stopThread();
+		}
         /* Create the looper thread */
 		mLooperThread = new ControllerLooperThread();
 
@@ -278,6 +279,7 @@ public abstract class DeviceController implements IDeviceController {
 		mLooperThread.start();
 	}
 
+	/** 操縦コマンド送信を終了(終了するまで戻らない) */
 	private void stopLooperThread() {
 		if (DEBUG) Log.v(TAG, "stopLooperThread:");
         /* Cancel the looper thread and block until it is stopped. */
@@ -285,6 +287,7 @@ public abstract class DeviceController implements IDeviceController {
 			mLooperThread.stopThread();
 			try {
 				mLooperThread.join();
+				mLooperThread = null;
 			} catch (final InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -292,6 +295,7 @@ public abstract class DeviceController implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "stopLooperThread:finished");
 	}
 
+	/** 機体からのデータ受信用スレッドを終了(終了するまで戻らない) */
 	private void stopReaderThreads() {
 		if (DEBUG) Log.v(TAG, "stopReaderThreads:");
 		/* cancel all reader threads and block until they are all stopped. */
@@ -563,6 +567,58 @@ public abstract class DeviceController implements IDeviceController {
 
 //================================================================================
 //================================================================================
+
+	private final NetworkNotificationListener mNetworkNotificationListener
+		= new NetworkNotificationListener() {
+		@Override
+		public void networkDidSendFrame(final NetworkNotificationData notificationData) {
+		}
+
+		@Override
+		public void networkDidReceiveAck(final NetworkNotificationData notificationData) {
+			if (notificationData != null) {
+				notificationData.notificationRun();
+			}
+		}
+
+		@Override
+		public void networkTimeoutOccurred(final NetworkNotificationData notificationData) {
+		}
+
+		@Override
+		public void networkDidCancelFrame(final NetworkNotificationData notificationData) {
+			if (notificationData != null) {
+				notificationData.notificationRun();
+			}
+		}
+	};
+
+	/**
+	 * 指定したコマンドを指定したバッファにキューイング
+	 * @param cmd
+	 * @param bufferId バッファID
+	 * @param timeoutPolicy
+	 * @param notificationData
+	 * @return 正常にキューイングできればtrue
+	 */
+	protected boolean sendData(final ARCommand cmd, final int bufferId,
+		final ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy,
+		final NetworkNotificationData notificationData) {
+
+		boolean result = true;
+
+		final ARNetworkSendInfo sendInfo
+			= new ARNetworkSendInfo(timeoutPolicy, mNetworkNotificationListener, notificationData, this);
+
+		final ARNETWORK_ERROR_ENUM netError= mARNetManager.sendData(bufferId, cmd, sendInfo, true);
+		if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
+			ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
+			result = false;
+		}
+
+		return result;
+	}
+
 	/**
 	 * 操縦コマンドを送信
 	 * @return
@@ -578,7 +634,7 @@ public abstract class DeviceController implements IDeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			final ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -604,7 +660,7 @@ public abstract class DeviceController implements IDeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -633,7 +689,7 @@ public abstract class DeviceController implements IDeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -660,7 +716,7 @@ public abstract class DeviceController implements IDeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -786,7 +842,7 @@ public abstract class DeviceController implements IDeviceController {
 	/**
 	 * Extend of ARNetworkManager implementing the callback
 	 */
-	private class ARNetworkManagerExtend extends ARNetworkManager {
+	protected class ARNetworkManagerExtend extends ARNetworkManager {
 		public ARNetworkManagerExtend(
 			final ARNetworkALManager osSpecificManager, final ARNetworkIOBufferParam[] inputParamArray,
 			final ARNetworkIOBufferParam[] outputParamArray, final int timeBetweenPingsMs) {
@@ -880,10 +936,12 @@ public abstract class DeviceController implements IDeviceController {
 
 	}
 
+	/** 機体からのデータ受信タイムアウト[ミリ秒] */
 	private static final int MAX_READ_TIMEOUT_MS = 1000;
+	/** 機体からデータを受信するためのスレッド */
 	private class ReaderThread extends LooperThread {
-		final int mBufferId;
-		final ARCommand dataRecv = new ARCommand(128 * 1024);//TODO define
+		private final int mBufferId;
+		private final ARCommand dataRecv = new ARCommand(128 * 1024);//TODO define
 
 		public ReaderThread(final int bufferId) {
 			mBufferId = bufferId;
@@ -897,6 +955,7 @@ public abstract class DeviceController implements IDeviceController {
 			final ARNETWORK_ERROR_ENUM netError = mARNetManager.readDataWithTimeout(mBufferId, dataRecv, MAX_READ_TIMEOUT_MS);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
+				// FIXME 正常終了以外の時
 //				if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_ERROR_BUFFER_EMPTY) {
 //                    ARSALPrint.e(TAG, "ReaderThread readDataWithTimeout() failed. " + netError + " mBufferId: " + mBufferId);
 //				}
@@ -904,11 +963,12 @@ public abstract class DeviceController implements IDeviceController {
 			}
 
 			if (!skip) {
+				// 正常終了時の処理
 				final ARCOMMANDS_DECODER_ERROR_ENUM decodeStatus = dataRecv.decode();
 				if ((decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_OK)
 					&& (decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_ERROR_NO_CALLBACK)
 					&& (decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_ERROR_UNKNOWN_COMMAND)) {
-
+					// デコードに失敗した時の処理
 					ARSALPrint.e(TAG, "ARCommand.decode() failed. " + decodeStatus);
 				}
 			}
@@ -921,9 +981,10 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-	/** sendPCMDを呼び出す間隔[ミリ秒] */
+	/** 操縦コマンド送信間隔[ミリ秒] */
 	private static final long CMD_SENDING_INTERVALS_MS = 50;
 
+	/** 操縦コマンドを定期的に相信するためのスレッド */
 	protected class ControllerLooperThread extends LooperThread {
 		public ControllerLooperThread() {
 		}
@@ -933,32 +994,34 @@ public abstract class DeviceController implements IDeviceController {
 			final long lastTime = SystemClock.elapsedRealtime();
 
 			final byte flag, roll, pitch, yaw, gaz;
-			final float psi;
+			final float heading;
 			synchronized (mDataSync) {
 				flag = mDataPCMD.flag;
 				roll = mDataPCMD.roll;
 				pitch = mDataPCMD.pitch;
 				yaw = mDataPCMD.yaw;
 				gaz = mDataPCMD.gaz;
-				psi = mDataPCMD.heading;
+				heading = mDataPCMD.heading;
 			}
-			sendPCMD(flag, roll, pitch, yaw, gaz, psi);
+			// 操縦コマンド送信
+			sendPCMD(flag, roll, pitch, yaw, gaz, heading);
 
+			// 次の送信予定時間までの休止時間を計算[ミリ秒]
 			final long sleepTime = (SystemClock.elapsedRealtime() + CMD_SENDING_INTERVALS_MS) - lastTime;
 
 			try {
 				Thread.sleep(sleepTime);
 			} catch (final InterruptedException e) {
-				e.printStackTrace();
+				// ignore
 			}
 		}
 	}
 
 	public interface NetworkNotificationListener {
-		public void networkDidSendFrame (NetworkNotificationData notificationData);
-		public void networkDidReceiveAck (NetworkNotificationData notificationData);
-		public void networkTimeoutOccurred (NetworkNotificationData notificationData);
-		public void networkDidCancelFrame (NetworkNotificationData notificationData);
+		public void networkDidSendFrame (final NetworkNotificationData notificationData);
+		public void networkDidReceiveAck (final NetworkNotificationData notificationData);
+		public void networkTimeoutOccurred (final NetworkNotificationData notificationData);
+		public void networkDidCancelFrame (final NetworkNotificationData notificationData);
 	}
 
 	public static abstract class NetworkNotificationData {
@@ -970,50 +1033,50 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	private static class ARNetworkSendInfo {
-		private ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy;
-		private NetworkNotificationListener notificationListener;
-		private NetworkNotificationData notificationData;
-		private DeviceController deviceController;
+		private ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM mTimeoutPolicy;
+		private NetworkNotificationListener mNotificationListener;
+		private NetworkNotificationData mNotificationData;
+		private IDeviceController mDeviceController;
 
 		public ARNetworkSendInfo(final ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy,
 			final NetworkNotificationListener notificationListener,
-			final NetworkNotificationData notificationData, final DeviceController deviceController) {
-			this.timeoutPolicy = timeoutPolicy;
-			this.notificationListener = notificationListener;
-			this.notificationData = notificationData;
-			this.deviceController = deviceController;
+			final NetworkNotificationData notificationData, final IDeviceController deviceController) {
+			mTimeoutPolicy = timeoutPolicy;
+			mNotificationListener = notificationListener;
+			mNotificationData = notificationData;
+			mDeviceController = deviceController;
 		}
 
 		public ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM getTimeoutPolicy() {
-			return this.timeoutPolicy;
+			return mTimeoutPolicy;
 		}
 
 		public NetworkNotificationListener getNotificationListener() {
-			return this.notificationListener;
+			return mNotificationListener;
 		}
 
 		public NetworkNotificationData getNotificationData() {
-			return this.notificationData;
+			return mNotificationData;
 		}
 
-		public DeviceController getDeviceController() {
-			return this.deviceController;
+		public IDeviceController getDeviceController() {
+			return mDeviceController;
 		}
 
 		public void setTimeoutPolicy(final ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy) {
-			this.timeoutPolicy = timeoutPolicy;
+			mTimeoutPolicy = timeoutPolicy;
 		}
 
 		public void setNotificationListener(final NetworkNotificationListener notificationListener) {
-			this.notificationListener = notificationListener;
+			mNotificationListener = notificationListener;
 		}
 
 		public void setUserData(final NetworkNotificationData notificationData) {
-			this.notificationData = notificationData;
+			mNotificationData = notificationData;
 		}
 
-		public void setDeviceController(DeviceController deviceController) {
-			this.deviceController = deviceController;
+		public void setDeviceController(IDeviceController deviceController) {
+			mDeviceController = deviceController;
 		}
 
 	}

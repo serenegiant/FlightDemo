@@ -29,8 +29,12 @@ import com.parrot.arsdk.arcommands.ARCommandMiniDroneSettingsStateProductMotorsV
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateMaxRotationSpeedChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener;
+import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_ERROR_ENUM;
+import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
+import com.parrot.arsdk.arnetworkal.ARNETWORKAL_ERROR_ENUM;
+import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.parrot.arsdk.arsal.ARSALPrint;
 
 
@@ -40,7 +44,45 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 
 	public DeviceControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service) {
-		super(context, service);
+		super(context, service, new ARNetworkConfigMiniDrone());
+	}
+
+	protected boolean startNetwork() {
+		boolean failed = false;
+		int pingDelay = 0; /* 0 means default, -1 means no ping */
+
+        /* Create the looper ARNetworkALManager */
+		mARManager = new ARNetworkALManager();
+
+
+        /* setup ARNetworkAL for BLE */
+
+		final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) getDeviceService().getDevice();
+
+		final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(
+			mContext, bleDevice.getBluetoothDevice(), 1, mNetConfig.getBLENotificationIDs()/*bleNotificationIDs*/);
+
+		if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
+			mMediaOpened = true;
+			pingDelay = -1; /* Disable ping for BLE networks */
+		} else {
+			ARSALPrint.e(TAG, "error occured: " + netALError.toString());
+			failed = true;
+		}
+		if (!failed) {
+			// ARNetworkManagerを生成
+//			mARNetManager = new ARNetworkManagerExtend(mARManager,
+//				c2dParams.toArray(new ARNetworkIOBufferParam[c2dParams.size()]),
+//				d2cParams.toArray(new ARNetworkIOBufferParam[d2cParams.size()]),
+//				pingDelay);
+			mARNetManager = new ARNetworkManagerExtend(mARManager,
+				mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
+			if (mARNetManager.isCorrectlyInitialized() == false) {
+				ARSALPrint.e(TAG, "new ARNetworkManager failed");
+				failed = true;
+			}
+		}
+		return failed;
 	}
 
 //================================================================================
@@ -429,7 +471,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent in loop should be sent to a buffer not acknowledged ; here iobufferC2dNak
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dNak, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dNackId()/*iobufferC2dNak*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -455,7 +497,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -481,7 +523,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -507,7 +549,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dEmergency
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dEmergency, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dEmergencyId()/*iobufferC2dEmergency*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -533,7 +575,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -564,7 +606,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -595,7 +637,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -626,7 +668,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -657,7 +699,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -715,7 +757,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -758,7 +800,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -792,7 +834,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -840,7 +882,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
@@ -871,7 +913,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The commands sent by event should be sent to an buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(iobufferC2dAck, cmd, null, true);
+			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());

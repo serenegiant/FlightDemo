@@ -3,6 +3,7 @@ package com.serenegiant.flightdemo;
 import android.app.Activity;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -485,8 +486,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mFlightRecorder.stop();
 			// ファイルへ保存
 			final String path = FileUtils.getCaptureFile(getActivity(), "Documents", ".fcr", false).getAbsolutePath();
-			mFlightRecorder.save(path);
-			updateButtons();
+			if (!TextUtils.isEmpty(path)) {
+				mFlightRecorder.save(path);
+				updateButtons();
+			}
 		}
 	}
 

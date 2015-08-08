@@ -14,7 +14,7 @@ import android.widget.FrameLayout;
 import com.serenegiant.flightdemo.R;
 
 public class StickView extends FrameLayout {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "StickView";
 
 	public interface OnStickMoveListener {
@@ -30,8 +30,8 @@ public class StickView extends FrameLayout {
 	private static final int LONG_PRESS_TIMEOUT = ViewConfiguration.getLongPressTimeout();
 	private static final float PI = (float)Math.PI;
 
-	private int mMaxMove2;	// 移動可能距離の２乗
-	private float mRadius;	// 移動可能距離
+	private int mMaxMove2;			// 移動可能距離の２乗
+	private float mRadius;			// 移動可能距離
 	private long startTime;			// 最初のタッチ時刻
 	private int mStartX, mStartY;	// 最初のタッチ位置
 	private int mPrevX, mPrevY;		// 前回のタッチ位置
@@ -92,8 +92,8 @@ public class StickView extends FrameLayout {
 				startTime = event.getEventTime();
 //				mStickView.getHitRect(mWorkBounds);	// 親の座標系で矩形を取得
 				// 画面座標系でタッチ位置を取得
-				mStartX = mPrevX = (int) event.getX(); //  getRawX();
-				mStartY = mPrevY = (int) event.getY(); // getRawY();
+				mStartX = mPrevX = (int) event.getX();
+				mStartY = mPrevY = (int) event.getY();
 				move(mStartX, mStartY);
 				callOnStickMove(0, 0);
 				changed = true;
@@ -102,8 +102,8 @@ public class StickView extends FrameLayout {
 			case MotionEvent.ACTION_MOVE: {
 				final long t = event.getEventTime() - startTime;
 				// 画面座標系でタッチ位置を取得
-				int x = (int)event.getX(); // getRawX();
-				int y = (int)event.getY(); // getRawY();
+				int x = (int)event.getX();
+				int y = (int)event.getY();
 				int dx = x - mStartX;
 				int dy = y - mStartY;
 				final int dd = dx * dx + dy * dy;
@@ -140,13 +140,12 @@ public class StickView extends FrameLayout {
 				break;
 			}
 			case MotionEvent.ACTION_UP:
-				if (changed) {
-					// 中央に戻す
-					if ((mMaxWidth != 0) && (mMaxHeight != 0)) {
-						move(mMaxWidth >>> 1, mMaxHeight >>> 1);
-					}
-					callOnStickMove(0, 0);
-				} else {
+				// 中央に戻す
+				if ((mMaxWidth != 0) && (mMaxHeight != 0)) {
+					move(mMaxWidth >>> 1, mMaxHeight >>> 1);
+				}
+				callOnStickMove(0, 0);
+				if (!changed) {
 					final long t = event.getEventTime() - startTime;
 					if (t < TAP_TIMEOUT) {
 						performClick();
@@ -244,11 +243,11 @@ public class StickView extends FrameLayout {
 	 */
 	private void move(final int x, final int y) {
 		mStickView.getHitRect(mWorkBounds);	// 親の座標系で矩形を取得
-		if (DEBUG) Log.v(TAG, "move:" + mWorkBounds);
+//		if (DEBUG) Log.v(TAG, "move:" + mWorkBounds);
 		final int w = mWorkBounds.width() / 2;
 		final int h = mWorkBounds.height() / 2;
 		mWorkBounds.set(x - w, y - h, x + w, y + h);
-		if (DEBUG) Log.v(TAG, "move:" + mWorkBounds);
+//		if (DEBUG) Log.v(TAG, "move:" + mWorkBounds);
 		mStickStartView.layout(mWorkBounds.left, mWorkBounds.top, mWorkBounds.right, mWorkBounds.bottom);
 		mStickView.layout(mWorkBounds.left, mWorkBounds.top, mWorkBounds.right, mWorkBounds.bottom);
 

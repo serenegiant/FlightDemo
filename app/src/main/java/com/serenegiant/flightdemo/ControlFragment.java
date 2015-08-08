@@ -47,7 +47,7 @@ public abstract class ControlFragment extends Fragment {
 	}
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	public synchronized void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (DEBUG) Log.v(TAG, "onCreate:" + savedInstanceState);
 		if (savedInstanceState == null)
@@ -74,7 +74,7 @@ public abstract class ControlFragment extends Fragment {
 	}
 
 	@Override
-	public void onResume() {
+	public synchronized void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
 		if (deviceController != null) {
@@ -83,7 +83,7 @@ public abstract class ControlFragment extends Fragment {
 	}
 
 	@Override
-	public void onPause() {
+	public synchronized void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		if (deviceController != null) {
 			deviceController.removeListener(mDeviceControllerListener);
@@ -117,8 +117,11 @@ public abstract class ControlFragment extends Fragment {
 		}
 	}
 
-	protected void startDeviceController() {
+	protected synchronized void startDeviceController() {
 		if (DEBUG) Log.v(TAG, "startDeviceController:");
+		if (deviceController == null) {
+			deviceController = ManagerFragment.getController(getActivity(), mDevice);
+		}
 		if (deviceController != null) {
 			if (!deviceController.isStarted()) {
 				mBatteryState = -1;
@@ -161,28 +164,36 @@ public abstract class ControlFragment extends Fragment {
 		}
 	}
 
-	protected void stopDeviceController(final boolean disconnected) {
+	protected synchronized void stopDeviceController(final boolean disconnected) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
 		mIsConnected = mIsFlying = false;
 		mFlyingState = mBatteryState = -1;
 		if (deviceController != null) {
 			final IDeviceController controller = deviceController;
 			deviceController = null;
-			final ProgressDialog dialog = new ProgressDialog(getActivity());
-			dialog.setTitle(R.string.disconnecting);
-			dialog.setIndeterminate(true);
-			dialog.show();
+			final Activity activity = getActivity();
+			final ProgressDialog dialog;
+			if (activity != null && !activity.isFinishing()) {
+				dialog = new ProgressDialog(activity);
+				dialog.setTitle(R.string.disconnecting);
+				dialog.setIndeterminate(true);
+				dialog.show();
+			} else {
+				dialog = null;
+			}
 
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					controller.stop();
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							dialog.dismiss();
-						}
-					});
+					if (dialog != null) {
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								dialog.dismiss();
+							}
+						});
+					}
 				}
 			}).start();
 		}

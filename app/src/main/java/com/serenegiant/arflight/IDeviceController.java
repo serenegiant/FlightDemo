@@ -25,6 +25,11 @@ public interface IDeviceController {
 	/** 垂直カメラ(対地速度検出) */
 	public static final int SENSOR_VERTICAL_CAMERA = 5;
 
+	public static final int STATE_STOPPED = 0;
+	public static final int STATE_STARTING = 1;
+	public static final int STATE_STARTED = 2;
+	public static final int STATE_STOPPING = 3;
+
 	/**
 	 * 機体名を取得, ローリングスパイダーだとrs_xxxxxって奴
 	 * @return
@@ -53,7 +58,9 @@ public interface IDeviceController {
 	 * コントローラーに関連付けられているARDiscoveryDeviceServiceを取得
 	 * @return
 	 */
-	public ARDiscoveryDeviceService getDevice();
+	public ARDiscoveryDeviceService getDeviceService();
+
+	public ARNetworkConfig getNetConfig();
 
 	/**
 	 * バッテリーの残量を取得
@@ -73,6 +80,7 @@ public interface IDeviceController {
 	 */
 	public void removeListener(final DeviceConnectionListener mListener);
 
+	public int getState();
 	public boolean start();
 	public void stop();
 	public boolean isStarted();
