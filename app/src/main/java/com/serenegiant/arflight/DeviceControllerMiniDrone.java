@@ -47,44 +47,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		super(context, service, new ARNetworkConfigMiniDrone());
 	}
 
-	protected boolean startNetwork() {
-		boolean failed = false;
-		int pingDelay = 0; /* 0 means default, -1 means no ping */
-
-        /* Create the looper ARNetworkALManager */
-		mARManager = new ARNetworkALManager();
-
-
-        /* setup ARNetworkAL for BLE */
-
-		final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) getDeviceService().getDevice();
-
-		final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(
-			mContext, bleDevice.getBluetoothDevice(), 1, mNetConfig.getBLENotificationIDs()/*bleNotificationIDs*/);
-
-		if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
-			mMediaOpened = true;
-			pingDelay = -1; /* Disable ping for BLE networks */
-		} else {
-			ARSALPrint.e(TAG, "error occured: " + netALError.toString());
-			failed = true;
-		}
-		if (!failed) {
-			// ARNetworkManagerを生成
-//			mARNetManager = new ARNetworkManagerExtend(mARManager,
-//				c2dParams.toArray(new ARNetworkIOBufferParam[c2dParams.size()]),
-//				d2cParams.toArray(new ARNetworkIOBufferParam[d2cParams.size()]),
-//				pingDelay);
-			mARNetManager = new ARNetworkManagerExtend(mARManager,
-				mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
-			if (mARNetManager.isCorrectlyInitialized() == false) {
-				ARSALPrint.e(TAG, "new ARNetworkManager failed");
-				failed = true;
-			}
-		}
-		return failed;
-	}
-
 //================================================================================
 // 機体からの状態・データコールバック関係
 //================================================================================

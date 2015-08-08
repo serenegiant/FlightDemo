@@ -4,36 +4,67 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_CALIBRATIONSTATE_MAGNETOCALIBRATIONAXISTOCALIBRATECHANGED_AXIS_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED_STATE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_DECODER_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
+import com.parrot.arsdk.arcommands.ARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCalibrationStateMagnetoCalibrationRequiredStateListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCalibrationStateMagnetoCalibrationStartedChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCalibrationStateMagnetoCalibrationStateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCameraSettingsStateCameraSettingsChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateAllStatesChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateBatteryStateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateCurrentDateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateCurrentTimeChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageInfoStateListChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageStateListChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateSensorsStatesListChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateWifiSignalChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonControllerStateIsPilotingChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonDebugStatsEventSendPacketListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonMavlinkStateMavlinkFilePlayingStateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonOverHeatStateOverHeatChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonOverHeatStateOverHeatRegulationChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateAllSettingsChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateAutoCountryChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateCountryChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductNameChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductSerialHighChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductSerialLowChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateProductVersionChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonSettingsStateResetChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener;
+import com.parrot.arsdk.ardiscovery.ARDISCOVERY_ERROR_ENUM;
+import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryConnection;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceNetService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_ERROR_ENUM;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM;
 import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
 import com.parrot.arsdk.arnetwork.ARNetworkManager;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_ERROR_ENUM;
-import com.parrot.arsdk.arnetworkal.ARNETWORKAL_FRAME_TYPE_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.parrot.arsdk.arsal.ARNativeData;
 import com.parrot.arsdk.arsal.ARSALPrint;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Semaphore;
 
 public abstract class DeviceController implements IDeviceController {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
@@ -65,6 +96,16 @@ public abstract class DeviceController implements IDeviceController {
 	protected ARNetworkALManager mARManager;
 	protected ARNetworkManager mARNetManager;
 	protected boolean mMediaOpened;
+	private int videoFragmentSize;
+	private int videoFragmentMaximumNumber;
+	private int videoMaxAckInterval;
+
+	private final Semaphore disconnectSent = new Semaphore(0);
+	private volatile boolean mRequestCancel;
+	private final Semaphore cmdGetAllSettingsSent = new Semaphore(0);
+	private boolean isWaitingAllSettings;
+	private final Semaphore cmdGetAllStatesSent = new Semaphore(0);
+	private boolean isWaitingAllStates;
 
 //	private int c2dPort;
 //	private int d2cPort;
@@ -207,6 +248,26 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	@Override
+	public void cancelStart() {
+		if (!mRequestCancel) {
+			mRequestCancel = true;
+			final Object device = mDeviceService.getDevice();
+			if (device instanceof ARDiscoveryDeviceNetService) {
+				if (discoveryData != null) {
+					discoveryData.ControllerConnectionAbort();
+				}
+			} else if (device instanceof ARDiscoveryDeviceBLEService) {
+				mARManager.cancelBLENetwork();
+			} else {
+				ARSALPrint.e (TAG, "Unknow network media type." );
+			}
+			cmdGetAllSettingsSent.release();
+			cmdGetAllStatesSent.release();
+			//TODO see : reset the semaphores or use signals
+		}
+	}
+
+	@Override
 	public void stop() {
 		if (DEBUG) Log.d(TAG, "stop ...");
 
@@ -247,11 +308,194 @@ public abstract class DeviceController implements IDeviceController {
 		final Date currentDate = new Date(System.currentTimeMillis());
 		sendDate(currentDate);
 		sendTime(currentDate);
-		sendAllSettings();
-		sendAllStates();
+		isWaitingAllSettings = true;
+		try {
+			if (sendAllSettings()) {
+				try {
+					//successful = cmdGetAllSettingsSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
+					cmdGetAllSettingsSent.acquire();
+				} catch (InterruptedException e) {
+					// ignore
+				}
+			}
+		} finally {
+			isWaitingAllSettings = false;
+		}
+		isWaitingAllStates = true;
+		try {
+			if (sendAllStates()) {
+				try {
+					//successful = cmdGetAllStatesSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
+					cmdGetAllStatesSent.acquire();
+				} catch (InterruptedException e) {
+					// ignore
+				}
+			}
+		} finally {
+			isWaitingAllStates = false;
+		}
 	}
 
-	protected abstract boolean startNetwork();
+	private String discoveryIp;
+	private int discoveryPort;
+
+	protected boolean startNetwork() {
+		boolean failed = false;
+		int pingDelay = 0; /* 0 means default, -1 means no ping */
+
+        /* Create the looper ARNetworkALManager */
+		mARManager = new ARNetworkALManager();
+
+
+		final Object device = mDeviceService.getDevice();
+		if (device instanceof ARDiscoveryDeviceNetService) {
+			// Wifiの時
+			final ARDiscoveryDeviceNetService netDevice = (ARDiscoveryDeviceNetService)device;
+			discoveryIp = netDevice.getIp();
+			discoveryPort = netDevice.getPort();
+
+            /*  */
+			if (!ardiscoveryConnect())
+			{
+				failed = true;
+			}
+
+			// TODO :  if ardiscoveryConnect ok
+			mNetConfig.addStreamReaderIOBuffer(videoFragmentSize, videoFragmentMaximumNumber);
+
+            /* setup ARNetworkAL for wifi */
+			ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(discoveryIp, c2dPort, d2cPort, 1);
+
+			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
+				mMediaOpened = true;
+			} else {
+				ARSALPrint.e(TAG, "error occured: " + netALError.toString());
+				failed = true;
+			}
+		} else if (device instanceof ARDiscoveryDeviceBLEService) {
+			/* setup ARNetworkAL for BLE */
+
+			final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) device;
+
+			final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(
+				mContext, bleDevice.getBluetoothDevice(), 1, mNetConfig.getBLENotificationIDs()/*bleNotificationIDs*/);
+
+			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
+				mMediaOpened = true;
+				pingDelay = -1; /* Disable ping for BLE networks */
+			} else {
+				ARSALPrint.e(TAG, "error occured: " + netALError.toString());
+				failed = true;
+			}
+		} else {
+			Log.w(TAG, "unknown AR discovery device service");
+			failed = true;
+		}
+		if (!failed) {
+			// ARNetworkManagerを生成
+//			mARNetManager = new ARNetworkManagerExtend(mARManager,
+//				c2dParams.toArray(new ARNetworkIOBufferParam[c2dParams.size()]),
+//				d2cParams.toArray(new ARNetworkIOBufferParam[d2cParams.size()]),
+//				pingDelay);
+			mARNetManager = new ARNetworkManagerExtend(mARManager,
+														  mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
+			if (mARNetManager.isCorrectlyInitialized() == false) {
+				ARSALPrint.e(TAG, "new ARNetworkManager failed");
+				failed = true;
+			}
+		}
+		return failed;
+	}
+
+	private Semaphore discoverSemaphore;
+	private ARDiscoveryConnection discoveryData;
+	private int c2dPort, d2cPort;
+
+	private boolean ardiscoveryConnect() {
+		boolean ok = true;
+		ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
+		discoverSemaphore = new Semaphore(0);
+
+		d2cPort = mNetConfig.getInboundPort();
+		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceService.getProductID());
+
+		if (!ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_SKYCONTROLLER.equals(product)) {
+			discoveryData = new ARDiscoveryConnection() {
+				@Override
+				public String onSendJson () {
+                    /* send a json with the Device to controller port */
+					final JSONObject jsonObject = new JSONObject();
+					try {
+						jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY, d2cPort);
+					} catch (JSONException e) {
+						Log.w(TAG, e);
+					}
+					try {
+						Log.e(TAG, "android.os.Build.MODEL: "+android.os.Build.MODEL);
+						jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY, android.os.Build.MODEL);
+					} catch (JSONException e) {
+						Log.w(TAG, e);
+					}
+					try {
+						Log.e(TAG, "android.os.Build.DEVICE: "+android.os.Build.DEVICE);
+						jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY, android.os.Build.DEVICE);
+					} catch (JSONException e) {
+						Log.w(TAG, e);
+					}
+
+					return jsonObject.toString();
+				}
+
+				@Override
+				public ARDISCOVERY_ERROR_ENUM onReceiveJson (final String dataRx, final String ip) {
+                    /* Receive a json with the controller to Device port */
+					ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
+					try {
+                        /* Convert String to json */
+						final JSONObject jsonObject = new JSONObject(dataRx);
+						if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY)) {
+							c2dPort = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY);
+						}
+						if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY)) {
+							videoFragmentSize = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY);
+						}
+                        /* Else: leave it to the default value. */
+						if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY)) {
+							videoFragmentMaximumNumber = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY);
+						}
+                        /* Else: leave it to the default value. */
+						if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY)) {
+							videoMaxAckInterval = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY);
+						}
+                        /* Else: leave it to the default value. */
+					} catch (JSONException e) {
+						Log.w(TAG, e);
+						error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_ERROR;
+					}
+					return error;
+				}
+			};
+		}
+
+		if (ok == true) {
+            /* open the discovery connection data in another thread */
+			ConnectionThread connectionThread = new ConnectionThread();
+			connectionThread.start();
+            /* wait the discovery of the connection data */
+			try {
+				discoverSemaphore.acquire();
+				error = connectionThread.getError();
+			} catch (InterruptedException e) {
+				Log.w(TAG, e);
+			}
+
+            /* dispose discoveryData it not needed more */
+			discoveryData.dispose();
+			discoveryData = null;
+		}
+
+		return ok && (error == ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK);
+	}
 
 	/** 機体からのデータ受信用スレッドを生成＆開始 */
 	private void startReadThreads() {
@@ -352,44 +596,131 @@ public abstract class DeviceController implements IDeviceController {
 	 * コールバックを登録
 	 */
 	protected void registerARCommandsListener() {
-//		ARCommand.setCommonCommonStateAllStatesChangedListener(mARCommandCommonCommonStateAllStatesChangedListener);
+		ARCommand.setCommonSettingsStateAllSettingsChangedListener(mARCommandCommonSettingsStateAllSettingsChangedListener);
+		ARCommand.setCommonSettingsStateResetChangedListener(mARCommandCommonSettingsStateResetChangedListener);
 		ARCommand.setCommonSettingsStateProductNameChangedListener(mARCommandCommonSettingsStateProductNameChangedListener);
 		ARCommand.setCommonSettingsStateProductVersionChangedListener(mARCommandCommonSettingsStateProductVersionChangedListener);
 		ARCommand.setCommonSettingsStateProductSerialHighChangedListener(mARCommandCommonSettingsStateProductSerialHighChangedListener);
+		ARCommand.setCommonSettingsStateProductSerialLowChangedListener(mARCommandCommonSettingsStateProductSerialLowChangedListener);
+		ARCommand.setCommonSettingsStateCountryChangedListener(mARCommandCommonSettingsStateCountryChangedListener);
+		ARCommand.setCommonSettingsStateAutoCountryChangedListener(mARCommandCommonSettingsStateAutoCountryChangedListener);
+
+		ARCommand.setCommonCommonStateAllStatesChangedListener(mARCommandCommonCommonStateAllStatesChangedListener);
 		ARCommand.setCommonCommonStateBatteryStateChangedListener(mCommonStateBatteryStateChangedListener);
+
+		ARCommand.setCommonCommonStateMassStorageStateListChangedListener(mARCommandCommonCommonStateMassStorageStateListChangedListener);
+		ARCommand.setCommonCommonStateMassStorageInfoStateListChangedListener(mARCommandCommonCommonStateMassStorageInfoStateListChangedListener);
+		ARCommand.setCommonCommonStateCurrentDateChangedListener(mARCommandCommonCommonStateCurrentDateChangedListener);
+		ARCommand.setCommonCommonStateCurrentTimeChangedListener(mARCommandCommonCommonStateCurrentTimeChangedListener);
+		ARCommand.setCommonCommonStateMassStorageInfoRemainingListChangedListener(mARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener);
+		ARCommand.setCommonCommonStateWifiSignalChangedListener(mARCommandCommonCommonStateWifiSignalChangedListener);
 		ARCommand.setCommonCommonStateSensorsStatesListChangedListener(mARCommandCommonCommonStateSensorsStatesListChangedListener);
+
+		ARCommand.setCommonOverHeatStateOverHeatChangedListener(mARCommandCommonOverHeatStateOverHeatChangedListener);
+		ARCommand.setCommonOverHeatStateOverHeatRegulationChangedListener(mARCommandCommonOverHeatStateOverHeatRegulationChangedListener);
+
+		ARCommand.setCommonControllerStateIsPilotingChangedListener(mARCommandCommonControllerStateIsPilotingChangedListener);
+
+		ARCommand.setCommonWifiSettingsStateOutdoorSettingsChangedListener(mARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener);
+
+		ARCommand.setCommonMavlinkStateMavlinkFilePlayingStateChangedListener(mARCommandCommonMavlinkStateMavlinkFilePlayingStateChangedListener);
+
+		ARCommand.setCommonCalibrationStateMagnetoCalibrationStateChangedListener(mARCommandCommonCalibrationStateMagnetoCalibrationStateChangedListener);
+		ARCommand.setCommonCalibrationStateMagnetoCalibrationRequiredStateListener(mARCommandCommonCalibrationStateMagnetoCalibrationRequiredStateListener);
+		ARCommand.setCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener(mARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener);
+		ARCommand.setCommonCalibrationStateMagnetoCalibrationStartedChangedListener(mARCommandCommonCalibrationStateMagnetoCalibrationStartedChangedListener);
+
+		ARCommand.setCommonCameraSettingsStateCameraSettingsChangedListener(mARCommandCommonCameraSettingsStateCameraSettingsChangedListener);
+
+		ARCommand.setCommonDebugStatsEventSendPacketListener(mARCommandCommonDebugStatsEventSendPacketListener);
 	}
 
 	/**
 	 * コールバックを登録解除
 	 */
 	protected void unregisterARCommandsListener() {
-//		ARCommand.setCommonCommonStateAllStatesChangedListener(null);
+		ARCommand.setCommonSettingsStateAllSettingsChangedListener(null);
+		ARCommand.setCommonSettingsStateResetChangedListener(null);
 		ARCommand.setCommonSettingsStateProductNameChangedListener(null);
 		ARCommand.setCommonSettingsStateProductVersionChangedListener(null);
 		ARCommand.setCommonSettingsStateProductSerialHighChangedListener(null);
+		ARCommand.setCommonSettingsStateProductSerialLowChangedListener(null);
+		ARCommand.setCommonSettingsStateCountryChangedListener(null);
+		ARCommand.setCommonSettingsStateAutoCountryChangedListener(null);
+
+		ARCommand.setCommonCommonStateAllStatesChangedListener(null);
 		ARCommand.setCommonCommonStateBatteryStateChangedListener(null);
+
+		ARCommand.setCommonCommonStateMassStorageStateListChangedListener(null);
+		ARCommand.setCommonCommonStateMassStorageInfoStateListChangedListener(null);
+		ARCommand.setCommonCommonStateCurrentDateChangedListener(null);
+		ARCommand.setCommonCommonStateCurrentTimeChangedListener(null);
+		ARCommand.setCommonCommonStateMassStorageInfoRemainingListChangedListener(null);
+		ARCommand.setCommonCommonStateWifiSignalChangedListener(null);
 		ARCommand.setCommonCommonStateSensorsStatesListChangedListener(null);
+
+		ARCommand.setCommonOverHeatStateOverHeatChangedListener(null);
+		ARCommand.setCommonOverHeatStateOverHeatRegulationChangedListener(null);
+
+		ARCommand.setCommonControllerStateIsPilotingChangedListener(null);
+
+		ARCommand.setCommonWifiSettingsStateOutdoorSettingsChangedListener(null);
+
+		ARCommand.setCommonMavlinkStateMavlinkFilePlayingStateChangedListener(null);
+
+		ARCommand.setCommonCalibrationStateMagnetoCalibrationStateChangedListener(null);
+		ARCommand.setCommonCalibrationStateMagnetoCalibrationRequiredStateListener(null);
+		ARCommand.setCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener(null);
+		ARCommand.setCommonCalibrationStateMagnetoCalibrationStartedChangedListener(null);
+
+		ARCommand.setCommonCameraSettingsStateCameraSettingsChangedListener(null);
+
+		ARCommand.setCommonDebugStatsEventSendPacketListener(null);
 	}
 
 	/**
-	 * AllStatesChangedListener・・・値を読める訳じゃないのでコメントアウト
+	 * AllSettingsChangedListener
 	 */
-/*	private final ARCommandCommonCommonStateAllStatesChangedListener
+	private final ARCommandCommonSettingsStateAllSettingsChangedListener
+		mARCommandCommonSettingsStateAllSettingsChangedListener
+			= new ARCommandCommonSettingsStateAllSettingsChangedListener() {
+		@Override
+		public void onCommonSettingsStateAllSettingsChangedUpdate() {
+			if (isWaitingAllSettings) {
+				cmdGetAllSettingsSent.release();
+			}
+		}
+	};
+
+	/**
+	 * AllStatesChangedListener
+	 */
+	private final ARCommandCommonCommonStateAllStatesChangedListener
 		mARCommandCommonCommonStateAllStatesChangedListener
 			= new ARCommandCommonCommonStateAllStatesChangedListener() {
 		@Override
 		public void onCommonCommonStateAllStatesChangedUpdate() {
+			if (isWaitingAllStates) {
+				cmdGetAllStatesSent.release();
+			}
 		}
-	}; */
+	};
+
+	private final ARCommandCommonSettingsStateResetChangedListener
+		mARCommandCommonSettingsStateResetChangedListener
+		= new ARCommandCommonSettingsStateResetChangedListener() {
+		@Override
+		public void onCommonSettingsStateResetChangedUpdate() {
+		}
+	};
 
 	private String mProductName;
 	private final ARCommandCommonSettingsStateProductNameChangedListener
 		mARCommandCommonSettingsStateProductNameChangedListener
 			= new ARCommandCommonSettingsStateProductNameChangedListener() {
 		@Override
-		public void onCommonSettingsStateProductNameChangedUpdate(final String s) {
-			mProductName = s;
+		public void onCommonSettingsStateProductNameChangedUpdate(final String name) {
+			mProductName = name;
 		}
 	};
 
@@ -408,7 +739,8 @@ public abstract class DeviceController implements IDeviceController {
 		mARCommandCommonSettingsStateProductVersionChangedListener
 			= new ARCommandCommonSettingsStateProductVersionChangedListener() {
 		@Override
-		public void onCommonSettingsStateProductVersionChangedUpdate(final String software, final String hardware) {
+		public void onCommonSettingsStateProductVersionChangedUpdate(
+			final String software, final String hardware) {
 			mProduct.software = software;
 			mProduct.hardware = hardware;
 		}
@@ -423,6 +755,9 @@ public abstract class DeviceController implements IDeviceController {
 	private final ARCommandCommonSettingsStateProductSerialHighChangedListener
 		mARCommandCommonSettingsStateProductSerialHighChangedListener
 			= new ARCommandCommonSettingsStateProductSerialHighChangedListener() {
+		/**
+		 * @param high Serial high number (hexadecimal value)
+		 */
 		@Override
 		public void onCommonSettingsStateProductSerialHighChangedUpdate(final String high) {
 			mSerialHigh = high;
@@ -432,9 +767,38 @@ public abstract class DeviceController implements IDeviceController {
 	private final ARCommandCommonSettingsStateProductSerialLowChangedListener
 		mARCommandCommonSettingsStateProductSerialLowChangedListener
 			= new ARCommandCommonSettingsStateProductSerialLowChangedListener() {
+		/**
+		 * @param low Serial low number (hexadecimal value)
+		 */
 		@Override
 		public void onCommonSettingsStateProductSerialLowChangedUpdate(final String low) {
 			mSerialLow = low;
+		}
+	};
+
+	private String mCuntryCode;
+	private final ARCommandCommonSettingsStateCountryChangedListener
+		mARCommandCommonSettingsStateCountryChangedListener
+			= new ARCommandCommonSettingsStateCountryChangedListener() {
+		/**
+		 * @param code Country code with ISO 3166 format, empty string means unknown country.
+		 */
+		@Override
+		public void onCommonSettingsStateCountryChangedUpdate(final String code) {
+			mCuntryCode = code;
+		}
+	};
+
+	private boolean mAutomaticCountry;
+	private final ARCommandCommonSettingsStateAutoCountryChangedListener
+		mARCommandCommonSettingsStateAutoCountryChangedListener
+			= new ARCommandCommonSettingsStateAutoCountryChangedListener() {
+		/**
+		 * @param automatic 0: Manual, 1: Auto
+		 */
+		@Override
+		public void onCommonSettingsStateAutoCountryChangedUpdate(final byte automatic) {
+			mAutomaticCountry = automatic != 0;
 		}
 	};
 
@@ -456,6 +820,89 @@ public abstract class DeviceController implements IDeviceController {
 				mBatteryState = percent;
 				callOnUpdateBattery(percent);
 			}
+		}
+	};
+
+	private final ARCommandCommonCommonStateMassStorageStateListChangedListener
+		mARCommandCommonCommonStateMassStorageStateListChangedListener
+			= new ARCommandCommonCommonStateMassStorageStateListChangedListener() {
+		/**
+		 * @param mass_storage_id Mass storage id (unique)
+		 * @param name Mass storage name
+		 */
+		@Override
+		public void onCommonCommonStateMassStorageStateListChangedUpdate(
+			final byte mass_storage_id, final String name) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonCommonStateMassStorageInfoStateListChangedListener
+		mARCommandCommonCommonStateMassStorageInfoStateListChangedListener
+			= new ARCommandCommonCommonStateMassStorageInfoStateListChangedListener() {
+		/**
+		 * @param mass_storage_id Mass storage state id (unique)
+		 * @param size Mass storage size in MBytes
+		 * @param used_size Mass storage used size in MBytes
+		 * @param plugged Mass storage plugged (1 if mass storage is plugged, otherwise 0)
+		 * @param full Mass storage full information state (1 if mass storage full, 0 otherwise).
+		 * @param internal Mass storage internal type state (1 if mass storage is internal, 0 otherwise)
+		 */
+		@Override
+		public void onCommonCommonStateMassStorageInfoStateListChangedUpdate(
+			final byte mass_storage_id, final int size, final int used_size, final byte plugged, final byte full, final byte internal) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonCommonStateCurrentDateChangedListener
+		mARCommandCommonCommonStateCurrentDateChangedListener
+			= new ARCommandCommonCommonStateCurrentDateChangedListener() {
+		/**
+		 * @param date Date with ISO-8601 format
+		 */
+		@Override
+		public void onCommonCommonStateCurrentDateChangedUpdate(final String date) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonCommonStateCurrentTimeChangedListener
+		mARCommandCommonCommonStateCurrentTimeChangedListener
+			= new ARCommandCommonCommonStateCurrentTimeChangedListener() {
+		/**
+		 * @param time Time with ISO-8601 format
+		 */
+		@Override
+		public void onCommonCommonStateCurrentTimeChangedUpdate(final String time) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonCommonStateWifiSignalChangedListener
+		mARCommandCommonCommonStateWifiSignalChangedListener
+			= new ARCommandCommonCommonStateWifiSignalChangedListener() {
+		/**
+		 * @param rssi RSSI of the signal between controller and the product (in dbm)
+		 */
+		@Override
+		public void onCommonCommonStateWifiSignalChangedUpdate(final short rssi) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener
+		mARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener
+			= new ARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener() {
+		/**
+		 * @param free_space Mass storage free space in MBytes
+		 * @param rec_time Mass storage record time reamining in minute
+		 * @param photo_remaining Mass storage photo remaining
+		 */
+		@Override
+		public void onCommonCommonStateMassStorageInfoRemainingListChangedUpdate(
+			final int free_space, final short rec_time, final int photo_remaining) {
+			// XXX
 		}
 	};
 
@@ -481,6 +928,148 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	private final ARCommandCommonOverHeatStateOverHeatChangedListener
+		mARCommandCommonOverHeatStateOverHeatChangedListener
+			= new ARCommandCommonOverHeatStateOverHeatChangedListener() {
+		@Override
+		public void onCommonOverHeatStateOverHeatChangedUpdate() {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonOverHeatStateOverHeatRegulationChangedListener
+		mARCommandCommonOverHeatStateOverHeatRegulationChangedListener
+			= new ARCommandCommonOverHeatStateOverHeatRegulationChangedListener() {
+		/**
+		 * @param regulationType Type of overheat regulation : 0 for ventilation, 1 for switch off
+		 */
+		@Override
+		public void onCommonOverHeatStateOverHeatRegulationChangedUpdate(final byte regulationType) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonControllerStateIsPilotingChangedListener
+		mARCommandCommonControllerStateIsPilotingChangedListener
+			= new ARCommandCommonControllerStateIsPilotingChangedListener() {
+		/**
+		 * @param piloting 0 when the application is not in the piloting HUD, 1 when it enters the HUD.
+		 */
+		@Override
+		public void onCommonControllerStateIsPilotingChangedUpdate(final byte piloting) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener
+		mARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener
+			= new ARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener() {
+		/**
+		 * @param outdoor 1 if it should use outdoor wifi settings, 0 otherwise
+		 */
+		@Override
+		public void onCommonWifiSettingsStateOutdoorSettingsChangedUpdate(final byte outdoor) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonMavlinkStateMavlinkFilePlayingStateChangedListener
+		mARCommandCommonMavlinkStateMavlinkFilePlayingStateChangedListener
+			= new ARCommandCommonMavlinkStateMavlinkFilePlayingStateChangedListener() {
+		/**
+		 * @param state State of the mavlink
+		 * @param filepath flight plan file path from the mavlink ftp root
+		 * @param type type of the played mavlink file
+		 */
+		@Override
+		public void onCommonMavlinkStateMavlinkFilePlayingStateChangedUpdate(
+			final ARCOMMANDS_COMMON_MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED_STATE_ENUM state,
+			final String filepath, final ARCOMMANDS_COMMON_MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED_TYPE_ENUM type) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonCalibrationStateMagnetoCalibrationStateChangedListener
+		mARCommandCommonCalibrationStateMagnetoCalibrationStateChangedListener
+			= new ARCommandCommonCalibrationStateMagnetoCalibrationStateChangedListener() {
+		/**
+		 * @param xAxisCalibration State of the x axis (roll) calibration : 1 if calibration is done, 0 otherwise
+		 * @param yAxisCalibration State of the y axis (pitch) calibration : 1 if calibration is done, 0 otherwise
+		 * @param zAxisCalibration State of the z axis (yaw) calibration : 1 if calibration is done, 0 otherwise
+		 * @param calibrationFailed 1 if calibration has failed, 0 otherwise. If this arg is 1, consider all previous arg as 0
+		 */
+		@Override
+		public void onCommonCalibrationStateMagnetoCalibrationStateChangedUpdate(
+			final byte xAxisCalibration, final byte yAxisCalibration, final byte zAxisCalibration, final byte calibrationFailed) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonCalibrationStateMagnetoCalibrationRequiredStateListener
+		mARCommandCommonCalibrationStateMagnetoCalibrationRequiredStateListener
+			= new ARCommandCommonCalibrationStateMagnetoCalibrationRequiredStateListener() {
+		/**
+		 * @param required 1 if calibration is required, 0 if current calibration is still valid
+		 */
+		@Override
+		public void onCommonCalibrationStateMagnetoCalibrationRequiredStateUpdate(final byte required) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener
+		mARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener
+			= new ARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener() {
+		/**
+		 * @param axis The axis to calibrate
+		 */
+		@Override
+		public void onCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedUpdate(
+			final ARCOMMANDS_COMMON_CALIBRATIONSTATE_MAGNETOCALIBRATIONAXISTOCALIBRATECHANGED_AXIS_ENUM axis) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonCalibrationStateMagnetoCalibrationStartedChangedListener
+		mARCommandCommonCalibrationStateMagnetoCalibrationStartedChangedListener
+			= new ARCommandCommonCalibrationStateMagnetoCalibrationStartedChangedListener() {
+		/**
+		 * @param started 1 if calibration has started, 0 otherwise
+		 */
+		@Override
+		public void onCommonCalibrationStateMagnetoCalibrationStartedChangedUpdate(final byte started) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonCameraSettingsStateCameraSettingsChangedListener
+		mARCommandCommonCameraSettingsStateCameraSettingsChangedListener
+			= new ARCommandCommonCameraSettingsStateCameraSettingsChangedListener() {
+		/**
+		 * @param fov Value of the camera horizontal fov (in degree)
+		 * @param panMax Value of max pan (right pan) (in degree)
+		 * @param panMin Value of min pan (left pan) (in degree)
+		 * @param tiltMax Value of max tilt (top tilt) (in degree)
+		 * @param tiltMin Value of min tilt (bottom tilt) (in degree)
+		 */
+		@Override
+		public void onCommonCameraSettingsStateCameraSettingsChangedUpdate(
+			final float fov, final float panMax, final float panMin, final float tiltMax, final float tiltMin) {
+			// XXX
+		}
+	};
+
+	private final ARCommandCommonDebugStatsEventSendPacketListener
+		mARCommandCommonDebugStatsEventSendPacketListener
+			= new ARCommandCommonDebugStatsEventSendPacketListener() {
+		/**
+		 * @param packet packet from drone
+		 */
+		@Override
+		public void onCommonDebugStatsEventSendPacketUpdate(final String packet) {
+			// XXX
+		}
+	};
 
 //================================================================================
 // コールバック関係
@@ -870,6 +1459,24 @@ public abstract class DeviceController implements IDeviceController {
 		public void onDisconnect(final ARNetworkALManager arNetworkALManager) {
 			if (DEBUG) Log.d(TAG, "onDisconnect ...");
 			callOnDisconnect();
+		}
+	}
+
+	private class ConnectionThread extends Thread {
+		private ARDISCOVERY_ERROR_ENUM error;
+
+		public void run() {
+			error = discoveryData.ControllerConnection(discoveryPort, discoveryIp);
+			if (error != ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK) {
+				ARSALPrint.e(TAG, "Error while opening discovery connection : " + error);
+			}
+
+            // discoverSemaphore can be disposed
+			discoverSemaphore.release();
+		}
+
+		public ARDISCOVERY_ERROR_ENUM getError() {
+			return error;
 		}
 	}
 

@@ -82,6 +82,7 @@ public interface IDeviceController {
 
 	public int getState();
 	public boolean start();
+	public void cancelStart();
 	public void stop();
 	public boolean isStarted();
 
