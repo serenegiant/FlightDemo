@@ -1,6 +1,8 @@
 package com.serenegiant.arflight;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -94,7 +96,7 @@ public abstract class DeviceController implements IDeviceController {
 	private final ARDiscoveryDeviceService mDeviceService;
 
 	protected ARNetworkALManager mARManager;
-	protected ARNetworkManager mARNetManager;
+	private ARNetworkManager mARNetManager;
 	protected boolean mMediaOpened;
 	private int videoFragmentSize;
 	private int videoFragmentMaximumNumber;
@@ -215,7 +217,7 @@ public abstract class DeviceController implements IDeviceController {
 
 	@Override
 	public boolean start() {
-		if (DEBUG) Log.d(TAG, "start ...");
+		if (DEBUG) Log.v(TAG, "start:");
 
 		synchronized (mStateSync) {
 			if (mState != STATE_STOPPED) return false;
@@ -243,12 +245,14 @@ public abstract class DeviceController implements IDeviceController {
 			}
 			onStarted();
 		}
+		if (DEBUG) Log.v(TAG, "start:finished");
 
 		return failed;
 	}
 
 	@Override
 	public void cancelStart() {
+		if (DEBUG) Log.v(TAG, "cancelStart:");
 		if (!mRequestCancel) {
 			mRequestCancel = true;
 			final Object device = mDeviceService.getDevice();
@@ -265,18 +269,19 @@ public abstract class DeviceController implements IDeviceController {
 			cmdGetAllStatesSent.release();
 			//TODO see : reset the semaphores or use signals
 		}
+		if (DEBUG) Log.v(TAG, "cancelStart:finished");
 	}
 
 	@Override
 	public void stop() {
-		if (DEBUG) Log.d(TAG, "stop ...");
+		if (DEBUG) Log.v(TAG, "stop:");
+
+		sendLanding();
 
 		synchronized (mStateSync) {
 			if (mState != STATE_STARTED) return;
 			mState = STATE_STOPPING;
 		}
-
-		unregisterARCommandsListener();
 
 		// 操縦コマンド送信スレッドを終了(終了するまで戻らない)
 		stopLooperThread();
@@ -287,10 +292,12 @@ public abstract class DeviceController implements IDeviceController {
 		// ネットワークをクリーンアップ
 		stopNetwork();
 
+		unregisterARCommandsListener();
+
 		synchronized (mStateSync) {
 			mState = STATE_STOPPED;
 		}
-
+		if (DEBUG) Log.v(TAG, "stop:finished");
 	}
 
 	@Override
@@ -304,14 +311,17 @@ public abstract class DeviceController implements IDeviceController {
 	 * DeviceControllerがstartした時の処理
 	 */
 	protected void onStarted() {
+		if (DEBUG) Log.v(TAG, "onStarted:");
 		// only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
 		final Date currentDate = new Date(System.currentTimeMillis());
 		sendDate(currentDate);
 		sendTime(currentDate);
 		isWaitingAllSettings = true;
 		try {
+			if (DEBUG) Log.v(TAG, "onStarted:sendAllSettings");
 			if (sendAllSettings()) {
 				try {
+					if (DEBUG) Log.v(TAG, "onStarted:sendAllSettings:wait");
 					//successful = cmdGetAllSettingsSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
 					cmdGetAllSettingsSent.acquire();
 				} catch (InterruptedException e) {
@@ -319,12 +329,15 @@ public abstract class DeviceController implements IDeviceController {
 				}
 			}
 		} finally {
+			if (DEBUG) Log.v(TAG, "onStarted:sendAllSettings:finished");
 			isWaitingAllSettings = false;
 		}
 		isWaitingAllStates = true;
 		try {
+			if (DEBUG) Log.v(TAG, "onStarted:sendAllStates");
 			if (sendAllStates()) {
 				try {
+					if (DEBUG) Log.v(TAG, "onStarted:sendAllStates:wait");
 					//successful = cmdGetAllStatesSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
 					cmdGetAllStatesSent.acquire();
 				} catch (InterruptedException e) {
@@ -332,14 +345,17 @@ public abstract class DeviceController implements IDeviceController {
 				}
 			}
 		} finally {
+			if (DEBUG) Log.v(TAG, "onStarted:sendAllStates:finished");
 			isWaitingAllStates = false;
 		}
+		if (DEBUG) Log.v(TAG, "onStarted:finished");
 	}
 
 	private String discoveryIp;
 	private int discoveryPort;
 
 	protected boolean startNetwork() {
+		if (DEBUG) Log.v(TAG, "startNetwork:");
 		boolean failed = false;
 		int pingDelay = 0; /* 0 means default, -1 means no ping */
 
@@ -348,22 +364,22 @@ public abstract class DeviceController implements IDeviceController {
 
 
 		final Object device = mDeviceService.getDevice();
+		if (DEBUG) Log.v(TAG, "device=" + device);
 		if (device instanceof ARDiscoveryDeviceNetService) {
 			// Wifiの時
+			if (DEBUG) Log.v(TAG, "Wifi接続開始");
 			final ARDiscoveryDeviceNetService netDevice = (ARDiscoveryDeviceNetService)device;
 			discoveryIp = netDevice.getIp();
 			discoveryPort = netDevice.getPort();
 
             /*  */
-			if (!ardiscoveryConnect())
-			{
+			if (!ardiscoveryConnect()) {
 				failed = true;
 			}
 
 			// TODO :  if ardiscoveryConnect ok
 			mNetConfig.addStreamReaderIOBuffer(videoFragmentSize, videoFragmentMaximumNumber);
 
-            /* setup ARNetworkAL for wifi */
 			ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(discoveryIp, c2dPort, d2cPort, 1);
 
 			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
@@ -373,8 +389,8 @@ public abstract class DeviceController implements IDeviceController {
 				failed = true;
 			}
 		} else if (device instanceof ARDiscoveryDeviceBLEService) {
-			/* setup ARNetworkAL for BLE */
-
+			// Bluetoothの時
+			if (DEBUG) Log.v(TAG, "Bluetooth接続開始");
 			final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) device;
 
 			final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(
@@ -384,7 +400,7 @@ public abstract class DeviceController implements IDeviceController {
 				mMediaOpened = true;
 				pingDelay = -1; /* Disable ping for BLE networks */
 			} else {
-				ARSALPrint.e(TAG, "error occured: " + netALError.toString());
+				ARSALPrint.e(TAG, "error occurred: " + netALError.toString());
 				failed = true;
 			}
 		} else {
@@ -393,17 +409,19 @@ public abstract class DeviceController implements IDeviceController {
 		}
 		if (!failed) {
 			// ARNetworkManagerを生成
+			if (DEBUG) Log.v(TAG, "ARNetworkManagerを生成");
 //			mARNetManager = new ARNetworkManagerExtend(mARManager,
 //				c2dParams.toArray(new ARNetworkIOBufferParam[c2dParams.size()]),
 //				d2cParams.toArray(new ARNetworkIOBufferParam[d2cParams.size()]),
 //				pingDelay);
 			mARNetManager = new ARNetworkManagerExtend(mARManager,
-														  mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
+				mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
 			if (mARNetManager.isCorrectlyInitialized() == false) {
 				ARSALPrint.e(TAG, "new ARNetworkManager failed");
 				failed = true;
 			}
 		}
+		if (DEBUG) Log.v(TAG, "startNetwork:finished:" + failed);
 		return failed;
 	}
 
@@ -477,7 +495,7 @@ public abstract class DeviceController implements IDeviceController {
 			};
 		}
 
-		if (ok == true) {
+		if (ok) {
             /* open the discovery connection data in another thread */
 			ConnectionThread connectionThread = new ConnectionThread();
 			connectionThread.start();
@@ -1184,13 +1202,13 @@ public abstract class DeviceController implements IDeviceController {
 
 	/**
 	 * 指定したコマンドを指定したバッファにキューイング
-	 * @param cmd
 	 * @param bufferId バッファID
+	 * @param cmd
 	 * @param timeoutPolicy
 	 * @param notificationData
 	 * @return 正常にキューイングできればtrue
 	 */
-	protected boolean sendData(final ARCommand cmd, final int bufferId,
+	protected boolean sendData(final int bufferId, final ARCommand cmd,
 		final ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy,
 		final NetworkNotificationData notificationData) {
 
@@ -1201,7 +1219,7 @@ public abstract class DeviceController implements IDeviceController {
 
 		final ARNETWORK_ERROR_ENUM netError= mARNetManager.sendData(bufferId, cmd, sendInfo, true);
 		if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-			ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
+			Log.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
 			result = false;
 		}
 
@@ -1447,9 +1465,55 @@ public abstract class DeviceController implements IDeviceController {
 			final ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM status, final Object customData) {
 
 			ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM retVal = ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DEFAULT;
+			ARNetworkSendInfo sendInfo = (ARNetworkSendInfo) customData;
 
-			if (status == ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM.ARNETWORK_MANAGER_CALLBACK_STATUS_TIMEOUT) {
-				retVal = ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP;
+//			if (status == ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM.ARNETWORK_MANAGER_CALLBACK_STATUS_TIMEOUT) {
+//				retVal = ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP;
+//			}
+			switch (status) {
+			case ARNETWORK_MANAGER_CALLBACK_STATUS_SENT:
+				if ((sendInfo != null) && (sendInfo.getNotificationListener() != null)) {
+					sendInfo.getNotificationListener().networkDidSendFrame(sendInfo.getNotificationData());
+				}
+				break;
+
+			case ARNETWORK_MANAGER_CALLBACK_STATUS_ACK_RECEIVED:
+				if ((sendInfo != null) &&(sendInfo.getNotificationListener() != null)) {
+					sendInfo.getNotificationListener().networkDidReceiveAck(sendInfo.getNotificationData());
+				}
+				break;
+
+			case ARNETWORK_MANAGER_CALLBACK_STATUS_TIMEOUT:
+				if ((sendInfo != null) &&(sendInfo.getNotificationListener() != null)) {
+					sendInfo.getNotificationListener().networkTimeoutOccurred(sendInfo.getNotificationData());
+				}
+
+                /* Apply sending policy. */
+				retVal = sendInfo.getTimeoutPolicy();
+
+				break;
+
+			case ARNETWORK_MANAGER_CALLBACK_STATUS_CANCEL:
+				if ((sendInfo != null) && (sendInfo.getNotificationListener() != null)) {
+					sendInfo.getNotificationListener().networkDidCancelFrame(sendInfo.getNotificationData());
+				}
+				break;
+
+			case ARNETWORK_MANAGER_CALLBACK_STATUS_FREE:
+				if (data != null) {
+					data.dispose();
+				} else {
+					Log.e(TAG, "no data to free");
+				}
+
+				break;
+
+			case ARNETWORK_MANAGER_CALLBACK_STATUS_DONE:
+				break;
+
+			default:
+				Log.e(TAG, "default case status:"+ status);
+				break;
 			}
 
 			return retVal;
@@ -1458,6 +1522,7 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onDisconnect(final ARNetworkALManager arNetworkALManager) {
 			if (DEBUG) Log.d(TAG, "onDisconnect ...");
+			DeviceController.this.stop();
 			callOnDisconnect();
 		}
 	}
@@ -1688,4 +1753,20 @@ public abstract class DeviceController implements IDeviceController {
 
 	}
 
+	private static final int CMD_NON = 0;
+	private static final int CMD_START = 1;
+	private static final int CMD_STOP = 2;
+	private static final int CMD_CANCEL = 3;
+	private static final int CMD_SET_DATE = 4;
+	private static final int CMD_SET_TIME = 5;
+
+	private class ControlHandler extends Handler {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+
+			}
+			super.handleMessage(msg);
+		}
+	}
 }

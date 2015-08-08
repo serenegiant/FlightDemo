@@ -289,14 +289,23 @@
 				android:scaleType="fitXY"
 				android:layout_alignParentRight="true"/>
 
+			<TextView
+				android:id="@+id/time_label"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="###:##"
+				android:textSize="@dimen/text_sz_button"
+				android:layout_alignParentLeft="true"
+				android:layout_centerVertical="true" />
+
 			<FrameLayout
 				android:id="@+id/record_btn_frame"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:background="@null"
-				android:layout_marginLeft="60dp"
-				android:layout_alignParentLeft="true"
-				android:layout_alignParentStart="true" >
+				android:layout_marginLeft="20dp"
+				android:layout_toEndOf="@+id/time_label"
+				android:layout_toRightOf="@+id/time_label">
 					<ImageButton
 						android:id="@+id/record_btn"
 						android:layout_width="@dimen/bottom_panel_height"

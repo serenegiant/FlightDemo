@@ -17,7 +17,7 @@ public class FlightRecorder {
 	private static final boolean DEBUG = true;
 	private static final String TAG = "FlightRecorder";
 
-	public interface PlaybackListener {
+	public interface FlightRecorderListener {
 		public void onStart();
 
 		/**
@@ -29,6 +29,14 @@ public class FlightRecorder {
 		 */
 		public boolean onStep(final int cmd, final int value, final long t);
 		public void onStop();
+
+		/**
+		 * 記録時のコールバック
+		 * @param cmd
+		 * @param value
+		 * @param t
+		 */
+		public void onRecord(final int cmd, final int value, final long t);
 	}
 
 	public static final int CMD_EMERGENCY = -1;		// 非常停止
@@ -48,7 +56,7 @@ public class FlightRecorder {
 	private final Object mSync = new Object();
 	private final List<String> mRecords = new ArrayList<String>(100);
 	private final Object mPlaybackSync = new Object();	// PlaybackListener同期用
-	private PlaybackListener mPlaybackListener;
+	private FlightRecorderListener mPlaybackListener;
 
 	private volatile boolean mIsRecording;	// 記録中
 	private volatile boolean mIsPlayback;	// 再生中
@@ -56,13 +64,13 @@ public class FlightRecorder {
 	private int mCurrentPos;	// 次の読み込み位置(再生時)
 
 
-	public void setPlaybackListener(final PlaybackListener listener) {
+	public void setPlaybackListener(final FlightRecorderListener listener) {
 		synchronized (mPlaybackSync) {
 			mPlaybackListener = listener;
 		}
 	}
 
-	public PlaybackListener getPlaybackListener() {
+	public FlightRecorderListener getPlaybackListener() {
 		synchronized (mPlaybackSync) {
 			return mPlaybackListener;
 		}
@@ -249,9 +257,17 @@ public class FlightRecorder {
 	public void record(final int cmd, final int value) {
 		synchronized (mSync) {
 			if (mIsRecording) {
-				final String cmd_str = String.format("%d,%d,%d", cmd, value, System.currentTimeMillis() - mStartTime);
+				final long t = System.currentTimeMillis() - mStartTime;
+				final String cmd_str = String.format("%d,%d,%d", cmd, value, t);
 				mRecords.add(cmd_str);
 				mCurrentPos = mRecords.size() - 1;
+				if (mPlaybackListener != null) {
+					try {
+						mPlaybackListener.onRecord(cmd, value, t);
+					} catch (Exception e) {
+						Log.w(TAG, e);
+					}
+				}
 			}
 		}
 	}
@@ -264,9 +280,17 @@ public class FlightRecorder {
 	public void record(final int cmd) {
 		synchronized (mSync) {
 			if (mIsRecording) {
-				final String cmd_str = String.format("%d,%d,%d", cmd, 0, System.currentTimeMillis() - mStartTime);
+				final long t = System.currentTimeMillis() - mStartTime;
+				final String cmd_str = String.format("%d,%d,%d", cmd, 0, t);
 				mRecords.add(cmd_str);
 				mCurrentPos = mRecords.size() - 1;
+				if (mPlaybackListener != null) {
+					try {
+						mPlaybackListener.onRecord(cmd, 0, t);
+					} catch (Exception e) {
+						Log.w(TAG, e);
+					}
+				}
 			}
 		}
 	}

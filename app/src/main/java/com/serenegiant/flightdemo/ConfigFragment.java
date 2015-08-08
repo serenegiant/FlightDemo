@@ -104,7 +104,7 @@ public class ConfigFragment extends ControlFragment {
 		SeekBar seekbar = (SeekBar)root.findViewById(R.id.max_altitude_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mMaxAltitude = deviceController.getMaxAltitude();
+		mMaxAltitude = mController.getMaxAltitude();
 		try {
 			seekbar.setProgress((int) ((mMaxAltitude.current - mMaxAltitude.min) / (mMaxAltitude.max - mMaxAltitude.min) * 1000));
 		} catch (Exception e) {
@@ -117,7 +117,7 @@ public class ConfigFragment extends ControlFragment {
 		seekbar = (SeekBar)root.findViewById(R.id.max_tilt_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mMaxTilt = deviceController.getMaxTilt();
+		mMaxTilt = mController.getMaxTilt();
 		try {
 			seekbar.setProgress((int) ((mMaxTilt.current - mMaxTilt.min) / (mMaxTilt.max - mMaxTilt.min) * 1000));
 		} catch (Exception e) {
@@ -130,7 +130,7 @@ public class ConfigFragment extends ControlFragment {
 		seekbar = (SeekBar)root.findViewById(R.id.max_vertical_speed_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mMaxVerticalSpeed = deviceController.getMaxVerticalSpeed();
+		mMaxVerticalSpeed = mController.getMaxVerticalSpeed();
 		try {
 			seekbar.setProgress((int) ((mMaxVerticalSpeed.current - mMaxVerticalSpeed.min) / (mMaxVerticalSpeed.max - mMaxVerticalSpeed.min) * 1000));
 		} catch (Exception e) {
@@ -143,7 +143,7 @@ public class ConfigFragment extends ControlFragment {
 		seekbar = (SeekBar)root.findViewById(R.id.max_rotation_speed_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mMaxRotationSpeed = deviceController.getMaxRotationSpeed();
+		mMaxRotationSpeed = mController.getMaxRotationSpeed();
 		try {
 			seekbar.setProgress((int) ((mMaxRotationSpeed.current - mMaxRotationSpeed.min) / (mMaxRotationSpeed.max - mMaxRotationSpeed.min) * 1000));
 		} catch (Exception e) {
@@ -161,17 +161,17 @@ public class ConfigFragment extends ControlFragment {
 		// 自動カットアウトモード
 		CheckBox checkbox = (CheckBox)root.findViewById(R.id.cutout_checkbox);
 		checkbox.setOnCheckedChangeListener(null);
-		checkbox.setChecked(((DeviceControllerMiniDrone) deviceController).isCutoffModeEnabled());
+		checkbox.setChecked(((DeviceControllerMiniDrone) mController).isCutoffModeEnabled());
 		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// 車輪
 		checkbox = (CheckBox)root.findViewById(R.id.wheel_checkbox);
 		checkbox.setOnCheckedChangeListener(null);
-		checkbox.setChecked(((DeviceControllerMiniDrone)deviceController).hasWheel());
+		checkbox.setChecked(((DeviceControllerMiniDrone) mController).hasWheel());
 		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// 自動離陸モード
 		checkbox = (CheckBox)root.findViewById(R.id.auto_takeoff_checkbox);
 		checkbox.setOnCheckedChangeListener(null);
-		checkbox.setChecked(((DeviceControllerMiniDrone)deviceController).isAutoTakeOffModeEnabled());
+		checkbox.setChecked(((DeviceControllerMiniDrone) mController).isAutoTakeOffModeEnabled());
 		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
@@ -183,11 +183,11 @@ public class ConfigFragment extends ControlFragment {
 		TextView tv = (TextView)root.findViewById(R.id.app_version_textview);
 		tv.setText(BuildConfig.VERSION_NAME);
 		tv = (TextView)root.findViewById(R.id.product_name_textview);
-		tv.setText(deviceController.getName());
+		tv.setText(mController.getName());
 		tv = (TextView)root.findViewById(R.id.software_version_textview);
-		tv.setText(deviceController.getSoftwareVersion());
+		tv.setText(mController.getSoftwareVersion());
 		tv = (TextView)root.findViewById(R.id.hardware_version_textview);
-		tv.setText(deviceController.getHardwareVersion());
+		tv.setText(mController.getHardwareVersion());
 	}
 
 	/**
@@ -280,7 +280,7 @@ public class ConfigFragment extends ControlFragment {
 		 */
 		@Override
 		public void onStopTrackingTouch(SeekBar seekBar) {
-			if (deviceController == null) {
+			if (mController == null) {
 				Log.w(TAG, "deviceControllerがnull");
 				return;
 			}
@@ -288,25 +288,25 @@ public class ConfigFragment extends ControlFragment {
 			case R.id.max_altitude_seekbar:
 				final float altitude = (int)(seekBar.getProgress() / 100f * (mMaxAltitude.max - mMaxAltitude.min)) / 10f + mMaxAltitude.min;
 				if (altitude != mMaxAltitude.current) {
-					deviceController.sendMaxAltitude(altitude);
+					mController.sendMaxAltitude(altitude);
 				}
 				break;
 			case R.id.max_tilt_seekbar:
 				final float tilt = (int)(seekBar.getProgress() / 100f * (mMaxTilt.max - mMaxTilt.min)) / 10f + mMaxTilt.min;
 				if (tilt != mMaxTilt.current) {
-					deviceController.sendMaxTilt(tilt);
+					mController.sendMaxTilt(tilt);
 				}
 				break;
 			case R.id.max_vertical_speed_seekbar:
 				final float vertical = (int)(seekBar.getProgress() / 100f * (mMaxVerticalSpeed.max - mMaxVerticalSpeed.min)) / 10f + mMaxVerticalSpeed.min;
 				if (vertical != mMaxVerticalSpeed.current) {
-					deviceController.sendMaxVerticalSpeed(vertical);
+					mController.sendMaxVerticalSpeed(vertical);
 				}
 				break;
 			case R.id.max_rotation_speed_seekbar:
 				final float rotation = (int)(seekBar.getProgress() / 1000f * (mMaxRotationSpeed.max - mMaxRotationSpeed.min)) + mMaxRotationSpeed.min;
 				if (rotation != mMaxRotationSpeed.current) {
-					deviceController.sendMaxRotationSpeed(rotation);
+					mController.sendMaxRotationSpeed(rotation);
 				}
 				break;
 			}
@@ -322,18 +322,18 @@ public class ConfigFragment extends ControlFragment {
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 			switch (buttonView.getId()) {
 			case R.id.cutout_checkbox:
-				if (((DeviceControllerMiniDrone)deviceController).isCutoffModeEnabled() != isChecked) {
-					((DeviceControllerMiniDrone) deviceController).sendCutOutMode(isChecked);
+				if (((DeviceControllerMiniDrone) mController).isCutoffModeEnabled() != isChecked) {
+					((DeviceControllerMiniDrone) mController).sendCutOutMode(isChecked);
 				}
 				break;
 			case R.id.wheel_checkbox:
-				if (((DeviceControllerMiniDrone)deviceController).hasWheel() != isChecked) {
-					((DeviceControllerMiniDrone) deviceController).sendWheel(isChecked);
+				if (((DeviceControllerMiniDrone) mController).hasWheel() != isChecked) {
+					((DeviceControllerMiniDrone) mController).sendWheel(isChecked);
 				}
 				break;
 			case R.id.auto_takeoff_checkbox:
-				if (((DeviceControllerMiniDrone)deviceController).isAutoTakeOffModeEnabled() != isChecked) {
-					((DeviceControllerMiniDrone) deviceController).sendAutoTakeOffMode(isChecked);
+				if (((DeviceControllerMiniDrone) mController).isAutoTakeOffModeEnabled() != isChecked) {
+					((DeviceControllerMiniDrone) mController).sendAutoTakeOffMode(isChecked);
 				}
 				break;
 			}

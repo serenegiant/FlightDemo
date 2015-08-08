@@ -1,6 +1,7 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -68,6 +69,12 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	@Override
+	protected void onDestroy() {
+		hideProgress();
+		super.onDestroy();
+	}
+
+	@Override
 	public void onBackPressed() {
 		//　ActionBarActivity/AppCompatActivityはバックキーの処理がおかしくて
 		// バックスタックの処理が正常にできない事に対するworkaround
@@ -78,4 +85,30 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
+	private ProgressDialog mProgress;
+	public synchronized void showProgress(final int title_resID) {
+		if (!isFinishing()) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					mProgress = new ProgressDialog(MainActivity.this);
+					mProgress.setTitle(title_resID);
+					mProgress.setIndeterminate(true);
+					mProgress.show();
+				}
+			});
+		}
+	}
+
+	public synchronized void hideProgress() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (mProgress != null) {
+					mProgress.dismiss();
+					mProgress = null;
+				}
+			}
+		});
+	}
 }

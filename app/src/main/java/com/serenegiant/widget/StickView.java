@@ -14,7 +14,7 @@ import android.widget.FrameLayout;
 import com.serenegiant.flightdemo.R;
 
 public class StickView extends FrameLayout {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "StickView";
 
 	public interface OnStickMoveListener {
@@ -86,6 +86,7 @@ public class StickView extends FrameLayout {
 		if (mStickView != null) {
 			switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN: {
+				if (DEBUG) Log.v(TAG, "ACTION_DOWN:");
 				if (mMaxWidth <= 0 || mMaxHeight <= 0) {
 					updateParentDimension();
 				}
@@ -139,12 +140,16 @@ public class StickView extends FrameLayout {
 				callOnStickMove(dx, dy);
 				break;
 			}
+			case MotionEvent.ACTION_CANCEL:
 			case MotionEvent.ACTION_UP:
-				// 中央に戻す
-				if ((mMaxWidth != 0) && (mMaxHeight != 0)) {
-					move(mMaxWidth >>> 1, mMaxHeight >>> 1);
+				if (DEBUG) Log.v(TAG, "ACTION_UP");
+				if (changed) {
+					// 中央に戻す
+					if ((mMaxWidth != 0) && (mMaxHeight != 0)) {
+						move(mMaxWidth >>> 1, mMaxHeight >>> 1);
+					}
+					callOnStickMove(0, 0);
 				}
-				callOnStickMove(0, 0);
 				if (!changed) {
 					final long t = event.getEventTime() - startTime;
 					if (t < TAP_TIMEOUT) {

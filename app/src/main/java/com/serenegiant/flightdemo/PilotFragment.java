@@ -1,7 +1,6 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -9,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -21,9 +21,11 @@ import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = PilotFragment.class.getSimpleName();
 
 	static {
@@ -48,6 +50,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private ImageButton mPlayBtn;		// 再生ボタン
 	private ImageButton mLoadBtn;		// 読み込みボタン
 	private ImageButton mConfigShowBtn;	// 設定パネル表示ボタン
+	private TextView mTimeLabelTv;
 	// 右サイドパネル
 	private View mRightSidePanel;
 	// 左サイドパネル
@@ -61,7 +64,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	public PilotFragment() {
 		// デフォルトコンストラクタが必要
-		mFlightRecorder.setPlaybackListener(mPlaybackListener);
+		mFlightRecorder.setPlaybackListener(mFlightRecorderListener);
 	}
 
 	@Override
@@ -83,6 +86,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		mControllerView = rootView.findViewById(R.id.controller_frame);
 
+		// 上パネル
+		mFlatTrimBtn = (ImageButton)rootView.findViewById(R.id.flat_trim_btn);
+		mFlatTrimBtn.setOnLongClickListener(mOnLongClickListener);
+
+		mConfigShowBtn = (ImageButton)rootView.findViewById(R.id.config_show_btn);
+		mConfigShowBtn.setOnClickListener(mOnClickListener);
+
+		// 下パネル
 		mEmergencyBtn = (ImageButton)rootView.findViewById(R.id.emergency_btn);
 		mEmergencyBtn.setOnClickListener(mOnClickListener);
 
@@ -101,11 +112,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mLoadBtn.setOnClickListener(mOnClickListener);
 		mLoadBtn.setOnLongClickListener(mOnLongClickListener);
 
-		mFlatTrimBtn = (ImageButton)rootView.findViewById(R.id.flat_trim_btn);
-		mFlatTrimBtn.setOnLongClickListener(mOnLongClickListener);
-
-		mConfigShowBtn = (ImageButton)rootView.findViewById(R.id.config_show_btn);
-		mConfigShowBtn.setOnClickListener(mOnClickListener);
+		mTimeLabelTv = (TextView)rootView.findViewById(R.id.time_label);
+		mTimeLabelTv.setVisibility(View.INVISIBLE);
 
 		ImageButton button;
 		// 右サイドパネル
@@ -168,6 +176,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		stopRecord();
+		stopPlay();
+		mResetColorFilterTasks.clear();
 		super.onPause();
 	}
 
@@ -187,6 +197,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			switch (view.getId()) {
 			case R.id.load_btn:
 				// 読み込みボタンの処理
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", false);
 				SelectFileDialogFragment.showDialog(PilotFragment.this, root.getAbsolutePath(), false, "fcr");
 				break;
@@ -209,6 +220,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.config_show_btn:
 				// 設定パネル表示処理
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mIsConnected) {
 					if (mFlyingState == 0) {
 						final ConfigFragment fragment = ConfigFragment.newInstance(getDevice());
@@ -223,10 +235,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				emergencyStop();
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				mIsFlying = !mIsFlying;
 				if (mIsFlying) {
 					takeOff();
@@ -236,74 +250,86 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				updateButtons();
 				break;
 			case R.id.flip_front_btn:
-				if (deviceController != null) {
-					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_FRONT);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_FRONT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_FRONT);
 				}
 				break;
 			case R.id.flip_back_btn:
-				if (deviceController != null) {
-					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_BACK);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_BACK);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_BACK);
 				}
 				break;
 			case R.id.flip_right_btn:
-				if (deviceController != null) {
-					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_RIGHT);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_RIGHT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_RIGHT);
 				}
 				break;
 			case R.id.flip_left_btn:
-				if (deviceController != null) {
-					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_LEFT);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_LEFT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_LEFT);
 				}
 				break;
 			case R.id.cap_p15_btn:
-				if (deviceController != null) {
-					((DeviceControllerMiniDrone)deviceController).sendAnimationsCap(15);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					((DeviceControllerMiniDrone) mController).sendAnimationsCap(15);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, 15);
 				}
 				break;
 			case R.id.cap_p45_btn:
-				if (deviceController != null) {
-					((DeviceControllerMiniDrone)deviceController).sendAnimationsCap(45);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					((DeviceControllerMiniDrone) mController).sendAnimationsCap(45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, 45);
 				}
 				break;
 			case R.id.cap_m15_btn:
-				if (deviceController != null) {
-					((DeviceControllerMiniDrone)deviceController).sendAnimationsCap(-15);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					((DeviceControllerMiniDrone) mController).sendAnimationsCap(-15);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -15);
 				}
 				break;
 			case R.id.cap_m45_btn:
-				if (deviceController != null) {
-					((DeviceControllerMiniDrone)deviceController).sendAnimationsCap(-45);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					((DeviceControllerMiniDrone) mController).sendAnimationsCap(-45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -45);
 				}
 				break;
 /*			case R.id.north_btn:
-				if (deviceController != null) {
-					deviceController.setHeading(0);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					mController.setHeading(0);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 0);
 				}
 				break;
 			case R.id.south_btn:
-				if (deviceController != null) {
-					deviceController.setHeading(180);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					mController.setHeading(180);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 180);
 				}
 				break;
 			case R.id.west_btn:
-				if (deviceController != null) {
-					deviceController.setHeading(-90);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					mController.setHeading(-90);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, -90);
 				}
 				break;
 			case R.id.east_btn:
-				if (deviceController != null) {
-					deviceController.setHeading(90);
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					mController.setHeading(90);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 90);
 				}
 				break; */
@@ -324,8 +350,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				}
 				return true;
 			case R.id.flat_trim_btn:
-				if ((deviceController != null) && (mFlyingState == 0)) {
-					deviceController.sendFlatTrim();
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if ((mController != null) && (mFlyingState == 0)) {
+					mController.sendFlatTrim();
 					return true;
 				}
 				break;
@@ -354,16 +381,16 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case R.id.stick_view_right: {
 				if (mx != mPrevRightMX) {
 					mPrevRightMX = mx;
-					if (deviceController != null) {
-						deviceController.setRoll((byte) mx);
-						deviceController.setFlag((byte) (mx != 0 ? 1 : 0));
+					if (mController != null) {
+						mController.setRoll((byte) mx);
+						mController.setFlag((byte) (mx != 0 ? 1 : 0));
 						mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, mx);
 					}
 				}
 				if (my != mPrevRightMY) {
 					mPrevRightMY = my;
-					if (deviceController != null) {
-						deviceController.setPitch((byte) -my);
+					if (mController != null) {
+						mController.setPitch((byte) -my);
 						mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -my);
 					}
 				}
@@ -373,15 +400,15 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if ((Math.abs(mx) < 20)) mx = 0;
 				if (mx != mPrevLeftMX) {
 					mPrevLeftMX = mx;
-					if (deviceController != null) {
-						deviceController.setYaw((byte) mx);
+					if (mController != null) {
+						mController.setYaw((byte) mx);
 						mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
 					}
 				}
 				if (my != mPrevLeftMY) {
 					mPrevLeftMY = my;
-					if (deviceController != null) {
-						deviceController.setGaz((byte) -my);
+					if (mController != null) {
+						mController.setGaz((byte) -my);
 						mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -my);
 					}
 				}
@@ -395,6 +422,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onDisconnect");
 		stopRecord();
+		stopPlay();
 		super.onDisconnect(controller);
 	}
 
@@ -419,8 +447,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void takeOff() {
 		// 離陸指示
-		if (deviceController != null) {
-			deviceController.sendTakeoff();
+		if (mController != null) {
+			mController.sendTakeoff();
 			mFlightRecorder.record(FlightRecorder.CMD_TAKEOFF);
 		} else {
 			mIsFlying = false;
@@ -433,8 +461,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private void landing() {
 		// 着陸指示
 		stopMove();
-		if (deviceController != null) {
-			deviceController.sendLanding();
+		if (mController != null) {
+			mController.sendLanding();
 			mFlightRecorder.record(FlightRecorder.CMD_LANDING);
 		}
 		mIsFlying = false;
@@ -443,22 +471,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	/**
 	 * 移動停止
 	 */
-	private void stopMove() {
+	protected void stopMove() {
 		if (DEBUG) Log.v(TAG, "stopMove:");
-		if (deviceController != null) {
-			// 上下移動量をクリア, 正:上, 負:下
-			deviceController.setGaz((byte) 0);
+		super.stopMove();
+		if (mController != null) {
 			mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, 0);
-			// 回転量をクリア, 正:右回り, 負:左回り
-			deviceController.setYaw((byte) 0);
 			mFlightRecorder.record(FlightRecorder.CMD_TURN, 0);
-			// 前後移動量をクリア, 正:前, 負:後
-			deviceController.setPitch((byte) 0);
 			mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, 0);
-			// 左右移動量をクリア, 正:右, 負:左
-			deviceController.setRoll((byte) 0);
 			mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, 0);
-			deviceController.setFlag((byte) 0);	// pitch/roll移動フラグをクリア
 		}
 	}
 
@@ -473,6 +493,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mFlightRecorder.clear();
 			}
 			mFlightRecorder.start();
+			updateTime(0);
 			updateButtons();
 		}
 	}
@@ -490,6 +511,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mFlightRecorder.save(path);
 				updateButtons();
 			}
+			updateTime(-1);
 		}
 	}
 
@@ -501,6 +523,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (!mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying() && (mFlightRecorder.size() > 0)) {
 			mFlightRecorder.pos(0);
 			mFlightRecorder.play();
+			updateTime(0);
 			updateButtons();
 		}
 	}
@@ -519,48 +542,50 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	/**
 	 * 飛行記録再生時のコールバックリスナー
 	 */
-	private final FlightRecorder.PlaybackListener mPlaybackListener = new FlightRecorder.PlaybackListener() {
+	private final FlightRecorder.FlightRecorderListener mFlightRecorderListener = new FlightRecorder.FlightRecorderListener() {
 		@Override
 		public void onStart() {
-			if (DEBUG) Log.v(TAG, "mPlaybackListener#onStart:");
+			if (DEBUG) Log.v(TAG, "mFlightRecorderListener#onStart:");
+			updateTime(0);
 			updateButtons();
 		}
 
 		@Override
 		public boolean onStep(final int cmd, final int value, final long t) {
-			if (DEBUG) Log.v(TAG, String.format("mPlaybackListener#onStep:cmd=%d,v=%d,t=%d", cmd, value, t));
-			if (deviceController != null) {
+			if (DEBUG) Log.v(TAG, String.format("mFlightRecorderListener#onStep:cmd=%d,v=%d,t=%d", cmd, value, t));
+			updateTime(t);
+			if (mController != null) {
 				switch (cmd) {
 				case FlightRecorder.CMD_EMERGENCY:		// 非常停止
-					deviceController.sendEmergency();
+					mController.sendEmergency();
 					break;
 				case FlightRecorder.CMD_TAKEOFF:		// 離陸
-					deviceController.sendTakeoff();
+					mController.sendTakeoff();
 					break;
 				case FlightRecorder.CMD_LANDING:		// 着陸
-					deviceController.sendLanding();
+					mController.sendLanding();
 					break;
 				case FlightRecorder.CMD_UP_DOWN:		// 上昇:gaz>0, 下降: gaz<0
-					deviceController.setGaz((byte) value);
+					mController.setGaz((byte) value);
 					break;
 				case FlightRecorder.CMD_RIGHT_LEFT:		// 右: roll>0,flag=1 左: roll<0,flag=1
-					deviceController.setRoll((byte) value);
-					deviceController.setFlag((byte) (value != 0 ? 1 : 0));
+					mController.setRoll((byte) value);
+					mController.setFlag((byte) (value != 0 ? 1 : 0));
 					break;
 				case FlightRecorder.CMD_FORWARD_BACK:	// 前進: pitch>0,flag=1, 後退: pitch<0,flag=1
-					deviceController.setPitch((byte) value);
+					mController.setPitch((byte) value);
 					break;
 				case FlightRecorder.CMD_TURN:			// 右回転: yaw>0, 左回転: ywa<0
-					deviceController.setYaw((byte) value);
+					mController.setYaw((byte) value);
 					break;
 				case FlightRecorder.CMD_COMPASS:		// 北磁極に対する角度 -360〜360度
-					deviceController.setHeading(value);		// 実際は浮動小数点だけど
+					mController.setHeading(value);		// 実際は浮動小数点だけど
 					break;
 				case FlightRecorder.CMD_FLIP:			// フリップ
-					((DeviceControllerMiniDrone)deviceController).sendAnimationsFlip(value);
+					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(value);
 					break;
 				case FlightRecorder.CMD_CAP:			// キャップ(指定角度水平回転)
-					((DeviceControllerMiniDrone)deviceController).sendAnimationsCap(value);
+					((DeviceControllerMiniDrone) mController).sendAnimationsCap(value);
 					break;
 				}
 				return false;
@@ -571,8 +596,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public void onStop() {
-			if (DEBUG) Log.v(TAG, "mPlaybackListener#onStop:");
+			if (DEBUG) Log.v(TAG, "mFlightRecorderListener#onStop:");
+			updateTime(-1);
 			updateButtons();
+		}
+
+		@Override
+		public void onRecord(final int cmd, final int value, final long t) {
+//			updateTime(t);	// ここで呼び出すとスティックがちゃんと動かない
 		}
 	};
 
@@ -623,6 +654,39 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	};
 
+	private volatile long lastCall = -1;
+	private void updateTime(final long t) {
+//		if (DEBUG) Log.v(TAG, "updateTime:" + t);
+		mCurrentTime = t;
+		lastCall = System.currentTimeMillis();
+		runOnUiThread(mUpdateTimeTask);
+	}
+
+	private volatile long mCurrentTime;	// 現在の経過時間[ミリ秒]
+	private final Runnable mIntervalUpdateTimeTask = new Runnable() {
+		@Override
+		public void run() {
+			if (mCurrentTime >= 0) {
+				runOnUiThread(mUpdateTimeTask);
+			}
+		}
+	};
+
+	private final Runnable mUpdateTimeTask = new Runnable() {
+		@Override
+		public void run() {
+			remove(mIntervalUpdateTimeTask);
+			long t = mCurrentTime;
+			if (t >= 0) {
+				t +=  System.currentTimeMillis() - lastCall;
+				final int m = (int)(t / 60000);
+				final int s = (int)(t - m * 60000) / 1000;
+				mTimeLabelTv.setText(String.format("%3d:%02d", m, s));
+				post(mIntervalUpdateTimeTask, 500);
+			}
+		}
+	};
+
 	/**
 	 *　ボタンの表示更新をUIスレッドで行うためのRunnable
 	 */
@@ -639,7 +703,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final boolean can_load = is_connected && !is_playing && !is_recording;
 			final boolean can_fly = can_record && (state != 5);
 			final boolean can_flattrim = can_fly && (state == 0);
-/*				switch (state) {
+/*			switch (state) {
 			case 0: // Landed state
 			case 1:	// Taking off state
 			case 2:	// Hovering state
@@ -664,14 +728,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			// 下パネル
 			mEmergencyBtn.setEnabled(is_connected);	// 非常停止
 			mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
+			mTimeLabelTv.setVisibility(is_recording || is_playing ? View.VISIBLE : View.INVISIBLE);
 			mLoadBtn.setEnabled(can_load);			// 読み込み
 			mPlayBtn.setEnabled(can_play);			// 再生
+			mPlayBtn.setColorFilter(mFlightRecorder.isPlaying() ? 0xffff0000 : 0);
 			mRecordBtn.setEnabled(can_record);		// 記録
-			if (is_recording) {
-				mRecordBtn.setImageResource(R.drawable.rec);
-			} else {
-				mRecordBtn.setImageResource(R.drawable.rec);
-			}
+			mRecordBtn.setColorFilter(is_recording ? 0xffff0000 : 0);
 			if (mIsFlying || (state != 0)) {
 //				mTakeOnOffBtn.setText(R.string.button_text_landing);
 				mTakeOnOffBtn.setImageResource(R.drawable.landing72x72);
@@ -692,4 +754,49 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	};
 
+	/**
+	 * タッチレスポンス用にカラーフィルターを適用する時間
+	 */
+	private static final long TOUCH_RESPONSE_TIME_MS = 100;	// 200ミリ秒
+	/**
+	 * タッチレスポンス時のカラーフィルター色
+	 */
+	private static final int TOUCH_RESPONSE_COLOR = 0x7f331133;
+
+	/**
+	 * カラーフィルタクリア用のRunnableのキャッシュ
+	 */
+	private final Map<ImageView, ResetColorFilterTask> mResetColorFilterTasks = new HashMap<ImageView, ResetColorFilterTask>();
+
+	/**
+	 * 指定したImageViewに指定した色でカラーフィルターを適用する。
+	 * reset_delayが0より大きければその時間経過後にカラーフィルターをクリアする
+	 * @param image
+	 * @param color
+	 * @param reset_delay ミリ秒
+	 */
+	private void setColorFilter(final ImageView image, final int color, final long reset_delay) {
+		if (image != null) {
+			image.setColorFilter(color);
+			if (reset_delay > 0) {
+				ResetColorFilterTask task = mResetColorFilterTasks.get(image);
+				if (task == null) {
+					task = new ResetColorFilterTask(image);
+				}
+				removeFromUIThread(task);
+				postUIThread(task, reset_delay);
+			}
+		}
+	}
+
+	private static class ResetColorFilterTask implements Runnable {
+		private final ImageView mImage;
+		public ResetColorFilterTask(final ImageView image) {
+			mImage = image;
+		}
+		@Override
+		public void run() {
+			mImage.setColorFilter(0);
+		}
+	}
 }

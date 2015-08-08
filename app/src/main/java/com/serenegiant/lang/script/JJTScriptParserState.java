@@ -44,7 +44,7 @@ public class JJTScriptParserState {
     ++sp;
   }
 
-  /* Returns the node on the top of the stack, and remove it from the
+  /* Returns the node on the top of the stack, and removeFromUIThread it from the
      stack.  */
   public Node popNode() {
     if (--sp < mk) {

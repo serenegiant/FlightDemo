@@ -30,11 +30,11 @@
 */
 package com.serenegiant.arflight;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
 import com.parrot.arsdk.arstream.ARStreamReader;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class ARNetworkConfig {
 	private static final String TAG = "NetworkConfig";
@@ -196,7 +196,7 @@ public abstract class ARNetworkConfig {
 	 */
 	public void addStreamReaderIOBuffer(int maxFragmentSize, int maxNumberOfFragment) {
 		if ((iobufferC2dArstreamAck != -1) && (iobufferD2cArstreamData != -1)) {
-            /*remove the Stream parameters of the last connection*/
+            /*removeFromUIThread the Stream parameters of the last connection*/
 			for (ARNetworkIOBufferParam param : c2dParams) {
 				if (param.getId() == iobufferC2dArstreamAck) {
 					c2dParams.remove(param);
