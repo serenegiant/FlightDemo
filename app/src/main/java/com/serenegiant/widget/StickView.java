@@ -192,6 +192,20 @@ public class StickView extends FrameLayout {
 		}
 	}
 
+	@Override
+	public void setEnabled(boolean enabled) {
+		final int n = getChildCount();
+		for (int i = 0; i < n; i++) {
+			final View child = getChildAt(i);
+			try {
+				child.setEnabled(enabled);
+			} catch (Exception e) {
+				// ignore
+			}
+		}
+		super.setEnabled(enabled);
+	}
+
 	/**
 	 * スティックを動かした時のコールバックリスナーを設定する
 	 * @param listener

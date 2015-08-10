@@ -21,7 +21,9 @@ import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
@@ -63,6 +65,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private StickView mLeftStickPanel;
 
 	private final FlightRecorder mFlightRecorder = new FlightRecorder();
+	/** 操縦に使用するボタン等。操作可・不可に応じてenable/disableを切り替える */
+	private final List<View> mActionViews = new ArrayList<View>();
 
 	public PilotFragment() {
 		// デフォルトコンストラクタが必要
@@ -88,10 +92,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		mControllerView = rootView.findViewById(R.id.controller_frame);
 
+		mActionViews.clear();
 		// 上パネル
 		mTopPanel = rootView.findViewById(R.id.top_panel);
+		mActionViews.add(mTopPanel);
+
 		mFlatTrimBtn = (ImageButton)rootView.findViewById(R.id.flat_trim_btn);
 		mFlatTrimBtn.setOnLongClickListener(mOnLongClickListener);
+		mActionViews.add(mFlatTrimBtn);
 
 		mConfigShowBtn = (ImageButton)rootView.findViewById(R.id.config_show_btn);
 		mConfigShowBtn.setOnClickListener(mOnClickListener);
@@ -122,38 +130,53 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		ImageButton button;
 		// 右サイドパネル
 		mRightSidePanel = rootView.findViewById(R.id.right_side_panel);
+		mActionViews.add(mRightSidePanel);
+
 		button = (ImageButton)rootView.findViewById(R.id.cap_p15_btn);
 		button.setOnClickListener(mOnClickListener);
+		mActionViews.add(button);
 
 		button = (ImageButton)rootView.findViewById(R.id.cap_p45_btn);
 		button.setOnClickListener(mOnClickListener);
+		mActionViews.add(button);
 
 		button = (ImageButton)rootView.findViewById(R.id.cap_m15_btn);
 		button.setOnClickListener(mOnClickListener);
+		mActionViews.add(button);
 
 		button = (ImageButton)rootView.findViewById(R.id.cap_m45_btn);
 		button.setOnClickListener(mOnClickListener);
+		mActionViews.add(button);
+
 		// 左サイドパネル
 		mLeftSidePanel = rootView.findViewById(R.id.left_side_panel);
+		mActionViews.add(mLeftSidePanel);
+
 		button = (ImageButton)rootView.findViewById(R.id.flip_right_btn);
 		button.setOnClickListener(mOnClickListener);
+		mActionViews.add(button);
 
 		button = (ImageButton)rootView.findViewById(R.id.flip_left_btn);
 		button.setOnClickListener(mOnClickListener);
+		mActionViews.add(button);
 
 		button = (ImageButton)rootView.findViewById(R.id.flip_front_btn);
 		button.setOnClickListener(mOnClickListener);
+		mActionViews.add(button);
 
 		button = (ImageButton)rootView.findViewById(R.id.flip_back_btn);
 		button.setOnClickListener(mOnClickListener);
+		mActionViews.add(button);
 
 		// 右スティックパネル
 		mRightStickPanel = (StickView)rootView.findViewById(R.id.stick_view_right);
 		mRightStickPanel.setOnStickMoveListener(mOnStickMoveListener);
+		mActionViews.add(mRightStickPanel);
 
 		// 左スティックパネル
 		mLeftStickPanel = (StickView)rootView.findViewById(R.id.stick_view_left);
 		mLeftStickPanel.setOnStickMoveListener(mOnStickMoveListener);
+		mActionViews.add(mRightStickPanel);
 
 		mBatteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
@@ -191,6 +214,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if ((files != null) && (files.length > 0)
 			&& !mFlightRecorder.isPlaying() && !mFlightRecorder.isRecording() ) {
 			mFlightRecorder.load(files[0]);
+			updateButtons();
 		}
 	}
 
@@ -212,6 +236,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				} else {
 					stopRecord();
 				}
+				updateButtons();
 				break;
 			case R.id.play_btn:
 				// 再生ボタンの処理
@@ -225,8 +250,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case R.id.config_show_btn:
 				// 設定パネル表示処理
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
-				if (mIsConnected) {
-					if (mFlyingState == IDeviceController.STATE_STARTED) {
+				if (isConnected()) {
+					if ((mController.getState() & IDeviceController.STATE_MASK_FLYING) == IDeviceController.STATE_FLYING_LANDED) {
 						final ConfigFragment fragment = ConfigFragment.newInstance(getDevice());
 						getFragmentManager().beginTransaction()
 							.addToBackStack(null)
@@ -562,7 +587,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public boolean onStep(final int cmd, final int value, final long t) {
-			if (DEBUG) Log.v(TAG, String.format("mFlightRecorderListener#onStep:cmd=%d,v=%d,t=%d", cmd, value, t));
+//			if (DEBUG) Log.v(TAG, String.format("mFlightRecorderListener#onStep:cmd=%d,v=%d,t=%d", cmd, value, t));
 			updateTime(t);
 			if (mController != null) {
 				switch (cmd) {
@@ -613,7 +638,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public void onRecord(final int cmd, final int value, final long t) {
-//			updateTime(t);	// ここで呼び出すとスティックがちゃんと動かない
 		}
 	};
 
@@ -623,7 +647,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final Runnable mUpdateAlarmMessageTask = new Runnable() {
 		@Override
 		public void run() {
-			final int alarm = (mController != null ? mController.getAlarm() : IDeviceController.ALARM_DISCONNECTED);
+			final int alarm = getAlarm();
 			if (DEBUG) Log.w(TAG, "mUpdateAlarmMessageTask:alarm=" + alarm);
 			switch (alarm) {
 			case IDeviceController.ALARM_NON:				// No alert
@@ -712,12 +736,18 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final Runnable mUpdateButtonsTask = new Runnable() {
 		@Override
 		public void run() {
-			final int state = mController != null ? mController.getState() : IDeviceController.STATE_STOPPED;
-			final int alarm_state = mController != null ? mController.getAlarm() : IDeviceController.ALARM_DISCONNECTED;
-			final boolean is_connected = mController != null ? mController.isConnected() : false;
+			final int state = getState();
+			final int alarm_state = getAlarm();
+			final boolean is_connected = isConnected();
 			final boolean is_recording = mFlightRecorder.isRecording();
 			final boolean is_playing = mFlightRecorder.isPlaying();
 			final boolean can_play = is_connected && !is_recording && (alarm_state == IDeviceController.ALARM_NON) && (mFlightRecorder.size() > 0);
+			if (!can_play) {
+				Log.i(TAG, "is_connected=" + is_connected);
+				Log.i(TAG, "is_recording=" + is_recording);
+				Log.i(TAG, "alarm_state=" + alarm_state);
+				Log.i(TAG, "mFlightRecorder.size=" + mFlightRecorder.size());
+			}
 			final boolean can_record = is_connected && !is_playing;
 			final boolean can_load = is_connected && !is_playing && !is_recording;
 			final boolean can_fly = can_record && (alarm_state == IDeviceController.ALARM_NON);
@@ -764,7 +794,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mRightStickPanel.setEnabled(can_fly);
 			// 左スティックパネル(北/南ボタン)
 			mLeftStickPanel.setEnabled(can_fly);
-
+			for (View view: mActionViews) {
+				view.setEnabled(can_fly);
+			}
 		}
 	};
 

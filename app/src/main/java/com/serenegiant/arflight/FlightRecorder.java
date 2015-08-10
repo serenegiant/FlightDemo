@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FlightRecorder {
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 	private static final String TAG = "FlightRecorder";
 
 	public interface FlightRecorderListener {
@@ -88,18 +88,20 @@ public class FlightRecorder {
 			synchronized (mSync) {
 				copy.addAll(mRecords);
 			}
-			final BufferedWriter writer = new BufferedWriter(new FileWriter(path));
-			try {
-				for (String line: copy) {
-					writer.write(line);
-					writer.newLine();
-					if (DEBUG) Log.v(TAG, String.format("%5d)%s", cnt++, line));
+			if (copy.size() > 0) {	// 1件もコマンドが記録されていない時は保存しない
+				final BufferedWriter writer = new BufferedWriter(new FileWriter(path));
+				try {
+					for (String line : copy) {
+						writer.write(line);
+						writer.newLine();
+						if (DEBUG) Log.v(TAG, String.format("%5d)%s", cnt++, line));
+					}
+					writer.flush();
+				} catch (IOException e) {
+					Log.w(TAG, e);
+				} finally {
+					writer.close();
 				}
-				writer.flush();
-			} catch (IOException e) {
-				Log.w(TAG, e);
-			} finally {
-				writer.close();
 			}
 		} catch (FileNotFoundException e) {
 			Log.w(TAG, e);

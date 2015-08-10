@@ -10,6 +10,7 @@
 	<string name="action_load">load</string>
 	<string name="action_play">play</string>
 	<string name="action_record">Record</string>
+	<string name="action_stop">stop</string>
 
 	<string name="alarm_low_battery">Low battery</string>
 	<string name="alarm_low_battery_critical">Critical low battery</string>

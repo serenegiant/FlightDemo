@@ -28,14 +28,12 @@ public abstract class ControlFragment extends Fragment {
 	private ARDiscoveryDeviceService mDevice;
 	protected IDeviceController mController;
 
-	protected volatile int mFlyingState = 0;
 	protected boolean mIsFlying = false;	// FIXME mFlyingStateを参照するようにしてmIsFlyingフラグは削除する
-	protected boolean mIsConnected = false;
+//	protected boolean mIsConnected = false;
 
 	public ControlFragment() {
 		// デフォルトコンストラクタが必要
 	}
-
 
 	@Override
 	public void onAttach(Activity activity) {
@@ -116,6 +114,18 @@ public abstract class ControlFragment extends Fragment {
 		return mDevice;
 	}
 
+	protected boolean isConnected() {
+		return mController != null ? mController.isConnected() : false;
+	}
+
+	protected int getState() {
+		return mController != null ? mController.getState() : IDeviceController.STATE_STOPPED;
+	}
+
+	protected int getAlarm() {
+		return mController != null ? mController.getAlarm() : IDeviceController.ALARM_DISCONNECTED;
+	}
+
 	protected void runOnUiThread(final Runnable task) {
 		if (task != null) {
 			try {
@@ -171,10 +181,6 @@ public abstract class ControlFragment extends Fragment {
 		}
 	}
 
-	protected int getState() {
-		return mController != null ? mController.getState() : IDeviceController.STATE_STOPPED;
-	}
-
 	protected synchronized void startDeviceController() {
 		if (DEBUG) Log.v(TAG, "startDeviceController:");
 		if (mController == null) {
@@ -198,7 +204,7 @@ public abstract class ControlFragment extends Fragment {
 						final boolean failed = mController.start();
 						activity.hideProgress();
 
-						mIsConnected = !failed;
+//						mIsConnected = !failed;
 						if (failed) {
 							if (DEBUG) Log.w(TAG, "DeviceControllerを開始できなかった");
 							try {
@@ -224,8 +230,7 @@ public abstract class ControlFragment extends Fragment {
 
 	protected synchronized void stopDeviceController(final boolean disconnected) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
-		mIsConnected = mIsFlying = false;
-		mFlyingState = -1;
+		mIsFlying = false;
 		final int state = getState();
 		final IDeviceController controller = mController;
 		mController = null;

@@ -11,6 +11,7 @@
 	<string name="action_load">読込</string>
 	<string name="action_play">再生</string>
 	<string name="action_record">記録</string>
+	<string name="action_stop">停止</string>
 
 	<string name="alarm_low_battery">ローバッテリー</string>
 	<string name="alarm_low_battery_critical">致命的ローバッテリー</string>

@@ -13,7 +13,7 @@
 	<dimen name="stick_frame_height">216dp</dimen>
 	<dimen name="btn_width_takeoff">96dp</dimen>
 	<dimen name="btn_height_takeoff">72dp</dimen>
-	<dimen name="text_sz_message">48sp</dimen>
+	<dimen name="text_sz_message">42sp</dimen>
 	<dimen name="text_sz_button">28sp</dimen>
 	<dimen name="text_sz_on_image_button">12sp</dimen>
 	<dimen name="text_sz_list">28sp</dimen>
