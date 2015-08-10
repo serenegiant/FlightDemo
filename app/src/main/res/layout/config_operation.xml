@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:orientation="vertical"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent"
+				android:minHeight="@dimen/switch_height">
+
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_centerInParent="true"
+		android:id="@+id/linearLayout"
+		android:weightSum="1">
+
+		<Switch
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/config_operation_reverse"
+			android:id="@+id/reverse_op_switch"
+			android:layout_below="@+id/linearLayout"
+			android:layout_alignLeft="@+id/linearLayout"
+			android:layout_alignStart="@+id/linearLayout"
+			android:layout_gravity="center_horizontal"
+			android:textSize="@dimen/text_sz_list"/>
+
+	</LinearLayout>
+
+</RelativeLayout>

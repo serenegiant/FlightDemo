@@ -9,13 +9,17 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import com.serenegiant.flightdemo.R;
 
 public class StickView extends FrameLayout {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "StickView";
+
+	private static final int DISABLE_COLOR = 0xcf777777;
 
 	public interface OnStickMoveListener {
 		/**
@@ -37,6 +41,7 @@ public class StickView extends FrameLayout {
 	private int mPrevX, mPrevY;		// 前回のタッチ位置
 	private boolean changed;
 
+	private int mDisableColor = DISABLE_COLOR;
 	private final View mStickStartView;	// 最初にタッチした位置に表示する薄い色のView
 	private final View mStickView;		// タッチに追随して表示する
 	private final Rect mWorkBounds = new Rect();
@@ -65,6 +70,7 @@ public class StickView extends FrameLayout {
 		if (stick_width == 0) {
 			stick_height = LayoutParams.WRAP_CONTENT;
 		}
+		mDisableColor = attributesArray.getColor(R.styleable.StickView_disable_color, DISABLE_COLOR);
 		attributesArray.recycle();
 		attributesArray = null;
 
@@ -189,6 +195,29 @@ public class StickView extends FrameLayout {
 		}
 		if ((mMaxWidth != 0) && (mMaxHeight != 0) && !mOnTouchEvent) {
 			move(mMaxWidth >>> 1, mMaxHeight >>> 1);
+		}
+	}
+
+	@Override
+	public void setEnabled(final boolean enabled) {
+		super.setEnabled(enabled);
+		setChildColorFilter(this, enabled);
+	}
+
+	/**
+	 * 再帰的に子ViewのsetColorFilterを呼び出す
+	 * @param root
+	 * @param enabled
+	 */
+	private void setChildColorFilter(final ViewGroup root, final boolean enabled) {
+		final int n = root.getChildCount();
+		for (int i = 0; i < n; i++) {
+			final View child = root.getChildAt(i);
+			if (child instanceof ImageView) {
+				((ImageView)child).setColorFilter(enabled ? 0: mDisableColor);
+			} else if (child instanceof ViewGroup) {
+				setChildColorFilter((ViewGroup)child, enabled);
+			}
 		}
 	}
 

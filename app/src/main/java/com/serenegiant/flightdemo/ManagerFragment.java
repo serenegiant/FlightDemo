@@ -126,6 +126,18 @@ public class ManagerFragment extends Fragment {
 		return result;
 	}
 
+	/**
+	 * 指定したIDeviceControllerを取り除く(IDeviceController#releaseとかは呼ばない)
+	 * @param activity
+	 * @param controller
+	 */
+	public static void releaseController(final Activity activity, final IDeviceController controller) {
+		IDeviceController result = null;
+		final ManagerFragment fragment =  getInstance(activity);
+		if (fragment != null)
+			fragment.releaseController(controller);
+	}
+
 	private final Handler mUIHandler = new Handler(Looper.getMainLooper());
 	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
 
@@ -263,6 +275,7 @@ public class ManagerFragment extends Fragment {
 		return result;
 	}
 
+
 	/**
 	 * 指定した名前のARDiscoveryDeviceServiceインスタンスを取得する
 	 * @param name
@@ -333,6 +346,16 @@ public class ManagerFragment extends Fragment {
 			if (mControllers.containsValue(controller)) {
 				mControllers.remove(controller.getName());
 			}
+		}
+	}
+
+	/**
+	 * 指定したARDiscoveryDeviceServiceをListから取り除く
+	 * @param device
+	 */
+	public void releaseDevice(final ARDiscoveryDeviceService device) {
+		synchronized (mDeviceSync) {
+			mDevices.remove(device);
 		}
 	}
 

@@ -39,7 +39,8 @@
 
 	<string name="config_1">飛行設定</string>
 	<string name="config_2">ドローン設定</string>
-	<string name="config_3">ドローン情報</string>
+	<string name="config_3">操縦設定</string>
+	<string name="config_4">ドローン情報</string>
 	<string name="config_max_tilt">最大斜度: %5.1f[°]</string>
 	<string name="config_max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>
 	<string name="config_max_altitude">最大高度: %5.1f[m]</string>
@@ -48,6 +49,7 @@
 	<string name="config_has_hull">バンパー有り</string>
 	<string name="config_cut_out">カットアウト</string>
 	<string name="config_auto_takeoff">自動離陸モード</string>
+	<string name="config_operation_reverse">左右反転</string>
 
 	<string name="info_product_name">製品名:</string>
 	<string name="info_version_software">ソフトウエアバージョン:</string>

@@ -1,6 +1,7 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -51,7 +52,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private ImageButton mEmergencyBtn;	// 非常停止ボタン
 	private ImageButton mTakeOnOffBtn;	// 離陸/着陸ボタン
 	private ImageButton mRecordBtn;		// 記録ボタン
+	private TextView mRecordLabel;
 	private ImageButton mPlayBtn;		// 再生ボタン
+	private TextView mPlayLabel;
 	private ImageButton mLoadBtn;		// 読み込みボタン
 	private ImageButton mConfigShowBtn;	// 設定パネル表示ボタン
 	private TextView mTimeLabelTv;
@@ -88,7 +91,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
-		final View rootView = inflater.inflate(R.layout.fragment_pilot_minidrone, container, false);
+		final SharedPreferences pref = getActivity().getPreferences(0);
+		final boolean reverse_operation = pref.getBoolean(ConfigFragment.KEY_REVERSE_OPERATION, false);
+
+		final View rootView = inflater.inflate(reverse_operation ?
+			R.layout.fragment_pilot_minidrone_reverse : R.layout.fragment_pilot_minidrone,
+			container, false);
 
 		mControllerView = rootView.findViewById(R.id.controller_frame);
 
@@ -111,14 +119,19 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		mTakeOnOffBtn = (ImageButton)rootView.findViewById(R.id.take_onoff_btn);
 		mTakeOnOffBtn.setOnClickListener(mOnClickListener);
+		mActionViews.add(mTakeOnOffBtn);
 
 		mRecordBtn = (ImageButton)rootView.findViewById(R.id.record_btn);
 		mRecordBtn.setOnClickListener(mOnClickListener);
 		mRecordBtn.setOnLongClickListener(mOnLongClickListener);
 
+		mRecordLabel = (TextView)rootView.findViewById(R.id.record_label);
+
 		mPlayBtn = (ImageButton)rootView.findViewById(R.id.play_btn);
 		mPlayBtn.setOnClickListener(mOnClickListener);
 		mPlayBtn.setOnLongClickListener(mOnLongClickListener);
+
+		mPlayLabel = (TextView)rootView.findViewById(R.id.play_label);
 
 		mLoadBtn = (ImageButton)rootView.findViewById(R.id.load_btn);
 		mLoadBtn.setOnClickListener(mOnClickListener);
@@ -202,6 +215,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
+		removeFromUIThread(mPopBackStackTask);
 		stopRecord();
 		stopPlay();
 		mResetColorFilterTasks.clear();
@@ -264,7 +278,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView) view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				emergencyStop();
 				break;
 			case R.id.take_onoff_btn:
@@ -453,11 +467,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		updateButtons();
 	}
 
+	private static final long POP_BACK_STACK_DELAY = 2000;
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
 		stopRecord();
 		stopPlay();
+		removeFromUIThread(mPopBackStackTask);
+		postUIThread(mPopBackStackTask, POP_BACK_STACK_DELAY);
 		super.onDisconnect(controller);
 	}
 
@@ -475,6 +492,27 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void updateBattery() {
 		runOnUiThread(mUpdateBatteryTask);
+	}
+
+	/**
+	 * 移動停止
+	 */
+	@Override
+	protected void stopMove() {
+		if (DEBUG) Log.v(TAG, "stopMove:");
+		super.stopMove();
+		if (mController != null) {
+			mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, 0);
+			mFlightRecorder.record(FlightRecorder.CMD_TURN, 0);
+			mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, 0);
+			mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, 0);
+		}
+	}
+
+	@Override
+	protected void emergencyStop() {
+		super.emergencyStop();
+		stopPlay();
 	}
 
 	/**
@@ -501,20 +539,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mFlightRecorder.record(FlightRecorder.CMD_LANDING);
 		}
 		mIsFlying = false;
-	}
-
-	/**
-	 * 移動停止
-	 */
-	protected void stopMove() {
-		if (DEBUG) Log.v(TAG, "stopMove:");
-		super.stopMove();
-		if (mController != null) {
-			mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, 0);
-			mFlightRecorder.record(FlightRecorder.CMD_TURN, 0);
-			mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, 0);
-			mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, 0);
-		}
 	}
 
 	/**
@@ -730,6 +754,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		runOnUiThread(mUpdateButtonsTask);
 	}
 
+	private static final int DISABLE_COLOR = 0xcf777777;
 	/**
 	 *　ボタンの表示更新をUIスレッドで行うためのRunnable
 	 */
@@ -742,35 +767,35 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final boolean is_recording = mFlightRecorder.isRecording();
 			final boolean is_playing = mFlightRecorder.isPlaying();
 			final boolean can_play = is_connected && !is_recording && (alarm_state == IDeviceController.ALARM_NON) && (mFlightRecorder.size() > 0);
-			if (!can_play) {
-				Log.i(TAG, "is_connected=" + is_connected);
-				Log.i(TAG, "is_recording=" + is_recording);
-				Log.i(TAG, "alarm_state=" + alarm_state);
-				Log.i(TAG, "mFlightRecorder.size=" + mFlightRecorder.size());
-			}
 			final boolean can_record = is_connected && !is_playing;
 			final boolean can_load = is_connected && !is_playing && !is_recording;
 			final boolean can_fly = can_record && (alarm_state == IDeviceController.ALARM_NON);
 			final boolean can_flattrim = can_fly && (state == IDeviceController.STATE_STARTED);
+			final boolean can_config = can_flattrim;
+			final boolean is_battery_alarm
+				= (alarm_state == IDeviceController.ALARM_BATTERY)
+					|| (alarm_state == IDeviceController.ALARM_BATTERY_CRITICAL);
 
 			// 上パネル
 			mTopPanel.setEnabled(is_connected);
 			mFlatTrimBtn.setEnabled(can_flattrim);	// フラットトリム
-			mBatteryLabel.setTextColor(
-				(alarm_state == IDeviceController.ALARM_BATTERY)
-				|| (alarm_state == IDeviceController.ALARM_BATTERY_CRITICAL)
-				? 0xffff0000 : 0xff000000);
+			mBatteryLabel.setTextColor(is_battery_alarm ? 0xffff0000 : 0xff000000);
+			mConfigShowBtn.setEnabled(can_config);
+			mConfigShowBtn.setColorFilter(can_config ? 0: DISABLE_COLOR);
+
 			// 下パネル
 			mBottomPanel.setEnabled(is_connected);
 			mEmergencyBtn.setEnabled(is_connected);	// 非常停止
 			mTimeLabelTv.setVisibility(is_recording || is_playing ? View.VISIBLE : View.INVISIBLE);
-			mLoadBtn.setEnabled(can_load);			// 読み込み
-			mPlayBtn.setEnabled(can_play);			// 再生
-			mPlayBtn.setColorFilter(mFlightRecorder.isPlaying() ? 0xffff0000 : 0);
-			mRecordBtn.setEnabled(can_record);		// 記録
-			mRecordBtn.setColorFilter(is_recording ? 0xffff0000 : 0);
+			mLoadBtn.setEnabled(can_load);            // 読み込み
+			mPlayBtn.setEnabled(can_play);            // 再生
+			mPlayBtn.setColorFilter(can_play ? (mFlightRecorder.isPlaying() ? 0xffff0000 : 0) : DISABLE_COLOR);
+			mPlayLabel.setText(is_recording ? R.string.action_stop : R.string.action_play);
+			mRecordBtn.setEnabled(can_record);        // 記録
+			mRecordBtn.setColorFilter(can_record ? (is_recording ? 0xffff0000 : 0) : DISABLE_COLOR);
+			mRecordLabel.setText(is_recording ? R.string.action_stop : R.string.action_record);
 
-			mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
+//			mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
 			switch (state & IDeviceController.STATE_MASK_FLYING) {
 			case IDeviceController.STATE_FLYING_LANDED:		// 0x0000;		// FlyingState=0
 			case IDeviceController.STATE_FLYING_LANDING:	// 0x0400;		// FlyingState=4
@@ -796,6 +821,24 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mLeftStickPanel.setEnabled(can_fly);
 			for (View view: mActionViews) {
 				view.setEnabled(can_fly);
+				if (view instanceof ImageView) {
+					((ImageView)view).setColorFilter(can_fly ? 0 : DISABLE_COLOR);
+				}
+			}
+		}
+	};
+
+	/**
+	 * 一定時間後にフラグメントを終了するためのRunnable
+	 * 切断された時に使用
+	 */
+	private final Runnable mPopBackStackTask = new Runnable() {
+		@Override
+		public void run() {
+			try {
+				getFragmentManager().popBackStack();
+			} catch (Exception e) {
+				Log.w(TAG, e);
 			}
 		}
 	};

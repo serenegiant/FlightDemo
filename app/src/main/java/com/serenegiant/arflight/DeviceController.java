@@ -153,6 +153,7 @@ public abstract class DeviceController implements IDeviceController {
 
 		synchronized (mStateSync) {
 			if (mState != STATE_STOPPED) return false;
+			mAlarmState = 0;
 			mState = STATE_STARTING;
 		}
 		registerARCommandsListener();

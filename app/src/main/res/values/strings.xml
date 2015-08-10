@@ -38,7 +38,8 @@
 
 	<string name="config_1">Flight settings</string>
 	<string name="config_2">Drone settings</string>
-	<string name="config_3">Drone info</string>
+	<string name="config_3">Operation settings</string>
+	<string name="config_4">Info</string>
 	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>
 	<string name="config_max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
 	<string name="config_max_altitude">Max altitude: %5.1f[m]</string>
@@ -47,6 +48,7 @@
 	<string name="config_has_hull">with Hull</string>
 	<string name="config_cut_out">Cutout</string>
 	<string name="config_auto_takeoff">Enable auto take-off</string>
+	<string name="config_operation_reverse">Reverse pad</string>
 
 	<string name="info_product_name">Product name:</string>
 	<string name="info_version_software">Software version:</string>

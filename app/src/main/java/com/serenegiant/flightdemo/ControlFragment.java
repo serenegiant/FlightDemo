@@ -29,7 +29,6 @@ public abstract class ControlFragment extends Fragment {
 	protected IDeviceController mController;
 
 	protected boolean mIsFlying = false;	// FIXME mFlyingStateを参照するようにしてmIsFlyingフラグは削除する
-//	protected boolean mIsConnected = false;
 
 	public ControlFragment() {
 		// デフォルトコンストラクタが必要
@@ -220,7 +219,7 @@ public abstract class ControlFragment extends Fragment {
 //				mController.sendAllSettings();
 //				mController.sendAllStates();
 				// sendAllSettingsとかsendAllStatesは接続した直後に1回しか有効じゃないのかも
-				updateBattery();
+//				updateBattery();
 			}
 			this.stopMove();
 		} else {
@@ -247,6 +246,7 @@ public abstract class ControlFragment extends Fragment {
 				public void run() {
 					controller.stop();
 					if (activity != null) {
+						ManagerFragment.releaseController(activity, controller);
 						activity.hideProgress();
 					}
 				}

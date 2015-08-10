@@ -1,6 +1,7 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -21,12 +23,15 @@ public class ConfigFragment extends ControlFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
+	public static final String KEY_REVERSE_OPERATION = "REVERSE_OPERATION";
+
 	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device) {
 		final ConfigFragment fragment = new ConfigFragment();
 		fragment.setDevice(device);
 		return fragment;
 	}
 
+	private SharedPreferences mPref;
 	private ViewPager mViewPager;
 	private ConfigPagerAdapter mPagerAdapter;
 
@@ -40,7 +45,6 @@ public class ConfigFragment extends ControlFragment {
 	private String mMaxVerticalSpeedFormat;
 	private String mMaxRotationSpeedFormat;
 
-
 	public ConfigFragment() {
 		// デフォルトコンストラクタが必要
 	}
@@ -53,11 +57,13 @@ public class ConfigFragment extends ControlFragment {
 		mMaxTiltFormat = getString(R.string.config_max_tilt);
 		mMaxVerticalSpeedFormat = getString(R.string.config_max_vertical_speed);
 		mMaxRotationSpeedFormat = getString(R.string.config_max_rotating_speed);
+		mPref = activity.getPreferences(0);
 	}
 
 	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
+		mPref = null;
 		super.onDetach();
 	}
 
@@ -160,26 +166,56 @@ public class ConfigFragment extends ControlFragment {
 	private void updateConfigMinidrone2(final View root) {
 		// 自動カットアウトモード
 		CheckBox checkbox = (CheckBox)root.findViewById(R.id.cutout_checkbox);
-		checkbox.setOnCheckedChangeListener(null);
-		checkbox.setChecked(((DeviceControllerMiniDrone) mController).isCutoffModeEnabled());
-		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		if (checkbox != null) {
+			try {
+				checkbox.setOnCheckedChangeListener(null);
+				checkbox.setChecked(((DeviceControllerMiniDrone) mController).isCutoffModeEnabled());
+				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
+		}
 		// 車輪
 		checkbox = (CheckBox)root.findViewById(R.id.wheel_checkbox);
-		checkbox.setOnCheckedChangeListener(null);
-		checkbox.setChecked(((DeviceControllerMiniDrone) mController).hasWheel());
-		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		if (checkbox != null) {
+			try {
+				checkbox.setOnCheckedChangeListener(null);
+				checkbox.setChecked(((DeviceControllerMiniDrone) mController).hasWheel());
+				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
+		}
 		// 自動離陸モード
 		checkbox = (CheckBox)root.findViewById(R.id.auto_takeoff_checkbox);
-		checkbox.setOnCheckedChangeListener(null);
-		checkbox.setChecked(((DeviceControllerMiniDrone) mController).isAutoTakeOffModeEnabled());
-		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		if (checkbox != null) {
+			try {
+				checkbox.setOnCheckedChangeListener(null);
+				checkbox.setChecked(((DeviceControllerMiniDrone) mController).isAutoTakeOffModeEnabled());
+				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+			} catch (Exception e) {
+				Log.w(TAG, e);
+			}
+		}
+	}
+
+	/**
+	 * 操作設定画面の準備
+	 * @param root
+	 */
+	private void updateConfigOperation(final View root) {
+		final Switch sw = (Switch)root.findViewById(R.id.reverse_op_switch);
+		if (sw != null) {
+			sw.setChecked(mPref != null ? mPref.getBoolean(KEY_REVERSE_OPERATION, false) : false);
+			sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		}
 	}
 
 	/**
 	 * ドローン情報画面の準備
 	 * @param root
 	 */
-	private void updateConfigMinidrone3(final View root) {
+	private void updateConfigInfo(final View root) {
 		TextView tv = (TextView)root.findViewById(R.id.app_version_textview);
 		tv.setText(BuildConfig.VERSION_NAME);
 		tv = (TextView)root.findViewById(R.id.product_name_textview);
@@ -336,6 +372,11 @@ public class ConfigFragment extends ControlFragment {
 					((DeviceControllerMiniDrone) mController).sendAutoTakeOffMode(isChecked);
 				}
 				break;
+			case R.id.reverse_op_switch:
+				if (mPref != null) {
+					mPref.edit().putBoolean(KEY_REVERSE_OPERATION, isChecked).apply();
+				}
+				break;
 			}
 		}
 	};
@@ -364,8 +405,12 @@ public class ConfigFragment extends ControlFragment {
 				updateConfigMinidrone2(view);
 				break;
 			case 2:
+				view = mInflater.inflate(R.layout.config_operation, container, false);
+				updateConfigOperation(view);
+				break;
+			case 3:
 				view = mInflater.inflate(R.layout.config_info, container, false);
-				updateConfigMinidrone3(view);
+				updateConfigInfo(view);
 				break;
 			}
 			if (view != null) {
@@ -383,7 +428,7 @@ public class ConfigFragment extends ControlFragment {
 
 		@Override
 		public int getCount() {
-			return 3;
+			return 4;
 		}
 
 		@Override
@@ -403,6 +448,9 @@ public class ConfigFragment extends ControlFragment {
 				break;
 			case 2:
 				result = getString(R.string.config_3);
+				break;
+			case 3:
+				result = getString(R.string.config_4);
 				break;
 			}
 			return result;
