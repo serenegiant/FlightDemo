@@ -14,7 +14,7 @@ import android.widget.FrameLayout;
 import com.serenegiant.flightdemo.R;
 
 public class StickView extends FrameLayout {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "StickView";
 
 	public interface OnStickMoveListener {
@@ -172,7 +172,7 @@ public class StickView extends FrameLayout {
 
 	@Override
 	public boolean onInterceptTouchEvent(final MotionEvent event) {
-		if (mStickView != null) {
+		if (mStickView != null && isEnabled()) {
 			return true;	// スティックViewが設定されていれば常に横取りする
 		} else {
 			return super.onInterceptTouchEvent(event);

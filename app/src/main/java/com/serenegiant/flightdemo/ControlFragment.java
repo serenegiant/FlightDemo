@@ -2,7 +2,6 @@ package com.serenegiant.flightdemo;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,16 +9,14 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
-import android.view.WindowManager;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceControllerListener;
-import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IDeviceController;
 
 public abstract class ControlFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static String TAG = ControlFragment.class.getSimpleName();
+	private static String TAG = "ControlFragment";
 
 	protected static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";
 
@@ -32,8 +29,6 @@ public abstract class ControlFragment extends Fragment {
 	protected IDeviceController mController;
 
 	protected volatile int mFlyingState = 0;
-//	protected volatile int mAlertState = 0;
-//	protected volatile int mBatteryState = 0;
 	protected boolean mIsFlying = false;	// FIXME mFlyingStateを参照するようにしてmIsFlyingフラグは削除する
 	protected boolean mIsConnected = false;
 
@@ -190,7 +185,7 @@ public abstract class ControlFragment extends Fragment {
 			if ((state != IDeviceController.STATE_STARTED)
 				&& (state != IDeviceController.STATE_STARTING)) {
 				if (DEBUG) Log.v(TAG, "未接続");
-				updateBattery(-1);
+				updateBattery();
 
 				final MainActivity activity = (MainActivity)getActivity();
 				if (activity != null) {
@@ -205,6 +200,7 @@ public abstract class ControlFragment extends Fragment {
 
 						mIsConnected = !failed;
 						if (failed) {
+							if (DEBUG) Log.w(TAG, "DeviceControllerを開始できなかった");
 							try {
 								getFragmentManager().popBackStack();
 							} catch (final Exception e) {
@@ -218,7 +214,7 @@ public abstract class ControlFragment extends Fragment {
 //				mController.sendAllSettings();
 //				mController.sendAllStates();
 				// sendAllSettingsとかsendAllStatesは接続した直後に1回しか有効じゃないのかも
-				updateBattery(mController.getBattery());
+				updateBattery();
 			}
 			this.stopMove();
 		} else {
@@ -281,13 +277,16 @@ public abstract class ControlFragment extends Fragment {
 		}
 	}
 
-	protected void updateBattery(final int battery) {
+	protected void updateBattery() {
 	}
 
 	protected void updateFlyingState(final int state) {
 	}
 
-	protected void updateAlertState(final int alert_state) {
+	protected void updateAlarmState(final int alert_state) {
+	}
+
+	protected void onConnect(final IDeviceController controller) {
 	}
 
 	protected void onDisconnect(final IDeviceController controller) {
@@ -301,23 +300,25 @@ public abstract class ControlFragment extends Fragment {
 		} */
 	}
 
-	protected void onAlertStateChangedUpdate(int alert_state) {
+	protected void onAlarmStateChangedUpdate(int alert_state) {
 	}
 
 	private final DeviceControllerListener mDeviceControllerListener
 		= new DeviceControllerListener() {
 		@Override
 		public void onConnect(IDeviceController controller) {
+			ControlFragment.this.onConnect(controller);
 		}
 
 		@Override
 		public void onDisconnect(final IDeviceController controller) {
+			if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onDisconnect");
 			ControlFragment.this.onDisconnect(controller);
 		}
 
 		@Override
 		public void onUpdateBattery(final int percent) {
-			updateBattery(percent);
+			updateBattery();
 		}
 
 		@Override
@@ -326,9 +327,9 @@ public abstract class ControlFragment extends Fragment {
 		}
 
 		@Override
-		public void onAlertStateChangedUpdate(int alert_state) {
-			if (DEBUG) Log.v(TAG, "onAlertStateChangedUpdate:state=" + alert_state);
-			updateAlertState(alert_state);
+		public void onAlarmStateChangedUpdate(int alarm_state) {
+			if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onAlarmStateChangedUpdate:state=" + alarm_state);
+			updateAlarmState(alarm_state);
 		}
 	};
 

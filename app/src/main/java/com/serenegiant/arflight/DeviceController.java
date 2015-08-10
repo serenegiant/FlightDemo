@@ -242,6 +242,13 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	@Override
+	public boolean isConnected() {
+		synchronized (mStateSync) {
+			return (mState == STATE_STARTED) && (mAlarmState != ALARM_DISCONNECTED);
+		}
+	}
+
 	/**
 	 * DeviceControllerがstartした時の処理
 	 */
@@ -756,7 +763,7 @@ public abstract class DeviceController implements IDeviceController {
 		return mBatteryState;
 	}
 
-	private int mBatteryState;
+	private int mBatteryState = -1;
 	/**
 	 * バッテリーの残量が変化した時のコールバックリスナー
 	 */
@@ -1033,6 +1040,8 @@ public abstract class DeviceController implements IDeviceController {
 			if (listener instanceof DeviceControllerListener) {
 				mListeners.add((DeviceControllerListener) listener);
 				callOnUpdateBattery(mBatteryState);
+				callOnAlarmStateChangedUpdate(mAlarmState);
+				callOnFlyingStateChangedUpdate(mFlyingState);
 			}
 		}
 	}
@@ -1042,7 +1051,21 @@ public abstract class DeviceController implements IDeviceController {
 		synchronized (mListenerSync) {
 			mConnectionListeners.remove(listener);
 			if (listener instanceof DeviceControllerListener) {
-				mListeners.remove((DeviceControllerListener)listener);
+				mListeners.remove((DeviceControllerListener) listener);
+			}
+		}
+	}
+
+	protected void callOnConnect() {
+		synchronized (mListenerSync) {
+			for (DeviceConnectionListener listener: mConnectionListeners) {
+				if (listener != null) {
+					try {
+						listener.onConnect(this);
+					} catch (Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
 			}
 		}
 	}
@@ -1090,12 +1113,12 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-	protected void callOnAlertStateChangedUpdate(final int state) {
+	protected void callOnAlarmStateChangedUpdate(final int state) {
 		synchronized (mListenerSync) {
 			for (DeviceControllerListener listener: mListeners) {
 				if (listener != null) {
 					try {
-						listener.onAlertStateChangedUpdate(state);
+						listener.onAlarmStateChangedUpdate(state);
 					} catch (Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
@@ -1478,6 +1501,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (DEBUG) Log.d(TAG, "onDisconnect ...");
 			DeviceController.this.stop();
 			mAlarmState = ALARM_DISCONNECTED;
+			callOnAlarmStateChangedUpdate(mAlarmState);
 			callOnDisconnect();
 		}
 	}

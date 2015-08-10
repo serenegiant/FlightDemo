@@ -406,7 +406,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
 
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateAlertStateChangedUpdate:");
-			callOnAlertStateChangedUpdate(state.getValue());
+			callOnAlarmStateChangedUpdate(state.getValue());
 		}
 	};
 

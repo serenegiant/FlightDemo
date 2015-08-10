@@ -5,7 +5,7 @@ public interface DeviceConnectionListener {
 	 * 接続した時のコールバック
 	 * @param controller
 	 */
-	public void onConnect(IDeviceController controller);
+	public void onConnect(final IDeviceController controller);
 	/**
 	 * 切断された時のコールバック
 	 */

@@ -112,7 +112,18 @@ public interface IDeviceController {
 	 */
 	public void cancelStart();
 	public void stop();
+
+	/**
+	 * startしているかどうか
+	 * @return
+	 */
 	public boolean isStarted();
+
+	/**
+	 * 接続されているかどうか
+	 * @return
+	 */
+	public boolean isConnected();
 
 	public boolean sendDate(Date currentDate);
 	public boolean sendTime(Date currentDate);

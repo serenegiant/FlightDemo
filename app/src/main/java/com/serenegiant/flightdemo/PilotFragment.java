@@ -40,10 +40,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	private View mControllerView;	// 操作パネル
 	// 上パネル
+	private View mTopPanel;
 	private TextView mBatteryLabel;
 	private ImageButton mFlatTrimBtn;	// フラットトリム
 	private TextView mAlertMessage;
 	// 下パネル
+	private View mBottomPanel;
 	private ImageButton mEmergencyBtn;	// 非常停止ボタン
 	private ImageButton mTakeOnOffBtn;	// 離陸/着陸ボタン
 	private ImageButton mRecordBtn;		// 記録ボタン
@@ -87,6 +89,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mControllerView = rootView.findViewById(R.id.controller_frame);
 
 		// 上パネル
+		mTopPanel = rootView.findViewById(R.id.top_panel);
 		mFlatTrimBtn = (ImageButton)rootView.findViewById(R.id.flat_trim_btn);
 		mFlatTrimBtn.setOnLongClickListener(mOnLongClickListener);
 
@@ -94,6 +97,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mConfigShowBtn.setOnClickListener(mOnClickListener);
 
 		// 下パネル
+		mBottomPanel = rootView.findViewById(R.id.bottom_panel);
 		mEmergencyBtn = (ImageButton)rootView.findViewById(R.id.emergency_btn);
 		mEmergencyBtn.setOnClickListener(mOnClickListener);
 
@@ -419,8 +423,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	};
 
 	@Override
+	protected void onConnect(final IDeviceController controller) {
+		if (DEBUG) Log.v(TAG, "#onConnect");
+		updateButtons();
+	}
+
+	@Override
 	protected void onDisconnect(final IDeviceController controller) {
-		if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onDisconnect");
+		if (DEBUG) Log.v(TAG, "#onDisconnect");
 		stopRecord();
 		stopPlay();
 		super.onDisconnect(controller);
@@ -432,13 +442,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	@Override
-	protected void updateAlertState(final int alert_state) {
-		runOnUiThread(mUpdateAlertMessageTask);
+	protected void updateAlarmState(final int alert_state) {
+		runOnUiThread(mUpdateAlarmMessageTask);
 		updateButtons();
 	}
 
 	@Override
-	protected void updateBattery(final int battery) {
+	protected void updateBattery() {
 		runOnUiThread(mUpdateBatteryTask);
 	}
 
@@ -608,19 +618,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	};
 
 	/**
-	 * ボタン表示の更新(UIスレッドで処理)
-	 */
-	private void updateButtons() {
-		runOnUiThread(mUpdateButtonsTask);
-	}
-
-	/**
 	 * アラート表示の更新処理をUIスレッドで実行するためのRunnable
 	 */
-	private final Runnable mUpdateAlertMessageTask = new Runnable() {
+	private final Runnable mUpdateAlarmMessageTask = new Runnable() {
 		@Override
 		public void run() {
-			final int alarm = mController != null ? mController.getAlarm() : IDeviceController.ALARM_DISCONNECTED;
+			final int alarm = (mController != null ? mController.getAlarm() : IDeviceController.ALARM_DISCONNECTED);
+			if (DEBUG) Log.w(TAG, "mUpdateAlarmMessageTask:alarm=" + alarm);
 			switch (alarm) {
 			case IDeviceController.ALARM_NON:				// No alert
 				break;
@@ -639,8 +643,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case IDeviceController.ALARM_DISCONNECTED:		// 切断された
 				mAlertMessage.setText(R.string.alarm_disconnected);
 				break;
+			default:
+				Log.w(TAG, "unexpected alarm state:" + alarm);
+				break;
 			}
-			mAlertMessage.setVisibility(alarm != 0 ? View.INVISIBLE : View.VISIBLE);
+			mAlertMessage.setVisibility(alarm != 0 ? View.VISIBLE : View.INVISIBLE);
 		}
 	};
 
@@ -650,8 +657,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final Runnable mUpdateBatteryTask = new Runnable() {
 		@Override
 		public void run() {
-			if (mBatteryState >= 0) {
-				mBatteryLabel.setText(String.format("%d%%", mBatteryState));
+			final int battery = mController != null ? mController.getBattery() : -1;
+			if (battery >= 0) {
+				mBatteryLabel.setText(String.format("%d%%", battery));
 			} else {
 				mBatteryLabel.setText("---");
 			}
@@ -692,28 +700,38 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	};
 
 	/**
+	 * ボタン表示の更新(UIスレッドで処理)
+	 */
+	private void updateButtons() {
+		runOnUiThread(mUpdateButtonsTask);
+	}
+
+	/**
 	 *　ボタンの表示更新をUIスレッドで行うためのRunnable
 	 */
 	private final Runnable mUpdateButtonsTask = new Runnable() {
 		@Override
 		public void run() {
 			final int state = mController != null ? mController.getState() : IDeviceController.STATE_STOPPED;
-			final int alert_state = mController != null ? mController.getAlarm() : IDeviceController.ALARM_DISCONNECTED;
-			final boolean is_connected = (state & IDeviceController.STATE_MASK_CONNECTION) == IDeviceController.STATE_STARTED;
+			final int alarm_state = mController != null ? mController.getAlarm() : IDeviceController.ALARM_DISCONNECTED;
+			final boolean is_connected = mController != null ? mController.isConnected() : false;
 			final boolean is_recording = mFlightRecorder.isRecording();
 			final boolean is_playing = mFlightRecorder.isPlaying();
-			final boolean can_play = is_connected && !is_recording && (alert_state == IDeviceController.ALARM_NON) && (mFlightRecorder.size() > 0);
+			final boolean can_play = is_connected && !is_recording && (alarm_state == IDeviceController.ALARM_NON) && (mFlightRecorder.size() > 0);
 			final boolean can_record = is_connected && !is_playing;
 			final boolean can_load = is_connected && !is_playing && !is_recording;
-			final boolean can_fly = can_record && (alert_state == IDeviceController.ALARM_NON);
+			final boolean can_fly = can_record && (alarm_state == IDeviceController.ALARM_NON);
 			final boolean can_flattrim = can_fly && (state == IDeviceController.STATE_STARTED);
 
 			// 上パネル
+			mTopPanel.setEnabled(is_connected);
 			mFlatTrimBtn.setEnabled(can_flattrim);	// フラットトリム
-			mBatteryLabel.setTextColor((alert_state == IDeviceController.ALARM_BATTERY)
-										   || (alert_state == IDeviceController.ALARM_BATTERY_CRITICAL)
-										   ? 0xffff0000 : 0xff000000);
+			mBatteryLabel.setTextColor(
+				(alarm_state == IDeviceController.ALARM_BATTERY)
+				|| (alarm_state == IDeviceController.ALARM_BATTERY_CRITICAL)
+				? 0xffff0000 : 0xff000000);
 			// 下パネル
+			mBottomPanel.setEnabled(is_connected);
 			mEmergencyBtn.setEnabled(is_connected);	// 非常停止
 			mTimeLabelTv.setVisibility(is_recording || is_playing ? View.VISIBLE : View.INVISIBLE);
 			mLoadBtn.setEnabled(can_load);			// 読み込み

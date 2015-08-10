@@ -17,8 +17,8 @@ public interface DeviceControllerListener extends DeviceConnectionListener {
 
 	/**
 	 * 機体側からの異常通知時のコールバック
-	 * @param alert_state
+	 * @param alarm_state
 	 * 0: No alert, 1:User emergency alert, 2:Cut out alert, 3:Critical battery alert, 4:Low battery alert
 	 */
-	public void onAlertStateChangedUpdate(final int alert_state);
+	public void onAlarmStateChangedUpdate(final int alarm_state);
 }

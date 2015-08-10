@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
 		//　ActionBarActivity/AppCompatActivityはバックキーの処理がおかしくて
 		// バックスタックの処理が正常にできない事に対するworkaround
 		if (getFragmentManager().getBackStackEntryCount() > 0) {
+			Log.i(TAG, "#onBackPressed:popBackStack");
 			getFragmentManager().popBackStack();
 		} else {
 			super.onBackPressed();
