@@ -84,7 +84,7 @@ public class StickView extends FrameLayout {
 	private boolean mOnTouchEvent;
 	@Override
 	public synchronized boolean onTouchEvent(final MotionEvent event) {
-		if (mStickView != null) {
+		if (mStickView != null && isEnabled()) {
 			switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN: {
 				if (DEBUG) Log.v(TAG, "ACTION_DOWN:");
@@ -190,20 +190,6 @@ public class StickView extends FrameLayout {
 		if ((mMaxWidth != 0) && (mMaxHeight != 0) && !mOnTouchEvent) {
 			move(mMaxWidth >>> 1, mMaxHeight >>> 1);
 		}
-	}
-
-	@Override
-	public void setEnabled(boolean enabled) {
-		final int n = getChildCount();
-		for (int i = 0; i < n; i++) {
-			final View child = getChildAt(i);
-			try {
-				child.setEnabled(enabled);
-			} catch (Exception e) {
-				// ignore
-			}
-		}
-		super.setEnabled(enabled);
 	}
 
 	/**
