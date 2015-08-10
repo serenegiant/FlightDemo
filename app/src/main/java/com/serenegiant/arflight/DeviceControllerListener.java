@@ -5,7 +5,7 @@ public interface DeviceControllerListener extends DeviceConnectionListener {
 	 * 電池残量が変化した時のコールバック
 	 * @param percent
 	 */
-	public void onUpdateBattery(final byte percent);
+	public void onUpdateBattery(final int percent);
 
 	/**
 	 * 飛行状態が変化した時のコールバック

@@ -2,6 +2,7 @@ package com.serenegiant.flightdemo;
 
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -86,15 +87,13 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private ProgressDialog mProgress;
-	public synchronized void showProgress(final int title_resID) {
+	public synchronized void showProgress(final int title_resID, final boolean cancelable,
+		final DialogInterface.OnCancelListener cancel_listener) {
 		if (!isFinishing()) {
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					mProgress = new ProgressDialog(MainActivity.this);
-					mProgress.setTitle(title_resID);
-					mProgress.setIndeterminate(true);
-					mProgress.show();
+					mProgress = ProgressDialog.show(MainActivity.this, getString(title_resID), null, true, cancelable, cancel_listener);
 				}
 			});
 		}

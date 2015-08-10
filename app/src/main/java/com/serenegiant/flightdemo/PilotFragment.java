@@ -222,7 +222,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				// 設定パネル表示処理
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mIsConnected) {
-					if (mFlyingState == 0) {
+					if (mFlyingState == IDeviceController.STATE_STARTED) {
 						final ConfigFragment fragment = ConfigFragment.newInstance(getDevice());
 						getFragmentManager().beginTransaction()
 							.addToBackStack(null)
@@ -351,7 +351,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				return true;
 			case R.id.flat_trim_btn:
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
-				if ((mController != null) && (mFlyingState == 0)) {
+				if ((mController != null) && (mController.getState() == IDeviceController.STATE_STARTED)) {
 					mController.sendFlatTrim();
 					return true;
 				}
@@ -620,23 +620,27 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final Runnable mUpdateAlertMessageTask = new Runnable() {
 		@Override
 		public void run() {
-			switch (mAlertState) {
-			case 0:	// No alert
+			final int alarm = mController != null ? mController.getAlarm() : IDeviceController.ALARM_DISCONNECTED;
+			switch (alarm) {
+			case IDeviceController.ALARM_NON:				// No alert
 				break;
-			case 1:	// User emergency alert
-				mAlertMessage.setText(R.string.user_emergency);
+			case IDeviceController.ALARM_USER_EMERGENCY:	// User emergency alert
+				mAlertMessage.setText(R.string.alarm_user_emergency);
 				break;
-			case 2:	// Cut out alert
-				mAlertMessage.setText(R.string.motor_cut_out);
+			case IDeviceController.ALARM_CUTOUT:			// Cut out alert
+				mAlertMessage.setText(R.string.alarm_motor_cut_out);
 				break;
-			case 3:	// Critical battery alert
-				mAlertMessage.setText(R.string.low_battery_critical);
+			case IDeviceController.ALARM_BATTERY_CRITICAL:	// Critical battery alert
+				mAlertMessage.setText(R.string.alarm_low_battery_critical);
 				break;
-			case 4:	// Low battery alert
-				mAlertMessage.setText(R.string.low_battery);
+			case IDeviceController.ALARM_BATTERY:			// Low battery alert
+				mAlertMessage.setText(R.string.alarm_low_battery);
+				break;
+			case IDeviceController.ALARM_DISCONNECTED:		// 切断された
+				mAlertMessage.setText(R.string.alarm_disconnected);
 				break;
 			}
-			mAlertMessage.setVisibility(mAlertState != 0 ? View.INVISIBLE : View.VISIBLE);
+			mAlertMessage.setVisibility(alarm != 0 ? View.INVISIBLE : View.VISIBLE);
 		}
 	};
 
@@ -693,53 +697,45 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final Runnable mUpdateButtonsTask = new Runnable() {
 		@Override
 		public void run() {
-			final int state = mFlyingState;
-			final int alert_state = mAlertState;
-			final boolean is_connected = mIsConnected;
+			final int state = mController != null ? mController.getState() : IDeviceController.STATE_STOPPED;
+			final int alert_state = mController != null ? mController.getAlarm() : IDeviceController.ALARM_DISCONNECTED;
+			final boolean is_connected = (state & IDeviceController.STATE_MASK_CONNECTION) == IDeviceController.STATE_STARTED;
 			final boolean is_recording = mFlightRecorder.isRecording();
 			final boolean is_playing = mFlightRecorder.isPlaying();
-			final boolean can_play = is_connected && !is_recording && (state != 5) && (mFlightRecorder.size() > 0);
+			final boolean can_play = is_connected && !is_recording && (alert_state == IDeviceController.ALARM_NON) && (mFlightRecorder.size() > 0);
 			final boolean can_record = is_connected && !is_playing;
 			final boolean can_load = is_connected && !is_playing && !is_recording;
-			final boolean can_fly = can_record && (state != 5);
-			final boolean can_flattrim = can_fly && (state == 0);
-/*			switch (state) {
-			case 0: // Landed state
-			case 1:	// Taking off state
-			case 2:	// Hovering state
-			case 3:	// Flying state
-			case 4:	// Landing state
-			case 5:	// Emergency state
-			case 6: // Rolling state
-				break;
-			} */
-/*				switch (alert_state) {
-			case 0:	// No alert
-			case 1:	// User emergency alert
-			case 2:	// Cut out alert
-			case 3:	// Critical battery alert
-			case 4:	// Low battery alert
-				break;
-			} */
+			final boolean can_fly = can_record && (alert_state == IDeviceController.ALARM_NON);
+			final boolean can_flattrim = can_fly && (state == IDeviceController.STATE_STARTED);
 
 			// 上パネル
 			mFlatTrimBtn.setEnabled(can_flattrim);	// フラットトリム
-			mBatteryLabel.setTextColor((alert_state == 3) || (alert_state == 4) ? 0xffff0000 : 0xff000000);
+			mBatteryLabel.setTextColor((alert_state == IDeviceController.ALARM_BATTERY)
+										   || (alert_state == IDeviceController.ALARM_BATTERY_CRITICAL)
+										   ? 0xffff0000 : 0xff000000);
 			// 下パネル
 			mEmergencyBtn.setEnabled(is_connected);	// 非常停止
-			mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
 			mTimeLabelTv.setVisibility(is_recording || is_playing ? View.VISIBLE : View.INVISIBLE);
 			mLoadBtn.setEnabled(can_load);			// 読み込み
 			mPlayBtn.setEnabled(can_play);			// 再生
 			mPlayBtn.setColorFilter(mFlightRecorder.isPlaying() ? 0xffff0000 : 0);
 			mRecordBtn.setEnabled(can_record);		// 記録
 			mRecordBtn.setColorFilter(is_recording ? 0xffff0000 : 0);
-			if (mIsFlying || (state != 0)) {
-//				mTakeOnOffBtn.setText(R.string.button_text_landing);
-				mTakeOnOffBtn.setImageResource(R.drawable.landing72x72);
-			} else {
-//				mTakeOnOffBtn.setText(R.string.button_text_takeoff);
+
+			mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
+			switch (state & IDeviceController.STATE_MASK_FLYING) {
+			case IDeviceController.STATE_FLYING_LANDED:		// 0x0000;		// FlyingState=0
+			case IDeviceController.STATE_FLYING_LANDING:	// 0x0400;		// FlyingState=4
 				mTakeOnOffBtn.setImageResource(R.drawable.takeoff72x72);
+				break;
+			case IDeviceController.STATE_FLYING_TAKEOFF:	// 0x0100;		// FlyingState=1
+			case IDeviceController.STATE_FLYING_HOVERING:	// 0x0200;		// FlyingState=2
+			case IDeviceController.STATE_FLYING_FLYING:		// 0x0300;		// FlyingState=3
+			case IDeviceController.STATE_FLYING_ROLLING:	// 0x0600;		// FlyingState=6
+				mTakeOnOffBtn.setImageResource(R.drawable.landing72x72);
+				break;
+			case IDeviceController.STATE_FLYING_EMERGENCY:	// 0x0500;		// FlyingState=5
+				break;
 			}
 
 			// 右サイドパネル(とmCapXXXBtn等)
@@ -789,6 +785,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	}
 
+	/**
+	 * 一定時間後にImageView(とImageButton)のカラーフィルターをクリアするためのRunnable
+	 */
 	private static class ResetColorFilterTask implements Runnable {
 		private final ImageView mImage;
 		public ResetColorFilterTask(final ImageView image) {

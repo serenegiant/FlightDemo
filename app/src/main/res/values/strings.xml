@@ -1,47 +1,54 @@
 <resources>
 	<string name="app_name">FlightDemo</string>
+
 	<string name="action_settings">Settings</string>
+	<string name="action_takeoff">takeoff</string>
+	<string name="action_landing">landing</string>
+	<string name="action_emergency">emergency</string>
+	<string name="action_flat_trim">FlatTrim</string>
+	<string name="action_flip">Flip</string>
+	<string name="action_load">load</string>
+	<string name="action_play">play</string>
+	<string name="action_record">Record</string>
+
+	<string name="alarm_low_battery">Low battery</string>
+	<string name="alarm_low_battery_critical">Critical low battery</string>
+	<string name="alarm_user_emergency">User emergency stop</string>
+	<string name="alarm_motor_cut_out">Motor cut out</string>
+	<string name="alarm_disconnected">Disconnected</string>
+
 	<string name="detecting">Detecting drones...</string>
 	<string name="disconnecting">Disconnecting…</string>
 	<string name="connecting">Connecting…</string>
+	<string name="loading">Loading…</string>
+	<string name="battery">Battery:</string>
+	<string name="select">Select</string>
+	<string name="not_selected">No file selected！</string>
+	<string name="parent_dir">Up..</string>
+
 	<string name="stick_text_back">back</string>
 	<string name="stick_text_left">left</string>
 	<string name="stick_text_up">up</string>
 	<string name="stick_text_down">down</string>
-	<string name="button_text_landing">landing</string>
 	<string name="stick_text_turn_right">turn\nleft</string>
 	<string name="stick_text_turn_left">turn\nright</string>
 	<string name="stick_text_right">right</string>
 	<string name="stick_text_forward">forward</string>
-	<string name="button_text_takeoff">takeoff</string>
-	<string name="emergency">emergency</string>
-	<string name="battery">Battery:</string>
-	<string name="flat_trim">FlatTrim</string>
-	<string name="flip">Flip</string>
-	<string name="load">load</string>
-	<string name="play">play</string>
-	<string name="loading">Loading…</string>
-	<string name="select">Select</string>
-	<string name="not_selected">No file selected！</string>
-	<string name="parent_dir">Up..</string>
-	<string name="low_battery">Low battery</string>
-	<string name="low_battery_critical">Critical low battery</string>
-	<string name="user_emergency">User emergency stop</string>
-	<string name="motor_cut_out">Motor cut out</string>
-	<string name="max_tilt">Max Tilt: %5.1f[deg.]</string>
-	<string name="max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
-	<string name="max_altitude">Max altitude: %5.1f[m]</string>
-	<string name="max_rotating_speed">Max rotating speed: %5.0f[deg./s]</string>
-	<string name="has_wheel">with wheel</string>
-	<string name="has_hull">with Hull</string>
-	<string name="cut_out">Cutout</string>
+
 	<string name="config_1">Flight settings</string>
 	<string name="config_2">Drone settings</string>
 	<string name="config_3">Drone info</string>
-	<string name="auto_takeoff">Enable auto take-off</string>
-	<string name="product_name">Product name:</string>
-	<string name="version_software">Software version:</string>
-	<string name="version_hardware">Hardware version:</string>
-	<string name="version_app">App version:</string>
-	<string name="record">Record</string>
+	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>
+	<string name="config_max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
+	<string name="config_max_altitude">Max altitude: %5.1f[m]</string>
+	<string name="config_max_rotating_speed">Max rotating speed: %5.0f[deg./s]</string>
+	<string name="config_has_wheel">with wheel</string>
+	<string name="config_has_hull">with Hull</string>
+	<string name="config_cut_out">Cutout</string>
+	<string name="config_auto_takeoff">Enable auto take-off</string>
+
+	<string name="info_product_name">Product name:</string>
+	<string name="info_version_software">Software version:</string>
+	<string name="info_version_hardware">Hardware version:</string>
+	<string name="info_version_app">App version:</string>
 </resources>

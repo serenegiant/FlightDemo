@@ -3,10 +3,12 @@ package com.serenegiant.flightdemo;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -30,8 +32,8 @@ public abstract class ControlFragment extends Fragment {
 	protected IDeviceController mController;
 
 	protected volatile int mFlyingState = 0;
-	protected volatile int mAlertState = 0;
-	protected volatile int mBatteryState = 0;
+//	protected volatile int mAlertState = 0;
+//	protected volatile int mBatteryState = 0;
 	protected boolean mIsFlying = false;	// FIXME mFlyingStateを参照するようにしてmIsFlyingフラグは削除する
 	protected boolean mIsConnected = false;
 
@@ -188,19 +190,17 @@ public abstract class ControlFragment extends Fragment {
 			if ((state != IDeviceController.STATE_STARTED)
 				&& (state != IDeviceController.STATE_STARTING)) {
 				if (DEBUG) Log.v(TAG, "未接続");
-				mBatteryState = -1;
-				updateBattery(mBatteryState);
+				updateBattery(-1);
 
 				final MainActivity activity = (MainActivity)getActivity();
 				if (activity != null) {
-					activity.showProgress(R.string.connecting);
+					activity.showProgress(R.string.connecting, true, mOnCancelListener);
 				}
 
 				new Thread(new Runnable() {
 					@Override
 					public void run() {
 						final boolean failed = mController.start();
-						updateBattery(mBatteryState);
 						activity.hideProgress();
 
 						mIsConnected = !failed;
@@ -218,7 +218,7 @@ public abstract class ControlFragment extends Fragment {
 //				mController.sendAllSettings();
 //				mController.sendAllStates();
 				// sendAllSettingsとかsendAllStatesは接続した直後に1回しか有効じゃないのかも
-				updateBattery(mBatteryState);
+				updateBattery(mController.getBattery());
 			}
 			this.stopMove();
 		} else {
@@ -229,7 +229,7 @@ public abstract class ControlFragment extends Fragment {
 	protected synchronized void stopDeviceController(final boolean disconnected) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
 		mIsConnected = mIsFlying = false;
-		mFlyingState = mBatteryState = -1;
+		mFlyingState = -1;
 		final int state = getState();
 		final IDeviceController controller = mController;
 		mController = null;
@@ -238,7 +238,7 @@ public abstract class ControlFragment extends Fragment {
 
 			final MainActivity activity = (MainActivity)getActivity();
 			if (activity != null) {
-				activity.showProgress(R.string.disconnecting);
+				activity.showProgress(R.string.disconnecting, false, null);
 			}
 
 			new Thread(new Runnable() {
@@ -294,11 +294,11 @@ public abstract class ControlFragment extends Fragment {
 		if (DEBUG) Log.v(TAG, "onDisconnect:");
 		stopMove();
 		stopDeviceController(true);
-		try {
+/*		try {
 			getFragmentManager().popBackStack();
 		} catch (Exception e) {
 			Log.w(TAG, e);
-		}
+		} */
 	}
 
 	protected void onAlertStateChangedUpdate(int alert_state) {
@@ -316,29 +316,51 @@ public abstract class ControlFragment extends Fragment {
 		}
 
 		@Override
-		public void onUpdateBattery(final byte percent) {
-			if (mBatteryState != percent) {
-				mBatteryState = percent;
-				updateBattery(percent);
-			}
+		public void onUpdateBattery(final int percent) {
+			updateBattery(percent);
 		}
 
 		@Override
 		public void onFlyingStateChangedUpdate(final int state) {
-			if (mFlyingState != state) {
-				mFlyingState = state;
-				updateFlyingState(state);
-			}
+			updateFlyingState(state);
 		}
 
 		@Override
 		public void onAlertStateChangedUpdate(int alert_state) {
 			if (DEBUG) Log.v(TAG, "onAlertStateChangedUpdate:state=" + alert_state);
-			if (mAlertState != alert_state) {
-				mAlertState = alert_state;
-				updateAlertState(alert_state);
+			updateAlertState(alert_state);
+		}
+	};
+
+	private final DialogInterface.OnCancelListener mOnCancelListener
+		= new DialogInterface.OnCancelListener() {
+		@Override
+		public void onCancel(DialogInterface dialog) {
+			if (DEBUG) Log.w(TAG, "ユーザーキャンセル");
+			if (getState() == IDeviceController.STATE_STARTING) {
+				mController.cancelStart();
 			}
 		}
 	};
+
+	private static final int CMD_NON = 0;
+	private static final int CMD_START = 1;
+	private static final int CMD_STOP = 2;
+	private static final int CMD_CANCEL = 3;
+	private static final int CMD_SET_DATE = 4;
+	private static final int CMD_SET_TIME = 5;
+	private static final int CMD_ALL_SETTINGS = 6;
+	private static final int CMD_ALL_STATUS = 7;
+	private static final int CMD_QUIT = 9;
+
+	private class ControlHandler extends Handler {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+
+			}
+			super.handleMessage(msg);
+		}
+	}
 
 }

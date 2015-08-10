@@ -1,8 +1,6 @@
 package com.serenegiant.arflight;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -56,7 +54,6 @@ import com.parrot.arsdk.arnetwork.ARNetworkManager;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_ERROR_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.parrot.arsdk.arsal.ARNativeData;
-import com.parrot.arsdk.arsal.ARSALPrint;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -71,25 +68,6 @@ import java.util.concurrent.Semaphore;
 public abstract class DeviceController implements IDeviceController {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceController";
-
-//	protected static final int iobufferC2dNak = 10;
-//	protected static final int iobufferC2dAck = 11;
-//	protected static final int iobufferC2dEmergency = 12;
-//	protected static final int iobufferD2cNavdata = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 1;
-//	protected static final int iobufferD2cEvents = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 2;
-
-//	protected static final int ackOffset = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2);
-
-//	protected static final List<ARNetworkIOBufferParam> c2dParams = new ArrayList<ARNetworkIOBufferParam>();
-//	protected static final List<ARNetworkIOBufferParam> d2cParams = new ArrayList<ARNetworkIOBufferParam>();
-//	protected static int commandsBuffers[] = {};
-
-//	protected static final int bleNotificationIDs[] = new int[] {
-//		iobufferD2cNavdata,
-//		iobufferD2cEvents,
-//		(iobufferC2dAck + ackOffset),
-//		(iobufferC2dEmergency + ackOffset)
-//	};
 
 	protected final Context mContext;
 	protected final ARNetworkConfig mNetConfig;
@@ -109,8 +87,6 @@ public abstract class DeviceController implements IDeviceController {
 	private final Semaphore cmdGetAllStatesSent = new Semaphore(0);
 	private boolean isWaitingAllStates;
 
-//	private int c2dPort;
-//	private int d2cPort;
 	private Thread rxThread;
 	private Thread txThread;
 
@@ -120,6 +96,8 @@ public abstract class DeviceController implements IDeviceController {
 
 	private final Object mStateSync = new Object();
 	private int mState = STATE_STOPPED;
+	private int mFlyingState = 0;
+	private int mAlarmState = ALARM_NON;
 
 	protected final Object mDataSync = new Object();
 	private final DataPCMD mDataPCMD = new DataPCMD();
@@ -128,65 +106,6 @@ public abstract class DeviceController implements IDeviceController {
 	private final Object mListenerSync = new Object();
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 	private final List<DeviceControllerListener> mListeners = new ArrayList<DeviceControllerListener>();
-
-/*	static {
-		// コントローラー => 機体へのパラメータ
-		c2dParams.clear();
-		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dNak,						// ID
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,					// FRAME type
-			20,																			// Time between send, ミリ秒単かな?
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,				// ackTimeoutMs
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,				// numberOfRetry
-			1,																			// numberOfCell
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,		// copyMaxSize
-			true)																		// isOverwriting
-		);
-		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dAck,						// ID
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,			// FRAME type
-			20,																			// Time between send, ミリ秒単かな?
-			500,																		// ackTimeoutMs
-			3,																			// numberOfRetry
-			20,																			// numberOfCell
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,		// copyMaxSize
-			false)																		// isOverwriting
-		);
-		c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dEmergency,					// ID
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,			// FRAME type
-			1,																			// Time between send, ミリ秒単かな?
-			100,																		// ackTimeoutMs
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,				// numberOfRetry
-			1,																			// numberOfCell
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,		// copyMaxSize
-			false)																		// isOverwriting
-		);
-
-		// 機体 => コントローラーへのパラメータ
-		d2cParams.clear();
-		d2cParams.add(new ARNetworkIOBufferParam(iobufferD2cNavdata,					// ID
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,					// FRAME type
-			20,																			// Time between send, ミリ秒単かな?
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,				// ackTimeoutMs
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,				// numberOfRetry
-			20,																			// numberOfCell
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,		// copyMaxSize
-			false)																		// isOverwriting
-		);
-		d2cParams.add(new ARNetworkIOBufferParam(iobufferD2cEvents,						// ID
-			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,			// FRAME type
-			20,																			// Time between send, ミリ秒単かな?
-			500,																		// ackTimeoutMs
-			3,																			// numberOfRetry
-			20,																			// numberOfCell
-			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_DATACOPYMAXSIZE_USE_MAX,		// copyMaxSize
-			false)																		// isOverwriting
-		);
-
-		commandsBuffers = new int[] {
-			iobufferD2cNavdata,
-			iobufferD2cEvents,
-		};
-
-	} */
 
 	public DeviceController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		mContext = context;
@@ -211,8 +130,21 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public int getState() {
 		synchronized (mStateSync) {
-			return mState;
+			return mState + (mFlyingState << 8);
 		}
+	}
+
+	@Override
+	public int getAlarm() {
+		return mAlarmState;
+	}
+
+	protected void setAlarm(final int alarm) {
+		mAlarmState = alarm;
+	}
+
+	protected void setFlyingState(final int flying_state) {
+		mFlyingState = flying_state;
 	}
 
 	@Override
@@ -250,6 +182,9 @@ public abstract class DeviceController implements IDeviceController {
 		return failed;
 	}
 
+	/**
+	 * 接続処理を中断
+	 */
 	@Override
 	public void cancelStart() {
 		if (DEBUG) Log.v(TAG, "cancelStart:");
@@ -263,7 +198,7 @@ public abstract class DeviceController implements IDeviceController {
 			} else if (device instanceof ARDiscoveryDeviceBLEService) {
 				mARManager.cancelBLENetwork();
 			} else {
-				ARSALPrint.e (TAG, "Unknow network media type." );
+				Log.e(TAG, "Unknown network media type.");
 			}
 			cmdGetAllSettingsSent.release();
 			cmdGetAllStatesSent.release();
@@ -385,7 +320,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
 				mMediaOpened = true;
 			} else {
-				ARSALPrint.e(TAG, "error occured: " + netALError.toString());
+				Log.e(TAG, "error occurred: " + netALError.toString());
 				failed = true;
 			}
 		} else if (device instanceof ARDiscoveryDeviceBLEService) {
@@ -400,7 +335,7 @@ public abstract class DeviceController implements IDeviceController {
 				mMediaOpened = true;
 				pingDelay = -1; /* Disable ping for BLE networks */
 			} else {
-				ARSALPrint.e(TAG, "error occurred: " + netALError.toString());
+				Log.e(TAG, "error occurred: " + netALError.toString());
 				failed = true;
 			}
 		} else {
@@ -410,14 +345,10 @@ public abstract class DeviceController implements IDeviceController {
 		if (!failed) {
 			// ARNetworkManagerを生成
 			if (DEBUG) Log.v(TAG, "ARNetworkManagerを生成");
-//			mARNetManager = new ARNetworkManagerExtend(mARManager,
-//				c2dParams.toArray(new ARNetworkIOBufferParam[c2dParams.size()]),
-//				d2cParams.toArray(new ARNetworkIOBufferParam[d2cParams.size()]),
-//				pingDelay);
 			mARNetManager = new ARNetworkManagerExtend(mARManager,
 				mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
 			if (mARNetManager.isCorrectlyInitialized() == false) {
-				ARSALPrint.e(TAG, "new ARNetworkManager failed");
+				Log.e(TAG, "new ARNetworkManager failed");
 				failed = true;
 			}
 		}
@@ -835,7 +766,6 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onCommonCommonStateBatteryStateChangedUpdate(final byte percent) {
 			if (mBatteryState != percent) {
-				mBatteryState = percent;
 				callOnUpdateBattery(percent);
 			}
 		}
@@ -1101,7 +1031,8 @@ public abstract class DeviceController implements IDeviceController {
 		synchronized (mListenerSync) {
 			mConnectionListeners.add(listener);
 			if (listener instanceof DeviceControllerListener) {
-				mListeners.add((DeviceControllerListener)listener);
+				mListeners.add((DeviceControllerListener) listener);
+				callOnUpdateBattery(mBatteryState);
 			}
 		}
 	}
@@ -1130,7 +1061,8 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-	protected void callOnUpdateBattery(final byte percent) {
+	protected void callOnUpdateBattery(final int percent) {
+		mBatteryState = percent;
 		synchronized (mListenerSync) {
 			for (DeviceControllerListener listener: mListeners) {
 				if (listener != null) {
@@ -1179,10 +1111,12 @@ public abstract class DeviceController implements IDeviceController {
 		= new NetworkNotificationListener() {
 		@Override
 		public void networkDidSendFrame(final NetworkNotificationData notificationData) {
+			// コマンドを送信完了した
 		}
 
 		@Override
 		public void networkDidReceiveAck(final NetworkNotificationData notificationData) {
+			// Ackを受信した
 			if (notificationData != null) {
 				notificationData.notificationRun();
 			}
@@ -1190,10 +1124,14 @@ public abstract class DeviceController implements IDeviceController {
 
 		@Override
 		public void networkTimeoutOccurred(final NetworkNotificationData notificationData) {
+			// タイムアウトが発生した
+			if (DEBUG) Log.w(TAG, "networkTimeoutOccurred:");
 		}
 
 		@Override
 		public void networkDidCancelFrame(final NetworkNotificationData notificationData) {
+			// キャンセルされた
+			if (DEBUG) Log.w(TAG, "networkDidCancelFrame:");
 			if (notificationData != null) {
 				notificationData.notificationRun();
 			}
@@ -1212,6 +1150,10 @@ public abstract class DeviceController implements IDeviceController {
 		final ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy,
 		final NetworkNotificationData notificationData) {
 
+		synchronized (mStateSync) {
+			if (mState != STATE_STARTED) return false;
+		}
+
 		boolean result = true;
 
 		final ARNetworkSendInfo sendInfo
@@ -1219,7 +1161,7 @@ public abstract class DeviceController implements IDeviceController {
 
 		final ARNETWORK_ERROR_ENUM netError= mARNetManager.sendData(bufferId, cmd, sendInfo, true);
 		if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-			Log.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
+			Log.e(TAG, "ARNetManager#sendData failed. " + netError.toString());
 			result = false;
 		}
 
@@ -1230,7 +1172,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * 操縦コマンドを送信
 	 * @return
 	 */
-	protected abstract boolean sendPCMD(final byte flag, final byte roll, final byte pitch, final byte yaw, final byte gaz, final float psi);
+	protected abstract boolean sendPCMD(final byte flag, final byte roll, final byte pitch, final byte yaw, final byte gaz, final int psi);
 
 	@Override
 	public boolean sendAllSettings() {
@@ -1239,20 +1181,15 @@ public abstract class DeviceController implements IDeviceController {
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonSettingsAllSettings();
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-            /* Send data with ARNetwork */
-			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			final ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
 
-			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
-				sentStatus = false;
-			}
 
 			cmd.dispose();
 		}
 
-		if (sentStatus == false) {
-			ARSALPrint.e(TAG, "Failed to send AllSettings command.");
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send AllSettings command.");
 		}
 
 		return sentStatus;
@@ -1265,20 +1202,15 @@ public abstract class DeviceController implements IDeviceController {
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonAllStates();
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-            /* Send data with ARNetwork */
-			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
 
-			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
-				sentStatus = false;
-			}
 
 			cmd.dispose();
 		}
 
-		if (sentStatus == false) {
-			ARSALPrint.e(TAG, "Failed to send CommonAllStates command.");
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send CommonAllStates command.");
 		}
 
 		return sentStatus;
@@ -1296,18 +1228,21 @@ public abstract class DeviceController implements IDeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
+/*			final ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId(), cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
+				Log.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
 				sentStatus = false;
-			}
+			} */
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+
 
 			cmd.dispose();
 		}
 
-		if (sentStatus == false) {
-			ARSALPrint.e(TAG, "Failed to send date command.");
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send date command.");
 		}
 
 		return sentStatus;
@@ -1323,18 +1258,20 @@ public abstract class DeviceController implements IDeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
             /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-			ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId()/*obufferC2dAck*/, cmd, null, true);
+/*			final ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId(), cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				ARSALPrint.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
+				Log.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
 				sentStatus = false;
-			}
+			} */
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
 
 			cmd.dispose();
 		}
 
-		if (sentStatus == false) {
-			ARSALPrint.e(TAG, "Failed to send time command.");
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send time command.");
 		}
 
 		return sentStatus;
@@ -1400,7 +1337,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param heading
 	 */
 	@Override
-	public void setHeading(final float heading) {
+	public void setHeading(final int heading) {
 		synchronized (mDataSync) {
 			mDataPCMD.heading = heading;
 		}
@@ -1447,9 +1384,11 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/**
-	 * Extend of ARNetworkManager implementing the callback
+	 * コールバック呼び出し用にARNetworkManagerを拡張
 	 */
 	protected class ARNetworkManagerExtend extends ARNetworkManager {
+		private static final String TAG = "ARNetworkManagerExtend";
+
 		public ARNetworkManagerExtend(
 			final ARNetworkALManager osSpecificManager, final ARNetworkIOBufferParam[] inputParamArray,
 			final ARNetworkIOBufferParam[] outputParamArray, final int timeBetweenPingsMs) {
@@ -1457,45 +1396,60 @@ public abstract class DeviceController implements IDeviceController {
 			super(osSpecificManager, inputParamArray, outputParamArray, timeBetweenPingsMs);
 		}
 
-		private static final String TAG = "ARNetworkManagerExtend";
-
 		@Override
 		public ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM onCallback(
 			final int ioBufferId, final ARNativeData data,
 			final ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM status, final Object customData) {
 
 			ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM retVal = ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DEFAULT;
-			ARNetworkSendInfo sendInfo = (ARNetworkSendInfo) customData;
+			final ARNetworkSendInfo sendInfo = (ARNetworkSendInfo) customData;
 
 //			if (status == ARNETWORK_MANAGER_CALLBACK_STATUS_ENUM.ARNETWORK_MANAGER_CALLBACK_STATUS_TIMEOUT) {
 //				retVal = ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP;
 //			}
+
+			final NetworkNotificationListener listener = sendInfo != null ? sendInfo.getNotificationListener() : null;
 			switch (status) {
 			case ARNETWORK_MANAGER_CALLBACK_STATUS_SENT:
-				if ((sendInfo != null) && (sendInfo.getNotificationListener() != null)) {
-					sendInfo.getNotificationListener().networkDidSendFrame(sendInfo.getNotificationData());
+				if (listener != null) {
+					try {
+						listener.networkDidSendFrame(sendInfo.getNotificationData());
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					}
 				}
 				break;
 
 			case ARNETWORK_MANAGER_CALLBACK_STATUS_ACK_RECEIVED:
-				if ((sendInfo != null) &&(sendInfo.getNotificationListener() != null)) {
-					sendInfo.getNotificationListener().networkDidReceiveAck(sendInfo.getNotificationData());
+				if (listener != null) {
+					try {
+						listener.networkDidReceiveAck(sendInfo.getNotificationData());
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					}
 				}
 				break;
 
 			case ARNETWORK_MANAGER_CALLBACK_STATUS_TIMEOUT:
-				if ((sendInfo != null) &&(sendInfo.getNotificationListener() != null)) {
-					sendInfo.getNotificationListener().networkTimeoutOccurred(sendInfo.getNotificationData());
+				if (listener != null) {
+					try {
+						listener.networkTimeoutOccurred(sendInfo.getNotificationData());
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					}
 				}
-
                 /* Apply sending policy. */
 				retVal = sendInfo.getTimeoutPolicy();
 
 				break;
 
 			case ARNETWORK_MANAGER_CALLBACK_STATUS_CANCEL:
-				if ((sendInfo != null) && (sendInfo.getNotificationListener() != null)) {
-					sendInfo.getNotificationListener().networkDidCancelFrame(sendInfo.getNotificationData());
+				if (listener != null) {
+					try {
+						listener.networkDidCancelFrame(sendInfo.getNotificationData());
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					}
 				}
 				break;
 
@@ -1503,7 +1457,7 @@ public abstract class DeviceController implements IDeviceController {
 				if (data != null) {
 					data.dispose();
 				} else {
-					Log.e(TAG, "no data to free");
+					Log.w(TAG, "no data to free");
 				}
 
 				break;
@@ -1512,7 +1466,7 @@ public abstract class DeviceController implements IDeviceController {
 				break;
 
 			default:
-				Log.e(TAG, "default case status:"+ status);
+				Log.w(TAG, "default case status:"+ status);
 				break;
 			}
 
@@ -1523,6 +1477,7 @@ public abstract class DeviceController implements IDeviceController {
 		public void onDisconnect(final ARNetworkALManager arNetworkALManager) {
 			if (DEBUG) Log.d(TAG, "onDisconnect ...");
 			DeviceController.this.stop();
+			mAlarmState = ALARM_DISCONNECTED;
 			callOnDisconnect();
 		}
 	}
@@ -1533,7 +1488,7 @@ public abstract class DeviceController implements IDeviceController {
 		public void run() {
 			error = discoveryData.ControllerConnection(discoveryPort, discoveryIp);
 			if (error != ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK) {
-				ARSALPrint.e(TAG, "Error while opening discovery connection : " + error);
+				Log.e(TAG, "Error while opening discovery connection : " + error);
 			}
 
             // discoverSemaphore can be disposed
@@ -1551,11 +1506,11 @@ public abstract class DeviceController implements IDeviceController {
 		public byte pitch;
 		public byte yaw;
 		public byte gaz;
-		public float heading;
+		public int heading;
 
 		public DataPCMD() {
 			flag = roll = pitch = yaw = gaz = 0;
-			heading = 0.0f;
+			heading = 0;
 		}
 
 		private void set(final DataPCMD other) {
@@ -1629,7 +1584,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				// FIXME 正常終了以外の時
 //				if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_ERROR_BUFFER_EMPTY) {
-//                    ARSALPrint.e(TAG, "ReaderThread readDataWithTimeout() failed. " + netError + " mBufferId: " + mBufferId);
+//                    Log.e(TAG, "ReaderThread readDataWithTimeout() failed. " + netError + " mBufferId: " + mBufferId);
 //				}
 				skip = true;
 			}
@@ -1641,7 +1596,7 @@ public abstract class DeviceController implements IDeviceController {
 					&& (decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_ERROR_NO_CALLBACK)
 					&& (decodeStatus != ARCOMMANDS_DECODER_ERROR_ENUM.ARCOMMANDS_DECODER_ERROR_UNKNOWN_COMMAND)) {
 					// デコードに失敗した時の処理
-					ARSALPrint.e(TAG, "ARCommand.decode() failed. " + decodeStatus);
+					Log.e(TAG, "ARCommand.decode() failed. " + decodeStatus);
 				}
 			}
 		}
@@ -1666,14 +1621,23 @@ public abstract class DeviceController implements IDeviceController {
 			final long lastTime = SystemClock.elapsedRealtime();
 
 			final byte flag, roll, pitch, yaw, gaz;
-			final float heading;
+			final int heading;
+			final int state;
+			synchronized (mStateSync) {
+				state = mState;
+			}
 			synchronized (mDataSync) {
-				flag = mDataPCMD.flag;
-				roll = mDataPCMD.roll;
-				pitch = mDataPCMD.pitch;
-				yaw = mDataPCMD.yaw;
-				gaz = mDataPCMD.gaz;
-				heading = mDataPCMD.heading;
+				if (state == STATE_STARTED) {
+					flag = mDataPCMD.flag;
+					roll = mDataPCMD.roll;
+					pitch = mDataPCMD.pitch;
+					yaw = mDataPCMD.yaw;
+					gaz = mDataPCMD.gaz;
+					heading = mDataPCMD.heading;
+				} else {
+					flag = roll = pitch = yaw = gaz = 0;
+					heading = 0;
+				}
 			}
 			// 操縦コマンド送信
 			sendPCMD(flag, roll, pitch, yaw, gaz, heading);
@@ -1712,7 +1676,9 @@ public abstract class DeviceController implements IDeviceController {
 
 		public ARNetworkSendInfo(final ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy,
 			final NetworkNotificationListener notificationListener,
-			final NetworkNotificationData notificationData, final IDeviceController deviceController) {
+			final NetworkNotificationData notificationData,
+			final IDeviceController deviceController) {
+
 			mTimeoutPolicy = timeoutPolicy;
 			mNotificationListener = notificationListener;
 			mNotificationData = notificationData;
@@ -1747,26 +1713,9 @@ public abstract class DeviceController implements IDeviceController {
 			mNotificationData = notificationData;
 		}
 
-		public void setDeviceController(IDeviceController deviceController) {
+		public void setDeviceController(final IDeviceController deviceController) {
 			mDeviceController = deviceController;
 		}
 
-	}
-
-	private static final int CMD_NON = 0;
-	private static final int CMD_START = 1;
-	private static final int CMD_STOP = 2;
-	private static final int CMD_CANCEL = 3;
-	private static final int CMD_SET_DATE = 4;
-	private static final int CMD_SET_TIME = 5;
-
-	private class ControlHandler extends Handler {
-		@Override
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-
-			}
-			super.handleMessage(msg);
-		}
 	}
 }

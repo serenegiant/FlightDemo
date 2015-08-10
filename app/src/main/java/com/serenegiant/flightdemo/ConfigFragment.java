@@ -49,10 +49,10 @@ public class ConfigFragment extends ControlFragment {
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		if (DEBUG) Log.v(TAG, "onAttach:");
-		mMaxAltitudeFormat = getString(R.string.max_altitude);
-		mMaxTiltFormat = getString(R.string.max_tilt);
-		mMaxVerticalSpeedFormat = getString(R.string.max_vertical_speed);
-		mMaxRotationSpeedFormat = getString(R.string.max_rotating_speed);
+		mMaxAltitudeFormat = getString(R.string.config_max_altitude);
+		mMaxTiltFormat = getString(R.string.config_max_tilt);
+		mMaxVerticalSpeedFormat = getString(R.string.config_max_vertical_speed);
+		mMaxRotationSpeedFormat = getString(R.string.config_max_rotating_speed);
 	}
 
 	@Override

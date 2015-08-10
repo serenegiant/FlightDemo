@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FlightRecorder {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private static final String TAG = "FlightRecorder";
 
 	public interface FlightRecorderListener {

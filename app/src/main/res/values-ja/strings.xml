@@ -1,10 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="app_name">FlightDemo</string>
+
 	<string name="action_settings">設定</string>
+	<string name="action_takeoff">離陸</string>
+	<string name="action_landing">着陸</string>
+	<string name="action_emergency">非常停止</string>
+	<string name="action_flat_trim">水平調整</string>
+	<string name="action_flip">フリップ</string>
+	<string name="action_load">読込</string>
+	<string name="action_play">再生</string>
+	<string name="action_record">記録</string>
+
+	<string name="alarm_low_battery">ローバッテリー</string>
+	<string name="alarm_low_battery_critical">致命的ローバッテリー</string>
+	<string name="alarm_user_emergency">ユーザー操作により非常停止</string>
+	<string name="alarm_motor_cut_out">モーター非常停止</string>
+	<string name="alarm_disconnected">切断されました</string>
+
 	<string name="detecting">ドローンを検出中...</string>
 	<string name="disconnecting">切断中…</string>
 	<string name="connecting">接続中…</string>
+	<string name="loading">読み込み中…</string>
+	<string name="battery">電池残量:</string>
+	<string name="select">選択</string>
+	<string name="not_selected">ファイルが選択されていません！</string>
+	<string name="parent_dir">上へ‥</string>
+
 	<string name="stick_text_up">上</string>
 	<string name="stick_text_turn_right">右\n回転</string>
 	<string name="stick_text_turn_left">左\n回転</string>
@@ -13,36 +35,21 @@
 	<string name="stick_text_forward">前</string>
 	<string name="stick_text_down">下</string>
 	<string name="stick_text_back">後</string>
-	<string name="button_text_takeoff">離陸</string>
-	<string name="button_text_landing">着陸</string>
-	<string name="emergency">非常停止</string>
-	<string name="battery">電池残量:</string>
-	<string name="flat_trim">水平調整</string>
-	<string name="flip">フリップ</string>
-	<string name="load">読込</string>
-	<string name="play">再生</string>
-	<string name="loading">読み込み中…</string>
-	<string name="select">選択</string>
-	<string name="not_selected">ファイルが選択されていません！</string>
-	<string name="parent_dir">上へ‥</string>
-	<string name="low_battery">ローバッテリー</string>
-	<string name="low_battery_critical">致命的ローバッテリー</string>
-	<string name="user_emergency">ユーザー操作により非常停止</string>
-	<string name="motor_cut_out">モーター非常停止</string>
-	<string name="max_tilt">最大斜度: %5.1f[°]</string>
-	<string name="max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>
-	<string name="max_altitude">最大高度: %5.1f[m]</string>
-	<string name="max_rotating_speed">最大回転速度: %5.0f[°/s]</string>
-	<string name="has_wheel">車輪有り</string>
-	<string name="has_hull">バンパー有り</string>
-	<string name="cut_out">カットアウト</string>
+
 	<string name="config_1">飛行設定</string>
 	<string name="config_2">ドローン設定</string>
 	<string name="config_3">ドローン情報</string>
-	<string name="auto_takeoff">自動離陸モード</string>
-	<string name="product_name">製品名:</string>
-	<string name="version_software">ソフトウエアバージョン:</string>
-	<string name="version_hardware">ハードウエアバージョン:</string>
-	<string name="version_app">アプリバージョン:</string>
-	<string name="record">記録</string>
+	<string name="config_max_tilt">最大斜度: %5.1f[°]</string>
+	<string name="config_max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>
+	<string name="config_max_altitude">最大高度: %5.1f[m]</string>
+	<string name="config_max_rotating_speed">最大回転速度: %5.0f[°/s]</string>
+	<string name="config_has_wheel">車輪有り</string>
+	<string name="config_has_hull">バンパー有り</string>
+	<string name="config_cut_out">カットアウト</string>
+	<string name="config_auto_takeoff">自動離陸モード</string>
+
+	<string name="info_product_name">製品名:</string>
+	<string name="info_version_software">ソフトウエアバージョン:</string>
+	<string name="info_version_hardware">ハードウエアバージョン:</string>
+	<string name="info_version_app">アプリバージョン:</string>
 </resources>

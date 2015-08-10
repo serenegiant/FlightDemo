@@ -25,10 +25,28 @@ public interface IDeviceController {
 	/** 垂直カメラ(対地速度検出) */
 	public static final int SENSOR_VERTICAL_CAMERA = 5;
 
-	public static final int STATE_STOPPED = 0;
-	public static final int STATE_STARTING = 1;
-	public static final int STATE_STARTED = 2;
-	public static final int STATE_STOPPING = 3;
+	public static final int STATE_MASK_CONNECTION = 0x00ff;
+	public static final int STATE_MASK_FLYING = 0xff00;
+
+	public static final int STATE_STOPPED = 0x0000;
+	public static final int STATE_STARTING = 0x0001;
+	public static final int STATE_STARTED = 0x0002;
+	public static final int STATE_STOPPING = 0x0003;
+
+	public static final int STATE_FLYING_LANDED = 0x0000;		// FlyingState=0
+	public static final int STATE_FLYING_TAKEOFF = 0x0100;		// FlyingState=1
+	public static final int STATE_FLYING_HOVERING = 0x0200;		// FlyingState=2
+	public static final int STATE_FLYING_FLYING = 0x0300;		// FlyingState=3
+	public static final int STATE_FLYING_LANDING = 0x0400;		// FlyingState=4
+	public static final int STATE_FLYING_EMERGENCY = 0x0500;	// FlyingState=5
+	public static final int STATE_FLYING_ROLLING = 0x0600;		// FlyingState=6
+
+	public static final int ALARM_NON = 0;
+	public static final int ALARM_USER_EMERGENCY = 1;
+	public static final int ALARM_CUTOUT = 2;
+	public static final int ALARM_BATTERY_CRITICAL = 3;
+	public static final int ALARM_BATTERY = 4;
+	public static final int ALARM_DISCONNECTED = 100;
 
 	/**
 	 * 機体名を取得, ローリングスパイダーだとrs_xxxxxって奴
@@ -80,8 +98,18 @@ public interface IDeviceController {
 	 */
 	public void removeListener(final DeviceConnectionListener mListener);
 
+	/**
+	 * 下位2バイトは接続ステータス, その上2バイトは飛行ステータス
+	 * @return
+	 */
 	public int getState();
+	public int getAlarm();
+
 	public boolean start();
+
+	/**
+	 * 接続処理を中断
+	 */
 	public void cancelStart();
 	public void stop();
 	public boolean isStarted();
@@ -194,5 +222,5 @@ public interface IDeviceController {
 	 * 北磁極に対する角度を設定・・・でもローリングスパイダーでは動かない
 	 * @param heading -360〜360度
 	 */
-	public void setHeading(final float heading);
+	public void setHeading(final int heading);
 }

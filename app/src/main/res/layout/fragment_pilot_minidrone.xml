@@ -317,7 +317,7 @@
 						android:layout_width="wrap_content"
 						android:layout_height="wrap_content"
 						android:textSize="@dimen/text_sz_on_image_button"
-						android:text="@string/record"
+						android:text="@string/action_record"
 						android:gravity="fill_horizontal|fill"
 						android:layout_gravity="center_horizontal|bottom"/>
 			</FrameLayout>
@@ -340,7 +340,7 @@
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:textSize="@dimen/text_sz_on_image_button"
-					android:text="@string/load"
+					android:text="@string/action_load"
 					android:gravity="fill_horizontal|fill"
 					android:layout_gravity="center_horizontal|bottom"/>
 			</FrameLayout>
@@ -364,7 +364,7 @@
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:textSize="@dimen/text_sz_on_image_button"
-					android:text="@string/play"
+					android:text="@string/action_play"
 					android:gravity="fill_horizontal|fill"
 					android:layout_gravity="center_horizontal|bottom"/>
 			</FrameLayout>

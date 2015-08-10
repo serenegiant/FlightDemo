@@ -9,7 +9,7 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_marginBottom="@dimen/half_padding"
-		android:text="@string/cut_out"
+		android:text="@string/config_cut_out"
 		android:textSize="@dimen/text_sz_list"/>
 
 	<CheckBox
@@ -17,7 +17,7 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_marginBottom="@dimen/half_padding"
-		android:text="@string/has_wheel"
+		android:text="@string/config_has_wheel"
 		android:textSize="@dimen/text_sz_list"/>
 
 	<CheckBox
@@ -25,6 +25,6 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_marginBottom="@dimen/half_padding"
-		android:text="@string/auto_takeoff"
+		android:text="@string/config_auto_takeoff"
 		android:textSize="@dimen/text_sz_list"/>
 </LinearLayout>

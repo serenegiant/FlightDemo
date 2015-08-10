@@ -7,7 +7,7 @@
 	<TextView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:text="@string/max_altitude"
+		android:text="@string/config_max_altitude"
 		android:id="@+id/max_altitude_textview"
 		android:textSize="@dimen/text_sz_list"/>
 
@@ -21,7 +21,7 @@
 	<TextView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:text="@string/max_tilt"
+		android:text="@string/config_max_tilt"
 		android:id="@+id/max_tilt_textview"
 		android:textSize="@dimen/text_sz_list"/>
 
@@ -35,7 +35,7 @@
 	<TextView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:text="@string/max_vertical_speed"
+		android:text="@string/config_max_vertical_speed"
 		android:id="@+id/max_vertical_speed_textview"
 		android:textSize="@dimen/text_sz_list"/>
 
@@ -48,7 +48,7 @@
 	<TextView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:text="@string/max_rotating_speed"
+		android:text="@string/config_max_rotating_speed"
 		android:id="@+id/max_rotation_speed_textview"
 		android:textSize="@dimen/text_sz_list"/>
 
