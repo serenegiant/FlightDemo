@@ -47,7 +47,7 @@ public class ConnectionFragment extends SideMenuFragment {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final View rootView = inflater.inflate(R.layout.fragment_connection, container, false);
 		initView(rootView);
-		prepareSideMenu(rootView);
+//		prepareSideMenu(rootView);
 		return rootView;
 	}
 
@@ -57,6 +57,7 @@ public class ConnectionFragment extends SideMenuFragment {
 		if (DEBUG) Log.d(TAG, "onResume:");
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		manager.addCallback(mManagerCallback);
+//		setSideMenuEnable(true);
 	}
 
 	@Override

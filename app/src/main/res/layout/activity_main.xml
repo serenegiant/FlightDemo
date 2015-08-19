@@ -4,9 +4,9 @@
     android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/back"
     tools:context="com.serenegiant.FlightDemo.MainActivity"
-    tools:ignore="MergeRootFrame"
-                android:background="@drawable/back">
+    tools:ignore="MergeRootFrame">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/sample_toolbar"

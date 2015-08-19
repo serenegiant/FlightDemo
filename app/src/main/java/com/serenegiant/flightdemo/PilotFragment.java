@@ -201,8 +201,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
 		mAlertMessage.setVisibility(View.INVISIBLE);
 
-		// サイドメニュー
-/*		prepareSideMenu(rootView);
+/*		// サイドメニュー
+		prepareSideMenu(rootView);
 		mSideMenuListView = (SideMenuListView)rootView.findViewById(R.id.side_menu_listview);
 		mSideMenuListView.setOnItemClickListener(mOnItemClickListener); */
 
@@ -908,35 +908,32 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	/**
 	 * サイドメニューを更新
 	 */
-/*	@Override
+	@Override
 	protected void updateSideMenu() {
 		if (DEBUG) Log.v(TAG, "updateSideMenu:");
 		final List<String> labelList = new ArrayList<String>();
 		for (int i = 0; i < 5; i++)
 			labelList.add(TAG + i);
-        boolean needOpen = false;
     	ListAdapter adapter = mSideMenuListView.getAdapter();
     	if (adapter instanceof SideMenuAdapter) {
     		((SideMenuAdapter) adapter).clear();
     		if ((labelList != null) && (labelList.size() > 0)) {
     			((SideMenuAdapter) adapter).addAll(labelList);
-	    		needOpen = true;
     		}
     	} else {
     		mSideMenuListView.setAdapter(null);
     		if ((labelList != null) && (labelList.size() > 0)) {
 	    		adapter = new SideMenuAdapter(getActivity(), R.layout.item_sidemenu, labelList);
 	    		mSideMenuListView.setAdapter(adapter);
-	    		needOpen = true;
     		}
     	}
 		super.updateSideMenu();
-	} */
+	}
 
 	/**
 	 * サイドメニューの項目をクリックした時の処理
 	 */
-/*	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
+	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
 		@Override
 		public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
 			closeSideMenu();
@@ -944,6 +941,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			// FIXME 未実装
 			}
 		}
-	}; */
+	};
 
 }
