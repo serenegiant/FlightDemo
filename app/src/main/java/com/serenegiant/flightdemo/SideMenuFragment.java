@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.res.Configuration;
 import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -30,36 +31,36 @@ public abstract class SideMenuFragment extends Fragment {
 	// サイドメニュー
 	protected DrawerLayout mDrawerLayout;
 	private ISideMenuView mSideMenuFrame;
-//	private ActionBarDrawerToggle mDrawerToggle;
+	private ActionBarDrawerToggle mDrawerToggle;
 	private final Handler mUiHandler = new Handler();
 
 	public SideMenuFragment() {
 		super();
 	}
 
-/*	@Override
+	@Override
 	public void onConfigurationChanged(final Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
 		if (mDrawerToggle != null) {
 			mDrawerToggle.onConfigurationChanged(newConfig);
 		}
-	} */
+	}
 
-/*	@Override
+	@Override
 	public void onResume() {
 		super.onResume();
 		if (mDrawerToggle != null) {
 			mDrawerToggle.syncState();
 		}
-	} */
+	}
 
-/*	@Override
+	@Override
 	public boolean onOptionsItemSelected(final MenuItem item) {
 		if (mDrawerToggle != null) {
 			mDrawerToggle.onOptionsItemSelected(item);
 		}
 		return super.onOptionsItemSelected(item);
-	} */
+	}
 
 	protected void prepareSideMenu(final View rootView) {
 		// ListViewのインスタンスを取得
@@ -68,41 +69,41 @@ public abstract class SideMenuFragment extends Fragment {
 			mSideMenuFrame.setOnSidleMenuListener(mOnSidleMenuListener);
 			// ドローワーの設定
 			mDrawerLayout = (DrawerLayout) rootView.findViewById(R.id.drawer_layout);
-//			mDrawerToggle = new ActionBarDrawerToggle(getActivity(), mDrawerLayout, R.string.app_name, R.string.app_name) {
-//				@Override
-//				public void onDrawerClosed(final View drawerView) {
-//					super.onDrawerClosed(drawerView);
-//					if (DEBUG) Log.v(TAG, "onDrawerClosed:");
-//					// ドローワーが閉じた時の処理
-//					mUiHandler.removeCallbacks(mHideSideMenuTask);
-//					mSideMenuFrame.reset();    // サイドメニューのアニメーションをリセット
-//				}
-//
-//				@Override
-//				public void onDrawerOpened(final View drawerView) {
-//					super.onDrawerOpened(drawerView);
-//					if (DEBUG) Log.v(TAG, "onDrawerOpened:");
-//					// ドローワーが開いた時の処理
-//					mUiHandler.removeCallbacks(mHideSideMenuTask);
-//					mUiHandler.postDelayed(mHideSideMenuTask, TIMEOUT_HIDE_SIDE_MENU);
-//				}
-//	/*			@Override
-//				public void onDrawerSlide(final View drawerView, final float slideOffset) {
-//					super.onDrawerSlide(drawerView, slideOffset);
-//				} */
-//	/*			@Override
-//				public void onDrawerStateChanged(final int newState) {
-//					// 表示済み、閉じ済みの状態：0
-//					// ドラッグ中状態:1
-//					// ドラッグを放した後のアニメーション中：2
-//					super.onDrawerStateChanged(newState);
-//				} */
-//	/*			@Override
-//				public boolean onOptionsItemSelected(final MenuItem item) {
-//					return super.onOptionsItemSelected(item);
-//				} */
-//			};
-//			mDrawerLayout.setDrawerListener(mDrawerToggle);
+			mDrawerToggle = new ActionBarDrawerToggle(getActivity(), mDrawerLayout, R.string.app_name, R.string.app_name) {
+				@Override
+				public void onDrawerClosed(final View drawerView) {
+					super.onDrawerClosed(drawerView);
+					if (DEBUG) Log.v(TAG, "onDrawerClosed:");
+					// ドローワーが閉じた時の処理
+					mUiHandler.removeCallbacks(mHideSideMenuTask);
+					mSideMenuFrame.reset();    // サイドメニューのアニメーションをリセット
+				}
+
+				@Override
+				public void onDrawerOpened(final View drawerView) {
+					super.onDrawerOpened(drawerView);
+					if (DEBUG) Log.v(TAG, "onDrawerOpened:");
+					// ドローワーが開いた時の処理
+					mUiHandler.removeCallbacks(mHideSideMenuTask);
+					mUiHandler.postDelayed(mHideSideMenuTask, TIMEOUT_HIDE_SIDE_MENU);
+				}
+	/*			@Override
+				public void onDrawerSlide(final View drawerView, final float slideOffset) {
+					super.onDrawerSlide(drawerView, slideOffset);
+				} */
+	/*			@Override
+				public void onDrawerStateChanged(final int newState) {
+					// 表示済み、閉じ済みの状態：0
+					// ドラッグ中状態:1
+					// ドラッグを放した後のアニメーション中：2
+					super.onDrawerStateChanged(newState);
+				} */
+	/*			@Override
+				public boolean onOptionsItemSelected(final MenuItem item) {
+					return super.onOptionsItemSelected(item);
+				} */
+			};
+			mDrawerLayout.setDrawerListener(mDrawerToggle);
 			mDrawerLayout.setScrimColor(SCRIM_COLOR);    // サイドメニュー表示中にメインコンテンツ部に被せる色
 			mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 		}
@@ -149,9 +150,9 @@ public abstract class SideMenuFragment extends Fragment {
 	protected void updateSideMenu() {
 		if (DEBUG) Log.v(TAG, "updateSideMenu:");
 		openSideMenu();
-/*		if (mDrawerToggle != null) {
+		if (mDrawerToggle != null) {
 			mDrawerToggle.syncState();
-		} */
+		}
 	}
 
 	/**
@@ -197,7 +198,7 @@ public abstract class SideMenuFragment extends Fragment {
 			if (enable && (mode != DrawerLayout.LOCK_MODE_UNLOCKED)) {
 				openSideMenu();
 			}
-//			mDrawerToggle.syncState();
+			mDrawerToggle.syncState();
 		}
 	}
 
