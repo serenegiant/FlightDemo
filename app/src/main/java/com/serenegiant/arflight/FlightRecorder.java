@@ -13,23 +13,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FlightRecorder {
+public class FlightRecorder implements IAutoFlight {
 	private static final boolean DEBUG = true;
 	private static final String TAG = "FlightRecorder";
 
-	public interface FlightRecorderListener {
-		public void onStart();
-
-		/**
-		 * 再生時のコールバック
-		 * @param cmd
-		 * @param value
-		 * @param t
-		 * @return trueを返すと終了する
-		 */
-		public boolean onStep(final int cmd, final int value, final long t);
-		public void onStop();
-
+	public interface FlightRecorderListener extends AutoFlightListener {
 		/**
 		 * 記録時のコールバック
 		 * @param cmd
@@ -39,19 +27,11 @@ public class FlightRecorder {
 		public void onRecord(final int cmd, final int value, final long t);
 	}
 
-	public static final int CMD_EMERGENCY = -1;		// 非常停止
-
-	public static final int CMD_TAKEOFF = 1;		// 離陸
-	public static final int CMD_LANDING = 2;		// 着陸
-
-	public static final int CMD_UP_DOWN = 3;		// 上昇:gaz>0, 下降: gaz<0
-	public static final int CMD_RIGHT_LEFT = 4;		// 右: roll>0,flag=1 左: roll<0,flag=1
-	public static final int CMD_FORWARD_BACK = 5;	// 前進: pitch>0,flag=1, 後退: pitch<0,flag=1
-	public static final int CMD_TURN = 6;			// 右回転: yaw>0, 左回転: ywa<0
-	public static final int CMD_COMPASS = 7;		// 北磁極に対する角度を指定-360-360度
-
-	public static final int CMD_FLIP = 100;			// 1:前, 2:後, 3:右, 4:左
-	public static final int CMD_CAP = 101;			// -180〜180度
+	private static class CmdRec {
+		public int cmd;
+		public int value;
+		public long time;
+	}
 
 	private final Object mSync = new Object();
 	private final List<String> mRecords = new ArrayList<String>(100);
@@ -206,6 +186,7 @@ public class FlightRecorder {
 	/**
 	 * 記録・コマンド再生終了
 	 */
+	@Override
 	public void stop() {
 		if (DEBUG) Log.v(TAG, "stop:");
 		synchronized (mSync) {
@@ -219,6 +200,7 @@ public class FlightRecorder {
 	 * コマンド再生開始
 	 * @throws IllegalStateException 記録中ならIllegalStateExceptionを生成する
 	 */
+	@Override
 	public void play() throws IllegalStateException {
 		if (DEBUG) Log.v(TAG, "play:");
 		synchronized (mSync) {
@@ -244,6 +226,7 @@ public class FlightRecorder {
 	 * 再生中かどうかを取得
 	 * @return
 	 */
+	@Override
 	public boolean isPlaying() {
 		synchronized (mSync) {
 			return mIsPlayback;
@@ -348,15 +331,6 @@ public class FlightRecorder {
 			}
 			return 0;
 		}
-	}
-
-	/**
-	 * 記録したコマンドの受け取り用クラス
-	 */
-	public static final class CmdRec {
-		public int cmd;
-		public int value;
-		public long time;
 	}
 
 	/**

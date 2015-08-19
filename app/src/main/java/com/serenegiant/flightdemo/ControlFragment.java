@@ -181,8 +181,9 @@ public abstract class ControlFragment extends Fragment {
 		}
 	}
 
-	protected synchronized void startDeviceController() {
+	protected synchronized boolean startDeviceController() {
 		if (DEBUG) Log.v(TAG, "startDeviceController:");
+		boolean result = false;
 		if (mController == null) {
 			mController = ManagerFragment.getController(getActivity(), mDevice);
 		}
@@ -221,11 +222,13 @@ public abstract class ControlFragment extends Fragment {
 //				mController.sendAllStates();
 				// sendAllSettingsとかsendAllStatesは接続した直後に1回しか有効じゃないのかも
 //				updateBattery();
+				result = true;
 			}
 			this.stopMove();
 		} else {
 			Log.e(TAG, "controllerがnull!");
 		}
+		return result;
 	}
 
 	protected synchronized void stopDeviceController(final boolean disconnected) {

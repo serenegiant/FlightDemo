@@ -204,7 +204,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
 		mAlertMessage.setVisibility(View.INVISIBLE);
 
-		setSideMenu();
 		return rootView;
 	}
 
@@ -219,12 +218,15 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
-		startDeviceController();
+		if (startDeviceController()) {
+			setSideMenu();
+		}
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
+		removeSideMenu();
 		removeFromUIThread(mPopBackStackTask);
 		stopRecord();
 		stopPlay();
@@ -474,8 +476,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
-		final MainActivity activity = (MainActivity)getActivity();
-		activity.setSideMenuEnable(true);
+		setSideMenu();
 		updateButtons();
 	}
 
@@ -484,8 +485,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
-		final MainActivity activity = (MainActivity)getActivity();
-		activity.setSideMenuEnable(false);
+		removeSideMenu();
 		stopRecord();
 		stopPlay();
 		removeFromUIThread(mPopBackStackTask);
@@ -908,29 +908,51 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	private void setSideMenu() {
-		if (DEBUG) Log.v(TAG, "updateSideMenu:");
-		final MainActivity activity = (MainActivity)getActivity();
-		if (mSideMenuListView == null) {
+		if (DEBUG) Log.v(TAG, "setSideMenu:");
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				final MainActivity activity = (MainActivity) getActivity();
+				if (mSideMenuListView == null) {
 
-			mSideMenuListView = new SideMenuListView(activity);
-			activity.setSideMenuView(mSideMenuListView);
-			mSideMenuListView.setOnItemClickListener(mOnItemClickListener);
-		}
-		final List<String> labelList = new ArrayList<String>();
-		for (int i = 0; i < 5; i++)
-			labelList.add(TAG + i);
-		ListAdapter adapter = mSideMenuListView.getAdapter();
-		if (adapter instanceof SideMenuAdapter) {
-			((SideMenuAdapter) adapter).clear();
-			if ((labelList != null) && (labelList.size() > 0)) {
-				((SideMenuAdapter) adapter).addAll(labelList);
+					mSideMenuListView = new SideMenuListView(activity);
+					activity.setSideMenuView(mSideMenuListView);
+					mSideMenuListView.setOnItemClickListener(mOnItemClickListener);
+				}
+				final List<String> labelList = new ArrayList<String>();
+				for (int i = 0; i < 5; i++)
+					labelList.add(TAG + i);
+				ListAdapter adapter = mSideMenuListView.getAdapter();
+				if (adapter instanceof SideMenuAdapter) {
+					((SideMenuAdapter) adapter).clear();
+					if ((labelList != null) && (labelList.size() > 0)) {
+						((SideMenuAdapter) adapter).addAll(labelList);
+					}
+				} else {
+					mSideMenuListView.setAdapter(null);
+					if ((labelList != null) && (labelList.size() > 0)) {
+						adapter = new SideMenuAdapter(getActivity(), R.layout.item_sidemenu, labelList);
+						mSideMenuListView.setAdapter(adapter);
+					}
+				}
+				activity.setSideMenuEnable(true);
 			}
-		} else {
-			mSideMenuListView.setAdapter(null);
-			if ((labelList != null) && (labelList.size() > 0)) {
-				adapter = new SideMenuAdapter(getActivity(), R.layout.item_sidemenu, labelList);
-				mSideMenuListView.setAdapter(adapter);
-			}
+		});
+	}
+
+	private void removeSideMenu() {
+		if (DEBUG) Log.v(TAG, "removeSideMenu:");
+		if (mSideMenuListView != null) {
+			final SideMenuListView v = mSideMenuListView;
+			mSideMenuListView = null;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					final MainActivity activity = (MainActivity) getActivity();
+					activity.setSideMenuEnable(false);
+					activity.removeSideMenuView(v);
+				}
+			});
 		}
 	}
 
@@ -965,6 +987,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
 		@Override
 		public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+			if (DEBUG) Log.v(TAG, "onItemClick:" + position);
 			final MainActivity activity = (MainActivity)getActivity();
 			activity.closeSideMenu();
 			switch (position) {
