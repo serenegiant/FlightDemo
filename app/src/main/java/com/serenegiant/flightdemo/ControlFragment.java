@@ -1,6 +1,7 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,7 +14,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.IDeviceController;
 
-public abstract class ControlFragment extends SideMenuFragment {
+public abstract class ControlFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = "ControlFragment";
 

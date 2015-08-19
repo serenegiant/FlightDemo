@@ -1,56 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.DrawerLayout
+<RelativeLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:tools="http://schemas.android.com/tools"
-	android:id="@+id/drawer_layout"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:foreground="?android:windowContentOverlay"
 	tools:context="com.serenegiant.flightdemo.ConnectionFragment">
 
-	<!--本体部 -->
-	<RelativeLayout
+	<ListView
+		android:id="@+id/list"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent">
+		android:layout_height="wrap_content"
+		android:minHeight="@dimen/text_sz_list">
+	</ListView>
 
-		<ListView
-			android:id="@+id/list"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:minHeight="@dimen/text_sz_list">
-		</ListView>
-
-		<TextView
-			android:id="@+id/empty_view"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_below="@+id/list"
-			android:layout_centerHorizontal="true"
-			android:gravity="center"
-			android:text="@string/detecting"
-			android:textAlignment="center"
-			android:textSize="@dimen/text_sz_list"/>
-
-	</RelativeLayout>
-
-	<!-- サイドメニュー部 -->
-	<com.serenegiant.widget.SideMenuFrameLayout
-		android:id="@+id/sidemenu_frame"
-		android:layout_width="120dp"
-		android:layout_height="match_parent"
-		android:layout_gravity="left"
-		android:paddingLeft="@dimen/activity_horizontal_margin" >
-
-		<!--
-			<com.serenegiant.widget.SideMenuListView
-				android:id="@+id/side_menu_listview"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:background="@android:color/transparent"
-				android:choiceMode="singleChoice"
-				android:paddingLeft="@dimen/activity_horizontal_margin" >
-			</com.serenegiant.widget.SideMenuListView>
-		-->
-	</com.serenegiant.widget.SideMenuFrameLayout>
-
-</android.support.v4.widget.DrawerLayout>
+	<TextView
+		android:id="@+id/empty_view"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/list"
+		android:layout_centerHorizontal="true"
+		android:gravity="center"
+		android:text="@string/detecting"
+		android:textAlignment="center"
+		android:textSize="@dimen/text_sz_list"/>
+</RelativeLayout>

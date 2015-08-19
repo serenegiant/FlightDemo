@@ -91,6 +91,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
+		final MainActivity activity = (MainActivity) getActivity();
+		activity.setSideMenuEnable(false);
+		activity.removeSideMenuView(mSideMenuListView);
 		super.onDetach();
 	}
 
@@ -201,11 +204,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
 		mAlertMessage.setVisibility(View.INVISIBLE);
 
-		// サイドメニュー
-		prepareSideMenu(rootView);
-		mSideMenuListView = (SideMenuListView)rootView.findViewById(R.id.side_menu_listview);
-		mSideMenuListView.setOnItemClickListener(mOnItemClickListener);
-
+		setSideMenu();
 		return rootView;
 	}
 
@@ -475,15 +474,18 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
-		setSideMenuEnable(true);
+		final MainActivity activity = (MainActivity)getActivity();
+		activity.setSideMenuEnable(true);
 		updateButtons();
 	}
 
+	/** 切断された時に前のフラグメントに戻るまでの遅延時間[ミリ秒] */
 	private static final long POP_BACK_STACK_DELAY = 2000;
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
-//		setSideMenuEnable(false);
+		final MainActivity activity = (MainActivity)getActivity();
+		activity.setSideMenuEnable(false);
 		stopRecord();
 		stopPlay();
 		removeFromUIThread(mPopBackStackTask);
@@ -905,10 +907,37 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	}
 
+	private void setSideMenu() {
+		if (DEBUG) Log.v(TAG, "updateSideMenu:");
+		final MainActivity activity = (MainActivity)getActivity();
+		if (mSideMenuListView == null) {
+
+			mSideMenuListView = new SideMenuListView(activity);
+			activity.setSideMenuView(mSideMenuListView);
+			mSideMenuListView.setOnItemClickListener(mOnItemClickListener);
+		}
+		final List<String> labelList = new ArrayList<String>();
+		for (int i = 0; i < 5; i++)
+			labelList.add(TAG + i);
+		ListAdapter adapter = mSideMenuListView.getAdapter();
+		if (adapter instanceof SideMenuAdapter) {
+			((SideMenuAdapter) adapter).clear();
+			if ((labelList != null) && (labelList.size() > 0)) {
+				((SideMenuAdapter) adapter).addAll(labelList);
+			}
+		} else {
+			mSideMenuListView.setAdapter(null);
+			if ((labelList != null) && (labelList.size() > 0)) {
+				adapter = new SideMenuAdapter(getActivity(), R.layout.item_sidemenu, labelList);
+				mSideMenuListView.setAdapter(adapter);
+			}
+		}
+	}
+
 	/**
 	 * サイドメニューを更新
 	 */
-	@Override
+/*	@Override
 	protected void updateSideMenu() {
 		if (DEBUG) Log.v(TAG, "updateSideMenu:");
 		final List<String> labelList = new ArrayList<String>();
@@ -928,7 +957,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
     		}
     	}
 		super.updateSideMenu();
-	}
+	} */
 
 	/**
 	 * サイドメニューの項目をクリックした時の処理
@@ -936,11 +965,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
 		@Override
 		public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-			closeSideMenu();
+			final MainActivity activity = (MainActivity)getActivity();
+			activity.closeSideMenu();
 			switch (position) {
 			// FIXME 未実装
 			}
 		}
 	};
-
 }
