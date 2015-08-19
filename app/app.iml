@@ -112,5 +112,6 @@
     <orderEntry type="library" exported="" name="libcurl" level="project" />
     <orderEntry type="library" exported="" name="libARStream" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-22.2.1" level="project" />
+    <orderEntry type="module" module-name="core" exported="" />
   </component>
 </module>

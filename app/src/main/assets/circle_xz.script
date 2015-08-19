@@ -1,0 +1,40 @@
+int step_num = 6;	// 6角形で近似
+
+void main(const double radius, const double scale_x, const double scale_z) {
+	// takeoff();
+	// wait(1000);
+	// move(0, 0, 0, 100, radius);
+	double radian = PI / 2;
+	for (int c = 0; c < 3; c++) {
+		switch (c) {
+		case 0: step_num = 6; break;
+		case 1:
+			step_num = 12;
+			break;
+		case 2:
+			{
+				step_num *= 2;
+			}
+			break;
+		case 3:
+			break;
+		}
+		int n = step_num;
+		long wait_time = 2000 / n;
+		double step_radian = 360 / n * TO_RADIAN;
+		double prev_x = radius * scale_x, prev_z;
+		double x, z;
+		for (int i = 0; i < n; i++) {
+			x = radius * sin(radian) * scale_x;
+			z = radius * cos(radian) * scale_z;
+			double dx = x - prev_x;
+			double dz = z - prev_z;
+			// move(dx, dz)
+			wait(wait_time);
+			radian += step_radian;
+			prev_x = x;
+			prev_z = z;
+		}
+	}
+	// landing();
+}
