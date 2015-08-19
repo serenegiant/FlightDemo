@@ -1,5 +1,6 @@
 package com.serenegiant.flightdemo;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -9,7 +10,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity /*AppCompatActivity*/ {
 	// ActionBarActivityを継承するとPilotFragmentから戻る際にクラッシュする
 	// Fragmentが切り替わらずに処理中にもかかわらずActivityが破棄されてしまう
 	private static String TAG = MainActivity.class.getSimpleName();
@@ -47,8 +48,8 @@ public class MainActivity extends AppCompatActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		final Toolbar tool_bar = (Toolbar)findViewById(R.id.sample_toolbar);
-		this.setSupportActionBar(tool_bar);
+//		final Toolbar tool_bar = (Toolbar)findViewById(R.id.sample_toolbar);
+//		setSupportActionBar(tool_bar);
 		final ManagerFragment manager = ManagerFragment.getInstance(this);
 		if (savedInstanceState == null) {
 			final Fragment fragment = new ConnectionFragment();

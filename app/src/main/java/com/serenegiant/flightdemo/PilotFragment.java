@@ -201,10 +201,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
 		mAlertMessage.setVisibility(View.INVISIBLE);
 
-/*		// サイドメニュー
+		// サイドメニュー
 		prepareSideMenu(rootView);
 		mSideMenuListView = (SideMenuListView)rootView.findViewById(R.id.side_menu_listview);
-		mSideMenuListView.setOnItemClickListener(mOnItemClickListener); */
+		mSideMenuListView.setOnItemClickListener(mOnItemClickListener);
 
 		return rootView;
 	}
@@ -475,7 +475,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
-//		setSideMenuEnable(true);
+		setSideMenuEnable(true);
 		updateButtons();
 	}
 
