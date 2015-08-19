@@ -56,17 +56,6 @@ public class MainActivity extends AppCompatActivity {
 				.add(R.id.container, fragment).commit();
 		}
 
-/*		try {
-			final ScriptParser parser = new ScriptParser(getResources().getAssets().open("control.script"));
-			parser.Parse();
-//			parser.Parse().jjtAccept(new ScriptParserVisitorImpl(), null);
-		} catch (IOException e) {
-			Log.w(TAG, e);
-		} catch (ParseException e) {
-			Log.w(TAG, e);
-		} catch (Exception e) {
-			Log.w(TAG, e);
-		} */
 	}
 
 	@Override
