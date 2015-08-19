@@ -18,7 +18,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConnectionFragment extends Fragment {
+public class ConnectionFragment extends SideMenuFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConnectionFragment.class.getSimpleName();
 
@@ -38,6 +38,7 @@ public class ConnectionFragment extends Fragment {
 	private ListView listView;
 
 	public ConnectionFragment() {
+		super();
 		// Required empty public constructor
 	}
 
@@ -46,6 +47,7 @@ public class ConnectionFragment extends Fragment {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final View rootView = inflater.inflate(R.layout.fragment_connection, container, false);
 		initView(rootView);
+		prepareSideMenu(rootView);
 		return rootView;
 	}
 

@@ -384,16 +384,15 @@
 		android:layout_gravity="left"
 		android:paddingLeft="@dimen/activity_horizontal_margin">
 
-		<!--
-			<com.serenegiant.widget.SideMenuListView
-				android:id="@+id/side_menu_listview"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:background="@android:color/transparent"
-				android:choiceMode="singleChoice"
-				android:paddingLeft="@dimen/activity_horizontal_margin" >
-			</com.serenegiant.widget.SideMenuListView>
-		-->
+		<com.serenegiant.widget.SideMenuListView
+			android:id="@+id/side_menu_listview"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:background="@android:color/transparent"
+			android:choiceMode="singleChoice"
+			android:paddingLeft="@dimen/activity_horizontal_margin" >
+		</com.serenegiant.widget.SideMenuListView>
+
 	</com.serenegiant.widget.SideMenuFrameLayout>
 
 </android.support.v4.widget.DrawerLayout>

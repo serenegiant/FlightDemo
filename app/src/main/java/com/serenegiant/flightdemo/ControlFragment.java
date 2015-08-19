@@ -14,7 +14,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.IDeviceController;
 
-public abstract class ControlFragment extends Fragment {
+public abstract class ControlFragment extends Fragment /*SideMenuFragment*/ {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = "ControlFragment";
 
@@ -31,6 +31,7 @@ public abstract class ControlFragment extends Fragment {
 	protected boolean mIsFlying = false;	// FIXME mFlyingStateを参照するようにしてmIsFlyingフラグは削除する
 
 	public ControlFragment() {
+		super();
 		// デフォルトコンストラクタが必要
 	}
 
@@ -298,11 +299,6 @@ public abstract class ControlFragment extends Fragment {
 		if (DEBUG) Log.v(TAG, "onDisconnect:");
 		stopMove();
 		stopDeviceController(true);
-/*		try {
-			getFragmentManager().popBackStack();
-		} catch (Exception e) {
-			Log.w(TAG, e);
-		} */
 	}
 
 	protected void onAlarmStateChangedUpdate(int alert_state) {

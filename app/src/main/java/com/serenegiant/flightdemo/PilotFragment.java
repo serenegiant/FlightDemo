@@ -8,8 +8,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -18,6 +20,7 @@ import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
+import com.serenegiant.widget.SideMenuListView;
 import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
 
@@ -71,7 +74,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	/** 操縦に使用するボタン等。操作可・不可に応じてenable/disableを切り替える */
 	private final List<View> mActionViews = new ArrayList<View>();
 
+	private SideMenuListView mSideMenuListView;
+
 	public PilotFragment() {
+		super();
 		// デフォルトコンストラクタが必要
 		mFlightRecorder.setPlaybackListener(mFlightRecorderListener);
 	}
@@ -194,6 +200,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mBatteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
 		mAlertMessage.setVisibility(View.INVISIBLE);
+
+		// サイドメニュー
+/*		prepareSideMenu(rootView);
+		mSideMenuListView = (SideMenuListView)rootView.findViewById(R.id.side_menu_listview);
+		mSideMenuListView.setOnItemClickListener(mOnItemClickListener); */
 
 		return rootView;
 	}
@@ -464,6 +475,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
+//		setSideMenuEnable(true);
 		updateButtons();
 	}
 
@@ -471,6 +483,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
+//		setSideMenuEnable(false);
 		stopRecord();
 		stopPlay();
 		removeFromUIThread(mPopBackStackTask);
@@ -891,4 +904,46 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mImage.setColorFilter(0);
 		}
 	}
+
+	/**
+	 * サイドメニューを更新
+	 */
+/*	@Override
+	protected void updateSideMenu() {
+		if (DEBUG) Log.v(TAG, "updateSideMenu:");
+		final List<String> labelList = new ArrayList<String>();
+		for (int i = 0; i < 5; i++)
+			labelList.add(TAG + i);
+        boolean needOpen = false;
+    	ListAdapter adapter = mSideMenuListView.getAdapter();
+    	if (adapter instanceof SideMenuAdapter) {
+    		((SideMenuAdapter) adapter).clear();
+    		if ((labelList != null) && (labelList.size() > 0)) {
+    			((SideMenuAdapter) adapter).addAll(labelList);
+	    		needOpen = true;
+    		}
+    	} else {
+    		mSideMenuListView.setAdapter(null);
+    		if ((labelList != null) && (labelList.size() > 0)) {
+	    		adapter = new SideMenuAdapter(getActivity(), R.layout.item_sidemenu, labelList);
+	    		mSideMenuListView.setAdapter(adapter);
+	    		needOpen = true;
+    		}
+    	}
+		super.updateSideMenu();
+	} */
+
+	/**
+	 * サイドメニューの項目をクリックした時の処理
+	 */
+/*	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
+		@Override
+		public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+			closeSideMenu();
+			switch (position) {
+			// FIXME 未実装
+			}
+		}
+	}; */
+
 }

@@ -291,6 +291,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (DEBUG) Log.v(TAG, "onStarted:sendAllStates:finished");
 			isWaitingAllStates = false;
 		}
+		callOnConnect();
 		if (DEBUG) Log.v(TAG, "onStarted:finished");
 	}
 

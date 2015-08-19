@@ -20,7 +20,7 @@ import com.serenegiant.arflight.AttributeFloat;
 import com.serenegiant.arflight.DeviceControllerMiniDrone;
 
 public class ConfigFragment extends ControlFragment {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
 	public static final String KEY_REVERSE_OPERATION = "REVERSE_OPERATION";
@@ -46,6 +46,7 @@ public class ConfigFragment extends ControlFragment {
 	private String mMaxRotationSpeedFormat;
 
 	public ConfigFragment() {
+		super();
 		// デフォルトコンストラクタが必要
 	}
 
@@ -105,6 +106,7 @@ public class ConfigFragment extends ControlFragment {
 	 * @param root
 	 */
 	private void updateConfigMinidrone1(final View root) {
+		if (DEBUG) Log.v(TAG, "updateConfigMinidrone1:");
 		// 最大高度設定
 		mMaxAltitudeLabel = (TextView)root.findViewById(R.id.max_altitude_textview);
 		SeekBar seekbar = (SeekBar)root.findViewById(R.id.max_altitude_seekbar);
@@ -164,6 +166,7 @@ public class ConfigFragment extends ControlFragment {
 	 * @param root
 	 */
 	private void updateConfigMinidrone2(final View root) {
+		if (DEBUG) Log.v(TAG, "updateConfigMinidrone2:");
 		// 自動カットアウトモード
 		CheckBox checkbox = (CheckBox)root.findViewById(R.id.cutout_checkbox);
 		if (checkbox != null) {
@@ -204,6 +207,7 @@ public class ConfigFragment extends ControlFragment {
 	 * @param root
 	 */
 	private void updateConfigOperation(final View root) {
+		if (DEBUG) Log.v(TAG, "updateConfigOperation:");
 		final Switch sw = (Switch)root.findViewById(R.id.reverse_op_switch);
 		if (sw != null) {
 			sw.setChecked(mPref != null ? mPref.getBoolean(KEY_REVERSE_OPERATION, false) : false);
@@ -216,6 +220,7 @@ public class ConfigFragment extends ControlFragment {
 	 * @param root
 	 */
 	private void updateConfigInfo(final View root) {
+		if (DEBUG) Log.v(TAG, "updateConfigInfo:");
 		TextView tv = (TextView)root.findViewById(R.id.app_version_textview);
 		tv.setText(BuildConfig.VERSION_NAME);
 		tv = (TextView)root.findViewById(R.id.product_name_textview);
@@ -421,6 +426,7 @@ public class ConfigFragment extends ControlFragment {
 
 		@Override
 		public void destroyItem(ViewGroup container, int position, Object object) {
+			if (DEBUG) Log.v(TAG, "destroyItem:position=" + position);
 			if (object instanceof View) {
 				container.removeView((View)object);
 			}
@@ -438,6 +444,7 @@ public class ConfigFragment extends ControlFragment {
 
 		@Override
 		public CharSequence getPageTitle(int position) {
+			if (DEBUG) Log.v(TAG, "getPageTitle:position=" + position);
 			CharSequence result = null;
 			switch (position) {
 			case 0:
