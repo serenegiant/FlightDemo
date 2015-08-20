@@ -268,16 +268,17 @@ public abstract class ControlFragment extends Fragment {
 	protected void stopMove() {
 		if (DEBUG) Log.v(TAG, "stopMove:");
 		if (mController != null) {
-			// 上下移動量をクリア, 正:上, 負:下
-			mController.setGaz((byte) 0);
+			mController.setMove(0, 0, 0, 0, 0);
+/*			// 上下移動量をクリア, 正:上, 負:下
+			mController.setGaz(0);
 			// 回転量をクリア, 正:右回り, 負:左回り
-			mController.setYaw((byte) 0);
+			mController.setYaw(0);
 			// 前後移動量をクリア, 正:前, 負:後
-			mController.setPitch((byte) 0);
+			mController.setPitch(0);
 			// 左右移動量をクリア, 正:右, 負:左
-			mController.setRoll((byte) 0);
+			mController.setRoll(0);
 			// pitch/roll移動フラグをクリア
-			mController.setFlag((byte) 0);
+			mController.setFlag(0); */
 		}
 	}
 

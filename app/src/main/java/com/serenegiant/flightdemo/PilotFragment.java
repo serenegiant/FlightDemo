@@ -277,7 +277,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.play_btn:
 				// 再生ボタンの処理
-				stopMove();
+				PilotFragment.super.stopMove();	// このクラス内のstopMoveだと
 				if (!mFlightRecorder.isPlaying()) {
 					startPlay();
 				} else {
@@ -609,10 +609,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void startPlay() {
 		if (DEBUG) Log.v(TAG, "startPlay:");
-		if (mScriptRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying() && (mFlightRecorder.size() > 0)) {
-			mFlightRecorder.pos(0);
+		if (!mScriptRunning && mFlightRecorder.isPrepared()) {
+			mFlightRecorder.prepare();
+/*			mFlightRecorder.pos(0);
 			mFlightRecorder.play();
-			updateTime(0);
+			updateTime(0); */
 			updateButtons();
 		}
 	}
@@ -641,12 +642,17 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (!mScriptRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
 			mScriptRunning = true;
 			try {
+				final SharedPreferences pref = getActivity().getPreferences(0);
+				final double max_control_value = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
+				final double scale_x = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_X, 1.0f);
+				final double scale_y = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Y, 1.0f);
+				final double scale_z = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Z, 1.0f);
 				switch (index) {
 				case 0:
-					mScriptFlight.prepare(getResources().getAssets().open("circle_xy.script"), 100.0, 1.0, 0.8);
+					mScriptFlight.prepare(getResources().getAssets().open("circle_xy.script"), max_control_value, scale_x, scale_y, scale_z);
 					break;
 				case 1:
-					mScriptFlight.prepare(getResources().getAssets().open("circle_xz.script"), 100.0, 0.8, 1.0);
+					mScriptFlight.prepare(getResources().getAssets().open("circle_xz.script"), max_control_value, scale_x, scale_y, scale_z);
 					break;
 				default:
 					throw new IOException("スクリプトファイルが見つからない(範囲外)");
@@ -685,7 +691,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				} else {
 					mScriptRunning = false;
 				}
+			} else if (mFlightRecorder.isPrepared()) {
+				mFlightRecorder.pos(0);
+				mFlightRecorder.play();
 			}
+
 			updateButtons();
 		}
 
@@ -700,7 +710,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		public boolean onStep(final int cmd, final int[] values, final long t) {
 			if (DEBUG) Log.v(TAG, String.format("mAutoFlightListener#onStep:cmd=%d,t=%d,v=" , cmd, t) + values);
 			updateTime(t);
-//			if (mScriptRunning) return false;	// FIXME デバッグのため
 			if (mController != null) {
 				switch (cmd) {
 				case IAutoFlight.CMD_EMERGENCY:		// 非常停止

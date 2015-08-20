@@ -54,9 +54,9 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		ARCommand.setMiniDronePilotingStateFlyingStateChangedListener(mPilotingStateFlyingStateChangedListener);
 		ARCommand.setMiniDronePilotingStateAlertStateChangedListener(mPilotingStateAlertStateChangedListener);
 		ARCommand.setMiniDronePilotingStateAutoTakeOffModeChangedListener(mPilotingStateAutoTakeOffModeChangedListener);
-		ARCommand.setMiniDroneMediaRecordStatePictureStateChangedListener(mARCommandMiniDroneMediaRecordStatePictureStateChangedListener);
-		ARCommand.setMiniDroneMediaRecordStatePictureStateChangedV2Listener(mARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener);
-		ARCommand.setMiniDroneMediaRecordEventPictureEventChangedListener(mARCommandMiniDroneMediaRecordEventPictureEventChangedListener);
+		ARCommand.setMiniDroneMediaRecordStatePictureStateChangedListener(mMediaRecordStatePictureStateChangedListener);
+		ARCommand.setMiniDroneMediaRecordStatePictureStateChangedV2Listener(mMediaRecordStatePictureStateChangedV2Listener);
+		ARCommand.setMiniDroneMediaRecordEventPictureEventChangedListener(mMediaRecordEventPictureEventChangedListener);
 		ARCommand.setMiniDronePilotingSettingsStateMaxAltitudeChangedListener(mPilotingSettingsStateMaxAltitudeChangedListener);
 		ARCommand.setMiniDronePilotingSettingsStateMaxTiltChangedListener(mPilotingSettingsStateMaxTiltChangedListener);
 		ARCommand.setMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener(mSettingsStateMaxVerticalSpeedChangedListener);
@@ -141,7 +141,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	 * 写真撮影状態が変更された時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneMediaRecordStatePictureStateChangedListener
-		mARCommandMiniDroneMediaRecordStatePictureStateChangedListener
+		mMediaRecordStatePictureStateChangedListener
 			= new ARCommandMiniDroneMediaRecordStatePictureStateChangedListener() {
 		/**
 		 * @param state 1 if picture has been taken, 0 otherwise
@@ -158,7 +158,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	 * 写真撮影状態が変更された時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener
-		mARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener
+		mMediaRecordStatePictureStateChangedV2Listener
 			= new ARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener() {
 		@Override
 		public void onMiniDroneMediaRecordStatePictureStateChangedV2Update(
@@ -173,7 +173,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	 * 写真撮影状態が変更された時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneMediaRecordEventPictureEventChangedListener
-		mARCommandMiniDroneMediaRecordEventPictureEventChangedListener
+		mMediaRecordEventPictureEventChangedListener
 			= new ARCommandMiniDroneMediaRecordEventPictureEventChangedListener() {
 		@Override
 		public void onMiniDroneMediaRecordEventPictureEventChangedUpdate(
@@ -418,13 +418,13 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	 * @return
 	 */
 	@Override
-	protected boolean sendPCMD(final byte flag, final byte roll, final byte pitch, final byte yaw, final byte gaz, final int psi) {
+	protected boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError;
 		synchronized (mDataSync) {
-			cmdError = cmd.setMiniDronePilotingPCMD(flag, roll, pitch, yaw, gaz, psi);
+			cmdError = cmd.setMiniDronePilotingPCMD((byte)flag, (byte)roll, (byte)pitch, (byte)yaw, (byte)gaz, heading);
 		}
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dNackId(), cmd,

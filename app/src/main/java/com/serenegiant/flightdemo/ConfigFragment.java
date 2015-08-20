@@ -247,7 +247,7 @@ public class ConfigFragment extends ControlFragment {
 		SeekBar seekbar = (SeekBar)root.findViewById(R.id.max_control_value_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mMaxControlValue = mPref.getFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100);
+		mMaxControlValue = mPref.getFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
 		try {
 			seekbar.setProgress((int) (mMaxControlValue + 500));
 		} catch (Exception e) {
@@ -378,7 +378,7 @@ public class ConfigFragment extends ControlFragment {
 	 */
 	private void updateScaleY(final float scale_y) {
 		if (mScaleYLabel != null) {
-			mScaleYLabel.setText(String.format(mScaleZFormat, scale_y));
+			mScaleYLabel.setText(String.format(mScaleYFormat, scale_y));
 		}
 	}
 

@@ -20,7 +20,7 @@ int step_num = 12;	// 12角形で近似
 // degree=[-180,+180]
 // extern void cap(int degree);
 
-void main(const double radius, const double scale_x, const double scale_y) {
+void main(const double radius, const double scale_x, const double scale_y, const double scale_z) {
 	takeoff();
 	wait(1000);
 	move(0, 0, 100, 0);

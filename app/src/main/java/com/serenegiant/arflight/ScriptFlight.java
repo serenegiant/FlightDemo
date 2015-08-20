@@ -243,7 +243,41 @@ public class ScriptFlight implements IAutoFlight {
 					final ASTParse parse = script.Parse();
 					synchronized (mSync) {
 						mASTParse = parse;
-						mVisitor = new ScriptVisitorImpl((double)args[1], (double)args[2], (double)args[3]);
+						switch (args.length) {
+//						case 0: // 0個の時はInputStreamも無いのでここには来ない
+						case 1:
+							mVisitor = new ScriptVisitorImpl();
+							break;
+						case 2:
+							mVisitor = new ScriptVisitorImpl((Number) args[1]);
+							break;
+						case 3:
+							mVisitor = new ScriptVisitorImpl((Number) args[1], (Number) args[2]);
+							break;
+						case 4:
+							mVisitor = new ScriptVisitorImpl((Number) args[1], (Number) args[2], (Number) args[3]);
+							break;
+						case 5:
+							mVisitor = new ScriptVisitorImpl((Number) args[1], (Number) args[2], (Number) args[3],
+								(double) args[4]);
+							break;
+						case 6:
+							mVisitor = new ScriptVisitorImpl((Number) args[1], (Number) args[2], (Number) args[3],
+								(Number) args[4], (Number) args[5]);
+							break;
+						case 7:
+							mVisitor = new ScriptVisitorImpl((Number) args[1], (Number) args[2], (Number) args[3],
+								(Number) args[4], (Number) args[5], (Number) args[6]);
+							break;
+						case 8:
+							mVisitor = new ScriptVisitorImpl((Number) args[1], (Number) args[2], (Number) args[3],
+								(Number) args[4], (Number) args[5], (Number) args[6], (Number) args[7]);
+							break;
+						default:	// 最大で引数は8個まで
+							mVisitor = new ScriptVisitorImpl((Number) args[1], (Number) args[2], (Number) args[3],
+								(Number) args[4], (Number) args[5], (Number) args[6], (Number) args[7], (Number) args[8]);
+							break;
+						}
 					}
 					try {
 						mAutoFlightListener.onPrepared();

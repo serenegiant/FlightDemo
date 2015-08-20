@@ -1197,7 +1197,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * 操縦コマンドを送信
 	 * @return
 	 */
-	protected abstract boolean sendPCMD(final byte flag, final byte roll, final byte pitch, final byte yaw, final byte gaz, final int psi);
+	protected abstract boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int psi);
 
 	@Override
 	public boolean sendAllSettings() {
@@ -1307,7 +1307,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param flag 1:移動, 0:機体姿勢変更
 	 */
 	@Override
-	public void setFlag(final byte flag) {
+	public void setFlag(final int flag) {
 		synchronized (mDataSync) {
 			mDataPCMD.flag = (byte)(flag == 0 ? 0 : (flag != 0 ? 1 : 0));
 		}
@@ -1318,7 +1318,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param gaz 負:下降, 正:上昇
 	 */
 	@Override
-	public void setGaz(final byte gaz) {
+	public void setGaz(final int gaz) {
 		synchronized (mDataSync) {
 			mDataPCMD.gaz = gaz > 100 ? 100 : (gaz < -100 ? -100 : gaz);
 			if (--mDataPCMD.cnt <= 1)
@@ -1331,7 +1331,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param roll 負:左, 正:右
 	 */
 	@Override
-	public void setRoll(final byte roll) {
+	public void setRoll(final int roll) {
 		synchronized (mDataSync) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
 			if (--mDataPCMD.cnt <= 1)
@@ -1344,7 +1344,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param pitch
 	 */
 	@Override
-	public void setPitch(final byte pitch) {
+	public void setPitch(final int pitch) {
 		synchronized (mDataSync) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
 			if (--mDataPCMD.cnt <= 1)
@@ -1357,7 +1357,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param yaw 負:左回転, 正:右回転
 	 */
 	@Override
-	public void setYaw(final byte yaw) {
+	public void setYaw(final int yaw) {
 		synchronized (mDataSync) {
 			mDataPCMD.yaw = yaw > 100 ? 100 : (yaw < -100 ? -100 : yaw);
 			if (--mDataPCMD.cnt <= 1)
@@ -1386,13 +1386,33 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param yaw 負:左回転, 正:右回転, -100〜+100
 	 */
 	@Override
-	public void setMove(final byte roll, final byte pitch, final byte gaz, final byte yaw) {
+	public void setMove(final int roll, final int pitch, final int gaz, final int yaw) {
 		synchronized (mDataSync) {
 			mDataPCMD.roll = roll;
 			mDataPCMD.pitch = pitch;
 			mDataPCMD.gaz = gaz;
 			mDataPCMD.yaw = yaw;
 			mDataPCMD.flag = 1;
+			mDataPCMD.cnt = 0;
+		}
+	}
+
+	/**
+	 * 移動量(傾き)をセット
+	 * @param roll 負:左, 正:右, -100〜+100
+	 * @param pitch 負:??? 正:???, -100〜+100
+	 * @param gaz 負:下降, 正:上昇, -100〜+100
+	 * @param yaw 負:左回転, 正:右回転, -100〜+100
+	 * @param flag roll/pitchが移動を意味する時1, 機体姿勢変更のみの時は0
+	 */
+	@Override
+	public void setMove(final int roll, final int pitch, final int gaz, final int yaw, int flag) {
+		synchronized (mDataSync) {
+			mDataPCMD.roll = roll;
+			mDataPCMD.pitch = pitch;
+			mDataPCMD.gaz = gaz;
+			mDataPCMD.yaw = yaw;
+			mDataPCMD.flag = flag;
 			mDataPCMD.cnt = 0;
 		}
 	}
@@ -1557,11 +1577,11 @@ public abstract class DeviceController implements IDeviceController {
 
 	private static final int MAX_CNT = 5;
 	private static final class DataPCMD {
-		public byte flag;
-		public byte roll;
-		public byte pitch;
-		public byte yaw;
-		public byte gaz;
+		public int flag;
+		public int roll;
+		public int pitch;
+		public int yaw;
+		public int gaz;
 		public int heading;
 		public int cnt;
 
@@ -1679,7 +1699,7 @@ public abstract class DeviceController implements IDeviceController {
 		public void onLoop() {
 			final long lastTime = SystemClock.elapsedRealtime();
 
-			final byte flag, roll, pitch, yaw, gaz;
+			final int flag, roll, pitch, yaw, gaz;
 			final int heading, cnt;
 			final int state;
 			synchronized (mStateSync) {

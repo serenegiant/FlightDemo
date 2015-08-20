@@ -12,13 +12,6 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURES
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
-import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM;
-import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM;
-import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_ENUM;
-import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR_ENUM;
-import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_ENUM;
-import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM;
-import com.parrot.arsdk.arcommands.ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordEventPictureEventChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordStatePictureStateChangedListener;
@@ -29,24 +22,13 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3PilotingStateAlertStateChang
 import com.parrot.arsdk.arcommands.ARCommandARDrone3PilotingStateAutoTakeOffModeChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3PilotingStateFlatTrimChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3PilotingStateFlyingStateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateHullProtectionChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateMaxRotationSpeedChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateMaxVerticalSpeedChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneFloodControlStateFloodControlChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDroneMediaRecordEventPictureEventChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDroneMediaRecordStatePictureStateChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingSettingsStateMaxAltitudeChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingSettingsStateMaxTiltChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateAlertStateChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateAutoTakeOffModeChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateFlatTrimChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDronePilotingStateFlyingStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneSettingsStateCutOutModeChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneSettingsStateProductInertialVersionChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneSettingsStateProductMotorsVersionChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateMaxRotationSpeedChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 
@@ -71,15 +53,15 @@ public class DeviceControllerBeebap extends DeviceController {
 		ARCommand.setARDrone3PilotingStateFlyingStateChangedListener(mPilotingStateFlyingStateChangedListener);
 		ARCommand.setARDrone3PilotingStateAlertStateChangedListener(mPilotingStateAlertStateChangedListener);
 		ARCommand.setARDrone3PilotingStateAutoTakeOffModeChangedListener(mPilotingStateAutoTakeOffModeChangedListener);
-		ARCommand.setARDrone3MediaRecordStatePictureStateChangedListener(mARCommandMiniDroneMediaRecordStatePictureStateChangedListener);
-		ARCommand.setARDrone3MediaRecordStatePictureStateChangedV2Listener(mARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener);
-		ARCommand.setARDrone3MediaRecordEventPictureEventChangedListener(mARCommandMiniDroneMediaRecordEventPictureEventChangedListener);
+		ARCommand.setARDrone3MediaRecordStatePictureStateChangedListener(mMediaRecordStatePictureStateChangedListener);
+		ARCommand.setARDrone3MediaRecordStatePictureStateChangedV2Listener(mMediaRecordStatePictureStateChangedV2Listener);
+		ARCommand.setARDrone3MediaRecordEventPictureEventChangedListener(mMediaRecordEventPictureEventChangedListener);
 		ARCommand.setARDrone3PilotingSettingsStateMaxAltitudeChangedListener(mPilotingSettingsStateMaxAltitudeChangedListener);
 		ARCommand.setARDrone3PilotingSettingsStateMaxTiltChangedListener(mPilotingSettingsStateMaxTiltChangedListener);
 		ARCommand.setARDrone3SpeedSettingsStateMaxVerticalSpeedChangedListener(mSettingsStateMaxVerticalSpeedChangedListener);
 		ARCommand.setARDrone3SpeedSettingsStateMaxRotationSpeedChangedListener(mSpeedSettingsStateMaxRotationSpeedChangedListener);
 		ARCommand.setARDrone3SettingsStateMotorErrorLastErrorChangedListener(null);
-
+		// FIXME
 //		ARCommand.setARDrone3SpeedSettingsStateWheelsChangedListener(mSpeedSettingsStateWheelsChangedListener);
 //		ARCommand.setARDrone3SettingsStateProductMotorsVersionChangedListener(mSettingsStateProductMotorsVersionChangedListener);
 //		ARCommand.setARDrone3SettingsStateProductInertialVersionChangedListener(mSettingsStateProductInertialVersionChangedListener);
@@ -103,6 +85,7 @@ public class DeviceControllerBeebap extends DeviceController {
 		ARCommand.setARDrone3SpeedSettingsStateMaxVerticalSpeedChangedListener(null);
 		ARCommand.setARDrone3SpeedSettingsStateMaxRotationSpeedChangedListener(null);
 
+		// FIXME
 //		ARCommand.setARDrone3SpeedSettingsStateWheelsChangedListener(null);
 //		ARCommand.setARDrone3SettingsStateProductMotorsVersionChangedListener(null);
 //		ARCommand.setARDrone3SettingsStateProductInertialVersionChangedListener(null);
@@ -160,7 +143,7 @@ public class DeviceControllerBeebap extends DeviceController {
 	 * 写真撮影状態が変更された時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3MediaRecordStatePictureStateChangedListener
-		mARCommandMiniDroneMediaRecordStatePictureStateChangedListener
+		mMediaRecordStatePictureStateChangedListener
 			= new ARCommandARDrone3MediaRecordStatePictureStateChangedListener() {
 		/**
 		 * @param state 1 if picture has been taken, 0 otherwise
@@ -177,7 +160,7 @@ public class DeviceControllerBeebap extends DeviceController {
 	 * 写真撮影状態が変更された時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3MediaRecordStatePictureStateChangedV2Listener
-		mARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener
+		mMediaRecordStatePictureStateChangedV2Listener
 			= new ARCommandARDrone3MediaRecordStatePictureStateChangedV2Listener() {
 		@Override
 		public void onARDrone3MediaRecordStatePictureStateChangedV2Update(
@@ -192,7 +175,7 @@ public class DeviceControllerBeebap extends DeviceController {
 	 * 写真撮影状態が変更された時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3MediaRecordEventPictureEventChangedListener
-		mARCommandMiniDroneMediaRecordEventPictureEventChangedListener
+		mMediaRecordEventPictureEventChangedListener
 			= new ARCommandARDrone3MediaRecordEventPictureEventChangedListener() {
 		@Override
 		public void onARDrone3MediaRecordEventPictureEventChangedUpdate(
@@ -251,7 +234,7 @@ public class DeviceControllerBeebap extends DeviceController {
 				mMaxTilt.min = min;
 				mMaxTilt.max = max;
 			}
-			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxTiltChangedUpdate:" + mMaxTilt);
+			if (DEBUG) Log.v(TAG, "onARDrone3PilotingSettingsStateMaxTiltChangedUpdate:" + mMaxTilt);
 		}
 	};
 
@@ -277,7 +260,7 @@ public class DeviceControllerBeebap extends DeviceController {
 				mMaxVerticalSpeed.min = min;
 				mMaxVerticalSpeed.max = max;
 			}
-			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedUpdate:" + mMaxVerticalSpeed);
+			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateMaxVerticalSpeedChangedUpdate:" + mMaxVerticalSpeed);
 		}
 	};
 
@@ -302,24 +285,24 @@ public class DeviceControllerBeebap extends DeviceController {
 				mMaxRotationSpeed.min = min;
 				mMaxRotationSpeed.max = max;
 			}
-			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxRotationSpeedChangedUpdate:" + mMaxRotationSpeed);
+			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateMaxRotationSpeedChangedUpdate:" + mMaxRotationSpeed);
 		}
 	};
 
 	/**
-	 * ホイールの有無設定が変更された時のコールバックリスナー
+	 * FIXME ハルの有無設定が変更された時のコールバックリスナー
 	 */
-	private final ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener
+	private final ARCommandARDrone3SpeedSettingsStateHullProtectionChangedListener
 		mSpeedSettingsStateWheelsChangedListener
-			= new ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener() {
+			= new ARCommandARDrone3SpeedSettingsStateHullProtectionChangedListener() {
 		/**
 		 * @param present 1 if present, 0 if not present
 		 */
 		@Override
-		public void onMiniDroneSpeedSettingsStateWheelsChangedUpdate(final byte present) {
-			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateWheelsChangedUpdate:");
-			if (mHasWheel != present) {
-				mHasWheel = present;
+		public void onARDrone3SpeedSettingsStateHullProtectionChangedUpdate(final byte present) {
+			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateHullProtectionChangedUpdate:");
+			if (mHasGuard != present) {
+				mHasGuard = present;
 			}
 		}
 	};
@@ -327,7 +310,7 @@ public class DeviceControllerBeebap extends DeviceController {
 	private static final int MOTOR_NUMS = 4;
 	private final AttributeMotor[] mMotors = new AttributeMotor[MOTOR_NUMS];
 	/**
-	 * モーターバージョンが変更された時のコールバックリスナー
+	 * FIXME モーターバージョンが変更された時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneSettingsStateProductMotorsVersionChangedListener
 		mSettingsStateProductMotorsVersionChangedListener
@@ -360,7 +343,7 @@ public class DeviceControllerBeebap extends DeviceController {
 
 	public final AttributeIMU mIMU = new AttributeIMU();
 	/**
-	 * フライトコントローラのバージョン
+	 * FIXME フライトコントローラのバージョン
 	 */
 	private final ARCommandMiniDroneSettingsStateProductInertialVersionChangedListener
 		mSettingsStateProductInertialVersionChangedListener
@@ -380,7 +363,7 @@ public class DeviceControllerBeebap extends DeviceController {
 	};
 
 	/**
-	 * カットオフモード設定が変更された時のコールバックリスナー
+	 * FIXME カットオフモード設定が変更された時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneSettingsStateCutOutModeChangedListener
 		mSettingsStateCutOutModeChangedListener
@@ -399,7 +382,7 @@ public class DeviceControllerBeebap extends DeviceController {
 	};
 
 	/**
-	 * FloodControl設定が変更された時のコールバックリスナー
+	 * FIXME FloodControl設定が変更された時のコールバックリスナー
 	 * 操縦コマンド(PCMD)を連続して送る時の最短間隔・・・これ以下の間隔で送った時に無視するってことかな?
 	 */
 	private final ARCommandMiniDroneFloodControlStateFloodControlChangedListener
@@ -424,7 +407,7 @@ public class DeviceControllerBeebap extends DeviceController {
 		public void onARDrone3PilotingStateAlertStateChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
 
-			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateAlertStateChangedUpdate:");
+			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateAlertStateChangedUpdate:");
 			callOnAlarmStateChangedUpdate(state.getValue());
 		}
 	};
@@ -437,13 +420,13 @@ public class DeviceControllerBeebap extends DeviceController {
 	 * @return
 	 */
 	@Override
-	protected boolean sendPCMD(final byte flag, final byte roll, final byte pitch, final byte yaw, final byte gaz, final int psi) {
+	protected boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError;
 		synchronized (mDataSync) {
-			cmdError = cmd.setMiniDronePilotingPCMD(flag, roll, pitch, yaw, gaz, psi);
+			cmdError = cmd.setARDrone3PilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, heading);
 		}
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dNackId(), cmd,
@@ -463,7 +446,7 @@ public class DeviceControllerBeebap extends DeviceController {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingTakeOff();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingTakeOff();
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -659,14 +642,14 @@ public class DeviceControllerBeebap extends DeviceController {
 	}
 
 	/**
-	 * モーターの自動カット機能のon/off
+	 * FIXME モーターの自動カット機能のon/off
 	 * @param enabled
 	 * @return
 	 */
 	public boolean sendCutOutMode(final byte enabled) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
-
+		// FIXME
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSettingsCutOutMode(enabled);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
@@ -695,7 +678,7 @@ public class DeviceControllerBeebap extends DeviceController {
 		return sendAutoTakeOffMode((byte)(enable ? 1: 0));
 	}
 	/**
-	 * 自動離陸モードの有効/無効を設定
+	 * FIXME 自動離陸モードの有効/無効を設定
 	 * @param enable
 	 * @return
 	 */
@@ -717,20 +700,25 @@ public class DeviceControllerBeebap extends DeviceController {
 		return sentStatus;
 	}
 
-	private int mHasWheel = -1;
-	public boolean hasWheel() {
-		return mHasWheel == 1;
+	private int mHasGuard = -1;
+	public boolean hasGuard() {
+		return mHasGuard == 1;
 	}
 
-	public boolean sendWheel(final boolean has_wheel) {
-		return sendWheel((byte)(has_wheel ? 1 : 0));
+	public boolean sendHasGuard(final boolean has_guard) {
+		return sendHasGuard((byte) (has_guard ? 1 : 0));
 	}
 
-	public boolean sendWheel(final byte has_wheel) {
+	/**
+	 * FIXME ハルの有無を送信
+	 * @param has_guard
+	 * @return
+	 */
+	public boolean sendHasGuard(final byte has_guard) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSpeedSettingsWheels(has_wheel);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSpeedSettingsWheels(has_guard);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -786,7 +774,7 @@ public class DeviceControllerBeebap extends DeviceController {
 	}
 
 	/**
-	 * 自動で指定した角度回転させる
+	 * FIXME 自動で指定した角度回転させる
 	 * @param degree -360〜360度
 	 * @return
 	 */

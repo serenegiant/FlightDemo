@@ -279,6 +279,7 @@ public class FlightRecorder implements IAutoFlight {
 					}
 					sb.append(values[i]);
 				}
+				// 0:cmd, 1:t, 2:value0, 3:value1,...
 				final String cmd_str = String.format("%d,%d,%s", cmd, t, sb.toString());
 				mRecords.add(cmd_str);
 				mCurrentPos = mRecords.size() - 1;
@@ -322,7 +323,8 @@ public class FlightRecorder implements IAutoFlight {
 				try {
 					pos++;
 					record = line.split(",");
-					final long t = Long.parseLong(record[2]);
+					// 0:cmd, 1:t, 2:value0, 3:value1,...
+					final long t = Long.parseLong(record[1]);
 					if (time <= t) {
 						mCurrentPos = pos;
 						return t;
