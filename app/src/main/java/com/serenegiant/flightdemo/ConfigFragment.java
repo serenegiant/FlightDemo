@@ -24,6 +24,11 @@ public class ConfigFragment extends ControlFragment {
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
 	public static final String KEY_REVERSE_OPERATION = "REVERSE_OPERATION";
+	public static final String KEY_AUTOPILOT_MAX_CONTROL_VALUE = "CONFIG_AUTOPILOT_MAX_CONTROL_VALUE";
+	public static final String KEY_AUTOPILOT_SCALE_X = "CONFIG_AUTOPILOT_SCALE_X";
+	public static final String KEY_AUTOPILOT_SCALE_Y = "CONFIG_AUTOPILOT_SCALE_Y";
+	public static final String KEY_AUTOPILOT_SCALE_Z = "CONFIG_AUTOPILOT_SCALE_Z";
+
 
 	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device) {
 		final ConfigFragment fragment = new ConfigFragment();
@@ -39,11 +44,19 @@ public class ConfigFragment extends ControlFragment {
 	private TextView mMaxTiltLabel;
 	private TextView mMaxVerticalSpeedLabel;
 	private TextView mMaxRotationSpeedLabel;
+	private TextView mScaleXLabel;
+	private TextView mScaleYLabel;
+	private TextView mScaleZLabel;
+	private TextView mMaxControlValueLabel;
 
 	private String mMaxAltitudeFormat;
 	private String mMaxTiltFormat;
 	private String mMaxVerticalSpeedFormat;
 	private String mMaxRotationSpeedFormat;
+	private String mScaleXFormat;
+	private String mScaleYFormat;
+	private String mScaleZFormat;
+	private String mMaxControlValueFormat;
 
 	public ConfigFragment() {
 		super();
@@ -58,6 +71,11 @@ public class ConfigFragment extends ControlFragment {
 		mMaxTiltFormat = getString(R.string.config_max_tilt);
 		mMaxVerticalSpeedFormat = getString(R.string.config_max_vertical_speed);
 		mMaxRotationSpeedFormat = getString(R.string.config_max_rotating_speed);
+		mScaleXFormat = getString(R.string.config_scale_x);
+		mScaleYFormat = getString(R.string.config_scale_y);
+		mScaleZFormat = getString(R.string.config_scale_z);
+		mMaxControlValueFormat = getString(R.string.config_control_max);
+
 		mPref = activity.getPreferences(0);
 	}
 
@@ -215,6 +233,69 @@ public class ConfigFragment extends ControlFragment {
 		}
 	}
 
+	private float mMaxControlValue;
+	private float mScaleX;
+	private float mScaleY;
+	private float mScaleZ;
+	/**
+	 * 自動操縦設定画面の準備
+	 * @param root
+	 */
+	private void updateConfigAutopilot(final View root) {
+		// 最大制御値設定
+		mMaxControlValueLabel = (TextView)root.findViewById(R.id.max_control_value_textview);
+		SeekBar seekbar = (SeekBar)root.findViewById(R.id.max_control_value_seekbar);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mMaxControlValue = mPref.getFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100);
+		try {
+			seekbar.setProgress((int) (mMaxControlValue + 500));
+		} catch (Exception e) {
+			seekbar.setProgress(500);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateMaxControlValue(mMaxControlValue);
+		// スケールX設定
+		mScaleXLabel = (TextView)root.findViewById(R.id.scale_x_textview);
+		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_x);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mScaleX = mPref.getFloat(KEY_AUTOPILOT_SCALE_X, 1.0f);
+		try {
+			seekbar.setProgress((int) (mScaleX * 100 + 500));
+		} catch (Exception e) {
+			seekbar.setProgress(500);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateScaleX(mScaleX);
+		// スケールY設定
+		mScaleYLabel = (TextView)root.findViewById(R.id.scale_y_textview);
+		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_y);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mScaleY = mPref.getFloat(KEY_AUTOPILOT_SCALE_Y, 1.0f);
+		try {
+			seekbar.setProgress((int) (mScaleY * 100 + 500));
+		} catch (Exception e) {
+			seekbar.setProgress(500);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateScaleY(mScaleY);
+		// スケールZ設定
+		mScaleZLabel = (TextView)root.findViewById(R.id.scale_z_textview);
+		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_z);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mScaleZ = mPref.getFloat(KEY_AUTOPILOT_SCALE_Z, 1.0f);
+		try {
+			seekbar.setProgress((int) (mScaleZ * 100 + 500));
+		} catch (Exception e) {
+			seekbar.setProgress(500);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateScaleZ(mScaleZ);
+	}
+
 	/**
 	 * ドローン情報画面の準備
 	 * @param root
@@ -272,6 +353,46 @@ public class ConfigFragment extends ControlFragment {
 	}
 
 	/**
+	 * 最大制御設定値表示を更新
+	 * @param max_control_value
+	 */
+	private void updateMaxControlValue(final float max_control_value) {
+		if (mMaxControlValueLabel != null) {
+			mMaxControlValueLabel.setText(String.format(mMaxControlValueFormat, max_control_value));
+		}
+	}
+
+	/**
+	 * スケールZ設定表示を更新
+	 * @param scale_x
+	 */
+	private void updateScaleX(final float scale_x) {
+		if (mScaleXLabel != null) {
+			mScaleXLabel.setText(String.format(mScaleXFormat, scale_x));
+		}
+	}
+
+	/**
+	 * スケールY設定表示を更新
+	 * @param scale_y
+	 */
+	private void updateScaleY(final float scale_y) {
+		if (mScaleYLabel != null) {
+			mScaleYLabel.setText(String.format(mScaleZFormat, scale_y));
+		}
+	}
+
+	/**
+	 * スケールZ設定表示を更新
+	 * @param scale_z
+	 */
+	private void updateScaleZ(final float scale_z) {
+		if (mScaleZLabel != null) {
+			mScaleZLabel.setText(String.format(mScaleZFormat, scale_z));
+		}
+	}
+
+	/**
 	 * シークバーのイベント
 	 */
 	private final SeekBar.OnSeekBarChangeListener mOnSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
@@ -280,7 +401,7 @@ public class ConfigFragment extends ControlFragment {
 		 * @param seekBar
 		 */
 		@Override
-		public void onStartTrackingTouch(SeekBar seekBar) {
+		public void onStartTrackingTouch(final SeekBar seekBar) {
 		}
 
 		/**
@@ -290,7 +411,7 @@ public class ConfigFragment extends ControlFragment {
 		 * @param fromUser
 		 */
 		@Override
-		public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+		public void onProgressChanged(final SeekBar seekBar, final int progress, final boolean fromUser) {
 			if (fromUser) {
 				// ユーザーのタッチ処理でシークバーの値が変更された時
 				switch (seekBar.getId()) {
@@ -310,6 +431,22 @@ public class ConfigFragment extends ControlFragment {
 					final float rotation = (int) (progress / 1000f * (mMaxRotationSpeed.max - mMaxRotationSpeed.min)) + mMaxRotationSpeed.min;
 					updateMaxRotationSpeed(rotation);
 					break;
+				case R.id.max_control_value_seekbar:	// -500〜+500
+					final float max_control_value = progress - 500;
+					updateMaxControlValue(max_control_value);
+					break;
+				case R.id.scale_seekbar_x:
+					final float scale_x = (progress - 500) / 100f;
+					updateScaleX(scale_x);
+					break;
+				case R.id.scale_seekbar_y:
+					final float scale_y = (progress - 500) / 100f;
+					updateScaleY(scale_y);
+					break;
+				case R.id.scale_seekbar_z:
+					final float scale_z = (progress - 500) / 100f;
+					updateScaleZ(scale_z);
+					break;
 				}
 			}
 		}
@@ -320,7 +457,7 @@ public class ConfigFragment extends ControlFragment {
 		 * @param seekBar
 		 */
 		@Override
-		public void onStopTrackingTouch(SeekBar seekBar) {
+		public void onStopTrackingTouch(final SeekBar seekBar) {
 			if (mController == null) {
 				Log.w(TAG, "deviceControllerがnull");
 				return;
@@ -350,6 +487,34 @@ public class ConfigFragment extends ControlFragment {
 					mController.sendMaxRotationSpeed(rotation);
 				}
 				break;
+			case R.id.max_control_value_seekbar:
+				final float max_control_value = seekBar.getProgress() - 500;
+				if (max_control_value != mMaxControlValue) {
+					mMaxControlValue = max_control_value;
+					mPref.edit().putFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, max_control_value).apply();
+				}
+				break;
+			case R.id.scale_seekbar_x:
+				final float scale_x = (seekBar.getProgress() - 500) / 100f;
+				if (scale_x != mScaleX) {
+					mScaleX = scale_x;
+					mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_X, scale_x).apply();
+				}
+				break;
+			case R.id.scale_seekbar_y:
+				final float scale_y = (seekBar.getProgress() - 500) / 100f;
+				if (scale_y != mScaleY) {
+					mScaleY = scale_y;
+					mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_Y, scale_y).apply();
+				}
+				break;
+			case R.id.scale_seekbar_z:
+				final float scale_z = (seekBar.getProgress() - 500) / 100f;
+				if (scale_z != mScaleZ) {
+					mScaleZ = scale_z;
+					mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_Z, scale_z).apply();
+				}
+				break;
 			}
 		}
 	};
@@ -360,7 +525,7 @@ public class ConfigFragment extends ControlFragment {
 	private final CompoundButton.OnCheckedChangeListener
 		mOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
 		@Override
-		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
 			switch (buttonView.getId()) {
 			case R.id.cutout_checkbox:
 				if (((DeviceControllerMiniDrone) mController).isCutoffModeEnabled() != isChecked) {
@@ -397,7 +562,7 @@ public class ConfigFragment extends ControlFragment {
 		}
 
 		@Override
-		public Object instantiateItem(ViewGroup container, int position) {
+		public synchronized Object instantiateItem(final ViewGroup container, final int position) {
 			if (DEBUG) Log.v(TAG, "instantiateItem:position=" + position);
 			View view = null;
 			switch (position) {
@@ -414,18 +579,22 @@ public class ConfigFragment extends ControlFragment {
 				updateConfigOperation(view);
 				break;
 			case 3:
+				view = mInflater.inflate(R.layout.config_autopilot, container, false);
+				updateConfigAutopilot(view);
+				break;
+			case 4:
 				view = mInflater.inflate(R.layout.config_info, container, false);
 				updateConfigInfo(view);
 				break;
 			}
 			if (view != null) {
-				container.addView(view, position);
+				container.addView(view);
 			}
 			return view;
 		}
 
 		@Override
-		public void destroyItem(ViewGroup container, int position, Object object) {
+		public synchronized void destroyItem(final ViewGroup container, final int position, final Object object) {
 			if (DEBUG) Log.v(TAG, "destroyItem:position=" + position);
 			if (object instanceof View) {
 				container.removeView((View)object);
@@ -434,16 +603,16 @@ public class ConfigFragment extends ControlFragment {
 
 		@Override
 		public int getCount() {
-			return 4;
+			return 5;
 		}
 
 		@Override
-		public boolean isViewFromObject(View view, Object object) {
+		public boolean isViewFromObject(final View view, final Object object) {
 			return view.equals(object);
 		}
 
 		@Override
-		public CharSequence getPageTitle(int position) {
+		public CharSequence getPageTitle(final int position) {
 			if (DEBUG) Log.v(TAG, "getPageTitle:position=" + position);
 			CharSequence result = null;
 			switch (position) {
@@ -458,6 +627,9 @@ public class ConfigFragment extends ControlFragment {
 				break;
 			case 3:
 				result = getString(R.string.config_4);
+				break;
+			case 4:
+				result = getString(R.string.config_5);
 				break;
 			}
 			return result;

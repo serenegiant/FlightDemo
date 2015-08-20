@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:orientation="vertical"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent"
+				android:minHeight="@dimen/switch_height">
+
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_centerInParent="true"
+		android:id="@+id/linearLayout"
+		android:weightSum="1">
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_control_max"
+			android:textSize="@dimen/text_sz_list"
+			android:id="@+id/max_control_value_textview"/>
+
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/max_control_value_seekbar"
+			android:layout_gravity="center_horizontal"
+			android:minHeight="@dimen/text_sz_list"/>
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_scale_x"
+			android:textSize="@dimen/text_sz_list"
+			android:id="@+id/scale_x_textview"/>
+
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/scale_seekbar_x"
+			android:layout_gravity="center_horizontal"
+			android:minHeight="@dimen/text_sz_list"/>
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_scale_y"
+			android:textSize="@dimen/text_sz_list"
+			android:id="@+id/scale_y_textview"/>
+
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/scale_seekbar_y"
+			android:minHeight="@dimen/text_sz_list"/>
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_scale_z"
+			android:textSize="@dimen/text_sz_list"
+			android:id="@+id/scale_z_textview"/>
+
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/scale_seekbar_z"
+			android:minHeight="@dimen/text_sz_list"/>
+
+	</LinearLayout>
+
+</RelativeLayout>
