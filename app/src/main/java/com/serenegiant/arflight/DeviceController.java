@@ -1321,6 +1321,8 @@ public abstract class DeviceController implements IDeviceController {
 	public void setGaz(final byte gaz) {
 		synchronized (mDataSync) {
 			mDataPCMD.gaz = gaz > 100 ? 100 : (gaz < -100 ? -100 : gaz);
+			if (--mDataPCMD.cnt <= 1)
+				mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1332,6 +1334,8 @@ public abstract class DeviceController implements IDeviceController {
 	public void setRoll(final byte roll) {
 		synchronized (mDataSync) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
+			if (--mDataPCMD.cnt <= 1)
+				mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1343,6 +1347,8 @@ public abstract class DeviceController implements IDeviceController {
 	public void setPitch(final byte pitch) {
 		synchronized (mDataSync) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
+			if (--mDataPCMD.cnt <= 1)
+				mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1354,6 +1360,8 @@ public abstract class DeviceController implements IDeviceController {
 	public void setYaw(final byte yaw) {
 		synchronized (mDataSync) {
 			mDataPCMD.yaw = yaw > 100 ? 100 : (yaw < -100 ? -100 : yaw);
+			if (--mDataPCMD.cnt <= 1)
+				mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1365,6 +1373,27 @@ public abstract class DeviceController implements IDeviceController {
 	public void setHeading(final int heading) {
 		synchronized (mDataSync) {
 			mDataPCMD.heading = heading;
+			if (--mDataPCMD.cnt <= 1)
+				mDataPCMD.cnt = 1;
+		}
+	}
+
+	/**
+	 * 移動量(傾き)をセット
+	 * @param roll 負:左, 正:右, -100〜+100
+	 * @param pitch 負:??? 正:???, -100〜+100
+	 * @param gaz 負:下降, 正:上昇, -100〜+100
+	 * @param yaw 負:左回転, 正:右回転, -100〜+100
+	 */
+	@Override
+	public void setMove(final byte roll, final byte pitch, final byte gaz, final byte yaw) {
+		synchronized (mDataSync) {
+			mDataPCMD.roll = roll;
+			mDataPCMD.pitch = pitch;
+			mDataPCMD.gaz = gaz;
+			mDataPCMD.yaw = yaw;
+			mDataPCMD.flag = 1;
+			mDataPCMD.cnt = 0;
 		}
 	}
 
@@ -1526,6 +1555,7 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	private static final int MAX_CNT = 5;
 	private static final class DataPCMD {
 		public byte flag;
 		public byte roll;
@@ -1533,10 +1563,12 @@ public abstract class DeviceController implements IDeviceController {
 		public byte yaw;
 		public byte gaz;
 		public int heading;
+		public int cnt;
 
 		public DataPCMD() {
 			flag = roll = pitch = yaw = gaz = 0;
 			heading = 0;
+			cnt = MAX_CNT;
 		}
 
 		private void set(final DataPCMD other) {
@@ -1546,10 +1578,11 @@ public abstract class DeviceController implements IDeviceController {
 			yaw = other.yaw;
 			gaz = other.gaz;
 			heading = other.heading;
+			cnt = other.cnt;
 		}
 	}
 
-	private static int cnt = 0;
+	private static int thread_cnt = 0;
 	private abstract class LooperThread extends Thread {
 		private volatile boolean mIsRunning;
 
@@ -1578,13 +1611,13 @@ public abstract class DeviceController implements IDeviceController {
 		}
 
 		protected void onStart() {
-			if (DEBUG) Log.v("LooperThread", "onStart:" + cnt++);
+			if (DEBUG) Log.v("LooperThread", "onStart:" + thread_cnt++);
 		}
 
 		protected abstract void onLoop();
 
 		protected void onStop() {
-			if (DEBUG) Log.v("LooperThread", "onStop:" + --cnt);
+			if (DEBUG) Log.v("LooperThread", "onStop:" + --thread_cnt);
 		}
 
 	}
@@ -1635,9 +1668,9 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/** 操縦コマンド送信間隔[ミリ秒] */
-	private static final long CMD_SENDING_INTERVALS_MS = 50;
+	private static final long CMD_SENDING_INTERVALS_MS = 20;
 
-	/** 操縦コマンドを定期的に相信するためのスレッド */
+	/** 操縦コマンドを定期的に送信するためのスレッド */
 	protected class ControllerLooperThread extends LooperThread {
 		public ControllerLooperThread() {
 		}
@@ -1647,12 +1680,16 @@ public abstract class DeviceController implements IDeviceController {
 			final long lastTime = SystemClock.elapsedRealtime();
 
 			final byte flag, roll, pitch, yaw, gaz;
-			final int heading;
+			final int heading, cnt;
 			final int state;
 			synchronized (mStateSync) {
 				state = mState;
 			}
 			synchronized (mDataSync) {
+				cnt = mDataPCMD.cnt--;
+				if (cnt <= 0) {
+					mDataPCMD.cnt = MAX_CNT;
+				}
 				if (state == STATE_STARTED) {
 					flag = mDataPCMD.flag;
 					roll = mDataPCMD.roll;
@@ -1665,8 +1702,10 @@ public abstract class DeviceController implements IDeviceController {
 					heading = 0;
 				}
 			}
-			// 操縦コマンド送信
-			sendPCMD(flag, roll, pitch, yaw, gaz, heading);
+			if (cnt <= 0) {
+				// 操縦コマンド送信
+				sendPCMD(flag, roll, pitch, yaw, gaz, heading);
+			}
 
 			// 次の送信予定時間までの休止時間を計算[ミリ秒]
 			final long sleepTime = (SystemClock.elapsedRealtime() + CMD_SENDING_INTERVALS_MS) - lastTime;

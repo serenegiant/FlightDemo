@@ -6,6 +6,7 @@ package com.serenegiant.arflight;
 public interface IAutoFlight {
 	public static final int CMD_EMERGENCY = -1;		// 非常停止
 
+	public static final int CMD_NON = 0;
 	public static final int CMD_TAKEOFF = 1;		// 離陸
 	public static final int CMD_LANDING = 2;		// 着陸
 
@@ -14,6 +15,8 @@ public interface IAutoFlight {
 	public static final int CMD_FORWARD_BACK = 5;	// 前進: pitch>0,flag=1, 後退: pitch<0,flag=1
 	public static final int CMD_TURN = 6;			// 右回転: yaw>0, 左回転: ywa<0
 	public static final int CMD_COMPASS = 7;		// 北磁極に対する角度を指定-360-360度
+
+	public static final int CMD_MOVE = 9;			// roll + pitch + gaz + yaw
 
 	public static final int CMD_FLIP = 100;			// 1:前, 2:後, 3:右, 4:左
 	public static final int CMD_CAP = 101;			// -180〜180度

@@ -234,4 +234,13 @@ public interface IDeviceController {
 	 * @param heading -360〜360度
 	 */
 	public void setHeading(final int heading);
+
+	/**
+	 * 移動量(傾き)をセット
+	 * @param roll 負:左, 正:右, -100〜+100
+	 * @param pitch 負:??? 正:???, -100〜+100
+	 * @param gaz 負:下降, 正:上昇, -100〜+100
+	 * @param yaw 負:左回転, 正:右回転, -100〜+100
+	 */
+	public void setMove(final byte roll, final byte pitch, final byte gaz, final byte yaw);
 }

@@ -16,11 +16,11 @@ public interface AutoFlightListener {
 	/**
 	 * 自動フライトのコマンドコールバック
 	 * @param cmd
-	 * @param value
 	 * @param t
+	 * @param values
 	 * @return trueを返すと終了する
 	 */
-	public boolean onStep(final int cmd, final int value, final long t);
+	public boolean onStep(final int cmd, final int[] values, final long t);
 
 	/**
 	 * 自動フライト停止

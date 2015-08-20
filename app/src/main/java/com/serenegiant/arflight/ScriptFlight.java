@@ -24,7 +24,7 @@ public class ScriptFlight implements IAutoFlight {
 	private volatile boolean mIsPlayback;	// 再生中
 	private ASTParse mASTParse;
 	private ScriptVisitorImpl mVisitor;
-	private int prevRoll, prevPitch, prevGaz, prevYaw;
+	private final int[] cmd_values = new int[4];
 
 	public ScriptFlight(final AutoFlightListener listener) {
 		if (listener == null) {
@@ -43,7 +43,7 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute emergency:" + args);
-					if (mAutoFlightListener.onStep(CMD_EMERGENCY, 0, getCurrentTime())) {
+					if (mAutoFlightListener.onStep(CMD_EMERGENCY, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {
@@ -58,7 +58,7 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute takeoff:" + args);
-					if (mAutoFlightListener.onStep(CMD_TAKEOFF, 0, getCurrentTime())) {
+					if (mAutoFlightListener.onStep(CMD_TAKEOFF, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {
@@ -73,7 +73,7 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute landing:" + args);
-					if (mAutoFlightListener.onStep(CMD_LANDING, 0, getCurrentTime())) {
+					if (mAutoFlightListener.onStep(CMD_LANDING, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {
@@ -89,33 +89,12 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute move:" + args);
-					final int roll = args.get(0).intValue();
-					final int pitch = args.get(1).intValue();
-					final int gaz = args.get(2).intValue();
-					final int yaw = args.get(3).intValue();
-					if (mIsPlayback && (prevRoll != roll)) {
-						prevRoll = roll;
-						if (mAutoFlightListener.onStep(CMD_RIGHT_LEFT, roll, getCurrentTime())) {
-							stop();
-						}
-					}
-					if (mIsPlayback && (prevPitch != pitch)) {
-						prevPitch = pitch;
-						if (mAutoFlightListener.onStep(CMD_FORWARD_BACK, pitch, getCurrentTime())) {
-							stop();
-						}
-					}
-					if (mIsPlayback && (prevGaz != gaz)) {
-						prevGaz = gaz;
-						if (mAutoFlightListener.onStep(CMD_UP_DOWN, gaz, getCurrentTime())) {
-							stop();
-						}
-					}
-					if (mIsPlayback && (prevYaw != yaw)) {
-						prevYaw = yaw;
-						if (mAutoFlightListener.onStep(CMD_TURN, yaw, getCurrentTime())) {
-							stop();
-						}
+					cmd_values[0] = args.get(0).intValue();	// roll
+					cmd_values[1] = args.get(1).intValue();	// pitch
+					cmd_values[2] = args.get(2).intValue();	// gaz
+					cmd_values[3] = args.get(3).intValue();	// yaw
+					if (mAutoFlightListener.onStep(CMD_MOVE, cmd_values, getCurrentTime())) {
+						stop();
 					}
 				} catch (final Exception e) {
 					Log.w(TAG, e);
@@ -130,7 +109,8 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute updown:" + args);
-					if (mAutoFlightListener.onStep(CMD_UP_DOWN, args.get(0).intValue(), getCurrentTime())) {
+					cmd_values[0] = args.get(0).intValue();
+					if (mAutoFlightListener.onStep(CMD_UP_DOWN, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {
@@ -146,7 +126,8 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute rightleft:" + args);
-					if (mAutoFlightListener.onStep(CMD_RIGHT_LEFT, args.get(0).intValue(), getCurrentTime())) {
+					cmd_values[0] = args.get(0).intValue();
+					if (mAutoFlightListener.onStep(CMD_RIGHT_LEFT, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {
@@ -162,7 +143,8 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute frontback:" + args);
-					if (mAutoFlightListener.onStep(CMD_FORWARD_BACK, args.get(0).intValue(), getCurrentTime())) {
+					cmd_values[0] = args.get(0).intValue();
+					if (mAutoFlightListener.onStep(CMD_FORWARD_BACK, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {
@@ -178,7 +160,8 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute turn:" + args);
-					if (mAutoFlightListener.onStep(CMD_TURN, args.get(0).intValue(), getCurrentTime())) {
+					cmd_values[0] = args.get(0).intValue();
+					if (mAutoFlightListener.onStep(CMD_TURN, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {
@@ -194,7 +177,8 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute compass:" + args);
-					if (mAutoFlightListener.onStep(CMD_COMPASS, args.get(0).intValue(), getCurrentTime())) {
+					cmd_values[0] = args.get(0).intValue();
+					if (mAutoFlightListener.onStep(CMD_COMPASS, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {
@@ -210,7 +194,8 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute flip:" + args);
-					if (mAutoFlightListener.onStep(CMD_FLIP, args.get(0).intValue(), getCurrentTime())) {
+					cmd_values[0] = args.get(0).intValue();
+					if (mAutoFlightListener.onStep(CMD_FLIP, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {
@@ -226,7 +211,8 @@ public class ScriptFlight implements IAutoFlight {
 			protected Object execute(final List<Number> args) {
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute cap:" + args);
-					if (mAutoFlightListener.onStep(CMD_CAP, args.get(0).intValue(), getCurrentTime())) {
+					cmd_values[0] = args.get(0).intValue();
+					if (mAutoFlightListener.onStep(CMD_CAP, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {
@@ -243,7 +229,7 @@ public class ScriptFlight implements IAutoFlight {
 	 * @throws RuntimeException
 	 */
 	@Override
-	public void prepare(Object...args) throws RuntimeException {
+	public void prepare(final Object...args) throws RuntimeException {
 		if (DEBUG) Log.v(TAG, "prepare:");
 		final InputStream in = (args != null) && (args.length > 0) && (args[0] instanceof InputStream) ? new BufferedInputStream((InputStream)args[0]) : null;
 		if (in == null) throw new IllegalArgumentException("InputStreamがセットされていない");
@@ -257,8 +243,7 @@ public class ScriptFlight implements IAutoFlight {
 					final ASTParse parse = script.Parse();
 					synchronized (mSync) {
 						mASTParse = parse;
-						// FIXME ビジターの引数を変更できるようにする
-						mVisitor = new ScriptVisitorImpl(100, 1.0, 1.0);
+						mVisitor = new ScriptVisitorImpl((double)args[1], (double)args[2], (double)args[3]);
 					}
 					try {
 						mAutoFlightListener.onPrepared();
@@ -287,7 +272,6 @@ public class ScriptFlight implements IAutoFlight {
 			if ((mASTParse == null) || (mVisitor == null)) {
 				throw new IllegalStateException("prepareが呼ばれてない");
 			}
-			prevRoll = prevPitch = prevGaz = prevYaw = 0;
 			mIsPlayback = true;
 		}
 		mHandler.post(mPlaybackRunnable);

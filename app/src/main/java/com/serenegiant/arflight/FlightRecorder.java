@@ -19,7 +19,7 @@ public class FlightRecorder implements IAutoFlight {
 
 	private static class CmdRec {
 		public int cmd;
-		public int value;
+		public int[] value = new int[4];
 		public long time;
 	}
 
@@ -266,29 +266,20 @@ public class FlightRecorder implements IAutoFlight {
 	 * 指定したコマンドを記録
 	 * 記録中でなければ無視する
 	 * @param cmd CMD_XXX定数
-	 * @param value, -100〜100, 0は移動終了
+	 * @param values, -100〜100, 0は移動終了
 	 */
-	public void record(final int cmd, final int value) {
+	public void record(final int cmd, final int... values) {
 		synchronized (mSync) {
 			if (mIsRecording) {
 				final long t = System.currentTimeMillis() - mStartTime;
-				final String cmd_str = String.format("%d,%d,%d", cmd, value, t);
-				mRecords.add(cmd_str);
-				mCurrentPos = mRecords.size() - 1;
-			}
-		}
-	}
-
-	/**
-	 * 指定したコマンドを記録(値を指定しなくていいい場合)
-	 * 記録中でなければ無視する
-	 * @param cmd CMD_XXX定数
-	 */
-	public void record(final int cmd) {
-		synchronized (mSync) {
-			if (mIsRecording) {
-				final long t = System.currentTimeMillis() - mStartTime;
-				final String cmd_str = String.format("%d,%d,%d", cmd, 0, t);
+				final StringBuilder sb = new StringBuilder();
+				for (int i = 0; i < values.length; i++) {
+					if (i > 0) {
+						sb.append(",");
+					}
+					sb.append(values[i]);
+				}
+				final String cmd_str = String.format("%d,%d,%s", cmd, t, sb.toString());
 				mRecords.add(cmd_str);
 				mCurrentPos = mRecords.size() - 1;
 			}
@@ -380,11 +371,12 @@ public class FlightRecorder implements IAutoFlight {
 			final String[] record = line.split(",");
 			try {
 				cmd.cmd = Integer.parseInt(record[0]);
-				cmd.value = Integer.parseInt(record[1]);
-				cmd.time = Long.parseLong(record[2]);
+				cmd.time = Long.parseLong(record[1]);
+				for (int i = 2; i < record.length; i++)
+					cmd.value[i-2] = Integer.parseInt(record[i]);
 				return false;
 			} catch (final NumberFormatException e) {
-				cmd.cmd = 0;
+				cmd.cmd = CMD_NON;
 				Log.w(TAG, e);
 			}
 		}

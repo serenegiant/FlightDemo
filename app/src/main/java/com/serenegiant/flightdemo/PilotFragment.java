@@ -628,6 +628,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	}
 
+	private static final String[] SCRIPTS = {
+		"circle_xy",
+		"circle_xz",
+	};
+
 	/**
 	 * スクリプト実行開始
 	 */
@@ -636,12 +641,21 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (!mScriptRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
 			mScriptRunning = true;
 			try {
-				// FIXME スクリプトの種類を選択できるようにする
-				mScriptFlight.prepare(getResources().getAssets().open("circle_xz.script"));
+				switch (index) {
+				case 0:
+					mScriptFlight.prepare(getResources().getAssets().open("circle_xy.script"), 100.0, 1.0, 0.8);
+					break;
+				case 1:
+					mScriptFlight.prepare(getResources().getAssets().open("circle_xz.script"), 100.0, 0.8, 1.0);
+					break;
+				default:
+					throw new IOException("スクリプトファイルが見つからない(範囲外)");
+				}
 			} catch (final IOException e) {
 				mScriptRunning = false;
 				Log.w(TAG, e);
 			}
+			updateButtons();
 		}
 	}
 
@@ -672,6 +686,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mScriptRunning = false;
 				}
 			}
+			updateButtons();
 		}
 
 		@Override
@@ -682,10 +697,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 
 		@Override
-		public boolean onStep(final int cmd, final int value, final long t) {
-			if (DEBUG) Log.v(TAG, String.format("mAutoFlightListener#onStep:cmd=%d,v=%d,t=%d", cmd, value, t));
-			if (mScriptRunning) return false;	// FIXME デバッグのため
+		public boolean onStep(final int cmd, final int[] values, final long t) {
+			if (DEBUG) Log.v(TAG, String.format("mAutoFlightListener#onStep:cmd=%d,t=%d,v=" , cmd, t) + values);
 			updateTime(t);
+//			if (mScriptRunning) return false;	// FIXME デバッグのため
 			if (mController != null) {
 				switch (cmd) {
 				case IAutoFlight.CMD_EMERGENCY:		// 非常停止
@@ -698,26 +713,29 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mController.sendLanding();
 					break;
 				case IAutoFlight.CMD_UP_DOWN:		// 上昇:gaz>0, 下降: gaz<0
-					mController.setGaz((byte) value);
+					mController.setGaz((byte) values[0]);
 					break;
 				case IAutoFlight.CMD_RIGHT_LEFT:		// 右: roll>0,flag=1 左: roll<0,flag=1
-					mController.setRoll((byte) value);
-					mController.setFlag((byte) (value != 0 ? 1 : 0));
+					mController.setRoll((byte) values[0]);
+					mController.setFlag((byte) (values[0] != 0 ? 1 : 0));
 					break;
 				case IAutoFlight.CMD_FORWARD_BACK:	// 前進: pitch>0,flag=1, 後退: pitch<0,flag=1
-					mController.setPitch((byte) value);
+					mController.setPitch((byte) values[0]);
 					break;
 				case IAutoFlight.CMD_TURN:			// 右回転: yaw>0, 左回転: ywa<0
-					mController.setYaw((byte) value);
+					mController.setYaw((byte) values[0]);
 					break;
 				case IAutoFlight.CMD_COMPASS:		// 北磁極に対する角度 -360〜360度
-					mController.setHeading(value);	// 実際は浮動小数点だけど
+					mController.setHeading(values[0]);	// 実際は浮動小数点だけど
+					break;
+				case IAutoFlight.CMD_MOVE:
+					mController.setMove((byte) values[0], (byte)values[1], (byte)values[2], (byte)values[3]);
 					break;
 				case IAutoFlight.CMD_FLIP:			// フリップ
-					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(value);
+					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(values[0]);
 					break;
 				case IAutoFlight.CMD_CAP:			// キャップ(指定角度水平回転)
-					((DeviceControllerMiniDrone) mController).sendAnimationsCap(value);
+					((DeviceControllerMiniDrone) mController).sendAnimationsCap(values[0]);
 					break;
 				}
 				return false;
@@ -729,8 +747,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		@Override
 		public void onStop() {
 			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStop:");
+			stopPlay();
+			stopScript();
+			PilotFragment.super.stopMove();
 			updateTime(-1);
-			updateButtons();
 		}
 
 		@Override
@@ -738,6 +758,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			stopPlay();
 			stopScript();
 			Log.w(TAG, e);
+			updateButtons();
 		}
 
 	};
@@ -843,8 +864,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final boolean is_connected = isConnected();
 			final boolean is_recording = mFlightRecorder.isRecording();
 			final boolean is_playing = mFlightRecorder.isPlaying();
-			final boolean can_play = is_connected && !is_recording && (alarm_state == IDeviceController.ALARM_NON) && (mFlightRecorder.size() > 0);
-			final boolean can_record = is_connected && !is_playing;
+			final boolean can_play = is_connected && !is_recording && !mScriptRunning && (alarm_state == IDeviceController.ALARM_NON) && (mFlightRecorder.size() > 0);
+			final boolean can_record = is_connected && !is_playing && !mScriptRunning;
 			final boolean can_load = is_connected && !is_playing && !is_recording;
 			final boolean can_fly = can_record && (alarm_state == IDeviceController.ALARM_NON);
 			final boolean can_flattrim = can_fly && (state == IDeviceController.STATE_STARTED);
@@ -975,29 +996,31 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			@Override
 			public void run() {
 				final MainActivity activity = (MainActivity) getActivity();
-				if (mSideMenuListView == null) {
+				if (activity == null || activity.isFinishing()) return;
 
+				if (mSideMenuListView == null) {
 					mSideMenuListView = new SideMenuListView(activity);
 					activity.setSideMenuView(mSideMenuListView);
 					mSideMenuListView.setOnItemClickListener(mOnItemClickListener);
 				}
 				final List<String> labelList = new ArrayList<String>();
-				for (int i = 0; i < 5; i++)
-					labelList.add(TAG + i);
+				for (int i = 0; i < SCRIPTS.length; i++) {
+					labelList.add(SCRIPTS[i]);
+				}
 				ListAdapter adapter = mSideMenuListView.getAdapter();
 				if (adapter instanceof SideMenuAdapter) {
 					((SideMenuAdapter) adapter).clear();
-					if ((labelList != null) && (labelList.size() > 0)) {
+					if (labelList.size() > 0) {
 						((SideMenuAdapter) adapter).addAll(labelList);
 					}
 				} else {
 					mSideMenuListView.setAdapter(null);
-					if ((labelList != null) && (labelList.size() > 0)) {
+					if (labelList.size() > 0) {
 						adapter = new SideMenuAdapter(getActivity(), R.layout.item_sidemenu, labelList);
 						mSideMenuListView.setAdapter(adapter);
 					}
 				}
-				activity.setSideMenuEnable(true);
+				activity.setSideMenuEnable(labelList.size() > 0);
 			}
 		});
 	}

@@ -15,6 +15,7 @@
         android:layout_alignParentLeft="true"
         android:gravity="left|center_vertical"
         android:minHeight="64dp"
-        android:text="TextView" />
+        android:text="TextView"
+        android:textSize="@dimen/text_sz_button"/>
 
 </com.serenegiant.widget.CheckableRelativeLayout>

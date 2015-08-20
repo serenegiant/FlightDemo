@@ -285,6 +285,7 @@ public abstract class ControlFragment extends Fragment {
 	 * 非常停止指示
 	 */
 	protected void emergencyStop() {
+		stopMove();
 		if (mController != null) {
 			mController.sendEmergency();
 		}
@@ -351,25 +352,5 @@ public abstract class ControlFragment extends Fragment {
 			}
 		}
 	};
-
-	private static final int CMD_NON = 0;
-	private static final int CMD_START = 1;
-	private static final int CMD_STOP = 2;
-	private static final int CMD_CANCEL = 3;
-	private static final int CMD_SET_DATE = 4;
-	private static final int CMD_SET_TIME = 5;
-	private static final int CMD_ALL_SETTINGS = 6;
-	private static final int CMD_ALL_STATUS = 7;
-	private static final int CMD_QUIT = 9;
-
-	private class ControlHandler extends Handler {
-		@Override
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-
-			}
-			super.handleMessage(msg);
-		}
-	}
 
 }
