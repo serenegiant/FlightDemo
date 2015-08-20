@@ -15,8 +15,10 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.serenegiant.arflight.AutoFlightListener;
 import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.FlightRecorder;
+import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
@@ -79,7 +81,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public PilotFragment() {
 		super();
 		// デフォルトコンストラクタが必要
-		mFlightRecorder.setPlaybackListener(mFlightRecorderListener);
+		mFlightRecorder.setPlaybackListener(mAutoFlightListener);
 	}
 
 	@Override
@@ -614,51 +616,57 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	/**
-	 * 飛行記録再生時のコールバックリスナー
+	 * 自動フライト実行時のコールバックリスナー
 	 */
-	private final FlightRecorder.FlightRecorderListener mFlightRecorderListener = new FlightRecorder.FlightRecorderListener() {
+	private final AutoFlightListener mAutoFlightListener = new AutoFlightListener() {
+
+		@Override
+		public void onPrepared() {
+			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onPrepared:");
+		}
+
 		@Override
 		public void onStart() {
-			if (DEBUG) Log.v(TAG, "mFlightRecorderListener#onStart:");
+			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStart:");
 			updateTime(0);
 			updateButtons();
 		}
 
 		@Override
 		public boolean onStep(final int cmd, final int value, final long t) {
-//			if (DEBUG) Log.v(TAG, String.format("mFlightRecorderListener#onStep:cmd=%d,v=%d,t=%d", cmd, value, t));
+//			if (DEBUG) Log.v(TAG, String.format("mAutoFlightListener#onStep:cmd=%d,v=%d,t=%d", cmd, value, t));
 			updateTime(t);
 			if (mController != null) {
 				switch (cmd) {
-				case FlightRecorder.CMD_EMERGENCY:		// 非常停止
+				case IAutoFlight.CMD_EMERGENCY:		// 非常停止
 					mController.sendEmergency();
 					break;
-				case FlightRecorder.CMD_TAKEOFF:		// 離陸
+				case IAutoFlight.CMD_TAKEOFF:		// 離陸
 					mController.sendTakeoff();
 					break;
-				case FlightRecorder.CMD_LANDING:		// 着陸
+				case IAutoFlight.CMD_LANDING:		// 着陸
 					mController.sendLanding();
 					break;
-				case FlightRecorder.CMD_UP_DOWN:		// 上昇:gaz>0, 下降: gaz<0
+				case IAutoFlight.CMD_UP_DOWN:		// 上昇:gaz>0, 下降: gaz<0
 					mController.setGaz((byte) value);
 					break;
-				case FlightRecorder.CMD_RIGHT_LEFT:		// 右: roll>0,flag=1 左: roll<0,flag=1
+				case IAutoFlight.CMD_RIGHT_LEFT:		// 右: roll>0,flag=1 左: roll<0,flag=1
 					mController.setRoll((byte) value);
 					mController.setFlag((byte) (value != 0 ? 1 : 0));
 					break;
-				case FlightRecorder.CMD_FORWARD_BACK:	// 前進: pitch>0,flag=1, 後退: pitch<0,flag=1
+				case IAutoFlight.CMD_FORWARD_BACK:	// 前進: pitch>0,flag=1, 後退: pitch<0,flag=1
 					mController.setPitch((byte) value);
 					break;
-				case FlightRecorder.CMD_TURN:			// 右回転: yaw>0, 左回転: ywa<0
+				case IAutoFlight.CMD_TURN:			// 右回転: yaw>0, 左回転: ywa<0
 					mController.setYaw((byte) value);
 					break;
-				case FlightRecorder.CMD_COMPASS:		// 北磁極に対する角度 -360〜360度
+				case IAutoFlight.CMD_COMPASS:		// 北磁極に対する角度 -360〜360度
 					mController.setHeading(value);		// 実際は浮動小数点だけど
 					break;
-				case FlightRecorder.CMD_FLIP:			// フリップ
+				case IAutoFlight.CMD_FLIP:			// フリップ
 					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(value);
 					break;
-				case FlightRecorder.CMD_CAP:			// キャップ(指定角度水平回転)
+				case IAutoFlight.CMD_CAP:			// キャップ(指定角度水平回転)
 					((DeviceControllerMiniDrone) mController).sendAnimationsCap(value);
 					break;
 				}
@@ -670,14 +678,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public void onStop() {
-			if (DEBUG) Log.v(TAG, "mFlightRecorderListener#onStop:");
+			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStop:");
 			updateTime(-1);
 			updateButtons();
 		}
 
-		@Override
-		public void onRecord(final int cmd, final int value, final long t) {
-		}
 	};
 
 	/**

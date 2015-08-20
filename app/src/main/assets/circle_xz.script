@@ -1,9 +1,29 @@
 int step_num = 6;	// 6角形で近似
 
+extern void emergency(void);
+extern void takeoff(void);
+extern void landing(void);
+// roll/pitch/gaz/yaw=[-100,+100]
+extern void move(int roll, int pitch, int gaz, int yaw);
+// gaz=[-100,+100]
+extern void updown(int gaz);
+// roll=[-100,+100]
+extern void rightleft(int roll);
+// pitch=[-100,+100]
+extern void frontback(int pitch);
+// yaw=[-100,+100]
+extern void turn(int yaw);
+// degree=[-360,+360]
+extern void compass(int degree);
+// mode=[1:front, 2:back, 3:right, 4:left]
+extern void flip(int mode);
+// degree=[-180,+180]
+extern void cap(int degree);
+
 void main(const double radius, const double scale_x, const double scale_z) {
-	// takeoff();
-	// wait(1000);
-	// move(0, 0, 0, 100, radius);
+	takeoff();
+	wait(1000);
+	move(0, 0, 0, 100, radius);
 	double radian = PI / 2;
 	for (int c = 0; c < 3; c++) {
 		switch (c) {
@@ -36,5 +56,6 @@ void main(const double radius, const double scale_x, const double scale_z) {
 			prev_z = z;
 		}
 	}
-	// landing();
+	wait(1000);
+	landing();
 }

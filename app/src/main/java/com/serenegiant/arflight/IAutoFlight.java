@@ -19,6 +19,12 @@ public interface IAutoFlight {
 	public static final int CMD_CAP = 101;			// -180〜180度
 
 	/**
+	 * 自動フライトの準備
+	 * @param args
+	 * @throws RuntimeException
+	 */
+	public void prepare(Object...args) throws RuntimeException;
+	/**
 	 * 自動フライト開始
 	 */
 	public void play() throws IllegalStateException;
@@ -33,4 +39,9 @@ public interface IAutoFlight {
 	 * @return
 	 */
 	public boolean isPlaying();
+
+	/**
+	 * 関係するリソースを破棄する
+	 */
+	public void release();
 }

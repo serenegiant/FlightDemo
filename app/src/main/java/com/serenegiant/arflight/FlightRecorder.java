@@ -17,16 +17,6 @@ public class FlightRecorder implements IAutoFlight {
 	private static final boolean DEBUG = true;
 	private static final String TAG = "FlightRecorder";
 
-	public interface FlightRecorderListener extends AutoFlightListener {
-		/**
-		 * 記録時のコールバック
-		 * @param cmd
-		 * @param value
-		 * @param t
-		 */
-		public void onRecord(final int cmd, final int value, final long t);
-	}
-
 	private static class CmdRec {
 		public int cmd;
 		public int value;
@@ -36,7 +26,7 @@ public class FlightRecorder implements IAutoFlight {
 	private final Object mSync = new Object();
 	private final List<String> mRecords = new ArrayList<String>(100);
 	private final Object mPlaybackSync = new Object();	// PlaybackListener同期用
-	private FlightRecorderListener mPlaybackListener;
+	private AutoFlightListener mPlaybackListener;
 
 	private volatile boolean mIsRecording;	// 記録中
 	private volatile boolean mIsPlayback;	// 再生中
@@ -44,13 +34,13 @@ public class FlightRecorder implements IAutoFlight {
 	private int mCurrentPos;	// 次の読み込み位置(再生時)
 
 
-	public void setPlaybackListener(final FlightRecorderListener listener) {
+	public void setPlaybackListener(final AutoFlightListener listener) {
 		synchronized (mPlaybackSync) {
 			mPlaybackListener = listener;
 		}
 	}
 
-	public FlightRecorderListener getPlaybackListener() {
+	public AutoFlightListener getPlaybackListener() {
 		synchronized (mPlaybackSync) {
 			return mPlaybackListener;
 		}
@@ -197,6 +187,27 @@ public class FlightRecorder implements IAutoFlight {
 	}
 
 	/**
+	 * コマンド再生の準備
+	 * @param args 未使用, InputStreamとかコマンドリストを渡せるようにするかも
+	 * @throws RuntimeException
+	 */
+	@Override
+	public void prepare(Object...args) throws RuntimeException {
+		synchronized (mSync) {
+			if (mIsRecording) throw new IllegalStateException("記録中だよ");
+			if (mRecords.size() == 0) throw new IllegalStateException("データが無い");
+		}
+		synchronized (mPlaybackSync) {
+			if (mPlaybackListener != null) {
+				try {
+					mPlaybackListener.onPrepared();
+				} catch (final Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+	}
+	/**
 	 * コマンド再生開始
 	 * @throws IllegalStateException 記録中ならIllegalStateExceptionを生成する
 	 */
@@ -210,6 +221,14 @@ public class FlightRecorder implements IAutoFlight {
 				new Thread(mPlaybackRunnable, "PlaybackTask").start();
 			}
 		}
+	}
+
+	/**
+	 * 関係するリソースを破棄する
+	 */
+	@Override
+	public void release() {
+		stop();
 	}
 
 	/**
@@ -246,13 +265,6 @@ public class FlightRecorder implements IAutoFlight {
 				final String cmd_str = String.format("%d,%d,%d", cmd, value, t);
 				mRecords.add(cmd_str);
 				mCurrentPos = mRecords.size() - 1;
-				if (mPlaybackListener != null) {
-					try {
-						mPlaybackListener.onRecord(cmd, value, t);
-					} catch (Exception e) {
-						Log.w(TAG, e);
-					}
-				}
 			}
 		}
 	}
@@ -269,13 +281,6 @@ public class FlightRecorder implements IAutoFlight {
 				final String cmd_str = String.format("%d,%d,%d", cmd, 0, t);
 				mRecords.add(cmd_str);
 				mCurrentPos = mRecords.size() - 1;
-				if (mPlaybackListener != null) {
-					try {
-						mPlaybackListener.onRecord(cmd, 0, t);
-					} catch (Exception e) {
-						Log.w(TAG, e);
-					}
-				}
 			}
 		}
 	}

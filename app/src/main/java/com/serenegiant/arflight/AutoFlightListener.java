@@ -5,6 +5,10 @@ package com.serenegiant.arflight;
  */
 public interface AutoFlightListener {
 	/**
+	 * 自動フライトの準備完了
+	 */
+	public void onPrepared();
+	/**
 	 * 自動フライト開始
 	 */
 	public void onStart();
