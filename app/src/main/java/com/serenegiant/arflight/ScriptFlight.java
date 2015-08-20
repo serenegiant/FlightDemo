@@ -4,15 +4,13 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 
+import com.serenegiant.lang.script.ASTParse;
 import com.serenegiant.lang.script.Script;
 import com.serenegiant.lang.script.ScriptVisitorImpl;
 
 import java.io.InputStream;
 import java.util.List;
 
-/**
- * Created by saki on 2015/08/20.
- */
 public class ScriptFlight implements IAutoFlight {
 	private static final boolean DEBUG = true;
 	private static final String TAG = "ScriptFlight";
@@ -22,7 +20,7 @@ public class ScriptFlight implements IAutoFlight {
 	private final Handler mHandler;	// プライベートスレッドでの実行用
 
 	private volatile boolean mIsPlayback;	// 再生中
-	private Script mScript;
+	private ASTParse mASTParse;
 	private ScriptVisitorImpl mVisitor;
 	private int prevRoll, prevPitch, prevGaz, prevYaw;
 
@@ -250,15 +248,25 @@ public class ScriptFlight implements IAutoFlight {
 		mHandler.post(new Runnable() {
 			@Override
 			public void run() {
-				synchronized (mSync) {
-					mScript = new Script(in);
-					// FIXME ビジターの引数を変更できるようにする
-					mVisitor = new ScriptVisitorImpl(100, 1.0, 1.0);
-				}
+				final Script script = new Script(in);
 				try {
-					mAutoFlightListener.onPrepared();
+					final ASTParse parse = script.Parse();
+					synchronized (mSync) {
+						mASTParse = parse;
+						// FIXME ビジターの引数を変更できるようにする
+						mVisitor = new ScriptVisitorImpl(100, 1.0, 1.0);
+					}
+					try {
+						mAutoFlightListener.onPrepared();
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					}
 				} catch (final Exception e) {
-					Log.w(TAG, e);
+					synchronized (mSync) {
+						mASTParse = null;
+						mVisitor = null;
+					}
+					mAutoFlightListener.onError(e);
 				}
 			}
 		});
@@ -270,7 +278,7 @@ public class ScriptFlight implements IAutoFlight {
 			throw new IllegalStateException("既に実行中");
 		}
 		synchronized (mSync) {
-			if ((mScript == null) || (mVisitor == null)) {
+			if ((mASTParse == null) || (mVisitor == null)) {
 				throw new IllegalStateException("prepareが呼ばれてない");
 			}
 			prevRoll = prevPitch = prevGaz = prevYaw = 0;
@@ -288,7 +296,14 @@ public class ScriptFlight implements IAutoFlight {
 			}
 			mIsPlayback = false;
 			mSync.notifyAll();
-			mHandler.removeCallbacks(mPlaybackRunnable);
+		}
+		mHandler.removeCallbacks(mPlaybackRunnable);
+	}
+
+	@Override
+	public boolean isPrepared() {
+		synchronized (mSync) {
+			return !mIsPlayback && (mASTParse == null) && (mVisitor == null);
 		}
 	}
 
@@ -325,9 +340,10 @@ public class ScriptFlight implements IAutoFlight {
 			}
 			mStartTime = System.currentTimeMillis();
 			try {
-				// ここでスクリプト実行
+				// スクリプト実行
+				mASTParse.jjtAccept(mVisitor, null);
 			} finally {
-				mIsPlayback = false;
+				stop();
 			}
 			synchronized (mSync) {
 				mVisitor = null;

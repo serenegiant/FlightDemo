@@ -35,6 +35,11 @@ public interface IAutoFlight {
 	public void stop();
 
 	/**
+	 * 自動フライトの準備ができるかどうか
+	 * @return
+	 */
+	public boolean isPrepared();
+	/**
 	 * 自動フライト中かどうか
 	 * @return
 	 */

@@ -242,6 +242,16 @@ public class FlightRecorder implements IAutoFlight {
 	}
 
 	/**
+	 * 自動フライトの準備ができているかどうか
+	 * @return
+	 */
+	public boolean isPrepared() {
+		synchronized (mSync) {
+			return !mIsRecording && !mIsPlayback && (mRecords.size() > 0);
+		}
+	}
+
+	/**
 	 * 再生中かどうかを取得
 	 * @return
 	 */

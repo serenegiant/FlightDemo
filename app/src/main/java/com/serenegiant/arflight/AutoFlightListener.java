@@ -26,4 +26,10 @@ public interface AutoFlightListener {
 	 * 自動フライト停止
 	 */
 	public void onStop();
+
+	/**
+	 * 非同期実行中にエラー発生
+	 * @param e
+	 */
+	public void onError(Exception e);
 }

@@ -661,7 +661,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mController.setYaw((byte) value);
 					break;
 				case IAutoFlight.CMD_COMPASS:		// 北磁極に対する角度 -360〜360度
-					mController.setHeading(value);		// 実際は浮動小数点だけど
+					mController.setHeading(value);	// 実際は浮動小数点だけど
 					break;
 				case IAutoFlight.CMD_FLIP:			// フリップ
 					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(value);
@@ -681,6 +681,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStop:");
 			updateTime(-1);
 			updateButtons();
+		}
+
+		@Override
+		public void onError(Exception e) {
+			Log.w(TAG, e);
 		}
 
 	};
