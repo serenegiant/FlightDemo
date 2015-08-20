@@ -1,31 +1,34 @@
 int step_num = 6;	// 6角形で近似
 
-extern void emergency(void);
-extern void takeoff(void);
-extern void landing(void);
+// extern void emergency(void);
+// extern void takeoff(void);
+// extern void landing(void);
 // roll/pitch/gaz/yaw=[-100,+100]
-extern void move(int roll, int pitch, int gaz, int yaw);
+// extern void move(int roll, int pitch, int gaz, int yaw);
 // gaz=[-100,+100]
-extern void updown(int gaz);
+// extern void updown(int gaz);
 // roll=[-100,+100]
-extern void rightleft(int roll);
+// extern void rightleft(int roll);
 // pitch=[-100,+100]
-extern void frontback(int pitch);
+// extern void frontback(int pitch);
 // yaw=[-100,+100]
-extern void turn(int yaw);
+// extern void turn(int yaw);
 // degree=[-360,+360]
-extern void compass(int degree);
+// extern void compass(int degree);
 // mode=[1:front, 2:back, 3:right, 4:left]
-extern void flip(int mode);
+// extern void flip(int mode);
 // degree=[-180,+180]
-extern void cap(int degree);
+// extern void cap(int degree);
 
 void main(const double radius, const double scale_x, const double scale_z) {
 	takeoff();
 	wait(1000);
-	move(0, 0, 0, 100, radius);
+	move(0, 0, 100, 0);
+	wait(radius);
+	move(0, 0, 0, 0);
 	double radian = PI / 2;
 	for (int c = 0; c < 3; c++) {
+		wait(1000);
 		switch (c) {
 		case 0: step_num = 6; break;
 		case 1:
@@ -49,13 +52,14 @@ void main(const double radius, const double scale_x, const double scale_z) {
 			z = radius * cos(radian) * scale_z;
 			double dx = x - prev_x;
 			double dz = z - prev_z;
-			// move(dx, dz)
+			move(dx, 0, dz, 0);
 			wait(wait_time);
 			radian += step_radian;
 			prev_x = x;
 			prev_z = z;
 		}
 	}
+	move(0, 0, 0, 0);
 	wait(1000);
 	landing();
 }

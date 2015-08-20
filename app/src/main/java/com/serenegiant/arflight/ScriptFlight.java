@@ -8,11 +8,13 @@ import com.serenegiant.lang.script.ASTParse;
 import com.serenegiant.lang.script.Script;
 import com.serenegiant.lang.script.ScriptVisitorImpl;
 
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.util.List;
 
 public class ScriptFlight implements IAutoFlight {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;				// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG_PRESETFUNC = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "ScriptFlight";
 
 	private final Object mSync = new Object();
@@ -40,7 +42,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute emergency:");
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute emergency:" + args);
 					if (mAutoFlightListener.onStep(CMD_EMERGENCY, 0, getCurrentTime())) {
 						stop();
 					}
@@ -55,7 +57,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute takeoff:");
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute takeoff:" + args);
 					if (mAutoFlightListener.onStep(CMD_TAKEOFF, 0, getCurrentTime())) {
 						stop();
 					}
@@ -70,7 +72,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute landing:");
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute landing:" + args);
 					if (mAutoFlightListener.onStep(CMD_LANDING, 0, getCurrentTime())) {
 						stop();
 					}
@@ -86,7 +88,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute move:" + args + ",size=" + args.size());
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute move:" + args);
 					final int roll = args.get(0).intValue();
 					final int pitch = args.get(1).intValue();
 					final int gaz = args.get(2).intValue();
@@ -127,7 +129,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute updown:" + args + ",size=" + args.size());
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute updown:" + args);
 					if (mAutoFlightListener.onStep(CMD_UP_DOWN, args.get(0).intValue(), getCurrentTime())) {
 						stop();
 					}
@@ -143,7 +145,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute rightleft:" + args + ",size=" + args.size());
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute rightleft:" + args);
 					if (mAutoFlightListener.onStep(CMD_RIGHT_LEFT, args.get(0).intValue(), getCurrentTime())) {
 						stop();
 					}
@@ -159,7 +161,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute frontback:" + args + ",size=" + args.size());
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute frontback:" + args);
 					if (mAutoFlightListener.onStep(CMD_FORWARD_BACK, args.get(0).intValue(), getCurrentTime())) {
 						stop();
 					}
@@ -175,7 +177,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute turn:" + args + ",size=" + args.size());
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute turn:" + args);
 					if (mAutoFlightListener.onStep(CMD_TURN, args.get(0).intValue(), getCurrentTime())) {
 						stop();
 					}
@@ -191,7 +193,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute compass:" + args + ",size=" + args.size());
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute compass:" + args);
 					if (mAutoFlightListener.onStep(CMD_COMPASS, args.get(0).intValue(), getCurrentTime())) {
 						stop();
 					}
@@ -207,7 +209,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute flip:" + args + ",size=" + args.size());
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute flip:" + args);
 					if (mAutoFlightListener.onStep(CMD_FLIP, args.get(0).intValue(), getCurrentTime())) {
 						stop();
 					}
@@ -223,7 +225,7 @@ public class ScriptFlight implements IAutoFlight {
 			@Override
 			protected Object execute(final List<Number> args) {
 				try {
-					if (DEBUG) Log.v(TAG, "execute cap:" + args + ",size=" + args.size());
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute cap:" + args);
 					if (mAutoFlightListener.onStep(CMD_CAP, args.get(0).intValue(), getCurrentTime())) {
 						stop();
 					}
@@ -242,12 +244,14 @@ public class ScriptFlight implements IAutoFlight {
 	 */
 	@Override
 	public void prepare(Object...args) throws RuntimeException {
-		final InputStream in = (args != null) && (args.length > 0) && (args[0] instanceof InputStream) ? (InputStream)args[0] : null;
+		if (DEBUG) Log.v(TAG, "prepare:");
+		final InputStream in = (args != null) && (args.length > 0) && (args[0] instanceof InputStream) ? new BufferedInputStream((InputStream)args[0]) : null;
 		if (in == null) throw new IllegalArgumentException("InputStreamがセットされていない");
 
 		mHandler.post(new Runnable() {
 			@Override
 			public void run() {
+				if (DEBUG) Log.v(TAG, "prepare#run");
 				final Script script = new Script(in);
 				try {
 					final ASTParse parse = script.Parse();
@@ -268,12 +272,14 @@ public class ScriptFlight implements IAutoFlight {
 					}
 					mAutoFlightListener.onError(e);
 				}
+				if (DEBUG) Log.v(TAG, "prepare#run:終了");
 			}
 		});
 	}
 
 	@Override
 	public void play() throws IllegalStateException {
+		if (DEBUG) Log.v(TAG, "play:");
 		if (mIsPlayback) {
 			throw new IllegalStateException("既に実行中");
 		}
@@ -303,7 +309,7 @@ public class ScriptFlight implements IAutoFlight {
 	@Override
 	public boolean isPrepared() {
 		synchronized (mSync) {
-			return !mIsPlayback && (mASTParse == null) && (mVisitor == null);
+			return !mIsPlayback && (mASTParse != null) && (mVisitor != null);
 		}
 	}
 
@@ -342,6 +348,8 @@ public class ScriptFlight implements IAutoFlight {
 			try {
 				// スクリプト実行
 				mASTParse.jjtAccept(mVisitor, null);
+			} catch (final Exception e) {
+				mAutoFlightListener.onError(e);
 			} finally {
 				stop();
 			}

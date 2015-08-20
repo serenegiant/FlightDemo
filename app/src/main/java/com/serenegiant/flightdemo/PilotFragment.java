@@ -20,6 +20,7 @@ import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
 import com.serenegiant.widget.SideMenuListView;
@@ -27,6 +28,8 @@ import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,17 +74,20 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private StickView mRightStickPanel;
 	// 左スティックパネル
 	private StickView mLeftStickPanel;
-
-	private final FlightRecorder mFlightRecorder = new FlightRecorder();
 	/** 操縦に使用するボタン等。操作可・不可に応じてenable/disableを切り替える */
 	private final List<View> mActionViews = new ArrayList<View>();
-
 	private SideMenuListView mSideMenuListView;
+
+
+	private final FlightRecorder mFlightRecorder = new FlightRecorder();
+	private final ScriptFlight mScriptFlight;
+	private boolean mScriptRunning;
 
 	public PilotFragment() {
 		super();
 		// デフォルトコンストラクタが必要
 		mFlightRecorder.setPlaybackListener(mAutoFlightListener);
+		mScriptFlight = new ScriptFlight(mAutoFlightListener);
 	}
 
 	@Override
@@ -213,6 +219,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
 		stopDeviceController(false);
+		mFlightRecorder.release();
+		mScriptFlight.release();
 		super.onDestroy();
 	}
 
@@ -232,6 +240,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		removeFromUIThread(mPopBackStackTask);
 		stopRecord();
 		stopPlay();
+		stopScript();
 		mResetColorFilterTasks.clear();
 		super.onPause();
 	}
@@ -491,7 +500,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		stopRecord();
 		stopPlay();
 		removeFromUIThread(mPopBackStackTask);
-		postUIThread(mPopBackStackTask, POP_BACK_STACK_DELAY);
+		postUIThread(mPopBackStackTask, POP_BACK_STACK_DELAY);	// UIスレッド上で遅延実行
 		super.onDisconnect(controller);
 	}
 
@@ -526,10 +535,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	}
 
+	/**
+	 * 非常停止
+	 */
 	@Override
 	protected void emergencyStop() {
 		super.emergencyStop();
 		stopPlay();
+		stopScript();
 	}
 
 	/**
@@ -564,7 +577,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void startRecord(final boolean needClear) {
 		if (DEBUG) Log.v(TAG, "startRecord:");
-		if (!mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
+		if (!mScriptRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
 			if (needClear) {
 				mFlightRecorder.clear();
 			}
@@ -596,7 +609,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void startPlay() {
 		if (DEBUG) Log.v(TAG, "startPlay:");
-		if (!mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying() && (mFlightRecorder.size() > 0)) {
+		if (mScriptRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying() && (mFlightRecorder.size() > 0)) {
 			mFlightRecorder.pos(0);
 			mFlightRecorder.play();
 			updateTime(0);
@@ -616,6 +629,35 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	/**
+	 * スクリプト実行開始
+	 */
+	private void startScript(final int index) {
+		if (DEBUG) Log.v(TAG, "startScript:");
+		if (!mScriptRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
+			mScriptRunning = true;
+			try {
+				// FIXME スクリプトの種類を選択できるようにする
+				mScriptFlight.prepare(getResources().getAssets().open("circle_xz.script"));
+			} catch (final IOException e) {
+				mScriptRunning = false;
+				Log.w(TAG, e);
+			}
+		}
+	}
+
+	/**
+	 * スクリプト実行終了
+ 	 */
+	private void stopScript() {
+		if (DEBUG) Log.v(TAG, "stopScript:");
+		mScriptRunning = false;
+		if (mScriptFlight.isPlaying()) {
+			mScriptFlight.stop();
+			updateButtons();
+		}
+	}
+
+	/**
 	 * 自動フライト実行時のコールバックリスナー
 	 */
 	private final AutoFlightListener mAutoFlightListener = new AutoFlightListener() {
@@ -623,6 +665,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		@Override
 		public void onPrepared() {
 			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onPrepared:");
+			if (mScriptRunning) {
+				if (mScriptFlight.isPrepared()) {
+					mScriptFlight.play();
+				} else {
+					mScriptRunning = false;
+				}
+			}
 		}
 
 		@Override
@@ -634,7 +683,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public boolean onStep(final int cmd, final int value, final long t) {
-//			if (DEBUG) Log.v(TAG, String.format("mAutoFlightListener#onStep:cmd=%d,v=%d,t=%d", cmd, value, t));
+			if (DEBUG) Log.v(TAG, String.format("mAutoFlightListener#onStep:cmd=%d,v=%d,t=%d", cmd, value, t));
+			if (mScriptRunning) return false;	// FIXME デバッグのため
 			updateTime(t);
 			if (mController != null) {
 				switch (cmd) {
@@ -685,6 +735,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public void onError(Exception e) {
+			stopPlay();
+			stopScript();
 			Log.w(TAG, e);
 		}
 
@@ -767,7 +819,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				final int m = (int)(t / 60000);
 				final int s = (int)(t - m * 60000) / 1000;
 				mTimeLabelTv.setText(String.format("%3d:%02d", m, s));
-				post(mIntervalUpdateTimeTask, 500);
+				post(mIntervalUpdateTimeTask, 500);	// プライベートスレッド上で遅延実行
 			}
 		}
 	};
@@ -898,7 +950,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					task = new ResetColorFilterTask(image);
 				}
 				removeFromUIThread(task);
-				postUIThread(task, reset_delay);
+				postUIThread(task, reset_delay);	// UIスレッド上で遅延実行
 			}
 		}
 	}
@@ -1000,9 +1052,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (DEBUG) Log.v(TAG, "onItemClick:" + position);
 			final MainActivity activity = (MainActivity)getActivity();
 			activity.closeSideMenu();
-			switch (position) {
-			// FIXME 未実装
-			}
+			startScript(position);
 		}
 	};
 }

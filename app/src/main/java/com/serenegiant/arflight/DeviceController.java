@@ -1309,7 +1309,7 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public void setFlag(final byte flag) {
 		synchronized (mDataSync) {
-			mDataPCMD.flag = flag;
+			mDataPCMD.flag = (byte)(flag == 0 ? 0 : (flag != 0 ? 1 : 0));
 		}
 	}
 
@@ -1320,7 +1320,7 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public void setGaz(final byte gaz) {
 		synchronized (mDataSync) {
-			mDataPCMD.gaz = gaz;
+			mDataPCMD.gaz = gaz > 100 ? 100 : (gaz < -100 ? -100 : gaz);
 		}
 	}
 
@@ -1331,7 +1331,7 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public void setRoll(final byte roll) {
 		synchronized (mDataSync) {
-			mDataPCMD.roll = roll;
+			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
 		}
 	}
 
@@ -1342,7 +1342,7 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public void setPitch(final byte pitch) {
 		synchronized (mDataSync) {
-			mDataPCMD.pitch = pitch;
+			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
 		}
 	}
 
@@ -1353,7 +1353,7 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public void setYaw(final byte yaw) {
 		synchronized (mDataSync) {
-			mDataPCMD.yaw = yaw;
+			mDataPCMD.yaw = yaw > 100 ? 100 : (yaw < -100 ? -100 : yaw);
 		}
 	}
 

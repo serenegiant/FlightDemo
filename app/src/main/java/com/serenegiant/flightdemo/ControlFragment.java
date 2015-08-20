@@ -57,7 +57,7 @@ public abstract class ControlFragment extends Fragment {
 			mDevice = savedInstanceState.getParcelable(EXTRA_DEVICE_SERVICE);
 			mController = ManagerFragment.getController(getActivity(), mDevice);
 		}
-		final HandlerThread thread = new HandlerThread("TAG");
+		final HandlerThread thread = new HandlerThread(TAG);
 		thread.start();
 		mHandler = new Handler(thread.getLooper());
 		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState + ",mController=" + mController);
@@ -157,6 +157,10 @@ public abstract class ControlFragment extends Fragment {
 		}
 	}
 
+	/**
+	 * プライベートスレッドでの実行待ちタスクを削除する
+	 * @param task
+	 */
 	protected void remove(final Runnable task) {
 		if (mHandler != null) {
 			mHandler.removeCallbacks(task);

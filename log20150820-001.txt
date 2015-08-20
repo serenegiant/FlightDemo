@@ -1,0 +1,902 @@
+08-20 12:54:37.212 V/MainActivity﹕ onDrawerClosed:
+08-20 12:54:38.938 V/MainActivity﹕ onDrawerOpened:
+08-20 12:54:40.166 V/PilotFragment﹕ onItemClick:1
+08-20 12:54:40.166 V/MainActivity﹕ closeSideMenu:
+08-20 12:54:40.166 V/PilotFragment﹕ startScript:
+08-20 12:54:40.205 I/Script﹕ parse finished
+08-20 12:54:40.206 V/PilotFragment﹕ mAutoFlightListener#onPrepared:
+08-20 12:54:40.206 V/PilotFragment﹕ mAutoFlightListener#onStart:
+08-20 12:54:40.206 V/ScriptVisitorImpl﹕ ASTParse:
+08-20 12:54:40.212 V/ScriptVisitorImpl﹕ defaultVisit:node=SimpleNode(id=Parse,value=null,modifiers=00000000)
+08-20 12:54:40.213 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000008
+08-20 12:54:40.213 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=constant,value=6,modifiers=00000002)
+08-20 12:54:40.213 V/ScriptVisitorImpl﹕ 変数を登録:step_num=(val=6,modifiers=00000008)
+08-20 12:54:40.214 V/ScriptVisitorImpl﹕ ASTfunction_definition:name=main
+08-20 12:54:40.214 V/ScriptVisitorImpl﹕ 引数0を追加:radius=100
+08-20 12:54:40.214 V/ScriptVisitorImpl﹕ 引数1を追加:scale_x=1.0
+08-20 12:54:40.214 V/ScriptVisitorImpl﹕ 引数2を追加:scale_z=1.0
+08-20 12:54:40.214 V/ScriptVisitorImpl﹕ 関数(main)の処理内容を呼び出すSimpleNode(id=compound_statement,value=null,modifiers=00000000)
+08-20 12:54:40.223 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=takeoff,modifiers=00000000)
+08-20 12:54:40.223 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:40.223 V/ScriptFlight﹕ execute takeoff:[]
+08-20 12:54:40.223 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=1,v=0,t=17
+08-20 12:54:40.223 V/ScriptVisitorImpl﹕ 関数(takeoff)の返り値:null
+08-20 12:54:40.223 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:40.224 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:40.224 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=constant,value=1000,modifiers=00200004),値=(val=1000,modifiers=00200004)
+08-20 12:54:40.224 V/ScriptVisitorImpl﹕ execute wait:[(val=1000,modifiers=00200004)]
+08-20 12:54:40.573 V/MainActivity﹕ onDrawerClosed:
+08-20 12:54:41.225 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:41.225 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:41.225 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:41.225 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:41.225 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:41.225 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=constant,value=100,modifiers=00000002),値=(val=100,modifiers=00000002)
+08-20 12:54:41.226 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:41.226 V/ScriptFlight﹕ execute move:[(val=0,modifiers=00000002), (val=0,modifiers=00000002), (val=100,modifiers=00000002), (val=0,modifiers=00000002)]
+08-20 12:54:41.226 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=3,v=100,t=1020
+08-20 12:54:41.226 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:41.226 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:41.226 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:41.227 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radius,modifiers=00000000),値=(val=100,modifiers=00000008)
+08-20 12:54:41.227 V/ScriptVisitorImpl﹕ execute wait:[(val=100,modifiers=00000008)]
+08-20 12:54:41.327 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:41.327 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:41.328 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:41.328 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:41.328 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:41.328 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:41.328 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:41.329 V/ScriptFlight﹕ execute move:[(val=0,modifiers=00000002), (val=0,modifiers=00000002), (val=0,modifiers=00000002), (val=0,modifiers=00000002)]
+08-20 12:54:41.329 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=3,v=0,t=1123
+08-20 12:54:41.329 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:41.329 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:41.329 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=multiplicative_expression,value=/,modifiers=00000000)
+08-20 12:54:41.329 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=/,modifiers=00000000)
+08-20 12:54:41.329 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=PI,modifiers=00000000)
+08-20 12:54:41.340 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=constant,value=2,modifiers=00000002)
+08-20 12:54:41.350 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=3.141592653589793,modifiers=00200040),w=(val=2,modifiers=00000002)
+08-20 12:54:41.350 V/ScriptVisitorImpl﹕ 変数を登録:radian=(val=1.5707963267948966,modifiers=00000040)
+08-20 12:54:41.351 V/ScriptVisitorImpl﹕ ASTfor_statement:SimpleNode(id=for_statement,value=null,modifiers=00000000)
+08-20 12:54:41.351 V/ScriptVisitorImpl﹕ for文の初期化
+08-20 12:54:41.351 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000008
+08-20 12:54:41.351 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=constant,value=0,modifiers=00000002)
+08-20 12:54:41.351 V/ScriptVisitorImpl﹕ 変数を登録:c=(val=0,modifiers=00000008)
+08-20 12:54:41.351 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:41.351 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:41.351 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:41.352 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:41.352 V/ScriptVisitorImpl﹕ check:(val=0,modifiers=00000008) < (val=3,modifiers=00000002) =-1
+08-20 12:54:41.352 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:41.352 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:41.352 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:41.352 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:41.352 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=constant,value=1000,modifiers=00200004),値=(val=1000,modifiers=00200004)
+08-20 12:54:41.353 V/ScriptVisitorImpl﹕ execute wait:[(val=1000,modifiers=00200004)]
+08-20 12:54:42.318 D/BluetoothAdapter﹕ startLeScan(): null
+08-20 12:54:42.326 D/BluetoothLeScanner﹕ onClientRegistered() - status=0 clientIf=6
+08-20 12:54:42.354 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:42.354 V/ScriptVisitorImpl﹕ ASTswitch_statement:
+08-20 12:54:42.354 V/ScriptVisitorImpl﹕ 条件式の値=(val=0,modifiers=00000008)
+08-20 12:54:42.355 V/ScriptVisitorImpl﹕ caseラベル0の値=(val=0,modifiers=00000002)
+08-20 12:54:42.355 V/ScriptVisitorImpl﹕ caseラベルが一致した
+08-20 12:54:42.355 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:42.355 V/ScriptVisitorImpl﹕ caseラベル実行部終了
+08-20 12:54:42.355 V/ScriptVisitorImpl﹕ switch文終了
+08-20 12:54:42.355 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000008
+08-20 12:54:42.355 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=identifier,value=step_num,modifiers=00000000)
+08-20 12:54:42.355 V/ScriptVisitorImpl﹕ 変数を登録:n=(val=6,modifiers=00000008)
+08-20 12:54:42.356 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000010
+08-20 12:54:42.356 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=multiplicative_expression,value=/,modifiers=00000000)
+08-20 12:54:42.356 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=/,modifiers=00000000)
+08-20 12:54:42.356 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=constant,value=2000,modifiers=00200004)
+08-20 12:54:42.366 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=n,modifiers=00000000)
+08-20 12:54:42.377 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=2000,modifiers=00200004),w=(val=6,modifiers=00000008)
+08-20 12:54:42.377 V/ScriptVisitorImpl﹕ 変数を登録:wait_time=(val=333,modifiers=00000010)
+08-20 12:54:42.377 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:42.377 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=multiplicative_expression,value=/,modifiers=00000000)
+08-20 12:54:42.378 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=/,modifiers=00000000)
+08-20 12:54:42.378 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=constant,value=360,modifiers=00200004)
+08-20 12:54:42.388 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.388 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=n,modifiers=00000000)
+08-20 12:54:42.399 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=TO_RADIAN,modifiers=00000000)
+08-20 12:54:42.420 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.420 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=n,modifiers=00000000)
+08-20 12:54:42.430 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=TO_RADIAN,modifiers=00000000)
+08-20 12:54:42.441 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=6,modifiers=00000008),w=(val=0.017453292519943295,modifiers=00200040)
+08-20 12:54:42.441 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=360,modifiers=00200004),w=(val=0.10471975511965978,modifiers=00000040)
+08-20 12:54:42.441 V/ScriptVisitorImpl﹕ 変数を登録:step_radian=(val=3437.746770784939,modifiers=00000040)
+08-20 12:54:42.441 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:42.441 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.441 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.442 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:42.452 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:42.463 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=1.0,modifiers=00000040)
+08-20 12:54:42.463 V/ScriptVisitorImpl﹕ 変数を登録:prev_x=(val=100.0,modifiers=00000040)
+08-20 12:54:42.463 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:42.463 V/ScriptVisitorImpl﹕ 変数の初期化node=null
+08-20 12:54:42.463 V/ScriptVisitorImpl﹕ 変数を登録:prev_z=(val=0.0,modifiers=00000040)
+08-20 12:54:42.463 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:42.463 V/ScriptVisitorImpl﹕ 変数の初期化node=null
+08-20 12:54:42.463 V/ScriptVisitorImpl﹕ 変数を登録:x=(val=0.0,modifiers=00000040)
+08-20 12:54:42.464 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:42.464 V/ScriptVisitorImpl﹕ 変数の初期化node=null
+08-20 12:54:42.464 V/ScriptVisitorImpl﹕ 変数を登録:z=(val=0.0,modifiers=00000040)
+08-20 12:54:42.464 V/ScriptVisitorImpl﹕ ASTfor_statement:SimpleNode(id=for_statement,value=null,modifiers=00000000)
+08-20 12:54:42.464 V/ScriptVisitorImpl﹕ for文の初期化
+08-20 12:54:42.464 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000008
+08-20 12:54:42.464 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=constant,value=0,modifiers=00000002)
+08-20 12:54:42.464 V/ScriptVisitorImpl﹕ 変数を登録:i=(val=0,modifiers=00000008)
+08-20 12:54:42.464 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:42.464 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:42.465 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:42.465 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:42.465 V/ScriptVisitorImpl﹕ check:(val=0,modifiers=00000008) < (val=6,modifiers=00000008) =-1
+08-20 12:54:42.465 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:42.465 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:42.467 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:42.467 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.467 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:42.478 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.478 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:42.488 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:42.509 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.509 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:42.509 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:42.530 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:42.540 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:42.540 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:42.541 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=1.5707963267948966,modifiers=00000040)
+08-20 12:54:42.541 V/ScriptVisitorImpl﹕ execute sin:[(val=1.5707963267948966,modifiers=00000040)]
+08-20 12:54:42.541 V/ScriptVisitorImpl﹕ 関数(sin)の返り値:(val=1.0,modifiers=00000040)
+08-20 12:54:42.541 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=1.0,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:42.541 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=1.0,modifiers=00000040)
+08-20 12:54:42.541 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:42.542 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.542 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:42.552 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.552 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:42.563 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:42.584 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.584 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:42.584 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:42.605 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:42.615 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:42.615 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:42.616 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=1.5707963267948966,modifiers=00000040)
+08-20 12:54:42.616 V/ScriptVisitorImpl﹕ execute cos:[(val=1.5707963267948966,modifiers=00000040)]
+08-20 12:54:42.616 V/ScriptVisitorImpl﹕ 関数(cos)の返り値:(val=6.123233995736766E-17,modifiers=00000040)
+08-20 12:54:42.616 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=6.123233995736766E-17,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:42.616 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=6.123233995736766E-17,modifiers=00000040)
+08-20 12:54:42.617 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:42.617 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:42.617 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:42.617 V/ScriptVisitorImpl﹕ 変数を登録:dx=(val=0.0,modifiers=00000040)
+08-20 12:54:42.617 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:42.617 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:42.617 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:42.619 V/ScriptVisitorImpl﹕ 変数を登録:dz=(val=6.123233995736766E-15,modifiers=00000040)
+08-20 12:54:42.620 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:42.620 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:42.620 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=dx,modifiers=00000000),値=(val=0.0,modifiers=00000040)
+08-20 12:54:42.621 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:42.621 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=identifier,value=dz,modifiers=00000000),値=(val=6.123233995736766E-15,modifiers=00000040)
+08-20 12:54:42.621 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:42.622 V/ScriptFlight﹕ execute move:[(val=0.0,modifiers=00000040), (val=0,modifiers=00000002), (val=6.123233995736766E-15,modifiers=00000040), (val=0,modifiers=00000002)]
+08-20 12:54:42.622 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:42.622 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:42.622 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:42.623 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=wait_time,modifiers=00000000),値=(val=333,modifiers=00000010)
+08-20 12:54:42.623 V/ScriptVisitorImpl﹕ execute wait:[(val=333,modifiers=00000010)]
+08-20 12:54:42.956 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:42.956 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value=+=,modifiers=00000000)
+08-20 12:54:42.957 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:42.957 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:42.957 V/ScriptVisitorImpl﹕ for文の更新処理
+08-20 12:54:42.957 V/ScriptVisitorImpl﹕ ASTfor_statement_updateSimpleNode(id=for_statement_update,value=null,modifiers=00000000)
+08-20 12:54:42.957 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:SimpleNode(id=post_incdec_expression,value=++,modifiers=00000000)
+08-20 12:54:42.957 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:計算前=(val=0,modifiers=00000008)
+08-20 12:54:42.957 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:返り値=(val=0,modifiers=00000008),計算後=(val=1,modifiers=00000008)
+08-20 12:54:42.957 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:42.958 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:42.958 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:42.958 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:42.958 V/ScriptVisitorImpl﹕ check:(val=1,modifiers=00000008) < (val=6,modifiers=00000008) =-1
+08-20 12:54:42.958 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:42.958 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:42.958 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:42.958 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.959 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:42.970 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:42.970 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:42.980 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:43.001 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.001 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:43.001 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:43.022 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:43.032 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:43.032 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:43.033 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=3439.317567111734,modifiers=00000040)
+08-20 12:54:43.033 V/ScriptVisitorImpl﹕ execute sin:[(val=3439.317567111734,modifiers=00000040)]
+08-20 12:54:43.033 V/ScriptVisitorImpl﹕ 関数(sin)の返り値:(val=0.6641741461865042,modifiers=00000040)
+08-20 12:54:43.033 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=0.6641741461865042,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:43.033 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=0.6641741461865042,modifiers=00000040)
+08-20 12:54:43.034 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:43.034 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.034 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:43.044 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.044 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:43.055 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:43.075 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.076 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:43.076 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:43.096 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:43.107 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:43.107 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:43.107 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=3439.317567111734,modifiers=00000040)
+08-20 12:54:43.107 V/ScriptVisitorImpl﹕ execute cos:[(val=3439.317567111734,modifiers=00000040)]
+08-20 12:54:43.108 V/ScriptVisitorImpl﹕ 関数(cos)の返り値:(val=-0.7475778912845324,modifiers=00000040)
+08-20 12:54:43.108 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=-0.7475778912845324,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:43.108 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=-0.7475778912845324,modifiers=00000040)
+08-20 12:54:43.108 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:43.108 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:43.108 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:43.108 V/ScriptVisitorImpl﹕ 変数を登録:dx=(val=-33.58258538134959,modifiers=00000040)
+08-20 12:54:43.109 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:43.109 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:43.109 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:43.110 V/ScriptVisitorImpl﹕ 変数を登録:dz=(val=-74.75778912845324,modifiers=00000040)
+08-20 12:54:43.110 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:43.110 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:43.110 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=dx,modifiers=00000000),値=(val=-33.58258538134959,modifiers=00000040)
+08-20 12:54:43.111 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:43.111 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=identifier,value=dz,modifiers=00000000),値=(val=-74.75778912845324,modifiers=00000040)
+08-20 12:54:43.111 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:43.111 V/ScriptFlight﹕ execute move:[(val=-33.58258538134959,modifiers=00000040), (val=0,modifiers=00000002), (val=-74.75778912845324,modifiers=00000040), (val=0,modifiers=00000002)]
+08-20 12:54:43.112 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=4,v=-33,t=2905
+08-20 12:54:43.112 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=3,v=-74,t=2906
+08-20 12:54:43.112 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:43.112 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:43.112 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:43.112 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=wait_time,modifiers=00000000),値=(val=333,modifiers=00000010)
+08-20 12:54:43.112 V/ScriptVisitorImpl﹕ execute wait:[(val=333,modifiers=00000010)]
+08-20 12:54:43.446 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:43.446 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value=+=,modifiers=00000000)
+08-20 12:54:43.446 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:43.446 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:43.446 V/ScriptVisitorImpl﹕ for文の更新処理
+08-20 12:54:43.446 V/ScriptVisitorImpl﹕ ASTfor_statement_updateSimpleNode(id=for_statement_update,value=null,modifiers=00000000)
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:SimpleNode(id=post_incdec_expression,value=++,modifiers=00000000)
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:計算前=(val=1,modifiers=00000008)
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:返り値=(val=1,modifiers=00000008),計算後=(val=2,modifiers=00000008)
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ check:(val=2,modifiers=00000008) < (val=6,modifiers=00000008) =-1
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.447 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:43.458 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.458 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:43.468 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:43.491 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.491 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:43.492 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:43.512 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:43.522 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:43.522 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:43.522 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=6877.064337896673,modifiers=00000040)
+08-20 12:54:43.523 V/ScriptVisitorImpl﹕ execute sin:[(val=6877.064337896673,modifiers=00000040)]
+08-20 12:54:43.523 V/ScriptVisitorImpl﹕ 関数(sin)の返り値:(val=-0.11774540707469253,modifiers=00000040)
+08-20 12:54:43.523 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=-0.11774540707469253,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:43.523 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=-0.11774540707469253,modifiers=00000040)
+08-20 12:54:43.523 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:43.523 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.523 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:43.533 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.534 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:43.544 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:43.564 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.564 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:43.564 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:43.585 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:43.595 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:43.595 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:43.595 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=6877.064337896673,modifiers=00000040)
+08-20 12:54:43.595 V/ScriptVisitorImpl﹕ execute cos:[(val=6877.064337896673,modifiers=00000040)]
+08-20 12:54:43.595 V/ScriptVisitorImpl﹕ 関数(cos)の返り値:(val=-0.9930438153036426,modifiers=00000040)
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=-0.9930438153036426,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=-0.9930438153036426,modifiers=00000040)
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ 変数を登録:dx=(val=-78.19195532611967,modifiers=00000040)
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ 変数を登録:dz=(val=-24.546592401911028,modifiers=00000040)
+08-20 12:54:43.596 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:43.596 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:43.597 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=dx,modifiers=00000000),値=(val=-78.19195532611967,modifiers=00000040)
+08-20 12:54:43.597 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:43.597 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=identifier,value=dz,modifiers=00000000),値=(val=-24.546592401911028,modifiers=00000040)
+08-20 12:54:43.597 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:43.597 V/ScriptFlight﹕ execute move:[(val=-78.19195532611967,modifiers=00000040), (val=0,modifiers=00000002), (val=-24.546592401911028,modifiers=00000040), (val=0,modifiers=00000002)]
+08-20 12:54:43.597 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=4,v=-78,t=3391
+08-20 12:54:43.597 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=3,v=-24,t=3391
+08-20 12:54:43.597 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:43.597 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:43.597 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:43.598 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=wait_time,modifiers=00000000),値=(val=333,modifiers=00000010)
+08-20 12:54:43.598 V/ScriptVisitorImpl﹕ execute wait:[(val=333,modifiers=00000010)]
+08-20 12:54:43.931 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:43.931 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value=+=,modifiers=00000000)
+08-20 12:54:43.951 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:43.952 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:43.952 V/ScriptVisitorImpl﹕ for文の更新処理
+08-20 12:54:43.953 V/ScriptVisitorImpl﹕ ASTfor_statement_updateSimpleNode(id=for_statement_update,value=null,modifiers=00000000)
+08-20 12:54:43.954 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:SimpleNode(id=post_incdec_expression,value=++,modifiers=00000000)
+08-20 12:54:43.954 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:計算前=(val=2,modifiers=00000008)
+08-20 12:54:43.954 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:返り値=(val=2,modifiers=00000008),計算後=(val=3,modifiers=00000008)
+08-20 12:54:43.954 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:43.955 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:43.955 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:43.955 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:43.956 V/ScriptVisitorImpl﹕ check:(val=3,modifiers=00000008) < (val=6,modifiers=00000008) =-1
+08-20 12:54:43.956 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:43.956 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:43.956 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:43.956 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.957 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:43.985 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:43.985 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:43.996 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:44.016 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:44.016 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:44.016 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:44.037 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:44.047 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:44.047 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:44.047 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=10314.811108681613,modifiers=00000040)
+08-20 12:54:44.047 V/ScriptVisitorImpl﹕ execute sin:[(val=10314.811108681613,modifiers=00000040)]
+08-20 12:54:44.047 V/ScriptVisitorImpl﹕ 関数(sin)の返り値:(val=-0.8205810566094855,modifiers=00000040)
+08-20 12:54:44.048 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=-0.8205810566094855,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:44.048 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=-0.8205810566094855,modifiers=00000040)
+08-20 12:54:44.048 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:44.048 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:44.048 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:44.058 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:44.059 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:44.069 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:44.089 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:44.089 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:44.089 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:44.110 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:44.120 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:44.120 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:44.120 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=10314.811108681613,modifiers=00000040)
+08-20 12:54:44.120 V/ScriptVisitorImpl﹕ execute cos:[(val=10314.811108681613,modifiers=00000040)]
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ 関数(cos)の返り値:(val=-0.571530165025137,modifiers=00000040)
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=-0.571530165025137,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=-0.571530165025137,modifiers=00000040)
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ 変数を登録:dx=(val=-70.2835649534793,modifiers=00000040)
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:44.121 V/ScriptVisitorImpl﹕ 変数を登録:dz=(val=42.15136502785057,modifiers=00000040)
+08-20 12:54:44.122 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:44.122 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:44.122 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=dx,modifiers=00000000),値=(val=-70.2835649534793,modifiers=00000040)
+08-20 12:54:44.122 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:44.122 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=identifier,value=dz,modifiers=00000000),値=(val=42.15136502785057,modifiers=00000040)
+08-20 12:54:44.122 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:44.122 V/ScriptFlight﹕ execute move:[(val=-70.2835649534793,modifiers=00000040), (val=0,modifiers=00000002), (val=42.15136502785057,modifiers=00000040), (val=0,modifiers=00000002)]
+08-20 12:54:44.122 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=4,v=-70,t=3916
+08-20 12:54:44.122 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=3,v=42,t=3916
+08-20 12:54:44.122 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:44.123 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:44.123 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:44.123 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=wait_time,modifiers=00000000),値=(val=333,modifiers=00000010)
+08-20 12:54:44.123 V/ScriptVisitorImpl﹕ execute wait:[(val=333,modifiers=00000010)]
+08-20 12:54:44.456 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:44.457 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value=+=,modifiers=00000000)
+08-20 12:54:44.457 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:44.474 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:44.474 V/ScriptVisitorImpl﹕ for文の更新処理
+08-20 12:54:44.475 V/ScriptVisitorImpl﹕ ASTfor_statement_updateSimpleNode(id=for_statement_update,value=null,modifiers=00000000)
+08-20 12:54:44.475 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:SimpleNode(id=post_incdec_expression,value=++,modifiers=00000000)
+08-20 12:54:44.475 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:計算前=(val=3,modifiers=00000008)
+08-20 12:54:44.476 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:返り値=(val=3,modifiers=00000008),計算後=(val=4,modifiers=00000008)
+08-20 12:54:44.476 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:44.476 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:44.476 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:44.476 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:44.477 V/ScriptVisitorImpl﹕ check:(val=4,modifiers=00000008) < (val=6,modifiers=00000008) =-1
+08-20 12:54:44.477 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:44.477 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:44.477 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:44.491 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:44.505 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:44.529 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:44.529 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:44.539 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:44.559 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:44.559 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:44.560 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:44.580 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:44.590 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:44.590 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:44.590 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=13752.557879466553,modifiers=00000040)
+08-20 12:54:44.591 V/ScriptVisitorImpl﹕ execute sin:[(val=13752.557879466553,modifiers=00000040)]
+08-20 12:54:44.591 V/ScriptVisitorImpl﹕ 関数(sin)の返り値:(val=-0.9722720382254558,modifiers=00000040)
+08-20 12:54:44.591 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=-0.9722720382254558,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:44.591 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=-0.9722720382254558,modifiers=00000040)
+08-20 12:54:44.591 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:44.591 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:44.592 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:44.602 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:44.602 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:44.612 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:44.633 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:44.633 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:44.633 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:44.653 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:44.664 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:44.664 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:44.664 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=13752.557879466553,modifiers=00000040)
+08-20 12:54:44.664 V/ScriptVisitorImpl﹕ execute cos:[(val=13752.557879466553,modifiers=00000040)]
+08-20 12:54:44.664 V/ScriptVisitorImpl﹕ 関数(cos)の返り値:(val=0.23385269655259006,modifiers=00000040)
+08-20 12:54:44.664 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=0.23385269655259006,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:44.664 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=0.23385269655259006,modifiers=00000040)
+08-20 12:54:44.664 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:44.665 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:44.665 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:44.665 V/ScriptVisitorImpl﹕ 変数を登録:dx=(val=-15.16909816159702,modifiers=00000040)
+08-20 12:54:44.665 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:44.665 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:44.665 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:44.665 V/ScriptVisitorImpl﹕ 変数を登録:dz=(val=80.5382861577727,modifiers=00000040)
+08-20 12:54:44.665 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:44.665 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:44.665 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=dx,modifiers=00000000),値=(val=-15.16909816159702,modifiers=00000040)
+08-20 12:54:44.665 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:44.666 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=identifier,value=dz,modifiers=00000000),値=(val=80.5382861577727,modifiers=00000040)
+08-20 12:54:44.666 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:44.666 V/ScriptFlight﹕ execute move:[(val=-15.16909816159702,modifiers=00000040), (val=0,modifiers=00000002), (val=80.5382861577727,modifiers=00000040), (val=0,modifiers=00000002)]
+08-20 12:54:44.666 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=4,v=-15,t=4460
+08-20 12:54:44.666 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=3,v=80,t=4460
+08-20 12:54:44.666 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:44.666 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:44.666 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:44.666 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=wait_time,modifiers=00000000),値=(val=333,modifiers=00000010)
+08-20 12:54:44.666 V/ScriptVisitorImpl﹕ execute wait:[(val=333,modifiers=00000010)]
+08-20 12:54:45.000 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:45.000 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value=+=,modifiers=00000000)
+08-20 12:54:45.000 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:45.001 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:45.001 V/ScriptVisitorImpl﹕ for文の更新処理
+08-20 12:54:45.001 V/ScriptVisitorImpl﹕ ASTfor_statement_updateSimpleNode(id=for_statement_update,value=null,modifiers=00000000)
+08-20 12:54:45.001 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:SimpleNode(id=post_incdec_expression,value=++,modifiers=00000000)
+08-20 12:54:45.002 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:計算前=(val=4,modifiers=00000008)
+08-20 12:54:45.002 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:返り値=(val=4,modifiers=00000008),計算後=(val=5,modifiers=00000008)
+08-20 12:54:45.002 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:45.002 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:45.003 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:45.026 W/art﹕ Suspending all threads took: 5.950ms
+08-20 12:54:45.046 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:45.047 V/ScriptVisitorImpl﹕ check:(val=5,modifiers=00000008) < (val=6,modifiers=00000008) =-1
+08-20 12:54:45.047 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:45.047 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:45.048 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:45.048 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:45.048 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:45.059 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:45.059 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:45.070 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:45.092 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:45.092 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:45.093 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:45.114 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:45.124 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:45.124 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:45.125 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=17190.30465025149,modifiers=00000040)
+08-20 12:54:45.125 V/ScriptVisitorImpl﹕ execute sin:[(val=17190.30465025149,modifiers=00000040)]
+08-20 12:54:45.126 V/ScriptVisitorImpl﹕ 関数(sin)の返り値:(val=-0.47093484508956296,modifiers=00000040)
+08-20 12:54:45.126 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=-0.47093484508956296,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:45.126 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=-0.47093484508956296,modifiers=00000040)
+08-20 12:54:45.127 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:45.127 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:45.127 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:45.141 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:45.141 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:45.153 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:45.173 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:45.174 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:45.174 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:45.196 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:45.206 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:45.207 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:45.207 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=17190.30465025149,modifiers=00000040)
+08-20 12:54:45.207 V/ScriptVisitorImpl﹕ execute cos:[(val=17190.30465025149,modifiers=00000040)]
+08-20 12:54:45.208 V/ScriptVisitorImpl﹕ 関数(cos)の返り値:(val=0.882167995157651,modifiers=00000040)
+08-20 12:54:45.208 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=0.882167995157651,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:45.209 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=0.882167995157651,modifiers=00000040)
+08-20 12:54:45.209 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:45.209 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:45.209 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:45.210 V/ScriptVisitorImpl﹕ 変数を登録:dx=(val=50.13371931358928,modifiers=00000040)
+08-20 12:54:45.216 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:45.217 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:45.217 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:45.220 V/ScriptVisitorImpl﹕ 変数を登録:dz=(val=64.8315298605061,modifiers=00000040)
+08-20 12:54:45.220 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:45.220 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:45.221 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=dx,modifiers=00000000),値=(val=50.13371931358928,modifiers=00000040)
+08-20 12:54:45.221 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:45.222 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=identifier,value=dz,modifiers=00000000),値=(val=64.8315298605061,modifiers=00000040)
+08-20 12:54:45.222 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:45.223 V/ScriptFlight﹕ execute move:[(val=50.13371931358928,modifiers=00000040), (val=0,modifiers=00000002), (val=64.8315298605061,modifiers=00000040), (val=0,modifiers=00000002)]
+08-20 12:54:45.223 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=4,v=50,t=5017
+08-20 12:54:45.223 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=3,v=64,t=5017
+08-20 12:54:45.223 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:45.224 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:45.224 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:45.224 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=wait_time,modifiers=00000000),値=(val=333,modifiers=00000010)
+08-20 12:54:45.224 V/ScriptVisitorImpl﹕ execute wait:[(val=333,modifiers=00000010)]
+08-20 12:54:45.559 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:45.559 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value=+=,modifiers=00000000)
+08-20 12:54:45.559 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:45.560 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:45.560 V/ScriptVisitorImpl﹕ for文の更新処理
+08-20 12:54:45.560 V/ScriptVisitorImpl﹕ ASTfor_statement_updateSimpleNode(id=for_statement_update,value=null,modifiers=00000000)
+08-20 12:54:45.560 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:SimpleNode(id=post_incdec_expression,value=++,modifiers=00000000)
+08-20 12:54:45.561 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:計算前=(val=5,modifiers=00000008)
+08-20 12:54:45.561 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:返り値=(val=5,modifiers=00000008),計算後=(val=6,modifiers=00000008)
+08-20 12:54:45.561 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:45.561 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:45.562 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:45.562 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:45.562 V/ScriptVisitorImpl﹕ check:(val=6,modifiers=00000008) < (val=6,modifiers=00000008) =0
+08-20 12:54:45.562 V/ScriptVisitorImpl﹕ limit=false
+08-20 12:54:45.563 V/ScriptVisitorImpl﹕ for文終了
+08-20 12:54:45.563 V/ScriptVisitorImpl﹕ for文の更新処理
+08-20 12:54:45.563 V/ScriptVisitorImpl﹕ ASTfor_statement_updateSimpleNode(id=for_statement_update,value=null,modifiers=00000000)
+08-20 12:54:45.563 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:SimpleNode(id=post_incdec_expression,value=++,modifiers=00000000)
+08-20 12:54:45.563 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:計算前=(val=0,modifiers=00000008)
+08-20 12:54:45.564 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:返り値=(val=0,modifiers=00000008),計算後=(val=1,modifiers=00000008)
+08-20 12:54:45.564 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:45.564 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:45.564 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:45.565 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:45.565 V/ScriptVisitorImpl﹕ check:(val=1,modifiers=00000008) < (val=3,modifiers=00000002) =-1
+08-20 12:54:45.609 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:45.615 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:45.622 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:45.622 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:45.623 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=constant,value=1000,modifiers=00200004),値=(val=1000,modifiers=00200004)
+08-20 12:54:45.623 V/ScriptVisitorImpl﹕ execute wait:[(val=1000,modifiers=00200004)]
+08-20 12:54:46.319 D/BluetoothAdapter﹕ stopLeScan()
+08-20 12:54:46.624 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:46.624 V/ScriptVisitorImpl﹕ ASTswitch_statement:
+08-20 12:54:46.624 V/ScriptVisitorImpl﹕ 条件式の値=(val=1,modifiers=00000008)
+08-20 12:54:46.625 V/ScriptVisitorImpl﹕ caseラベル0の値=(val=0,modifiers=00000002)
+08-20 12:54:46.625 V/ScriptVisitorImpl﹕ caseラベルが一致しないので次のbreakまで読み飛ばす
+08-20 12:54:46.625 V/ScriptVisitorImpl﹕ caseラベル2の値=(val=1,modifiers=00000002)
+08-20 12:54:46.625 V/ScriptVisitorImpl﹕ caseラベルが一致した
+08-20 12:54:46.646 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:46.646 V/ScriptVisitorImpl﹕ caseラベル実行部終了
+08-20 12:54:46.646 V/ScriptVisitorImpl﹕ switch文終了
+08-20 12:54:46.646 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000008
+08-20 12:54:46.647 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=identifier,value=step_num,modifiers=00000000)
+08-20 12:54:46.647 V/ScriptVisitorImpl﹕ 変数を登録:n=(val=12,modifiers=00000008)
+08-20 12:54:46.647 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000010
+08-20 12:54:46.665 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=multiplicative_expression,value=/,modifiers=00000000)
+08-20 12:54:46.679 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=/,modifiers=00000000)
+08-20 12:54:46.679 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=constant,value=2000,modifiers=00200004)
+08-20 12:54:46.689 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=n,modifiers=00000000)
+08-20 12:54:46.700 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=2000,modifiers=00200004),w=(val=12,modifiers=00000008)
+08-20 12:54:46.700 V/ScriptVisitorImpl﹕ 変数を登録:wait_time=(val=166,modifiers=00000010)
+08-20 12:54:46.700 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:46.700 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=multiplicative_expression,value=/,modifiers=00000000)
+08-20 12:54:46.700 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=/,modifiers=00000000)
+08-20 12:54:46.700 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=constant,value=360,modifiers=00200004)
+08-20 12:54:46.710 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:46.710 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=n,modifiers=00000000)
+08-20 12:54:46.722 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=TO_RADIAN,modifiers=00000000)
+08-20 12:54:46.742 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:46.742 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=n,modifiers=00000000)
+08-20 12:54:46.753 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=TO_RADIAN,modifiers=00000000)
+08-20 12:54:46.763 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=12,modifiers=00000008),w=(val=0.017453292519943295,modifiers=00200040)
+08-20 12:54:46.763 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=360,modifiers=00200004),w=(val=0.20943951023931956,modifiers=00000040)
+08-20 12:54:46.763 V/ScriptVisitorImpl﹕ 変数を登録:step_radian=(val=1718.8733853924696,modifiers=00000040)
+08-20 12:54:46.763 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:46.763 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:46.763 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:46.763 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:46.774 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:46.784 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=1.0,modifiers=00000040)
+08-20 12:54:46.784 V/ScriptVisitorImpl﹕ 変数を登録:prev_x=(val=100.0,modifiers=00000040)
+08-20 12:54:46.784 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:46.784 V/ScriptVisitorImpl﹕ 変数の初期化node=null
+08-20 12:54:46.784 V/ScriptVisitorImpl﹕ 変数を登録:prev_z=(val=0.0,modifiers=00000040)
+08-20 12:54:46.784 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:46.784 V/ScriptVisitorImpl﹕ 変数の初期化node=null
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ 変数を登録:x=(val=0.0,modifiers=00000040)
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ 変数の初期化node=null
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ 変数を登録:z=(val=0.0,modifiers=00000040)
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ ASTfor_statement:SimpleNode(id=for_statement,value=null,modifiers=00000000)
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ for文の初期化
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000008
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=constant,value=0,modifiers=00000002)
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ 変数を登録:i=(val=0,modifiers=00000008)
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:46.785 V/ScriptVisitorImpl﹕ check:(val=0,modifiers=00000008) < (val=12,modifiers=00000008) =-1
+08-20 12:54:46.786 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:46.786 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:46.786 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:46.786 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:46.786 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:46.796 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:46.797 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:46.807 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:46.827 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:46.827 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:46.827 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:46.848 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:46.858 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:46.858 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:46.859 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=20628.05142103643,modifiers=00000040)
+08-20 12:54:46.859 V/ScriptVisitorImpl﹕ execute sin:[(val=20628.05142103643,modifiers=00000040)]
+08-20 12:54:46.859 V/ScriptVisitorImpl﹕ 関数(sin)の返り値:(val=0.3467065409316714,modifiers=00000040)
+08-20 12:54:46.859 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=0.3467065409316714,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:46.859 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=0.3467065409316714,modifiers=00000040)
+08-20 12:54:46.859 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:46.859 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:46.859 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:46.870 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:46.870 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:46.880 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:46.901 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:46.901 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:46.902 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:46.922 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:46.933 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:46.933 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:46.934 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=20628.05142103643,modifiers=00000040)
+08-20 12:54:46.934 V/ScriptVisitorImpl﹕ execute cos:[(val=20628.05142103643,modifiers=00000040)]
+08-20 12:54:46.935 V/ScriptVisitorImpl﹕ 関数(cos)の返り値:(val=0.9379736534014136,modifiers=00000040)
+08-20 12:54:46.935 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=0.9379736534014136,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:46.935 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=0.9379736534014136,modifiers=00000040)
+08-20 12:54:46.936 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:46.936 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:46.936 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:46.936 V/ScriptVisitorImpl﹕ 変数を登録:dx=(val=-65.32934590683286,modifiers=00000040)
+08-20 12:54:46.937 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:46.937 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:46.937 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:46.937 V/ScriptVisitorImpl﹕ 変数を登録:dz=(val=93.79736534014135,modifiers=00000040)
+08-20 12:54:46.939 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:46.940 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:46.940 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=dx,modifiers=00000000),値=(val=-65.32934590683286,modifiers=00000040)
+08-20 12:54:46.940 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:46.941 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=identifier,value=dz,modifiers=00000000),値=(val=93.79736534014135,modifiers=00000040)
+08-20 12:54:46.941 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:46.942 V/ScriptFlight﹕ execute move:[(val=-65.32934590683286,modifiers=00000040), (val=0,modifiers=00000002), (val=93.79736534014135,modifiers=00000040), (val=0,modifiers=00000002)]
+08-20 12:54:46.942 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=4,v=-65,t=6736
+08-20 12:54:46.942 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=3,v=93,t=6736
+08-20 12:54:46.942 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:46.943 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:46.943 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:46.943 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=wait_time,modifiers=00000000),値=(val=166,modifiers=00000010)
+08-20 12:54:46.943 V/ScriptVisitorImpl﹕ execute wait:[(val=166,modifiers=00000010)]
+08-20 12:54:47.110 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:47.110 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value=+=,modifiers=00000000)
+08-20 12:54:47.110 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.110 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ for文の更新処理
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ ASTfor_statement_updateSimpleNode(id=for_statement_update,value=null,modifiers=00000000)
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:SimpleNode(id=post_incdec_expression,value=++,modifiers=00000000)
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:計算前=(val=0,modifiers=00000008)
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:返り値=(val=0,modifiers=00000008),計算後=(val=1,modifiers=00000008)
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ check:(val=1,modifiers=00000008) < (val=12,modifiers=00000008) =-1
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.111 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.112 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:47.122 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.122 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:47.132 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:47.153 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.153 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:47.153 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:47.173 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:47.184 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:47.184 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:47.184 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=22346.9248064289,modifiers=00000040)
+08-20 12:54:47.184 V/ScriptVisitorImpl﹕ execute sin:[(val=22346.9248064289,modifiers=00000040)]
+08-20 12:54:47.185 V/ScriptVisitorImpl﹕ 関数(sin)の返り値:(val=-0.7006167210250818,modifiers=00000040)
+08-20 12:54:47.185 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=-0.7006167210250818,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:47.185 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=-0.7006167210250818,modifiers=00000040)
+08-20 12:54:47.186 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.186 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.186 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:47.197 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.197 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:47.208 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:47.237 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.237 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:47.237 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:47.258 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:47.269 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:47.269 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:47.270 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=22346.9248064289,modifiers=00000040)
+08-20 12:54:47.270 V/ScriptVisitorImpl﹕ execute cos:[(val=22346.9248064289,modifiers=00000040)]
+08-20 12:54:47.270 V/ScriptVisitorImpl﹕ 関数(cos)の返り値:(val=-0.7135378127472031,modifiers=00000040)
+08-20 12:54:47.271 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=-0.7135378127472031,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:47.271 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=-0.7135378127472031,modifiers=00000040)
+08-20 12:54:47.272 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:47.272 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:47.272 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:47.272 V/ScriptVisitorImpl﹕ 変数を登録:dx=(val=-104.73232619567533,modifiers=00000040)
+08-20 12:54:47.273 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:47.273 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:47.273 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:47.273 V/ScriptVisitorImpl﹕ 変数を登録:dz=(val=-165.15114661486166,modifiers=00000040)
+08-20 12:54:47.274 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:47.274 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:47.276 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=dx,modifiers=00000000),値=(val=-104.73232619567533,modifiers=00000040)
+08-20 12:54:47.276 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:47.277 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=identifier,value=dz,modifiers=00000000),値=(val=-165.15114661486166,modifiers=00000040)
+08-20 12:54:47.288 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:47.289 V/ScriptFlight﹕ execute move:[(val=-104.73232619567533,modifiers=00000040), (val=0,modifiers=00000002), (val=-165.15114661486166,modifiers=00000040), (val=0,modifiers=00000002)]
+08-20 12:54:47.289 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=4,v=-104,t=7083
+08-20 12:54:47.290 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=3,v=-165,t=7083
+08-20 12:54:47.290 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:47.290 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:47.290 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:47.290 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=wait_time,modifiers=00000000),値=(val=166,modifiers=00000010)
+08-20 12:54:47.291 V/ScriptVisitorImpl﹕ execute wait:[(val=166,modifiers=00000010)]
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value=+=,modifiers=00000000)
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ for文の更新処理
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ ASTfor_statement_updateSimpleNode(id=for_statement_update,value=null,modifiers=00000000)
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:SimpleNode(id=post_incdec_expression,value=++,modifiers=00000000)
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:計算前=(val=1,modifiers=00000008)
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:返り値=(val=1,modifiers=00000008),計算後=(val=2,modifiers=00000008)
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:47.464 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:47.465 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:47.465 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:47.465 V/ScriptVisitorImpl﹕ check:(val=2,modifiers=00000008) < (val=12,modifiers=00000008) =-1
+08-20 12:54:47.465 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:47.465 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:47.465 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.465 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.465 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:47.475 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.476 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:47.486 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:47.506 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.506 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:47.507 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:47.527 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:47.537 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:47.537 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:47.540 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=24065.79819182137,modifiers=00000040)
+08-20 12:54:47.540 V/ScriptVisitorImpl﹕ execute sin:[(val=24065.79819182137,modifiers=00000040)]
+08-20 12:54:47.540 V/ScriptVisitorImpl﹕ 関数(sin)の返り値:(val=0.9314818866907868,modifiers=00000040)
+08-20 12:54:47.540 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=0.9314818866907868,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:47.541 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=0.9314818866907868,modifiers=00000040)
+08-20 12:54:47.541 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.541 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.541 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:47.552 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.553 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:47.563 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:47.585 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.585 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:47.585 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=identifier,value=radian,modifiers=00000000)
+08-20 12:54:47.606 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=identifier,value=scale_z,modifiers=00000000)
+08-20 12:54:47.617 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=cos,modifiers=00000000)
+08-20 12:54:47.617 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:47.618 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=radian,modifiers=00000000),値=(val=24065.79819182137,modifiers=00000040)
+08-20 12:54:47.618 V/ScriptVisitorImpl﹕ execute cos:[(val=24065.79819182137,modifiers=00000040)]
+08-20 12:54:47.618 V/ScriptVisitorImpl﹕ 関数(cos)の返り値:(val=0.3637877056292203,modifiers=00000040)
+08-20 12:54:47.618 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=0.3637877056292203,modifiers=00000040),w=(val=1.0,modifiers=00000040)
+08-20 12:54:47.619 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:v=(val=100,modifiers=00000008),w=(val=0.3637877056292203,modifiers=00000040)
+08-20 12:54:47.620 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:47.620 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:47.620 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:47.620 V/ScriptVisitorImpl﹕ 変数を登録:dx=(val=163.20986077158688,modifiers=00000040)
+08-20 12:54:47.620 V/ScriptVisitorImpl﹕ ASTinit_declarator:modifiers=00000040
+08-20 12:54:47.621 V/ScriptVisitorImpl﹕ 変数の初期化node=SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:47.621 V/ScriptVisitorImpl﹕ ASTadditive_expression:SimpleNode(id=additive_expression,value=-,modifiers=00000000)
+08-20 12:54:47.621 V/ScriptVisitorImpl﹕ 変数を登録:dz=(val=107.73255183764233,modifiers=00000040)
+08-20 12:54:47.621 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=move,modifiers=00000000)
+08-20 12:54:47.621 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:47.622 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=dx,modifiers=00000000),値=(val=163.20986077158688,modifiers=00000040)
+08-20 12:54:47.622 V/ScriptVisitorImpl﹕ 引数1=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:47.622 V/ScriptVisitorImpl﹕ 引数2=SimpleNode(id=identifier,value=dz,modifiers=00000000),値=(val=107.73255183764233,modifiers=00000040)
+08-20 12:54:47.623 V/ScriptVisitorImpl﹕ 引数3=SimpleNode(id=constant,value=0,modifiers=00000002),値=(val=0,modifiers=00000002)
+08-20 12:54:47.623 V/ScriptFlight﹕ execute move:[(val=163.20986077158688,modifiers=00000040), (val=0,modifiers=00000002), (val=107.73255183764233,modifiers=00000040), (val=0,modifiers=00000002)]
+08-20 12:54:47.623 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=4,v=163,t=7417
+08-20 12:54:47.623 V/PilotFragment﹕ mAutoFlightListener#onStep:cmd=3,v=107,t=7417
+08-20 12:54:47.623 V/ScriptVisitorImpl﹕ 関数(move)の返り値:null
+08-20 12:54:47.623 I/ScriptVisitorImpl﹕ ASTfunction_call:SimpleNode(id=function_call,value=wait,modifiers=00000000)
+08-20 12:54:47.624 V/ScriptVisitorImpl﹕ checkPresetFunction
+08-20 12:54:47.624 V/ScriptVisitorImpl﹕ 引数0=SimpleNode(id=identifier,value=wait_time,modifiers=00000000),値=(val=166,modifiers=00000010)
+08-20 12:54:47.624 V/ScriptVisitorImpl﹕ execute wait:[(val=166,modifiers=00000010)]
+08-20 12:54:47.792 V/ScriptVisitorImpl﹕ 関数(wait)の返り値:null
+08-20 12:54:47.793 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value=+=,modifiers=00000000)
+08-20 12:54:47.793 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.793 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.793 V/ScriptVisitorImpl﹕ for文の更新処理
+08-20 12:54:47.794 V/ScriptVisitorImpl﹕ ASTfor_statement_updateSimpleNode(id=for_statement_update,value=null,modifiers=00000000)
+08-20 12:54:47.794 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:SimpleNode(id=post_incdec_expression,value=++,modifiers=00000000)
+08-20 12:54:47.794 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:計算前=(val=2,modifiers=00000008)
+08-20 12:54:47.795 V/ScriptVisitorImpl﹕ ASTpost_incdec_expression:返り値=(val=2,modifiers=00000008),計算後=(val=3,modifiers=00000008)
+08-20 12:54:47.795 V/ScriptVisitorImpl﹕ for文のlimit更新
+08-20 12:54:47.795 V/ScriptVisitorImpl﹕ ASTfor_statement_limitSimpleNode(id=for_statement_condition,value=null,modifiers=00000000)
+08-20 12:54:47.795 V/ScriptVisitorImpl﹕ ASTrelational_expression:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:47.795 V/ScriptVisitorImpl﹕ checkEquality:SimpleNode(id=relational_expression,value=<,modifiers=00000000)
+08-20 12:54:47.823 V/ScriptVisitorImpl﹕ check:(val=3,modifiers=00000008) < (val=12,modifiers=00000008) =-1
+08-20 12:54:47.823 V/ScriptVisitorImpl﹕ limit=true
+08-20 12:54:47.823 V/ScriptVisitorImpl﹕ for文のループ内の処理
+08-20 12:54:47.823 V/PilotFragment﹕ onClick:android.widget.ImageButton{3f47349 VFED..C. ...P.... 1768,0-1888,120 #7f0c0099 app:id/emergency_btn}
+08-20 12:54:47.823 V/ScriptVisitorImpl﹕ ASTassignment_expression:SimpleNode(id=assignment_expression,value==,modifiers=00000000)
+08-20 12:54:47.823 V/ScriptVisitorImpl﹕ ASTmultiplicative_expression:SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.823 V/ScriptVisitorImpl﹕ dumpChildren: 0)SimpleNode(id=identifier,value=radius,modifiers=00000000)
+08-20 12:54:47.826 V/PilotFragment﹕ stopPlay:
+08-20 12:54:47.826 V/PilotFragment﹕ stopScript:
+08-20 12:54:47.830 V/ScriptVisitorImpl﹕ dumpChildren: 1)SimpleNode(id=multiplicative_expression,value=*,modifiers=00000000)
+08-20 12:54:47.830 V/ScriptVisitorImpl﹕ .dumpChildren: 0)SimpleNode(id=function_call,value=sin,modifiers=00000000)
+08-20 12:54:47.841 V/ScriptVisitorImpl﹕ .dumpChildren: 1)SimpleNode(id=identifier,value=scale_x,modifiers=00000000)
+08-20 12:54:47.862 V/PilotFragment﹕ stopPlay:
+08-20 12:54:47.862 V/PilotFragment﹕ stopScript:
+08-20 12:54:47.863 W/PilotFragment﹕ java.lang.RuntimeException: ユーザーブレーク
+            at com.serenegiant.lang.script.ScriptVisitorImpl.checkStop(ScriptVisitorImpl.java:492)
+            at com.serenegiant.lang.script.ScriptVisitorImpl.visit(ScriptVisitorImpl.java:1228)
+            at com.serenegiant.lang.script.ASTidentifier.jjtAccept(ASTidentifier.java:19)
+            at com.serenegiant.lang.script.ScriptVisitorImpl.visit(ScriptVisitorImpl.java:737)
+            at com.serenegiant.lang.script.ASTmultiplicative_expression.jjtAccept(ASTmultiplicative_expression.java:19)
+            at com.serenegiant.lang.script.ScriptVisitorImpl.visit(ScriptVisitorImpl.java:568)
+            at com.serenegiant.lang.script.ASTassignment_expression.jjtAccept(ASTassignment_expression.java:19)
+            at com.serenegiant.lang.script.SimpleNode.childrenAccept(SimpleNode.java:285)
+            at com.serenegiant.lang.script.ScriptVisitorImpl.visit(ScriptVisitorImpl.java:977)
+            at com.serenegiant.lang.script.ASTcompound_statement.jjtAccept(ASTcompound_statement.java:19)
+            at com.serenegiant.lang.script.ScriptVisitorImpl.visit(ScriptVisitorImpl.java:1163)
+            at com.serenegiant.lang.script.ASTfor_statement.jjtAccept(ASTfor_statement.java:19)
+            at com.serenegiant.lang.script.SimpleNode.childrenAccept(SimpleNode.java:285)
+            at com.serenegiant.lang.script.ScriptVisitorImpl.visit(ScriptVisitorImpl.java:977)
+            at com.serenegiant.lang.script.ASTcompound_statement.jjtAccept(ASTcompound_statement.java:19)
+            at com.serenegiant.lang.script.ScriptVisitorImpl.visit(ScriptVisitorImpl.java:1163)
+            at com.serenegiant.lang.script.ASTfor_statement.jjtAccept(ASTfor_statement.java:19)
+            at com.serenegiant.lang.script.SimpleNode.childrenAccept(SimpleNode.java:285)
+            at com.serenegiant.lang.script.ScriptVisitorImpl.visit(ScriptVisitorImpl.java:977)
+            at com.serenegiant.lang.script.ASTcompound_statement.jjtAccept(ASTcompound_statement.java:19)
+            at com.serenegiant.lang.script.ScriptVisitorImpl.callFunction(ScriptVisitorImpl.java:869)
+            at com.serenegiant.lang.script.ScriptVisitorImpl.visit(ScriptVisitorImpl.java:528)
+            at com.serenegiant.lang.script.ASTParse.jjtAccept(ASTParse.java:19)
+            at com.serenegiant.arflight.ScriptFlight$13.run(ScriptFlight.java:350)
+            at android.os.Handler.handleCallback(Handler.java:739)
+            at android.os.Handler.dispatchMessage(Handler.java:95)
+            at android.os.Looper.loop(Looper.java:135)
+            at android.os.HandlerThread.run(HandlerThread.java:61)
+08-20 12:54:47.863  25220-25437/com.serenegiant.flightdemo V/PilotFragment﹕ mAutoFlightListener#onStop:
