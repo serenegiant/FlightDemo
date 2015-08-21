@@ -25,8 +25,7 @@ public class FlightRecorder implements IAutoFlight {
 
 	private final Object mSync = new Object();
 	private final List<String> mRecords = new ArrayList<String>(100);
-	private final Object mPlaybackSync = new Object();	// PlaybackListener同期用
-	private AutoFlightListener mPlaybackListener;
+	private final AutoFlightListener mPlaybackListener;
 
 	private volatile boolean mIsRecording;	// 記録中
 	private volatile boolean mIsPlayback;	// 再生中
@@ -34,16 +33,11 @@ public class FlightRecorder implements IAutoFlight {
 	private int mCurrentPos;	// 次の読み込み位置(再生時)
 
 
-	public void setPlaybackListener(final AutoFlightListener listener) {
-		synchronized (mPlaybackSync) {
-			mPlaybackListener = listener;
+	public FlightRecorder(final AutoFlightListener listener) {
+		if (listener == null) {
+			throw new NullPointerException("AutoFlightListenerコールバックリスナーが設定されてない");
 		}
-	}
-
-	public AutoFlightListener getPlaybackListener() {
-		synchronized (mPlaybackSync) {
-			return mPlaybackListener;
-		}
+		mPlaybackListener = listener;
 	}
 
 	/**
@@ -197,14 +191,10 @@ public class FlightRecorder implements IAutoFlight {
 			if (mIsRecording) throw new IllegalStateException("記録中だよ");
 			if (mRecords.size() == 0) throw new IllegalStateException("データが無い");
 		}
-		synchronized (mPlaybackSync) {
-			if (mPlaybackListener != null) {
-				try {
-					mPlaybackListener.onPrepared();
-				} catch (final Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
+		try {
+			mPlaybackListener.onPrepared();
+		} catch (final Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 	/**
@@ -391,14 +381,10 @@ public class FlightRecorder implements IAutoFlight {
 	private final Runnable mPlaybackRunnable = new Runnable() {
 		@Override
 		public void run() {
-			synchronized (mPlaybackSync) {
-				if (mPlaybackListener != null) {
-					try {
-						mPlaybackListener.onStart();
-					} catch (Exception e) {
-						Log.w(TAG, e);
-					}
-				}
+			try {
+				mPlaybackListener.onStart();
+			} catch (Exception e) {
+				Log.w(TAG, e);
 			}
 			final CmdRec cmd = new CmdRec();
 			final long start_time = System.currentTimeMillis();
@@ -416,17 +402,13 @@ public class FlightRecorder implements IAutoFlight {
 						}
 					}
 					if (!mIsPlayback) break;
-					synchronized (mPlaybackSync) {
-						if (mPlaybackListener != null) {
-							try {
-								if (mPlaybackListener.onStep(cmd.cmd, cmd.value, cmd.time)) {
-									// trueが返ってきたので終了する
-									break;
-								}
-							} catch (Exception e) {
-								Log.w(TAG, e);
-							}
+					try {
+						if (mPlaybackListener.onStep(cmd.cmd, cmd.value, cmd.time)) {
+							// trueが返ってきたので終了する
+							break;
 						}
+					} catch (Exception e) {
+						Log.w(TAG, e);
 					}
 				} else {
 					// コマンドが無かった時
@@ -434,14 +416,10 @@ public class FlightRecorder implements IAutoFlight {
 				}
 			}
 			mIsPlayback = false;
-			synchronized (mPlaybackSync) {
-				if (mPlaybackListener != null) {
-					try {
-						mPlaybackListener.onStop();
-					} catch (Exception e) {
-						Log.w(TAG, e);
-					}
-				}
+			try {
+				mPlaybackListener.onStop();
+			} catch (Exception e) {
+				Log.w(TAG, e);
 			}
 		}
 	};

@@ -12,7 +12,6 @@ import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
 import android.view.View;
 
 import com.serenegiant.graphics.BrushDrawable;
@@ -20,15 +19,19 @@ import com.serenegiant.graphics.BrushDrawable;
 import java.util.Random;
 
 public class TouchPilotView extends View {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "TouchPilotView";
 
 	public interface TouchPilotListener {
-		public void onDrawFinish(final TouchPilotView view);
+		public void onDrawFinish(final TouchPilotView view,
+			int min_x, int max_x,
+			int min_y, int max_y,
+			int min_z, int max_z,
+			int num_points, float[] points);
 	}
 
-	private static final int MAX_POINTS = 2000;
-	private static final int HALF_POINTS = MAX_POINTS / 2;
+	private static final int MAX_POINTS = 2400;
+	private static final int HALF_POINTS = MAX_POINTS / 4;
 
 	private static final float TO_DEGREE = (float)(180 / Math.PI);
 	private static final int FADE_ALPHA = 0x06;
@@ -45,9 +48,7 @@ public class TouchPilotView extends View {
 	private final Paint mPaint = new Paint();
 	private final float points[] = new float[MAX_POINTS];	// 座標値
 	private int pointIx;									// 描画点の現在個数
-
-	/** タッチ位置 */
-	private float mCurX, mCurY;
+	private boolean mClearOnTouchDown = true;				// タッチ開始時にデータを消去するかどうか
 	//	private int mOldButtonState;
 	private int mFadeSteps = MAX_FADE_STEPS;
 	/** オフスクリーン描画用のBitmap */
@@ -63,6 +64,8 @@ public class TouchPilotView extends View {
 	private int mMaxX = Integer.MIN_VALUE;
 	private int mMinY = Integer.MAX_VALUE;
 	private int mMaxY = Integer.MIN_VALUE;
+	private int mMinZ = Integer.MAX_VALUE;
+	private int mMaxZ = Integer.MIN_VALUE;
 	/**
 	 * 描画モード
 	 */
@@ -100,6 +103,14 @@ public class TouchPilotView extends View {
 		return mListener;
 	}
 
+	public void setClearOnTouchDown(final boolean clear) {
+		mClearOnTouchDown = clear;
+	}
+
+	public boolean getClearOnTouchDown() {
+		return mClearOnTouchDown;
+	}
+
 	@Override
 	protected void onSizeChanged(final int w, final int h, final int oldw,
 									final int oldh) {
@@ -132,7 +143,7 @@ public class TouchPilotView extends View {
 		}
 	}
 
-	@Override
+/*	@Override
 	public boolean onTrackballEvent(final MotionEvent event) {
 		final int action = event.getActionMasked();
 		if (action == MotionEvent.ACTION_DOWN) {
@@ -161,33 +172,42 @@ public class TouchPilotView extends View {
 		mCurX = Math.max(Math.min(mCurX + deltaX, curW - 1), 0);
 		mCurY = Math.max(Math.min(mCurY + deltaY, curH - 1), 0);
 		paint(PaintMode.Draw, mCurX, mCurY);
-	}
+	} */
 
+	private long touchTime;
 	@Override
 	public boolean onTouchEvent(final MotionEvent event) {
 		final int action = event.getActionMasked();	// event.getAction();
 		final float xx = event.getX();
 		final float yy = event.getY();
+		final float zz = 0;	// FIXME z軸
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:
 			if (DEBUG) Log.v(TAG, "ACTION_DOWN");
-			pointIx = 0;
-			addPoint(xx, yy, event.getEventTime());
-//			return true;	// trueを返さないと他のイベントが来ない
-		case MotionEvent.ACTION_UP:
-			if (DEBUG) Log.v(TAG, "ACTION_UP:pointIx=" + pointIx);
-			pointIx = 0;
-			if (mListener != null) {
-				mListener.onDrawFinish(this);
+			if (mClearOnTouchDown) {
+				clear();
+				pointIx = 0;
+				touchTime = event.getEventTime();
 			}
+//			return true;	// trueを返さないと他のイベントが来ない
+			break;
+		case MotionEvent.ACTION_UP:
+//			if (DEBUG) Log.v(TAG, "ACTION_UP:pointIx=" + pointIx);
+			if (mListener != null) {
+				mListener.onDrawFinish(this, mMinX, mMaxX, mMinY, mMaxY, mMinZ, mMaxZ, pointIx / 4, points);
+			}
+			pointIx = 0;
+			break;
 //			return true;
-		case MotionEvent.ACTION_MOVE:
+//		case MotionEvent.ACTION_MOVE:
+//		case MotionEvent.ACTION_HOVER_MOVE:
 //			if (DEBUG) Log.v(TAG, "ACTION_MOVE");
-			addPoint(xx, yy, event.getEventTime());
+//			addPoint(xx, yy, event.getEventTime());
 //			return true;
 		case MotionEvent.ACTION_CANCEL:
-			if (DEBUG) Log.v(TAG, "ACTION_CANCEL");
+//			if (DEBUG) Log.v(TAG, "ACTION_CANCEL");
 			pointIx = 0;
+			break;
 //			return true;
 		}
 //		final int buttonState = event.getButtonState();
@@ -213,44 +233,45 @@ public class TouchPilotView extends View {
 		} */
 
 		if (action == MotionEvent.ACTION_DOWN
-				|| action == MotionEvent.ACTION_MOVE
-				|| action == MotionEvent.ACTION_HOVER_MOVE) {
+			|| action == MotionEvent.ACTION_MOVE
+			|| action == MotionEvent.ACTION_HOVER_MOVE) {
+
 			final int N = event.getHistorySize();
 			final int P = event.getPointerCount();
 			for (int i = 0; i < N; i++) {
 				for (int j = 0; j < P; j++) {
 					paint(getPaintModeForTool(event.getToolType(j), mPaintMode),
-							 event.getHistoricalX(j, i),
-							 event.getHistoricalY(j, i),
-							 event.getHistoricalPressure(j, i),
-							 event.getHistoricalTouchMajor(j, i),
-							 event.getHistoricalTouchMinor(j, i),
-							 event.getHistoricalOrientation(j, i),
-							 event.getHistoricalAxisValue(
-															 MotionEvent.AXIS_DISTANCE, j, i),
-							 event.getHistoricalAxisValue(
-															 MotionEvent.AXIS_TILT, j, i)
+						event.getHistoricalX(j, i),
+						event.getHistoricalY(j, i),
+						event.getHistoricalPressure(j, i),
+						event.getHistoricalTouchMajor(j, i),
+						event.getHistoricalTouchMinor(j, i),
+						event.getHistoricalOrientation(j, i),
+						event.getHistoricalAxisValue(MotionEvent.AXIS_DISTANCE, j, i),
+						event.getHistoricalAxisValue(MotionEvent.AXIS_TILT, j, i)
 					);
 				}
 			}
 			for (int j = 0; j < P; j++) {
 				paint(getPaintModeForTool(event.getToolType(j), mPaintMode),
-						 event.getX(j),
-						 event.getY(j),
-						 event.getPressure(j),
-						 event.getTouchMajor(j),
-						 event.getTouchMinor(j),
-						 event.getOrientation(j),
-						 event.getAxisValue(MotionEvent.AXIS_DISTANCE, j),
-						 event.getAxisValue(MotionEvent.AXIS_TILT, j)
+					event.getX(j),
+					event.getY(j),
+					event.getPressure(j),
+					event.getTouchMajor(j),
+					event.getTouchMinor(j),
+					event.getOrientation(j),
+					event.getAxisValue(MotionEvent.AXIS_DISTANCE, j),
+					event.getAxisValue(MotionEvent.AXIS_TILT, j)
 				);
 			}
-			mCurX = event.getX();
-			mCurY = event.getY();
-			mMinX = Math.min(mMinX, (int)mCurX);
-			mMaxX = Math.max(mMaxX, (int)mCurX);
-			mMinY = Math.min(mMinY, (int)mCurY);
-			mMaxY = Math.max(mMaxY, (int)mCurY);
+			mMinX = Math.min(mMinX, (int) xx);
+			mMaxX = Math.max(mMaxX, (int) xx);
+			mMinY = Math.min(mMinY, (int) yy);
+			mMaxY = Math.max(mMaxY, (int) yy);
+			mMinZ = Math.min(mMinZ, (int) zz);
+			mMaxZ = Math.max(mMaxZ, (int) zz);
+
+			addPoint(xx, yy, zz, event.getEventTime() - touchTime);
 		}
 //		return super.onTouchEvent(event);
 		return true;
@@ -468,12 +489,15 @@ public class TouchPilotView extends View {
 	 * タッチ座標を追加
 	 * @param xx
 	 * @param yy
+	 * @param zz
 	 * @param tt
 	 */
-	private final void addPoint(final float xx, final float yy, final long tt) {
+	private final void addPoint(final float xx, final float yy, final float zz, final long tt) {
 		points[pointIx] = xx;
 		points[pointIx+1] = yy;
-		pointIx = (pointIx + 2) % MAX_POINTS;
+		points[pointIx+2] = zz;
+		points[pointIx+3] = (float)tt;
+		pointIx = (pointIx + 4) % MAX_POINTS;
 	}
 
 }

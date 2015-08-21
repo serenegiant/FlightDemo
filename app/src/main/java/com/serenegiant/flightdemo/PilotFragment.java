@@ -2,6 +2,7 @@ package com.serenegiant.flightdemo;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -21,6 +22,7 @@ import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.ScriptFlight;
+import com.serenegiant.arflight.TouchFlight;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
 import com.serenegiant.widget.SideMenuListView;
@@ -84,15 +86,18 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private SideMenuListView mSideMenuListView;
 
 
-	private final FlightRecorder mFlightRecorder = new FlightRecorder();
+	private final FlightRecorder mFlightRecorder;
 	private final ScriptFlight mScriptFlight;
 	private boolean mScriptRunning;
+	private final TouchFlight mTouchFlight;
+	private boolean mTouchMoveRunning;
 
 	public PilotFragment() {
 		super();
 		// デフォルトコンストラクタが必要
-		mFlightRecorder.setPlaybackListener(mAutoFlightListener);
+		mFlightRecorder = new FlightRecorder(mAutoFlightListener);
 		mScriptFlight = new ScriptFlight(mAutoFlightListener);
+		mTouchFlight = new TouchFlight(mAutoFlightListener);
 	}
 
 	@Override
@@ -164,6 +169,17 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mTimeLabelTv = (TextView)rootView.findViewById(R.id.time_label);
 		mTimeLabelTv.setVisibility(View.INVISIBLE);
 
+		// クリアボタン(タッチ描画操縦)
+		mClearButton = (ImageButton)rootView.findViewById(R.id.clear_btn);
+		if (mClearButton != null) {
+			mClearButton.setOnClickListener(mOnClickListener);
+		}
+		// 移動ボタン(タッチ描画操縦)
+		mMoveButton = (ImageButton)rootView.findViewById(R.id.move_btn);
+		if (mMoveButton != null) {
+			mMoveButton.setOnClickListener(mOnClickListener);
+		}
+
 		ImageButton button;
 		// 右サイドパネル
 		mRightSidePanel = rootView.findViewById(R.id.right_side_panel);
@@ -222,20 +238,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		// タッチパイロットView(タッチ描画操縦)
 		mTouchPilotView = (TouchPilotView)rootView.findViewById(R.id.touch_pilot_view);
 		if (mTouchPilotView != null) {
+			mTouchPilotView.setTouchPilotListener(mTouchPilotListener);
 			mActionViews.add(mTouchPilotView);
-		}
-
-		// クリアボタン(タッチ描画操縦)
-		button = (ImageButton)rootView.findViewById(R.id.clear_btn);
-		if (button != null) {
-			button.setOnClickListener(mOnClickListener);
-			mActionViews.add(button);
-		}
-		// 移動ボタン(タッチ描画操縦)
-		button = (ImageButton)rootView.findViewById(R.id.move_btn);
-		if (button != null) {
-			button.setOnClickListener(mOnClickListener);
-			mActionViews.add(button);
 		}
 
 		mBatteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
@@ -271,6 +275,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		stopRecord();
 		stopPlay();
 		stopScript();
+		stopTouchMove();
 		mResetColorFilterTasks.clear();
 		super.onPause();
 	}
@@ -307,7 +312,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.play_btn:
 				// 再生ボタンの処理
-				PilotFragment.super.stopMove();	// このクラス内のstopMoveだと
+				PilotFragment.super.stopMove();
 				if (!mFlightRecorder.isPlaying()) {
 					startPlay();
 				} else {
@@ -330,11 +335,21 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				}
 				break;
 			case R.id.clear_btn:
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mTouchPilotView != null) {
 					mTouchPilotView.clear();
 				}
+				updateButtons();
 				break;
 			case R.id.move_btn:
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				// 再生ボタンの処理
+				PilotFragment.super.stopMove();
+				if (!mTouchFlight.isPlaying()) {
+					startTouchMove();
+				} else {
+					stopTouchMove();
+				}
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
@@ -521,6 +536,19 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	};
 
+	private final TouchPilotView.TouchPilotListener mTouchPilotListener = new  TouchPilotView.TouchPilotListener() {
+		@Override
+		public void onDrawFinish(final TouchPilotView view,
+			final int min_x, final int max_x,
+			final int min_y, final int max_y,
+			final int min_z, final int max_z,
+			final int num_points, final float[] points) {
+			if (DEBUG) Log.v(TAG, "onDrawFinish:" + num_points);
+			mTouchFlight.prepare(min_x, max_x, min_y, max_y, min_z, max_z, num_points, points);
+			updateButtons();
+		}
+	};
+
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
@@ -580,6 +608,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		super.emergencyStop();
 		stopPlay();
 		stopScript();
+		stopTouchMove();
 	}
 
 	/**
@@ -614,7 +643,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void startRecord(final boolean needClear) {
 		if (DEBUG) Log.v(TAG, "startRecord:");
-		if (!mScriptRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
+		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
 			if (needClear) {
 				mFlightRecorder.clear();
 			}
@@ -646,11 +675,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void startPlay() {
 		if (DEBUG) Log.v(TAG, "startPlay:");
-		if (!mScriptRunning && mFlightRecorder.isPrepared()) {
-			mFlightRecorder.prepare();
-/*			mFlightRecorder.pos(0);
-			mFlightRecorder.play();
-			updateTime(0); */
+		if (!mScriptRunning && !mTouchMoveRunning && mFlightRecorder.isPrepared()) {
+			try {
+				mFlightRecorder.prepare();
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
 			updateButtons();
 		}
 	}
@@ -676,7 +706,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void startScript(final int index) {
 		if (DEBUG) Log.v(TAG, "startScript:");
-		if (!mScriptRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
+		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
 			mScriptRunning = true;
 			try {
 				final SharedPreferences pref = getActivity().getPreferences(0);
@@ -715,6 +745,35 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	/**
+	 * タッチ描画での操縦開始
+	 */
+	private void startTouchMove() {
+		if (DEBUG) Log.v(TAG, "startTouchMove:");
+		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
+			mTouchMoveRunning = true;
+			try {
+				mTouchFlight.prepare();
+			} catch (final Exception e) {
+				mTouchMoveRunning = false;
+				Log.w(TAG, e);
+			}
+			updateButtons();
+		}
+	}
+
+	/**
+	 * タッチ描画での操縦終了
+	 */
+	private void stopTouchMove() {
+		if (DEBUG) Log.v(TAG, "stopTouchMove:");
+		mTouchMoveRunning = false;
+		if (mTouchFlight.isPlaying()) {
+			mTouchFlight.stop();
+			updateButtons();
+		}
+	}
+
+	/**
 	 * 自動フライト実行時のコールバックリスナー
 	 */
 	private final AutoFlightListener mAutoFlightListener = new AutoFlightListener() {
@@ -727,6 +786,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mScriptFlight.play();
 				} else {
 					mScriptRunning = false;
+				}
+			} else if (mTouchMoveRunning) {
+				if (mTouchFlight.isPrepared()) {
+					mTouchFlight.play();
+				} else {
+					mTouchMoveRunning = false;
 				}
 			} else if (mFlightRecorder.isPrepared()) {
 				mFlightRecorder.pos(0);
@@ -795,6 +860,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStop:");
 			stopPlay();
 			stopScript();
+			stopTouchMove();
 			PilotFragment.super.stopMove();
 			updateTime(-1);
 		}
@@ -803,6 +869,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		public void onError(Exception e) {
 			stopPlay();
 			stopScript();
+			stopTouchMove();
 			Log.w(TAG, e);
 			updateButtons();
 		}
@@ -910,12 +977,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final boolean is_connected = isConnected();
 			final boolean is_recording = mFlightRecorder.isRecording();
 			final boolean is_playing = mFlightRecorder.isPlaying();
-			final boolean can_play = is_connected && !is_recording && !mScriptRunning && (alarm_state == IDeviceController.ALARM_NON) && (mFlightRecorder.size() > 0);
+			final boolean can_play = is_connected && !is_recording && !mScriptRunning && !mTouchMoveRunning && (alarm_state == IDeviceController.ALARM_NON) && (mFlightRecorder.size() > 0);
 			final boolean can_record = is_connected && !is_playing && !mScriptRunning;
-			final boolean can_load = is_connected && !is_playing && !is_recording;
+			final boolean can_load = is_connected && !is_playing && !is_recording && !mTouchMoveRunning;
 			final boolean can_fly = can_record && (alarm_state == IDeviceController.ALARM_NON);
 			final boolean can_flattrim = can_fly && (state == IDeviceController.STATE_STARTED);
 			final boolean can_config = can_flattrim;
+			final boolean can_clear = is_connected && !is_recording && !is_playing && !mScriptRunning && !mTouchMoveRunning && mTouchFlight.isPrepared();
+			final boolean can_move = can_clear && (alarm_state == IDeviceController.ALARM_NON);
 			final boolean is_battery_alarm
 				= (alarm_state == IDeviceController.ALARM_BATTERY)
 					|| (alarm_state == IDeviceController.ALARM_BATTERY_CRITICAL);
@@ -938,6 +1007,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mRecordBtn.setEnabled(can_record);        // 記録
 			mRecordBtn.setColorFilter(can_record ? (is_recording ? 0xffff0000 : 0) : DISABLE_COLOR);
 			mRecordLabel.setText(is_recording ? R.string.action_stop : R.string.action_record);
+			if (mClearButton != null) {
+				mClearButton.setEnabled(can_clear);
+				mClearButton.setColorFilter(can_clear ? (mTouchMoveRunning ? 0xffff0000 : 0) : DISABLE_COLOR);
+			}
+			if (mMoveButton != null) {
+				mMoveButton.setEnabled(can_move);
+				mMoveButton.setColorFilter(can_move ? (mTouchMoveRunning ? 0xffff0000 : 0) : DISABLE_COLOR);
+			}
 
 //			mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
 			switch (state & IDeviceController.STATE_MASK_FLYING) {
