@@ -139,7 +139,8 @@
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			android:id="@+id/touch_pilot_view"
-			android:layout_weight="1"/>
+			android:layout_weight="1"
+			android:background="@drawable/frame"/>
 
 		<LinearLayout
 			android:id="@+id/right_side_panel"
@@ -359,6 +360,58 @@
 				android:textSize="@dimen/text_sz_on_image_button"/>
 		</FrameLayout>
 
+		<FrameLayout
+			android:id="@+id/clear_btn_frame"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_toEndOf="@+id/take_onoff_btn"
+			android:layout_toRightOf="@+id/take_onoff_btn"
+			android:background="@null"
+			android:layout_marginLeft="@dimen/activity_horizontal_margin">
+
+			<ImageButton
+				android:id="@+id/clear_btn"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:background="@null"
+				android:scaleType="center"
+				android:src="@android:drawable/ic_menu_delete"/>
+
+			<TextView
+				android:id="@+id/clear_label"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal|bottom"
+				android:gravity="fill_horizontal|fill"
+				android:text="@string/action_clear"
+				android:textSize="@dimen/text_sz_on_image_button"/>
+		</FrameLayout>
+
+		<FrameLayout
+			android:id="@+id/move_btn_frame"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_toEndOf="@+id/clear_btn_frame"
+			android:layout_toRightOf="@+id/clear_btn_frame"
+			android:background="@null">
+
+			<ImageButton
+				android:id="@+id/move_btn"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:background="@null"
+				android:scaleType="center"
+				android:src="@android:drawable/ic_menu_send"/>
+
+			<TextView
+				android:id="@+id/move_label"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal|bottom"
+				android:gravity="fill_horizontal|fill"
+				android:text="@string/action_move"
+				android:textSize="@dimen/text_sz_on_image_button"/>
+		</FrameLayout>
 	</RelativeLayout>
 
 </LinearLayout>

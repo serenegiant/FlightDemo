@@ -67,6 +67,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private ImageButton mLoadBtn;		// 読み込みボタン
 	private ImageButton mConfigShowBtn;	// 設定パネル表示ボタン
 	private TextView mTimeLabelTv;
+	private ImageButton mClearButton;	// クリアボタン(タッチ描画操縦)
+	private ImageButton mMoveButton;	// 移動ボタン(タッチ描画操縦)
 	// 右サイドパネル
 	private View mRightSidePanel;
 	// 左サイドパネル
@@ -76,7 +78,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	// 左スティックパネル
 	private StickView mLeftStickPanel;
 	// タッチ描画パネル
-	private TouchPilotView mTouchPilotView;
+	private TouchPilotView mTouchPilotView;	// (タッチ描画操縦)
 	/** 操縦に使用するボタン等。操作可・不可に応じてenable/disableを切り替える */
 	private final List<View> mActionViews = new ArrayList<View>();
 	private SideMenuListView mSideMenuListView;
@@ -217,10 +219,23 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mActionViews.add(mRightStickPanel);
 		}
 
-		// タッチパイロットView
+		// タッチパイロットView(タッチ描画操縦)
 		mTouchPilotView = (TouchPilotView)rootView.findViewById(R.id.touch_pilot_view);
 		if (mTouchPilotView != null) {
 			mActionViews.add(mTouchPilotView);
+		}
+
+		// クリアボタン(タッチ描画操縦)
+		button = (ImageButton)rootView.findViewById(R.id.clear_btn);
+		if (button != null) {
+			button.setOnClickListener(mOnClickListener);
+			mActionViews.add(button);
+		}
+		// 移動ボタン(タッチ描画操縦)
+		button = (ImageButton)rootView.findViewById(R.id.move_btn);
+		if (button != null) {
+			button.setOnClickListener(mOnClickListener);
+			mActionViews.add(button);
 		}
 
 		mBatteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
@@ -313,6 +328,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 						landing();
 					}
 				}
+				break;
+			case R.id.clear_btn:
+				if (mTouchPilotView != null) {
+					mTouchPilotView.clear();
+				}
+				break;
+			case R.id.move_btn:
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
