@@ -13,16 +13,39 @@
 		android:id="@+id/linearLayout"
 		android:weightSum="1">
 
-		<Switch
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:text="@string/config_operation_reverse"
-			android:id="@+id/reverse_op_switch"
-			android:layout_below="@+id/linearLayout"
-			android:layout_alignLeft="@+id/linearLayout"
-			android:layout_alignStart="@+id/linearLayout"
-			android:layout_gravity="center_horizontal"
-			android:textSize="@dimen/text_sz_list"/>
+		<RadioGroup
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:id="@+id/operation_radiogroup">
+
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/config_operation_normal"
+				android:id="@+id/operation_normal_radiobutton"
+				android:textSize="@dimen/text_sz_list"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="@dimen/half_padding"
+				/>
+
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/config_operation_reverse"
+				android:id="@+id/operation_reverse_radiobutton"
+				android:textSize="@dimen/text_sz_list"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="@dimen/half_padding"/>
+
+			<RadioButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/config_operation_touch"
+				android:id="@+id/operation_touch_radiobutton"
+				android:textSize="@dimen/text_sz_list"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="@dimen/half_padding"/>
+		</RadioGroup>
 
 	</LinearLayout>
 

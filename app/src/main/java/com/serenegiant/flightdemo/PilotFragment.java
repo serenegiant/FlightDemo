@@ -26,6 +26,7 @@ import com.serenegiant.utils.FileUtils;
 import com.serenegiant.widget.SideMenuListView;
 import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
+import com.serenegiant.widget.TouchPilotView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -74,6 +75,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private StickView mRightStickPanel;
 	// 左スティックパネル
 	private StickView mLeftStickPanel;
+	// タッチ描画パネル
+	private TouchPilotView mTouchPilotView;
 	/** 操縦に使用するボタン等。操作可・不可に応じてenable/disableを切り替える */
 	private final List<View> mActionViews = new ArrayList<View>();
 	private SideMenuListView mSideMenuListView;
@@ -109,10 +112,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final SharedPreferences pref = getActivity().getPreferences(0);
-		final boolean reverse_operation = pref.getBoolean(ConfigFragment.KEY_REVERSE_OPERATION, false);
+		final int operation_type = pref.getInt(ConfigFragment.KEY_OPERATION_TYPE, 0);
 
-		final View rootView = inflater.inflate(reverse_operation ?
-			R.layout.fragment_pilot_minidrone_reverse : R.layout.fragment_pilot_minidrone,
+		final View rootView = inflater.inflate(operation_type == 1 ?
+			R.layout.fragment_pilot_minidrone_reverse
+			: (operation_type == 2 ? R.layout.fragment_pilot_minidrone_touch
+			: R.layout.fragment_pilot_minidrone),
 			container, false);
 
 		mControllerView = rootView.findViewById(R.id.controller_frame);
@@ -200,13 +205,23 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		// 右スティックパネル
 		mRightStickPanel = (StickView)rootView.findViewById(R.id.stick_view_right);
-		mRightStickPanel.setOnStickMoveListener(mOnStickMoveListener);
-		mActionViews.add(mRightStickPanel);
+		if (mRightStickPanel != null) {
+			mRightStickPanel.setOnStickMoveListener(mOnStickMoveListener);
+			mActionViews.add(mRightStickPanel);
+		}
 
 		// 左スティックパネル
 		mLeftStickPanel = (StickView)rootView.findViewById(R.id.stick_view_left);
-		mLeftStickPanel.setOnStickMoveListener(mOnStickMoveListener);
-		mActionViews.add(mRightStickPanel);
+		if (mLeftStickPanel != null) {
+			mLeftStickPanel.setOnStickMoveListener(mOnStickMoveListener);
+			mActionViews.add(mRightStickPanel);
+		}
+
+		// タッチパイロットView
+		mTouchPilotView = (TouchPilotView)rootView.findViewById(R.id.touch_pilot_view);
+		if (mTouchPilotView != null) {
+			mActionViews.add(mTouchPilotView);
+		}
 
 		mBatteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
@@ -923,9 +938,18 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			// 左サイドパネル(とmFlipXXXBtn等)
 			mLeftSidePanel.setEnabled(can_fly);
 			// 右スティックパネル(東/西ボタン)
-			mRightStickPanel.setEnabled(can_fly);
+			if (mRightStickPanel != null) {
+				mRightStickPanel.setEnabled(can_fly);
+			}
 			// 左スティックパネル(北/南ボタン)
-			mLeftStickPanel.setEnabled(can_fly);
+			if (mLeftStickPanel != null) {
+				mLeftStickPanel.setEnabled(can_fly);
+			}
+			// タッチパイロットView
+			if (mTouchPilotView != null) {
+				mTouchPilotView.setEnabled(can_fly);
+			}
+
 			for (View view: mActionViews) {
 				view.setEnabled(can_fly);
 				if (view instanceof ImageView) {

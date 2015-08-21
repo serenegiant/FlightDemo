@@ -59,4 +59,6 @@
 	<string name="info_version_software">Software version:</string>
 	<string name="info_version_hardware">Hardware version:</string>
 	<string name="info_version_app">App version:</string>
+	<string name="config_operation_touch">Touch drawing control</string>
+	<string name="config_operation_normal">Normal operation screen</string>
 </resources>

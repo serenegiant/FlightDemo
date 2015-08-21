@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -23,7 +24,7 @@ public class ConfigFragment extends ControlFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
-	public static final String KEY_REVERSE_OPERATION = "REVERSE_OPERATION";
+	public static final String KEY_OPERATION_TYPE = "OPERATION_TYPE";
 	public static final String KEY_AUTOPILOT_MAX_CONTROL_VALUE = "CONFIG_AUTOPILOT_MAX_CONTROL_VALUE";
 	public static final String KEY_AUTOPILOT_SCALE_X = "CONFIG_AUTOPILOT_SCALE_X";
 	public static final String KEY_AUTOPILOT_SCALE_Y = "CONFIG_AUTOPILOT_SCALE_Y";
@@ -226,11 +227,19 @@ public class ConfigFragment extends ControlFragment {
 	 */
 	private void updateConfigOperation(final View root) {
 		if (DEBUG) Log.v(TAG, "updateConfigOperation:");
-		final Switch sw = (Switch)root.findViewById(R.id.reverse_op_switch);
-		if (sw != null) {
-			sw.setChecked(mPref != null ? mPref.getBoolean(KEY_REVERSE_OPERATION, false) : false);
-			sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		final RadioGroup group = (RadioGroup)root.findViewById(R.id.operation_radiogroup);
+		switch (mPref.getInt(KEY_OPERATION_TYPE, 0)) {
+		case 1:		// 左右反転
+			group.check(R.id.operation_reverse_radiobutton);
+			break;
+		case 2:		// タッチ描画で操作
+			group.check(R.id.operation_touch_radiobutton);
+			break;
+		default:	// 通常
+			group.check(R.id.operation_normal_radiobutton);
+			break;
 		}
+		group.setOnCheckedChangeListener(mOnRadioButtonCheckedChangeListener);
 	}
 
 	private float mMaxControlValue;
@@ -542,10 +551,22 @@ public class ConfigFragment extends ControlFragment {
 					((DeviceControllerMiniDrone) mController).sendAutoTakeOffMode(isChecked);
 				}
 				break;
-			case R.id.reverse_op_switch:
-				if (mPref != null) {
-					mPref.edit().putBoolean(KEY_REVERSE_OPERATION, isChecked).apply();
-				}
+			}
+		}
+	};
+
+	private final RadioGroup.OnCheckedChangeListener mOnRadioButtonCheckedChangeListener = new RadioGroup.OnCheckedChangeListener() {
+		@Override
+		public void onCheckedChanged(RadioGroup group, int checkedId) {
+			switch (checkedId) {
+			case R.id.operation_normal_radiobutton:
+				mPref.edit().putInt(KEY_OPERATION_TYPE, 0).apply();
+				break;
+			case R.id.operation_reverse_radiobutton:
+				mPref.edit().putInt(KEY_OPERATION_TYPE, 1).apply();
+				break;
+			case R.id.operation_touch_radiobutton:
+				mPref.edit().putInt(KEY_OPERATION_TYPE, 2).apply();
 				break;
 			}
 		}

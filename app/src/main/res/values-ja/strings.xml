@@ -60,4 +60,6 @@
 	<string name="info_version_software">ソフトウエアバージョン:</string>
 	<string name="info_version_hardware">ハードウエアバージョン:</string>
 	<string name="info_version_app">アプリバージョン:</string>
+	<string name="config_operation_touch">タッチ描画で操縦</string>
+	<string name="config_operation_normal">標準操作画面</string>
 </resources>
