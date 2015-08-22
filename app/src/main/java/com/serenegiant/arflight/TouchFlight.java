@@ -1,6 +1,5 @@
 package com.serenegiant.arflight;
 
-import android.graphics.Rect;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -54,25 +53,25 @@ public class TouchFlight implements IAutoFlight {
 				}
 				System.arraycopy(points, 0, mTouchPoints, 0, n);
 			} else {
-				double max_control_value = 100;
-				double scale_x = 1.0, scale_y = 1.0, scale_z = 1.0;
+				float max_control_value = 100.0f;
+				float scale_x = 1.0f, scale_y = 1.0f, scale_z = 1.0f;
 				if ((args != null) && (args.length == 4)) {
-					if (args[0] instanceof Double) {
-						max_control_value = (double) args[0];
+					if (args[0] instanceof Float) {
+						max_control_value = (float) args[0];
 					}
-					if (args[1] instanceof Double) {
-						scale_x = (double) args[1];
+					if (args[1] instanceof Float) {
+						scale_x = (float) args[1];
 					}
-					if (args[2] instanceof Double) {
-						scale_y = (double) args[2];
+					if (args[2] instanceof Float) {
+						scale_y = (float) args[2];
 					}
-					if (args[3] instanceof Double) {
-						scale_z = (double) args[3];
+					if (args[3] instanceof Float) {
+						scale_z = (float) args[3];
 					}
 				}
-				mFactorX = (float)(max_control_value * scale_x / (mMaxX != mMinX ? Math.abs(mMaxX - mMinX) : 1.0));
-				mFactorY = (float)(max_control_value * scale_y / (mMaxY != mMinY ? Math.abs(mMaxY - mMinY) : 1.0));
-				mFactorZ = (float)(max_control_value * scale_z / (mMaxZ != mMinZ ? Math.abs(mMaxZ - mMinZ) : 1.0));
+				mFactorX = max_control_value * scale_x / (mMaxX != mMinX ? Math.abs(mMaxX - mMinX) : 1.0f);
+				mFactorY = max_control_value * scale_y / (mMaxY != mMinY ? Math.abs(mMaxY - mMinY) : 1.0f);
+				mFactorZ = max_control_value * scale_z / (mMaxZ != mMinZ ? Math.abs(mMaxZ - mMinZ) : 1.0f);
 				if (DEBUG) Log.v(TAG, String.format("factor(%f,%f,%f)", mFactorX, mFactorY, mFactorZ));
 				if (!isPrepared())
 					throw new RuntimeException("prepareできてない");
@@ -198,7 +197,7 @@ public class TouchFlight implements IAutoFlight {
 						}
 						if (!mIsPlayback) break;
 						try {
-							if (mAutoFlightListener.onStep(CMD_MOVE, values, t)) {
+							if (mAutoFlightListener.onStep(CMD_MOVE4, values, t)) {
 								// trueが返ってきたので終了する
 								break;
 							}

@@ -475,7 +475,7 @@ public abstract class DeviceController implements IDeviceController {
 			mLooperThread.stopThread();
 		}
         /* Create the looper thread */
-		mLooperThread = new ControllerLooperThread();
+		mLooperThread = new ControllerLooperThread((mNetConfig.getPCMDLoopIntervalsMs() * 2) / MAX_CNT);
 
         /* Start the looper thread. */
 		mLooperThread.start();
@@ -1310,6 +1310,7 @@ public abstract class DeviceController implements IDeviceController {
 	public void setFlag(final int flag) {
 		synchronized (mDataSync) {
 			mDataPCMD.flag = (byte)(flag == 0 ? 0 : (flag != 0 ? 1 : 0));
+			mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1321,8 +1322,7 @@ public abstract class DeviceController implements IDeviceController {
 	public void setGaz(final int gaz) {
 		synchronized (mDataSync) {
 			mDataPCMD.gaz = gaz > 100 ? 100 : (gaz < -100 ? -100 : gaz);
-			if (--mDataPCMD.cnt <= 1)
-				mDataPCMD.cnt = 1;
+			mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1334,8 +1334,22 @@ public abstract class DeviceController implements IDeviceController {
 	public void setRoll(final int roll) {
 		synchronized (mDataSync) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
-			if (--mDataPCMD.cnt <= 1)
-				mDataPCMD.cnt = 1;
+			if (--mDataPCMD.cnt <= 2)
+				mDataPCMD.cnt = 2;
+		}
+	}
+
+	/**
+	 * 機体を左右に傾ける
+	 * @param roll 負:左, 正:右, -100〜+100
+	 * @param move, true:移動, false:機体姿勢変更
+	 */
+	@Override
+	public void setRoll(final int roll, final boolean move) {
+		synchronized (mDataSync) {
+			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
+			mDataPCMD.flag = move ? 1 : 0;
+			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1347,8 +1361,22 @@ public abstract class DeviceController implements IDeviceController {
 	public void setPitch(final int pitch) {
 		synchronized (mDataSync) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
-			if (--mDataPCMD.cnt <= 1)
-				mDataPCMD.cnt = 1;
+			if (--mDataPCMD.cnt <= 2)
+				mDataPCMD.cnt = 2;
+		}
+	}
+
+	/**
+	 * 機首を上げ下げする
+	 * @param pitch 負:??? 正:???, -100〜+100
+	 * @param move, true:移動, false:機体姿勢変更
+	 */
+	@Override
+	public void setPitch(final int pitch, final boolean move) {
+		synchronized (mDataSync) {
+			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
+			mDataPCMD.flag = move ? 1 : 0;
+			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1360,8 +1388,7 @@ public abstract class DeviceController implements IDeviceController {
 	public void setYaw(final int yaw) {
 		synchronized (mDataSync) {
 			mDataPCMD.yaw = yaw > 100 ? 100 : (yaw < -100 ? -100 : yaw);
-			if (--mDataPCMD.cnt <= 1)
-				mDataPCMD.cnt = 1;
+			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1373,8 +1400,39 @@ public abstract class DeviceController implements IDeviceController {
 	public void setHeading(final int heading) {
 		synchronized (mDataSync) {
 			mDataPCMD.heading = heading;
-			if (--mDataPCMD.cnt <= 1)
-				mDataPCMD.cnt = 1;
+			mDataPCMD.cnt = 2;
+		}
+	}
+
+	/**
+	 * 移動量(傾き)をセット
+	 * @param roll 負:左, 正:右, -100〜+100
+	 * @param pitch 負:??? 正:???, -100〜+100
+	 */
+	@Override
+	public void setMove(final int roll, final int pitch) {
+		synchronized (mDataSync) {
+			mDataPCMD.roll = roll;
+			mDataPCMD.pitch = pitch;
+			mDataPCMD.flag = 1;
+			mDataPCMD.cnt = 2;
+		}
+	}
+
+	/**
+	 * 移動量(傾き)をセット
+	 * @param roll 負:左, 正:右, -100〜+100
+	 * @param pitch 負:??? 正:???, -100〜+100
+	 * @param gaz 負:下降, 正:上昇, -100〜+100
+	 */
+	@Override
+	public void setMove(final int roll, final int pitch, final int gaz) {
+		synchronized (mDataSync) {
+			mDataPCMD.roll = roll;
+			mDataPCMD.pitch = pitch;
+			mDataPCMD.gaz = gaz;
+			mDataPCMD.flag = 1;
+			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1393,7 +1451,7 @@ public abstract class DeviceController implements IDeviceController {
 			mDataPCMD.gaz = gaz;
 			mDataPCMD.yaw = yaw;
 			mDataPCMD.flag = 1;
-			mDataPCMD.cnt = 0;
+			mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1413,7 +1471,7 @@ public abstract class DeviceController implements IDeviceController {
 			mDataPCMD.gaz = gaz;
 			mDataPCMD.yaw = yaw;
 			mDataPCMD.flag = flag;
-			mDataPCMD.cnt = 0;
+			mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1576,6 +1634,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	private static final int MAX_CNT = 5;
+
 	private static final class DataPCMD {
 		public int flag;
 		public int roll;
@@ -1687,12 +1746,11 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-	/** 操縦コマンド送信間隔[ミリ秒] */
-	private static final long CMD_SENDING_INTERVALS_MS = 20;
-
 	/** 操縦コマンドを定期的に送信するためのスレッド */
 	protected class ControllerLooperThread extends LooperThread {
-		public ControllerLooperThread() {
+		private final long intervals_ms;
+		public ControllerLooperThread(final long _intervals_ms) {
+			intervals_ms = _intervals_ms;
 		}
 
 		@Override
@@ -1728,7 +1786,7 @@ public abstract class DeviceController implements IDeviceController {
 			}
 
 			// 次の送信予定時間までの休止時間を計算[ミリ秒]
-			final long sleepTime = (SystemClock.elapsedRealtime() + CMD_SENDING_INTERVALS_MS) - lastTime;
+			final long sleepTime = (SystemClock.elapsedRealtime() + intervals_ms) - lastTime;
 
 			try {
 				Thread.sleep(sleepTime);

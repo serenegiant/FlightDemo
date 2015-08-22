@@ -38,9 +38,9 @@ import com.parrot.arsdk.arstream.ARStreamReader;
 public final class ARNetworkConfigARDrone3 extends ARNetworkConfig
 {
     private static final String TAG = ARNetworkConfigARDrone3.class.getSimpleName();
-    
-    static
-    {
+
+    public ARNetworkConfigARDrone3() {
+        pcmdLoopIntervalsMs = 25;
         iobufferC2dNak = 10;
         iobufferC2dAck = 11;
         iobufferC2dEmergency = 12;

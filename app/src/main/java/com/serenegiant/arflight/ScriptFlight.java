@@ -93,7 +93,7 @@ public class ScriptFlight implements IAutoFlight {
 					cmd_values[1] = args.get(1).intValue();	// pitch
 					cmd_values[2] = args.get(2).intValue();	// gaz
 					cmd_values[3] = args.get(3).intValue();	// yaw
-					if (mAutoFlightListener.onStep(CMD_MOVE, cmd_values, getCurrentTime())) {
+					if (mAutoFlightListener.onStep(CMD_MOVE4, cmd_values, getCurrentTime())) {
 						stop();
 					}
 				} catch (final Exception e) {

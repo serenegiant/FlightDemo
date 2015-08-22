@@ -16,7 +16,9 @@ public interface IAutoFlight {
 	public static final int CMD_TURN = 6;			// 右回転: yaw>0, 左回転: ywa<0
 	public static final int CMD_COMPASS = 7;		// 北磁極に対する角度を指定-360-360度
 
-	public static final int CMD_MOVE = 9;			// roll + pitch + gaz + yaw
+	public static final int CMD_MOVE4 = 9;			// roll + pitch + gaz + yaw
+	public static final int CMD_MOVE3 = 10;			// roll + pitch + gaz
+	public static final int CMD_MOVE2 = 11;			// roll + pitch
 
 	public static final int CMD_FLIP = 100;			// 1:前, 2:後, 3:右, 4:左
 	public static final int CMD_CAP = 101;			// -180〜180度

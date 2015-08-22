@@ -38,8 +38,8 @@ public final class ARNetworkConfigJumpingSumo extends ARNetworkConfig
 {
     private static final String TAG = ARNetworkConfigJumpingSumo.class.getSimpleName();
     
-    static
-    {
+    public ARNetworkConfigJumpingSumo() {
+        pcmdLoopIntervalsMs = 25;
         iobufferC2dNak = 10;
         iobufferC2dAck = 11;
         iobufferC2dEmergency = 12;

@@ -2,7 +2,6 @@ package com.serenegiant.flightdemo;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -31,7 +30,6 @@ import com.serenegiant.widget.StickView.OnStickMoveListener;
 import com.serenegiant.widget.TouchPilotView;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,43 +50,43 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		return fragment;
 	}
 
-	private View mControllerView;	// 操作パネル
+	private View mControllerView;			// 操作パネル全体
 	// 上パネル
 	private View mTopPanel;
-	private TextView mBatteryLabel;
-	private ImageButton mFlatTrimBtn;	// フラットトリム
-	private TextView mAlertMessage;
+	private TextView mBatteryLabel;			// バッテリー残量表示
+	private ImageButton mFlatTrimBtn;		// フラットトリム
+	private TextView mAlertMessage;			// 非常メッセージ
 	// 下パネル
 	private View mBottomPanel;
-	private ImageButton mEmergencyBtn;	// 非常停止ボタン
-	private ImageButton mTakeOnOffBtn;	// 離陸/着陸ボタン
-	private ImageButton mRecordBtn;		// 記録ボタン
+	private ImageButton mEmergencyBtn;		// 非常停止ボタン
+	private ImageButton mTakeOnOffBtn;		// 離陸/着陸ボタン
+	private ImageButton mRecordBtn;			// 記録ボタン
 	private TextView mRecordLabel;
-	private ImageButton mPlayBtn;		// 再生ボタン
+	private ImageButton mPlayBtn;			// 再生ボタン
 	private TextView mPlayLabel;
-	private ImageButton mLoadBtn;		// 読み込みボタン
-	private ImageButton mConfigShowBtn;	// 設定パネル表示ボタン
+	private ImageButton mLoadBtn;			// 読み込みボタン
+	private ImageButton mConfigShowBtn;		// 設定パネル表示ボタン
 	private TextView mTimeLabelTv;
-	private ImageButton mClearButton;	// クリアボタン(タッチ描画操縦)
-	private ImageButton mMoveButton;	// 移動ボタン(タッチ描画操縦)
+	private ImageButton mClearButton;		// クリアボタン(タッチ描画操縦)
+	private ImageButton mMoveButton;		// 移動ボタン(タッチ描画操縦)
 	// 右サイドパネル
 	private View mRightSidePanel;
 	// 左サイドパネル
 	private View mLeftSidePanel;
-	// 右スティックパネル
-	private StickView mRightStickPanel;
-	// 左スティックパネル
-	private StickView mLeftStickPanel;
-	// タッチ描画パネル
-	private TouchPilotView mTouchPilotView;	// (タッチ描画操縦)
-	/** 操縦に使用するボタン等。操作可・不可に応じてenable/disableを切り替える */
-	private final List<View> mActionViews = new ArrayList<View>();
+	// 操縦用
+	private StickView mRightStickPanel;		// 右スティックパネル
+	private StickView mLeftStickPanel;		// 左スティックパネル
+	private TouchPilotView mTouchPilotView;	// タッチ描画パネル
+	// サイドメニュー
 	private SideMenuListView mSideMenuListView;
-
-
+	/** 操縦に使用するボタン等の一括変更用。操作可・不可に応じてenable/disableを切り替える */
+	private final List<View> mActionViews = new ArrayList<View>();
+	/** 飛行記録 */
 	private final FlightRecorder mFlightRecorder;
+	/** スクリプト操縦 */
 	private final ScriptFlight mScriptFlight;
 	private boolean mScriptRunning;
+	/** タッチ描画操縦 */
 	private final TouchFlight mTouchFlight;
 	private boolean mTouchMoveRunning;
 
@@ -497,19 +495,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			my = (my / CTRL_STEP) * CTRL_STEP;
 			switch (view.getId()) {
 			case R.id.stick_view_right: {
-				if (mx != mPrevRightMX) {
+				if ((mx != mPrevRightMX) || ((my != mPrevRightMY))) {
 					mPrevRightMX = mx;
-					if (mController != null) {
-						mController.setRoll((byte) mx);
-						mController.setFlag((byte) (mx != 0 ? 1 : 0));
-						mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, mx);
-					}
-				}
-				if (my != mPrevRightMY) {
 					mPrevRightMY = my;
 					if (mController != null) {
-						mController.setPitch((byte) -my);
-						mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -my);
+						mController.setMove((byte) mx, (byte) -my);
+						mFlightRecorder.record(FlightRecorder.CMD_MOVE2, mx);
 					}
 				}
 				break;
@@ -753,10 +744,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mTouchMoveRunning = true;
 			try {
 				final SharedPreferences pref = getActivity().getPreferences(0);
-				final double max_control_value = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
-				final double scale_x = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_X, 1.0f);
-				final double scale_y = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Y, 1.0f);
-				final double scale_z = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Z, 1.0f);
+				final float max_control_value = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
+				final float scale_x = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_X, 1.0f);
+				final float scale_y = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Y, 1.0f);
+				final float scale_z = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Z, 1.0f);
 				mTouchFlight.prepare(max_control_value, scale_x, scale_y, scale_z);
 			} catch (final Exception e) {
 				mTouchMoveRunning = false;
@@ -777,6 +768,16 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			updateButtons();
 		}
 	}
+
+	private static final String asString(final int[] values) {
+		final int n = values != null ? values.length : 0;
+		final StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < n; i++) {
+			sb.append(values[i]).append(",");
+		}
+		return sb.toString();
+	}
+
 
 	/**
 	 * 自動フライト実行時のコールバックリスナー
@@ -815,7 +816,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public boolean onStep(final int cmd, final int[] values, final long t) {
-			if (DEBUG) Log.v(TAG, String.format("mAutoFlightListener#onStep:cmd=%d,t=%d,v=" , cmd, t) + values);
+			if (DEBUG) Log.v(TAG, String.format("mAutoFlightListener#onStep:cmd=%d,t=%d,v=[%s]" , cmd, t, asString(values)));
 			updateTime(t);
 			if (mController != null) {
 				switch (cmd) {
@@ -844,8 +845,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				case IAutoFlight.CMD_COMPASS:		// 北磁極に対する角度 -360〜360度
 					mController.setHeading(values[0]);	// 実際は浮動小数点だけど
 					break;
-				case IAutoFlight.CMD_MOVE:
-					mController.setMove((byte) values[0], (byte)values[1], (byte)values[2], (byte)values[3]);
+				case IAutoFlight.CMD_MOVE4:
+					mController.setMove((byte) values[0], (byte) values[1], (byte) values[2], (byte) values[3]);
+					break;
+				case IAutoFlight.CMD_MOVE3:
+					mController.setMove((byte) values[0], (byte)values[1], (byte)values[2]);
+					break;
+				case IAutoFlight.CMD_MOVE2:
+					mController.setMove((byte) values[0], (byte)values[1]);
 					break;
 				case IAutoFlight.CMD_FLIP:			// フリップ
 					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(values[0]);

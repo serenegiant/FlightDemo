@@ -38,8 +38,8 @@ public final class ARNetworkConfigMiniDrone extends ARNetworkConfig
 {
     private static final String TAG = ARNetworkConfigMiniDrone.class.getSimpleName();
     
-    static
-    {
+    public ARNetworkConfigMiniDrone() {
+        pcmdLoopIntervalsMs = 50;
         iobufferC2dNak = 10;
         iobufferC2dAck = 11;
         iobufferC2dEmergency = 12;

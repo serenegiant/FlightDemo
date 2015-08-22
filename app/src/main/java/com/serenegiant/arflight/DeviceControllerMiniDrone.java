@@ -66,7 +66,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		ARCommand.setMiniDroneSettingsStateProductInertialVersionChangedListener(mSettingsStateProductInertialVersionChangedListener);
 		ARCommand.setMiniDroneSettingsStateCutOutModeChangedListener(mSettingsStateCutOutModeChangedListener);
 		ARCommand.setMiniDroneFloodControlStateFloodControlChangedListener(mFloodControlStateFloodControlChangedListener);
-
 	}
 
 	/**

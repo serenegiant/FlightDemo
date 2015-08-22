@@ -39,25 +39,26 @@ import java.util.List;
 public abstract class ARNetworkConfig {
 	private static final String TAG = "NetworkConfig";
 
-	protected static int iobufferC2dNak = -1;
-	protected static int iobufferC2dAck = -1;
-	protected static int iobufferC2dEmergency = -1;
-	protected static int iobufferC2dArstreamAck = -1;
-	protected static int iobufferD2cNavdata = -1;
-	protected static int iobufferD2cEvents = -1;
-	protected static int iobufferD2cArstreamData = -1;
+	protected long pcmdLoopIntervalsMs = 50;
+	protected int iobufferC2dNak = -1;
+	protected int iobufferC2dAck = -1;
+	protected int iobufferC2dEmergency = -1;
+	protected int iobufferC2dArstreamAck = -1;
+	protected int iobufferD2cNavdata = -1;
+	protected int iobufferD2cEvents = -1;
+	protected int iobufferD2cArstreamData = -1;
 
-	protected static int inboundPort = -1;
-	protected static int outboundPort = -1;
+	protected int inboundPort = -1;
+	protected int outboundPort = -1;
 
-	protected static List<ARNetworkIOBufferParam> c2dParams = new ArrayList<ARNetworkIOBufferParam>();
-	protected static List<ARNetworkIOBufferParam> d2cParams = new ArrayList<ARNetworkIOBufferParam>();
-	protected static int commandsBuffers[] = {};
+	protected final List<ARNetworkIOBufferParam> c2dParams = new ArrayList<ARNetworkIOBufferParam>();
+	protected final List<ARNetworkIOBufferParam> d2cParams = new ArrayList<ARNetworkIOBufferParam>();
+	protected int commandsBuffers[] = {};
 
-	protected static boolean hasVideo = false;
-	protected static int videoMaxAckInterval = -1;
+	protected boolean hasVideo = false;
+	protected int videoMaxAckInterval = -1;
 
-	protected static int bleNotificationIDs[] = null;
+	protected int bleNotificationIDs[] = null;
 
     /*
     public static int idToIndex (int id) {
@@ -71,6 +72,10 @@ public abstract class ARNetworkConfig {
         return -1;
     }*/
 
+	public long getPCMDLoopIntervalsMs() {
+		return pcmdLoopIntervalsMs;
+	}
+	
 	/**
 	 * Return a boolean indicating whether the device supports video streaming.
 	 */
