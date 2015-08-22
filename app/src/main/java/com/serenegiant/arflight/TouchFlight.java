@@ -13,11 +13,10 @@ public class TouchFlight implements IAutoFlight {
 	private final AutoFlightListener mAutoFlightListener;
 	private final Handler mHandler;	// プライベートスレッドでの実行用
 
-	private double mMaxControlValue = 100;
-	private double mScaleX = 1.0, mScaleY = 1.0, mScaleZ = 1.0;
-	private int mMinX, mMaxX;
-	private int mMinY, mMaxY;
-	private int mMinZ, mMaxZ;
+	private float mFactorX = 1.0f, mFactorY = 1.0f, mFactorZ = 1.0f;
+	private float mMinX, mMaxX;
+	private float mMinY, mMaxY;
+	private float mMinZ, mMaxZ;
 	private int mTouchPointNums;
 	private float[] mTouchPoints;
 	private volatile boolean mIsPlayback;	// 再生中
@@ -38,14 +37,14 @@ public class TouchFlight implements IAutoFlight {
 		if (mIsPlayback) {
 			throw new IllegalStateException("既に実行中");
 		}
-      		synchronized (mSync) {
+		synchronized (mSync) {
 			if ((args != null) && (args.length == 8)) {
-				mMinX = (int) args[0];
-				mMaxX = (int) args[1];
-				mMinY = (int) args[2];
-				mMaxY = (int) args[3];
-				mMinZ = (int) args[4];
-				mMaxZ = (int) args[5];
+				mMinX = (float) args[0];
+				mMaxX = (float) args[1];
+				mMinY = (float) args[2];
+				mMaxY = (float) args[3];
+				mMinZ = (float) args[4];
+				mMaxZ = (float) args[5];
 				mTouchPointNums = (int) args[6];
 				final float[] points = (float[]) args[7];
 
@@ -55,20 +54,26 @@ public class TouchFlight implements IAutoFlight {
 				}
 				System.arraycopy(points, 0, mTouchPoints, 0, n);
 			} else {
+				double max_control_value = 100;
+				double scale_x = 1.0, scale_y = 1.0, scale_z = 1.0;
 				if ((args != null) && (args.length == 4)) {
 					if (args[0] instanceof Double) {
-						mMaxControlValue = (double) args[0];
+						max_control_value = (double) args[0];
 					}
 					if (args[1] instanceof Double) {
-						mScaleX = (double) args[1];
+						scale_x = (double) args[1];
 					}
 					if (args[2] instanceof Double) {
-						mScaleY = (double) args[2];
+						scale_y = (double) args[2];
 					}
 					if (args[3] instanceof Double) {
-						mScaleZ = (double) args[3];
+						scale_z = (double) args[3];
 					}
 				}
+				mFactorX = (float)(max_control_value * scale_x / (mMaxX != mMinX ? Math.abs(mMaxX - mMinX) : 1.0));
+				mFactorY = (float)(max_control_value * scale_y / (mMaxY != mMinY ? Math.abs(mMaxY - mMinY) : 1.0));
+				mFactorZ = (float)(max_control_value * scale_z / (mMaxZ != mMinZ ? Math.abs(mMaxZ - mMinZ) : 1.0));
+				if (DEBUG) Log.v(TAG, String.format("factor(%f,%f,%f)", mFactorX, mFactorY, mFactorZ));
 				if (!isPrepared())
 					throw new RuntimeException("prepareできてない");
 				try {
@@ -128,10 +133,8 @@ public class TouchFlight implements IAutoFlight {
 	public void clear() {
 		synchronized (mSync) {
 			if (mIsPlayback) {
-				mMaxControlValue = 100;
-				mScaleX = 1.0;
-				mScaleY = 1.0;
-				mScaleZ = 1.0;
+				mMinX = mMaxX = mMinY = mMaxY = mMinZ = mMaxZ = 0;
+				mFactorX = mFactorY = mFactorZ = 1.0f;
 				mTouchPointNums = 0;
 				mTouchPoints = null;
 			}
@@ -152,28 +155,27 @@ public class TouchFlight implements IAutoFlight {
 				Log.w(TAG, e);
 			}
 			try {
-				// FIXME ここでタッチ軌跡を操縦コマンドに変換して送信
+				// タッチ軌跡を操縦コマンドに変換して送信
 				final int n;
 				final float[] points;
 				synchronized (mSync) {
 					n = mTouchPointNums * 4;
 					points = mTouchPoints;    // ローカルコピー
 				}
-				final long start_time = System.currentTimeMillis();
 				final int[] values = new int[4];
-				final float fx = (float)(mMaxControlValue * mScaleX / (mMaxX != mMinX ? Math.abs(mMaxX - mMinX) : 1));
-				final float fy = (float)(mMaxControlValue * mScaleY / (mMaxY != mMinY ? Math.abs(mMaxY - mMinX) : 1));
-				final float fz = (float)(mMaxControlValue * mScaleZ / (mMaxZ != mMinZ ? Math.abs(mMaxZ - mMinZ) : 1));
 				values[3] = 0;	// yaw = 0
+				final float fx = mFactorX, fy = mFactorY, fz = mFactorZ;	// ローカルコピー
 				float prev_x = points[0];
 				float prev_y = points[1];
-				float prev_z = points[2];
+				float prev_z = 0;
+				final float offset_z = points[2];
 				final long touch_time = (long)points[3];
+				final long start_time = System.currentTimeMillis();
 				long current_time;
 				for (int ix = 0; mIsPlayback && (ix < n) ; ix += 4) {
 					final float x = points[ix];
 					final float y = points[ix+1];
-					final float z = points[ix+2];
+					final float z = points[ix+2] - offset_z;
 					final float dx = x - prev_x;
 					final float dy = y - prev_y;
 					final float dz = z - prev_z;
@@ -183,9 +185,9 @@ public class TouchFlight implements IAutoFlight {
 						prev_z = z;
 						values[0] = (int)(dx * fx);	// roll
 						values[1] = (int)(dy * fy);	// pitch
-						values[2] = (int)(dz * fz);	// faz
+						values[2] = (int)(dz * fz);	// gaz
 						current_time = System.currentTimeMillis() - start_time;
-						final long t = (long)points[ix+3];
+						final long t = (long)points[ix+3] - touch_time;
 						if (t > current_time) {
 							synchronized (mSync) {
 								try {

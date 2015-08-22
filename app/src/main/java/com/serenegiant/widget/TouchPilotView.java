@@ -24,9 +24,9 @@ public class TouchPilotView extends View {
 
 	public interface TouchPilotListener {
 		public void onDrawFinish(final TouchPilotView view,
-			int min_x, int max_x,
-			int min_y, int max_y,
-			int min_z, int max_z,
+			float min_x, float max_x,
+			float min_y, float max_y,
+			float min_z, float max_z,
 			int num_points, float[] points);
 	}
 
@@ -60,12 +60,12 @@ public class TouchPilotView extends View {
 	private Shader mBrushShader;
 	private BrushDrawable mBrushDrawable;
 	// 描画領域
-	private int mMinX = Integer.MAX_VALUE;
-	private int mMaxX = Integer.MIN_VALUE;
-	private int mMinY = Integer.MAX_VALUE;
-	private int mMaxY = Integer.MIN_VALUE;
-	private int mMinZ = Integer.MAX_VALUE;
-	private int mMaxZ = Integer.MIN_VALUE;
+	private float mMinX = Float.MAX_VALUE;
+	private float mMaxX = Float.MIN_VALUE;
+	private float mMinY = Float.MAX_VALUE;
+	private float mMaxY = Float.MIN_VALUE;
+	private float mMinZ = Float.MAX_VALUE;
+	private float mMaxZ = Float.MIN_VALUE;
 	/**
 	 * 描画モード
 	 */
@@ -180,7 +180,8 @@ public class TouchPilotView extends View {
 		final int action = event.getActionMasked();	// event.getAction();
 		final float xx = event.getX();
 		final float yy = event.getY();
-		final float zz = 0;	// FIXME z軸
+		final float zz = event.getPressure() * (event.getTouchMinor() + event.getTouchMajor()) / 2.0f;
+
 		switch (action) {
 		case MotionEvent.ACTION_DOWN:
 			if (DEBUG) Log.v(TAG, "ACTION_DOWN");
@@ -197,8 +198,7 @@ public class TouchPilotView extends View {
 				mListener.onDrawFinish(this, mMinX, mMaxX, mMinY, mMaxY, mMinZ, mMaxZ, pointIx / 4, points);
 			}
 			pointIx = 0;
-			break;
-//			return true;
+			return true;
 //		case MotionEvent.ACTION_MOVE:
 //		case MotionEvent.ACTION_HOVER_MOVE:
 //			if (DEBUG) Log.v(TAG, "ACTION_MOVE");
@@ -207,8 +207,7 @@ public class TouchPilotView extends View {
 		case MotionEvent.ACTION_CANCEL:
 //			if (DEBUG) Log.v(TAG, "ACTION_CANCEL");
 			pointIx = 0;
-			break;
-//			return true;
+			return true;
 		}
 //		final int buttonState = event.getButtonState();
 //		final int pressedButtons = buttonState & ~mOldButtonState;
@@ -264,17 +263,17 @@ public class TouchPilotView extends View {
 					event.getAxisValue(MotionEvent.AXIS_TILT, j)
 				);
 			}
-			mMinX = Math.min(mMinX, (int) xx);
-			mMaxX = Math.max(mMaxX, (int) xx);
-			mMinY = Math.min(mMinY, (int) yy);
-			mMaxY = Math.max(mMaxY, (int) yy);
-			mMinZ = Math.min(mMinZ, (int) zz);
-			mMaxZ = Math.max(mMaxZ, (int) zz);
+			mMinX = Math.min(mMinX, xx);
+			mMaxX = Math.max(mMaxX, xx);
+			mMinY = Math.min(mMinY, yy);
+			mMaxY = Math.max(mMaxY, yy);
+			mMinZ = Math.min(mMinZ, zz);
+			mMaxZ = Math.max(mMaxZ, zz);
 
 			addPoint(xx, yy, zz, event.getEventTime() - touchTime);
 		}
 //		return super.onTouchEvent(event);
-		return true;
+		return true;	// trueを返さないと他のイベントが来ない
 	}
 
 	public void clear() {
@@ -286,8 +285,8 @@ public class TouchPilotView extends View {
 
 			mFadeSteps = MAX_FADE_STEPS;
 		}
-		mMinX = mMinY = Integer.MAX_VALUE;
-		mMaxX = mMaxY = Integer.MIN_VALUE;
+		mMinX = mMinY = mMinZ = Float.MAX_VALUE;
+		mMaxX = mMaxY = mMaxZ = Float.MIN_VALUE;
 	}
 
 	private PaintMode getPaintModeForTool(final int toolType, final PaintMode defaultMode) {
@@ -321,9 +320,10 @@ public class TouchPilotView extends View {
 				// If size is not available, use a default value.
 				major = minor = 16;
 			}
+			final float alpha;
 			if (mBrushDrawable != null) {
 				final int alpha_org = mBrushDrawable.getPaintAlpha();
-				final float alpha = Math.min(pressure * 128, 255.0f);
+				alpha = Math.min(pressure * 128, 255.0f);
 				major *= (alpha / 500.0f);
 				minor *= (alpha / 500.0f);
 				switch (mode) {
@@ -344,7 +344,7 @@ public class TouchPilotView extends View {
 				mBrushDrawable.setPaintAlpha(alpha_org);
 			} else {
 				final int alpha_org = mPaint.getAlpha();
-				final float alpha = Math.min(pressure * 128, 255.0f);
+				alpha = Math.min(pressure * 128, 255.0f);
 				major *= (alpha / 500.0f);
 				minor *= (alpha / 500.0f);
 				switch (mode) {
@@ -367,10 +367,12 @@ public class TouchPilotView extends View {
 				}
 				mPaint.setAlpha(alpha_org);
 			}
-			mMinX = Math.min(mMinX, (int)(x - major));
-			mMaxX = Math.max(mMaxX, (int)(x + major));
-			mMinY = Math.min(mMinY, (int)(y - minor));
-			mMaxY = Math.max(mMaxY, (int)(y + minor));
+			mMinX = Math.min(mMinX, x - major);
+			mMaxX = Math.max(mMaxX, x + major);
+			mMinY = Math.min(mMinY, y - minor);
+			mMaxY = Math.max(mMaxY, y + minor);
+			mMinZ = Math.min(mMinZ, pressure);
+			mMaxZ = Math.max(mMaxZ, pressure);
 		}
 		mFadeSteps = 0;
 		invalidate();
@@ -395,10 +397,7 @@ public class TouchPilotView extends View {
 		try {
 			canvas.translate(x, y);
 			canvas.rotate(orientation * TO_DEGREE);
-			mBrushRect.left = -minor;
-			mBrushRect.right = minor;
-			mBrushRect.top = -major;
-			mBrushRect.bottom = major;
+			mBrushRect.set(-minor, -major, minor, major);
 			mBrushRect.round(mBrushBounds);
 			mBrushDrawable.setBounds(mBrushBounds);
 			mBrushDrawable.draw(canvas);
@@ -414,10 +413,7 @@ public class TouchPilotView extends View {
 		try {
 			canvas.translate(x, y);
 			canvas.rotate(orientation * TO_DEGREE);
-			mBrushRect.left = -minor;
-			mBrushRect.right = minor;
-			mBrushRect.top = -major;
-			mBrushRect.bottom = major;
+			mBrushRect.set(-minor, -major, minor, major);
 			canvas.drawOval(mBrushRect, paint);	// 円(楕円)でプロットするとき
 //			canvas.drawRect(mBrushRect, paint);	// 四角でプロットするとき
 		} finally {
@@ -487,16 +483,16 @@ public class TouchPilotView extends View {
 
 	/**
 	 * タッチ座標を追加
-	 * @param xx
-	 * @param yy
-	 * @param zz
-	 * @param tt
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param t
 	 */
-	private final void addPoint(final float xx, final float yy, final float zz, final long tt) {
-		points[pointIx] = xx;
-		points[pointIx+1] = yy;
-		points[pointIx+2] = zz;
-		points[pointIx+3] = (float)tt;
+	private final void addPoint(final float x, final float y, final float z, final long t) {
+		points[pointIx] = x;
+		points[pointIx+1] = y;
+		points[pointIx+2] = z;
+		points[pointIx+3] = (float)t;
 		pointIx = (pointIx + 4) % MAX_POINTS;
 	}
 

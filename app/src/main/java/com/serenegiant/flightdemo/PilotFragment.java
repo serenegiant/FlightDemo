@@ -539,9 +539,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final TouchPilotView.TouchPilotListener mTouchPilotListener = new  TouchPilotView.TouchPilotListener() {
 		@Override
 		public void onDrawFinish(final TouchPilotView view,
-			final int min_x, final int max_x,
-			final int min_y, final int max_y,
-			final int min_z, final int max_z,
+			final float min_x, final float max_x,
+			final float min_y, final float max_y,
+			final float min_z, final float max_z,
 			final int num_points, final float[] points) {
 			if (DEBUG) Log.v(TAG, "onDrawFinish:" + num_points);
 			mTouchFlight.prepare(min_x, max_x, min_y, max_y, min_z, max_z, num_points, points);
@@ -752,7 +752,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
 			mTouchMoveRunning = true;
 			try {
-				mTouchFlight.prepare();
+				final SharedPreferences pref = getActivity().getPreferences(0);
+				final double max_control_value = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
+				final double scale_x = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_X, 1.0f);
+				final double scale_y = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Y, 1.0f);
+				final double scale_z = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Z, 1.0f);
+				mTouchFlight.prepare(max_control_value, scale_x, scale_y, scale_z);
 			} catch (final Exception e) {
 				mTouchMoveRunning = false;
 				Log.w(TAG, e);
