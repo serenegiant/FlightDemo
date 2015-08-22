@@ -854,6 +854,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					((DeviceControllerMiniDrone) mController).sendAnimationsCap(values[0]);
 					break;
 				}
+				if (mTouchMoveRunning && mFlightRecorder.isRecording()) {
+					mFlightRecorder.record(cmd, values);
+				}
 				return false;
 			} else {
 				return true;
