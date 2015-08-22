@@ -96,8 +96,6 @@ public abstract class DeviceController implements IDeviceController {
 
 	private final Object mStateSync = new Object();
 	private int mState = STATE_STOPPED;
-	private int mFlyingState = 0;
-	private int mAlarmState = ALARM_NON;
 
 	protected final Object mDataSync = new Object();
 	private final DataPCMD mDataPCMD = new DataPCMD();
@@ -106,6 +104,8 @@ public abstract class DeviceController implements IDeviceController {
 	private final Object mListenerSync = new Object();
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 	private final List<DeviceControllerListener> mListeners = new ArrayList<DeviceControllerListener>();
+
+	protected StatusDrone mAttributeDrone;
 
 	public DeviceController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		mContext = context;
@@ -130,21 +130,13 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public int getState() {
 		synchronized (mStateSync) {
-			return mState + (mFlyingState << 8);
+			return mState + (mAttributeDrone.getFlyingState() << 8);
 		}
 	}
 
 	@Override
 	public int getAlarm() {
-		return mAlarmState;
-	}
-
-	protected void setAlarm(final int alarm) {
-		mAlarmState = alarm;
-	}
-
-	protected void setFlyingState(final int flying_state) {
-		mFlyingState = flying_state;
+		return mAttributeDrone.getAlarm();
 	}
 
 	@Override
@@ -153,7 +145,7 @@ public abstract class DeviceController implements IDeviceController {
 
 		synchronized (mStateSync) {
 			if (mState != STATE_STOPPED) return false;
-			mAlarmState = 0;
+			mAttributeDrone.setAlarm(StatusDrone.ALARM_NON);
 			mState = STATE_STARTING;
 		}
 		registerARCommandsListener();
@@ -246,7 +238,7 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public boolean isConnected() {
 		synchronized (mStateSync) {
-			return (mState == STATE_STARTED) && (mAlarmState != ALARM_DISCONNECTED);
+			return (mState == STATE_STARTED) && mAttributeDrone.isConnected();
 		}
 	}
 
@@ -1042,8 +1034,8 @@ public abstract class DeviceController implements IDeviceController {
 			if (listener instanceof DeviceControllerListener) {
 				mListeners.add((DeviceControllerListener) listener);
 				callOnUpdateBattery(mBatteryState);
-				callOnAlarmStateChangedUpdate(mAlarmState);
-				callOnFlyingStateChangedUpdate(mFlyingState);
+				callOnAlarmStateChangedUpdate(mAttributeDrone.getAlarm());
+				callOnFlyingStateChangedUpdate(mAttributeDrone.getFlyingState());
 			}
 		}
 	}
@@ -1195,9 +1187,15 @@ public abstract class DeviceController implements IDeviceController {
 
 	/**
 	 * 操縦コマンドを送信
+	 * @param flag flag to activate roll/pitch movement
+	 * @param roll [-100,100]
+	 * @param pitch [-100,100]
+	 * @param yaw [-100,100]
+	 * @param gaz [-100,100]
+	 * @param heading [-180,180]
 	 * @return
 	 */
-	protected abstract boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int psi);
+	protected abstract boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading);
 
 	@Override
 	public boolean sendAllSettings() {
@@ -1503,6 +1501,26 @@ public abstract class DeviceController implements IDeviceController {
 		return mMaxRotationSpeed;
 	}
 
+	protected boolean mCutOffMode;
+	/**
+	 * モーターの自動カット機能が有効かどうかを取得する
+	 * @return
+	 */
+	@Override
+	public boolean isCutoffModeEnabled() {
+		return mCutOffMode;
+	}
+
+	protected boolean mAutoTakeOffMode;
+
+	/**
+	 * 自動離陸モードが有効かどうかを取得する
+	 * @return
+	 */
+	public boolean isAutoTakeOffModeEnabled() {
+		return mAutoTakeOffMode;
+	}
+
 	private static final int MOTOR_NUMS = 4;
 	protected final AttributeMotor[] mMotors = new AttributeMotor[MOTOR_NUMS];
 
@@ -1609,8 +1627,8 @@ public abstract class DeviceController implements IDeviceController {
 		public void onDisconnect(final ARNetworkALManager arNetworkALManager) {
 			if (DEBUG) Log.d(TAG, "onDisconnect ...");
 			DeviceController.this.stop();
-			mAlarmState = ALARM_DISCONNECTED;
-			callOnAlarmStateChangedUpdate(mAlarmState);
+			mAttributeDrone.setAlarm(StatusDrone.ALARM_DISCONNECTED);
+			callOnAlarmStateChangedUpdate(StatusDrone.ALARM_DISCONNECTED);
 			callOnDisconnect();
 		}
 	}

@@ -33,21 +33,6 @@ public interface IDeviceController {
 	public static final int STATE_STARTED = 0x0002;
 	public static final int STATE_STOPPING = 0x0003;
 
-	public static final int STATE_FLYING_LANDED = 0x0000;		// FlyingState=0
-	public static final int STATE_FLYING_TAKEOFF = 0x0100;		// FlyingState=1
-	public static final int STATE_FLYING_HOVERING = 0x0200;		// FlyingState=2
-	public static final int STATE_FLYING_FLYING = 0x0300;		// FlyingState=3
-	public static final int STATE_FLYING_LANDING = 0x0400;		// FlyingState=4
-	public static final int STATE_FLYING_EMERGENCY = 0x0500;	// FlyingState=5
-	public static final int STATE_FLYING_ROLLING = 0x0600;		// FlyingState=6
-
-	public static final int ALARM_NON = 0;
-	public static final int ALARM_USER_EMERGENCY = 1;
-	public static final int ALARM_CUTOUT = 2;
-	public static final int ALARM_BATTERY_CRITICAL = 3;
-	public static final int ALARM_BATTERY = 4;
-	public static final int ALARM_DISCONNECTED = 100;
-
 	/**
 	 * 機体名を取得, ローリングスパイダーだとrs_xxxxxって奴
 	 * @return
@@ -203,6 +188,8 @@ public interface IDeviceController {
 	 */
 	public int getMotorNums();
 	public AttributeMotor getMotor(final int index);
+
+	public boolean isCutoffModeEnabled();
 
 	/**
 	 * roll/pitch変更時が移動なのか機体姿勢変更なのかを指示

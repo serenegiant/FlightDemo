@@ -40,6 +40,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 	public DeviceControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigMiniDrone());
+		mAttributeDrone = new StatusDrone();
 	}
 
 //================================================================================
@@ -113,8 +114,24 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		public void onMiniDronePilotingStateFlyingStateChangedUpdate(
 			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateFlyingStateChangedUpdate:");
-			setFlyingState(state.getValue());
+			mAttributeDrone.setFlyingState(state.getValue());
 			callOnFlyingStateChangedUpdate(getState());
+		}
+	};
+
+	/**
+	 * 機体からの異常通知時のコールバックリスナー
+	 */
+	private final ARCommandMiniDronePilotingStateAlertStateChangedListener
+		mPilotingStateAlertStateChangedListener
+		= new ARCommandMiniDronePilotingStateAlertStateChangedListener() {
+		@Override
+		public void onMiniDronePilotingStateAlertStateChangedUpdate(
+			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
+
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateAlertStateChangedUpdate:");
+			mAttributeDrone.setAlarm(state.getValue());
+			callOnAlarmStateChangedUpdate(getAlarm());
 		}
 	};
 
@@ -130,8 +147,9 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDronePilotingStateAutoTakeOffModeChangedUpdate(final byte state) {
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateAutoTakeOffModeChangedUpdate:");
-			if (mAutoTakeOffMode != state) {
-				mAutoTakeOffMode = state;
+			if (mAutoTakeOffMode != (state != 0)) {
+				mAutoTakeOffMode = (state != 0);
+				// FIXME
 			}
 		}
 	};
@@ -371,9 +389,9 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDroneSettingsStateCutOutModeChangedUpdate(final byte enable) {
 			if (DEBUG) Log.v(TAG, "onMiniDroneSettingsStateCutOutModeChangedUpdate:");
-			if (mCutOffMode != enable) {
-				mCutOffMode = enable;
-				// XXX
+			if (mCutOffMode != (enable != 0)) {
+				mCutOffMode = enable != 0;
+				// FIXME
 			}
 		}
 	};
@@ -394,26 +412,17 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		}
 	};
 
-	/**
-	 * 機体からの異常通知時のコールバックリスナー
-	 */
-	private final ARCommandMiniDronePilotingStateAlertStateChangedListener
-		mPilotingStateAlertStateChangedListener
-			= new ARCommandMiniDronePilotingStateAlertStateChangedListener() {
-		@Override
-		public void onMiniDronePilotingStateAlertStateChangedUpdate(
-			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
-
-			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateAlertStateChangedUpdate:");
-			callOnAlarmStateChangedUpdate(state.getValue());
-		}
-	};
-
 //================================================================================
 // コマンド送信関係
 //================================================================================
 	/**
 	 * 操縦コマンドを送信
+	 * @param flag flag to activate roll/pitch movement
+	 * @param roll [-100,100]
+	 * @param pitch [-100,100]
+	 * @param yaw [-100,100]
+	 * @param gaz [-100,100]
+	 * @param heading [-180,180]
 	 * @return
 	 */
 	@Override
@@ -433,6 +442,44 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send PCMD command.");
+		}
+
+		return sentStatus;
+	}
+
+	@Override
+	public boolean sendEmergency() {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingEmergency();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dEmergencyId(),
+									 cmd, ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Emergency command.");
+		}
+
+		return sentStatus;
+	}
+
+	@Override
+	public boolean sendFlatTrim() {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingFlatTrim();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+									 ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send flattrim command.");
 		}
 
 		return sentStatus;
@@ -471,44 +518,6 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send Landing command.");
-		}
-
-		return sentStatus;
-	}
-
-	@Override
-	public boolean sendEmergency() {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingEmergency();
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dEmergencyId(),
-				cmd, ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "Failed to send Emergency command.");
-		}
-
-		return sentStatus;
-	}
-
-	@Override
-	public boolean sendFlatTrim() {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingFlatTrim();
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "Failed to send flattrim command.");
 		}
 
 		return sentStatus;
@@ -618,36 +627,16 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	public int getMotorNums() {
 		return 4;
 	}
-
-	private int mCutOffMode = -1;
-
-	/**
-	 * モーターの自動カット機能が有効かどうかを取得する
-	 * @return
-	 */
-	public boolean isCutoffModeEnabled() {
-		return mCutOffMode == 1;
-	}
-
 	/**
 	 * モーターの自動カット機能のon/off
 	 * @param enabled
 	 * @return
 	 */
 	public boolean sendCutOutMode(final boolean enabled) {
-		return sendCutOutMode((byte)(enabled ? 1: 0));
-	}
-
-	/**
-	 * モーターの自動カット機能のon/off
-	 * @param enabled
-	 * @return
-	 */
-	public boolean sendCutOutMode(final byte enabled) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSettingsCutOutMode(enabled);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSettingsCutOutMode((byte)(enabled ? 1: 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -661,29 +650,16 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		return sentStatus;
 	}
 
-	private int mAutoTakeOffMode = -1;
-
-	/**
-	 * 自動離陸モードが有効かどうかを取得する
-	 * @return
-	 */
-	public boolean isAutoTakeOffModeEnabled() {
-		return mAutoTakeOffMode == 1;
-	}
-
-	public boolean sendAutoTakeOffMode(final boolean enable) {
-		return sendAutoTakeOffMode((byte)(enable ? 1: 0));
-	}
 	/**
 	 * 自動離陸モードの有効/無効を設定
 	 * @param enable
 	 * @return
 	 */
-	public boolean sendAutoTakeOffMode(final byte enable) {
+	public boolean sendAutoTakeOffMode(final boolean enable) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingAutoTakeOffMode(enable);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingAutoTakeOffMode((byte)(enable ? 1: 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -703,14 +679,10 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	}
 
 	public boolean sendWheel(final boolean has_wheel) {
-		return sendWheel((byte)(has_wheel ? 1 : 0));
-	}
-
-	public boolean sendWheel(final byte has_wheel) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSpeedSettingsWheels(has_wheel);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSpeedSettingsWheels((byte)(has_wheel ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);

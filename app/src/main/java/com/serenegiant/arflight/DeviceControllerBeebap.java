@@ -14,10 +14,14 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTA
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSETTINGS_WIFISELECTION_BAND_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSETTINGS_WIFISELECTION_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFIAUTHCHANNELLISTCHANGED_BAND_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_BAND_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PICTURESETTINGSSTATE_AUTOWHITEBALANCECHANGED_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PICTURESETTINGSSTATE_PICTUREFORMATCHANGED_TYPE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_NAVIGATEHOMESTATECHANGED_REASON_ENUM;
@@ -71,10 +75,6 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateHullProtec
 import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateMaxRotationSpeedChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateMaxVerticalSpeedChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateOutdoorChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDroneFloodControlStateFloodControlChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDroneSettingsStateCutOutModeChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDroneSettingsStateProductInertialVersionChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandMiniDroneSettingsStateProductMotorsVersionChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 
@@ -84,7 +84,9 @@ public class DeviceControllerBeebap extends DeviceController {
 
 
 	public DeviceControllerBeebap(final Context context, final ARDiscoveryDeviceService service) {
-		super(context, service, new ARNetworkConfigMiniDrone());
+		super(context, service, new ARNetworkConfigARDrone3());
+		mAttributeDrone = new StatusDrone();
+		mCutOffMode = true;
 	}
 
 //================================================================================
@@ -217,8 +219,74 @@ public class DeviceControllerBeebap extends DeviceController {
 		public void onARDrone3PilotingStateFlyingStateChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
 			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateFlyingStateChangedUpdate:");
-			setFlyingState(state.getValue());
+			mAttributeDrone.setFlyingState(state.getValue());
 			callOnFlyingStateChangedUpdate(getState());
+		}
+	};
+
+	/**
+	 * 機体からの異常通知時
+	 */
+	private final ARCommandARDrone3PilotingStateAlertStateChangedListener
+		mPilotingStateAlertStateChangedListener
+		= new ARCommandARDrone3PilotingStateAlertStateChangedListener() {
+		@Override
+		public void onARDrone3PilotingStateAlertStateChangedUpdate(
+																	  final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateAlertStateChangedUpdate:");
+			mAttributeDrone.setAlarm(state.getValue());
+			callOnAlarmStateChangedUpdate(getAlarm());
+		}
+	};
+
+	/**
+	 * モーターのエラー状態が変化した時
+	 */
+	private final ARCommandARDrone3SettingsStateMotorErrorStateChangedListener
+		mSettingsStateMotorErrorStateChangedListener
+		= new ARCommandARDrone3SettingsStateMotorErrorStateChangedListener() {
+		/**
+		 * @param motorIds ビットフィールド, ビット0:モーター0, ビット1:モーター1, ビット2:モーター2, ビット3: モーター3
+		 * @param error
+		 */
+		@Override
+		public void onARDrone3SettingsStateMotorErrorStateChangedUpdate(
+			final byte motorIds,
+			final ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM error) {
+
+			if (!ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM
+					 .ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_NOERROR.equals(error)) {
+				final int err = 1 << (error.getValue() - 1);
+				for (int i = 0; i < MOTOR_NUMS; i++) {
+					if ((motorIds & (1 << i)) != 0) {
+						mMotors[i].error |= err;
+					}
+				}
+			} else {
+				for (int i = 0; i < MOTOR_NUMS; i++) {
+					if ((motorIds & (1 << i)) != 0) {
+						mMotors[i].error = AttributeMotor.ERR_MOTOR_NON;
+					}
+				}
+			}
+			// FIXME
+		}
+	};
+
+	/**
+	 * 最後に起こったモーターエラー
+	 */
+	private final ARCommandARDrone3SettingsStateMotorErrorLastErrorChangedListener
+		mSettingsStateMotorErrorLastErrorChangedListener
+		= new ARCommandARDrone3SettingsStateMotorErrorLastErrorChangedListener() {
+		/**
+		 * @param error 型は違うけど値はARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUMと同じ
+		 */
+		@Override
+		public void onARDrone3SettingsStateMotorErrorLastErrorChangedUpdate(
+			final ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORLASTERRORCHANGED_MOTORERROR_ENUM error) {
+			if (DEBUG) Log.v(TAG, "onARDrone3SettingsStateMotorErrorLastErrorChangedUpdate:" + error);
 		}
 	};
 
@@ -234,8 +302,8 @@ public class DeviceControllerBeebap extends DeviceController {
 		@Override
 		public void onARDrone3PilotingStateAutoTakeOffModeChangedUpdate(final byte state) {
 			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateAutoTakeOffModeChangedUpdate:");
-			if (mAutoTakeOffMode != state) {
-				mAutoTakeOffMode = state;
+			if (mAutoTakeOffMode != (state != 0)) {
+				mAutoTakeOffMode = (state != 0);
 			}
 		}
 	};
@@ -392,70 +460,6 @@ public class DeviceControllerBeebap extends DeviceController {
 		@Override
 		public void onARDrone3SettingsStateMotorSoftwareVersionChangedUpdate(final String version) {
 			mMotorSoftwareVersion = version;
-		}
-	};
-
-	/**
-	 * モーターのエラー状態が変化した時
-	 */
-	private final ARCommandARDrone3SettingsStateMotorErrorStateChangedListener
-		mSettingsStateMotorErrorStateChangedListener
-			= new ARCommandARDrone3SettingsStateMotorErrorStateChangedListener() {
-		/**
-		 * @param motorIds ビットフィールド, ビット0:モーター0, ビット1:モーター1, ビット2:モーター2, ビット3: モーター3
-		 * @param error
-		 */
-		@Override
-		public void onARDrone3SettingsStateMotorErrorStateChangedUpdate(
-			final byte motorIds,
-			final ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM error) {
-			if (!ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM
-				.ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_NOERROR.equals(error)) {
-				final int err = 1 << (error.getValue() - 1);
-				for (int i = 0; i < MOTOR_NUMS; i++) {
-					if ((motorIds & (1 << i)) != 0) {
-						mMotors[i].error |= err;
-					}
-				}
-			} else {
-				for (int i = 0; i < MOTOR_NUMS; i++) {
-					if ((motorIds & (1 << i)) != 0) {
-						mMotors[i].error = AttributeMotor.ERR_MOTOR_NON;
-					}
-				}
-			}
-			// FIXME
-		}
-	};
-
-	/**
-	 * 最後に起こったモーターエラー
-	 */
-	private final ARCommandARDrone3SettingsStateMotorErrorLastErrorChangedListener
-		mSettingsStateMotorErrorLastErrorChangedListener
-			= new ARCommandARDrone3SettingsStateMotorErrorLastErrorChangedListener() {
-		/**
-		 * @param error 型は違うけど値はARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUMと同じ
-		 */
-		@Override
-		public void onARDrone3SettingsStateMotorErrorLastErrorChangedUpdate(
-			final ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORLASTERRORCHANGED_MOTORERROR_ENUM error) {
-			if (DEBUG) Log.v(TAG, "onARDrone3SettingsStateMotorErrorLastErrorChangedUpdate:" + error);
-		}
-	};
-
-	/**
-	 * 高度が変更になった時
-	 */
-	private final ARCommandARDrone3PilotingStateAltitudeChangedListener
-		mPilotingStateAltitudeChangedListener
-		= new ARCommandARDrone3PilotingStateAltitudeChangedListener() {
-		/**
-		 * @param altitude 高度[m]
-		 */
-		@Override
-		public void onARDrone3PilotingStateAltitudeChangedUpdate(final double altitude) {
-			// FIXME
 		}
 	};
 
@@ -631,17 +635,20 @@ public class DeviceControllerBeebap extends DeviceController {
 	};
 
 	/**
-	 * 機体からの異常通知時
+	 * 高度が変更になった時
 	 */
-	private final ARCommandARDrone3PilotingStateAlertStateChangedListener
-		mPilotingStateAlertStateChangedListener
-		= new ARCommandARDrone3PilotingStateAlertStateChangedListener() {
+	private final ARCommandARDrone3PilotingStateAltitudeChangedListener
+		mPilotingStateAltitudeChangedListener
+		= new ARCommandARDrone3PilotingStateAltitudeChangedListener() {
+		/**
+		 * @param altitude 高度[m]
+		 */
 		@Override
-		public void onARDrone3PilotingStateAlertStateChangedUpdate(
-			final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
-
-			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateAlertStateChangedUpdate:");
-			callOnAlarmStateChangedUpdate(state.getValue());
+		public void onARDrone3PilotingStateAltitudeChangedUpdate(final double altitude) {
+			if (mAttributeDrone.altitude != altitude) {
+				mAttributeDrone.altitude = altitude;
+				// FIXME
+			}
 		}
 	};
 
@@ -1075,6 +1082,12 @@ public class DeviceControllerBeebap extends DeviceController {
 //================================================================================
 	/**
 	 * 操縦コマンドを送信
+	 * @param flag flag to activate roll/pitch movement
+	 * @param roll [-100,100]
+	 * @param pitch [-100,100]
+	 * @param yaw [-100,100]
+	 * @param gaz [-100,100]
+	 * @param heading [-180,180]
 	 * @return
 	 */
 	@Override
@@ -1094,6 +1107,44 @@ public class DeviceControllerBeebap extends DeviceController {
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send PCMD command.");
+		}
+
+		return sentStatus;
+	}
+
+	@Override
+	public boolean sendEmergency() {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingEmergency();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dEmergencyId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Emergency command.");
+		}
+
+		return sentStatus;
+	}
+
+	@Override
+	public boolean sendFlatTrim() {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingFlatTrim();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send flattrim command.");
 		}
 
 		return sentStatus;
@@ -1132,44 +1183,6 @@ public class DeviceControllerBeebap extends DeviceController {
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send Landing command.");
-		}
-
-		return sentStatus;
-	}
-
-	@Override
-	public boolean sendEmergency() {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingEmergency();
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dEmergencyId(),
-				cmd, ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "Failed to send Emergency command.");
-		}
-
-		return sentStatus;
-	}
-
-	@Override
-	public boolean sendFlatTrim() {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingFlatTrim();
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "Failed to send flattrim command.");
 		}
 
 		return sentStatus;
@@ -1272,6 +1285,29 @@ public class DeviceControllerBeebap extends DeviceController {
 	}
 
 	/**
+	 * AbsoluteControlの有効無効を設定
+	 * @param enable
+	 * @return
+	 */
+	public boolean sendAbsoluteControl(final boolean enable) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingSettingsAbsolutControl((byte)(enable ? 1 : 0));
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send MaxVerticalSpeed command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
 	 * モーターの個数を返す
 	 * @return
 	 */
@@ -1280,71 +1316,25 @@ public class DeviceControllerBeebap extends DeviceController {
 		return 4;
 	}
 
-	private int mCutOffMode = -1;
-
 	/**
-	 * モーターの自動カット機能が有効かどうかを取得する
-	 * @return
-	 */
-	public boolean isCutoffModeEnabled() {
-		return mCutOffMode == 1;
-	}
-
-	/**
-	 * モーターの自動カット機能のon/off
+	 * モーターの自動カット機能のon/off Beebapは常にonな気がする
 	 * @param enabled
 	 * @return
 	 */
 	public boolean sendCutOutMode(final boolean enabled) {
-		return sendCutOutMode((byte)(enabled ? 1: 0));
+		return true;
 	}
 
 	/**
-	 * FIXME モーターの自動カット機能のon/off
-	 * @param enabled
-	 * @return
-	 */
-	public boolean sendCutOutMode(final byte enabled) {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-		// FIXME
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSettingsCutOutMode(enabled);
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "Failed to send CutOutMode command.");
-		}
-
-		return sentStatus;
-	}
-
-	private int mAutoTakeOffMode = -1;
-
-	/**
-	 * 自動離陸モードが有効かどうかを取得する
-	 * @return
-	 */
-	public boolean isAutoTakeOffModeEnabled() {
-		return mAutoTakeOffMode == 1;
-	}
-
-	public boolean sendAutoTakeOffMode(final boolean enable) {
-		return sendAutoTakeOffMode((byte)(enable ? 1: 0));
-	}
-	/**
-	 * FIXME 自動離陸モードの有効/無効を設定
+	 * 自動離陸モードの有効/無効を設定
 	 * @param enable
 	 * @return
 	 */
-	public boolean sendAutoTakeOffMode(final byte enable) {
+	public boolean sendAutoTakeOffMode(final boolean enable) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingAutoTakeOffMode(enable);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingAutoTakeOffMode((byte) (enable ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1363,20 +1353,16 @@ public class DeviceControllerBeebap extends DeviceController {
 		return mHasGuard == 1;
 	}
 
-	public boolean sendHasGuard(final boolean has_guard) {
-		return sendHasGuard((byte) (has_guard ? 1 : 0));
-	}
-
 	/**
-	 * FIXME ハルの有無を送信
+	 * ハルの有無を送信
 	 * @param has_guard
 	 * @return
 	 */
-	public boolean sendHasGuard(final byte has_guard) {
+	public boolean sendHasGuard(final boolean has_guard) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSpeedSettingsWheels(has_guard);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3SpeedSettingsHullProtection((byte) (has_guard ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1384,7 +1370,363 @@ public class DeviceControllerBeebap extends DeviceController {
 		}
 
 		if (!sentStatus) {
-			Log.e(TAG, "Failed to send Wheels command.");
+			Log.e(TAG, "Failed to send hull protection command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 室外モードか室内モードかを設定
+	 * @param is_outdoor
+	 * @return
+	 */
+	public boolean SendSpeedSettingsOutdoor(final boolean is_outdoor) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3SpeedSettingsOutdoor((byte) (is_outdoor ? 1 : 0));
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send hull protection command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * WiFi選択設定
+	 * @param is_auto_select
+	 * @param selection_band 0: 2.4GHz, 1: 5GHz, 2:2.4GHz+5GHz
+	 * @param channel
+	 * @return
+	 */
+	public boolean sendWifiSelection(final boolean is_auto_select, final int selection_band, int channel) {
+
+		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGS_WIFISELECTION_TYPE_ENUM type
+			= is_auto_select ? ARCOMMANDS_ARDRONE3_NETWORKSETTINGS_WIFISELECTION_TYPE_ENUM. ARCOMMANDS_ARDRONE3_NETWORKSETTINGS_WIFISELECTION_TYPE_AUTO
+			: ARCOMMANDS_ARDRONE3_NETWORKSETTINGS_WIFISELECTION_TYPE_ENUM.ARCOMMANDS_ARDRONE3_NETWORKSETTINGS_WIFISELECTION_TYPE_MANUAL;
+
+		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGS_WIFISELECTION_BAND_ENUM band
+			= ARCOMMANDS_ARDRONE3_NETWORKSETTINGS_WIFISELECTION_BAND_ENUM.getFromValue(selection_band);
+
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3NetworkSettingsWifiSelection(type, band, (byte) channel);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send WifiSelection command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 静止画撮影時の映像フォーマットを設定
+	 * @param pictureFormat 0: Take raw image, 1: Take a 4:3 jpeg photo, 2: Take a 16:9 snapshot from camera
+	 * @return
+	 */
+	public boolean SendPictureFormat(final int pictureFormat) {
+
+		final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM type
+			= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM.getFromValue(pictureFormat);
+
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PictureSettingsPictureFormatSelection(type);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send PictureFormat command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * オートホワイトバランス設定
+	 * @param auto_white_balance<br>
+	 * -1: 手動
+	 * 0: 自動 Auto guess of best white balance params<br>
+	 * 1: 電球色 Tungsten white balance<br>
+	 * 2: 晴天 Daylight white balance<br>
+	 * 3: 曇り空 Cloudy white balance<br>
+	 * 4: フラシュ撮影用 White balance for a flash<br>
+	 * @return
+	 */
+	public boolean sendAutoWhiteBalance(final int auto_white_balance) {
+
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError;
+
+		if ((auto_white_balance >= 0) && (auto_white_balance <= 4)) {
+			final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM type
+				= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM.getFromValue(auto_white_balance);
+
+
+			cmdError = cmd.setARDrone3PictureSettingsAutoWhiteBalanceSelection(type);
+		} else {
+			cmdError = cmd.setARDrone3DebugVideoManualWhiteBalance();
+		}
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send AutoWhiteBalance command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 露出設定
+	 * @param exposure Exposure value (bounds given by ExpositionChanged arg min and max, by default [-3:3])
+	 * @return
+	 */
+	public boolean sendExposure(final float exposure) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PictureSettingsExpositionSelection(exposure);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+									 ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 彩度設定
+	 * @param saturation Saturation value (bounds given by SaturationChanged arg min and max, by default [-100:100])
+	 * @return
+	 */
+	public boolean sendSaturation(final float saturation) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PictureSettingsSaturationSelection(saturation);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * タイムラプス設定
+	 * @param enabled
+	 * @param interval 撮影間隔[秒]
+	 * @return
+	 */
+	public boolean sendTimelapseSelection(final boolean enabled, final float interval) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PictureSettingsTimelapseSelection((byte) (enabled ? 1 : 0), interval);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 自動録画設定
+	 * @param enabled
+	 * @param mass_storage_id
+	 * @return
+	 */
+	public boolean sendVideoAutorecord(final boolean enabled, final int mass_storage_id) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PictureSettingsVideoAutorecordSelection((byte) (enabled ? 1 : 0), (byte) mass_storage_id);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 動画撮影設定
+	 * @param enabled
+	 * @return
+	 */
+	public boolean sendVideoEnable(final boolean enabled) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaStreamingVideoEnable((byte) (enabled ? 1 : 0));
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * ホーム位置を設定
+	 * @param latitude 緯度[度]
+	 * @param longitude 経度[度]
+	 * @param altitude 高度[m]
+	 * @return
+	 */
+	public boolean setHome(final double latitude, final double longitude, final double altitude) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3GPSSettingsSetHome(latitude, longitude, altitude);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * ホーム位置をリセット
+	 * @return
+	 */
+	public boolean sendResetHome() {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3GPSSettingsResetHome();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 映像のブレ補正設定
+	 * @param enabled
+	 * @return
+	 */
+	public boolean sendWobbleCancellation(final boolean enabled) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugVideoEnableWobbleCancellation((byte) (enabled ? 1 : 0));
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 映像のブレ補正用のジャイロ設定
+	 * @param anglesDelay_s Shift by x seconds angles (video stabilization)
+	 * @param gyrosDelay_s Shift by x seconds t gyros (wobble cancellation
+	 * @return
+	 */
+	public boolean sendVideoSyncAnglesGyros(final float anglesDelay_s, final float gyrosDelay_s) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugVideoSyncAnglesGyros(anglesDelay_s, gyrosDelay_s);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+									 ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * drone2バッテリーを使用するかどうか
+	 * @param use_drone2Battery
+	 * @return
+	 */
+	public boolean SendUseDrone2Battery(final boolean use_drone2Battery) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugBatteryDebugSettingsUseDrone2Battery((byte) (use_drone2Battery ? 1 : 0));
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
 		}
 
 		return sentStatus;
