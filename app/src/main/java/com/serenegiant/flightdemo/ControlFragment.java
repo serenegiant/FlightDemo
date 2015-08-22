@@ -13,6 +13,7 @@ import android.util.Log;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.arflight.StatusDrone;
 
 public abstract class ControlFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -123,7 +124,7 @@ public abstract class ControlFragment extends Fragment {
 	}
 
 	protected int getAlarm() {
-		return mController != null ? mController.getAlarm() : IDeviceController.ALARM_DISCONNECTED;
+		return mController != null ? mController.getAlarm() : StatusDrone.ALARM_DISCONNECTED;
 	}
 
 	protected void runOnUiThread(final Runnable task) {

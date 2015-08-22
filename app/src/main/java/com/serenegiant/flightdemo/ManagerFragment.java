@@ -22,6 +22,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiver;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiverDelegate;
 import com.serenegiant.arflight.DeviceConnectionListener;
+import com.serenegiant.arflight.DeviceControllerBebop;
 import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.IDeviceController;
 
@@ -312,7 +313,7 @@ public class ManagerFragment extends Fragment {
 	}
 
 	/**
-	 * IDeviceControllerを生成する(FIXME 今はローリングスパイダー用のみ)
+	 * IDeviceControllerを生成する (FIXME JumpingSumoは未対応)
 	 * @param device
 	 * @return
 	 */
@@ -322,6 +323,8 @@ public class ManagerFragment extends Fragment {
 			if (DEBUG) Log.v(TAG, "getProductID=" + device.getProductID());
 			switch (ARDiscoveryService.getProductFromProductID(device.getProductID())) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+				result = new DeviceControllerBebop(getActivity(), device);
+				break;
 			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
 				break;
 			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
@@ -424,7 +427,7 @@ public class ManagerFragment extends Fragment {
 		final LocalBroadcastManager localBroadcastMgr
 			= LocalBroadcastManager.getInstance(getActivity().getApplicationContext());
 		localBroadcastMgr.registerReceiver(mDevicesListUpdatedReceiver,
-											  new IntentFilter(ARDiscoveryService.kARDiscoveryServiceNotificationServicesDevicesListUpdated));
+			new IntentFilter(ARDiscoveryService.kARDiscoveryServiceNotificationServicesDevicesListUpdated));
 
 	}
 

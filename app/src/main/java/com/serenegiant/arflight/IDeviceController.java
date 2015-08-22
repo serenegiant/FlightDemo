@@ -174,11 +174,11 @@ public interface IDeviceController {
 	public boolean sendMaxVerticalSpeed(final float speed);
 	public AttributeFloat getMaxVerticalSpeed();
 
-		/**
-		 * 最大回転速度
-		 * @param speed [度/秒]
-		 * @return
-		 */
+	/**
+	 * 最大回転速度
+	 * @param speed [度/秒]
+	 * @return
+	 */
 	public boolean sendMaxRotationSpeed(final float speed);
 	public AttributeFloat getMaxRotationSpeed();
 
@@ -190,7 +190,13 @@ public interface IDeviceController {
 	public AttributeMotor getMotor(final int index);
 
 	public boolean isCutoffModeEnabled();
+	public boolean sendCutOutMode(final boolean enabled);
 
+	public boolean isAutoTakeOffModeEnabled();
+	public boolean sendAutoTakeOffMode(final boolean enable);
+
+	public boolean hasGuard();
+	public boolean sendHasGuard(final boolean has_guard);
 	/**
 	 * roll/pitch変更時が移動なのか機体姿勢変更なのかを指示
 	 * @param flag 1:移動, 0:機体姿勢変更

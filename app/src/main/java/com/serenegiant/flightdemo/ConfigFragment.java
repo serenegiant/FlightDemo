@@ -202,7 +202,7 @@ public class ConfigFragment extends ControlFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(((DeviceControllerMiniDrone) mController).hasWheel());
+				checkbox.setChecked(((DeviceControllerMiniDrone) mController).hasGuard());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (Exception e) {
 				Log.w(TAG, e);
@@ -542,8 +542,8 @@ public class ConfigFragment extends ControlFragment {
 				}
 				break;
 			case R.id.wheel_checkbox:
-				if (((DeviceControllerMiniDrone) mController).hasWheel() != isChecked) {
-					((DeviceControllerMiniDrone) mController).sendWheel(isChecked);
+				if (((DeviceControllerMiniDrone) mController).hasGuard() != isChecked) {
+					((DeviceControllerMiniDrone) mController).sendHasGuard(isChecked);
 				}
 				break;
 			case R.id.auto_takeoff_checkbox:

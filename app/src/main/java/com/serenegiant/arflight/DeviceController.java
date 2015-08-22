@@ -1517,8 +1517,15 @@ public abstract class DeviceController implements IDeviceController {
 	 * 自動離陸モードが有効かどうかを取得する
 	 * @return
 	 */
+	@Override
 	public boolean isAutoTakeOffModeEnabled() {
 		return mAutoTakeOffMode;
+	}
+
+	protected boolean mHasGuard;
+
+	public boolean hasGuard() {
+		return mHasGuard;
 	}
 
 	private static final int MOTOR_NUMS = 4;
@@ -1794,8 +1801,7 @@ public abstract class DeviceController implements IDeviceController {
 					gaz = mDataPCMD.gaz;
 					heading = mDataPCMD.heading;
 				} else {
-					flag = roll = pitch = yaw = gaz = 0;
-					heading = 0;
+					flag = roll = pitch = yaw = gaz = heading = 0;
 				}
 			}
 			if (cnt <= 0) {

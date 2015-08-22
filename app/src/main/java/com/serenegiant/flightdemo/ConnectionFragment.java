@@ -35,7 +35,7 @@ public class ConnectionFragment extends Fragment {
 		return fragment;
 	}
 
-	private ListView listView;
+	private ListView mDeviceListView;
 
 	public ConnectionFragment() {
 		super();
@@ -47,7 +47,6 @@ public class ConnectionFragment extends Fragment {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final View rootView = inflater.inflate(R.layout.fragment_connection, container, false);
 		initView(rootView);
-//		prepareSideMenu(rootView);
 		return rootView;
 	}
 
@@ -57,7 +56,6 @@ public class ConnectionFragment extends Fragment {
 		if (DEBUG) Log.d(TAG, "onResume:");
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		manager.addCallback(mManagerCallback);
-//		setSideMenuEnable(true);
 	}
 
 	@Override
@@ -78,55 +76,30 @@ public class ConnectionFragment extends Fragment {
 
 		final List<String> deviceNames = new ArrayList<String>();
 		final ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-			R.layout.list_item_1line, android.R.id.text1, deviceNames);
+			R.layout.list_item_1line, R.id.text, deviceNames);
 
-		listView = (ListView)rootView.findViewById(R.id.list);
+		mDeviceListView = (ListView)rootView.findViewById(R.id.list);
 		final View empty_view = rootView.findViewById(R.id.empty_view);
-		listView.setEmptyView(empty_view);
-		listView.setAdapter(adapter);
-
-		// ListView Item Click Listener
-		listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-				final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-
-				final String itemValue = ((ArrayAdapter<String>)parent.getAdapter()).getItem(position);
-				final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
-				// 製品名を取得
-				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
-
-				Fragment fragment = null;
-				switch (product) {
-				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
-					break;
-				case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-					fragment = PilotFragment.newInstance(service);
-					break;
-				}
-				if (fragment != null) {
-					getFragmentManager().beginTransaction()
-						.addToBackStack(null)
-						.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-						.replace(R.id.container, fragment).commit();
-				}
-			}
-		});
+		mDeviceListView.setEmptyView(empty_view);
+		mDeviceListView.setAdapter(adapter);
+		mDeviceListView.setOnItemClickListener(mOnItemClickListener);
 	}
 
+	/**
+	 * 検出したデバイスのリストが更新された時のコールバック
+	 */
 	private ManagerFragment.ManagerCallback mManagerCallback = new ManagerFragment.ManagerCallback() {
 		@Override
 		public void onServicesDevicesListUpdated(List<ARDiscoveryDeviceService> devices) {
-			final ArrayAdapter<String> adapter = (ArrayAdapter<String>)listView.getAdapter();
+			final ArrayAdapter<String> adapter = (ArrayAdapter<String>) mDeviceListView.getAdapter();
 			adapter.clear();
 			for (ARDiscoveryDeviceService service : devices) {
 				Log.d(TAG, "service :  " + service);
-				// 今はローリングスパイダーだけを追加する
 				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
 				switch (product) {
 				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+					adapter.add(service.getName());
+					break;
 				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
 					break;
 				case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
@@ -142,4 +115,37 @@ public class ConnectionFragment extends Fragment {
 		}
 	};
 
+	/**
+	 * 機体選択リストの項目をタッチした時の処理
+	 */
+	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+
+			final String itemValue = ((ArrayAdapter<String>)parent.getAdapter()).getItem(position);
+			final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
+			// 製品名を取得
+			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
+
+			Fragment fragment = null;
+			switch (product) {
+			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+				fragment = PilotFragment.newInstance(service);
+				break;
+			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+				break;
+			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+				fragment = PilotFragment.newInstance(service);
+				break;
+			}
+			if (fragment != null) {
+				getFragmentManager().beginTransaction()
+					.addToBackStack(null)
+					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+					.replace(R.id.container, fragment).commit();
+			}
+		}
+	};
 }

@@ -316,8 +316,8 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDroneSpeedSettingsStateWheelsChangedUpdate(final byte present) {
 			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateWheelsChangedUpdate:");
-			if (mHasWheel != present) {
-				mHasWheel = present;
+			if (mHasGuard != (present != 0)) {
+				mHasGuard = (present != 0);
 			}
 		}
 	};
@@ -632,11 +632,12 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	 * @param enabled
 	 * @return
 	 */
+	@Override
 	public boolean sendCutOutMode(final boolean enabled) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSettingsCutOutMode((byte)(enabled ? 1: 0));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneSettingsCutOutMode((byte) (enabled ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -655,6 +656,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	 * @param enable
 	 * @return
 	 */
+	@Override
 	public boolean sendAutoTakeOffMode(final boolean enable) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -673,12 +675,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		return sentStatus;
 	}
 
-	private int mHasWheel = -1;
-	public boolean hasWheel() {
-		return mHasWheel == 1;
-	}
-
-	public boolean sendWheel(final boolean has_wheel) {
+	public boolean sendHasGuard(final boolean has_wheel) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -739,7 +736,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 	/**
 	 * 自動で指定した角度回転させる
-	 * @param degree -360〜360度
+	 * @param degree -180〜180度
 	 * @return
 	 */
 	public boolean sendAnimationsCap(final int degree) {

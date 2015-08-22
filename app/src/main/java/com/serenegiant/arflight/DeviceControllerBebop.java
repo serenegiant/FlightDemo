@@ -78,12 +78,12 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateOutdoorCha
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 
-public class DeviceControllerBeebap extends DeviceController {
+public class DeviceControllerBebop extends DeviceController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
-	private static String TAG = "DeviceControllerBeebap";
+	private static String TAG = "DeviceControllerBebop";
 
 
-	public DeviceControllerBeebap(final Context context, final ARDiscoveryDeviceService service) {
+	public DeviceControllerBebop(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigARDrone3());
 		mAttributeDrone = new StatusDrone();
 		mCutOffMode = true;
@@ -593,8 +593,8 @@ public class DeviceControllerBeebap extends DeviceController {
 		@Override
 		public void onARDrone3SpeedSettingsStateHullProtectionChangedUpdate(final byte present) {
 			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateHullProtectionChangedUpdate:");
-			if (mHasGuard != present) {
-				mHasGuard = present;
+			if (mHasGuard != (present != 0)) {
+				mHasGuard = (present != 0);
 			}
 		}
 	};
@@ -1048,11 +1048,11 @@ public class DeviceControllerBeebap extends DeviceController {
 	};
 
 	/**
-	 * 使用しているバッテリーの種類
+	 * 使用しているバッテリーの種類設定が変わった時
 	 */
 	private final ARCommandARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener
 		mDebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener
-		= new ARCommandARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener() {
+			= new ARCommandARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener() {
 		/**
 		 * @param drone2BatteryUsed 1 if the drone2 battery is used, 0 if the drone3 battery is used
 		 */
@@ -1067,7 +1067,7 @@ public class DeviceControllerBeebap extends DeviceController {
 	 */
 	private final ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener
 		mDebugGPSDebugStateNbSatelliteChangedListener
-		= new ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener() {
+			= new ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener() {
 		/**
 		 * @param nbSatellite Amount of satellite used by gps location
 		 */
@@ -1112,6 +1112,10 @@ public class DeviceControllerBeebap extends DeviceController {
 		return sentStatus;
 	}
 
+	/**
+	 * 非常停止
+	 * @return
+	 */
 	@Override
 	public boolean sendEmergency() {
 		boolean sentStatus = true;
@@ -1131,6 +1135,10 @@ public class DeviceControllerBeebap extends DeviceController {
 		return sentStatus;
 	}
 
+	/**
+	 * フラットトリム
+	 * @return
+	 */
 	@Override
 	public boolean sendFlatTrim() {
 		boolean sentStatus = true;
@@ -1150,6 +1158,10 @@ public class DeviceControllerBeebap extends DeviceController {
 		return sentStatus;
 	}
 
+	/**
+	 * 離陸指示
+	 * @return
+	 */
 	@Override
 	public boolean sendTakeoff() {
 		boolean sentStatus = true;
@@ -1169,6 +1181,10 @@ public class DeviceControllerBeebap extends DeviceController {
 		return sentStatus;
 	}
 
+	/**
+	 * 着陸指示
+	 * @return
+	 */
 	@Override
 	public boolean sendLanding() {
 		boolean sentStatus = true;
@@ -1321,6 +1337,7 @@ public class DeviceControllerBeebap extends DeviceController {
 	 * @param enabled
 	 * @return
 	 */
+	@Override
 	public boolean sendCutOutMode(final boolean enabled) {
 		return true;
 	}
@@ -1330,6 +1347,7 @@ public class DeviceControllerBeebap extends DeviceController {
 	 * @param enable
 	 * @return
 	 */
+	@Override
 	public boolean sendAutoTakeOffMode(final boolean enable) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -1346,11 +1364,6 @@ public class DeviceControllerBeebap extends DeviceController {
 		}
 
 		return sentStatus;
-	}
-
-	private int mHasGuard = -1;
-	public boolean hasGuard() {
-		return mHasGuard == 1;
 	}
 
 	/**
@@ -1775,7 +1788,7 @@ public class DeviceControllerBeebap extends DeviceController {
 
 	/**
 	 * FIXME 自動で指定した角度回転させる
-	 * @param degree -360〜360度
+	 * @param degree -180〜180度
 	 * @return
 	 */
 	public boolean sendAnimationsCap(final int degree) {
@@ -1783,6 +1796,7 @@ public class DeviceControllerBeebap extends DeviceController {
 		final byte d = (byte)(degree > 180 ? 180 : (degree < -180 ? -180 : degree));
 		boolean sentStatus = true;
 		// FIXME 未実装
+		// headingに対して指示量を加算したのを送信する?
 		return sentStatus;
 	}
 
