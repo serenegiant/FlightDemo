@@ -1,9 +1,19 @@
 package com.serenegiant.arflight;
 
-/**
- * Created by saki on 2015/08/05.
- */
 public class AttributeVersion {
-	public String software;
-	public String hardware;
+	protected String mSoftware;
+	protected String mHardware;
+
+	public void set(final String software, final String hardware) {
+		mSoftware = software;
+		mHardware = hardware;
+	}
+
+	public String software() {
+		return mSoftware;
+	}
+
+	public String hardware() {
+		return mHardware;
+	}
 }

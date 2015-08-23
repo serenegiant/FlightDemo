@@ -40,7 +40,9 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 	public DeviceControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigMiniDrone());
-		mAttributeDrone = new StatusDrone();
+		mInfo = new DroneInfo();
+		mSettings = new DroneSettings();
+		mStatus = new DroneStatus(4);
 	}
 
 //================================================================================
@@ -114,7 +116,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		public void onMiniDronePilotingStateFlyingStateChangedUpdate(
 			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateFlyingStateChangedUpdate:");
-			mAttributeDrone.setFlyingState(state.getValue());
+			mStatus.setFlyingState(state.getValue());
 			callOnFlyingStateChangedUpdate(getState());
 		}
 	};
@@ -130,7 +132,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
 
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateAlertStateChangedUpdate:");
-			mAttributeDrone.setAlarm(state.getValue());
+			mStatus.setAlarm(state.getValue());
 			callOnAlarmStateChangedUpdate(getAlarm());
 		}
 	};
@@ -147,10 +149,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDronePilotingStateAutoTakeOffModeChangedUpdate(final byte state) {
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateAutoTakeOffModeChangedUpdate:");
-			if (mAutoTakeOffMode != (state != 0)) {
-				mAutoTakeOffMode = (state != 0);
-				// FIXME
-			}
+			mSettings.setAutoTakeOffMode(state != 0);
 		}
 	};
 
@@ -215,15 +214,8 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDronePilotingSettingsStateMaxAltitudeChangedUpdate(
 			final float current, final float min, final float max) {
-			if ((mMaxAltitude.current != current)
-				|| (mMaxAltitude.min != min)
-				|| (mMaxAltitude.max != max)) {
-
-				mMaxAltitude.current = current;
-				mMaxAltitude.min = min;
-				mMaxAltitude.max = max;
-			}
-			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxAltitudeChangedUpdate:" + mMaxAltitude);
+			mSettings.setMaxAltitude(current, min, max);
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxAltitudeChangedUpdate:");
 		}
 	};
 
@@ -241,15 +233,8 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDronePilotingSettingsStateMaxTiltChangedUpdate(
 			final float current, final float min, final float max) {
-			if ((mMaxTilt.current != current)
-				|| (mMaxTilt.min != min)
-				|| (mMaxTilt.max != max)) {
-
-				mMaxTilt.current = current;
-				mMaxTilt.min = min;
-				mMaxTilt.max = max;
-			}
-			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxTiltChangedUpdate:" + mMaxTilt);
+			mSettings.setMaxTilt(current, min, max);
+			if (DEBUG) Log.v(TAG, "onMiniDronePilotingSettingsStateMaxTiltChangedUpdate:");
 		}
 	};
 
@@ -267,15 +252,8 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedUpdate(
 			final float current, final float min, final float max) {
-			if ((mMaxVerticalSpeed.current != current)
-				|| (mMaxVerticalSpeed.min != min)
-				|| (mMaxVerticalSpeed.max != max)) {
-
-				mMaxVerticalSpeed.current = current;
-				mMaxVerticalSpeed.min = min;
-				mMaxVerticalSpeed.max = max;
-			}
-			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedUpdate:" + mMaxVerticalSpeed);
+			mSettings.setMaxVerticalSpeed(current, min, max);
+			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedUpdate:");
 		}
 	};
 
@@ -293,14 +271,8 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDroneSpeedSettingsStateMaxRotationSpeedChangedUpdate(
 			final float current, final float min, final float max) {
-			if ((mMaxRotationSpeed.current != current)
-				|| (mMaxRotationSpeed.min != min)
-				|| (mMaxRotationSpeed.max != max)) {
-				mMaxRotationSpeed.current = current;
-				mMaxRotationSpeed.min = min;
-				mMaxRotationSpeed.max = max;
-			}
-			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxRotationSpeedChangedUpdate:" + mMaxRotationSpeed);
+			mSettings.setMaxRotationSpeed(current, min, max);
+			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateMaxRotationSpeedChangedUpdate:");
 		}
 	};
 
@@ -316,14 +288,12 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDroneSpeedSettingsStateWheelsChangedUpdate(final byte present) {
 			if (DEBUG) Log.v(TAG, "onMiniDroneSpeedSettingsStateWheelsChangedUpdate:");
-			if (mHasGuard != (present != 0)) {
-				mHasGuard = (present != 0);
-			}
+			mSettings.setHasGuard(present != 0);
 		}
 	};
 
-	private static final int MOTOR_NUMS = 4;
-	private final AttributeMotor[] mMotors = new AttributeMotor[MOTOR_NUMS];
+//	private static final int MOTOR_NUMS = 4;
+//	private final AttributeMotor[] mMotors = new AttributeMotor[MOTOR_NUMS];
 	/**
 	 * モーターバージョンが変更された時のコールバックリスナー
 	 */
@@ -340,16 +310,14 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		public void onMiniDroneSettingsStateProductMotorsVersionChangedUpdate(
 			final byte motor, final String type, final String software, final String hardware) {
 			if (DEBUG) Log.v(TAG, "onMiniDroneSettingsStateProductMotorsVersionChangedUpdate:");
-			if (mMotors[0] == null) {
-				for (int i = 0; i < MOTOR_NUMS; i++) {
-					mMotors[i] = new AttributeMotor();
-				}
-			}
 			try {
-				final int ix = (motor - 1) % MOTOR_NUMS;
-				mMotors[ix].type = type;
-				mMotors[ix].software = software;
-				mMotors[ix].hardware = hardware;
+				final int ix = (motor - 1) % getMotorNums();
+				final AttributeMotor _motor = mStatus.getMotor(ix);
+				if (_motor != null) {
+					_motor.set(type, software, hardware);
+				} else {
+					Log.w(TAG, "モーターNo.が予期したのと違う:" + motor);
+				}
 			} catch (Exception e) {
 				Log.w(TAG, e);
 			}
@@ -372,8 +340,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			final String software, final String hardware) {
 
 			if (DEBUG) Log.v(TAG, "onMiniDroneSettingsStateProductInertialVersionChangedUpdate:");
-			mIMU.software = software;
-			mIMU.hardware = hardware;
+			mIMU.set(software, hardware);
 		}
 	};
 
@@ -389,10 +356,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDroneSettingsStateCutOutModeChangedUpdate(final byte enable) {
 			if (DEBUG) Log.v(TAG, "onMiniDroneSettingsStateCutOutModeChangedUpdate:");
-			if (mCutOffMode != (enable != 0)) {
-				mCutOffMode = enable != 0;
-				// FIXME
-			}
+			mSettings.setCutOffMode(enable != 0);
 		}
 	};
 

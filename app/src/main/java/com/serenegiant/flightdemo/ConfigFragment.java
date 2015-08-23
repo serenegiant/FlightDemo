@@ -13,7 +13,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -191,7 +190,7 @@ public class ConfigFragment extends ControlFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(((DeviceControllerMiniDrone) mController).isCutoffModeEnabled());
+				checkbox.setChecked(((DeviceControllerMiniDrone) mController).isCutoffMode());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (Exception e) {
 				Log.w(TAG, e);
@@ -537,7 +536,7 @@ public class ConfigFragment extends ControlFragment {
 		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
 			switch (buttonView.getId()) {
 			case R.id.cutout_checkbox:
-				if (((DeviceControllerMiniDrone) mController).isCutoffModeEnabled() != isChecked) {
+				if (((DeviceControllerMiniDrone) mController).isCutoffMode() != isChecked) {
 					((DeviceControllerMiniDrone) mController).sendCutOutMode(isChecked);
 				}
 				break;

@@ -19,10 +19,29 @@ public class AttributeMotor extends AttributeVersion {
 	public static final int ERR_MOTOR_BOOTLOADER	= 0x000000800;	//12: Not use for BLDC but useful for HAL
 	public static final int ERR_MOTOR_ASSERT		= 0x000001000;	//13: Error Made by BLDC_ASSERT()
 
-	public String type;
-	public int error;
+	protected String mType;
+	protected int mError;
 
 	public AttributeMotor() {
-		error = ERR_MOTOR_NON;
+		mError = ERR_MOTOR_NON;
+	}
+
+	public void set(final String type, final String software, final String hardware) {
+		set(software, hardware);
+		mType = type;
+	}
+
+	public void setError(final int err) {
+		mError |= err;
+	}
+
+	public int clearError() {
+		final int err = mError;
+		mError = ERR_MOTOR_NON;
+		return err;
+	}
+
+	public int error() {
+		return mError;
 	}
 }

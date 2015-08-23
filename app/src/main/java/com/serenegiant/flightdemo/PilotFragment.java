@@ -15,7 +15,7 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.arflight.StatusDrone;
+import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.AutoFlightListener;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IAutoFlight;
@@ -321,7 +321,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				// 設定パネル表示処理
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (isConnected()) {
-					if ((mController.getState() & IDeviceController.STATE_MASK_FLYING) == StatusDrone.STATE_FLYING_LANDED) {
+					if ((mController.getState() & IDeviceController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
 						final ConfigFragment fragment = ConfigFragment.newInstance(getDevice());
 						getFragmentManager().beginTransaction()
 							.addToBackStack(null)
@@ -900,21 +900,21 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final int alarm = getAlarm();
 			if (DEBUG) Log.w(TAG, "mUpdateAlarmMessageTask:alarm=" + alarm);
 			switch (alarm) {
-			case StatusDrone.ALARM_NON:				// No alert
+			case DroneStatus.ALARM_NON:				// No alert
 				break;
-			case StatusDrone.ALARM_USER_EMERGENCY:	// User emergency alert
+			case DroneStatus.ALARM_USER_EMERGENCY:	// User emergency alert
 				mAlertMessage.setText(R.string.alarm_user_emergency);
 				break;
-			case StatusDrone.ALARM_CUTOUT:			// Cut out alert
+			case DroneStatus.ALARM_CUTOUT:			// Cut out alert
 				mAlertMessage.setText(R.string.alarm_motor_cut_out);
 				break;
-			case StatusDrone.ALARM_BATTERY_CRITICAL:	// Critical battery alert
+			case DroneStatus.ALARM_BATTERY_CRITICAL:	// Critical battery alert
 				mAlertMessage.setText(R.string.alarm_low_battery_critical);
 				break;
-			case StatusDrone.ALARM_BATTERY:			// Low battery alert
+			case DroneStatus.ALARM_BATTERY:			// Low battery alert
 				mAlertMessage.setText(R.string.alarm_low_battery);
 				break;
-			case StatusDrone.ALARM_DISCONNECTED:		// 切断された
+			case DroneStatus.ALARM_DISCONNECTED:		// 切断された
 				mAlertMessage.setText(R.string.alarm_disconnected);
 				break;
 			default:
@@ -992,17 +992,17 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final boolean is_connected = isConnected();
 			final boolean is_recording = mFlightRecorder.isRecording();
 			final boolean is_playing = mFlightRecorder.isPlaying();
-			final boolean can_play = is_connected && !is_recording && !mScriptRunning && !mTouchMoveRunning && (alarm_state == StatusDrone.ALARM_NON) && (mFlightRecorder.size() > 0);
+			final boolean can_play = is_connected && !is_recording && !mScriptRunning && !mTouchMoveRunning && (alarm_state == DroneStatus.ALARM_NON) && (mFlightRecorder.size() > 0);
 			final boolean can_record = is_connected && !is_playing && !mScriptRunning;
 			final boolean can_load = is_connected && !is_playing && !is_recording && !mTouchMoveRunning;
-			final boolean can_fly = can_record && (alarm_state == StatusDrone.ALARM_NON);
+			final boolean can_fly = can_record && (alarm_state == DroneStatus.ALARM_NON);
 			final boolean can_flattrim = can_fly && (state == IDeviceController.STATE_STARTED);
 			final boolean can_config = can_flattrim;
 			final boolean can_clear = is_connected && !is_recording && !is_playing && !mScriptRunning && !mTouchMoveRunning && mTouchFlight.isPrepared();
-			final boolean can_move = can_clear && (alarm_state == StatusDrone.ALARM_NON);
+			final boolean can_move = can_clear && (alarm_state == DroneStatus.ALARM_NON);
 			final boolean is_battery_alarm
-				= (alarm_state == StatusDrone.ALARM_BATTERY)
-					|| (alarm_state == StatusDrone.ALARM_BATTERY_CRITICAL);
+				= (alarm_state == DroneStatus.ALARM_BATTERY)
+					|| (alarm_state == DroneStatus.ALARM_BATTERY_CRITICAL);
 
 			// 上パネル
 			mTopPanel.setEnabled(is_connected);
@@ -1033,17 +1033,17 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 //			mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
 			switch (state & IDeviceController.STATE_MASK_FLYING) {
-			case StatusDrone.STATE_FLYING_LANDED:		// 0x0000;		// FlyingState=0
-			case StatusDrone.STATE_FLYING_LANDING:	// 0x0400;		// FlyingState=4
+			case DroneStatus.STATE_FLYING_LANDED:		// 0x0000;		// FlyingState=0
+			case DroneStatus.STATE_FLYING_LANDING:	// 0x0400;		// FlyingState=4
 				mTakeOnOffBtn.setImageResource(R.drawable.takeoff72x72);
 				break;
-			case StatusDrone.STATE_FLYING_TAKEOFF:	// 0x0100;		// FlyingState=1
-			case StatusDrone.STATE_FLYING_HOVERING:	// 0x0200;		// FlyingState=2
-			case StatusDrone.STATE_FLYING_FLYING:		// 0x0300;		// FlyingState=3
-			case StatusDrone.STATE_FLYING_ROLLING:	// 0x0600;		// FlyingState=6
+			case DroneStatus.STATE_FLYING_TAKEOFF:	// 0x0100;		// FlyingState=1
+			case DroneStatus.STATE_FLYING_HOVERING:	// 0x0200;		// FlyingState=2
+			case DroneStatus.STATE_FLYING_FLYING:		// 0x0300;		// FlyingState=3
+			case DroneStatus.STATE_FLYING_ROLLING:	// 0x0600;		// FlyingState=6
 				mTakeOnOffBtn.setImageResource(R.drawable.landing72x72);
 				break;
-			case StatusDrone.STATE_FLYING_EMERGENCY:	// 0x0500;		// FlyingState=5
+			case DroneStatus.STATE_FLYING_EMERGENCY:	// 0x0500;		// FlyingState=5
 				break;
 			}
 

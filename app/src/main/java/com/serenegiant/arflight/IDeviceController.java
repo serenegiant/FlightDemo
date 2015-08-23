@@ -189,7 +189,7 @@ public interface IDeviceController {
 	public int getMotorNums();
 	public AttributeMotor getMotor(final int index);
 
-	public boolean isCutoffModeEnabled();
+	public boolean isCutoffMode();
 	public boolean sendCutOutMode(final boolean enabled);
 
 	public boolean isAutoTakeOffModeEnabled();

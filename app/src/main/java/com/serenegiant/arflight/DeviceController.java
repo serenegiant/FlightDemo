@@ -105,7 +105,9 @@ public abstract class DeviceController implements IDeviceController {
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 	private final List<DeviceControllerListener> mListeners = new ArrayList<DeviceControllerListener>();
 
-	protected StatusDrone mAttributeDrone;
+	protected DroneInfo mInfo;
+	protected DroneSettings mSettings;
+	protected DroneStatus mStatus;
 
 	public DeviceController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		mContext = context;
@@ -130,13 +132,13 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public int getState() {
 		synchronized (mStateSync) {
-			return mState + (mAttributeDrone.getFlyingState() << 8);
+			return mState + (mStatus.getFlyingState() << 8);
 		}
 	}
 
 	@Override
 	public int getAlarm() {
-		return mAttributeDrone.getAlarm();
+		return mStatus.getAlarm();
 	}
 
 	@Override
@@ -145,7 +147,7 @@ public abstract class DeviceController implements IDeviceController {
 
 		synchronized (mStateSync) {
 			if (mState != STATE_STOPPED) return false;
-			mAttributeDrone.setAlarm(StatusDrone.ALARM_NON);
+			mStatus.setAlarm(DroneStatus.ALARM_NON);
 			mState = STATE_STARTING;
 		}
 		registerARCommandsListener();
@@ -238,7 +240,7 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public boolean isConnected() {
 		synchronized (mStateSync) {
-			return (mState == STATE_STARTED) && mAttributeDrone.isConnected();
+			return (mState == STATE_STARTED) && mStatus.isConnected();
 		}
 	}
 
@@ -664,44 +666,40 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
-	private String mProductName;
 	private final ARCommandCommonSettingsStateProductNameChangedListener
 		mARCommandCommonSettingsStateProductNameChangedListener
 			= new ARCommandCommonSettingsStateProductNameChangedListener() {
 		@Override
 		public void onCommonSettingsStateProductNameChangedUpdate(final String name) {
-			mProductName = name;
+			mInfo.setProductName(name);
 		}
 	};
 
 	@Override
 	public String getSoftwareVersion() {
-		return mProduct.software;
+		return mInfo.productSoftware();
 	}
 
 	@Override
 	public String getHardwareVersion() {
-		return mProduct.hardware;
+		return mInfo.productHardware();
 	}
 
-	private final AttributeVersion mProduct = new AttributeVersion();
 	private final ARCommandCommonSettingsStateProductVersionChangedListener
 		mARCommandCommonSettingsStateProductVersionChangedListener
 			= new ARCommandCommonSettingsStateProductVersionChangedListener() {
 		@Override
 		public void onCommonSettingsStateProductVersionChangedUpdate(
 			final String software, final String hardware) {
-			mProduct.software = software;
-			mProduct.hardware = hardware;
+			mInfo.setProduct(software, hardware);
 		}
 	};
 
 	@Override
 	public String getSerial() {
-		return mSerialHigh + mSerialLow;
+		return mInfo.getSerial();
 	}
 
-	private String mSerialHigh, mSerialLow;
 	private final ARCommandCommonSettingsStateProductSerialHighChangedListener
 		mARCommandCommonSettingsStateProductSerialHighChangedListener
 			= new ARCommandCommonSettingsStateProductSerialHighChangedListener() {
@@ -710,7 +708,7 @@ public abstract class DeviceController implements IDeviceController {
 		 */
 		@Override
 		public void onCommonSettingsStateProductSerialHighChangedUpdate(final String high) {
-			mSerialHigh = high;
+			mInfo.setSerialHigh(high);
 		}
 	};
 
@@ -722,11 +720,10 @@ public abstract class DeviceController implements IDeviceController {
 		 */
 		@Override
 		public void onCommonSettingsStateProductSerialLowChangedUpdate(final String low) {
-			mSerialLow = low;
+			mInfo.setSerialLow(low);
 		}
 	};
 
-	private String mCuntryCode;
 	private final ARCommandCommonSettingsStateCountryChangedListener
 		mARCommandCommonSettingsStateCountryChangedListener
 			= new ARCommandCommonSettingsStateCountryChangedListener() {
@@ -735,11 +732,10 @@ public abstract class DeviceController implements IDeviceController {
 		 */
 		@Override
 		public void onCommonSettingsStateCountryChangedUpdate(final String code) {
-			mCuntryCode = code;
+			mSettings.setCountryCode(code);
 		}
 	};
 
-	private boolean mAutomaticCountry;
 	private final ARCommandCommonSettingsStateAutoCountryChangedListener
 		mARCommandCommonSettingsStateAutoCountryChangedListener
 			= new ARCommandCommonSettingsStateAutoCountryChangedListener() {
@@ -748,16 +744,15 @@ public abstract class DeviceController implements IDeviceController {
 		 */
 		@Override
 		public void onCommonSettingsStateAutoCountryChangedUpdate(final byte automatic) {
-			mAutomaticCountry = automatic != 0;
+			mSettings.setAutomaticCountry(automatic != 0);
 		}
 	};
 
 	@Override
 	public int getBattery() {
-		return mBatteryState;
+		return mStatus.getBattery();
 	}
 
-	private int mBatteryState = -1;
 	/**
 	 * バッテリーの残量が変化した時のコールバックリスナー
 	 */
@@ -766,7 +761,9 @@ public abstract class DeviceController implements IDeviceController {
 		= new ARCommandCommonCommonStateBatteryStateChangedListener() {
 		@Override
 		public void onCommonCommonStateBatteryStateChangedUpdate(final byte percent) {
-			if (mBatteryState != percent) {
+			if (getBattery() != percent) {
+				// FIXME DroneStatusの#setBatteryを呼べばコールバックが呼び出されるようにしたい
+				mStatus.setBattery(percent);
 				callOnUpdateBattery(percent);
 			}
 		}
@@ -1033,9 +1030,9 @@ public abstract class DeviceController implements IDeviceController {
 			mConnectionListeners.add(listener);
 			if (listener instanceof DeviceControllerListener) {
 				mListeners.add((DeviceControllerListener) listener);
-				callOnUpdateBattery(mBatteryState);
-				callOnAlarmStateChangedUpdate(mAttributeDrone.getAlarm());
-				callOnFlyingStateChangedUpdate(mAttributeDrone.getFlyingState());
+				callOnUpdateBattery(getBattery());
+				callOnAlarmStateChangedUpdate(mStatus.getAlarm());
+				callOnFlyingStateChangedUpdate(mStatus.getFlyingState());
 			}
 		}
 	}
@@ -1079,7 +1076,6 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	protected void callOnUpdateBattery(final int percent) {
-		mBatteryState = percent;
 		synchronized (mListenerSync) {
 			for (DeviceControllerListener listener: mListeners) {
 				if (listener != null) {
@@ -1473,45 +1469,38 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-	protected final AttributeFloat mMaxAltitude = new AttributeFloat();
 	/**
 	 * 最大高度設定値を返す
 	 * @return
 	 */
 	@Override
 	public AttributeFloat getMaxAltitude() {
-		return mMaxAltitude;
+		return mSettings.maxAltitude();
 	}
 
-	protected final AttributeFloat mMaxTilt = new AttributeFloat();
 	@Override
 	public AttributeFloat getMaxTilt() {
-		return mMaxTilt;
+		return mSettings.maxTilt();
 	}
 
-	protected final AttributeFloat mMaxVerticalSpeed = new AttributeFloat();
 	@Override
 	public AttributeFloat getMaxVerticalSpeed() {
-		return mMaxVerticalSpeed;
+		return mSettings.maxVerticalSpeed();
 	}
 
-	protected final AttributeFloat mMaxRotationSpeed = new AttributeFloat();
 	@Override
 	public AttributeFloat getMaxRotationSpeed() {
-		return mMaxRotationSpeed;
+		return mSettings.maxRotationSpeed();
 	}
 
-	protected boolean mCutOffMode;
 	/**
 	 * モーターの自動カット機能が有効かどうかを取得する
 	 * @return
 	 */
 	@Override
-	public boolean isCutoffModeEnabled() {
-		return mCutOffMode;
+	public boolean isCutoffMode() {
+		return mSettings.cutOffMode();
 	}
-
-	protected boolean mAutoTakeOffMode;
 
 	/**
 	 * 自動離陸モードが有効かどうかを取得する
@@ -1519,25 +1508,17 @@ public abstract class DeviceController implements IDeviceController {
 	 */
 	@Override
 	public boolean isAutoTakeOffModeEnabled() {
-		return mAutoTakeOffMode;
+		return mSettings.autoTakeOffMode();
 	}
 
-	protected boolean mHasGuard;
-
+	@Override
 	public boolean hasGuard() {
-		return mHasGuard;
+		return mSettings.hasGuard();
 	}
-
-	private static final int MOTOR_NUMS = 4;
-	protected final AttributeMotor[] mMotors = new AttributeMotor[MOTOR_NUMS];
 
 	@Override
 	public AttributeMotor getMotor(final int index) {
-		final int n = getMotorNums();
-		if ((index >= 0) && (index < n)) {
-			return mMotors[index];
-		}
-		return null;
+		return mStatus.getMotor(index);
 	}
 
 	/**
@@ -1634,8 +1615,8 @@ public abstract class DeviceController implements IDeviceController {
 		public void onDisconnect(final ARNetworkALManager arNetworkALManager) {
 			if (DEBUG) Log.d(TAG, "onDisconnect ...");
 			DeviceController.this.stop();
-			mAttributeDrone.setAlarm(StatusDrone.ALARM_DISCONNECTED);
-			callOnAlarmStateChangedUpdate(StatusDrone.ALARM_DISCONNECTED);
+			mStatus.setAlarm(DroneStatus.ALARM_DISCONNECTED);
+			callOnAlarmStateChangedUpdate(DroneStatus.ALARM_DISCONNECTED);
 			callOnDisconnect();
 		}
 	}

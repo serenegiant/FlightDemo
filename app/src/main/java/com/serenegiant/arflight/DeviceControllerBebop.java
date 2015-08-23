@@ -85,8 +85,11 @@ public class DeviceControllerBebop extends DeviceController {
 
 	public DeviceControllerBebop(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigARDrone3());
-		mAttributeDrone = new StatusDrone();
-		mCutOffMode = true;
+		mInfo = new DroneInfo();
+		mSettings = new DroneSettings();
+		mStatus = new DroneStatus(4);
+
+		mSettings.setCutOffMode(true);
 	}
 
 //================================================================================
@@ -219,7 +222,7 @@ public class DeviceControllerBebop extends DeviceController {
 		public void onARDrone3PilotingStateFlyingStateChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
 			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateFlyingStateChangedUpdate:");
-			mAttributeDrone.setFlyingState(state.getValue());
+			mStatus.setFlyingState(state.getValue());
 			callOnFlyingStateChangedUpdate(getState());
 		}
 	};
@@ -235,7 +238,7 @@ public class DeviceControllerBebop extends DeviceController {
 																	  final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateAlertStateChangedUpdate:");
-			mAttributeDrone.setAlarm(state.getValue());
+			mStatus.setAlarm(state.getValue());
 			callOnAlarmStateChangedUpdate(getAlarm());
 		}
 	};
@@ -255,18 +258,19 @@ public class DeviceControllerBebop extends DeviceController {
 			final byte motorIds,
 			final ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM error) {
 
+			final int n = getMotorNums();
 			if (!ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM
 					 .ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_NOERROR.equals(error)) {
 				final int err = 1 << (error.getValue() - 1);
-				for (int i = 0; i < MOTOR_NUMS; i++) {
+				for (int i = 0; i < n; i++) {
 					if ((motorIds & (1 << i)) != 0) {
-						mMotors[i].error |= err;
+						getMotor(i).setError(err);
 					}
 				}
 			} else {
-				for (int i = 0; i < MOTOR_NUMS; i++) {
+				for (int i = 0; i < n; i++) {
 					if ((motorIds & (1 << i)) != 0) {
-						mMotors[i].error = AttributeMotor.ERR_MOTOR_NON;
+						getMotor(i).clearError();
 					}
 				}
 			}
@@ -302,9 +306,7 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3PilotingStateAutoTakeOffModeChangedUpdate(final byte state) {
 			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateAutoTakeOffModeChangedUpdate:");
-			if (mAutoTakeOffMode != (state != 0)) {
-				mAutoTakeOffMode = (state != 0);
-			}
+			mSettings.setAutoTakeOffMode(state != 0);
 		}
 	};
 
@@ -394,8 +396,8 @@ public class DeviceControllerBebop extends DeviceController {
 	};
 
 
-	protected static final int MOTOR_NUMS = 4;
-	protected final AttributeMotor[] mMotors = new AttributeMotor[MOTOR_NUMS];
+//	protected static final int MOTOR_NUMS = 4;
+//	protected final AttributeMotor[] mMotors = new AttributeMotor[MOTOR_NUMS];
 	/**
 	 * モーターバージョンが変更された時のコールバックリスナー
 	 */
@@ -412,16 +414,14 @@ public class DeviceControllerBebop extends DeviceController {
 		public void onARDrone3SettingsStateProductMotorVersionListChangedUpdate(
 			final byte motor, final String type, final String software, final String hardware) {
 			if (DEBUG) Log.v(TAG, "onARDrone3SettingsStateProductMotorVersionListChangedUpdate:");
-			if (mMotors[0] == null) {
-				for (int i = 0; i < MOTOR_NUMS; i++) {
-					mMotors[i] = new AttributeMotor();
-				}
-			}
 			try {
-				final int ix = (motor - 1) % MOTOR_NUMS;
-				mMotors[ix].type = type;
-				mMotors[ix].software = software;
-				mMotors[ix].hardware = hardware;
+				final int ix = (motor - 1) % getMotorNums();
+				final AttributeMotor _motor = mStatus.getMotor(ix);
+				if (_motor != null) {
+					_motor.set(type, software, hardware);
+				} else {
+					Log.w(TAG, "モーターNo.が予期したのと違う:" + motor);
+				}
 			} catch (Exception e) {
 				Log.w(TAG, e);
 			}
@@ -440,8 +440,7 @@ public class DeviceControllerBebop extends DeviceController {
 			final String software, final String hardware) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3SettingsStateProductGPSVersionChangedUpdate:");
-			mGPS.software = software;
-			mGPS.hardware = hardware;
+			mGPS.set(software, hardware);
 		}
 	};
 
@@ -477,15 +476,8 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3PilotingSettingsStateMaxAltitudeChangedUpdate(
 			final float current, final float min, final float max) {
-			if ((mMaxAltitude.current != current)
-					|| (mMaxAltitude.min != min)
-					|| (mMaxAltitude.max != max)) {
-
-				mMaxAltitude.current = current;
-				mMaxAltitude.min = min;
-				mMaxAltitude.max = max;
-			}
-			if (DEBUG) Log.v(TAG, "onARDrone3PilotingSettingsStateMaxAltitudeChangedUpdate:" + mMaxAltitude);
+			mSettings.setMaxAltitude(current, min, max);
+			if (DEBUG) Log.v(TAG, "onARDrone3PilotingSettingsStateMaxAltitudeChangedUpdate:");
 		}
 	};
 
@@ -503,15 +495,8 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3PilotingSettingsStateMaxTiltChangedUpdate(
 			final float current, final float min, final float max) {
-			if ((mMaxTilt.current != current)
-					|| (mMaxTilt.min != min)
-					|| (mMaxTilt.max != max)) {
-
-				mMaxTilt.current = current;
-				mMaxTilt.min = min;
-				mMaxTilt.max = max;
-			}
-			if (DEBUG) Log.v(TAG, "onARDrone3PilotingSettingsStateMaxTiltChangedUpdate:" + mMaxTilt);
+			mSettings.setMaxTilt(current, min, max);
+			if (DEBUG) Log.v(TAG, "onARDrone3PilotingSettingsStateMaxTiltChangedUpdate:");
 		}
 	};
 
@@ -544,15 +529,8 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3SpeedSettingsStateMaxVerticalSpeedChangedUpdate(
 			final float current, final float min, final float max) {
-			if ((mMaxVerticalSpeed.current != current)
-					|| (mMaxVerticalSpeed.min != min)
-					|| (mMaxVerticalSpeed.max != max)) {
-
-				mMaxVerticalSpeed.current = current;
-				mMaxVerticalSpeed.min = min;
-				mMaxVerticalSpeed.max = max;
-			}
-			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateMaxVerticalSpeedChangedUpdate:" + mMaxVerticalSpeed);
+			mSettings.setMaxVerticalSpeed(current, min, max);
+			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateMaxVerticalSpeedChangedUpdate:");
 		}
 	};
 
@@ -570,14 +548,8 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3SpeedSettingsStateMaxRotationSpeedChangedUpdate(
 			final float current, final float min, final float max) {
-			if ((mMaxRotationSpeed.current != current)
-					|| (mMaxRotationSpeed.min != min)
-					|| (mMaxRotationSpeed.max != max)) {
-				mMaxRotationSpeed.current = current;
-				mMaxRotationSpeed.min = min;
-				mMaxRotationSpeed.max = max;
-			}
-			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateMaxRotationSpeedChangedUpdate:" + mMaxRotationSpeed);
+			mSettings.setMaxRotationSpeed(current, min, max);
+			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateMaxRotationSpeedChangedUpdate:");
 		}
 	};
 
@@ -593,9 +565,7 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3SpeedSettingsStateHullProtectionChangedUpdate(final byte present) {
 			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateHullProtectionChangedUpdate:");
-			if (mHasGuard != (present != 0)) {
-				mHasGuard = (present != 0);
-			}
+			mSettings.setHasGuard(present != 0);
 		}
 	};
 
@@ -645,10 +615,7 @@ public class DeviceControllerBebop extends DeviceController {
 		 */
 		@Override
 		public void onARDrone3PilotingStateAltitudeChangedUpdate(final double altitude) {
-			if (mAttributeDrone.altitude != altitude) {
-				mAttributeDrone.altitude = altitude;
-				// FIXME
-			}
+			mStatus.altitude(altitude);
 		}
 	};
 
@@ -666,7 +633,7 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3PilotingStatePositionChangedUpdate(
 			final double latitude, final double longitude, final double altitude) {
-			// FIXME
+			mStatus.setPosition(latitude, longitude, altitude);
 		}
 	};
 
@@ -684,7 +651,7 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3PilotingStateSpeedChangedUpdate(
 			final float speedX, final float speedY, final float speedZ) {
-			// FIXME
+			mStatus.setSpeed(speedY, speedY, -speedZ);
 		}
 	};
 
