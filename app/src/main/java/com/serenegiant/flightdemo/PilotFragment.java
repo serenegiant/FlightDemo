@@ -17,7 +17,6 @@ import android.widget.TextView;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.StatusDrone;
 import com.serenegiant.arflight.AutoFlightListener;
-import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.IDeviceController;
@@ -121,9 +120,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		final int operation_type = pref.getInt(ConfigFragment.KEY_OPERATION_TYPE, 0);
 
 		final View rootView = inflater.inflate(operation_type == 1 ?
-			R.layout.fragment_pilot_minidrone_reverse
-			: (operation_type == 2 ? R.layout.fragment_pilot_minidrone_touch
-			: R.layout.fragment_pilot_minidrone),
+			R.layout.fragment_pilot_reverse
+			: (operation_type == 2 ? R.layout.fragment_pilot_touch
+			: R.layout.fragment_pilot),
 			container, false);
 
 		mControllerView = rootView.findViewById(R.id.controller_frame);
@@ -369,56 +368,56 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case R.id.flip_front_btn:
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mController != null) {
-					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_FRONT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_FRONT);
+					mController.sendAnimationsFlip(IDeviceController.FLIP_FRONT);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_FRONT);
 				}
 				break;
 			case R.id.flip_back_btn:
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mController != null) {
-					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_BACK);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_BACK);
+					mController.sendAnimationsFlip(IDeviceController.FLIP_BACK);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_BACK);
 				}
 				break;
 			case R.id.flip_right_btn:
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mController != null) {
-					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_RIGHT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_RIGHT);
+					mController.sendAnimationsFlip(IDeviceController.FLIP_RIGHT);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_RIGHT);
 				}
 				break;
 			case R.id.flip_left_btn:
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mController != null) {
-					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(DeviceControllerMiniDrone.FLIP_LEFT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, DeviceControllerMiniDrone.FLIP_LEFT);
+					mController.sendAnimationsFlip(IDeviceController.FLIP_LEFT);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_LEFT);
 				}
 				break;
 			case R.id.cap_p15_btn:
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mController != null) {
-					((DeviceControllerMiniDrone) mController).sendAnimationsCap(15);
+					mController.sendAnimationsCap(15);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, 15);
 				}
 				break;
 			case R.id.cap_p45_btn:
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mController != null) {
-					((DeviceControllerMiniDrone) mController).sendAnimationsCap(45);
+					mController.sendAnimationsCap(45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, 45);
 				}
 				break;
 			case R.id.cap_m15_btn:
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mController != null) {
-					((DeviceControllerMiniDrone) mController).sendAnimationsCap(-15);
+					mController.sendAnimationsCap(-15);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -15);
 				}
 				break;
 			case R.id.cap_m45_btn:
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mController != null) {
-					((DeviceControllerMiniDrone) mController).sendAnimationsCap(-45);
+					mController.sendAnimationsCap(-45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -45);
 				}
 				break;
@@ -856,10 +855,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mController.setMove((byte) values[0], (byte)values[1]);
 					break;
 				case IAutoFlight.CMD_FLIP:			// フリップ
-					((DeviceControllerMiniDrone) mController).sendAnimationsFlip(values[0]);
+					mController.sendAnimationsFlip(values[0]);
 					break;
 				case IAutoFlight.CMD_CAP:			// キャップ(指定角度水平回転)
-					((DeviceControllerMiniDrone) mController).sendAnimationsCap(values[0]);
+					mController.sendAnimationsCap(values[0]);
 					break;
 				}
 				if (mTouchMoveRunning && mFlightRecorder.isRecording()) {

@@ -275,4 +275,18 @@ public interface IDeviceController {
 	 */
 	public void setMove(final int roll, final int pitch, final int gaz);
 
+	/**
+	 * 指定した方向にフリップ実行
+	 * @param direction = FLIP_FRONT,FLIP_BACK,FLIP_RIGHT,FLIP_LEFT
+	 * @return
+	 */
+	public boolean sendAnimationsFlip(final int direction);
+
+	/**
+	 * 自動で指定した角度回転させる
+	 * @param degree -180〜180度
+	 * @return
+	 */
+	public boolean sendAnimationsCap(final int degree);
+
 }

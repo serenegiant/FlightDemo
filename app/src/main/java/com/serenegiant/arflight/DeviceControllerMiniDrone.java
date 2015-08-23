@@ -695,9 +695,10 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 	/**
 	 * 指定した方向にフリップ実行
-	 * @param direction
+	 * @param direction = FLIP_FRONT,FLIP_BACK,FLIP_RIGHT,FLIP_LEFT
 	 * @return
 	 */
+	@Override
 	public boolean sendAnimationsFlip(final int direction) {
 
 		ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM _dir;
@@ -739,6 +740,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	 * @param degree -180〜180度
 	 * @return
 	 */
+	@Override
 	public boolean sendAnimationsCap(final int degree) {
 
 		final byte d = (byte)(degree > 180 ? 180 : (degree < -180 ? -180 : degree));
