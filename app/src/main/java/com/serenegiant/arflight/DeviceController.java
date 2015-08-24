@@ -369,6 +369,8 @@ public abstract class DeviceController implements IDeviceController {
 		discoverSemaphore = new Semaphore(0);
 
 		d2cPort = mNetConfig.getInboundPort();
+
+		// 製品の種類を取得
 		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceService.getProductID());
 
 		if (!ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_SKYCONTROLLER.equals(product)) {
@@ -509,6 +511,7 @@ public abstract class DeviceController implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "stopReaderThreads:finished");
 	}
 
+	/** 機体との接続を終了 */
 	private void stopNetwork() {
 		if (DEBUG) Log.v(TAG, "stopNetwork:");
 		if (mARNetManager != null) {
@@ -631,7 +634,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/**
-	 * AllSettingsChangedListener
+	 * AllSettings要求が完了した時
 	 */
 	private final ARCommandCommonSettingsStateAllSettingsChangedListener
 		mARCommandCommonSettingsStateAllSettingsChangedListener
@@ -645,7 +648,7 @@ public abstract class DeviceController implements IDeviceController {
 	};
 
 	/**
-	 * AllStatesChangedListener
+	 * AllStates要求が完了した時
 	 */
 	private final ARCommandCommonCommonStateAllStatesChangedListener
 		mARCommandCommonCommonStateAllStatesChangedListener
@@ -658,6 +661,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * 設定がリセットされた時
+	 */
 	private final ARCommandCommonSettingsStateResetChangedListener
 		mARCommandCommonSettingsStateResetChangedListener
 		= new ARCommandCommonSettingsStateResetChangedListener() {
@@ -666,6 +672,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * 製品名を受信した時
+	 */
 	private final ARCommandCommonSettingsStateProductNameChangedListener
 		mARCommandCommonSettingsStateProductNameChangedListener
 			= new ARCommandCommonSettingsStateProductNameChangedListener() {
@@ -685,6 +694,9 @@ public abstract class DeviceController implements IDeviceController {
 		return mInfo.productHardware();
 	}
 
+	/**
+	 * 製品バージョンを受信した時
+	 */
 	private final ARCommandCommonSettingsStateProductVersionChangedListener
 		mARCommandCommonSettingsStateProductVersionChangedListener
 			= new ARCommandCommonSettingsStateProductVersionChangedListener() {
@@ -700,6 +712,9 @@ public abstract class DeviceController implements IDeviceController {
 		return mInfo.getSerial();
 	}
 
+	/**
+	 * シリアル番号の上位を受信した時
+	 */
 	private final ARCommandCommonSettingsStateProductSerialHighChangedListener
 		mARCommandCommonSettingsStateProductSerialHighChangedListener
 			= new ARCommandCommonSettingsStateProductSerialHighChangedListener() {
@@ -712,6 +727,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * シリアル番号の下位を受信した時
+	 */
 	private final ARCommandCommonSettingsStateProductSerialLowChangedListener
 		mARCommandCommonSettingsStateProductSerialLowChangedListener
 			= new ARCommandCommonSettingsStateProductSerialLowChangedListener() {
@@ -724,6 +742,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * 国コードを受信した時
+	 */
 	private final ARCommandCommonSettingsStateCountryChangedListener
 		mARCommandCommonSettingsStateCountryChangedListener
 			= new ARCommandCommonSettingsStateCountryChangedListener() {
@@ -736,6 +757,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * 自動国選択設定が変更された時
+	 */
 	private final ARCommandCommonSettingsStateAutoCountryChangedListener
 		mARCommandCommonSettingsStateAutoCountryChangedListener
 			= new ARCommandCommonSettingsStateAutoCountryChangedListener() {
@@ -754,7 +778,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/**
-	 * バッテリーの残量が変化した時のコールバックリスナー
+	 * バッテリーの残量が変化した時
 	 */
 	private final ARCommandCommonCommonStateBatteryStateChangedListener
 		mCommonStateBatteryStateChangedListener
@@ -769,6 +793,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * 接続されているストレージの一覧が変更された時
+	 */
 	private final ARCommandCommonCommonStateMassStorageStateListChangedListener
 		mARCommandCommonCommonStateMassStorageStateListChangedListener
 			= new ARCommandCommonCommonStateMassStorageStateListChangedListener() {
@@ -783,6 +810,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * ストレージの情報が変更された時
+	 */
 	private final ARCommandCommonCommonStateMassStorageInfoStateListChangedListener
 		mARCommandCommonCommonStateMassStorageInfoStateListChangedListener
 			= new ARCommandCommonCommonStateMassStorageInfoStateListChangedListener() {
@@ -801,6 +831,27 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * ストレージの空き容量が変化した時
+	 */
+	private final ARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener
+		mARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener
+		= new ARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener() {
+		/**
+		 * @param free_space Mass storage free space in MBytes
+		 * @param rec_time Mass storage record time reamining in minute
+		 * @param photo_remaining Mass storage photo remaining
+		 */
+		@Override
+		public void onCommonCommonStateMassStorageInfoRemainingListChangedUpdate(
+			final int free_space, final short rec_time, final int photo_remaining) {
+			// XXX
+		}
+	};
+
+	/**
+	 * 日付が変更された時
+	 */
 	private final ARCommandCommonCommonStateCurrentDateChangedListener
 		mARCommandCommonCommonStateCurrentDateChangedListener
 			= new ARCommandCommonCommonStateCurrentDateChangedListener() {
@@ -813,6 +864,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * 現在時刻が変更された時
+	 */
 	private final ARCommandCommonCommonStateCurrentTimeChangedListener
 		mARCommandCommonCommonStateCurrentTimeChangedListener
 			= new ARCommandCommonCommonStateCurrentTimeChangedListener() {
@@ -825,6 +879,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * WiFiの信号強度が変化した時
+	 */
 	private final ARCommandCommonCommonStateWifiSignalChangedListener
 		mARCommandCommonCommonStateWifiSignalChangedListener
 			= new ARCommandCommonCommonStateWifiSignalChangedListener() {
@@ -833,21 +890,6 @@ public abstract class DeviceController implements IDeviceController {
 		 */
 		@Override
 		public void onCommonCommonStateWifiSignalChangedUpdate(final short rssi) {
-			// XXX
-		}
-	};
-
-	private final ARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener
-		mARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener
-			= new ARCommandCommonCommonStateMassStorageInfoRemainingListChangedListener() {
-		/**
-		 * @param free_space Mass storage free space in MBytes
-		 * @param rec_time Mass storage record time reamining in minute
-		 * @param photo_remaining Mass storage photo remaining
-		 */
-		@Override
-		public void onCommonCommonStateMassStorageInfoRemainingListChangedUpdate(
-			final int free_space, final short rec_time, final int photo_remaining) {
 			// XXX
 		}
 	};
@@ -874,6 +916,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * オーバーヒート状態が変化した時
+	 */
 	private final ARCommandCommonOverHeatStateOverHeatChangedListener
 		mARCommandCommonOverHeatStateOverHeatChangedListener
 			= new ARCommandCommonOverHeatStateOverHeatChangedListener() {
@@ -883,6 +928,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * オーバーヒート時の冷却方法設定が変更された時
+	 */
 	private final ARCommandCommonOverHeatStateOverHeatRegulationChangedListener
 		mARCommandCommonOverHeatStateOverHeatRegulationChangedListener
 			= new ARCommandCommonOverHeatStateOverHeatRegulationChangedListener() {
@@ -895,6 +943,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * アプリがHUDモードで操縦しているかどうかが変更された
+	 */
 	private final ARCommandCommonControllerStateIsPilotingChangedListener
 		mARCommandCommonControllerStateIsPilotingChangedListener
 			= new ARCommandCommonControllerStateIsPilotingChangedListener() {
@@ -907,6 +958,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * WiFiの室内/室外モードが変更された時
+	 */
 	private final ARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener
 		mARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener
 			= new ARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener() {
@@ -919,6 +973,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * Mavlinkファイルの再生状態が変化した時
+	 */
 	private final ARCommandCommonMavlinkStateMavlinkFilePlayingStateChangedListener
 		mARCommandCommonMavlinkStateMavlinkFilePlayingStateChangedListener
 			= new ARCommandCommonMavlinkStateMavlinkFilePlayingStateChangedListener() {
@@ -935,6 +992,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * キャリブレーションの状態が変わった時の通知
+	 */
 	private final ARCommandCommonCalibrationStateMagnetoCalibrationStateChangedListener
 		mARCommandCommonCalibrationStateMagnetoCalibrationStateChangedListener
 			= new ARCommandCommonCalibrationStateMagnetoCalibrationStateChangedListener() {
@@ -951,6 +1011,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * キャリブレーションが必要な時の通知
+	 */
 	private final ARCommandCommonCalibrationStateMagnetoCalibrationRequiredStateListener
 		mARCommandCommonCalibrationStateMagnetoCalibrationRequiredStateListener
 			= new ARCommandCommonCalibrationStateMagnetoCalibrationRequiredStateListener() {
@@ -963,6 +1026,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * キャリブレーション中の軸が変更された時の通知
+	 */
 	private final ARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener
 		mARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener
 			= new ARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener() {
@@ -976,6 +1042,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * キャリブレーションを開始/終了した時の通知
+	 */
 	private final ARCommandCommonCalibrationStateMagnetoCalibrationStartedChangedListener
 		mARCommandCommonCalibrationStateMagnetoCalibrationStartedChangedListener
 			= new ARCommandCommonCalibrationStateMagnetoCalibrationStartedChangedListener() {
@@ -988,6 +1057,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * カメラ設定を受け取った時
+	 */
 	private final ARCommandCommonCameraSettingsStateCameraSettingsChangedListener
 		mARCommandCommonCameraSettingsStateCameraSettingsChangedListener
 			= new ARCommandCommonCameraSettingsStateCameraSettingsChangedListener() {
@@ -1001,7 +1073,7 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onCommonCameraSettingsStateCameraSettingsChangedUpdate(
 			final float fov, final float panMax, final float panMin, final float tiltMax, final float tiltMin) {
-			// XXX
+			mSettings.setCameraSettings(fov, panMax, panMin, tiltMax, tiltMin);
 		}
 	};
 
@@ -1297,6 +1369,51 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/**
+	 * アプリがHUDモードで操縦しているかどうかを設定
+	 * @param inHUD
+	 * @return
+	 */
+	public boolean sendPilotingHUD(final boolean inHUD) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonControllerStateIsPilotingChanged((byte) (inHUD ? 1 : 0));
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+									 ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send flip command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * ネットワーク切断要求
+	 * @return
+	 */
+	public boolean sendNetworkDisconnect() {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonNetworkDisconnect();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send flip command.");
+		}
+
+		return sentStatus;
+	}
+//********************************************************************************
+// 操縦関係
+//********************************************************************************
+	/**
 	 * roll/pitch変更時が移動なのか機体姿勢変更なのかを指示
 	 * @param flag 1:移動, 0:機体姿勢変更
 	 */
@@ -1521,6 +1638,9 @@ public abstract class DeviceController implements IDeviceController {
 		return mStatus.getMotor(index);
 	}
 
+//********************************************************************************
+// データ送受信関係
+//********************************************************************************
 	/**
 	 * コールバック呼び出し用にARNetworkManagerを拡張
 	 */
@@ -1752,6 +1872,31 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/**
+	 * 操縦コマンド送信スレッドでのループ内の処理(sendPCMDを呼び出す)
+	 * 下位クラスで定期的にコマンド送信が必要ならoverride
+	 */
+	protected void sendCmdInControlLoop() {
+		final int flag, roll, pitch, yaw, gaz;
+		final int heading, cnt;
+		synchronized (mDataSync) {
+			cnt = mDataPCMD.cnt--;
+			if (cnt <= 0) {
+				mDataPCMD.cnt = MAX_CNT;
+			}
+			flag = mDataPCMD.flag;
+			roll = mDataPCMD.roll;
+			pitch = mDataPCMD.pitch;
+			yaw = mDataPCMD.yaw;
+			gaz = mDataPCMD.gaz;
+			heading = mDataPCMD.heading;
+		}
+		if (cnt <= 0) {
+			// 操縦コマンド送信
+			sendPCMD(flag, roll, pitch, yaw, gaz, heading);
+		}
+	}
+
 	/** 操縦コマンドを定期的に送信するためのスレッド */
 	protected class ControllerLooperThread extends LooperThread {
 		private final long intervals_ms;
@@ -1763,33 +1908,13 @@ public abstract class DeviceController implements IDeviceController {
 		public void onLoop() {
 			final long lastTime = SystemClock.elapsedRealtime();
 
-			final int flag, roll, pitch, yaw, gaz;
-			final int heading, cnt;
 			final int state;
 			synchronized (mStateSync) {
 				state = mState;
 			}
-			synchronized (mDataSync) {
-				cnt = mDataPCMD.cnt--;
-				if (cnt <= 0) {
-					mDataPCMD.cnt = MAX_CNT;
-				}
-				if (state == STATE_STARTED) {
-					flag = mDataPCMD.flag;
-					roll = mDataPCMD.roll;
-					pitch = mDataPCMD.pitch;
-					yaw = mDataPCMD.yaw;
-					gaz = mDataPCMD.gaz;
-					heading = mDataPCMD.heading;
-				} else {
-					flag = roll = pitch = yaw = gaz = heading = 0;
-				}
+			if (state == STATE_STARTED) {
+				sendCmdInControlLoop();
 			}
-			if (cnt <= 0) {
-				// 操縦コマンド送信
-				sendPCMD(flag, roll, pitch, yaw, gaz, heading);
-			}
-
 			// 次の送信予定時間までの休止時間を計算[ミリ秒]
 			final long sleepTime = (SystemClock.elapsedRealtime() + intervals_ms) - lastTime;
 

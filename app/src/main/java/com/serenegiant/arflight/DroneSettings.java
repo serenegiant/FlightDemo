@@ -41,45 +41,87 @@ public class DroneSettings {
 		return mHasGuard;
 	}
 
+	// カメラ設定
+	protected final AttributeCamera mCamera = new AttributeCamera();
+	public void setCameraSettings(final float fov, final float panMax, final float panMin, final float tiltMax, final float tiltMin) {
+		mCamera.setSettings(fov, panMax, panMin, tiltMax, tiltMin);
+	}
+
+	public AttributeFloat cameraTilt() {
+		return mCamera.tilt();
+	}
+	public float currentCameraTilt() {
+		return mCamera.tilt().current();
+	}
+
+	public AttributeFloat cameraPan() {
+		return mCamera.pan();
+	}
+	public float currentCameraPan() {
+		return mCamera.pan().current();
+	}
+
+	public void autoWhiteBalance(final int auto_white_balance) {
+		mCamera.autoWhiteBalance(auto_white_balance);
+	}
+	public int autoWhiteBalance() {
+		return mCamera.autoWhiteBalance();
+	}
+
+	public void setExposure(final float current, final float min, final float max) {
+		mCamera.setExposure(current, min, max);
+	}
+	public AttributeFloat exposure() {
+		return mCamera.exposure();
+	}
+
+	public void setSaturation(final float current, final float min, final float max) {
+		mCamera.setSaturation(current, min, max);
+	}
+	public AttributeFloat saturation() {
+		return mCamera.saturation();
+	}
+
+	public void setTimeLapse(final boolean enabled, final float current, final float min, final float max) {
+		mCamera.setTimeLapse(enabled, current, min, max);
+	}
+	public AttributeTimeLapse timeLapse() {
+		return mCamera.timeLapse();
+	}
+
+	// 操縦設定
 	protected final AttributeFloat mMaxAltitude = new AttributeFloat();
 	protected final AttributeFloat mMaxTilt = new AttributeFloat();
 	protected final AttributeFloat mMaxVerticalSpeed = new AttributeFloat();
 	protected final AttributeFloat mMaxRotationSpeed = new AttributeFloat();
 
 	public void setMaxAltitude(final float current, final float min, final float max) {
-		mMaxAltitude.current = current;
-		mMaxAltitude.min = min;
-		mMaxAltitude.max = max;
+		mMaxAltitude.set(current, min, max);
 	}
 	public AttributeFloat maxAltitude() {
 		return mMaxAltitude;
 	}
 
 	public void setMaxTilt(final float current, final float min, final float max) {
-		mMaxTilt.current = current;
-		mMaxTilt.min = min;
-		mMaxTilt.max = max;
+		mMaxTilt.set(current, min, max);
 	}
 	public AttributeFloat maxTilt() {
 		return mMaxTilt;
 	}
 
 	public void setMaxVerticalSpeed(final float current, final float min, final float max) {
-		mMaxVerticalSpeed.current = current;
-		mMaxVerticalSpeed.min = min;
-		mMaxVerticalSpeed.max = max;
+		mMaxVerticalSpeed.set(current, min, max);
 	}
 	public AttributeFloat maxVerticalSpeed() {
 		return mMaxVerticalSpeed;
 	}
 
 	public void setMaxRotationSpeed(final float current, final float min, final float max) {
-		mMaxRotationSpeed.current = current;
-		mMaxRotationSpeed.min = min;
-		mMaxRotationSpeed.max = max;
+		mMaxRotationSpeed.set(current, min, max);
 	}
 	public AttributeFloat maxRotationSpeed() {
 		return mMaxRotationSpeed;
 	}
+
 
 }

@@ -78,7 +78,7 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateOutdoorCha
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 
-public class DeviceControllerBebop extends DeviceController {
+public class DeviceControllerBebop extends DeviceController implements IVideoStreamController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceControllerBebop";
 
@@ -692,7 +692,7 @@ public class DeviceControllerBebop extends DeviceController {
 	};
 
 	/**
-	 * ホーム位置が変更された時
+	 * ホーム位置がリセットされた時
 	 */
 	private final ARCommandARDrone3GPSSettingsStateResetHomeChangedListener
 		mGPSSettingsStateResetHomeChangedListener
@@ -869,7 +869,6 @@ public class DeviceControllerBebop extends DeviceController {
 	 * 3: 曇り空 Cloudy white balance<br>
 	 * 4: フラシュ撮影用 White balance for a flash<br>
 	 */
-	private int mAutoWhiteBalanceMode;
 	/**
 	 * オートホワイトバランス設定が変更された時
 	 */
@@ -879,17 +878,10 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3PictureSettingsStateAutoWhiteBalanceChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_PICTURESETTINGSSTATE_AUTOWHITEBALANCECHANGED_TYPE_ENUM type) {
-			if (mAutoWhiteBalanceMode != type.getValue()) {
-				mAutoWhiteBalanceMode = type.getValue();
-				// FIXME
-			}
+			mSettings.autoWhiteBalance(type.getValue());
 		}
 	};
 
-	/**
-	 * 露出設定
-	 */
-	private final AttributeFloat mExposure = new AttributeFloat();
 	/**
 	 * 露出設定が変更された時
 	 */
@@ -899,23 +891,12 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3PictureSettingsStateExpositionChangedUpdate(
 			final float current, final float min, final float max) {
-			if ((mExposure.current != current)
-				|| (mExposure.min != min)
-				|| (mExposure.max != max)) {
-				mExposure.current = current;
-				mExposure.min = min;
-				mExposure.max = max;
-				// FIXME
-			}
+			mSettings.setExposure(current, min, max);
 		}
 	};
 
 	/**
-	 * 彩度設定
-	 */
-	private final AttributeFloat mSaturation = new AttributeFloat();
-	/**
-	 * 再度設定が変更された時
+	 * 彩度設定が変更された時
 	 */
 	private final ARCommandARDrone3PictureSettingsStateSaturationChangedListener
 		mPictureSettingsStateSaturationChangedListener
@@ -923,19 +904,10 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3PictureSettingsStateSaturationChangedUpdate(
 			final float current, final float min, final float max) {
-			if ((mSaturation.current != current)
-				|| (mSaturation.min != min)
-				|| (mSaturation.max != max)) {
-				mSaturation.current = current;
-				mSaturation.min = min;
-				mSaturation.max = max;
-				// FIXME
-			}
+			mSettings.setSaturation(current, min, max);
 		}
 	};
 
-	/** タイムラプス設定 */
-	private final AttributeTimeLapse mTimeLapse = new AttributeTimeLapse();
 	/**
 	 * タイムラプス設定が変更された時
 	 */
@@ -951,16 +923,7 @@ public class DeviceControllerBebop extends DeviceController {
 		@Override
 		public void onARDrone3PictureSettingsStateTimelapseChangedUpdate(
 			final byte enabled, final float interval, final float minInterval, final float maxInterval) {
-			if ((mTimeLapse.enabled != (enabled != 0))
-				|| (mTimeLapse.interval.current != interval)
-				|| (mTimeLapse.interval.min != minInterval)
-				|| (mTimeLapse.interval.max != maxInterval)) {
-				mTimeLapse.enabled = (enabled != 0);
-				mTimeLapse.interval.current = interval;
-				mTimeLapse.interval.min = minInterval;
-				mTimeLapse.interval.max = maxInterval;
-				// FIXME
-			}
+			mSettings.setTimeLapse(enabled != 0, interval, minInterval, maxInterval);
 		}
 	};
 
@@ -986,7 +949,7 @@ public class DeviceControllerBebop extends DeviceController {
 	 */
 	private final ARCommandARDrone3MediaStreamingStateVideoEnableChangedListener
 		mMediaStreamingStateVideoEnableChangedListener
-			= new ARCommandARDrone3MediaStreamingStateVideoEnableChangedListener() {
+		= new ARCommandARDrone3MediaStreamingStateVideoEnableChangedListener() {
 		@Override
 		public void onARDrone3MediaStreamingStateVideoEnableChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED_ENUM enabled) {
@@ -1080,7 +1043,7 @@ public class DeviceControllerBebop extends DeviceController {
 	}
 
 	/**
-	 * 非常停止
+	 * 非常停止指示
 	 * @return
 	 */
 	@Override
@@ -1091,7 +1054,7 @@ public class DeviceControllerBebop extends DeviceController {
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingEmergency();
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dEmergencyId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
 			cmd.dispose();
 		}
 
@@ -1103,7 +1066,7 @@ public class DeviceControllerBebop extends DeviceController {
 	}
 
 	/**
-	 * フラットトリム
+	 * フラットトリム指示
 	 * @return
 	 */
 	@Override
@@ -1276,7 +1239,7 @@ public class DeviceControllerBebop extends DeviceController {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingSettingsAbsolutControl((byte)(enable ? 1 : 0));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingSettingsAbsolutControl((byte) (enable ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1356,6 +1319,10 @@ public class DeviceControllerBebop extends DeviceController {
 		return sentStatus;
 	}
 
+//********************************************************************************
+// WiFi関係
+//********************************************************************************
+
 	/**
 	 * 室外モードか室内モードかを設定
 	 * @param is_outdoor
@@ -1411,7 +1378,9 @@ public class DeviceControllerBebop extends DeviceController {
 
 		return sentStatus;
 	}
-
+//********************************************************************************
+// 映像関係
+//********************************************************************************
 	/**
 	 * 静止画撮影時の映像フォーマットを設定
 	 * @param pictureFormat 0: Take raw image, 1: Take a 4:3 jpeg photo, 2: Take a 16:9 snapshot from camera
@@ -1440,6 +1409,32 @@ public class DeviceControllerBebop extends DeviceController {
 	}
 
 	/**
+	 * カメラの方向を設定<br>
+	 * Tilt and pan value is saturated by the drone.<br>
+	 * Saturation value is sent by the drone through CameraSettingsChanged command.
+	 * @param tilt Tilt camera consign for the drone (in degree).
+	 * @param pan Pan camera consign for the drone (in degree)
+	 * @return
+	 */
+	public boolean sendCameraOrientation(final int tilt, final int pan) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3CameraOrientation((byte) tilt, (byte) pan);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Orientation command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
 	 * オートホワイトバランス設定
 	 * @param auto_white_balance<br>
 	 * -1: 手動
@@ -1459,7 +1454,6 @@ public class DeviceControllerBebop extends DeviceController {
 		if ((auto_white_balance >= 0) && (auto_white_balance <= 4)) {
 			final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM type
 				= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM.getFromValue(auto_white_balance);
-
 
 			cmdError = cmd.setARDrone3PictureSettingsAutoWhiteBalanceSelection(type);
 		} else {
@@ -1554,7 +1548,7 @@ public class DeviceControllerBebop extends DeviceController {
 	 * @param mass_storage_id
 	 * @return
 	 */
-	public boolean sendVideoAutorecord(final boolean enabled, final int mass_storage_id) {
+	public boolean sendVideoAutoRecord(final boolean enabled, final int mass_storage_id) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1573,7 +1567,7 @@ public class DeviceControllerBebop extends DeviceController {
 	}
 
 	/**
-	 * 動画撮影設定
+	 * ビデオストリーミング設定
 	 * @param enabled
 	 * @return
 	 */
@@ -1584,54 +1578,7 @@ public class DeviceControllerBebop extends DeviceController {
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaStreamingVideoEnable((byte) (enabled ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "Failed to send Exposure command.");
-		}
-
-		return sentStatus;
-	}
-
-	/**
-	 * ホーム位置を設定
-	 * @param latitude 緯度[度]
-	 * @param longitude 経度[度]
-	 * @param altitude 高度[m]
-	 * @return
-	 */
-	public boolean setHome(final double latitude, final double longitude, final double altitude) {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3GPSSettingsSetHome(latitude, longitude, altitude);
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "Failed to send Exposure command.");
-		}
-
-		return sentStatus;
-	}
-
-	/**
-	 * ホーム位置をリセット
-	 * @return
-	 */
-	public boolean sendResetHome() {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3GPSSettingsResetHome();
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
 			cmd.dispose();
 		}
 
@@ -1678,12 +1625,85 @@ public class DeviceControllerBebop extends DeviceController {
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugVideoSyncAnglesGyros(anglesDelay_s, gyrosDelay_s);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-									 ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
 			cmd.dispose();
 		}
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+//********************************************************************************
+// GPS関係
+//********************************************************************************
+	/**
+	 * ホーム位置を設定
+	 * @param latitude 緯度[度]
+	 * @param longitude 経度[度]
+	 * @param altitude 高度[m]
+	 * @return
+	 */
+	public boolean sendSetHome(final double latitude, final double longitude, final double altitude) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3GPSSettingsSetHome(latitude, longitude, altitude);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send SetHome command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * ホーム位置をリセット
+	 * @return
+	 */
+	public boolean sendResetHome() {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3GPSSettingsResetHome();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send ResetHome command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * ナビゲーションホーム実行
+	 * @param start
+	 * @return
+	 */
+	public boolean sendNavigateHome(final boolean start) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingNavigateHome((byte) (start ? 1 : 0));
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send NavigateHome command.");
 		}
 
 		return sentStatus;
@@ -1770,4 +1790,13 @@ public class DeviceControllerBebop extends DeviceController {
 		return sentStatus;
 	}
 
+	@Override
+	public boolean isVideoStreamingEnabled() {
+		return false;
+	}
+
+	@Override
+	public void enableVideoStreaming(boolean enable) {
+		sendVideoEnable(enable);
+	}
 }
