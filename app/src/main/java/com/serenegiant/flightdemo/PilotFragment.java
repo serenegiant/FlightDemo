@@ -260,14 +260,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
-		if (startDeviceController()) {
-			setSideMenu();
-		}
+		startDeviceController();
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
+		stopVideoStreaming();
 		removeSideMenu();
 		removeFromUIThread(mPopBackStackTask);
 		stopRecord();
@@ -544,6 +543,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
 		setSideMenu();
+		startVideoStreaming();
 		updateButtons();
 	}
 
@@ -552,6 +552,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
+		stopVideoStreaming();
 		removeSideMenu();
 		stopRecord();
 		stopPlay();

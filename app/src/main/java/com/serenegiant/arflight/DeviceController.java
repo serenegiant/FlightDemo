@@ -69,6 +69,10 @@ public abstract class DeviceController implements IDeviceController {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceController";
 
+	private static final int DEFAULT_VIDEO_FRAGMENT_SIZE = 1000;
+	private static final int DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER = 128;
+	private static final int VIDEO_RECEIVE_TIMEOUT_MS = 500;
+
 	protected final Context mContext;
 	protected final ARNetworkConfig mNetConfig;
 	private final ARDiscoveryDeviceService mDeviceService;
@@ -76,8 +80,8 @@ public abstract class DeviceController implements IDeviceController {
 	protected ARNetworkALManager mARManager;
 	private ARNetworkManager mARNetManager;
 	protected boolean mMediaOpened;
-	private int videoFragmentSize;
-	private int videoFragmentMaximumNumber;
+	private int videoFragmentSize = DEFAULT_VIDEO_FRAGMENT_SIZE;
+	private int videoFragmentMaximumNumber = DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER;
 	private int videoMaxAckInterval;
 
 	private final Semaphore disconnectSent = new Semaphore(0);
@@ -92,7 +96,8 @@ public abstract class DeviceController implements IDeviceController {
 
 	private final List<ReaderThread> mReaderThreads = new ArrayList<ReaderThread>();
 
-	private LooperThread mLooperThread;
+	private LooperThread mFlightCMDThread;
+	private VideoThread mVideoThread;
 
 	private final Object mStateSync = new Object();
 	private int mState = STATE_STOPPED;
@@ -104,6 +109,8 @@ public abstract class DeviceController implements IDeviceController {
 	private final Object mListenerSync = new Object();
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 	private final List<DeviceControllerListener> mListeners = new ArrayList<DeviceControllerListener>();
+	private final Object mStreamSync = new Object();
+	private VideoStreamListener mVideoStreamListener;
 
 	protected DroneInfo mInfo;
 	protected DroneSettings mSettings;
@@ -164,8 +171,10 @@ public abstract class DeviceController implements IDeviceController {
 
 			// 機体データ受信スレッドを生成&開始
 			startReadThreads();
+			// ビデオストリーミング用スレッドを生成&開始
+			startVideoThread();
 			// 操縦コマンド送信スレッドを生成&開始
-			startLooperThread();
+			startFlightCMDThread();
 
 			synchronized (mStateSync) {
 				mState = STATE_STARTED;
@@ -214,8 +223,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 
 		// 操縦コマンド送信スレッドを終了(終了するまで戻らない)
-		stopLooperThread();
-
+		stopFlightCMDThread();
+		// ビデオストリーミングスレッドを終了(終了するまで戻らない)
+		stopVideoThread();
 		// 機体データ受信スレッドを終了(終了するまで戻らない)
 		stopReaderThreads();
 
@@ -465,32 +475,56 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	private void startVideoThread() {
+		if (mVideoThread != null) {
+			mVideoThread.stopThread();
+		}
+		mVideoThread = new VideoThread();
+		mVideoThread.start();
+	}
+
 	/** 操縦コマンド送信スレッドを生成&開始 */
-	private void startLooperThread() {
-		if (mLooperThread != null) {
-			mLooperThread.stopThread();
+	private void startFlightCMDThread() {
+		if (mFlightCMDThread != null) {
+			mFlightCMDThread.stopThread();
 		}
         /* Create the looper thread */
-		mLooperThread = new ControllerLooperThread((mNetConfig.getPCMDLoopIntervalsMs() * 2) / MAX_CNT);
+		mFlightCMDThread = new FlightCMDThread((mNetConfig.getPCMDLoopIntervalsMs() * 2) / MAX_CNT);
 
         /* Start the looper thread. */
-		mLooperThread.start();
+		mFlightCMDThread.start();
 	}
 
 	/** 操縦コマンド送信を終了(終了するまで戻らない) */
-	private void stopLooperThread() {
-		if (DEBUG) Log.v(TAG, "stopLooperThread:");
+	private void stopFlightCMDThread() {
+		if (DEBUG) Log.v(TAG, "stopFlightCMDThread:");
         /* Cancel the looper thread and block until it is stopped. */
-		if (null != mLooperThread) {
-			mLooperThread.stopThread();
+		if (null != mFlightCMDThread) {
+			mFlightCMDThread.stopThread();
 			try {
-				mLooperThread.join();
-				mLooperThread = null;
+				mFlightCMDThread.join();
+				mFlightCMDThread = null;
 			} catch (final InterruptedException e) {
-				e.printStackTrace();
+				Log.w(TAG, e);
 			}
 		}
-		if (DEBUG) Log.v(TAG, "stopLooperThread:finished");
+		if (DEBUG) Log.v(TAG, "stopFlightCMDThread:finished");
+	}
+
+	/** ストリーミングデータ受信スレッドを終了(終了するまで戻らない) */
+	private void stopVideoThread() {
+		if (DEBUG) Log.v(TAG, "stopVideoThread:");
+        /* Cancel the looper thread and block until it is stopped. */
+		if (null != mVideoThread) {
+			mVideoThread.stopThread();
+			try {
+				mVideoThread.join();
+				mVideoThread = null;
+			} catch (final InterruptedException e) {
+				Log.w(TAG, e);
+			}
+		}
+		if (DEBUG) Log.v(TAG, "stopFlightCMDThread:finished");
 	}
 
 	/** 機体からのデータ受信用スレッドを終了(終了するまで戻らない) */
@@ -504,7 +538,7 @@ public abstract class DeviceController implements IDeviceController {
 			try {
 				thread.join();
 			} catch (final InterruptedException e) {
-				e.printStackTrace();
+				Log.w(TAG, e);
 			}
 		}
 		mReaderThreads.clear();
@@ -1116,6 +1150,12 @@ public abstract class DeviceController implements IDeviceController {
 			if (listener instanceof DeviceControllerListener) {
 				mListeners.remove((DeviceControllerListener) listener);
 			}
+		}
+	}
+
+	public void setVideoStreamListener(final VideoStreamListener listener) {
+		synchronized (mStreamSync) {
+			mVideoStreamListener = listener;
 		}
 	}
 
@@ -1898,9 +1938,9 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/** 操縦コマンドを定期的に送信するためのスレッド */
-	protected class ControllerLooperThread extends LooperThread {
+	protected class FlightCMDThread extends LooperThread {
 		private final long intervals_ms;
-		public ControllerLooperThread(final long _intervals_ms) {
+		public FlightCMDThread(final long _intervals_ms) {
 			intervals_ms = _intervals_ms;
 		}
 
@@ -1923,6 +1963,47 @@ public abstract class DeviceController implements IDeviceController {
 			} catch (final InterruptedException e) {
 				// ignore
 			}
+		}
+	}
+
+	private class VideoThread extends LooperThread {
+		private final ARStreamManager streamManager;
+
+		public VideoThread () {
+			streamManager = new ARStreamManager (mARNetManager,
+				mNetConfig.getVideoDataIOBuffer(), mNetConfig.getVideoAckIOBuffer(),
+				videoFragmentSize, videoMaxAckInterval);
+		}
+
+		@Override
+		public void onStart() {
+			super.onStart();
+			streamManager.start();
+
+		}
+
+		@Override
+		public void onLoop() {
+			final ARFrame frame = streamManager.getFrameWithTimeout(VIDEO_RECEIVE_TIMEOUT_MS);
+
+			if (frame != null) {
+				try {
+					if (DEBUG) Log.v(TAG, "video stream frame:" + frame);
+					synchronized (mStreamSync) {
+						if (mVideoStreamListener != null) {
+							mVideoStreamListener.onReceiveFrame(frame);
+						}
+					}
+				} finally {
+					streamManager.recycle(frame);
+				}
+			}
+		}
+
+		@Override
+		public void onStop() {
+			streamManager.stop();
+			super.onStop();
 		}
 	}
 

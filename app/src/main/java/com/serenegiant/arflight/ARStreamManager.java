@@ -1,0 +1,188 @@
+package com.serenegiant.arflight;
+
+import com.parrot.arsdk.arnetwork.ARNetworkManager;
+import com.parrot.arsdk.arsal.ARNativeData;
+import com.parrot.arsdk.arstream.ARSTREAM_READER_CAUSE_ENUM;
+import com.parrot.arsdk.arstream.ARStreamReader;
+import com.parrot.arsdk.arstream.ARStreamReaderListener;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+public class ARStreamManager {
+	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final String TAG = "ARStreamManager";
+
+	private static final int FRAME_POOL_SZ = 40;
+
+	private final Object mPoolSync = new Object();
+	private final List<ARFrame> mFramePool = new ArrayList<ARFrame>();
+	private final LinkedBlockingQueue<ARFrame> mFrameQueue = new LinkedBlockingQueue<ARFrame>();
+
+
+	private final ARNetworkManager mNetManager;
+	private final int mDataBufferId;
+	private final int mAckBufferId;
+	private final int mMaxFragmentSize;
+	private final int mMaxAckIntervals;
+
+	private volatile boolean mIsRunning;
+	private ARStreamReader mARStreamReader;
+	private Thread mDataThread;
+	private Thread mAckThread;
+
+	public ARStreamManager(final ARNetworkManager net_manager, final int data_buffer_id, final int ack_buffer_id,
+		final int max_fragment_size, final int max_ack_intervals) {
+
+		mNetManager = net_manager;
+		mDataBufferId = data_buffer_id;
+		mAckBufferId = ack_buffer_id;
+		mMaxFragmentSize = max_fragment_size;
+		mMaxAckIntervals = max_ack_intervals;
+	}
+
+	public void start() {
+		if (!mIsRunning) {
+			mIsRunning = true;
+			mARStreamReader = new ARStreamReader(mNetManager, mDataBufferId, mAckBufferId, obtainFrame(), mARStreamReaderListener, mMaxFragmentSize, mMaxAckIntervals);
+			mDataThread = new Thread(mARStreamReader.getDataRunnable(), "StreamReaderDataThread");
+			mAckThread = new Thread(mARStreamReader.getAckRunnable(), "StreamReaderAckThread");
+			mDataThread.start();
+			mAckThread.start();
+		}
+	}
+
+	public void stop() {
+		if (mIsRunning) {
+			mIsRunning = false;
+			mARStreamReader.stop();
+			if (mDataThread != null) {
+				try {
+					mDataThread.join();
+				} catch (InterruptedException e) {
+				}
+				mDataThread = null;
+			}
+			if (mAckThread != null) {
+				try {
+					mAckThread.join();
+				} catch (InterruptedException e) {
+				}
+				mAckThread = null;
+			}
+			if (mARStreamReader != null) {
+				mARStreamReader.dispose();
+				mARStreamReader = null;
+			}
+		}
+	}
+
+	public void release() {
+		synchronized (mPoolSync) {
+			for (ARFrame frame: mFramePool) {
+				if (frame != null) {
+					frame.dispose();
+				}
+			}
+			mFramePool.clear();
+		}
+		ARFrame frame = mFrameQueue.peek();
+		for (; frame != null; ) {
+			mFrameQueue.remove(frame);
+			frame.dispose();
+			frame = mFrameQueue.peek();
+		}
+	}
+
+	/**
+	 * フレームキューから先頭フレームを取得する
+	 * フレームキューが空なら指定した時間待機し、それでも空ならnullを返す
+	 * @param receive_timeout_ms
+	 * @return
+	 */
+	public ARFrame getFrameWithTimeout(final long receive_timeout_ms) {
+		ARFrame result = null;
+		try {
+			result = mFrameQueue.poll(receive_timeout_ms, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+		}
+		return result;
+	}
+
+	/**
+	 * フレームキューから先頭フレームを取得する
+	 * フレームキューが空ならnullを返す
+	 * @return
+	 */
+	public ARFrame getFrame() {
+		ARFrame result = mFrameQueue.poll();
+		return result;
+	}
+
+	/**
+	 * 空きフレームを取得する, なければ新規生成する
+	 * @return
+	 */
+	private ARFrame obtainFrame() {
+		ARFrame result;
+		synchronized (mPoolSync) {
+			result = mFramePool.size() > 0 ? mFramePool.get(0) : null;
+		}
+		if (result == null) {
+			result = new ARFrame();
+		}
+		return result;
+	}
+
+	public void recycle(final ARFrame frame) {
+		if (frame != null) {
+			frame.setAvailable(false);
+			synchronized (mPoolSync) {
+				mFramePool.add(frame);
+			}
+		}
+	}
+
+	private final ARStreamReaderListener mARStreamReaderListener = new ARStreamReaderListener() {
+		@Override
+		public ARNativeData didUpdateFrameStatus(
+			final ARSTREAM_READER_CAUSE_ENUM cause, final ARNativeData currentFrame,
+			final boolean isFlushFrame, final int nbSkippedFrames, final int newBufferCapacity) {
+
+			ARNativeData next_frame = null;
+			switch (cause) {
+			case ARSTREAM_READER_CAUSE_FRAME_COMPLETE:
+				// Frame is complete (no error)
+			case ARSTREAM_READER_CAUSE_COPY_COMPLETE:
+				// Copy of previous frame buffer is complete (called only after ARSTREAM_READER_CAUSE_FRAME_TOO_SMALL)
+				if (currentFrame instanceof ARFrame) {
+					((ARFrame)currentFrame).isIFrame(isFlushFrame);
+					// キューに追加する
+					mFrameQueue.offer((ARFrame) currentFrame);
+					// 次のフレーム用にフレームプールから取得して返す
+					next_frame = obtainFrame();
+				}
+				break;
+			case ARSTREAM_READER_CAUSE_FRAME_TOO_SMALL:
+				// Frame buffer is too small for the frame on the network
+				// フレームのバッファサイズが小さい時はサイズ調整してから同じのを返す
+				currentFrame.ensureCapacityIsAtLeast(newBufferCapacity);
+				next_frame = currentFrame;
+				break;
+			case ARSTREAM_READER_CAUSE_CANCEL:
+				// StreamReaderが終了中なのでバッファーは必要ない
+				if (currentFrame instanceof ARFrame) {
+					recycle((ARFrame) currentFrame);
+				}
+				// FIXME この時に次のフレームデータとしてnullを返していいかどうか要確認
+				// だめならダミーでcurrentFrameを返す
+				break;
+			}
+
+			return next_frame;
+		}
+	};
+
+}

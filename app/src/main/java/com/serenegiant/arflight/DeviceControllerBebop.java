@@ -956,7 +956,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			// 0: Video streaming is enabled.
 			// 1: Video streaming is disabled.
 			// 2: Video streaming failed to start.
-			// FIXME
+			mSettings.mCamera.videoStateState(enabled.getValue());
 		}
 	};
 
@@ -1792,7 +1792,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 	@Override
 	public boolean isVideoStreamingEnabled() {
-		return false;
+		return mSettings.mCamera.isVideoStreamingEnabled();
 	}
 
 	@Override

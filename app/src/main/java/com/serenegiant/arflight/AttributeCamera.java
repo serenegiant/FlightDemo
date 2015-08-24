@@ -99,4 +99,24 @@ public class AttributeCamera {
 	public AttributeTimeLapse timeLapse() {
 		return mTimeLapse;
 	}
+
+	private int mVideoStreamingState;
+
+	public void videoStateState(final int state) {
+		synchronized (mSync) {
+			mVideoStreamingState = state;
+		}
+	}
+
+	public int videoStateState() {
+		synchronized (mSync) {
+			return mVideoStreamingState;
+		}
+	}
+
+	public boolean isVideoStreamingEnabled() {
+		synchronized (mSync) {
+			return mVideoStreamingState == 0;
+		}
+	}
 }

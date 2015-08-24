@@ -13,6 +13,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.IVideoStreamController;
 
 public abstract class ControlFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -126,6 +127,18 @@ public abstract class ControlFragment extends Fragment {
 		return mController != null ? mController.getAlarm() : DroneStatus.ALARM_DISCONNECTED;
 	}
 
+	protected void startVideoStreaming() {
+		if (mController instanceof IVideoStreamController) {
+			((IVideoStreamController)mController).enableVideoStreaming(true);
+		}
+	}
+
+	protected void stopVideoStreaming() {
+		if (mController instanceof IVideoStreamController) {
+			((IVideoStreamController)mController).enableVideoStreaming(false);
+		}
+	}
+
 	protected void runOnUiThread(final Runnable task) {
 		if (task != null) {
 			try {
@@ -227,6 +240,7 @@ public abstract class ControlFragment extends Fragment {
 				// sendAllSettingsとかsendAllStatesは接続した直後に1回しか有効じゃないのかも
 //				updateBattery();
 				result = true;
+				onConnect(mController);
 			}
 			this.stopMove();
 		} else {

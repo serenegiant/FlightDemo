@@ -132,12 +132,12 @@ public class ConfigFragment extends ControlFragment {
 		seekbar.setMax(1000);
 		mMaxAltitude = mController.getMaxAltitude();
 		try {
-			seekbar.setProgress((int) ((mMaxAltitude.current - mMaxAltitude.min) / (mMaxAltitude.max - mMaxAltitude.min) * 1000));
+			seekbar.setProgress((int) ((mMaxAltitude.current() - mMaxAltitude.min()) / (mMaxAltitude.max() - mMaxAltitude.min()) * 1000));
 		} catch (Exception e) {
 			seekbar.setProgress(0);
 		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		updateMaxAltitude(mMaxAltitude.current);
+		updateMaxAltitude(mMaxAltitude.current());
 		// 最大傾斜設定
 		mMaxTiltLabel = (TextView)root.findViewById(R.id.max_tilt_textview);
 		seekbar = (SeekBar)root.findViewById(R.id.max_tilt_seekbar);
@@ -145,12 +145,12 @@ public class ConfigFragment extends ControlFragment {
 		seekbar.setMax(1000);
 		mMaxTilt = mController.getMaxTilt();
 		try {
-			seekbar.setProgress((int) ((mMaxTilt.current - mMaxTilt.min) / (mMaxTilt.max - mMaxTilt.min) * 1000));
+			seekbar.setProgress((int) ((mMaxTilt.current() - mMaxTilt.min()) / (mMaxTilt.max() - mMaxTilt.min()) * 1000));
 		} catch (Exception e) {
 			seekbar.setProgress(0);
 		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		updateMaxTilt(mMaxTilt.current);
+		updateMaxTilt(mMaxTilt.current());
 		// 最大上昇/降下速度設定
 		mMaxVerticalSpeedLabel = (TextView)root.findViewById(R.id.max_vertical_speed_textview);
 		seekbar = (SeekBar)root.findViewById(R.id.max_vertical_speed_seekbar);
@@ -158,12 +158,12 @@ public class ConfigFragment extends ControlFragment {
 		seekbar.setMax(1000);
 		mMaxVerticalSpeed = mController.getMaxVerticalSpeed();
 		try {
-			seekbar.setProgress((int) ((mMaxVerticalSpeed.current - mMaxVerticalSpeed.min) / (mMaxVerticalSpeed.max - mMaxVerticalSpeed.min) * 1000));
+			seekbar.setProgress((int) ((mMaxVerticalSpeed.current() - mMaxVerticalSpeed.min()) / (mMaxVerticalSpeed.max() - mMaxVerticalSpeed.min()) * 1000));
 		} catch (Exception e) {
 			seekbar.setProgress(0);
 		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		updateMaxVerticalSpeed(mMaxVerticalSpeed.current);
+		updateMaxVerticalSpeed(mMaxVerticalSpeed.current());
 		// 最大回転速度
 		mMaxRotationSpeedLabel = (TextView)root.findViewById(R.id.max_rotation_speed_textview);
 		seekbar = (SeekBar)root.findViewById(R.id.max_rotation_speed_seekbar);
@@ -171,12 +171,12 @@ public class ConfigFragment extends ControlFragment {
 		seekbar.setMax(1000);
 		mMaxRotationSpeed = mController.getMaxRotationSpeed();
 		try {
-			seekbar.setProgress((int) ((mMaxRotationSpeed.current - mMaxRotationSpeed.min) / (mMaxRotationSpeed.max - mMaxRotationSpeed.min) * 1000));
+			seekbar.setProgress((int) ((mMaxRotationSpeed.current() - mMaxRotationSpeed.min()) / (mMaxRotationSpeed.max() - mMaxRotationSpeed.min()) * 1000));
 		} catch (Exception e) {
 			seekbar.setProgress(0);
 		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		updateMaxRotationSpeed(mMaxRotationSpeed.current);
+		updateMaxRotationSpeed(mMaxRotationSpeed.current());
 	}
 
 	/**
@@ -424,19 +424,19 @@ public class ConfigFragment extends ControlFragment {
 				// ユーザーのタッチ処理でシークバーの値が変更された時
 				switch (seekBar.getId()) {
 				case R.id.max_altitude_seekbar:
-					final float altitude = (int) (progress / 100f * (mMaxAltitude.max - mMaxAltitude.min)) / 10f + mMaxAltitude.min;
+					final float altitude = (int) (progress / 100f * (mMaxAltitude.max() - mMaxAltitude.min())) / 10f + mMaxAltitude.min();
 					updateMaxAltitude(altitude);
 					break;
 				case R.id.max_tilt_seekbar:
-					final float tilt = (int) (progress / 100f * (mMaxTilt.max - mMaxTilt.min)) / 10f + mMaxTilt.min;
+					final float tilt = (int) (progress / 100f * (mMaxTilt.max() - mMaxTilt.min())) / 10f + mMaxTilt.min();
 					updateMaxTilt(tilt);
 					break;
 				case R.id.max_vertical_speed_seekbar:
-					final float vertical = (int) (progress / 100f * (mMaxVerticalSpeed.max - mMaxVerticalSpeed.min)) / 10f + mMaxVerticalSpeed.min;
+					final float vertical = (int) (progress / 100f * (mMaxVerticalSpeed.max() - mMaxVerticalSpeed.min())) / 10f + mMaxVerticalSpeed.min();
 					updateMaxVerticalSpeed(vertical);
 					break;
 				case R.id.max_rotation_speed_seekbar:
-					final float rotation = (int) (progress / 1000f * (mMaxRotationSpeed.max - mMaxRotationSpeed.min)) + mMaxRotationSpeed.min;
+					final float rotation = (int) (progress / 1000f * (mMaxRotationSpeed.max() - mMaxRotationSpeed.min())) + mMaxRotationSpeed.min();
 					updateMaxRotationSpeed(rotation);
 					break;
 				case R.id.max_control_value_seekbar:	// -500〜+500
@@ -472,26 +472,26 @@ public class ConfigFragment extends ControlFragment {
 			}
 			switch (seekBar.getId()) {
 			case R.id.max_altitude_seekbar:
-				final float altitude = (int)(seekBar.getProgress() / 100f * (mMaxAltitude.max - mMaxAltitude.min)) / 10f + mMaxAltitude.min;
-				if (altitude != mMaxAltitude.current) {
+				final float altitude = (int)(seekBar.getProgress() / 100f * (mMaxAltitude.max() - mMaxAltitude.min())) / 10f + mMaxAltitude.min();
+				if (altitude != mMaxAltitude.current()) {
 					mController.sendMaxAltitude(altitude);
 				}
 				break;
 			case R.id.max_tilt_seekbar:
-				final float tilt = (int)(seekBar.getProgress() / 100f * (mMaxTilt.max - mMaxTilt.min)) / 10f + mMaxTilt.min;
-				if (tilt != mMaxTilt.current) {
+				final float tilt = (int)(seekBar.getProgress() / 100f * (mMaxTilt.max() - mMaxTilt.min())) / 10f + mMaxTilt.min();
+				if (tilt != mMaxTilt.current()) {
 					mController.sendMaxTilt(tilt);
 				}
 				break;
 			case R.id.max_vertical_speed_seekbar:
-				final float vertical = (int)(seekBar.getProgress() / 100f * (mMaxVerticalSpeed.max - mMaxVerticalSpeed.min)) / 10f + mMaxVerticalSpeed.min;
-				if (vertical != mMaxVerticalSpeed.current) {
+				final float vertical = (int)(seekBar.getProgress() / 100f * (mMaxVerticalSpeed.max() - mMaxVerticalSpeed.min())) / 10f + mMaxVerticalSpeed.min();
+				if (vertical != mMaxVerticalSpeed.current()) {
 					mController.sendMaxVerticalSpeed(vertical);
 				}
 				break;
 			case R.id.max_rotation_speed_seekbar:
-				final float rotation = (int)(seekBar.getProgress() / 1000f * (mMaxRotationSpeed.max - mMaxRotationSpeed.min)) + mMaxRotationSpeed.min;
-				if (rotation != mMaxRotationSpeed.current) {
+				final float rotation = (int)(seekBar.getProgress() / 1000f * (mMaxRotationSpeed.max() - mMaxRotationSpeed.min())) + mMaxRotationSpeed.min();
+				if (rotation != mMaxRotationSpeed.current()) {
 					mController.sendMaxRotationSpeed(rotation);
 				}
 				break;
