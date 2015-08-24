@@ -20,8 +20,10 @@ import com.serenegiant.arflight.AutoFlightListener;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.arflight.TouchFlight;
+import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
 import com.serenegiant.widget.SideMenuListView;
@@ -89,6 +91,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	/** タッチ描画操縦 */
 	private final TouchFlight mTouchFlight;
 	private boolean mTouchMoveRunning;
+
+	private VideoStream mVideoStream;
 
 	public PilotFragment() {
 		super();
@@ -538,6 +542,29 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			updateButtons();
 		}
 	};
+
+	@Override
+	protected void startVideoStreaming() {
+		super.startVideoStreaming();
+		if (mController instanceof IVideoStreamController) {
+			if (mVideoStream == null) {
+				mVideoStream = new VideoStream();
+			}
+			((IVideoStreamController)mController).setVideoStreamListener(mVideoStream);
+		}
+	}
+
+	@Override
+	protected void stopVideoStreaming() {
+		if (mController instanceof IVideoStreamController) {
+			((IVideoStreamController)mController).setVideoStreamListener(null);
+		}
+		if (mVideoStream != null) {
+			mVideoStream.release();
+			mVideoStream = null;
+		}
+		super.stopVideoStreaming();
+	}
 
 	@Override
 	protected void onConnect(final IDeviceController controller) {

@@ -1,5 +1,7 @@
 package com.serenegiant.arflight;
 
+import android.util.Log;
+
 import com.parrot.arsdk.arnetwork.ARNetworkManager;
 import com.parrot.arsdk.arsal.ARNativeData;
 import com.parrot.arsdk.arstream.ARSTREAM_READER_CAUSE_ENUM;
@@ -44,6 +46,7 @@ public class ARStreamManager {
 	}
 
 	public void start() {
+		if (DEBUG) Log.v(TAG, "start:" + mIsRunning);
 		if (!mIsRunning) {
 			mIsRunning = true;
 			mARStreamReader = new ARStreamReader(mNetManager, mDataBufferId, mAckBufferId, obtainFrame(), mARStreamReaderListener, mMaxFragmentSize, mMaxAckIntervals);
@@ -55,11 +58,13 @@ public class ARStreamManager {
 	}
 
 	public void stop() {
+		if (DEBUG) Log.v(TAG, "stop:" + mIsRunning);
 		if (mIsRunning) {
 			mIsRunning = false;
 			mARStreamReader.stop();
 			if (mDataThread != null) {
 				try {
+					if (DEBUG) Log.v(TAG, "stop:wait data thread");
 					mDataThread.join();
 				} catch (InterruptedException e) {
 				}
@@ -67,16 +72,19 @@ public class ARStreamManager {
 			}
 			if (mAckThread != null) {
 				try {
+					if (DEBUG) Log.v(TAG, "stop:wait ack thread");
 					mAckThread.join();
 				} catch (InterruptedException e) {
 				}
 				mAckThread = null;
 			}
+			if (DEBUG) Log.v(TAG, "stop:dispose ARStreamReader");
 			if (mARStreamReader != null) {
 				mARStreamReader.dispose();
 				mARStreamReader = null;
 			}
 		}
+		if (DEBUG) Log.v(TAG, "stop:終了");
 	}
 
 	public void release() {
@@ -138,7 +146,6 @@ public class ARStreamManager {
 
 	public void recycle(final ARFrame frame) {
 		if (frame != null) {
-			frame.setAvailable(false);
 			synchronized (mPoolSync) {
 				mFramePool.add(frame);
 			}
@@ -158,9 +165,11 @@ public class ARStreamManager {
 			case ARSTREAM_READER_CAUSE_COPY_COMPLETE:
 				// Copy of previous frame buffer is complete (called only after ARSTREAM_READER_CAUSE_FRAME_TOO_SMALL)
 				if (currentFrame instanceof ARFrame) {
-					((ARFrame)currentFrame).isIFrame(isFlushFrame);
+					final ARFrame _frame = (ARFrame)currentFrame;
+					_frame.isIFrame(isFlushFrame);
+					_frame.setMissed(nbSkippedFrames);
 					// キューに追加する
-					mFrameQueue.offer((ARFrame) currentFrame);
+					mFrameQueue.offer(_frame);
 					// 次のフレーム用にフレームプールから取得して返す
 					next_frame = obtainFrame();
 				}

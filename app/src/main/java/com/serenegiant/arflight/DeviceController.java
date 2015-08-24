@@ -66,7 +66,7 @@ import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
 public abstract class DeviceController implements IDeviceController {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceController";
 
 	private static final int DEFAULT_VIDEO_FRAGMENT_SIZE = 1000;
@@ -237,7 +237,7 @@ public abstract class DeviceController implements IDeviceController {
 		synchronized (mStateSync) {
 			mState = STATE_STOPPED;
 		}
-		if (DEBUG) Log.v(TAG, "stop:finished");
+		if (DEBUG) Log.v(TAG, "stop:終了");
 	}
 
 	@Override
@@ -463,6 +463,7 @@ public abstract class DeviceController implements IDeviceController {
 
 	/** 機体からのデータ受信用スレッドを生成＆開始 */
 	private void startReadThreads() {
+		if (DEBUG) Log.v(TAG, "startReadThreads");
         /* Create the reader threads */
 		for (final int bufferId : mNetConfig.getCommandsIOBuffers()/*commandsBuffers*/) {
 			final ReaderThread readerThread = new ReaderThread(bufferId);
@@ -476,6 +477,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	private void startVideoThread() {
+	if (DEBUG) Log.v(TAG, "startVideoThread");
 		if (mVideoThread != null) {
 			mVideoThread.stopThread();
 		}
@@ -485,6 +487,7 @@ public abstract class DeviceController implements IDeviceController {
 
 	/** 操縦コマンド送信スレッドを生成&開始 */
 	private void startFlightCMDThread() {
+		if (DEBUG) Log.v(TAG, "startFlightCMDThread");
 		if (mFlightCMDThread != null) {
 			mFlightCMDThread.stopThread();
 		}
@@ -508,7 +511,7 @@ public abstract class DeviceController implements IDeviceController {
 				Log.w(TAG, e);
 			}
 		}
-		if (DEBUG) Log.v(TAG, "stopFlightCMDThread:finished");
+		if (DEBUG) Log.v(TAG, "stopFlightCMDThread:終了");
 	}
 
 	/** ストリーミングデータ受信スレッドを終了(終了するまで戻らない) */
@@ -524,7 +527,7 @@ public abstract class DeviceController implements IDeviceController {
 				Log.w(TAG, e);
 			}
 		}
-		if (DEBUG) Log.v(TAG, "stopFlightCMDThread:finished");
+		if (DEBUG) Log.v(TAG, "stopVideoThread:終了");
 	}
 
 	/** 機体からのデータ受信用スレッドを終了(終了するまで戻らない) */
@@ -542,7 +545,7 @@ public abstract class DeviceController implements IDeviceController {
 			}
 		}
 		mReaderThreads.clear();
-		if (DEBUG) Log.v(TAG, "stopReaderThreads:finished");
+		if (DEBUG) Log.v(TAG, "stopReaderThreads:終了");
 	}
 
 	/** 機体との接続を終了 */
@@ -575,7 +578,7 @@ public abstract class DeviceController implements IDeviceController {
 			mMediaOpened = false;
 			mARManager.dispose();
 		}
-		if (DEBUG) Log.v(TAG, "stopNetwork:finished");
+		if (DEBUG) Log.v(TAG, "stopNetwork:終了");
 	}
 
 //================================================================================
@@ -1153,7 +1156,7 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-	public void setVideoStreamListener(final VideoStreamListener listener) {
+	protected void setVideoStreamListener(final VideoStreamListener listener) {
 		synchronized (mStreamSync) {
 			mVideoStreamListener = listener;
 		}
@@ -1966,6 +1969,7 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/** ビデオストリーミングデータを受信するためのスレッド */
 	private class VideoThread extends LooperThread {
 		private final ARStreamManager streamManager;
 
@@ -1978,6 +1982,7 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onStart() {
 			super.onStart();
+			if (DEBUG) Log.v(TAG, "VideoThread#onStart");
 			streamManager.start();
 
 		}
@@ -1985,10 +1990,9 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onLoop() {
 			final ARFrame frame = streamManager.getFrameWithTimeout(VIDEO_RECEIVE_TIMEOUT_MS);
-
 			if (frame != null) {
 				try {
-					if (DEBUG) Log.v(TAG, "video stream frame:" + frame);
+//					if (DEBUG) Log.v(TAG, "video stream frame:" + frame);
 					synchronized (mStreamSync) {
 						if (mVideoStreamListener != null) {
 							mVideoStreamListener.onReceiveFrame(frame);
@@ -2002,7 +2006,10 @@ public abstract class DeviceController implements IDeviceController {
 
 		@Override
 		public void onStop() {
+			if (DEBUG) Log.v(TAG, "VideoThread#onStop");
 			streamManager.stop();
+			streamManager.release();
+			if (DEBUG) Log.v(TAG, "VideoThread#onStop:終了");
 			super.onStop();
 		}
 	}

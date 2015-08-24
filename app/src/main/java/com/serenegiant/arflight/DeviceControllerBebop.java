@@ -92,6 +92,10 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		mSettings.setCutOffMode(true);
 	}
 
+	@Override
+	public void setVideoStreamListener(final VideoStreamListener listener) {
+		super.setVideoStreamListener(listener);
+	}
 //================================================================================
 // 機体からの状態・データコールバック関係
 //================================================================================
