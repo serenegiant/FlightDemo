@@ -93,8 +93,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	}
 
 	@Override
-	public void setVideoStreamListener(final VideoStreamListener listener) {
-		super.setVideoStreamListener(listener);
+	public void setVideoStream(final IVideoStream video_stream) {
+		super.setVideoStream(video_stream);
 	}
 //================================================================================
 // 機体からの状態・データコールバック関係

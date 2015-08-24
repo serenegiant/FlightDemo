@@ -110,7 +110,7 @@ public abstract class DeviceController implements IDeviceController {
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 	private final List<DeviceControllerListener> mListeners = new ArrayList<DeviceControllerListener>();
 	private final Object mStreamSync = new Object();
-	private VideoStreamListener mVideoStreamListener;
+	private IVideoStream mVideoStreamListener;
 
 	protected DroneInfo mInfo;
 	protected DroneSettings mSettings;
@@ -1156,7 +1156,7 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-	protected void setVideoStreamListener(final VideoStreamListener listener) {
+	protected void setVideoStream(final IVideoStream listener) {
 		synchronized (mStreamSync) {
 			mVideoStreamListener = listener;
 		}

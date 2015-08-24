@@ -1,384 +1,395 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-	android:id="@+id/controller_frame"
+<FrameLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:foreground="?android:windowContentOverlay"
-	android:orientation="vertical"
 	tools:context="com.serenegiant.flightdemo.PilotFragment">
 
-	<RelativeLayout
-		android:id="@+id/top_panel"
-		android:layout_width="match_parent"
+	<TextureView
+		android:id="@+id/video_textureview"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:gravity="top">
-
-		<TextView
-			android:id="@+id/textView"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentLeft="true"
-			android:layout_alignParentStart="true"
-			android:layout_centerVertical="true"
-			android:text="@string/battery"
-			android:textAppearance="?android:attr/textAppearanceMedium"
-			android:textSize="@dimen/text_sz_button"/>
-
-		<TextView
-			android:id="@+id/batteryLabel"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_centerVertical="true"
-			android:layout_toEndOf="@+id/textView"
-			android:layout_toRightOf="@+id/textView"
-			android:text="XXX%"
-			android:textAppearance="?android:attr/textAppearanceMedium"
-			android:textSize="@dimen/text_sz_button"/>
-
-		<ImageButton
-			android:id="@+id/flat_trim_btn"
-			android:layout_width="@dimen/bottom_panel_height"
-			android:layout_height="@dimen/bottom_panel_height"
-			android:layout_centerInParent="true"
-			android:background="@null"
-			android:scaleType="centerCrop"
-			android:src="@android:drawable/ic_menu_mylocation"/>
-
-		<TextView
-			android:id="@+id/alert_message"
-			android:layout_width="wrap_content"
-			android:layout_height="@dimen/bottom_panel_height"
-			android:layout_below="@+id/imageButton"
-			android:layout_centerVertical="true"
-			android:layout_toLeftOf="@+id/config_show_btn"
-			android:layout_toRightOf="@+id/flat_trim_btn"
-			android:layout_toStartOf="@+id/config_show_btn"
-			android:gravity="center_vertical"
-			android:text="message"
-			android:textColor="#ffff0000"
-			android:textSize="@dimen/text_sz_message"
-			android:visibility="invisible"/>
-
-		<ImageButton
-			android:id="@+id/imageButton"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignEnd="@+id/alert_message"
-			android:layout_alignParentTop="true"
-			android:layout_alignRight="@+id/alert_message"
-			android:background="@null"/>
-
-		<ImageButton
-			android:id="@+id/config_show_btn"
-			android:layout_width="@dimen/bottom_panel_height"
-			android:layout_height="@dimen/bottom_panel_height"
-			android:layout_alignParentEnd="true"
-			android:layout_alignParentRight="true"
-			android:layout_alignParentTop="true"
-			android:background="@null"
-			android:scaleType="fitXY"
-			android:src="@mipmap/ic_settings_applications_black_48dp"/>
-
-	</RelativeLayout>
+		android:visibility="gone"/>
 
 	<LinearLayout
+		android:id="@+id/controller_frame"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		android:layout_weight="10"
-		android:orientation="horizontal">
+		android:foreground="?android:windowContentOverlay"
+		android:orientation="vertical">
+
+		<RelativeLayout
+			android:id="@+id/top_panel"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:gravity="top">
+
+			<TextView
+				android:id="@+id/textView"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_alignParentLeft="true"
+				android:layout_alignParentStart="true"
+				android:layout_centerVertical="true"
+				android:text="@string/battery"
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:textSize="@dimen/text_sz_button"/>
+
+			<TextView
+				android:id="@+id/batteryLabel"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerVertical="true"
+				android:layout_toEndOf="@+id/textView"
+				android:layout_toRightOf="@+id/textView"
+				android:text="XXX%"
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:textSize="@dimen/text_sz_button"/>
+
+			<ImageButton
+				android:id="@+id/flat_trim_btn"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:layout_centerInParent="true"
+				android:background="@null"
+				android:scaleType="centerCrop"
+				android:src="@android:drawable/ic_menu_mylocation"/>
+
+			<TextView
+				android:id="@+id/alert_message"
+				android:layout_width="wrap_content"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:layout_below="@+id/imageButton"
+				android:layout_centerVertical="true"
+				android:layout_toLeftOf="@+id/config_show_btn"
+				android:layout_toRightOf="@+id/flat_trim_btn"
+				android:layout_toStartOf="@+id/config_show_btn"
+				android:gravity="center_vertical"
+				android:text="message"
+				android:textColor="#ffff0000"
+				android:textSize="@dimen/text_sz_message"
+				android:visibility="invisible"/>
+
+			<ImageButton
+				android:id="@+id/imageButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_alignEnd="@+id/alert_message"
+				android:layout_alignParentTop="true"
+				android:layout_alignRight="@+id/alert_message"
+				android:background="@null"/>
+
+			<ImageButton
+				android:id="@+id/config_show_btn"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:layout_alignParentEnd="true"
+				android:layout_alignParentRight="true"
+				android:layout_alignParentTop="true"
+				android:background="@null"
+				android:scaleType="fitXY"
+				android:src="@mipmap/ic_settings_applications_black_48dp"/>
+
+		</RelativeLayout>
 
 		<LinearLayout
-			android:id="@+id/right_side_panel"
-			android:layout_width="wrap_content"
-			android:layout_height="match_parent"
-			android:layout_alignParentLeft="true"
-			android:layout_alignParentStart="true"
-			android:layout_alignParentTop="true"
-			android:orientation="vertical">
-
-			<FrameLayout
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_marginTop="@dimen/quater_padding"
-				android:background="@null">
-
-				<ImageButton
-					android:id="@+id/cap_p45_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="@drawable/turn_right144x144"/>
-
-				<TextView
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_gravity="center"
-					android:gravity="center"
-					android:text="+45"
-					android:textSize="@dimen/text_sz_button"/>
-			</FrameLayout>
-
-
-			<FrameLayout
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:background="@null">
-
-				<ImageButton
-					android:id="@+id/cap_p15_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="@drawable/turn_right144x144"/>
-
-				<TextView
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_gravity="center"
-					android:gravity="center"
-					android:text="+15"
-					android:textSize="@dimen/text_sz_button"/>
-			</FrameLayout>
-
-			<FrameLayout
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:background="@null">
-
-				<ImageButton
-					android:id="@+id/cap_m15_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="@drawable/turn_left144x144"/>
-
-				<TextView
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_gravity="center"
-					android:gravity="center"
-					android:text="-15"
-					android:textSize="@dimen/text_sz_button"/>
-			</FrameLayout>
-
-			<FrameLayout
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:background="@null">
-
-				<ImageButton
-					android:id="@+id/cap_m45_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="@drawable/turn_left144x144"/>
-
-				<TextView
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_gravity="center"
-					android:gravity="center"
-					android:text="-45"
-					android:textSize="@dimen/text_sz_button"/>
-			</FrameLayout>
-
-		</LinearLayout>
-
-		<com.serenegiant.widget.StickView
-			android:id="@+id/stick_view_right"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
-			android:layout_alignParentBottom="true"
-			android:layout_alignParentRight="true"
-			android:layout_alignParentTop="true"
-			android:layout_centerHorizontal="true"
-			android:layout_weight="1"
-			app:stick_height="@dimen/stick_frame_width"
-			app:stick_image_layout="@layout/stick_right"
-			app:stick_width="@dimen/stick_frame_width">
-		</com.serenegiant.widget.StickView>
+			android:layout_weight="10"
+			android:orientation="horizontal">
 
-		<com.serenegiant.widget.StickView
-			android:id="@+id/stick_view_left"
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:layout_alignParentBottom="true"
-			android:layout_alignParentLeft="true"
-			android:layout_alignParentTop="true"
-			android:layout_centerHorizontal="true"
-			android:layout_weight="1"
-			app:stick_height="@dimen/stick_frame_width"
-			app:stick_image_layout="@layout/stick_left"
-			app:stick_width="@dimen/stick_frame_width">
-		</com.serenegiant.widget.StickView>
+			<LinearLayout
+				android:id="@+id/right_side_panel"
+				android:layout_width="wrap_content"
+				android:layout_height="match_parent"
+				android:layout_alignParentLeft="true"
+				android:layout_alignParentStart="true"
+				android:layout_alignParentTop="true"
+				android:orientation="vertical">
 
-		<LinearLayout
-			android:id="@+id/left_side_panel"
-			android:layout_width="wrap_content"
-			android:layout_height="match_parent"
-			android:layout_alignParentLeft="true"
-			android:layout_alignParentStart="true"
-			android:layout_alignParentTop="true"
-			android:orientation="vertical">
+				<FrameLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginTop="@dimen/quater_padding"
+					android:background="@null">
 
-			<ImageButton
-				android:id="@+id/flip_front_btn"
-				android:layout_width="@dimen/btn_size_action"
-				android:layout_height="@dimen/btn_size_action"
-				android:layout_marginTop="@dimen/quater_padding"
-				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="@drawable/flip_front144x144"/>
+					<ImageButton
+						android:id="@+id/cap_p45_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="@drawable/turn_right144x144"/>
 
-			<ImageButton
-				android:id="@+id/flip_back_btn"
-				android:layout_width="@dimen/btn_size_action"
-				android:layout_height="@dimen/btn_size_action"
-				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="@drawable/flip_back144x144"/>
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_gravity="center"
+						android:gravity="center"
+						android:text="+45"
+						android:textSize="@dimen/text_sz_button"/>
+				</FrameLayout>
 
-			<ImageButton
-				android:id="@+id/flip_right_btn"
-				android:layout_width="@dimen/btn_size_action"
-				android:layout_height="@dimen/btn_size_action"
-				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="@drawable/flip_right144x144"/>
 
-			<ImageButton
-				android:id="@+id/flip_left_btn"
-				android:layout_width="@dimen/btn_size_action"
-				android:layout_height="@dimen/btn_size_action"
-				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="@drawable/flip_left144x144"/>
+				<FrameLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null">
 
+					<ImageButton
+						android:id="@+id/cap_p15_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="@drawable/turn_right144x144"/>
+
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_gravity="center"
+						android:gravity="center"
+						android:text="+15"
+						android:textSize="@dimen/text_sz_button"/>
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null">
+
+					<ImageButton
+						android:id="@+id/cap_m15_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="@drawable/turn_left144x144"/>
+
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_gravity="center"
+						android:gravity="center"
+						android:text="-15"
+						android:textSize="@dimen/text_sz_button"/>
+				</FrameLayout>
+
+				<FrameLayout
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null">
+
+					<ImageButton
+						android:id="@+id/cap_m45_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="@drawable/turn_left144x144"/>
+
+					<TextView
+						android:layout_width="wrap_content"
+						android:layout_height="wrap_content"
+						android:layout_gravity="center"
+						android:gravity="center"
+						android:text="-45"
+						android:textSize="@dimen/text_sz_button"/>
+				</FrameLayout>
+
+			</LinearLayout>
+
+			<com.serenegiant.widget.StickView
+				android:id="@+id/stick_view_right"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_alignParentBottom="true"
+				android:layout_alignParentRight="true"
+				android:layout_alignParentTop="true"
+				android:layout_centerHorizontal="true"
+				android:layout_weight="1"
+				app:stick_height="@dimen/stick_frame_width"
+				app:stick_image_layout="@layout/stick_right"
+				app:stick_width="@dimen/stick_frame_width">
+			</com.serenegiant.widget.StickView>
+
+			<com.serenegiant.widget.StickView
+				android:id="@+id/stick_view_left"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_alignParentBottom="true"
+				android:layout_alignParentLeft="true"
+				android:layout_alignParentTop="true"
+				android:layout_centerHorizontal="true"
+				android:layout_weight="1"
+				app:stick_height="@dimen/stick_frame_width"
+				app:stick_image_layout="@layout/stick_left"
+				app:stick_width="@dimen/stick_frame_width">
+			</com.serenegiant.widget.StickView>
+
+			<LinearLayout
+				android:id="@+id/left_side_panel"
+				android:layout_width="wrap_content"
+				android:layout_height="match_parent"
+				android:layout_alignParentLeft="true"
+				android:layout_alignParentStart="true"
+				android:layout_alignParentTop="true"
+				android:orientation="vertical">
+
+				<ImageButton
+					android:id="@+id/flip_front_btn"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
+					android:layout_marginTop="@dimen/quater_padding"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@drawable/flip_front144x144"/>
+
+				<ImageButton
+					android:id="@+id/flip_back_btn"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@drawable/flip_back144x144"/>
+
+				<ImageButton
+					android:id="@+id/flip_right_btn"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@drawable/flip_right144x144"/>
+
+				<ImageButton
+					android:id="@+id/flip_left_btn"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@drawable/flip_left144x144"/>
+
+			</LinearLayout>
 		</LinearLayout>
+
+		<RelativeLayout
+			android:id="@+id/bottom_panel"
+			android:layout_width="match_parent"
+			android:layout_height="@dimen/bottom_panel_height"
+			android:background="@drawable/green_gradient"
+			android:gravity="bottom">
+
+			<ImageButton
+				android:id="@+id/take_onoff_btn"
+				android:layout_width="@dimen/btn_width_takeoff"
+				android:layout_height="@dimen/btn_height_takeoff"
+				android:layout_centerHorizontal="true"
+				android:background="@null"
+				android:scaleType="fitCenter"
+				android:src="@drawable/takeoff72x72"/>
+
+			<ImageButton
+				android:id="@+id/emergency_btn"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:layout_alignParentRight="true"
+				android:layout_marginRight="@dimen/quater_padding"
+				android:background="@null"
+				android:scaleType="fitXY"
+				android:src="@drawable/stop72x72"/>
+
+			<TextView
+				android:id="@+id/time_label"
+				android:layout_width="100sp"
+				android:layout_height="wrap_content"
+				android:layout_alignParentLeft="true"
+				android:layout_centerVertical="true"
+				android:text="###:##"
+				android:textSize="@dimen/text_sz_button"/>
+
+			<FrameLayout
+				android:id="@+id/record_btn_frame"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_alignParentLeft="true"
+				android:layout_marginLeft="120dp"
+				android:background="@null">
+
+				<ImageButton
+					android:id="@+id/record_btn"
+					android:layout_width="@dimen/bottom_panel_height"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@drawable/rec"
+					/>
+
+				<TextView
+					android:id="@+id/record_label"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_gravity="center_horizontal|bottom"
+					android:gravity="fill_horizontal|fill"
+					android:text="@string/action_record"
+					android:textSize="@dimen/text_sz_on_image_button"/>
+			</FrameLayout>
+
+			<FrameLayout
+				android:id="@+id/load_btn_frame"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_toEndOf="@+id/record_btn_frame"
+				android:layout_toRightOf="@+id/record_btn_frame"
+				android:background="@null">
+
+				<ImageButton
+					android:id="@+id/load_btn"
+					android:layout_width="@dimen/bottom_panel_height"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@drawable/map"/>
+
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_gravity="center_horizontal|bottom"
+					android:gravity="fill_horizontal|fill"
+					android:text="@string/action_load"
+					android:textSize="@dimen/text_sz_on_image_button"/>
+			</FrameLayout>
+
+			<FrameLayout
+				android:id="@+id/play_btn_frame"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginRight="@dimen/half_padding"
+				android:layout_toEndOf="@+id/load_btn_frame"
+				android:layout_toRightOf="@+id/load_btn_frame"
+				android:background="@null">
+
+				<ImageButton
+					android:id="@+id/play_btn"
+					android:layout_width="@dimen/bottom_panel_height"
+					android:layout_height="@dimen/bottom_panel_height"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@drawable/play"/>
+
+				<TextView
+					android:id="@+id/play_label"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_gravity="center_horizontal|bottom"
+					android:gravity="fill_horizontal|fill"
+					android:text="@string/action_play"
+					android:textSize="@dimen/text_sz_on_image_button"/>
+			</FrameLayout>
+
+		</RelativeLayout>
+
 	</LinearLayout>
 
-	<RelativeLayout
-		android:id="@+id/bottom_panel"
-		android:layout_width="match_parent"
-		android:layout_height="@dimen/bottom_panel_height"
-		android:background="@drawable/green_gradient"
-		android:gravity="bottom">
-
-		<ImageButton
-			android:id="@+id/take_onoff_btn"
-			android:layout_width="@dimen/btn_width_takeoff"
-			android:layout_height="@dimen/btn_height_takeoff"
-			android:layout_centerHorizontal="true"
-			android:background="@null"
-			android:scaleType="fitCenter"
-			android:src="@drawable/takeoff72x72"/>
-
-		<ImageButton
-			android:id="@+id/emergency_btn"
-			android:layout_width="@dimen/bottom_panel_height"
-			android:layout_height="@dimen/bottom_panel_height"
-			android:layout_alignParentRight="true"
-			android:layout_marginRight="@dimen/quater_padding"
-			android:background="@null"
-			android:scaleType="fitXY"
-			android:src="@drawable/stop72x72"/>
-
-		<TextView
-			android:id="@+id/time_label"
-			android:layout_width="100sp"
-			android:layout_height="wrap_content"
-			android:layout_alignParentLeft="true"
-			android:layout_centerVertical="true"
-			android:text="###:##"
-			android:textSize="@dimen/text_sz_button"/>
-
-		<FrameLayout
-			android:id="@+id/record_btn_frame"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentLeft="true"
-			android:layout_marginLeft="120dp"
-			android:background="@null">
-
-			<ImageButton
-				android:id="@+id/record_btn"
-				android:layout_width="@dimen/bottom_panel_height"
-				android:layout_height="@dimen/bottom_panel_height"
-				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="@drawable/rec"
-				/>
-
-			<TextView
-				android:id="@+id/record_label"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_gravity="center_horizontal|bottom"
-				android:gravity="fill_horizontal|fill"
-				android:text="@string/action_record"
-				android:textSize="@dimen/text_sz_on_image_button"/>
-		</FrameLayout>
-
-		<FrameLayout
-			android:id="@+id/load_btn_frame"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_toEndOf="@+id/record_btn_frame"
-			android:layout_toRightOf="@+id/record_btn_frame"
-			android:background="@null">
-
-			<ImageButton
-				android:id="@+id/load_btn"
-				android:layout_width="@dimen/bottom_panel_height"
-				android:layout_height="@dimen/bottom_panel_height"
-				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="@drawable/map"/>
-
-			<TextView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_gravity="center_horizontal|bottom"
-				android:gravity="fill_horizontal|fill"
-				android:text="@string/action_load"
-				android:textSize="@dimen/text_sz_on_image_button"/>
-		</FrameLayout>
-
-		<FrameLayout
-			android:id="@+id/play_btn_frame"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_marginRight="@dimen/half_padding"
-			android:layout_toEndOf="@+id/load_btn_frame"
-			android:layout_toRightOf="@+id/load_btn_frame"
-			android:background="@null">
-
-			<ImageButton
-				android:id="@+id/play_btn"
-				android:layout_width="@dimen/bottom_panel_height"
-				android:layout_height="@dimen/bottom_panel_height"
-				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="@drawable/play"/>
-
-			<TextView
-				android:id="@+id/play_label"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_gravity="center_horizontal|bottom"
-				android:gravity="fill_horizontal|fill"
-				android:text="@string/action_play"
-				android:textSize="@dimen/text_sz_on_image_button"/>
-		</FrameLayout>
-
-	</RelativeLayout>
-
-</LinearLayout>
-
+</FrameLayout>

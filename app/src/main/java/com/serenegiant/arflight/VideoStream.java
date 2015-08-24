@@ -18,7 +18,7 @@ import com.serenegiant.glutils.GLHelper;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class VideoStream implements VideoStreamListener {
+public class VideoStream implements IVideoStream {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = "VideoStream";
 
@@ -52,6 +52,14 @@ public class VideoStream implements VideoStreamListener {
 
 	public void release() {
 		mRendererTask.release();
+	}
+
+	public void addSurface(final int id, final Surface surface) {
+		mRendererTask.addSurface(id, surface);
+	}
+
+	public void removeSurface(final int id) {
+		mRendererTask.removeSurface(id);
 	}
 
 	@Override

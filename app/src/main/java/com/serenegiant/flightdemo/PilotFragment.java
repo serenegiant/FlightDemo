@@ -2,10 +2,13 @@ package com.serenegiant.flightdemo;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -79,6 +82,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private StickView mRightStickPanel;		// 右スティックパネル
 	private StickView mLeftStickPanel;		// 左スティックパネル
 	private TouchPilotView mTouchPilotView;	// タッチ描画パネル
+	// ビデオストリーミング用
+	private TextureView mVideoTextureView;	// ビデオストリーミング表示用
 	// サイドメニュー
 	private SideMenuListView mSideMenuListView;
 	/** 操縦に使用するボタン等の一括変更用。操作可・不可に応じてenable/disableを切り替える */
@@ -243,6 +248,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mTouchPilotView.setTouchPilotListener(mTouchPilotListener);
 			mActionViews.add(mTouchPilotView);
 		}
+
+		// ビデオストリーミング用
+		mVideoTextureView = (TextureView)rootView.findViewById(R.id.video_textureview);
 
 		mBatteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
@@ -545,19 +553,35 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	@Override
 	protected void startVideoStreaming() {
+		if (DEBUG) Log.v(TAG, "startVideoStreaming:");
 		super.startVideoStreaming();
 		if (mController instanceof IVideoStreamController) {
 			if (mVideoStream == null) {
 				mVideoStream = new VideoStream();
 			}
-			((IVideoStreamController)mController).setVideoStreamListener(mVideoStream);
+			((IVideoStreamController)mController).setVideoStream(mVideoStream);
+			mVideoTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					mVideoTextureView.setVisibility(View.VISIBLE);
+				}
+			});
 		}
 	}
 
 	@Override
 	protected void stopVideoStreaming() {
+		if (DEBUG) Log.v(TAG, "stopVideoStreaming:");
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				mVideoTextureView.setVisibility(View.GONE);
+				mVideoTextureView.setSurfaceTextureListener(null);
+			}
+		});
 		if (mController instanceof IVideoStreamController) {
-			((IVideoStreamController)mController).setVideoStreamListener(null);
+			((IVideoStreamController)mController).setVideoStream(null);
 		}
 		if (mVideoStream != null) {
 			mVideoStream.release();
@@ -1251,6 +1275,38 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final MainActivity activity = (MainActivity)getActivity();
 			activity.closeSideMenu();
 			startScript(position);
+		}
+	};
+
+	private int mSurfaceId;
+	private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
+		@Override
+		public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+			if (DEBUG) Log.v(TAG, "onSurfaceTextureAvailable:");
+			if (mVideoStream != null) {
+				final Surface _surface = new Surface(surface);
+				mSurfaceId = _surface.hashCode();
+				mVideoStream.addSurface(mSurfaceId, _surface);
+			}
+		}
+
+		@Override
+		public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+			if (DEBUG) Log.v(TAG, "onSurfaceTextureSizeChanged:");
+		}
+
+		@Override
+		public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+			if (DEBUG) Log.v(TAG, "onSurfaceTextureDestroyed:");
+			if (mVideoStream != null) {
+				mVideoStream.removeSurface(mSurfaceId);
+				mSurfaceId = 0;
+			}
+			return true;
+		}
+
+		@Override
+		public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 		}
 	};
 }
