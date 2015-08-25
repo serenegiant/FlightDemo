@@ -35,6 +35,7 @@ public class VideoStream implements IVideoStream {
 	private final DecodeTask mDecodeTask;
 
 	public VideoStream() {
+		if (DEBUG) Log.v(TAG, "VideoStream:コンストラクタ");
 		mRendererTask = new RendererTask(this);
 		new Thread(mRendererTask, "VideoStream$rendererTask").start();
 		mRendererTask.waitReady();
@@ -51,14 +52,17 @@ public class VideoStream implements IVideoStream {
 	}
 
 	public void release() {
+		if (DEBUG) Log.v(TAG, "release");
 		mRendererTask.release();
 	}
 
 	public void addSurface(final int id, final Surface surface) {
+		if (DEBUG) Log.v(TAG, "addSurface");
 		mRendererTask.addSurface(id, surface);
 	}
 
 	public void removeSurface(final int id) {
+		if (DEBUG) Log.v(TAG, "removeSurface");
 		mRendererTask.removeSurface(id);
 	}
 
@@ -85,6 +89,7 @@ public class VideoStream implements IVideoStream {
 		}
 
 		public void queueFrame(final ARFrame frame) {
+//			if (DEBUG) Log.v(TAG, "queueFrame:mediaCodec" + mediaCodec + ",isCodecConfigured=" + isCodecConfigured);
 			if ((mediaCodec != null)) {
 				if (!isCodecConfigured && frame.isIFrame()) {
 					csdBuffer = getCSD(frame);
@@ -127,25 +132,26 @@ public class VideoStream implements IVideoStream {
 
 		@Override
 		public void run() {
+			if (DEBUG) Log.v(TAG, "DecodeTask#run");
 			initMediaCodec();
 			final MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-			for ( ; isRunning ; ) {
-				if (!isCodecConfigured) {
-					try {
-						Thread.sleep(VIDEO_OUTPUT_TIMEOUT_US);
-					} catch (final InterruptedException e) {
-						break;
-					}
+			for ( ; isRunning && !isCodecConfigured ; ) {
+				try {
+					Thread.sleep(VIDEO_OUTPUT_TIMEOUT_US);
+				} catch (final InterruptedException e) {
+					break;
 				}
 			}
+			if (DEBUG) Log.v(TAG, "DecodeTask#run:isRunning=" + isRunning + ",isCodecConfigured=" + isCodecConfigured);
 			if (isCodecConfigured) {
 				for ( ; isRunning ; ) {
 					int outIndex = -1;
 					try {
 						outIndex = mediaCodec.dequeueOutputBuffer(info, VIDEO_OUTPUT_TIMEOUT_US);
+						if (DEBUG) Log.v(TAG, "dequeueOutputBuffer:" + outIndex);
 						// XXX 時間調整っていらんのかな?
 						if (outIndex >= 0) {
-							mediaCodec.releaseOutputBuffer(outIndex, isRunning);
+							mediaCodec.releaseOutputBuffer(outIndex, true);
 						}
 					} catch (final IllegalStateException e) {
 						Log.e(TAG, "Error while dequeue output buffer (outIndex)");
@@ -153,6 +159,7 @@ public class VideoStream implements IVideoStream {
 				}
 			}
 			releaseMediaCodec();
+			if (DEBUG) Log.v(TAG, "DecodeTask#run:終了");
 		}
 
 		private void initMediaCodec() {

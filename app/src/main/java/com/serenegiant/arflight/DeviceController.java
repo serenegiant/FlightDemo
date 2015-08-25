@@ -364,7 +364,7 @@ public abstract class DeviceController implements IDeviceController {
 				failed = true;
 			}
 		}
-		if (DEBUG) Log.v(TAG, "startNetwork:finished:" + failed);
+		if (DEBUG) Log.v(TAG, "startNetwork:finished:failed=" + failed);
 		return failed;
 	}
 
@@ -423,19 +423,19 @@ public abstract class DeviceController implements IDeviceController {
 					final JSONObject jsonObject = new JSONObject();
 					try {
 						jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY, d2cPort);
-					} catch (JSONException e) {
+					} catch (final JSONException e) {
 						Log.w(TAG, e);
 					}
 					try {
-						Log.e(TAG, "android.os.Build.MODEL: "+android.os.Build.MODEL);
+						Log.i(TAG, "android.os.Build.MODEL: "+android.os.Build.MODEL);
 						jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY, android.os.Build.MODEL);
-					} catch (JSONException e) {
+					} catch (final JSONException e) {
 						Log.w(TAG, e);
 					}
 					try {
-						Log.e(TAG, "android.os.Build.DEVICE: "+android.os.Build.DEVICE);
+						Log.i(TAG, "android.os.Build.DEVICE: "+android.os.Build.DEVICE);
 						jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY, android.os.Build.DEVICE);
-					} catch (JSONException e) {
+					} catch (final JSONException e) {
 						Log.w(TAG, e);
 					}
 
@@ -464,7 +464,7 @@ public abstract class DeviceController implements IDeviceController {
 							videoMaxAckInterval = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY);
 						}
                         /* Else: leave it to the default value. */
-					} catch (JSONException e) {
+					} catch (final JSONException e) {
 						Log.w(TAG, e);
 						error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_ERROR;
 					}

@@ -79,7 +79,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 
 public class DeviceControllerBebop extends DeviceController implements IVideoStreamController {
-	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceControllerBebop";
 
 	private static final int VIDEO_RECEIVE_TIMEOUT_MS = 500;
@@ -1813,6 +1813,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	}
 
 	protected void prepare_nextwork() {
+		if (DEBUG) Log.v(TAG, "prepare_nextwork:");
 		// TODO :  if ardiscoveryConnect ok
 		mNetConfig.addStreamReaderIOBuffer(videoFragmentSize, videoFragmentMaximumNumber);
 
@@ -1824,8 +1825,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 		public VideoThread () {
 			streamManager = new ARStreamManager (mARNetManager,
-													mNetConfig.getVideoDataIOBuffer(), mNetConfig.getVideoAckIOBuffer(),
-													videoFragmentSize, videoMaxAckInterval);
+				mNetConfig.getVideoDataIOBuffer(), mNetConfig.getVideoAckIOBuffer(),
+				videoFragmentSize, videoMaxAckInterval);
 		}
 
 		@Override
@@ -1870,6 +1871,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		}
 		mVideoThread = new VideoThread();
 		mVideoThread.start();
+		if (DEBUG) Log.v(TAG, "startVideoThread:終了");
 	}
 
 	/** ストリーミングデータ受信スレッドを終了(終了するまで戻らない) */
