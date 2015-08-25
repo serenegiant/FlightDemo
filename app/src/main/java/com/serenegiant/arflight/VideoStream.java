@@ -74,10 +74,15 @@ public class VideoStream implements IVideoStream {
 
 	private final class DecodeTask implements Runnable {
 		private MediaCodec mediaCodec;
-		private boolean isCodecConfigured = false;
+		private volatile boolean isCodecConfigured;
 		private ByteBuffer csdBuffer;
 		private boolean waitForIFrame = true;
-		private ByteBuffer [] buffers;
+		private ByteBuffer [] inputBuffers;
+
+		public DecodeTask() {
+			isCodecConfigured = false;
+			waitForIFrame = true;
+		}
 
 		public void queueFrame(final ARFrame frame) {
 			if ((mediaCodec != null)) {
@@ -99,17 +104,16 @@ public class VideoStream implements IVideoStream {
 						Log.e(TAG, "Error while dequeue input buffer");
 					}
 					if (index >= 0) {
-						final ByteBuffer b = buffers[index];
+						final ByteBuffer b = inputBuffers[index];
+						final int sz = frame.getDataSize();
 						b.clear();
-						b.put(frame.getByteData(), 0, frame.getDataSize());
-						//ByteBufferDumper.dumpBufferStartEnd("PFRAME", b, 10, 4);
+						b.put(frame.getByteData(), 0, sz);
 						int flag = 0;
 						if (frame.isIFrame()) {
-							//flag = MediaCodec.BUFFER_FLAG_SYNC_FRAME | MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+							flag |= MediaCodec.BUFFER_FLAG_KEY_FRAME; //  | MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 						}
-
 						try {
-							mediaCodec.queueInputBuffer(index, 0, frame.getDataSize(), 0, flag);
+							mediaCodec.queueInputBuffer(index, 0, sz, 0, flag);
 						} catch (final IllegalStateException e) {
 							Log.w(TAG, "Error while queue input buffer");
 						}
@@ -126,23 +130,25 @@ public class VideoStream implements IVideoStream {
 			initMediaCodec();
 			final MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 			for ( ; isRunning ; ) {
-				// Try to display previous frame
-				if (isCodecConfigured) {
+				if (!isCodecConfigured) {
+					try {
+						Thread.sleep(VIDEO_OUTPUT_TIMEOUT_US);
+					} catch (final InterruptedException e) {
+						break;
+					}
+				}
+			}
+			if (isCodecConfigured) {
+				for ( ; isRunning ; ) {
 					int outIndex = -1;
 					try {
 						outIndex = mediaCodec.dequeueOutputBuffer(info, VIDEO_OUTPUT_TIMEOUT_US);
 						// XXX 時間調整っていらんのかな?
 						if (outIndex >= 0) {
-							mediaCodec.releaseOutputBuffer(outIndex, true);
+							mediaCodec.releaseOutputBuffer(outIndex, isRunning);
 						}
 					} catch (final IllegalStateException e) {
 						Log.e(TAG, "Error while dequeue output buffer (outIndex)");
-					}
-				} else {
-					try {
-						Thread.sleep(VIDEO_OUTPUT_TIMEOUT_US);
-					} catch (final InterruptedException e) {
-						break;
 					}
 				}
 			}
@@ -164,7 +170,7 @@ public class VideoStream implements IVideoStream {
 			mediaCodec.configure(format, surface, null, 0);
 			mediaCodec.start();
 
-			buffers = mediaCodec.getInputBuffers();
+			inputBuffers = mediaCodec.getInputBuffers();
 
 			isCodecConfigured = true;
 		}

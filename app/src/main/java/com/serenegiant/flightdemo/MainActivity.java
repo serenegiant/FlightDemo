@@ -13,9 +13,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.serenegiant.arflight.GamePad;
 import com.serenegiant.widget.ISideMenuView;
 import com.serenegiant.widget.SideMenuFrameLayout;
 
@@ -127,10 +129,17 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
+	@Override
+	public boolean dispatchKeyEvent(final KeyEvent event) {
+		if (GamePad.processKeyEvent(event)) return true;
+		return super.dispatchKeyEvent(event);
+	}
+
 	private ProgressDialog mProgress;
 
 	public synchronized void showProgress(final int title_resID, final boolean cancelable,
-											 final DialogInterface.OnCancelListener cancel_listener) {
+		final DialogInterface.OnCancelListener cancel_listener) {
+
 		if (!isFinishing()) {
 			runOnUiThread(new Runnable() {
 				@Override

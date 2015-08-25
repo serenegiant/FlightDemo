@@ -206,40 +206,40 @@ public interface IDeviceController {
 	 * 機体の高度を上下させる
 	 * @param gaz 負:下降, 正:上昇, -100〜+100
 	 */
-	public void setGaz(final int gaz);
+	public void setGaz(final float gaz);
 	/**
 	 * 機体を左右に傾ける。flag=1:左右に移動する, flag=0:機体姿勢変更のみ
 	 * @param roll 負:左, 正:右, -100〜+100
 	 */
-	public void setRoll(final int roll);
+	public void setRoll(final float roll);
 	/**
 	 * 機体を左右に傾ける
 	 * @param roll 負:左, 正:右, -100〜+100
 	 * @param move, true:移動, false:機体姿勢変更
 	 */
-	public void setRoll(final int roll, boolean move);
+	public void setRoll(final float roll, boolean move);
 	/**
 	 * 機首を上げ下げする。flag=1:前後に移動する, flag=0:機体姿勢変更のみ
 	 * @param pitch 負:??? 正:???, -100〜+100
 	 */
-	public void setPitch(final int pitch);
+	public void setPitch(final float pitch);
 	/**
 	 * 機首を上げ下げする
 	 * @param pitch 負:??? 正:???, -100〜+100
 	 * @param move, true:移動, false:機体姿勢変更
 	 */
-	public void setPitch(final int pitch, boolean move);
+	public void setPitch(final float pitch, boolean move);
 
 	/**
 	 * 機体の機首を左右に動かす=水平方向に回転する
 	 * @param yaw 負:左回転, 正:右回転, -100〜+100
 	 */
-	public void setYaw(final int yaw);
+	public void setYaw(final float yaw);
 	/**
 	 * 北磁極に対する角度を設定・・・でもローリングスパイダーでは動かない
 	 * @param heading -360〜360度
 	 */
-	public void setHeading(final int heading);
+	public void setHeading(final float heading);
 
 	/**
 	 * 移動量(傾き)をセット
@@ -249,7 +249,7 @@ public interface IDeviceController {
 	 * @param yaw 負:左回転, 正:右回転, -100〜+100
 	 * @param flag roll/pitchが移動を意味する時1, 機体姿勢変更のみの時は0
 	 */
-	public void setMove(final int roll, final int pitch, final int gaz, final int yaw, final int flag);
+	public void setMove(final float roll, final float pitch, final float gaz, final float yaw, final int flag);
 
 	/**
 	 * 移動量(傾き)をセット
@@ -258,14 +258,14 @@ public interface IDeviceController {
 	 * @param gaz 負:下降, 正:上昇, -100〜+100
 	 * @param yaw 負:左回転, 正:右回転, -100〜+100
 	 */
-	public void setMove(final int roll, final int pitch, final int gaz, final int yaw);
+	public void setMove(final float roll, final float pitch, final float gaz, final float yaw);
 
 	/**
 	 * 移動量(傾き)をセット
 	 * @param roll 負:左, 正:右, -100〜+100
 	 * @param pitch 負:??? 正:???, -100〜+100
 	 */
-	public void setMove(final int roll, final int pitch);
+	public void setMove(final float roll, final float pitch);
 
 	/**
 	 * 移動量(傾き)をセット
@@ -273,7 +273,7 @@ public interface IDeviceController {
 	 * @param pitch 負:??? 正:???, -100〜+100
 	 * @param gaz 負:下降, 正:上昇, -100〜+100
 	 */
-	public void setMove(final int roll, final int pitch, final int gaz);
+	public void setMove(final float roll, final float pitch, final float gaz);
 
 	/**
 	 * 指定した方向にフリップ実行

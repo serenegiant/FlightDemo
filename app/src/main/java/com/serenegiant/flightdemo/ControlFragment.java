@@ -24,7 +24,7 @@ public abstract class ControlFragment extends Fragment {
 	private final Handler mUIHandler = new Handler(Looper.getMainLooper());
 	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
 
-	private Handler mHandler;
+	protected Handler mHandler;
 
 	private ARDiscoveryDeviceService mDevice;
 	protected IDeviceController mController;

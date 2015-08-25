@@ -71,18 +71,14 @@ public abstract class DeviceController implements IDeviceController {
 
 	private static final int DEFAULT_VIDEO_FRAGMENT_SIZE = 1000;
 	private static final int DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER = 128;
-	private static final int VIDEO_RECEIVE_TIMEOUT_MS = 500;
 
 	protected final Context mContext;
 	protected final ARNetworkConfig mNetConfig;
 	private final ARDiscoveryDeviceService mDeviceService;
 
 	protected ARNetworkALManager mARManager;
-	private ARNetworkManager mARNetManager;
+	protected ARNetworkManager mARNetManager;
 	protected boolean mMediaOpened;
-	private int videoFragmentSize = DEFAULT_VIDEO_FRAGMENT_SIZE;
-	private int videoFragmentMaximumNumber = DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER;
-	private int videoMaxAckInterval;
 
 	private final Semaphore disconnectSent = new Semaphore(0);
 	private volatile boolean mRequestCancel;
@@ -91,13 +87,16 @@ public abstract class DeviceController implements IDeviceController {
 	private final Semaphore cmdGetAllStatesSent = new Semaphore(0);
 	private boolean isWaitingAllStates;
 
+	protected int videoFragmentSize = DEFAULT_VIDEO_FRAGMENT_SIZE;
+	protected int videoFragmentMaximumNumber = DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER;
+	protected int videoMaxAckInterval;
+
 	private Thread rxThread;
 	private Thread txThread;
 
 	private final List<ReaderThread> mReaderThreads = new ArrayList<ReaderThread>();
 
 	private LooperThread mFlightCMDThread;
-	private VideoThread mVideoThread;
 
 	private final Object mStateSync = new Object();
 	private int mState = STATE_STOPPED;
@@ -109,8 +108,6 @@ public abstract class DeviceController implements IDeviceController {
 	private final Object mListenerSync = new Object();
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 	private final List<DeviceControllerListener> mListeners = new ArrayList<DeviceControllerListener>();
-	private final Object mStreamSync = new Object();
-	private IVideoStream mVideoStreamListener;
 
 	protected DroneInfo mInfo;
 	protected DroneSettings mSettings;
@@ -302,6 +299,9 @@ public abstract class DeviceController implements IDeviceController {
 	private String discoveryIp;
 	private int discoveryPort;
 
+	protected void prepare_nextwork() {
+	}
+
 	protected boolean startNetwork() {
 		if (DEBUG) Log.v(TAG, "startNetwork:");
 		boolean failed = false;
@@ -325,10 +325,8 @@ public abstract class DeviceController implements IDeviceController {
 				failed = true;
 			}
 
-			// TODO :  if ardiscoveryConnect ok
-			mNetConfig.addStreamReaderIOBuffer(videoFragmentSize, videoFragmentMaximumNumber);
-
-			ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(discoveryIp, c2dPort, d2cPort, 1);
+			prepare_nextwork();
+			final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(discoveryIp, c2dPort, d2cPort, 1);
 
 			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
 				mMediaOpened = true;
@@ -341,6 +339,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (DEBUG) Log.v(TAG, "Bluetooth接続開始");
 			final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) device;
 
+			prepare_nextwork();
 			final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(
 				mContext, bleDevice.getBluetoothDevice(), 1, mNetConfig.getBLENotificationIDs()/*bleNotificationIDs*/);
 
@@ -367,6 +366,39 @@ public abstract class DeviceController implements IDeviceController {
 		}
 		if (DEBUG) Log.v(TAG, "startNetwork:finished:" + failed);
 		return failed;
+	}
+
+	/** 機体との接続を終了 */
+	private void stopNetwork() {
+		if (DEBUG) Log.v(TAG, "stopNetwork:");
+		if (mARNetManager != null) {
+			mARNetManager.stop();
+
+			try {
+				if (txThread != null) {
+					txThread.join();
+				}
+				if (rxThread != null) {
+					rxThread.join();
+				}
+			} catch (final InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			mARNetManager.dispose();
+		}
+
+		if ((mARManager != null) && (mMediaOpened)) {
+			if (mDeviceService.getDevice() instanceof ARDiscoveryDeviceNetService) {
+				mARManager.closeWifiNetwork();
+			} else if (mDeviceService.getDevice() instanceof ARDiscoveryDeviceBLEService) {
+				mARManager.closeBLENetwork(mContext);
+			}
+
+			mMediaOpened = false;
+			mARManager.dispose();
+		}
+		if (DEBUG) Log.v(TAG, "stopNetwork:終了");
 	}
 
 	private Semaphore discoverSemaphore;
@@ -476,13 +508,22 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-	private void startVideoThread() {
-	if (DEBUG) Log.v(TAG, "startVideoThread");
-		if (mVideoThread != null) {
-			mVideoThread.stopThread();
+	/** 機体からのデータ受信用スレッドを終了(終了するまで戻らない) */
+	private void stopReaderThreads() {
+		if (DEBUG) Log.v(TAG, "stopReaderThreads:");
+		/* cancel all reader threads and block until they are all stopped. */
+		for (final ReaderThread thread : mReaderThreads) {
+			thread.stopThread();
 		}
-		mVideoThread = new VideoThread();
-		mVideoThread.start();
+		for (final ReaderThread thread : mReaderThreads) {
+			try {
+				thread.join();
+			} catch (final InterruptedException e) {
+				Log.w(TAG, e);
+			}
+		}
+		mReaderThreads.clear();
+		if (DEBUG) Log.v(TAG, "stopReaderThreads:終了");
 	}
 
 	/** 操縦コマンド送信スレッドを生成&開始 */
@@ -492,7 +533,7 @@ public abstract class DeviceController implements IDeviceController {
 			mFlightCMDThread.stopThread();
 		}
         /* Create the looper thread */
-		mFlightCMDThread = new FlightCMDThread((mNetConfig.getPCMDLoopIntervalsMs() * 2) / MAX_CNT);
+		mFlightCMDThread = new FlightCMDThread((mNetConfig.getPCMDLoopIntervalsMs())/* / MAX_CNT*/);
 
         /* Start the looper thread. */
 		mFlightCMDThread.start();
@@ -514,71 +555,12 @@ public abstract class DeviceController implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "stopFlightCMDThread:終了");
 	}
 
+	/** ストリーミングデータ受信スレッドを開始 */
+	protected void startVideoThread() {
+	}
+
 	/** ストリーミングデータ受信スレッドを終了(終了するまで戻らない) */
-	private void stopVideoThread() {
-		if (DEBUG) Log.v(TAG, "stopVideoThread:");
-        /* Cancel the looper thread and block until it is stopped. */
-		if (null != mVideoThread) {
-			mVideoThread.stopThread();
-			try {
-				mVideoThread.join();
-				mVideoThread = null;
-			} catch (final InterruptedException e) {
-				Log.w(TAG, e);
-			}
-		}
-		if (DEBUG) Log.v(TAG, "stopVideoThread:終了");
-	}
-
-	/** 機体からのデータ受信用スレッドを終了(終了するまで戻らない) */
-	private void stopReaderThreads() {
-		if (DEBUG) Log.v(TAG, "stopReaderThreads:");
-		/* cancel all reader threads and block until they are all stopped. */
-		for (final ReaderThread thread : mReaderThreads) {
-			thread.stopThread();
-		}
-		for (final ReaderThread thread : mReaderThreads) {
-			try {
-				thread.join();
-			} catch (final InterruptedException e) {
-				Log.w(TAG, e);
-			}
-		}
-		mReaderThreads.clear();
-		if (DEBUG) Log.v(TAG, "stopReaderThreads:終了");
-	}
-
-	/** 機体との接続を終了 */
-	private void stopNetwork() {
-		if (DEBUG) Log.v(TAG, "stopNetwork:");
-		if (mARNetManager != null) {
-			mARNetManager.stop();
-
-			try {
-				if (txThread != null) {
-					txThread.join();
-				}
-				if (rxThread != null) {
-					rxThread.join();
-				}
-			} catch (final InterruptedException e) {
-				e.printStackTrace();
-			}
-
-			mARNetManager.dispose();
-		}
-
-		if ((mARManager != null) && (mMediaOpened)) {
-			if (mDeviceService.getDevice() instanceof ARDiscoveryDeviceNetService) {
-				mARManager.closeWifiNetwork();
-			} else if (mDeviceService.getDevice() instanceof ARDiscoveryDeviceBLEService) {
-				mARManager.closeBLENetwork(mContext);
-			}
-
-			mMediaOpened = false;
-			mARManager.dispose();
-		}
-		if (DEBUG) Log.v(TAG, "stopNetwork:終了");
+	protected void stopVideoThread() {
 	}
 
 //================================================================================
@@ -1156,12 +1138,6 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-	protected void setVideoStream(final IVideoStream listener) {
-		synchronized (mStreamSync) {
-			mVideoStreamListener = listener;
-		}
-	}
-
 	protected void callOnConnect() {
 		synchronized (mListenerSync) {
 			for (DeviceConnectionListener listener: mConnectionListeners) {
@@ -1463,8 +1439,8 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public void setFlag(final int flag) {
 		synchronized (mDataSync) {
-			mDataPCMD.flag = (byte)(flag == 0 ? 0 : (flag != 0 ? 1 : 0));
-			mDataPCMD.cnt = 1;
+			mDataPCMD.flag = flag == 0 ? 0 : (flag != 0 ? 1 : 0);
+//			mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1473,10 +1449,10 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param gaz 負:下降, 正:上昇
 	 */
 	@Override
-	public void setGaz(final int gaz) {
+	public void setGaz(final float gaz) {
 		synchronized (mDataSync) {
 			mDataPCMD.gaz = gaz > 100 ? 100 : (gaz < -100 ? -100 : gaz);
-			mDataPCMD.cnt = 1;
+//			mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1485,11 +1461,11 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param roll 負:左, 正:右
 	 */
 	@Override
-	public void setRoll(final int roll) {
+	public void setRoll(final float roll) {
 		synchronized (mDataSync) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
-			if (--mDataPCMD.cnt <= 2)
-				mDataPCMD.cnt = 2;
+//			if (--mDataPCMD.cnt <= 2)
+//				mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1499,11 +1475,11 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param move, true:移動, false:機体姿勢変更
 	 */
 	@Override
-	public void setRoll(final int roll, final boolean move) {
+	public void setRoll(final float roll, final boolean move) {
 		synchronized (mDataSync) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
 			mDataPCMD.flag = move ? 1 : 0;
-			mDataPCMD.cnt = 2;
+//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1512,11 +1488,11 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param pitch
 	 */
 	@Override
-	public void setPitch(final int pitch) {
+	public void setPitch(final float pitch) {
 		synchronized (mDataSync) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
-			if (--mDataPCMD.cnt <= 2)
-				mDataPCMD.cnt = 2;
+//			if (--mDataPCMD.cnt <= 2)
+//				mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1526,11 +1502,11 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param move, true:移動, false:機体姿勢変更
 	 */
 	@Override
-	public void setPitch(final int pitch, final boolean move) {
+	public void setPitch(final float pitch, final boolean move) {
 		synchronized (mDataSync) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
 			mDataPCMD.flag = move ? 1 : 0;
-			mDataPCMD.cnt = 2;
+//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1539,10 +1515,10 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param yaw 負:左回転, 正:右回転
 	 */
 	@Override
-	public void setYaw(final int yaw) {
+	public void setYaw(final float yaw) {
 		synchronized (mDataSync) {
 			mDataPCMD.yaw = yaw > 100 ? 100 : (yaw < -100 ? -100 : yaw);
-			mDataPCMD.cnt = 2;
+//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1551,10 +1527,10 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param heading
 	 */
 	@Override
-	public void setHeading(final int heading) {
+	public void setHeading(final float heading) {
 		synchronized (mDataSync) {
 			mDataPCMD.heading = heading;
-			mDataPCMD.cnt = 2;
+//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1564,12 +1540,12 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param pitch 負:??? 正:???, -100〜+100
 	 */
 	@Override
-	public void setMove(final int roll, final int pitch) {
+	public void setMove(final float roll, final float pitch) {
 		synchronized (mDataSync) {
-			mDataPCMD.roll = roll;
-			mDataPCMD.pitch = pitch;
+			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
+			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.flag = 1;
-			mDataPCMD.cnt = 2;
+//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1580,13 +1556,13 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param gaz 負:下降, 正:上昇, -100〜+100
 	 */
 	@Override
-	public void setMove(final int roll, final int pitch, final int gaz) {
+	public void setMove(final float roll, final float pitch, final float gaz) {
 		synchronized (mDataSync) {
-			mDataPCMD.roll = roll;
-			mDataPCMD.pitch = pitch;
-			mDataPCMD.gaz = gaz;
+			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
+			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
+			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
 			mDataPCMD.flag = 1;
-			mDataPCMD.cnt = 2;
+//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1598,14 +1574,14 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param yaw 負:左回転, 正:右回転, -100〜+100
 	 */
 	@Override
-	public void setMove(final int roll, final int pitch, final int gaz, final int yaw) {
+	public void setMove(final float roll, final float pitch, final float gaz, final float yaw) {
 		synchronized (mDataSync) {
-			mDataPCMD.roll = roll;
-			mDataPCMD.pitch = pitch;
-			mDataPCMD.gaz = gaz;
-			mDataPCMD.yaw = yaw;
+			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
+			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
+			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
+			mDataPCMD.yaw = yaw > 100.0f ? 100.0f : (yaw < -100.0f ? -100.0f : yaw) ;
 			mDataPCMD.flag = 1;
-			mDataPCMD.cnt = 1;
+//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1618,14 +1594,14 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param flag roll/pitchが移動を意味する時1, 機体姿勢変更のみの時は0
 	 */
 	@Override
-	public void setMove(final int roll, final int pitch, final int gaz, final int yaw, int flag) {
+	public void setMove(final float roll, final float pitch, final float gaz, final float yaw, int flag) {
 		synchronized (mDataSync) {
-			mDataPCMD.roll = roll;
-			mDataPCMD.pitch = pitch;
-			mDataPCMD.gaz = gaz;
-			mDataPCMD.yaw = yaw;
+			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
+			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
+			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
+			mDataPCMD.yaw = yaw > 100.0f ? 100.0f : (yaw < -100.0f ? -100.0f : yaw) ;
 			mDataPCMD.flag = flag;
-			mDataPCMD.cnt = 1;
+//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1802,21 +1778,22 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-	private static final int MAX_CNT = 5;
+//	private static final int MAX_CNT = 5;
 
 	private static final class DataPCMD {
 		public int flag;
-		public int roll;
-		public int pitch;
-		public int yaw;
-		public int gaz;
-		public int heading;
-		public int cnt;
+		public float roll;
+		public float pitch;
+		public float yaw;
+		public float gaz;
+		public float heading;
+//		public int cnt;
 
 		public DataPCMD() {
-			flag = roll = pitch = yaw = gaz = 0;
+			flag = 0;
+			roll = pitch = yaw = gaz = 0;
 			heading = 0;
-			cnt = MAX_CNT;
+//			cnt = MAX_CNT;
 		}
 
 		private void set(final DataPCMD other) {
@@ -1826,12 +1803,12 @@ public abstract class DeviceController implements IDeviceController {
 			yaw = other.yaw;
 			gaz = other.gaz;
 			heading = other.heading;
-			cnt = other.cnt;
+//			cnt = other.cnt;
 		}
 	}
 
 	private static int thread_cnt = 0;
-	private abstract class LooperThread extends Thread {
+	protected abstract class LooperThread extends Thread {
 		private volatile boolean mIsRunning;
 
 		public LooperThread() {
@@ -1920,13 +1897,9 @@ public abstract class DeviceController implements IDeviceController {
 	 * 下位クラスで定期的にコマンド送信が必要ならoverride
 	 */
 	protected void sendCmdInControlLoop() {
-		final int flag, roll, pitch, yaw, gaz;
-		final int heading, cnt;
+		final int flag;
+		float roll, pitch, yaw, gaz, heading;
 		synchronized (mDataSync) {
-			cnt = mDataPCMD.cnt--;
-			if (cnt <= 0) {
-				mDataPCMD.cnt = MAX_CNT;
-			}
 			flag = mDataPCMD.flag;
 			roll = mDataPCMD.roll;
 			pitch = mDataPCMD.pitch;
@@ -1934,10 +1907,8 @@ public abstract class DeviceController implements IDeviceController {
 			gaz = mDataPCMD.gaz;
 			heading = mDataPCMD.heading;
 		}
-		if (cnt <= 0) {
-			// 操縦コマンド送信
-			sendPCMD(flag, roll, pitch, yaw, gaz, heading);
-		}
+		// 操縦コマンド送信
+		sendPCMD(flag, (int) roll, (int) pitch, (int)yaw, (int)gaz, (int)heading);
 	}
 
 	/** 操縦コマンドを定期的に送信するためのスレッド */
@@ -1966,51 +1937,6 @@ public abstract class DeviceController implements IDeviceController {
 			} catch (final InterruptedException e) {
 				// ignore
 			}
-		}
-	}
-
-	/** ビデオストリーミングデータを受信するためのスレッド */
-	private class VideoThread extends LooperThread {
-		private final ARStreamManager streamManager;
-
-		public VideoThread () {
-			streamManager = new ARStreamManager (mARNetManager,
-				mNetConfig.getVideoDataIOBuffer(), mNetConfig.getVideoAckIOBuffer(),
-				videoFragmentSize, videoMaxAckInterval);
-		}
-
-		@Override
-		public void onStart() {
-			super.onStart();
-			if (DEBUG) Log.v(TAG, "VideoThread#onStart");
-			streamManager.start();
-
-		}
-
-		@Override
-		public void onLoop() {
-			final ARFrame frame = streamManager.getFrameWithTimeout(VIDEO_RECEIVE_TIMEOUT_MS);
-			if (frame != null) {
-				try {
-//					if (DEBUG) Log.v(TAG, "video stream frame:" + frame);
-					synchronized (mStreamSync) {
-						if (mVideoStreamListener != null) {
-							mVideoStreamListener.onReceiveFrame(frame);
-						}
-					}
-				} finally {
-					streamManager.recycle(frame);
-				}
-			}
-		}
-
-		@Override
-		public void onStop() {
-			if (DEBUG) Log.v(TAG, "VideoThread#onStop");
-			streamManager.stop();
-			streamManager.release();
-			if (DEBUG) Log.v(TAG, "VideoThread#onStop:終了");
-			super.onStop();
 		}
 	}
 

@@ -82,6 +82,12 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceControllerBebop";
 
+	private static final int VIDEO_RECEIVE_TIMEOUT_MS = 500;
+
+	private final Object mStreamSync = new Object();
+	private IVideoStream mVideoStreamListener;
+
+	private VideoThread mVideoThread;
 
 	public DeviceControllerBebop(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigARDrone3());
@@ -94,7 +100,9 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 	@Override
 	public void setVideoStream(final IVideoStream video_stream) {
-		super.setVideoStream(video_stream);
+		synchronized (mStreamSync) {
+			mVideoStreamListener = video_stream;
+		}
 	}
 //================================================================================
 // 機体からの状態・データコールバック関係
@@ -1803,4 +1811,81 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	public void enableVideoStreaming(boolean enable) {
 		sendVideoEnable(enable);
 	}
+
+	protected void prepare_nextwork() {
+		// TODO :  if ardiscoveryConnect ok
+		mNetConfig.addStreamReaderIOBuffer(videoFragmentSize, videoFragmentMaximumNumber);
+
+	}
+
+	/** ビデオストリーミングデータを受信するためのスレッド */
+	private class VideoThread extends LooperThread {
+		private final ARStreamManager streamManager;
+
+		public VideoThread () {
+			streamManager = new ARStreamManager (mARNetManager,
+													mNetConfig.getVideoDataIOBuffer(), mNetConfig.getVideoAckIOBuffer(),
+													videoFragmentSize, videoMaxAckInterval);
+		}
+
+		@Override
+		public void onStart() {
+			super.onStart();
+			if (DEBUG) Log.v(TAG, "VideoThread#onStart");
+			streamManager.start();
+
+		}
+
+		@Override
+		public void onLoop() {
+			final ARFrame frame = streamManager.getFrameWithTimeout(VIDEO_RECEIVE_TIMEOUT_MS);
+			if (frame != null) {
+				try {
+//					if (DEBUG) Log.v(TAG, "video stream frame:" + frame);
+					synchronized (mStreamSync) {
+						if (mVideoStreamListener != null) {
+							mVideoStreamListener.onReceiveFrame(frame);
+						}
+					}
+				} finally {
+					streamManager.recycle(frame);
+				}
+			}
+		}
+
+		@Override
+		public void onStop() {
+			if (DEBUG) Log.v(TAG, "VideoThread#onStop");
+			streamManager.stop();
+			streamManager.release();
+			if (DEBUG) Log.v(TAG, "VideoThread#onStop:終了");
+			super.onStop();
+		}
+	}
+
+	protected void startVideoThread() {
+		if (DEBUG) Log.v(TAG, "startVideoThread");
+		if (mVideoThread != null) {
+			mVideoThread.stopThread();
+		}
+		mVideoThread = new VideoThread();
+		mVideoThread.start();
+	}
+
+	/** ストリーミングデータ受信スレッドを終了(終了するまで戻らない) */
+	protected void stopVideoThread() {
+		if (DEBUG) Log.v(TAG, "stopVideoThread:");
+        /* Cancel the looper thread and block until it is stopped. */
+		if (null != mVideoThread) {
+			mVideoThread.stopThread();
+			try {
+				mVideoThread.join();
+				mVideoThread = null;
+			} catch (final InterruptedException e) {
+				Log.w(TAG, e);
+			}
+		}
+		if (DEBUG) Log.v(TAG, "stopVideoThread:終了");
+	}
+
 }

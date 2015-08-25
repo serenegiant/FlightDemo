@@ -17,7 +17,6 @@ import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.AttributeFloat;
-import com.serenegiant.arflight.DeviceControllerMiniDrone;
 
 public class ConfigFragment extends ControlFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -190,7 +189,7 @@ public class ConfigFragment extends ControlFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(((DeviceControllerMiniDrone) mController).isCutoffMode());
+				checkbox.setChecked(mController.isCutoffMode());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (Exception e) {
 				Log.w(TAG, e);
@@ -201,7 +200,7 @@ public class ConfigFragment extends ControlFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(((DeviceControllerMiniDrone) mController).hasGuard());
+				checkbox.setChecked(mController.hasGuard());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (Exception e) {
 				Log.w(TAG, e);
@@ -212,7 +211,7 @@ public class ConfigFragment extends ControlFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(((DeviceControllerMiniDrone) mController).isAutoTakeOffModeEnabled());
+				checkbox.setChecked(mController.isAutoTakeOffModeEnabled());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (Exception e) {
 				Log.w(TAG, e);
@@ -536,18 +535,18 @@ public class ConfigFragment extends ControlFragment {
 		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
 			switch (buttonView.getId()) {
 			case R.id.cutout_checkbox:
-				if (((DeviceControllerMiniDrone) mController).isCutoffMode() != isChecked) {
-					((DeviceControllerMiniDrone) mController).sendCutOutMode(isChecked);
+				if (mController.isCutoffMode() != isChecked) {
+					mController.sendCutOutMode(isChecked);
 				}
 				break;
 			case R.id.wheel_checkbox:
-				if (((DeviceControllerMiniDrone) mController).hasGuard() != isChecked) {
-					((DeviceControllerMiniDrone) mController).sendHasGuard(isChecked);
+				if (mController.hasGuard() != isChecked) {
+					mController.sendHasGuard(isChecked);
 				}
 				break;
 			case R.id.auto_takeoff_checkbox:
-				if (((DeviceControllerMiniDrone) mController).isAutoTakeOffModeEnabled() != isChecked) {
-					((DeviceControllerMiniDrone) mController).sendAutoTakeOffMode(isChecked);
+				if (mController.isAutoTakeOffModeEnabled() != isChecked) {
+					mController.sendAutoTakeOffMode(isChecked);
 				}
 				break;
 			}
