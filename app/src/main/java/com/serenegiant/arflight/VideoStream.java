@@ -24,7 +24,7 @@ public class VideoStream implements IVideoStream {
 
 	private static final String VIDEO_MIME_TYPE = "video/avc";
 	private static final int VIDEO_INPUT_TIMEOUT_US = 33000;
-	private static final long VIDEO_OUTPUT_TIMEOUT_US = 10000;
+	private static final long VIDEO_OUTPUT_TIMEOUT_US = 20000;
 	private static final int VIDEO_WIDTH = 640;
 	private static final int VIDEO_HEIGHT = 368;
 
@@ -89,7 +89,8 @@ public class VideoStream implements IVideoStream {
 		}
 
 		public void queueFrame(final ARFrame frame) {
-//			if (DEBUG) Log.v(TAG, "queueFrame:mediaCodec" + mediaCodec + ",isCodecConfigured=" + isCodecConfigured);
+			if (DEBUG) Log.v(TAG, "queueFrame:mediaCodec" + mediaCodec + ",isCodecConfigured=" + isCodecConfigured
+				+ ",waitForIFrame=" + waitForIFrame + ",isIFrame" + (frame != null ? frame.isIFrame() : false));
 			if ((mediaCodec != null)) {
 				if (!isCodecConfigured && frame.isIFrame()) {
 					csdBuffer = getCSD(frame);
@@ -108,6 +109,7 @@ public class VideoStream implements IVideoStream {
 					} catch (final IllegalStateException e) {
 						Log.e(TAG, "Error while dequeue input buffer");
 					}
+					if (DEBUG) Log.v(TAG, "dequeueInputBuffer:index=" + index);
 					if (index >= 0) {
 						final ByteBuffer b = inputBuffers[index];
 						final int sz = frame.getDataSize();
@@ -144,11 +146,11 @@ public class VideoStream implements IVideoStream {
 			}
 			if (DEBUG) Log.v(TAG, "DecodeTask#run:isRunning=" + isRunning + ",isCodecConfigured=" + isCodecConfigured);
 			if (isCodecConfigured) {
+				int outIndex;
 				for ( ; isRunning ; ) {
-					int outIndex = -1;
 					try {
 						outIndex = mediaCodec.dequeueOutputBuffer(info, VIDEO_OUTPUT_TIMEOUT_US);
-						if (DEBUG) Log.v(TAG, "dequeueOutputBuffer:" + outIndex);
+						if (DEBUG) Log.v(TAG, "releaseOutputBuffer:" + outIndex);
 						// XXX 時間調整っていらんのかな?
 						if (outIndex >= 0) {
 							mediaCodec.releaseOutputBuffer(outIndex, true);
@@ -400,6 +402,7 @@ public class VideoStream implements IVideoStream {
 			}
 			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 			GLES20.glFlush();
+			if (DEBUG) Log.v(TAG, "handleDraw:終了");
 		}
 
 		private void handleAddSurface(final int id, final Object surface) {

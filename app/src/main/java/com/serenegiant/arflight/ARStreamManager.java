@@ -161,6 +161,7 @@ public class ARStreamManager {
 			ARNativeData next_frame = null;
 			switch (cause) {
 			case ARSTREAM_READER_CAUSE_FRAME_COMPLETE:
+				if (DEBUG) Log.v(TAG, "ARSTREAM_READER_CAUSE_FRAME_COMPLETE");
 				// Frame is complete (no error)
 			case ARSTREAM_READER_CAUSE_COPY_COMPLETE:
 				// Copy of previous frame buffer is complete (called only after ARSTREAM_READER_CAUSE_FRAME_TOO_SMALL)

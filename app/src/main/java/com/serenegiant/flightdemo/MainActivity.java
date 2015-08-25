@@ -131,7 +131,7 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 
 	@Override
 	public boolean dispatchKeyEvent(final KeyEvent event) {
-		if (GamePad.processKeyEvent(event)) return true;
+		if (!isFinishing() && GamePad.processKeyEvent(event)) return true;
 		return super.dispatchKeyEvent(event);
 	}
 
