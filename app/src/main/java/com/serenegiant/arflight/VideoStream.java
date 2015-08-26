@@ -101,7 +101,7 @@ public class VideoStream implements IVideoStream {
 				if (isCodecConfigured && (!waitForIFrame || frame.isIFrame())) {
 					waitForIFrame = false;
 
-					// Here we have either a good PFrame, or an IFrame
+					// ここに来るのはIFrameかIFrameから連続してPFrameを受信している時
 					int index = -1;
 
 					try {

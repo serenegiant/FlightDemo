@@ -6,7 +6,6 @@ public class ARFrame extends ARNativeData {
 
 	public static final int ARFRAME_DEFAULT_CAPACITY = 60000;
 
-//	private boolean mIsAvaiable;
 	private boolean mIsIFrame;
 	private int mMissed;
 
@@ -31,7 +30,6 @@ public class ARFrame extends ARNativeData {
 	private void initialize() {
 		mMissed = 0;
 		mIsIFrame = false;
-//		mIsAvaiable = true;
 	}
 
 	public int getMissed()
@@ -50,14 +48,6 @@ public class ARFrame extends ARNativeData {
 	public void isIFrame(final boolean isIFrame) {
 		mIsIFrame = isIFrame;
 	}
-
-//	public boolean isAvailable() {
-//		return mIsAvaiable;
-//	}
-
-//	public void setAvailable (final boolean available) {
-//		mIsAvaiable = available;
-//	}
 
 	@Override
 	public String toString() {

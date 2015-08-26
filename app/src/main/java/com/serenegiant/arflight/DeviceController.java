@@ -268,7 +268,7 @@ public abstract class DeviceController implements IDeviceController {
 					if (DEBUG) Log.v(TAG, "onStarted:sendAllSettings:wait");
 					//successful = cmdGetAllSettingsSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
 					cmdGetAllSettingsSent.acquire();
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 					// ignore
 				}
 			}
@@ -284,7 +284,7 @@ public abstract class DeviceController implements IDeviceController {
 					if (DEBUG) Log.v(TAG, "onStarted:sendAllStates:wait");
 					//successful = cmdGetAllStatesSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
 					cmdGetAllStatesSent.acquire();
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 					// ignore
 				}
 			}
@@ -382,7 +382,7 @@ public abstract class DeviceController implements IDeviceController {
 					rxThread.join();
 				}
 			} catch (final InterruptedException e) {
-				e.printStackTrace();
+				Log.w(TAG, e);
 			}
 
 			mARNetManager.dispose();
@@ -475,7 +475,7 @@ public abstract class DeviceController implements IDeviceController {
 
 		if (ok) {
             /* open the discovery connection data in another thread */
-			ConnectionThread connectionThread = new ConnectionThread();
+			final ConnectionThread connectionThread = new ConnectionThread();
 			connectionThread.start();
             /* wait the discovery of the connection data */
 			try {
@@ -486,8 +486,10 @@ public abstract class DeviceController implements IDeviceController {
 			}
 
             /* dispose discoveryData it not needed more */
-			discoveryData.dispose();
-			discoveryData = null;
+            if (discoveryData != null) {
+				discoveryData.dispose();
+				discoveryData = null;
+			}
 		}
 
 		return ok && (error == ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK);
@@ -497,7 +499,7 @@ public abstract class DeviceController implements IDeviceController {
 	private void startReadThreads() {
 		if (DEBUG) Log.v(TAG, "startReadThreads");
         /* Create the reader threads */
-		for (final int bufferId : mNetConfig.getCommandsIOBuffers()/*commandsBuffers*/) {
+		for (final int bufferId : mNetConfig.getCommandsIOBuffers()) {
 			final ReaderThread readerThread = new ReaderThread(bufferId);
 			mReaderThreads.add(readerThread);
 		}

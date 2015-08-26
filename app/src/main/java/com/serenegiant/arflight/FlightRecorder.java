@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FlightRecorder implements IAutoFlight {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "FlightRecorder";
 
 	private static class CmdRec {

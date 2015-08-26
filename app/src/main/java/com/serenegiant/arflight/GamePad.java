@@ -5,7 +5,7 @@ import android.util.SparseIntArray;
 import android.view.KeyEvent;
 
 public class GamePad {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "GamePad";
 
 	private static final class KeyCount {

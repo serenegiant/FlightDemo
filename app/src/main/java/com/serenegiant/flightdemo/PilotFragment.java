@@ -582,10 +582,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mVideoStream = new VideoStream();
 			}
 			((IVideoStreamController)mController).setVideoStream(mVideoStream);
-			mVideoTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
+					mVideoTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
 					mVideoTextureView.setVisibility(View.VISIBLE);
 				}
 			});
@@ -615,8 +615,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
+		super.onConnect(controller);
 		setSideMenu();
-		startVideoStreaming();
 		post(mGamePadTask, 100);
 		updateButtons();
 	}
@@ -626,7 +626,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
-		stopVideoStreaming();
 		removeSideMenu();
 		remove(mGamePadTask);
 		stopRecord();
@@ -1385,12 +1384,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	};
 
-	private int mSurfaceId;
+	private int mSurfaceId = 0;
 	private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
 		@Override
 		public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
 			if (DEBUG) Log.v(TAG, "onSurfaceTextureAvailable:");
-			if (mVideoStream != null) {
+			if ((mVideoStream != null) && (mSurfaceId == 0)) {
 				final Surface _surface = new Surface(surface);
 				mSurfaceId = _surface.hashCode();
 				mVideoStream.addSurface(mSurfaceId, _surface);
@@ -1407,8 +1406,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (DEBUG) Log.v(TAG, "onSurfaceTextureDestroyed:");
 			if (mVideoStream != null) {
 				mVideoStream.removeSurface(mSurfaceId);
-				mSurfaceId = 0;
 			}
+			mSurfaceId = 0;
 			return true;
 		}
 

@@ -248,7 +248,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		= new ARCommandARDrone3PilotingStateAlertStateChangedListener() {
 		@Override
 		public void onARDrone3PilotingStateAlertStateChangedUpdate(
-																	  final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
+			final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateAlertStateChangedUpdate:");
 			mStatus.setAlarm(state.getValue());

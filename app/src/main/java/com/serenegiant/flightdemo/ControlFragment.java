@@ -317,11 +317,13 @@ public abstract class ControlFragment extends Fragment {
 	}
 
 	protected void onConnect(final IDeviceController controller) {
+		startVideoStreaming();
 	}
 
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onDisconnect:");
 		stopMove();
+		stopVideoStreaming();
 		stopDeviceController(true);
 	}
 
