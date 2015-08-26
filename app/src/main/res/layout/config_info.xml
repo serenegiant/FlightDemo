@@ -14,7 +14,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:text="@string/info_version_app"
-			android:id="@+id/textView12"
+			android:id="@+id/left1_button"
 			android:textSize="@dimen/text_sz_list"
 			android:textAlignment="center"
 			android:gravity="center"/>

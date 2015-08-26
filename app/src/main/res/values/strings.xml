@@ -39,12 +39,13 @@
 	<string name="stick_text_right">right</string>
 	<string name="stick_text_forward">forward</string>
 
-	<string name="config_flight">Flight settings</string>
-	<string name="config_drone">Drone settings</string>
-	<string name="config_operation">Operation settings</string>
-	<string name="config_gamepad">Gamepad settings</string>
-	<string name="config_autopilot">Autopilot settings</string>
-	<string name="config_info">Info</string>
+	<string name="config_title_flight">Flight settings</string>
+	<string name="config_title_drone">Drone settings</string>
+	<string name="config_title_operation">Operation settings</string>
+	<string name="config_title_gamepad">Gamepad settings</string>
+	<string name="config_title_keymap">Keymap of gamepad</string>
+	<string name="config_title_autopilot">Autopilot settings</string>
+	<string name="config_title_info">Info</string>
 	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>
 	<string name="config_max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
 	<string name="config_max_altitude">Max altitude: %5.1f[m]</string>

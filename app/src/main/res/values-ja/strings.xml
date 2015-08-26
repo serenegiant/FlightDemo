@@ -42,12 +42,13 @@
 	<string name="stick_text_down">下</string>
 	<string name="stick_text_back">後</string>
 
-	<string name="config_flight">飛行設定</string>
-	<string name="config_drone">ドローン設定</string>
-	<string name="config_operation">操縦設定</string>
-	<string name="config_gamepad">ゲームパッド設定</string>
-	<string name="config_autopilot">自動操縦設定</string>
-	<string name="config_info">ドローン情報</string>
+	<string name="config_title_flight">飛行設定</string>
+	<string name="config_title_drone">ドローン設定</string>
+	<string name="config_title_operation">操縦設定</string>
+	<string name="config_title_gamepad">ゲームパッド設定</string>
+	<string name="config_title_keymap">ゲームパッドキー設定</string>
+	<string name="config_title_autopilot">自動操縦設定</string>
+	<string name="config_title_info">ドローン情報</string>
 	<string name="config_max_tilt">最大斜度: %5.1f[°]</string>
 	<string name="config_max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>
 	<string name="config_max_altitude">最大高度: %5.1f[m]</string>

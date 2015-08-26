@@ -28,7 +28,7 @@
 			android:background="@drawable/gray_gradient">
 
 			<TextView
-				android:id="@+id/textView"
+				android:id="@+id/stick_left_button"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_alignParentLeft="true"
@@ -43,8 +43,8 @@
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_centerVertical="true"
-				android:layout_toEndOf="@+id/textView"
-				android:layout_toRightOf="@+id/textView"
+				android:layout_toEndOf="@+id/stick_left_button"
+				android:layout_toRightOf="@+id/stick_left_button"
 				android:text="XXX%"
 				android:textAppearance="?android:attr/textAppearanceMedium"
 				android:textSize="@dimen/text_sz_button"/>

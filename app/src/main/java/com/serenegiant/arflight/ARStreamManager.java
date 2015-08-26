@@ -23,7 +23,6 @@ public class ARStreamManager {
 	private final List<ARFrame> mFramePool = new ArrayList<ARFrame>();
 	private final LinkedBlockingQueue<ARFrame> mFrameQueue = new LinkedBlockingQueue<ARFrame>();
 
-
 	private final ARNetworkManager mNetManager;
 	private final int mDataBufferId;
 	private final int mAckBufferId;
@@ -89,7 +88,7 @@ public class ARStreamManager {
 
 	public void release() {
 		synchronized (mPoolSync) {
-			for (ARFrame frame: mFramePool) {
+			for (final ARFrame frame: mFramePool) {
 				if (frame != null) {
 					frame.dispose();
 				}
@@ -102,6 +101,7 @@ public class ARStreamManager {
 			frame.dispose();
 			frame = mFrameQueue.peek();
 		}
+		mFrameQueue.clear();
 	}
 
 	/**

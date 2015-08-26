@@ -842,37 +842,37 @@ public class ConfigFragment extends ControlFragment {
 	private static PagerAdapterConfig[] PAGER_CONFIG;
 	static {
 		PAGER_CONFIG = new PagerAdapterConfig[6];
-		PAGER_CONFIG[0] = new PagerAdapterConfig(R.string.config_flight, R.layout.config_minidrone_1, new AdapterItemHandler() {
+		PAGER_CONFIG[0] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.config_minidrone_1, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigMinidrone1(view);
 			}
 		});
-		PAGER_CONFIG[1] = new PagerAdapterConfig(R.string.config_drone, R.layout.config_minidrone_2, new AdapterItemHandler() {
+		PAGER_CONFIG[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_minidrone_2, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigMinidrone2(view);
 			}
 		});
-		PAGER_CONFIG[2] = new PagerAdapterConfig(R.string.config_operation, R.layout.config_operation, new AdapterItemHandler() {
+		PAGER_CONFIG[2] = new PagerAdapterConfig(R.string.config_title_operation, R.layout.config_operation, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigOperation(view);
 			}
 		});
-		PAGER_CONFIG[3] = new PagerAdapterConfig(R.string.config_gamepad, R.layout.config_gamepad, new AdapterItemHandler() {
+		PAGER_CONFIG[3] = new PagerAdapterConfig(R.string.config_title_gamepad, R.layout.config_gamepad, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigGamepad(view);
 			}
 		});
-		PAGER_CONFIG[4] = new PagerAdapterConfig(R.string.config_autopilot, R.layout.config_autopilot, new AdapterItemHandler() {
+		PAGER_CONFIG[4] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.config_autopilot, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigAutopilot(view);
 			}
 		});
-		PAGER_CONFIG[5] = new PagerAdapterConfig(R.string.config_info, R.layout.config_info, new AdapterItemHandler() {
+		PAGER_CONFIG[5] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigInfo(view);

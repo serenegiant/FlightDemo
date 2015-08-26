@@ -17,7 +17,7 @@
 	<dimen name="text_sz_message">42sp</dimen>
 	<dimen name="text_sz_button">28sp</dimen>
 	<dimen name="text_sz_on_image_button">12sp</dimen>
-	<dimen name="text_sz_list">28sp</dimen>
+	<dimen name="text_sz_list">26sp</dimen>
 	<dimen name="btn_size_action">72dp</dimen>
 	<dimen name="switch_height">84dp</dimen>
 	<dimen name="thumbnail_margin">16dp</dimen>
