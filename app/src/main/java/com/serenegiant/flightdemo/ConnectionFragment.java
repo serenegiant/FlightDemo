@@ -1,5 +1,6 @@
 package com.serenegiant.flightdemo;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
@@ -55,6 +56,7 @@ public class ConnectionFragment extends Fragment {
 		super.onResume();
 		if (DEBUG) Log.d(TAG, "onResume:");
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+		manager.startDiscovery();
 		manager.addCallback(mManagerCallback);
 	}
 
@@ -64,6 +66,7 @@ public class ConnectionFragment extends Fragment {
 
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		manager.removeCallback(mManagerCallback);
+		manager.stopDiscovery();
 
 		super.onPause();
 	}

@@ -24,7 +24,8 @@
 			android:id="@+id/top_panel"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:gravity="top">
+			android:gravity="top"
+			android:background="@drawable/gray_gradient">
 
 			<TextView
 				android:id="@+id/textView"

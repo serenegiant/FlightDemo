@@ -144,6 +144,7 @@ public class ManagerFragment extends Fragment {
 
 	private ARDiscoveryService ardiscoveryService;
 	private boolean ardiscoveryServiceBound = false;
+	private boolean mRegistered = false;
 	private ServiceConnection ardiscoveryServiceConnection;
 	private IBinder discoveryServiceBinder;
 	private BroadcastReceiver mDevicesListUpdatedReceiver;
@@ -172,15 +173,13 @@ public class ManagerFragment extends Fragment {
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.i(TAG, "onResume:");
-		registerReceivers();
-		initServices();
+		startDiscovery();
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.i(TAG, "onPause:");
-		unregisterReceivers();
-		closeServices();
+		stopDiscovery();
 		super.onPause();
 	}
 
@@ -188,6 +187,17 @@ public class ManagerFragment extends Fragment {
 	public void onDetach() {
 		if (DEBUG) Log.i(TAG, "onDetach:");
 		super.onDetach();
+	}
+
+	public void startDiscovery() {
+		registerReceivers();
+		initServices();
+	}
+
+	public void stopDiscovery() {
+
+		unregisterReceivers();
+		closeServices();
 	}
 
 	/**
@@ -371,7 +381,7 @@ public class ManagerFragment extends Fragment {
 			final Context app = getActivity().getApplicationContext();
 			final Intent intent = new Intent(app, ARDiscoveryService.class);
 			app.bindService(intent, ardiscoveryServiceConnection, Context.BIND_AUTO_CREATE);
-		} else {
+		} else if (!ardiscoveryServiceBound) {
 			ardiscoveryService = ((ARDiscoveryService.LocalBinder) discoveryServiceBinder).getService();
 			ardiscoveryServiceBound = true;
 
@@ -424,17 +434,20 @@ public class ManagerFragment extends Fragment {
 	}
 
 	private void registerReceivers() {
-		final LocalBroadcastManager localBroadcastMgr
-			= LocalBroadcastManager.getInstance(getActivity().getApplicationContext());
-		localBroadcastMgr.registerReceiver(mDevicesListUpdatedReceiver,
-			new IntentFilter(ARDiscoveryService.kARDiscoveryServiceNotificationServicesDevicesListUpdated));
-
+		if (!mRegistered) {
+			mRegistered = true;
+			final LocalBroadcastManager localBroadcastMgr
+				= LocalBroadcastManager.getInstance(getActivity().getApplicationContext());
+			localBroadcastMgr.registerReceiver(mDevicesListUpdatedReceiver,
+				new IntentFilter(ARDiscoveryService.kARDiscoveryServiceNotificationServicesDevicesListUpdated));
+		}
 	}
 
 	private void unregisterReceivers() {
 		final LocalBroadcastManager localBroadcastMgr = LocalBroadcastManager.getInstance(
 			getActivity().getApplicationContext());
 		localBroadcastMgr.unregisterReceiver(mDevicesListUpdatedReceiver);
+		mRegistered = false;
 	}
 
 	private final ARDiscoveryServicesDevicesListUpdatedReceiverDelegate

@@ -89,8 +89,8 @@ public class VideoStream implements IVideoStream {
 		}
 
 		public void queueFrame(final ARFrame frame) {
-			if (DEBUG) Log.v(TAG, "queueFrame:mediaCodec" + mediaCodec + ",isCodecConfigured=" + isCodecConfigured
-				+ ",waitForIFrame=" + waitForIFrame + ",isIFrame" + (frame != null ? frame.isIFrame() : false));
+//			if (DEBUG) Log.v(TAG, "queueFrame:mediaCodec" + mediaCodec + ",isCodecConfigured=" + isCodecConfigured
+//				+ ",waitForIFrame=" + waitForIFrame + ",isIFrame=" + (frame != null ? frame.isIFrame() : false));
 			if ((mediaCodec != null)) {
 				if (!isCodecConfigured && frame.isIFrame()) {
 					csdBuffer = getCSD(frame);
@@ -109,7 +109,7 @@ public class VideoStream implements IVideoStream {
 					} catch (final IllegalStateException e) {
 						Log.e(TAG, "Error while dequeue input buffer");
 					}
-					if (DEBUG) Log.v(TAG, "dequeueInputBuffer:index=" + index);
+//					if (DEBUG) Log.v(TAG, "dequeueInputBuffer:index=" + index);
 					if (index >= 0) {
 						final ByteBuffer b = inputBuffers[index];
 						final int sz = frame.getDataSize();
@@ -150,7 +150,7 @@ public class VideoStream implements IVideoStream {
 				for ( ; isRunning ; ) {
 					try {
 						outIndex = mediaCodec.dequeueOutputBuffer(info, VIDEO_OUTPUT_TIMEOUT_US);
-						if (DEBUG) Log.v(TAG, "releaseOutputBuffer:" + outIndex);
+//						if (DEBUG) Log.v(TAG, "releaseOutputBuffer:" + outIndex);
 						// XXX 時間調整っていらんのかな?
 						if (outIndex >= 0) {
 							mediaCodec.releaseOutputBuffer(outIndex, true);
@@ -377,7 +377,7 @@ public class VideoStream implements IVideoStream {
 		 * 実際の描画処理
 		 */
 		private void handleDraw() {
-			if (DEBUG) Log.v(TAG, "handleDraw:");
+//			if (DEBUG) Log.v(TAG, "handleDraw:");
 			try {
 				makeCurrent();
 				mMasterTexture.updateTexImage();
@@ -402,7 +402,7 @@ public class VideoStream implements IVideoStream {
 			}
 			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 			GLES20.glFlush();
-			if (DEBUG) Log.v(TAG, "handleDraw:終了");
+//			if (DEBUG) Log.v(TAG, "handleDraw:終了");
 		}
 
 		private void handleAddSurface(final int id, final Object surface) {

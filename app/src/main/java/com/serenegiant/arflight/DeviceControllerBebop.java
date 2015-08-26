@@ -1841,10 +1841,10 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onLoop() {
 			final ARFrame frame = streamManager.getFrameWithTimeout(VIDEO_RECEIVE_TIMEOUT_MS);
-			Log.w(TAG, "getFrameWithTimeout:" + frame);
+//			Log.w(TAG, "getFrameWithTimeout:" + frame);
 			if (frame != null) {
 				try {
-					if (DEBUG) Log.v(TAG, "video stream frame:" + frame);
+//					if (DEBUG) Log.v(TAG, "video stream frame:" + frame);
 					synchronized (mStreamSync) {
 						if (mVideoStreamListener != null) {
 							mVideoStreamListener.onReceiveFrame(frame);
