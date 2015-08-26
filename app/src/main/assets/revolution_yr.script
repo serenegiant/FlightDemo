@@ -39,19 +39,11 @@ void main(const double radius, const double scale_x, const double scale_y, const
 		int n = step_num;
 		long wait_time = 5000 / n;
 		double step_radian = 360 / n * TO_RADIAN;
-		double prev_x = radius * sin(radian) * scale_x;
-		double prev_z = radius * cos(radian) * scale_z;
-		double x, z;
+		double step_yaw = 180 / n * scale_r;
+		double y = radius * scale_y;
 		for (int i = 0; i <= n; i++) {
-			x = radius * sin(radian) * scale_x;
-			z = radius * cos(radian) * scale_z;
-			double dx = x - prev_x;
-			double dz = z - prev_z;
-			move(dx, 0, dz, 0);
+			move(0, y, 0, step_yaw);
 			wait(wait_time);
-			radian += step_radian;
-			prev_x = x;
-			prev_z = z;
 		}
 	}
 	move(0, 0, 0, 0);

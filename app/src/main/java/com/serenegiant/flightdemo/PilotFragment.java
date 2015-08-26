@@ -123,17 +123,25 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		super.onDetach();
 	}
 
-	private float mMaxControlValue = 1.0f;
-	private float mScaleX, mScaleY, mScaleZ;
+	private double mMaxControlValue = 100.0;
+	private double mScaleX, mScaleY, mScaleZ, mScaleR;
+	private float mGamepadSensitivity = 1.0f;
+	private float mGamepadScaleX, mGamepadScaleY, mGamepadScaleZ, mGamepadScaleR;
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final SharedPreferences pref = getActivity().getPreferences(0);
 		final int operation_type = pref.getInt(ConfigFragment.KEY_OPERATION_TYPE, 0);
-		mMaxControlValue = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f) / 100f;
+		mMaxControlValue = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
 		mScaleX = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_X, 1.0f);
 		mScaleY = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Y, 1.0f);
 		mScaleZ = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Z, 1.0f);
+		mScaleR = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_R, 1.0f);
+		mGamepadSensitivity = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SENSITIVITY, 1.0f);
+		mGamepadScaleX = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_X, 1.0f);
+		mGamepadScaleY = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_Y, 1.0f);
+		mGamepadScaleZ = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_Z, 1.0f);
+		mGamepadScaleR = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_R, 1.0f);
 
 		final ViewGroup rootView = (ViewGroup)inflater.inflate(operation_type == 1 ?
 			R.layout.fragment_pilot_reverse
@@ -758,6 +766,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private static final String[] SCRIPTS = {
 		"circle_xy",
 		"circle_xz",
+		"revolution_xr",
+		"revolution_yr",
 	};
 
 	/**
@@ -770,10 +780,16 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			try {
 				switch (index) {
 				case 0:
-					mScriptFlight.prepare(getResources().getAssets().open("circle_xy.script"), (double)mMaxControlValue, (double)mScaleX, (double)mScaleY, (double)mScaleZ);
+					mScriptFlight.prepare(getResources().getAssets().open("circle_xy.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
 					break;
 				case 1:
-					mScriptFlight.prepare(getResources().getAssets().open("circle_xz.script"), (double)mMaxControlValue, (double)mScaleX, (double)mScaleY, (double)mScaleZ);
+					mScriptFlight.prepare(getResources().getAssets().open("circle_xz.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
+					break;
+				case 2:
+					mScriptFlight.prepare(getResources().getAssets().open("revolution_xr.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
+					break;
+				case 3:
+					mScriptFlight.prepare(getResources().getAssets().open("revolution_yr.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
 					break;
 				default:
 					throw new IOException("スクリプトファイルが見つからない(範囲外)");
@@ -806,12 +822,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
 			mTouchMoveRunning = true;
 			try {
-				final SharedPreferences pref = getActivity().getPreferences(0);
-				final float max_control_value = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
-				final float scale_x = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_X, 1.0f);
-				final float scale_y = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Y, 1.0f);
-				final float scale_z = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Z, 1.0f);
-				mTouchFlight.prepare(max_control_value, scale_x, scale_y, scale_z);
+				mTouchFlight.prepare((float)mMaxControlValue, (float)mScaleX, (float)mScaleY, (float)mScaleZ, (float)mScaleR);
 			} catch (final Exception e) {
 				mTouchMoveRunning = false;
 				Log.w(TAG, e);
@@ -1151,6 +1162,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	};
 
+	private static final long YAW_LIMIT = 200;
 	private boolean[] downs = new boolean[GamePad.KEY_NUMS];
 	private long[] down_times = new long[GamePad.KEY_NUMS];
 	boolean moved;
@@ -1168,36 +1180,55 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				return;
 			}
 
+			if (downs[GamePad.KEY_CENTER_RIGHT]) {	// 中央の右側ボタン[12]=着陸
+				landing();
+				post(this, 50);
+				return;
+			} else if (downs[GamePad.KEY_CENTER_LEFT]) {	// 中央の左側ボタン[11]=離陸
+				takeOff();
+				post(this, 50);
+				return;
+			}
+
+			if ((getState() == IDeviceController.STATE_STARTED)
+				&& (getAlarm() == DroneStatus.ALARM_NON)
+				&& downs[GamePad.KEY_LEFT_2] && downs[GamePad.KEY_RIGHT_2]) {
+
+				mController.sendFlatTrim();
+				post(this, 50);
+				return;
+			}
+
 			// 左側十字キーまたは左側アナログスティックの左右
-			final float roll = mMaxControlValue * mScaleX * (downs[GamePad.KEY_LEFT_RIGHT]
+			final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[GamePad.KEY_LEFT_RIGHT]
 				? down_times[GamePad.KEY_LEFT_RIGHT]
 				: (downs[GamePad.KEY_LEFT_LEFT]
 					? -down_times[GamePad.KEY_LEFT_LEFT]
 					: 0)
 			);
 			// 左側十字キーまたは左側アナログスティックの上下
-			final float pitch = mMaxControlValue * mScaleY * (downs[GamePad.KEY_LEFT_UP]
+			final float pitch = mGamepadSensitivity * mGamepadScaleY * (downs[GamePad.KEY_LEFT_UP]
 				? down_times[GamePad.KEY_LEFT_UP]
 				: (downs[GamePad.KEY_LEFT_DOWN]
 					? -down_times[GamePad.KEY_LEFT_DOWN]
 					: 0)
 			);
 			// 右側アナログスティックの上下
-			final float gaz = mMaxControlValue * mScaleZ * (downs[GamePad.KEY_RIGHT_UP]
+			final float gaz = mGamepadSensitivity * mGamepadScaleZ * (downs[GamePad.KEY_RIGHT_UP]
 				? down_times[GamePad.KEY_RIGHT_UP]
 				: (downs[GamePad.KEY_RIGHT_DOWN]
 					? -down_times[GamePad.KEY_RIGHT_DOWN]
 					: 0)
 			);
 			// 右側アナログスティックの左右または上端ボタン(手前側)
-			final float yaw = mMaxControlValue * (downs[GamePad.KEY_RIGHT_RIGHT]
-				? down_times[GamePad.KEY_RIGHT_RIGHT]
+			final float yaw = mGamepadSensitivity * (downs[GamePad.KEY_RIGHT_RIGHT] && (down_times[GamePad.KEY_RIGHT_RIGHT] > YAW_LIMIT)
+				? down_times[GamePad.KEY_RIGHT_RIGHT] - YAW_LIMIT
 				: (
 					downs[GamePad.KEY_RIGHT_1]
 					? down_times[GamePad.KEY_RIGHT_1]
 					: (
-						downs[GamePad.KEY_RIGHT_LEFT]
-						? -down_times[GamePad.KEY_RIGHT_LEFT]
+						downs[GamePad.KEY_RIGHT_LEFT] && (down_times[GamePad.KEY_RIGHT_LEFT] > YAW_LIMIT)
+						? -down_times[GamePad.KEY_RIGHT_LEFT] + YAW_LIMIT
 						: (
 							downs[GamePad.KEY_LEFT_1]
 							? -down_times[GamePad.KEY_LEFT_1]

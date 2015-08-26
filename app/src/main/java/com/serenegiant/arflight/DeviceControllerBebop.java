@@ -221,6 +221,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3PilotingStateFlatTrimChangedUpdate() {
 			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateFlatTrimChangedUpdate:");
+			callOnFlatTrimChanged();
 		}
 	};
 

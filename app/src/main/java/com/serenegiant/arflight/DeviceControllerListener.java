@@ -21,4 +21,9 @@ public interface DeviceControllerListener extends DeviceConnectionListener {
 	 * 0: No alert, 1:User emergency alert, 2:Cut out alert, 3:Critical battery alert, 4:Low battery alert
 	 */
 	public void onAlarmStateChangedUpdate(final int alarm_state);
+
+	/**
+	 * フラットトリム状態が変更された
+	 */
+	public void onFlatTrimChanged();
 }

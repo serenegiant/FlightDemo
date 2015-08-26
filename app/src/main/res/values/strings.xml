@@ -6,6 +6,7 @@
 	<string name="action_landing">landing</string>
 	<string name="action_emergency">emergency</string>
 	<string name="action_flat_trim">FlatTrim</string>
+	<string name="action_flat_trim_finished">FlatTrim finished</string>
 	<string name="action_flip">Flip</string>
 	<string name="action_load">load</string>
 	<string name="action_play">play</string>
@@ -38,11 +39,12 @@
 	<string name="stick_text_right">right</string>
 	<string name="stick_text_forward">forward</string>
 
-	<string name="config_1">Flight settings</string>
-	<string name="config_2">Drone settings</string>
-	<string name="config_3">Operation settings</string>
-	<string name="config_4">Autopilot settings</string>
-	<string name="config_5">Info</string>
+	<string name="config_flight">Flight settings</string>
+	<string name="config_drone">Drone settings</string>
+	<string name="config_operation">Operation settings</string>
+	<string name="config_gamepad">Gamepad settings</string>
+	<string name="config_autopilot">Autopilot settings</string>
+	<string name="config_info">Info</string>
 	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>
 	<string name="config_max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
 	<string name="config_max_altitude">Max altitude: %5.1f[m]</string>
@@ -55,6 +57,7 @@
 	<string name="config_scale_x">X scale: %5.2f</string>
 	<string name="config_scale_y">Y scale: %5.2f</string>
 	<string name="config_scale_z">Z scale: %5.2f</string>
+	<string name="config_scale_r">R scale: %5.2f</string>
 	<string name="config_control_max">Max control value: %5.1f</string>
 	<string name="config_operation_touch">Touch drawing control</string>
 	<string name="config_operation_normal">Normal operation screen</string>

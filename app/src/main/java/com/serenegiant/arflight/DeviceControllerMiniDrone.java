@@ -103,6 +103,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDronePilotingStateFlatTrimChangedUpdate() {
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateFlatTrimChangedUpdate:");
+			callOnFlatTrimChanged();
 		}
 	};
 

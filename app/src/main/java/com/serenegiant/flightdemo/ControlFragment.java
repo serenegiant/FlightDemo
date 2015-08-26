@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceControllerListener;
@@ -355,6 +356,17 @@ public abstract class ControlFragment extends Fragment {
 			if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onAlarmStateChangedUpdate:state=" + alarm_state);
 			updateAlarmState(alarm_state);
 		}
+
+		@Override
+		public void onFlatTrimChanged() {
+			postUIThread(new Runnable() {
+				@Override
+				public void run() {
+					Toast.makeText(getActivity(), R.string.action_flat_trim_finished, Toast.LENGTH_SHORT).show();
+				}
+			}, 0);
+		}
+
 	};
 
 	private final DialogInterface.OnCancelListener mOnCancelListener

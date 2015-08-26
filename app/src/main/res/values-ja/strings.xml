@@ -7,6 +7,7 @@
 	<string name="action_landing">着陸</string>
 	<string name="action_emergency">非常停止</string>
 	<string name="action_flat_trim">水平調整</string>
+	<string name="action_flat_trim_finished">水平調整完了</string>
 	<string name="action_flip">フリップ</string>
 	<string name="action_load">読込</string>
 	<string name="action_play">再生</string>
@@ -26,6 +27,8 @@
 	<string name="connecting">接続中…</string>
 	<string name="loading">読み込み中…</string>
 	<string name="battery">電池残量:</string>
+
+
 	<string name="select">選択</string>
 	<string name="not_selected">ファイルが選択されていません！</string>
 	<string name="parent_dir">上へ‥</string>
@@ -39,11 +42,12 @@
 	<string name="stick_text_down">下</string>
 	<string name="stick_text_back">後</string>
 
-	<string name="config_1">飛行設定</string>
-	<string name="config_2">ドローン設定</string>
-	<string name="config_3">操縦設定</string>
-	<string name="config_4">自動操縦設定</string>
-	<string name="config_5">ドローン情報</string>
+	<string name="config_flight">飛行設定</string>
+	<string name="config_drone">ドローン設定</string>
+	<string name="config_operation">操縦設定</string>
+	<string name="config_gamepad">ゲームパッド設定</string>
+	<string name="config_autopilot">自動操縦設定</string>
+	<string name="config_info">ドローン情報</string>
 	<string name="config_max_tilt">最大斜度: %5.1f[°]</string>
 	<string name="config_max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>
 	<string name="config_max_altitude">最大高度: %5.1f[m]</string>
@@ -56,7 +60,8 @@
 	<string name="config_scale_x">Xスケール: %5.2f</string>
 	<string name="config_scale_y">Yスケール: %5.2f</string>
 	<string name="config_scale_z">Zスケール: %5.2f</string>
-	<string name="config_control_max">最大制御値: : %5.1f</string>
+	<string name="config_scale_r">Rスケール: %5.2f</string>
+	<string name="config_control_max">最大制御値: %5.1f</string>
 	<string name="config_operation_touch">タッチ描画で操縦</string>
 	<string name="config_operation_normal">標準操作画面</string>
 	<string name="config_gamepad_sensitivity">操作感度</string>

@@ -1208,6 +1208,19 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	protected void callOnFlatTrimChanged() {
+		synchronized (mListenerSync) {
+			for (DeviceControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onFlatTrimChanged();
+					} catch (Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
 //================================================================================
 //================================================================================
 

@@ -67,6 +67,18 @@
 			android:id="@+id/scale_seekbar_z"
 			android:minHeight="@dimen/text_sz_list"/>
 
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_scale_r"
+			android:textSize="@dimen/text_sz_list"
+			android:id="@+id/scale_r_textview"/>
+
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/scale_seekbar_r"
+			android:minHeight="@dimen/text_sz_list"/>
 	</LinearLayout>
 
 </RelativeLayout>
