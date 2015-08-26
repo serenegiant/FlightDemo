@@ -570,6 +570,57 @@ public class ConfigFragment extends ControlFragment {
 		}
 	};
 
+	private static interface AdapterItemInitializer {
+		public void initialize(final ConfigFragment parent, final View view);
+	}
+
+	private static final class PagerAdapterConfig {
+		public final int title_id;
+		public final int layout_id;
+		public final AdapterItemInitializer initializer;
+
+		public PagerAdapterConfig(final int _title_id, final int _layout_id, final AdapterItemInitializer _initializer) {
+			title_id = _title_id;
+			layout_id = _layout_id;
+			initializer = _initializer;
+		}
+	}
+
+	private static PagerAdapterConfig[] PAGER_CONFIG;
+	static {
+		PAGER_CONFIG = new PagerAdapterConfig[5];
+		PAGER_CONFIG[0] = new PagerAdapterConfig(R.string.config_1, R.layout.config_minidrone_1, new AdapterItemInitializer() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.updateConfigMinidrone1(view);
+			}
+		});
+		PAGER_CONFIG[1] = new PagerAdapterConfig(R.string.config_2, R.layout.config_minidrone_2, new AdapterItemInitializer() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.updateConfigMinidrone2(view);
+			}
+		});
+		PAGER_CONFIG[2] = new PagerAdapterConfig(R.string.config_3, R.layout.config_operation, new AdapterItemInitializer() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.updateConfigOperation(view);
+			}
+		});
+		PAGER_CONFIG[3] = new PagerAdapterConfig(R.string.config_4, R.layout.config_autopilot, new AdapterItemInitializer() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.updateConfigAutopilot(view);
+			}
+		});
+		PAGER_CONFIG[4] = new PagerAdapterConfig(R.string.config_5, R.layout.config_info, new AdapterItemInitializer() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.updateConfigInfo(view);
+			}
+		});
+	};
+
 	/**
 	 * 設定画面の各ページ用のViewを提供するためのPagerAdapterクラス
 	 */
@@ -584,7 +635,12 @@ public class ConfigFragment extends ControlFragment {
 		public synchronized Object instantiateItem(final ViewGroup container, final int position) {
 			if (DEBUG) Log.v(TAG, "instantiateItem:position=" + position);
 			View view = null;
-			switch (position) {
+			if ((position >= 0) && (position < PAGER_CONFIG.length)) {
+				final PagerAdapterConfig config = PAGER_CONFIG[position];
+				view = mInflater.inflate(config.layout_id, container, false);
+				config.initializer.initialize(ConfigFragment.this, view);
+			}
+/*			switch (position) {
 			case 0:
 				view = mInflater.inflate(R.layout.config_minidrone_1, container, false);
 				updateConfigMinidrone1(view);
@@ -605,7 +661,7 @@ public class ConfigFragment extends ControlFragment {
 				view = mInflater.inflate(R.layout.config_info, container, false);
 				updateConfigInfo(view);
 				break;
-			}
+			} */
 			if (view != null) {
 				container.addView(view);
 			}
@@ -634,7 +690,10 @@ public class ConfigFragment extends ControlFragment {
 		public CharSequence getPageTitle(final int position) {
 			if (DEBUG) Log.v(TAG, "getPageTitle:position=" + position);
 			CharSequence result = null;
-			switch (position) {
+			if ((position >= 0) && (position < PAGER_CONFIG.length)) {
+				result = getString(PAGER_CONFIG[position].title_id);
+			}
+/*			switch (position) {
 			case 0:
 				result = getString(R.string.config_1);
 				break;
@@ -650,7 +709,7 @@ public class ConfigFragment extends ControlFragment {
 			case 4:
 				result = getString(R.string.config_5);
 				break;
-			}
+			} */
 			return result;
 		}
 	}
