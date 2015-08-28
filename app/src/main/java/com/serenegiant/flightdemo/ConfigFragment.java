@@ -164,7 +164,7 @@ public class ConfigFragment extends ControlFragment {
 		mMaxAltitude = mController.getMaxAltitude();
 		try {
 			seekbar.setProgress((int) ((mMaxAltitude.current() - mMaxAltitude.min()) / (mMaxAltitude.max() - mMaxAltitude.min()) * 1000));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			seekbar.setProgress(0);
 		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
@@ -177,7 +177,7 @@ public class ConfigFragment extends ControlFragment {
 		mMaxTilt = mController.getMaxTilt();
 		try {
 			seekbar.setProgress((int) ((mMaxTilt.current() - mMaxTilt.min()) / (mMaxTilt.max() - mMaxTilt.min()) * 1000));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			seekbar.setProgress(0);
 		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
@@ -190,7 +190,7 @@ public class ConfigFragment extends ControlFragment {
 		mMaxVerticalSpeed = mController.getMaxVerticalSpeed();
 		try {
 			seekbar.setProgress((int) ((mMaxVerticalSpeed.current() - mMaxVerticalSpeed.min()) / (mMaxVerticalSpeed.max() - mMaxVerticalSpeed.min()) * 1000));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			seekbar.setProgress(0);
 		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
@@ -203,7 +203,7 @@ public class ConfigFragment extends ControlFragment {
 		mMaxRotationSpeed = mController.getMaxRotationSpeed();
 		try {
 			seekbar.setProgress((int) ((mMaxRotationSpeed.current() - mMaxRotationSpeed.min()) / (mMaxRotationSpeed.max() - mMaxRotationSpeed.min()) * 1000));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			seekbar.setProgress(0);
 		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
@@ -223,7 +223,7 @@ public class ConfigFragment extends ControlFragment {
 				checkbox.setOnCheckedChangeListener(null);
 				checkbox.setChecked(mController.isCutoffMode());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 		}
@@ -234,7 +234,7 @@ public class ConfigFragment extends ControlFragment {
 				checkbox.setOnCheckedChangeListener(null);
 				checkbox.setChecked(mController.hasGuard());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 		}
@@ -245,7 +245,7 @@ public class ConfigFragment extends ControlFragment {
 				checkbox.setOnCheckedChangeListener(null);
 				checkbox.setChecked(mController.isAutoTakeOffModeEnabled());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 		}

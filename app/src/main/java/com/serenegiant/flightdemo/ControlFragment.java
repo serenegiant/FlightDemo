@@ -148,7 +148,7 @@ public abstract class ControlFragment extends Fragment {
 				} else {
 					task.run();
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 		}

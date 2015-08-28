@@ -51,7 +51,7 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 
 //				ARSALPrint.enableDebugPrints();	// XXX ARライブラリのデバッグメッセージを表示する時
 				isLoaded = true;
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.e(TAG, "Oops (LoadLibrary)", e);
 			}
 		}

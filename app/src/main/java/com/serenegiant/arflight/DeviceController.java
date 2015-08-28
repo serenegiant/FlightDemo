@@ -168,8 +168,10 @@ public abstract class DeviceController implements IDeviceController {
 
 			// 機体データ受信スレッドを生成&開始
 			startReadThreads();
-			// ビデオストリーミング用スレッドを生成&開始
-			startVideoThread();
+			if (mNetConfig.hasVideo()) {
+				// ビデオストリーミング用スレッドを生成&開始
+				startVideoThread();
+			}
 			// 操縦コマンド送信スレッドを生成&開始
 			startFlightCMDThread();
 
@@ -481,7 +483,7 @@ public abstract class DeviceController implements IDeviceController {
 			try {
 				discoverSemaphore.acquire();
 				error = connectionThread.getError();
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				Log.w(TAG, e);
 			}
 
@@ -699,6 +701,9 @@ public abstract class DeviceController implements IDeviceController {
 	private final ARCommandCommonSettingsStateProductNameChangedListener
 		mARCommandCommonSettingsStateProductNameChangedListener
 			= new ARCommandCommonSettingsStateProductNameChangedListener() {
+		/**
+		 * @param name
+		 */
 		@Override
 		public void onCommonSettingsStateProductNameChangedUpdate(final String name) {
 			mInfo.setProductName(name);
@@ -804,6 +809,9 @@ public abstract class DeviceController implements IDeviceController {
 	private final ARCommandCommonCommonStateBatteryStateChangedListener
 		mCommonStateBatteryStateChangedListener
 		= new ARCommandCommonCommonStateBatteryStateChangedListener() {
+		/**
+		 * @param percent
+		 */
 		@Override
 		public void onCommonCommonStateBatteryStateChangedUpdate(final byte percent) {
 			if (getBattery() != percent) {
@@ -921,9 +929,13 @@ public abstract class DeviceController implements IDeviceController {
 	private final ARCommandCommonCommonStateSensorsStatesListChangedListener
 		mARCommandCommonCommonStateSensorsStatesListChangedListener
 			= new ARCommandCommonCommonStateSensorsStatesListChangedListener() {
+		/**
+		 * @param sensor_name Sensor name
+		 * @param sensorState Sensor state (1 if the sensor is OK, 0 if the sensor is NOT OK)
+		 */
 		@Override
 		public void onCommonCommonStateSensorsStatesListChangedUpdate(
-			final ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM sensor_name, final byte b) {
+			final ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM sensor_name, final byte sensorState) {
 
 			switch (sensor_name.getValue()) {
 			case SENSOR_IMU: // 0
@@ -933,7 +945,7 @@ public abstract class DeviceController implements IDeviceController {
 			case SENSOR_MAGNETOMETER: // 4
 			case SENSOR_VERTICAL_CAMERA: // 5
 			}
-			if (DEBUG) Log.v(TAG, String.format("SensorsStatesListChangedUpdate:%d=%d", sensor_name.getValue(), b));
+			if (DEBUG) Log.v(TAG, String.format("SensorsStatesListChangedUpdate:%d=%d", sensor_name.getValue(), sensorState));
 		}
 	};
 
@@ -1146,7 +1158,7 @@ public abstract class DeviceController implements IDeviceController {
 				if (listener != null) {
 					try {
 						listener.onConnect(this);
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
 				}
@@ -1160,7 +1172,7 @@ public abstract class DeviceController implements IDeviceController {
 				if (listener != null) {
 					try {
 						listener.onDisconnect(this);
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
 				}
@@ -1174,7 +1186,7 @@ public abstract class DeviceController implements IDeviceController {
 				if (listener != null) {
 					try {
 						listener.onUpdateBattery(percent);
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
 				}
@@ -1188,7 +1200,7 @@ public abstract class DeviceController implements IDeviceController {
 				if (listener != null) {
 					try {
 						listener.onFlyingStateChangedUpdate(state);
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
 				}
@@ -1202,7 +1214,7 @@ public abstract class DeviceController implements IDeviceController {
 				if (listener != null) {
 					try {
 						listener.onAlarmStateChangedUpdate(state);
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
 				}
@@ -1216,7 +1228,7 @@ public abstract class DeviceController implements IDeviceController {
 				if (listener != null) {
 					try {
 						listener.onFlatTrimChanged();
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
 				}

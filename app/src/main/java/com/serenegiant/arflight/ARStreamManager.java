@@ -65,7 +65,7 @@ public class ARStreamManager {
 				try {
 					if (DEBUG) Log.v(TAG, "stop:wait data thread");
 					mDataThread.join();
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 				}
 				mDataThread = null;
 			}
@@ -73,7 +73,7 @@ public class ARStreamManager {
 				try {
 					if (DEBUG) Log.v(TAG, "stop:wait ack thread");
 					mAckThread.join();
-				} catch (InterruptedException e) {
+				} catch (final InterruptedException e) {
 				}
 				mAckThread = null;
 			}
@@ -114,7 +114,7 @@ public class ARStreamManager {
 		ARFrame result = null;
 		try {
 			result = mFrameQueue.poll(receive_timeout_ms, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 		}
 		return result;
 	}

@@ -435,7 +435,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 				} else {
 					Log.w(TAG, "モーターNo.が予期したのと違う:" + motor);
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 		}

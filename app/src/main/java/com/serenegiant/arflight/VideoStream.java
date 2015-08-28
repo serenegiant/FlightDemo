@@ -29,30 +29,36 @@ public class VideoStream implements IVideoStream {
 	private static final int VIDEO_HEIGHT = 368;
 
 	private final Object mSync = new Object();
-	private boolean isRunning;
+	private volatile boolean isRendererRunning;
+	private volatile boolean isDecoderRunning;
 
 	private final RendererTask mRendererTask;
 	private final DecodeTask mDecodeTask;
 
 	public VideoStream() {
 		if (DEBUG) Log.v(TAG, "VideoStream:コンストラクタ");
+		mDecodeTask = new DecodeTask();
+		new Thread(mDecodeTask, "VideoStream#decodeTask").start();
 		mRendererTask = new RendererTask(this);
 		new Thread(mRendererTask, "VideoStream$rendererTask").start();
 		mRendererTask.waitReady();
 		synchronized (mSync) {
-			if (!isRunning) {
+			for ( ; !isRendererRunning || !isDecoderRunning ; ) {
 				try {
 					mSync.wait();
 				} catch (final InterruptedException e) {
+					break;
 				}
 			}
 		}
-		mDecodeTask = new DecodeTask();
-		new Thread(mDecodeTask, "VideoStream#decodeTask").start();
 	}
 
 	public void release() {
 		if (DEBUG) Log.v(TAG, "release");
+		synchronized (mSync) {
+			isRendererRunning = isDecoderRunning = false;
+			mSync.notifyAll();
+		}
 		mRendererTask.release();
 	}
 
@@ -96,6 +102,8 @@ public class VideoStream implements IVideoStream {
 					csdBuffer = getCSD(frame);
 					if (csdBuffer != null) {
 						configureMediaCodec(mRendererTask.getSurface());
+					} else {
+						Log.w(TAG, "CSDを取得できなかった");
 					}
 				}
 				if (isCodecConfigured && (!waitForIFrame || frame.isIFrame())) {
@@ -104,10 +112,12 @@ public class VideoStream implements IVideoStream {
 					// ここに来るのはIFrameかIFrameから連続してPFrameを受信している時
 					int index = -1;
 
-					try {
-						index = mediaCodec.dequeueInputBuffer(VIDEO_INPUT_TIMEOUT_US);
-					} catch (final IllegalStateException e) {
-						Log.e(TAG, "Error while dequeue input buffer");
+					for (int i = 0; isDecoderRunning && (index < 0) && (i < 30)  ; i++) {
+						try {
+							index = mediaCodec.dequeueInputBuffer(VIDEO_INPUT_TIMEOUT_US);
+						} catch (final IllegalStateException e) {
+							Log.e(TAG, "Error while dequeue input buffer");
+						}
 					}
 //					if (DEBUG) Log.v(TAG, "dequeueInputBuffer:index=" + index);
 					if (index >= 0) {
@@ -126,9 +136,15 @@ public class VideoStream implements IVideoStream {
 						}
 
 					} else {
+						if (DEBUG) Log.v(TAG, "デコーダーの準備ができてない/入力キューが満杯");
 						waitForIFrame = true;
 					}
+				} else {
+//					if (DEBUG) Log.v(TAG, "queueFrame:フレームをドロップ:isCodecConfigured=" + isCodecConfigured
+//						+ ",waitForIFrame=" + waitForIFrame + ",isIFrame=" + (frame != null ? frame.isIFrame() : false));
 				}
+			} else {
+				Log.w(TAG, "MediaCodecが生成されていない");
 			}
 		}
 
@@ -136,18 +152,22 @@ public class VideoStream implements IVideoStream {
 		public void run() {
 			if (DEBUG) Log.v(TAG, "DecodeTask#run");
 			initMediaCodec();
-			final MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-			for ( ; isRunning && !isCodecConfigured ; ) {
+			synchronized (mSync) {
+				isDecoderRunning = true;
+				mSync.notifyAll();
+			}
+			for ( ; isDecoderRunning && !isCodecConfigured ; ) {
 				try {
-					Thread.sleep(VIDEO_OUTPUT_TIMEOUT_US);
+					Thread.sleep(VIDEO_OUTPUT_TIMEOUT_US / 1000);
 				} catch (final InterruptedException e) {
 					break;
 				}
 			}
-			if (DEBUG) Log.v(TAG, "DecodeTask#run:isRunning=" + isRunning + ",isCodecConfigured=" + isCodecConfigured);
+			if (DEBUG) Log.v(TAG, "DecodeTask#run:isRendererRunning=" + isRendererRunning + ",isCodecConfigured=" + isCodecConfigured);
 			if (isCodecConfigured) {
+				final MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 				int outIndex;
-				for ( ; isRunning ; ) {
+				for ( ; isDecoderRunning; ) {
 					try {
 						outIndex = mediaCodec.dequeueOutputBuffer(info, VIDEO_OUTPUT_TIMEOUT_US);
 //						if (DEBUG) Log.v(TAG, "releaseOutputBuffer:" + outIndex);
@@ -159,6 +179,10 @@ public class VideoStream implements IVideoStream {
 						Log.e(TAG, "Error while dequeue output buffer (outIndex)");
 					}
 				}
+			}
+			synchronized (mSync) {
+				isDecoderRunning = false;
+				mSync.notifyAll();
 			}
 			releaseMediaCodec();
 			if (DEBUG) Log.v(TAG, "DecodeTask#run:終了");
@@ -180,7 +204,6 @@ public class VideoStream implements IVideoStream {
 			mediaCodec.start();
 
 			inputBuffers = mediaCodec.getInputBuffers();
-
 			isCodecConfigured = true;
 		}
 
@@ -196,6 +219,7 @@ public class VideoStream implements IVideoStream {
 		}
 
 		private ByteBuffer getCSD(final ARFrame frame) {
+			if (DEBUG) Log.v(TAG, "getCSD:" + frame);
 			int spsSize = -1;
 			if (frame.isIFrame()) {
 				final byte[] data = frame.getByteData();
@@ -237,7 +261,7 @@ public class VideoStream implements IVideoStream {
 	private static final int REQUEST_ADD_SURFACE = 3;
 	private static final int REQUEST_REMOVE_SURFACE = 4;
 	private static final class RendererTask extends EglTask {
-		private final class RendererSurfaceRec {
+		private static final class RendererSurfaceRec {
 			private Object mSurface;
 			private EGLBase.EglSurface mTargetSurface;
 			final float[] mMvpMatrix = new float[16];
@@ -285,7 +309,7 @@ public class VideoStream implements IVideoStream {
 			mMasterTexture.setDefaultBufferSize(mVideoWidth, mVideoHeight);
 			mMasterTexture.setOnFrameAvailableListener(mOnFrameAvailableListener);
 			synchronized (mParent.mSync) {
-				mParent.isRunning = true;
+				mParent.isRendererRunning = true;
 				mParent.mSync.notifyAll();
 			}
 			if (DEBUG) Log.v(TAG, "onStart:finished");
@@ -295,7 +319,7 @@ public class VideoStream implements IVideoStream {
 		protected void onStop() {
 			if (DEBUG) Log.v(TAG, "onStop");
 			synchronized (mParent.mSync) {
-				mParent.isRunning = false;
+				mParent.isRendererRunning = false;
 				mParent.mSync.notifyAll();
 			}
 			handleRemoveAll();

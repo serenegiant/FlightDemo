@@ -200,7 +200,7 @@ public class TouchFlight implements IAutoFlight {
 							synchronized (mSync) {
 								try {
 									mSync.wait(t - current_time);
-								} catch (InterruptedException e) {
+								} catch (final InterruptedException e) {
 								}
 							}
 						}
@@ -210,7 +210,7 @@ public class TouchFlight implements IAutoFlight {
 								// trueが返ってきたので終了する
 								break;
 							}
-						} catch (Exception e) {
+						} catch (final Exception e) {
 							Log.w(TAG, e);
 						}
 						// ここで操縦コマンド発行

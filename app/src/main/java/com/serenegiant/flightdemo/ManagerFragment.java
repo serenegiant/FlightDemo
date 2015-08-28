@@ -403,7 +403,7 @@ public class ManagerFragment extends Fragment {
 						getActivity().getApplicationContext().unbindService(ardiscoveryServiceConnection);
 						discoveryServiceBinder = null;
 						ardiscoveryService = null;
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						Log.w(TAG, e);
 					}
 				}
@@ -477,7 +477,7 @@ public class ManagerFragment extends Fragment {
 			for (ManagerCallback cb: mCallbacks) {
 				try {
 					cb.onServicesDevicesListUpdated(mDevices);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					Log.w(TAG, e);
 				}
 			}
@@ -492,7 +492,7 @@ public class ManagerFragment extends Fragment {
 				} else {
 					task.run();
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 		}

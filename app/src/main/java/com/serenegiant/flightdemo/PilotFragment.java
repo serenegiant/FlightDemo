@@ -576,7 +576,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void startVideoStreaming() {
 		if (DEBUG) Log.v(TAG, "startVideoStreaming:");
-		super.startVideoStreaming();
 		if (mController instanceof IVideoStreamController) {
 			if (mVideoStream == null) {
 				mVideoStream = new VideoStream();
@@ -590,11 +589,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				}
 			});
 		}
+		super.startVideoStreaming();
 	}
 
 	@Override
 	protected void stopVideoStreaming() {
 		if (DEBUG) Log.v(TAG, "stopVideoStreaming:");
+		super.stopVideoStreaming();
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -609,7 +610,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mVideoStream.release();
 			mVideoStream = null;
 		}
-		super.stopVideoStreaming();
 	}
 
 	@Override
@@ -893,30 +893,33 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			updateTime(t);
 			if (mController != null) {
 				switch (cmd) {
-				case IAutoFlight.CMD_EMERGENCY:		// 非常停止
+				case IAutoFlight.CMD_EMERGENCY:			// 非常停止
 					mController.sendEmergency();
 					break;
-				case IAutoFlight.CMD_TAKEOFF:		// 離陸
+				case IAutoFlight.CMD_TAKEOFF:			// 離陸
 					mController.sendTakeoff();
 					break;
-				case IAutoFlight.CMD_LANDING:		// 着陸
+				case IAutoFlight.CMD_LANDING:			// 着陸
 					mController.sendLanding();
 					break;
-				case IAutoFlight.CMD_UP_DOWN:		// 上昇:gaz>0, 下降: gaz<0
+				case IAutoFlight.CMD_UP_DOWN:			// 上昇:gaz>0, 下降: gaz<0
 					mController.setGaz(values[0]);
 					break;
 				case IAutoFlight.CMD_RIGHT_LEFT:		// 右: roll>0,flag=1 左: roll<0,flag=1
 					mController.setRoll(values[0]);
 					mController.setFlag((values[0] != 0 ? 1 : 0));
 					break;
-				case IAutoFlight.CMD_FORWARD_BACK:	// 前進: pitch>0,flag=1, 後退: pitch<0,flag=1
+				case IAutoFlight.CMD_FORWARD_BACK:		// 前進: pitch>0,flag=1, 後退: pitch<0,flag=1
 					mController.setPitch(values[0]);
 					break;
-				case IAutoFlight.CMD_TURN:			// 右回転: yaw>0, 左回転: ywa<0
+				case IAutoFlight.CMD_TURN:				// 右回転: yaw>0, 左回転: ywa<0
 					mController.setYaw(values[0]);
 					break;
-				case IAutoFlight.CMD_COMPASS:		// 北磁極に対する角度 -360〜360度
+				case IAutoFlight.CMD_COMPASS:			// 北磁極に対する角度 -360〜360度
 					mController.setHeading(values[0]);	// 実際は浮動小数点だけど
+					break;
+				case IAutoFlight.CMD_MOVE5:
+					mController.setMove(values[0], values[1], values[2], values[3], values[4]);
 					break;
 				case IAutoFlight.CMD_MOVE4:
 					mController.setMove(values[0], values[1], values[2], values[3]);
@@ -927,10 +930,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				case IAutoFlight.CMD_MOVE2:
 					mController.setMove(values[0], values[1]);
 					break;
-				case IAutoFlight.CMD_FLIP:			// フリップ
+				case IAutoFlight.CMD_FLIP:				// フリップ
 					mController.sendAnimationsFlip(values[0]);
 					break;
-				case IAutoFlight.CMD_CAP:			// キャップ(指定角度水平回転)
+				case IAutoFlight.CMD_CAP:				// キャップ(指定角度水平回転)
 					mController.sendAnimationsCap(values[0]);
 					break;
 				}
@@ -954,7 +957,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 
 		@Override
-		public void onError(Exception e) {
+		public void onError(final Exception e) {
 			stopPlay();
 			stopScript();
 			stopTouchMove();
@@ -973,18 +976,18 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final int alarm = getAlarm();
 			if (DEBUG) Log.w(TAG, "mUpdateAlarmMessageTask:alarm=" + alarm);
 			switch (alarm) {
-			case DroneStatus.ALARM_NON:				// No alert
+			case DroneStatus.ALARM_NON:					// No alert
 				break;
-			case DroneStatus.ALARM_USER_EMERGENCY:	// User emergency alert
+			case DroneStatus.ALARM_USER_EMERGENCY:		// User emergency alert
 				mAlertMessage.setText(R.string.alarm_user_emergency);
 				break;
-			case DroneStatus.ALARM_CUTOUT:			// Cut out alert
+			case DroneStatus.ALARM_CUTOUT:				// Cut out alert
 				mAlertMessage.setText(R.string.alarm_motor_cut_out);
 				break;
 			case DroneStatus.ALARM_BATTERY_CRITICAL:	// Critical battery alert
 				mAlertMessage.setText(R.string.alarm_low_battery_critical);
 				break;
-			case DroneStatus.ALARM_BATTERY:			// Low battery alert
+			case DroneStatus.ALARM_BATTERY:				// Low battery alert
 				mAlertMessage.setText(R.string.alarm_low_battery);
 				break;
 			case DroneStatus.ALARM_DISCONNECTED:		// 切断された
@@ -1074,8 +1077,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final boolean can_clear = is_connected && !is_recording && !is_playing && !mScriptRunning && !mTouchMoveRunning && mTouchFlight.isPrepared();
 			final boolean can_move = can_clear && (alarm_state == DroneStatus.ALARM_NON);
 			final boolean is_battery_alarm
-				= (alarm_state == DroneStatus.ALARM_BATTERY)
-					|| (alarm_state == DroneStatus.ALARM_BATTERY_CRITICAL);
+				= (alarm_state == DroneStatus.ALARM_BATTERY) || (alarm_state == DroneStatus.ALARM_BATTERY_CRITICAL);
 
 			// 上パネル
 			mTopPanel.setEnabled(is_connected);
@@ -1104,7 +1106,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mMoveButton.setColorFilter(can_move ? (mTouchMoveRunning ? 0xffff0000 : 0) : DISABLE_COLOR);
 			}
 
-//			mTakeOnOffBtn.setEnabled(can_fly);		// 離陸/着陸
+			// 離陸/着陸
 			switch (state & IDeviceController.STATE_MASK_FLYING) {
 			case DroneStatus.STATE_FLYING_LANDED:	// 0x0000;		// FlyingState=0
 			case DroneStatus.STATE_FLYING_LANDING:	// 0x0400;		// FlyingState=4
@@ -1137,7 +1139,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mTouchPilotView.setEnabled(can_fly);
 			}
 
-			for (View view: mActionViews) {
+			for (final View view: mActionViews) {
 				view.setEnabled(can_fly);
 				if (view instanceof ImageView) {
 					((ImageView)view).setColorFilter(can_fly ? 0 : DISABLE_COLOR);
@@ -1155,7 +1157,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		public void run() {
 			try {
 				getFragmentManager().popBackStack();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 		}
@@ -1236,6 +1238,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					)
 				)
 			);
+			final int flag = downs[GamePad.KEY_LEFT_2]
+				&& (downs[GamePad.KEY_LEFT_RIGHT] || downs[GamePad.KEY_LEFT_LEFT]
+					|| downs[GamePad.KEY_LEFT_UP] || downs[GamePad.KEY_LEFT_DOWN]) ? 0
+				: ((roll != 0) || (pitch != 0) ? 1 : 0);
 //			GamePad.KEY_LEFT_CENTER:	// = 0;
 //			GamePad.KEY_LEFT_UP:		// = 1;
 //			GamePad.KEY_LEFT_RIGHT:		// = 2;
@@ -1253,19 +1259,19 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 //			GamePad.KEY_RIGHT_2:		// = 14;	// 右上後
 //			GamePad.KEY_CENTER_RIGHT:	// = 15;	// 中央右
 			if ((roll != 0) || (pitch != 0) || (gaz != 0) || (yaw != 0)) {
-				if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", roll, pitch, gaz, yaw));
+//				if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", roll, pitch, gaz, yaw));
 				if (mController != null) {
 					moved = true;
-					mController.setMove((int) roll, (int) pitch, (int) gaz, (int) yaw);
-					mFlightRecorder.record(FlightRecorder.CMD_MOVE4, (int)roll, (int)pitch, (int)gaz, (int)yaw);
+					mController.setMove((int) roll, (int) pitch, (int) gaz, (int) yaw, flag);
+					mFlightRecorder.record(FlightRecorder.CMD_MOVE4, (int)roll, (int)pitch, (int)gaz, (int)yaw, flag);
 				}
 			} else if (moved) {
 				if (mController != null) {
-					mController.setMove((int) 0, (int) 0, (int) 0, (int) 0);
+					mController.setMove(0, 0, 0, 0, 0);
 					mFlightRecorder.record(FlightRecorder.CMD_MOVE4, (int) 0, (int) 0, (int) 0, (int) 0);
 				}
 				moved = false;
-				if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", 0f, 0f, 0f, 0f));
+//				if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", 0f, 0f, 0f, 0f));
 			}
 			post(this, 50);
 		}

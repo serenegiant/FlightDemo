@@ -61,17 +61,17 @@ public class FlightRecorder implements IAutoFlight {
 						if (DEBUG) Log.v(TAG, String.format("%5d)%s", cnt++, line));
 					}
 					writer.flush();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					Log.w(TAG, e);
 				} finally {
 					writer.close();
 				}
 			}
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			Log.w(TAG, e);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			Log.w(TAG, e);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			Log.w(TAG, e);
 		}
 		if (DEBUG) Log.v(TAG, "save:finished:" + cnt);
@@ -110,7 +110,7 @@ public class FlightRecorder implements IAutoFlight {
 					}
 					if (DEBUG) Log.v(TAG, String.format("%5d)%s", cnt++, line));
 				}
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				Log.w(TAG, e);
 			} finally {
 				reader.close();
@@ -120,11 +120,11 @@ public class FlightRecorder implements IAutoFlight {
 				mRecords.addAll(copy);
 				mStartTime = System.currentTimeMillis() - lastTime;
 			}
-		} catch (FileNotFoundException e) {
+		} catch (final FileNotFoundException e) {
 			Log.w(TAG, e);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			Log.w(TAG, e);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			Log.w(TAG, e);
 		}
 		if (DEBUG) Log.v(TAG, "load:finished:" + cnt);
@@ -383,7 +383,7 @@ public class FlightRecorder implements IAutoFlight {
 		public void run() {
 			try {
 				mPlaybackListener.onStart();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 			final CmdRec cmd = new CmdRec();
@@ -397,7 +397,7 @@ public class FlightRecorder implements IAutoFlight {
 						synchronized (mSync) {
 							try {
 								mSync.wait(cmd.time - current_time);
-							} catch (InterruptedException e) {
+							} catch (final InterruptedException e) {
 							}
 						}
 					}
@@ -407,7 +407,7 @@ public class FlightRecorder implements IAutoFlight {
 							// trueが返ってきたので終了する
 							break;
 						}
-					} catch (Exception e) {
+					} catch (final Exception e) {
 						Log.w(TAG, e);
 					}
 				} else {
@@ -418,7 +418,7 @@ public class FlightRecorder implements IAutoFlight {
 			mIsPlayback = false;
 			try {
 				mPlaybackListener.onStop();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 		}

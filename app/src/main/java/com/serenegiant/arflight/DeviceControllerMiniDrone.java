@@ -317,7 +317,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 				} else {
 					Log.w(TAG, "モーターNo.が予期したのと違う:" + motor);
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 		}
