@@ -1082,7 +1082,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			// 上パネル
 			mTopPanel.setEnabled(is_connected);
 			mFlatTrimBtn.setEnabled(can_flattrim);	// フラットトリム
-			mBatteryLabel.setTextColor(is_battery_alarm ? 0xffff0000 : 0xff000000);
+			mBatteryLabel.setTextColor(is_battery_alarm ? 0xffff0000 : 0xff9400d3);
 			mConfigShowBtn.setEnabled(can_config);
 			mConfigShowBtn.setColorFilter(can_config ? 0: DISABLE_COLOR);
 

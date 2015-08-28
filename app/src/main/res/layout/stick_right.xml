@@ -22,7 +22,8 @@
 		android:text="@string/stick_text_forward"
 		android:textAppearance="?android:attr/textAppearanceMedium"
 		android:textSize="@dimen/text_sz_button"
-		android:gravity="center"/>
+		android:gravity="center"
+		android:textColor="@color/DARKVIOLET"/>
 
 	<TextView
 		android:id="@+id/rright2_button"
@@ -34,7 +35,8 @@
 		android:text="@string/stick_text_right"
 		android:textAppearance="?android:attr/textAppearanceMedium"
 		android:textSize="@dimen/text_sz_button"
-		android:gravity="center"/>
+		android:gravity="center"
+		android:textColor="@color/DARKVIOLET"/>
 
 	<TextView
 		android:id="@+id/right1_button"
@@ -45,7 +47,8 @@
 		android:text="@string/stick_text_back"
 		android:textAppearance="?android:attr/textAppearanceMedium"
 		android:textSize="@dimen/text_sz_button"
-		android:gravity="center"/>
+		android:gravity="center"
+		android:textColor="@color/DARKVIOLET"/>
 
 	<TextView
 		android:id="@+id/landing_button"
@@ -57,6 +60,7 @@
 		android:text="@string/stick_text_left"
 		android:textAppearance="?android:attr/textAppearanceMedium"
 		android:textSize="@dimen/text_sz_button"
-		android:gravity="center"/>
+		android:gravity="center"
+		android:textColor="@color/DARKVIOLET"/>
 
 </RelativeLayout>

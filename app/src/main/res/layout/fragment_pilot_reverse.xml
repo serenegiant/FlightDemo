@@ -36,7 +36,8 @@
 				android:layout_centerVertical="true"
 				android:text="@string/battery"
 				android:textAppearance="?android:attr/textAppearanceMedium"
-				android:textSize="@dimen/text_sz_button"/>
+				android:textSize="@dimen/text_sz_button"
+				android:textColor="@color/DARKVIOLET"/>
 
 			<TextView
 				android:id="@+id/batteryLabel"
@@ -47,7 +48,8 @@
 				android:layout_toRightOf="@+id/stick_left_button"
 				android:text="XXX%"
 				android:textAppearance="?android:attr/textAppearanceMedium"
-				android:textSize="@dimen/text_sz_button"/>
+				android:textSize="@dimen/text_sz_button"
+				android:textColor="@color/DARKVIOLET"/>
 
 			<ImageButton
 				android:id="@+id/flat_trim_btn"
@@ -130,7 +132,8 @@
 						android:layout_gravity="center"
 						android:gravity="center"
 						android:text="+45"
-						android:textSize="@dimen/text_sz_button"/>
+						android:textSize="@dimen/text_sz_button"
+						android:textColor="@color/DARKVIOLET"/>
 				</FrameLayout>
 
 
@@ -153,7 +156,8 @@
 						android:layout_gravity="center"
 						android:gravity="center"
 						android:text="+15"
-						android:textSize="@dimen/text_sz_button"/>
+						android:textSize="@dimen/text_sz_button"
+						android:textColor="@color/DARKVIOLET"/>
 				</FrameLayout>
 
 				<FrameLayout
@@ -175,7 +179,8 @@
 						android:layout_gravity="center"
 						android:gravity="center"
 						android:text="-15"
-						android:textSize="@dimen/text_sz_button"/>
+						android:textSize="@dimen/text_sz_button"
+						android:textColor="@color/DARKVIOLET"/>
 				</FrameLayout>
 
 				<FrameLayout
@@ -197,7 +202,8 @@
 						android:layout_gravity="center"
 						android:gravity="center"
 						android:text="-45"
-						android:textSize="@dimen/text_sz_button"/>
+						android:textSize="@dimen/text_sz_button"
+						android:textColor="@color/DARKVIOLET"/>
 				</FrameLayout>
 
 			</LinearLayout>
