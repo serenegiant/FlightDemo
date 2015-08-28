@@ -248,9 +248,13 @@ public class VideoStream implements IVideoStream {
 				}
 				int csdSize = searchIndex;
 
-				final byte[] csdInfo = new byte[csdSize];
-				System.arraycopy(data, 0, csdInfo, 0, csdSize);
-				return ByteBuffer.wrap(csdInfo);
+				final ByteBuffer result = ByteBuffer.allocateDirect(csdSize);
+				result.clear();
+				result.put(data, 0, csdSize);	// これはちょっと遅い
+//				final byte[] csdInfo = new byte[csdSize];
+//				System.arraycopy(data, 0, csdInfo, 0, csdSize);
+//				return ByteBuffer.wrap(csdInfo);
+				return result;
 			}
 			return null;
 		}

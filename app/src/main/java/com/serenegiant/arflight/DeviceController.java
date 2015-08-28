@@ -1467,7 +1467,6 @@ public abstract class DeviceController implements IDeviceController {
 	public void setFlag(final int flag) {
 		synchronized (mDataSync) {
 			mDataPCMD.flag = flag == 0 ? 0 : (flag != 0 ? 1 : 0);
-//			mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1479,7 +1478,6 @@ public abstract class DeviceController implements IDeviceController {
 	public void setGaz(final float gaz) {
 		synchronized (mDataSync) {
 			mDataPCMD.gaz = gaz > 100 ? 100 : (gaz < -100 ? -100 : gaz);
-//			mDataPCMD.cnt = 1;
 		}
 	}
 
@@ -1491,8 +1489,6 @@ public abstract class DeviceController implements IDeviceController {
 	public void setRoll(final float roll) {
 		synchronized (mDataSync) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
-//			if (--mDataPCMD.cnt <= 2)
-//				mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1506,7 +1502,6 @@ public abstract class DeviceController implements IDeviceController {
 		synchronized (mDataSync) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
 			mDataPCMD.flag = move ? 1 : 0;
-//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1518,8 +1513,6 @@ public abstract class DeviceController implements IDeviceController {
 	public void setPitch(final float pitch) {
 		synchronized (mDataSync) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
-//			if (--mDataPCMD.cnt <= 2)
-//				mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1533,7 +1526,6 @@ public abstract class DeviceController implements IDeviceController {
 		synchronized (mDataSync) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
 			mDataPCMD.flag = move ? 1 : 0;
-//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1545,7 +1537,6 @@ public abstract class DeviceController implements IDeviceController {
 	public void setYaw(final float yaw) {
 		synchronized (mDataSync) {
 			mDataPCMD.yaw = yaw > 100 ? 100 : (yaw < -100 ? -100 : yaw);
-//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1557,7 +1548,6 @@ public abstract class DeviceController implements IDeviceController {
 	public void setHeading(final float heading) {
 		synchronized (mDataSync) {
 			mDataPCMD.heading = heading;
-//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1572,7 +1562,6 @@ public abstract class DeviceController implements IDeviceController {
 			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
 			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.flag = 1;
-//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1589,7 +1578,6 @@ public abstract class DeviceController implements IDeviceController {
 			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
 			mDataPCMD.flag = 1;
-//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1608,7 +1596,6 @@ public abstract class DeviceController implements IDeviceController {
 			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
 			mDataPCMD.yaw = yaw > 100.0f ? 100.0f : (yaw < -100.0f ? -100.0f : yaw) ;
 			mDataPCMD.flag = 1;
-//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1628,7 +1615,6 @@ public abstract class DeviceController implements IDeviceController {
 			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
 			mDataPCMD.yaw = yaw > 100.0f ? 100.0f : (yaw < -100.0f ? -100.0f : yaw) ;
 			mDataPCMD.flag = flag;
-//			mDataPCMD.cnt = 2;
 		}
 	}
 
@@ -1805,8 +1791,6 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
-//	private static final int MAX_CNT = 5;
-
 	private static final class DataPCMD {
 		public int flag;
 		public float roll;
@@ -1814,13 +1798,11 @@ public abstract class DeviceController implements IDeviceController {
 		public float yaw;
 		public float gaz;
 		public float heading;
-//		public int cnt;
 
 		public DataPCMD() {
 			flag = 0;
 			roll = pitch = yaw = gaz = 0;
 			heading = 0;
-//			cnt = MAX_CNT;
 		}
 
 		private void set(final DataPCMD other) {
@@ -1830,7 +1812,6 @@ public abstract class DeviceController implements IDeviceController {
 			yaw = other.yaw;
 			gaz = other.gaz;
 			heading = other.heading;
-//			cnt = other.cnt;
 		}
 	}
 
