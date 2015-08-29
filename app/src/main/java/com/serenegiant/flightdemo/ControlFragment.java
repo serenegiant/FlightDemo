@@ -364,7 +364,10 @@ public abstract class ControlFragment extends Fragment {
 			postUIThread(new Runnable() {
 				@Override
 				public void run() {
-					Toast.makeText(getActivity(), R.string.action_flat_trim_finished, Toast.LENGTH_SHORT).show();
+					final Activity activity = getActivity();
+					if ((activity != null) && !activity.isFinishing()) {
+						Toast.makeText(activity, R.string.action_flat_trim_finished, Toast.LENGTH_SHORT).show();
+					}
 				}
 			}, 0);
 		}

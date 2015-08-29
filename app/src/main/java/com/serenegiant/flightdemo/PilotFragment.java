@@ -366,6 +366,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				}
 				break;
 			case R.id.clear_btn:
+				// タッチ描画データの消去
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mTouchPilotView != null) {
 					mTouchPilotView.clear();
@@ -373,6 +374,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				updateButtons();
 				break;
 			case R.id.move_btn:
+				// タッチ描画で操縦開始
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				// 再生ボタンの処理
 				PilotFragment.super.stopMove();
@@ -567,8 +569,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final float min_y, final float max_y,
 			final float min_z, final float max_z,
 			final int num_points, final float[] points) {
+
 			if (DEBUG) Log.v(TAG, "onDrawFinish:" + num_points);
-			mTouchFlight.prepare(min_x, max_x, min_y, max_y, min_z, max_z, num_points, points);
+			mTouchFlight.prepare(view.getWidth(), view.getHeight(), min_x, max_x, min_y, max_y, min_z, max_z, num_points, points);
 			updateButtons();
 		}
 	};
@@ -954,6 +957,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			stopTouchMove();
 			PilotFragment.super.stopMove();
 			updateTime(-1);
+			updateButtons();
 		}
 
 		@Override
@@ -1075,7 +1079,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final boolean can_flattrim = can_fly && (state == IDeviceController.STATE_STARTED);
 			final boolean can_config = can_flattrim;
 			final boolean can_clear = is_connected && !is_recording && !is_playing && !mScriptRunning && !mTouchMoveRunning && mTouchFlight.isPrepared();
-			final boolean can_move = can_clear && (alarm_state == DroneStatus.ALARM_NON);
+			final boolean can_move = is_connected && !is_recording && !is_playing && !mScriptRunning && (mTouchFlight.isPrepared() || mTouchFlight.isPlaying()) && (alarm_state == DroneStatus.ALARM_NON);
 			final boolean is_battery_alarm
 				= (alarm_state == DroneStatus.ALARM_BATTERY) || (alarm_state == DroneStatus.ALARM_BATTERY_CRITICAL);
 
@@ -1103,7 +1107,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			}
 			if (mMoveButton != null) {
 				mMoveButton.setEnabled(can_move);
-				mMoveButton.setColorFilter(can_move ? (mTouchMoveRunning ? 0xffff0000 : 0) : DISABLE_COLOR);
+				mMoveButton.setColorFilter(can_move ? (mTouchMoveRunning || mTouchFlight.isPlaying() ? 0xffff0000 : 0) : DISABLE_COLOR);
 			}
 
 			// 離陸/着陸
@@ -1181,21 +1185,46 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				return;
 			}
 
-			if (downs[GamePad.KEY_CENTER_RIGHT]) {	// 中央の右側ボタン[12]=着陸
-				landing();
-				post(this, 50);
-				return;
-			} else if (downs[GamePad.KEY_CENTER_LEFT]) {	// 中央の左側ボタン[11]=離陸
-				takeOff();
-				post(this, 50);
-				return;
-			}
-
+			// 飛行していない時にL2/R2同時押しするとフラットトリム実行
 			if ((getState() == IDeviceController.STATE_STARTED)
 				&& (getAlarm() == DroneStatus.ALARM_NON)
 				&& downs[GamePad.KEY_LEFT_2] && downs[GamePad.KEY_RIGHT_2]) {
 
 				mController.sendFlatTrim();
+				post(this, 50);
+				return;
+			}
+
+			// R2押しながら左スティックでフリップ
+			if (downs[GamePad.KEY_RIGHT_2]) {
+				if (downs[GamePad.KEY_LEFT_LEFT]) {
+					mController.sendAnimationsFlip(IDeviceController.FLIP_LEFT);
+					post(this, 50);
+					return;
+				} if (downs[GamePad.KEY_LEFT_RIGHT]) {
+					mController.sendAnimationsFlip(IDeviceController.FLIP_RIGHT);
+					post(this, 50);
+					return;
+				} if (downs[GamePad.KEY_LEFT_UP]) {
+					mController.sendAnimationsFlip(IDeviceController.FLIP_FRONT);
+					post(this, 50);
+					return;
+				} if (downs[GamePad.KEY_LEFT_DOWN]) {
+					mController.sendAnimationsFlip(IDeviceController.FLIP_BACK);
+					post(this, 50);
+					return;
+				}
+			}
+
+			// 中央の右側ボタン[12]=着陸
+			if (downs[GamePad.KEY_CENTER_RIGHT]) {
+				landing();
+				post(this, 50);
+				return;
+			}
+			// 中央の左側ボタン[11]=離陸
+			if (downs[GamePad.KEY_CENTER_LEFT]) {
+				takeOff();
 				post(this, 50);
 				return;
 			}
@@ -1238,10 +1267,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					)
 				)
 			);
-			final int flag = downs[GamePad.KEY_LEFT_2]
-				&& (downs[GamePad.KEY_LEFT_RIGHT] || downs[GamePad.KEY_LEFT_LEFT]
-					|| downs[GamePad.KEY_LEFT_UP] || downs[GamePad.KEY_LEFT_DOWN]) ? 0
-				: ((roll != 0) || (pitch != 0) ? 1 : 0);
 //			GamePad.KEY_LEFT_CENTER:	// = 0;
 //			GamePad.KEY_LEFT_UP:		// = 1;
 //			GamePad.KEY_LEFT_RIGHT:		// = 2;
@@ -1259,11 +1284,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 //			GamePad.KEY_RIGHT_2:		// = 14;	// 右上後
 //			GamePad.KEY_CENTER_RIGHT:	// = 15;	// 中央右
 			if ((roll != 0) || (pitch != 0) || (gaz != 0) || (yaw != 0)) {
-//				if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", roll, pitch, gaz, yaw));
+				if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", roll, pitch, gaz, yaw));
 				if (mController != null) {
 					moved = true;
-					mController.setMove((int) roll, (int) pitch, (int) gaz, (int) yaw, flag);
-					mFlightRecorder.record(FlightRecorder.CMD_MOVE4, (int)roll, (int)pitch, (int)gaz, (int)yaw, flag);
+					mController.setMove((int) roll, (int) pitch, (int) gaz, (int) yaw);
+					mFlightRecorder.record(FlightRecorder.CMD_MOVE4, (int)roll, (int)pitch, (int)gaz, (int)yaw);
 				}
 			} else if (moved) {
 				if (mController != null) {

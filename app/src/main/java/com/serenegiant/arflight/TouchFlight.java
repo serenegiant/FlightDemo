@@ -5,14 +5,20 @@ import android.os.HandlerThread;
 import android.util.Log;
 
 public class TouchFlight implements IAutoFlight {
-	private static final boolean DEBUG = false;				// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;				// FIXME 実働時はfalseにすること
 	private static final String TAG = "TouchFlight";
+
+	private static final int VERTIAL_WIDTH = 500;		// 仮想的な操作画面の幅
+	private static final long CMD_DELAY_TIME_MS = 5;	// コマンド遅延時間=5ミリ秒
+	private static final long MIN_CONTROL_TIME_MS = 25;	// 最小コマンド実行間隔
+	private static final float EPS = 1f;				// 最小移動間隔[]
 
 	private final Object mSync = new Object();
 	private final AutoFlightListener mAutoFlightListener;
 	private final Handler mHandler;	// プライベートスレッドでの実行用
 
 	private float mFactorX = 1.0f, mFactorY = 1.0f, mFactorZ = 1.0f, mFactorR = 1.0f;
+	private int mWidth, mHeight;
 	private float mMinX, mMaxX;
 	private float mMinY, mMaxY;
 	private float mMinZ, mMaxZ;
@@ -38,15 +44,17 @@ public class TouchFlight implements IAutoFlight {
 			throw new IllegalStateException("既に実行中");
 		}
 		synchronized (mSync) {
-			if ((args != null) && (args.length == 9)) {
-				mMinX = (float) args[0];
-				mMaxX = (float) args[1];
-				mMinY = (float) args[2];
-				mMaxY = (float) args[3];
-				mMinZ = (float) args[4];
-				mMaxZ = (float) args[5];
-				mTouchPointNums = (int) args[6];
-				final float[] points = (float[]) args[7];
+			if ((args != null) && (args.length == 10)) {
+				mWidth = (int)args[0];
+				mHeight = (int)args[1];
+				mMinX = (float) args[2];
+				mMaxX = (float) args[3];
+				mMinY = (float) args[4];
+				mMaxY = (float) args[5];
+				mMinZ = (float) args[6];
+				mMaxZ = (float) args[7];
+				mTouchPointNums = (int) args[8];
+				final float[] points = (float[]) args[9];
 
 				final int n = mTouchPointNums * 4;    // 各点につき(x,y,z,t)の4つ
 				if ((mTouchPoints == null) || (mTouchPoints.length < n)) {
@@ -54,11 +62,11 @@ public class TouchFlight implements IAutoFlight {
 				}
 				System.arraycopy(points, 0, mTouchPoints, 0, n);
 			} else {
-				float max_control_value = 100.0f;
+				float max_control_value = 1.0f;
 				float scale_x = 1.0f, scale_y = 1.0f, scale_z = 1.0f, scale_r = 1.0f;
 				if ((args != null) && (args.length == 5)) {
 					if (args[0] instanceof Float) {
-						max_control_value = (float) args[0];
+						max_control_value = (float) args[0] / 100.f;
 					}
 					if (args[1] instanceof Float) {
 						scale_x = (float) args[1];
@@ -73,11 +81,14 @@ public class TouchFlight implements IAutoFlight {
 						scale_r = (float) args[4];
 					}
 				}
-				mFactorX = max_control_value * scale_x / (mMaxX != mMinX ? Math.abs(mMaxX - mMinX) : 1.0f);
-				mFactorY = max_control_value * scale_y / (mMaxY != mMinY ? Math.abs(mMaxY - mMinY) : 1.0f);
-				mFactorZ = max_control_value * scale_z / (mMaxZ != mMinZ ? Math.abs(mMaxZ - mMinZ) : 1.0f);
+				final float normalized_x = VERTIAL_WIDTH;	// 仮想的な横幅
+				final float normalized_y = normalized_x * mHeight / mWidth;	// アスペクト比を保った仮想的な高さを計算
+				final float normalized_z = 2;		// 仮想的な振れ幅を2
+				mFactorX = max_control_value * scale_x * normalized_x / mWidth;
+				mFactorY = max_control_value * scale_y * normalized_y / mHeight;
+				mFactorZ = max_control_value * scale_z * normalized_z / (mMaxZ != mMinZ ? Math.abs(mMaxZ - mMinZ) : 1.0f);
 				mFactorR = max_control_value * scale_r;
-				if (DEBUG) Log.v(TAG, String.format("factor(%f,%f,%f,%f)", mFactorX, mFactorY, mFactorZ, mFactorR));
+				if (DEBUG) Log.v(TAG, String.format("max_control_value:%f,factor(%f,%f,%f,%f)", max_control_value, mFactorX, mFactorY, mFactorZ, mFactorR));
 				if (!isPrepared())
 					throw new RuntimeException("prepareできてない");
 				try {
@@ -145,7 +156,54 @@ public class TouchFlight implements IAutoFlight {
 		}
 	}
 
-	private static final float EPS = 0.1f;
+	private static final float SCALE = 1000f;
+	/**
+	 * 与えられた移動量(dx,dy,dz)と移動時間dtから移動速度を計算してmoveにセット、新しい移動時間を返す
+	 * @param dx 移動量x
+	 * @param dy 移動量y
+	 * @param dz 移動量z
+	 * @param dt 初期移動時間
+	 * @param move 移動速度をセットするint[]配列
+	 * @return
+	 */
+	private long calcMoveCmd(final float dx, final float dy, final float dz, final long dt, final int[] move) {
+//		if (DEBUG) Log.v(TAG, String.format("d(%f,%f,%f,%d)", dx, dy, dz, dt));
+		float dt2 = dt;
+		float sx = 0, sy = 0, sz = 0;
+		if (dt > 0) {
+			for (int i = 0; mIsPlayback && (i < 16); i++) {
+				sx = dx / dt2  * SCALE;
+				sy = dy / dt2 * SCALE;
+				sz = dz / dt2 * SCALE;
+				final float sx2 = sx < -100 ? -100 : (sx > 100 ? 100 : sx);
+				if (sx != sx2) {
+					dt2 = dx / (sx2 / SCALE);
+					continue;
+				}
+				final float sy2 = sy < -100 ? -100 : (sy > 100 ? 100 : sy);
+				if (sy != sy2) {
+					dt2 = dy / (sy2 / SCALE);
+					continue;
+				}
+				final float sz2 = sz < -100 ? -100 : (sz > 100 ? 100 : sz);
+				if (sz != sz2) {
+					dt2 = dz / (sz2 / SCALE);
+					continue;
+				}
+				// sx, sy, szが全て[-100,+100]に収まれば終了
+				break;
+			}
+		}
+//		if (DEBUG) Log.v(TAG, String.format("s(%f,%f,%f,%f)", sx, sy, sz, dt2));
+		if (move != null && move.length >= 3) {
+			move[0] = (int) sx;
+			move[1] = (int) sy;
+			move[2] = (int) sz;
+		}
+		if (sx == 0 && sy == 0 && sz == 0)
+			dt2 = 0;
+		return (long)dt2;
+	}
 	/**
 	 * コマンド再生スレッドの実行用Runnable
 	 */
@@ -166,54 +224,74 @@ public class TouchFlight implements IAutoFlight {
 					n = mTouchPointNums * 4;
 					points = mTouchPoints;    // ローカルコピー
 				}
+				long min_interval = MIN_CONTROL_TIME_MS, prev_t = (long)points[3];
+				for (int ix = 4; mIsPlayback && (ix < n) ; ix += 4) {
+//					if (DEBUG) Log.v(TAG, String.format("%4d)%d", ix, prev_t));
+					min_interval = Math.min(min_interval, (long)points[ix + 3] - prev_t);
+					prev_t = (long)points[ix + 3];
+					if (min_interval <= 1) break;
+				}
+				min_interval = Math.max(min_interval, 1);	// 1ミリ秒よりも短くならないようにする
+				if (DEBUG) Log.v(TAG, "min_interval=" + min_interval);
+				// 最小時間間隔がMIN_CONTROL_TIME_MSよりも短ければ最小がMIN_CONTROL_TIME_MSになるようにスケール変換
+				// MIN_CONTROL_TIME_MSよりも長ければ無変換(1.0f)
+				final float ft = (min_interval < MIN_CONTROL_TIME_MS ? MIN_CONTROL_TIME_MS / (float)min_interval : 1.0f);
 				final int[] values = new int[4];
 				values[3] = 0;	// yaw = 0
 				final float fx = mFactorX, fy = mFactorY, fz = mFactorZ, fr = mFactorR;	// ローカルコピー
-				float prev_x = points[0];
-				float prev_y = points[1];
+				float prev_x = points[0] - mMinX;
+				float prev_y = points[1] - mMinY;
 				float prev_z = 0;
 				float prev_r = 0;
+				prev_t = (long)points[3];
 				final float offset_z = points[2];
-				final long touch_time = (long)points[3];
 				final long start_time = System.currentTimeMillis();
 				long current_time;
 				for (int ix = 0; mIsPlayback && (ix < n) ; ix += 4) {
-					final float x = points[ix];
-					final float y = points[ix+1];
+					final float x = points[ix] - mMinX;
+					final float y = points[ix+1] - mMinY;
 					final float z = points[ix+2] - offset_z;
 					final float dx = x - prev_x;
-					final float dy = y - prev_y;
+					final float dy = prev_y - y;	// 画面上が前進方向になるように符号反転
 					final float dz = z - prev_z;
 //					final float dr = r - prev_r;
 					if ((Math.abs(dx) > EPS) || (Math.abs(dy) > EPS) || (Math.abs(dz) > EPS)) {
-						prev_x = x;
-						prev_y = y;
-						prev_z = z;
-//						prev_r = r;
-						values[0] = (int)(dx * fx);	// roll
-						values[1] = (int)(dy * fy);	// pitch
-						values[2] = (int)(dz * fz);	// gaz
-//						values[3] = (int)(dr * fr);	// yaw
-						current_time = System.currentTimeMillis() - start_time;
-						final long t = (long)points[ix+3] - touch_time;
-						if (t > current_time) {
-							synchronized (mSync) {
-								try {
-									mSync.wait(t - current_time);
-								} catch (final InterruptedException e) {
-								}
-							}
-						}
+						final long t = (long)((points[ix+3] - prev_t) * ft);
+						final long dt = calcMoveCmd(dx * fx, dy * fy, dz * fz, t, values);
 						if (!mIsPlayback) break;
-						try {
-							if (mAutoFlightListener.onStep(CMD_MOVE4, values, t)) {
-								// trueが返ってきたので終了する
-								break;
+						if (dt > 0) {
+							prev_x = x;
+							prev_y = y;
+							prev_z = z;
+//							prev_r = r;
+							prev_t = (long) points[ix + 3];
+							try {
+								if (mAutoFlightListener.onStep(CMD_MOVE4, values, System.currentTimeMillis() - start_time)) {
+									// trueが返ってきたので終了する
+									break;
+								}
+								synchronized (mSync) {
+									try {
+										mSync.wait(CMD_DELAY_TIME_MS);	// コマンド遅延時間
+										mSync.wait(dt);					// 移動時間
+									} catch (final InterruptedException e) {
+									}
+								}
+								values[0] = values[1] = values[2] = values[3] = 0;
+								if (mAutoFlightListener.onStep(CMD_MOVE4, values, System.currentTimeMillis() - start_time)) {
+									// trueが返ってきたので終了する
+									break;
+								}
+								synchronized (mSync) {
+									try {
+										mSync.wait(CMD_DELAY_TIME_MS);
+									} catch (final InterruptedException e) {
+									}
+								}
+							} catch (final Exception e) {
+								Log.w(TAG, e);
 							}
-						} catch (final Exception e) {
-							Log.w(TAG, e);
 						}
-						// ここで操縦コマンド発行
 					}
 				}
 			} catch (final Exception e) {
