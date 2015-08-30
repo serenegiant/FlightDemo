@@ -1267,6 +1267,11 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		return sentStatus;
 	}
 
+	@Override
+	public boolean canGetAttitude() {
+		return true;
+	}
+
 	/**
 	 * モーターの個数を返す
 	 * @return
@@ -1802,7 +1807,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 		if (degree != 0) {
 
-			final Vector attitude = mStatus.attitude();
 			final AttributeFloat rotation_speed = mSettings.maxRotationSpeed();    // 回転速度[度/秒]
 			final float current = rotation_speed.current();
 			try {

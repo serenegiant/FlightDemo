@@ -598,6 +598,11 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		return sentStatus;
 	}
 
+	@Override
+	public boolean canGetAttitude() {
+		return false;
+	}
+
 	/**
 	 * モーターの個数を返す
 	 * @return

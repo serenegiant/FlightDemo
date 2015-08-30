@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,6 +29,7 @@ import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.arflight.TouchFlight;
+import com.serenegiant.arflight.Vector;
 import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
@@ -300,13 +303,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		stopVideoStreaming();
-		removeSideMenu();
-		remove(mGamePadTask);
-		removeFromUIThread(mPopBackStackTask);
 		stopRecord();
 		stopPlay();
 		stopScript();
 		stopTouchMove();
+		removeSideMenu();
+		remove(mGamePadTask);
+		remove(mUpdateStatusTask);
+		removeFromUIThread(mPopBackStackTask);
 		mResetColorFilterTasks.clear();
 		super.onPause();
 	}
@@ -620,7 +624,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (DEBUG) Log.v(TAG, "#onConnect");
 		super.onConnect(controller);
 		setSideMenu();
-		post(mGamePadTask, 100);
+		startGamePadTask();
+		post(mUpdateStatusTask, 100);
 		updateButtons();
 	}
 
@@ -629,10 +634,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
-		removeSideMenu();
-		remove(mGamePadTask);
 		stopRecord();
 		stopPlay();
+		removeSideMenu();
+		stopGamePadTask();
+		remove(mUpdateStatusTask);
 		removeFromUIThread(mPopBackStackTask);
 		postUIThread(mPopBackStackTask, POP_BACK_STACK_DELAY);	// UIスレッド上で遅延実行
 		super.onDisconnect(controller);
@@ -971,6 +977,50 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	};
 
+	// 機体姿勢と高度
+	private float mCurrentRoll = 0;
+	private float mCurrentPitch = 0;
+	private float mCurrentYaw = 0;
+	private float mCurrentAltitude = 0;
+	/**
+	 * 定期的にステータスをポーリングして処理するスレッドの実行部
+ 	 */
+	private final Runnable mUpdateStatusTask = new Runnable() {
+		private final Vector mAttitude = new Vector();
+		@Override
+		public void run() {
+			if ((mController != null) && mController.canGetAttitude()) {
+				mAttitude.set(mController.getAttitude());
+				final float altitude = mController.getAltitude();
+				if ((mCurrentRoll != mAttitude.x())
+						|| (mCurrentPitch != mAttitude.y()
+								|| (mCurrentYaw != mAttitude.z()))
+						|| (mCurrentAltitude != altitude)) {
+
+					synchronized (mUpdateStatusUITask) {
+						mCurrentRoll = mAttitude.x();
+						mCurrentPitch = mAttitude.y();
+						mCurrentYaw = mAttitude.z();
+						mCurrentAltitude = altitude;
+						postUIThread(mUpdateStatusUITask, 1);
+					}
+				}
+			}
+			post(this, 200);	// 200ミリ秒=1秒間に最大で約5回更新
+		}
+	};
+
+	/**
+	 * ポーリングによるステータス更新処理のUIスレッドでの実行部
+	 */
+	private final Runnable mUpdateStatusUITask = new Runnable() {
+		@Override
+		public synchronized void run() {
+			final String s = String.format("%5.1f,%5.1f,%5.1f/%5.1f", mCurrentRoll, mCurrentPitch, mCurrentYaw, mCurrentAltitude);
+			if (DEBUG) Log.v(TAG, "Attitude:" + s);
+		}
+	};
+
 	/**
 	 * アラート表示の更新処理をUIスレッドで実行するためのRunnable
 	 */
@@ -1167,21 +1217,54 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	};
 
+	/** ゲームパッド読み取りスレッド操作用Handler */
+	private Handler mGamePadHandler;
+	/**
+	 *　ゲームパッド読み取りスレッド開始
+	 */
+	private void startGamePadTask() {
+		if (mGamePadHandler == null) {
+			final HandlerThread thread = new HandlerThread("GamePadThread");
+			thread.start();
+			mGamePadHandler = new Handler(thread.getLooper());
+		}
+		mGamePadHandler.removeCallbacks(mGamePadTask);
+		mGamePadHandler.postDelayed(mGamePadTask, 100);
+	}
+
+	/**
+	 * ゲームパッド読み取りスレッド終了
+	 */
+	private void stopGamePadTask() {
+		if (mGamePadHandler != null) {
+			final Handler handler = mGamePadHandler;
+			mGamePadHandler = null;
+			handler.removeCallbacks(mGamePadTask);
+			handler.getLooper().quit();
+		}
+	}
+
 	private static final long YAW_LIMIT = 200;
 	private boolean[] downs = new boolean[GamePad.KEY_NUMS];
 	private long[] down_times = new long[GamePad.KEY_NUMS];
 	boolean moved;
+	/**
+	 * ゲームパッド読み取りスレッドの実行部
+	 */
 	private final Runnable mGamePadTask = new Runnable() {
 		@Override
 		public void run() {
-			remove(this);
+			final Handler handler = mGamePadHandler;
+			if (handler == null) return;	// 既に終了指示が出てる
+
+			handler.removeCallbacks(this);
 			GamePad.updateState(downs, down_times, true);
 
 			// 左右の上端ボタン(手前側)を同時押しすると非常停止
 			if (((downs[GamePad.KEY_RIGHT_RIGHT] || downs[GamePad.KEY_RIGHT_1]))
 				&& (downs[GamePad.KEY_RIGHT_LEFT] || downs[GamePad.KEY_LEFT_1]) ) {
 				emergencyStop();
-				post(this, 50);
+				handler.postDelayed(this, 50);
 				return;
 			}
 
@@ -1191,7 +1274,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				&& downs[GamePad.KEY_LEFT_2] && downs[GamePad.KEY_RIGHT_2]) {
 
 				mController.sendFlatTrim();
-				post(this, 50);
+				handler.postDelayed(this, 50);
 				return;
 			}
 
@@ -1199,19 +1282,19 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (downs[GamePad.KEY_RIGHT_2]) {
 				if (downs[GamePad.KEY_LEFT_LEFT]) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_LEFT);
-					post(this, 50);
+					handler.postDelayed(this, 50);
 					return;
 				} if (downs[GamePad.KEY_LEFT_RIGHT]) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_RIGHT);
-					post(this, 50);
+					handler.postDelayed(this, 50);
 					return;
 				} if (downs[GamePad.KEY_LEFT_UP]) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_FRONT);
-					post(this, 50);
+					handler.postDelayed(this, 50);
 					return;
 				} if (downs[GamePad.KEY_LEFT_DOWN]) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_BACK);
-					post(this, 50);
+					handler.postDelayed(this, 50);
 					return;
 				}
 			}
@@ -1219,13 +1302,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			// 中央の右側ボタン[12]=着陸
 			if (downs[GamePad.KEY_CENTER_RIGHT]) {
 				landing();
-				post(this, 50);
+				handler.postDelayed(this, 50);
 				return;
 			}
 			// 中央の左側ボタン[11]=離陸
 			if (downs[GamePad.KEY_CENTER_LEFT]) {
 				takeOff();
-				post(this, 50);
+				handler.postDelayed(this, 50);
 				return;
 			}
 
@@ -1298,7 +1381,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				moved = false;
 //				if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", 0f, 0f, 0f, 0f));
 			}
-			post(this, 50);
+			handler.postDelayed(this, 50);
 		}
 	};
 

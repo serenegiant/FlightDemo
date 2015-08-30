@@ -183,6 +183,22 @@ public interface IDeviceController {
 	public AttributeFloat getMaxRotationSpeed();
 
 	/**
+	 * 機体姿勢を取得可能かどうか
+	 * @return
+	 */
+	public boolean canGetAttitude();
+	/**
+	 * 機体姿勢を取得
+	 * @return
+	 */
+	public Vector getAttitude();
+
+	/**
+	 * 高度を取得
+	 * @return
+	 */
+	public float getAltitude();
+	/**
 	 * モーターの個数を返す
 	 * @return
 	 */

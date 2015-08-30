@@ -1656,6 +1656,15 @@ public abstract class DeviceController implements IDeviceController {
 		return mSettings.maxRotationSpeed();
 	}
 
+	@Override
+	public Vector getAttitude(){
+		return mStatus.attitude();
+	}
+
+	public float getAltitude() {
+		return (float)mStatus.altitude();
+	}
+
 	/**
 	 * モーターの自動カット機能が有効かどうかを取得する
 	 * @return

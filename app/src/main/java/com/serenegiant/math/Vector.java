@@ -1,16 +1,19 @@
-package com.serenegiant.arflight;
+package com.serenegiant.math;
+
+import java.io.Serializable;
+import java.util.Locale;
 
 import android.opengl.Matrix;
 
-import java.util.Locale;
+public class Vector implements Serializable {
+	/**
+	 * serialVersionUID
+	 */
+	private static final long serialVersionUID = 1620440892067002860L;
 
-public class Vector {
-	private float x;
-	private float y;
-	private float z;
-
-	public static final float TO_RADIAN = (float)((1 / 180.0) * Math.PI);
-	public static final float TO_DEGREE = (float)(1 / Math.PI * 180.0);
+	public static final float TO_RADIAN = (1 / 180.0f) * (float)Math.PI;
+	public static final float TO_DEGREE = (1 / (float)Math.PI) * 180.0f;
+	public float x, y, z;
 
 	public static final Vector zeroVector = new Vector();
 	public static final Vector normVector = new Vector(1,1,1);
@@ -252,7 +255,7 @@ public class Vector {
 
 	// XY平面上でベクトルとX軸の角度を取得
 	public float angleXY() {
-		float angle = (float)(Math.atan2(y, x) * TO_DEGREE);
+		float angle = (float)Math.atan2(y, x) * TO_DEGREE;
 		if (angle < 0)
 			angle += 360;
 		return angle;
@@ -260,7 +263,7 @@ public class Vector {
 
 	// XZ平面上でベクトルとX軸の角度を取得
 	public float angleXZ() {
-		float angle = (float)(Math.atan2(z, x) * TO_DEGREE);
+		float angle = (float)Math.atan2(z, x) * TO_DEGREE;
 		if (angle < 0)
 			angle += 360;
 		return angle;
@@ -268,7 +271,7 @@ public class Vector {
 
 	// YZ平面上でベクトルとY軸の角度を取得
 	public float angleYZ() {
-		float angle = (float)(Math.atan2(z, y) * TO_DEGREE);
+		float angle = (float)Math.atan2(z, y) * TO_DEGREE;
 		if (angle < 0)
 			angle += 360;
 		return angle;
@@ -280,51 +283,51 @@ public class Vector {
 	//  =(X1X2+Y1Y2+Z1Z2) / √{(X1^2 + Y1^2 + Z1^2)(X2^2 + Y2^2 + Z2^2)}
 	// 上式のアークコサイン(cos^-1)を取ればOK。
 	public float getAngle(final Vector v) {
-		final double cos = dotProduct(v) / Math.sqrt(lenSquared() * v.lenSquared());
-		return (float)(Math.acos(cos) * TO_DEGREE);
+		final double cos = dotProduct(v) / (float)Math.sqrt(lenSquared() * v.lenSquared());
+		return (float)Math.acos(cos) * TO_DEGREE;
 	}
 
 	// Z軸周りに(XY平面上で)ベクトルを指定した角度[度]回転させる
 	public Vector rotateXY(final float angle) {
-		final double rad = angle * TO_RADIAN;
-		final double cos = Math.cos(rad);
-		final double sin = Math.sin(rad);
+		final float rad = angle * TO_RADIAN;
+		final float cos = (float)Math.cos(rad);
+		final float sin = (float)Math.sin(rad);
 
-		final double newX = this.x * cos - this.y * sin;
-		final double newY = this.x * sin + this.y * cos;
+		final float newX = this.x * cos - this.y * sin;
+		final float newY = this.x * sin + this.y * cos;
 
-		this.x = (float)newX;
-		this.y = (float)newY;
+		this.x = newX;
+		this.y = newY;
 
 		return this;
 	}
 
 	// Y軸周りに(XZ平面上で)ベクトルを指定した角度[度]回転させる
-	public Vector rotateXZ(final double angle) {
-		final double rad = angle * TO_RADIAN;
-		final double cos = Math.cos(rad);
-		final double sin = Math.sin(rad);
+	public Vector rotateXZ(final float angle) {
+		final float rad = angle * TO_RADIAN;
+		final float cos = (float)Math.cos(rad);
+		final float sin = (float)Math.sin(rad);
 
-		final double newX = this.x * cos - this.z * sin;
-		final double newZ = this.x * sin + this.z * cos;
+		final float newX = this.x * cos - this.z * sin;
+		final float newZ = this.x * sin + this.z * cos;
 
-		this.x = (float)newX;
-		this.z = (float)newZ;
+		this.x = newX;
+		this.z = newZ;
 
 		return this;
 	}
 
 	// X軸周りに(YZ平面上で)ベクトルを指定した角度[度]回転させる
-	public Vector rotateYZ(final double angle) {
-		final double rad = angle * TO_RADIAN;
-		final double cos = Math.cos(rad);
-		final double sin = Math.sin(rad);
+	public Vector rotateYZ(final float angle) {
+		final float rad = angle * TO_RADIAN;
+		final float cos = (float)Math.cos(rad);
+		final float sin = (float)Math.sin(rad);
 
-		final double newY = this.y * cos - this.z * sin;
-		final double newZ = this.y * sin + this.z * cos;
+		final float newY = this.y * cos - this.z * sin;
+		final float newZ = this.y * sin + this.z * cos;
 
-		this.y = (float)newY;
-		this.z = (float)newZ;
+		this.y = newY;
+		this.z = newZ;
 
 		return this;
 	}
@@ -332,9 +335,9 @@ public class Vector {
 	// ベクトルを回転
 	// x軸：(1,0,0), y軸(0,1,0), z軸(0,0,1)
 	public Vector rotate(final float angle, final float axisX, final float axisY, final float axisZ) {
-		inVec[0] = (float)x;
-		inVec[1] = (float)y;
-		inVec[2] = (float)z;
+		inVec[0] = x;
+		inVec[1] = y;
+		inVec[2] = z;
 		inVec[3] = 1;
 		Matrix.setIdentityM(matrix, 0);
 		Matrix.rotateM(matrix, 0, angle, axisX, axisY, axisZ);
@@ -350,9 +353,9 @@ public class Vector {
 	}
 
 	public static Vector rotate(final Vector v, final float angleX, final float angleY, final float angleZ) {
-		inVec[0] = (float)v.x;
-		inVec[1] = (float)v.y;
-		inVec[2] = (float)v.z;
+		inVec[0] = v.x;
+		inVec[1] = v.y;
+		inVec[2] = v.z;
 		inVec[3] = 1;
 		Matrix.setIdentityM(matrix, 0);
 		if (angleX != 0)
@@ -379,9 +382,9 @@ public class Vector {
 		final int n = (v != null) ? v.length : 0;
 		for (int i = 0; i < n; i++) {
 			if (v[i] == null) continue;
-			inVec[0] = (float)v[i].x;
-			inVec[1] = (float)v[i].y;
-			inVec[2] = (float)v[i].z;
+			inVec[0] = v[i].x;
+			inVec[1] = v[i].y;
+			inVec[2] = v[i].z;
 			inVec[3] = 1;
 			Matrix.multiplyMV(outVec, 0, matrix, 0, inVec, 0);
 			v[i].x = outVec[0];
@@ -392,18 +395,18 @@ public class Vector {
 	}
 
 	public Vector rotate(final Vector angle, final float a) {
-		rotate((float)angle.x * a, (float)angle.y * a, (float)angle.z * a);
+		rotate(angle.x * a, angle.y * a, angle.z * a);
 		return this;
 	}
 
 	public Vector rotate(final Vector angle) {
-		return rotate((float)angle.x, (float)angle.y, (float)angle.z);
+		return rotate(angle.x, angle.y, angle.z);
 	}
 
 	public Vector rotate_inv(final float angleX, final float angleY, final float angleZ) {
-		inVec[0] = (float)x;
-		inVec[1] = (float)y;
-		inVec[2] = (float)z;
+		inVec[0] = x;
+		inVec[1] = y;
+		inVec[2] = z;
 		inVec[3] = 1;
 		Matrix.setIdentityM(matrix, 0);
 		if (angleZ != 0)
@@ -420,7 +423,7 @@ public class Vector {
 	}
 
 	public Vector rotate_inv(final Vector angle, final float a) {
-		rotate_inv((float)angle.x * a, (float)angle.y * a, (float)angle.z * a);
+		rotate_inv(angle.x * a, angle.y * a, angle.z * a);
 		return this;
 	}
 
