@@ -62,6 +62,7 @@ public class DroneStatus {
 		}
 	}
 
+	/** 経度をセット */
 	public void latitude(final double latitude) {
 		synchronized (mSync) {
 			mPosition.latitude(latitude);
@@ -74,6 +75,7 @@ public class DroneStatus {
 		}
 	}
 
+	/** 経度をセット */
 	public void longitude(final double longitude) {
 		synchronized (mSync) {
 			mPosition.longitude(longitude);
@@ -86,6 +88,7 @@ public class DroneStatus {
 		}
 	}
 
+	/** 高度[m]を設定  */
 	public void altitude(final double altitude) {
 		synchronized (mSync) {
 			mPosition.altitude(altitude);
@@ -147,6 +150,7 @@ public class DroneStatus {
 
 //********************************************************************************
 //********************************************************************************
+	/** 飛行状態をセット */
 	public void setFlyingState(final int flying_sate) {
 		synchronized (mStateSync) {
 			if (mFlyingState != flying_sate) {
@@ -155,12 +159,14 @@ public class DroneStatus {
 		}
 	}
 
+	/** 飛行状態を取得 */
 	public int getFlyingState() {
 		synchronized (mStateSync) {
 			return mFlyingState;
 		}
 	}
 
+	/** 異常状態をセット */
 	public void setAlarm(final int alarm_state) {
 		synchronized (mStateSync) {
 			if (mAlarmState != alarm_state) {
@@ -169,24 +175,28 @@ public class DroneStatus {
 		}
 	}
 
+	/** 異常状態を取得 */
 	public int getAlarm() {
 		synchronized (mStateSync) {
 			return mAlarmState;
 		}
 	}
 
+	/** バッテリー残量をセット */
 	public void setBattery(final int battery_state) {
 		synchronized (mStateSync) {
 			mBatteryState = battery_state;
 		}
 	}
 
+	/** バッテリー残量を取得 */
 	public int getBattery() {
 		synchronized (mStateSync) {
 			return mBatteryState;
 		}
 	}
 
+	/** 機体と接続しているかどうかを取得 */
 	public boolean isConnected() {
 		synchronized (mStateSync) {
 			return (mAlarmState != ALARM_DISCONNECTED);

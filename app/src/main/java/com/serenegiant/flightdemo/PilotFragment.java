@@ -782,7 +782,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			try {
 				switch (index) {
 				case 0:
-					mScriptFlight.prepare(getResources().getAssets().open("circle_xy.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
+					mScriptFlight.prepare(getResources().getAssets().open("circle_xy2.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
 					break;
 				case 1:
 					mScriptFlight.prepare(getResources().getAssets().open("circle_xz.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);

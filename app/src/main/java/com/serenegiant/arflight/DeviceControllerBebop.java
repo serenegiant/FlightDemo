@@ -213,7 +213,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	}
 
 	/**
-	 * フラットトリムが変更された時のコールバックリスナー
+	 * フラットトリム変更を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3PilotingStateFlatTrimChangedListener
 		mPilotingStateFlatTrimChangedListener
@@ -226,7 +226,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 飛行状態が変更された時のコールバックリスナー
+	 * 飛行状態を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3PilotingStateFlyingStateChangedListener
 		mPilotingStateFlyingStateChangedListener
@@ -257,7 +257,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * モーターのエラー状態が変化した時
+	 * モーターのエラー状態を受信した時
 	 */
 	private final ARCommandARDrone3SettingsStateMotorErrorStateChangedListener
 		mSettingsStateMotorErrorStateChangedListener
@@ -292,7 +292,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 最後に起こったモーターエラー
+	 * 最後に起こったモーターエラーを受信した時
 	 */
 	private final ARCommandARDrone3SettingsStateMotorErrorLastErrorChangedListener
 		mSettingsStateMotorErrorLastErrorChangedListener
@@ -308,7 +308,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 自動離陸モードが変更された時のコールバックリスナー
+	 * 自動離陸モードを受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3PilotingStateAutoTakeOffModeChangedListener
 		mPilotingStateAutoTakeOffModeChangedListener
@@ -409,10 +409,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 
-//	protected static final int MOTOR_NUMS = 4;
-//	protected final AttributeMotor[] mMotors = new AttributeMotor[MOTOR_NUMS];
 	/**
-	 * モーターバージョンが変更された時のコールバックリスナー
+	 * モーターバージョンを受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3SettingsStateProductMotorVersionListChangedListener
 		mSettingsStateProductMotorVersionListChangedListener
@@ -442,7 +440,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * GPSのバージョン
+	 * GPSのバージョンを受信した時
 	 */
 	public final AttributeGPS mGPS = new AttributeGPS();
 	private final ARCommandARDrone3SettingsStateProductGPSVersionChangedListener
@@ -459,7 +457,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 	private String mMotorSoftwareVersion;
 	/**
-	 * モーターソフトウエアバージョンが変更された時
+	 * モーターソフトウエアバージョンを受信した時
 	 */
 	private final ARCommandARDrone3SettingsStateMotorSoftwareVersionChangedListener
 		mSettingsStateMotorSoftwareVersionChangedListener
@@ -476,7 +474,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 最大高度設定が変更された時のコールバックリスナー
+	 * 最大高度設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3PilotingSettingsStateMaxAltitudeChangedListener
 		mPilotingSettingsStateMaxAltitudeChangedListener
@@ -495,7 +493,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 最大傾斜設定が変更された時のコールバックリスナー
+	 * 最大傾斜設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3PilotingSettingsStateMaxTiltChangedListener
 		mPilotingSettingsStateMaxTiltChangedListener
@@ -514,7 +512,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * AbsoluteControlChanged(ってなんやろ)コマンドをデコードした時
+	 * AbsoluteControlChanged(ってなんやろ)を受信した時
 	 */
 	private final ARCommandARDrone3PilotingSettingsStateAbsolutControlChangedListener
 		mPilotingSettingsStateAbsolutControlChangedListener
@@ -529,7 +527,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 上昇/降下速度設定が変更された時のコールバックリスナー
+	 * 上昇/降下速度設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3SpeedSettingsStateMaxVerticalSpeedChangedListener
 		mSettingsStateMaxVerticalSpeedChangedListener
@@ -548,7 +546,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 最大回転速度設定が変更された時のコールバックリスナー
+	 * 最大回転速度設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3SpeedSettingsStateMaxRotationSpeedChangedListener
 		mSpeedSettingsStateMaxRotationSpeedChangedListener
@@ -567,7 +565,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * ハルの有無設定が変更された時のコールバックリスナー
+	 * ハルの有無設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3SpeedSettingsStateHullProtectionChangedListener
 		mSpeedSettingsStateHullProtectionChangedListener
@@ -582,7 +580,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		}
 	};
 
-	/** 室外モードか室内モードか */
+	/** 室外モードか室内モードかを受信した時 */
 	private boolean mOutdoorMode;
 	/**
 	 * 室外モードか室内モードかが変更された時
@@ -600,7 +598,25 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 飛行回数・飛行時間が変化した時
+	 * 飛行速度設定を受信した時
+	 */
+	private final ARCommandARDrone3PilotingStateSpeedChangedListener
+		mPilotingStateSpeedChangedListener
+		= new ARCommandARDrone3PilotingStateSpeedChangedListener() {
+		/**
+		 * @param speedX Speed on the x axis (when drone moves forward, speed is > 0) (in m/s)
+		 * @param speedY Speed on the y axis (when drone moves to right, speed is > 0) (in m/s)
+		 * @param speedZ Speed on the z axis (when drone moves down, speed is > 0) (in m/s)
+		 */
+		@Override
+		public void onARDrone3PilotingStateSpeedChangedUpdate(
+																 final float speedX, final float speedY, final float speedZ) {
+			mStatus.setSpeed(speedY, speedX, -speedZ);
+		}
+	};
+
+	/**
+	 * 飛行回数・飛行時間を受信した時
 	 */
 	private final ARCommandARDrone3SettingsStateMotorFlightsStatusChangedListener
 		mSettingsStateMotorFlightsStatusChangedListener
@@ -618,7 +634,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 高度が変更になった時
+	 * 高度を受信した時
 	 */
 	private final ARCommandARDrone3PilotingStateAltitudeChangedListener
 		mPilotingStateAltitudeChangedListener
@@ -628,12 +644,13 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3PilotingStateAltitudeChangedUpdate(final double altitude) {
+
 			mStatus.altitude(altitude);
 		}
 	};
 
 	/**
-	 * 機体位置が変更された時
+	 * 機体位置を受信した時
 	 */
 	private final ARCommandARDrone3PilotingStatePositionChangedListener
 		mPilotingStatePositionChangedListener
@@ -646,30 +663,13 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3PilotingStatePositionChangedUpdate(
 			final double latitude, final double longitude, final double altitude) {
+
 			mStatus.setPosition(latitude, longitude, altitude);
 		}
 	};
 
 	/**
-	 * 飛行速度設定が変更された時
-	 */
-	private final ARCommandARDrone3PilotingStateSpeedChangedListener
-		mPilotingStateSpeedChangedListener
-		= new ARCommandARDrone3PilotingStateSpeedChangedListener() {
-		/**
-		 * @param speedX Speed on the x axis (when drone moves forward, speed is > 0) (in m/s)
-		 * @param speedY Speed on the y axis (when drone moves to right, speed is > 0) (in m/s)
-		 * @param speedZ Speed on the z axis (when drone moves down, speed is > 0) (in m/s)
-		 */
-		@Override
-		public void onARDrone3PilotingStateSpeedChangedUpdate(
-			final float speedX, final float speedY, final float speedZ) {
-			mStatus.setSpeed(speedY, speedY, -speedZ);
-		}
-	};
-
-	/**
-	 * 機体姿勢が変更された時
+	 * 機体姿勢を受信した時
 	 */
 	private final ARCommandARDrone3PilotingStateAttitudeChangedListener
 		mPilotingStateAttitudeChangedListener
@@ -682,12 +682,13 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3PilotingStateAttitudeChangedUpdate(
 			final float roll, final float pitch, final float yaw) {
-			// FIXME
+
+			mStatus.setAttitude(roll, pitch, yaw);
 		}
 	};
 
 	/**
-	 * ホーム位置が変更された時
+	 * ホーム位置を受信した時
 	 */
 	private final ARCommandARDrone3GPSSettingsStateHomeChangedListener
 		mGPSSettingsStateHomeChangedListener
@@ -723,7 +724,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * ナビゲーションホーム状態が変更された時
+	 * ナビゲーションホーム状態を受信した時
 	 */
 	private final ARCommandARDrone3PilotingStateNavigateHomeStateChangedListener
 		mPilotingStateNavigateHomeStateChangedListener
@@ -753,7 +754,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * GPS固定設定?が変更された時
+	 * GPS固定設定?を受信した時
 	 */
 	private final ARCommandARDrone3GPSSettingsStateGPSFixStateChangedListener
 		mGPSSettingsStateGPSFixStateChangedListener
@@ -768,7 +769,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * GPSの状態が変化した時
+	 * GPSの状態を受信した時
 	 */
 	private final ARCommandARDrone3GPSSettingsStateGPSUpdateStateChangedListener
 		mGPSSettingsStateGPSUpdateStateChangedListener
@@ -784,7 +785,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 写真撮影状態が変更された時のコールバックリスナー
+	 * 写真撮影状態を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3MediaRecordStatePictureStateChangedListener
 		mMediaRecordStatePictureStateChangedListener
@@ -801,7 +802,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 写真撮影状態が変更された時のコールバックリスナー
+	 * 写真撮影状態を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3MediaRecordStatePictureStateChangedV2Listener
 		mMediaRecordStatePictureStateChangedV2Listener
@@ -816,7 +817,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 写真撮影状態が変更された時のコールバックリスナー
+	 * 写真撮影状態を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3MediaRecordEventPictureEventChangedListener
 		mMediaRecordEventPictureEventChangedListener
@@ -831,7 +832,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * ビデオ撮影状態が変更された時
+	 * ビデオ撮影状態を受信した時
 	 */
 	private final ARCommandARDrone3MediaRecordStateVideoStateChangedListener
 		mMediaRecordStateVideoStateChangedListener
@@ -859,7 +860,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	 */
 	private int mPictureFormat;
 	/**
-	 * 写真撮影時のフォーマットが変更された時
+	 * 写真撮影時のフォーマットを受信した時
 	 */
 	private final ARCommandARDrone3PictureSettingsStatePictureFormatChangedListener
 		mPictureSettingsStatePictureFormatChangedListener
@@ -883,7 +884,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	 * 4: フラシュ撮影用 White balance for a flash<br>
 	 */
 	/**
-	 * オートホワイトバランス設定が変更された時
+	 * オートホワイトバランス設定を受信した時
 	 */
 	private final ARCommandARDrone3PictureSettingsStateAutoWhiteBalanceChangedListener
 		mPictureSettingsStateAutoWhiteBalanceChangedListener
@@ -896,7 +897,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 露出設定が変更された時
+	 * 露出設定を受信した時
 	 */
 	private final ARCommandARDrone3PictureSettingsStateExpositionChangedListener
 		mPictureSettingsStateExpositionChangedListener
@@ -909,7 +910,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 彩度設定が変更された時
+	 * 彩度設定を受信した時
 	 */
 	private final ARCommandARDrone3PictureSettingsStateSaturationChangedListener
 		mPictureSettingsStateSaturationChangedListener
@@ -922,7 +923,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * タイムラプス設定が変更された時
+	 * タイムラプス設定を受信した時
 	 */
 	private final ARCommandARDrone3PictureSettingsStateTimelapseChangedListener
 		mPictureSettingsStateTimelapseChangedListener
@@ -941,7 +942,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 自動録画設定が変更された時
+	 * 自動録画設定を受信した時
 	 */
 	private final ARCommandARDrone3PictureSettingsStateVideoAutorecordChangedListener
 		mPictureSettingsStateVideoAutorecordChangedListener
@@ -958,7 +959,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * ビデオストリーミングの有効無効が変更された時
+	 * ビデオストリーミングの有効無効を受信した時
 	 */
 	private final ARCommandARDrone3MediaStreamingStateVideoEnableChangedListener
 		mMediaStreamingStateVideoEnableChangedListener
@@ -974,7 +975,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * カメラの向きが変更された時
+	 * カメラの向きを受信した時
 	 */
 	private final ARCommandARDrone3CameraStateOrientationListener
 		mCameraStateOrientationListener
@@ -991,7 +992,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 使用しているバッテリーの種類設定が変わった時
+	 * 使用しているバッテリーの種類設定を受信した時
 	 */
 	private final ARCommandARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener
 		mDebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener
@@ -1006,7 +1007,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 捕捉しているGPS衛星の数が変わった時
+	 * 捕捉しているGPS衛星の数を受信した時
 	 */
 	private final ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener
 		mDebugGPSDebugStateNbSatelliteChangedListener
@@ -1332,6 +1333,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		return sentStatus;
 	}
 
+
 //********************************************************************************
 // WiFi関係
 //********************************************************************************
@@ -1341,7 +1343,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	 * @param is_outdoor
 	 * @return
 	 */
-	public boolean SendSpeedSettingsOutdoor(final boolean is_outdoor) {
+	public boolean sendSpeedSettingsOutdoor(final boolean is_outdoor) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 

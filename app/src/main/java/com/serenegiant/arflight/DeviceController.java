@@ -145,6 +145,10 @@ public abstract class DeviceController implements IDeviceController {
 		return mStatus.getAlarm();
 	}
 
+	/**
+	 * 接続開始
+	 * @return
+	 */
 	@Override
 	public boolean start() {
 		if (DEBUG) Log.v(TAG, "start:");
@@ -228,7 +232,7 @@ public abstract class DeviceController implements IDeviceController {
 		// 機体データ受信スレッドを終了(終了するまで戻らない)
 		stopReaderThreads();
 
-		// ネットワークをクリーンアップ
+		// ネットワーク接続をクリーンアップ
 		stopNetwork();
 
 		unregisterARCommandsListener();
@@ -476,7 +480,7 @@ public abstract class DeviceController implements IDeviceController {
 		}
 
 		if (ok) {
-            /* open the discovery connection data in another thread */
+			// 接続監視スレッドを生成＆実行開始
 			final ConnectionThread connectionThread = new ConnectionThread();
 			connectionThread.start();
             /* wait the discovery of the connection data */
@@ -515,7 +519,6 @@ public abstract class DeviceController implements IDeviceController {
 	/** 機体からのデータ受信用スレッドを終了(終了するまで戻らない) */
 	private void stopReaderThreads() {
 		if (DEBUG) Log.v(TAG, "stopReaderThreads:");
-		/* cancel all reader threads and block until they are all stopped. */
 		for (final ReaderThread thread : mReaderThreads) {
 			thread.stopThread();
 		}
@@ -537,7 +540,7 @@ public abstract class DeviceController implements IDeviceController {
 			mFlightCMDThread.stopThread();
 		}
         /* Create the looper thread */
-		mFlightCMDThread = new FlightCMDThread((mNetConfig.getPCMDLoopIntervalsMs())/* / MAX_CNT*/);
+		mFlightCMDThread = new FlightCMDThread((mNetConfig.getPCMDLoopIntervalsMs()));
 
         /* Start the looper thread. */
 		mFlightCMDThread.start();
@@ -559,11 +562,11 @@ public abstract class DeviceController implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "stopFlightCMDThread:終了");
 	}
 
-	/** ストリーミングデータ受信スレッドを開始 */
+	/** ストリーミングデータ受信スレッドを開始(このクラス内では何もしないので必要ならばoverrideすること) */
 	protected void startVideoThread() {
 	}
 
-	/** ストリーミングデータ受信スレッドを終了(終了するまで戻らない) */
+	/** ストリーミングデータ受信スレッドを終了(このクラス内では何もしないので必要ならばoverrideすること) */
 	protected void stopVideoThread() {
 	}
 
@@ -1152,6 +1155,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/**
+	 * 接続時のコールバックを呼び出す
+	 */
 	protected void callOnConnect() {
 		synchronized (mListenerSync) {
 			for (DeviceConnectionListener listener: mConnectionListeners) {
@@ -1166,6 +1172,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/**
+	 * 切断時のコールバックを呼び出す
+	 */
 	protected void callOnDisconnect() {
 		synchronized (mListenerSync) {
 			for (DeviceConnectionListener listener: mConnectionListeners) {
@@ -1180,6 +1189,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/**
+	 * バッテリー残量変更コールバックを呼び出す
+	 */
 	protected void callOnUpdateBattery(final int percent) {
 		synchronized (mListenerSync) {
 			for (DeviceControllerListener listener: mListeners) {
@@ -1194,6 +1206,10 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/**
+	 * 飛行ステータス変更コールバックを呼び出す
+	 * @param state
+	 */
 	protected void callOnFlyingStateChangedUpdate(final int state) {
 		synchronized (mListenerSync) {
 			for (DeviceControllerListener listener: mListeners) {
@@ -1208,6 +1224,10 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/**
+	 * 異常状態変更コールバックを呼び出す
+	 * @param state
+	 */
 	protected void callOnAlarmStateChangedUpdate(final int state) {
 		synchronized (mListenerSync) {
 			for (DeviceControllerListener listener: mListeners) {
@@ -1222,6 +1242,9 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/**
+	 * フラットトリム実行完了時のコールバックを呼び出す
+	 */
 	protected void callOnFlatTrimChanged() {
 		synchronized (mListenerSync) {
 			for (DeviceControllerListener listener: mListeners) {
@@ -1321,7 +1344,6 @@ public abstract class DeviceController implements IDeviceController {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
 
-
 			cmd.dispose();
 		}
 
@@ -1363,14 +1385,6 @@ public abstract class DeviceController implements IDeviceController {
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonCurrentDate(formattedDate.format(currentDate));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-            /* Send data with ARNetwork */
-			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-/*			final ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId(), cmd, null, true);
-
-			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				Log.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
-				sentStatus = false;
-			} */
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
 
@@ -1425,7 +1439,7 @@ public abstract class DeviceController implements IDeviceController {
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonControllerStateIsPilotingChanged((byte) (inHUD ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-									 ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
 			cmd.dispose();
 		}
 
@@ -1460,8 +1474,8 @@ public abstract class DeviceController implements IDeviceController {
 // 操縦関係
 //********************************************************************************
 	/**
-	 * roll/pitch変更時が移動なのか機体姿勢変更なのかを指示
-	 * @param flag 1:移動, 0:機体姿勢変更
+	 * roll/pitch変更時が移動かどうか
+	 * @param flag 1:移動
 	 */
 	@Override
 	public void setFlag(final int flag) {
@@ -1482,7 +1496,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/**
-	 * 機体を左右に傾ける。flag=1:左右に移動する, flag=0:機体姿勢変更のみ
+	 * 機体を左右に傾ける。flag=1:左右に移動する
 	 * @param roll 負:左, 正:右
 	 */
 	@Override
@@ -1495,7 +1509,7 @@ public abstract class DeviceController implements IDeviceController {
 	/**
 	 * 機体を左右に傾ける
 	 * @param roll 負:左, 正:右, -100〜+100
-	 * @param move, true:移動, false:機体姿勢変更
+	 * @param move, true:移動
 	 */
 	@Override
 	public void setRoll(final float roll, final boolean move) {
@@ -1506,7 +1520,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/**
-	 * 機体の機首を上げ下げする。flag=1:前後に移動する, flag=0:機体姿勢変更のみ
+	 * 機体の機首を上げ下げする。flag=1:前後に移動する
 	 * @param pitch
 	 */
 	@Override
@@ -1519,7 +1533,7 @@ public abstract class DeviceController implements IDeviceController {
 	/**
 	 * 機首を上げ下げする
 	 * @param pitch 負:??? 正:???, -100〜+100
-	 * @param move, true:移動, false:機体姿勢変更
+	 * @param move, true:移動
 	 */
 	@Override
 	public void setPitch(final float pitch, final boolean move) {
@@ -1605,7 +1619,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param pitch 負:??? 正:???, -100〜+100
 	 * @param gaz 負:下降, 正:上昇, -100〜+100
 	 * @param yaw 負:左回転, 正:右回転, -100〜+100
-	 * @param flag roll/pitchが移動を意味する時1, 機体姿勢変更のみの時は0
+	 * @param flag roll/pitchが移動を意味する時1
 	 */
 	@Override
 	public void setMove(final float roll, final float pitch, final float gaz, final float yaw, int flag) {
@@ -1801,8 +1815,7 @@ public abstract class DeviceController implements IDeviceController {
 
 		public DataPCMD() {
 			flag = 0;
-			roll = pitch = yaw = gaz = 0;
-			heading = 0;
+			roll = pitch = yaw = gaz = heading = 0;
 		}
 
 		private void set(final DataPCMD other) {

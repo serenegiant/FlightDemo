@@ -14,7 +14,7 @@ import java.util.List;
 
 public class ScriptFlight implements IAutoFlight {
 	private static final boolean DEBUG = false;				// FIXME 実働時はfalseにすること
-	private static final boolean DEBUG_PRESETFUNC = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG_PRESETFUNC = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "ScriptFlight";
 
 	private final Object mSync = new Object();
@@ -225,7 +225,7 @@ public class ScriptFlight implements IAutoFlight {
 
 	/**
 	 * 自動フライトの準備
-	 * @param args
+	 * @param args 最大で引数はInputStream+8個まで
 	 * @throws RuntimeException
 	 */
 	@Override

@@ -1,0 +1,63 @@
+// extern void emergency(void);
+// extern void takeoff(void);
+// extern void landing(void);
+// roll/pitch/gaz/yaw=[-100,+100]
+// extern void move(int roll, int pitch, int gaz, int yaw);
+// gaz=[-100,+100]
+// extern void updown(int gaz);
+// roll=[-100,+100]
+// extern void rightleft(int roll);
+// pitch=[-100,+100]
+// extern void frontback(int pitch);
+// yaw=[-100,+100]
+// extern void turn(int yaw);
+// degree=[-360,+360]
+// extern void compass(int degree);
+// mode=[1:front, 2:back, 3:right, 4:left]
+// extern void flip(int mode);
+// degree=[-180,+180]
+// extern void cap(int degree);
+
+int CMD_DELAY_TIME_MS = 5;
+
+void main(const double radius, const double scale_x, const double scale_y, const double scale_z, const double scale_r) {
+	double scale;
+	if (scale_x < scale_y) {
+		scale = scale_x;
+	} else {
+		scale = scale_y;
+	}
+	int step_num = (PI / scale) * 6;
+	takeoff();
+	wait(1000);
+	move(0, 0, 100, 0);
+	wait(radius);
+	move(0, 0, 0, 0);
+	double radian = PI / 2;
+	for (int c = 0; c < 3; c++) {
+		wait(1000);
+		int n = step_num;
+		long wait_time = 5000 / n;
+		double step_radian = 360 / n * TO_RADIAN;
+		double prev_x = radius * sin(radian) * scale_x;
+		double prev_y = radius * cos(radian) * scale_y;
+		double x, y;
+		for (int i = 0; i <= n; i++) {
+			x = radius * sin(radian) * scale_x;
+			y = radius * cos(radian) * scale_y;
+			double dx = x - prev_x;
+			double dy = y - prev_y;
+			move(dx, dy, 0, 0);
+			wait(CMD_DELAY_TIME_MS);
+			wait(wait_time);
+			move(0, 0, 0, 0);
+			wait(CMD_DELAY_TIME_MS);
+			radian += step_radian;
+			prev_x = x;
+			prev_y = y;
+		}
+	}
+	move(0, 0, 0, 0);
+	wait(1000);
+	landing();
+}

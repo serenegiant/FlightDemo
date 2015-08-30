@@ -108,7 +108,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * 飛行状態が変更された時のコールバックリスナー
+	 * 飛行状態を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDronePilotingStateFlyingStateChangedListener
 		mPilotingStateFlyingStateChangedListener
@@ -123,7 +123,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * 機体からの異常通知時のコールバックリスナー
+	 * 機体からの異常通知を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDronePilotingStateAlertStateChangedListener
 		mPilotingStateAlertStateChangedListener
@@ -139,7 +139,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * 自動離陸モードが変更された時のコールバックリスナー
+	 * 自動離陸モードを受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDronePilotingStateAutoTakeOffModeChangedListener
 		mPilotingStateAutoTakeOffModeChangedListener
@@ -155,7 +155,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * 写真撮影状態が変更された時のコールバックリスナー
+	 * 写真撮影状態を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneMediaRecordStatePictureStateChangedListener
 		mMediaRecordStatePictureStateChangedListener
@@ -172,7 +172,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * 写真撮影状態が変更された時のコールバックリスナー
+	 * 写真撮影状態を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneMediaRecordStatePictureStateChangedV2Listener
 		mMediaRecordStatePictureStateChangedV2Listener
@@ -187,7 +187,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * 写真撮影状態が変更された時のコールバックリスナー
+	 * 写真撮影状態を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneMediaRecordEventPictureEventChangedListener
 		mMediaRecordEventPictureEventChangedListener
@@ -202,7 +202,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * 最大高度設定が変更された時のコールバックリスナー
+	 * 最大高度設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDronePilotingSettingsStateMaxAltitudeChangedListener
 		mPilotingSettingsStateMaxAltitudeChangedListener
@@ -221,7 +221,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * 最大傾斜設定が変更された時のコールバックリスナー
+	 * 最大傾斜設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDronePilotingSettingsStateMaxTiltChangedListener
 		mPilotingSettingsStateMaxTiltChangedListener
@@ -240,7 +240,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * 上昇/降下速度設定が変更された時のコールバックリスナー
+	 * 上昇/降下速度設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneSpeedSettingsStateMaxVerticalSpeedChangedListener
 		mSettingsStateMaxVerticalSpeedChangedListener
@@ -259,7 +259,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * 最大回転速度設定が変更された時のコールバックリスナー
+	 * 最大回転速度設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneSpeedSettingsStateMaxRotationSpeedChangedListener
 		mSpeedSettingsStateMaxRotationSpeedChangedListener
@@ -278,7 +278,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * ホイールの有無設定が変更された時のコールバックリスナー
+	 * ホイールの有無設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener
 		mSpeedSettingsStateWheelsChangedListener
@@ -294,7 +294,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * モーターバージョンが変更された時のコールバックリスナー
+	 * モーターバージョンを受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneSettingsStateProductMotorsVersionChangedListener
 		mSettingsStateProductMotorsVersionChangedListener
@@ -325,7 +325,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 	public final AttributeIMU mIMU = new AttributeIMU();
 	/**
-	 * フライトコントローラのバージョン
+	 * フライトコントローラのバージョンを受信した時
 	 */
 	private final ARCommandMiniDroneSettingsStateProductInertialVersionChangedListener
 		mSettingsStateProductInertialVersionChangedListener
@@ -344,7 +344,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * カットオフモード設定が変更された時のコールバックリスナー
+	 * カットオフモード設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneSettingsStateCutOutModeChangedListener
 		mSettingsStateCutOutModeChangedListener
@@ -360,7 +360,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	};
 
 	/**
-	 * FloodControl設定が変更された時のコールバックリスナー
+	 * FloodControl設定を受信した時のコールバックリスナー
 	 * 操縦コマンド(PCMD)を連続して送る時の最短間隔・・・これ以下の間隔で送った時に無視するってことかな?
 	 */
 	private final ARCommandMiniDroneFloodControlStateFloodControlChangedListener
