@@ -272,8 +272,7 @@ public class TouchFlight implements IAutoFlight {
 								}
 								synchronized (mSync) {
 									try {
-										mSync.wait(CMD_DELAY_TIME_MS);	// コマンド遅延時間
-										mSync.wait(dt);					// 移動時間
+										mSync.wait(dt + CMD_DELAY_TIME_MS);	// 移動時間+コマンド遅延時間
 									} catch (final InterruptedException e) {
 									}
 								}

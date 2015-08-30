@@ -79,6 +79,30 @@ public class Vector {
 		return this;
 	}
 
+	public float x() {
+		return x;
+	}
+
+	public void x(final float x) {
+		this.x = x;
+	}
+
+	public float y() {
+		return y;
+	}
+
+	public void y(final float y) {
+		this.y = y;
+	}
+
+	public float z() {
+		return z;
+	}
+
+	public void z(final float z) {
+		this.z = z;
+	}
+
 	public Vector add(final float x, final float y) {
 		return add(x, y, 0.0f);
 	}

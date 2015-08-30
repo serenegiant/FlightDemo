@@ -1790,7 +1790,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	}
 
 	/**
-	 * FIXME 自動で指定した角度回転させる
+	 * 自動で指定した角度回転させる
 	 * @param degree -180〜180度
 	 * @return
 	 */
@@ -1799,9 +1799,28 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 		final byte d = (byte)(degree > 180 ? 180 : (degree < -180 ? -180 : degree));
 		boolean sentStatus = true;
-		// FIXME 未実装
-		Log.w(TAG, "sendAnimationsCapは未実装");
-		// headingに対して指示量を加算したのを送信する?
+
+		if (degree != 0) {
+
+			final Vector attitude = mStatus.attitude();
+			final AttributeFloat rotation_speed = mSettings.maxRotationSpeed();    // 回転速度[度/秒]
+			final float current = rotation_speed.current();
+			try {
+				try {
+					if (current != rotation_speed.max()) {
+						sendMaxRotationSpeed(rotation_speed.max());
+						Thread.sleep(5);
+					}
+					final long t = (long) Math.abs(degree / rotation_speed.max() * 1000);    // 回転時間[ミリ秒]
+					setYaw(degree > 0 ? 100 : -100);
+					Thread.sleep(t + 5);
+				} catch (InterruptedException e) {
+				}
+				setYaw(0);
+			} finally {
+				sendMaxRotationSpeed(current);
+			}
+		}
 		return sentStatus;
 	}
 
