@@ -4,7 +4,9 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.opengl.GLU;
 import android.opengl.Matrix;
+import android.util.Log;
 
+import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
 
 /**
@@ -15,6 +17,9 @@ import com.serenegiant.math.Vector;
  * ワールド座標系全体を回転・移動させる
  */
 public class GLCamera3D {
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final String TAG = "GLCamera3D";
+
 	private final Vector position = new Vector();
 	private float mYaw;
 	private float mPitch;
@@ -145,14 +150,21 @@ public class GLCamera3D {
 	 * @param gl
 	 */
 	public void setMatrix(GL10 gl) {
+		if (DEBUG) Log.v(TAG, "setMatrix:" + gl);
 		gl.glMatrixMode(GL10.GL_PROJECTION);
+		GLHelper.checkGlError(gl, "GLCamera3D#glMatrixMode");
 		gl.glLoadIdentity();
 		GLU.gluPerspective(gl, mFieldOfView, mAspectRatio, mNear, mFar);
+		GLHelper.checkGlError(gl, "GLCamera3D#gluPerspective");
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
+		GLHelper.checkGlError(gl, "GLCamera3D#glMatrixMode");
 		gl.glLoadIdentity();
 		gl.glRotatef(-mPitch, 1, 0, 0);
+		GLHelper.checkGlError(gl, "GLCamera3D#glRotatef");
 		gl.glRotatef(-mYaw, 0, 1, 0);
+		GLHelper.checkGlError(gl, "GLCamera3D#glRotatef");
 		gl.glTranslatef(-position.x, -position.y, -position.z);
+		GLHelper.checkGlError(gl, "GLCamera3D#glTranslatef");
 	}
 	
 	private final float[] matrix = new float[16];

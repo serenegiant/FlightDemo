@@ -38,9 +38,10 @@ public class AttitudeView extends GLModelView {
 		private final GLLookAtCamera lookAtCamera;
 		private final GLCamera2D guiCamera;
 
-		private final Vector modelOffset = new Vector(0, 0, 0);
+		private final Vector modelOffset = new Vector(0, 4f, 0);
 		private final Texture droneTexture;
 		private final GLLoadableModel droneModel;
+		private final DroneObject droneObj;
 
 		private final GLCubeModel plateModel;
 		private final Texture plateTexture;
@@ -50,18 +51,19 @@ public class AttitudeView extends GLModelView {
 			if (DEBUG) Log.v(TAG_SCREEN, "コンストラクタ");
 
 			// ドローンの3Dモデル
+			droneObj = new DroneObject(0f, 0f, 0f, 0.3f);
 			droneTexture = new Texture(modelView, "model/myrocket.png");
-			droneModel = new GLLoadableModel(glGraphics, modelOffset, 0.2f);
+			droneModel = new GLLoadableModel(glGraphics, modelOffset, 2.0f);
 			droneModel.loadModel(modelView, "model/myrocket.obj");
 			droneModel.setTexture(droneTexture);
 /*			droneTexture = new Texture(modelView, "model/bebop_drone_body_tex.png");
-			droneModel = new GLLoadableModel(glGraphics, modelOffset, 0.2f);
+			droneModel = new GLLoadableModel(glGraphics, modelOffset, 2.0f);
 			droneModel.loadModel(modelView, "model/bebop_drone_body.obj");
 			droneModel.setTexture(droneTexture); */
 			// 地面
 			// テクスチャは正方形で2の乗数サイズでないとだめ
 			plateTexture = new Texture(modelView, "model/ichimatsu_arrow.png");
-			plateModel = new GLCubeModel(glGraphics, Vector.zeroVector, 50, 0.01f, 50, 10);
+			plateModel = new GLCubeModel(glGraphics, Vector.zeroVector, 30, 0.01f, 30, 10);
 			plateModel.setTexture(plateTexture);
 
 			ambientLight = new GLAmbientLight();
@@ -80,7 +82,7 @@ public class AttitudeView extends GLModelView {
 			// 視線カメラ
 			lookAtCamera = new GLLookAtCamera(
 				67, glGraphics.getViewWidth() / (float)glGraphics.getViewHeight(), 0.1f, 25f);
-			lookAtCamera.setPosition(0, 10, 0);
+			lookAtCamera.setPosition(-20, 10, 0);
 
 		}
 
@@ -89,6 +91,9 @@ public class AttitudeView extends GLModelView {
 //			if (DEBUG) Log.v(TAG_SCREEN, "update");
 			// 機体データの更新処理
 			// FIXME 未実装
+			droneObj.update(deltaTime);
+			droneModel.setPosition(droneObj.position);
+			droneModel.rotate(droneObj.angle);
 			lookAtCamera.setLookAt(droneModel.getPosition());	// 常に機体の方向を向くようにする
 		}
 
@@ -97,41 +102,55 @@ public class AttitudeView extends GLModelView {
 //			if (DEBUG) Log.v(TAG_SCREEN, "draw");
 			// 画面表示更新
 			final GL10 gl = glGraphics.getGL();
-			gl.glClearColor(1f, 1f, 1f, 1f);
-			gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+
+			gl.glClearColor(1, 1, 1, 1);
+			gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+
+			gl.glEnable(GL10.GL_BLEND);
+			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+			gl.glColor4f(1f, 1f, 1f, 1f);
+
 			// カメラの準備
 			lookAtCamera.setMatrix(gl);
 
 			// ここから3Dの描画処理
 //			gl.glEnable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
-			gl.glEnable(GL10.GL_CULL_FACE);            //ポリゴンの背面を描画しない
-			gl.glEnable(GL10.GL_LIGHTING);
+			gl.glEnable(GL10.GL_CULL_FACE);			// ポリゴンのカリングを有効にする
+			gl.glCullFace(GL10.GL_BACK);			// 裏面を描画しない
+			gl.glEnable(GL10.GL_LIGHTING);			// ライティングを有効化
 //			gl.glEnable(GL10.GL_DEPTH_TEST);
-//			gl.glEnable(GL10.GL_TEXTURE_2D);
+			gl.glEnable(GL10.GL_TEXTURE_2D);
 
 			ambientLight.enable(gl);
 			pointLight.enable(gl, GL10.GL_LIGHT0);
 			directionLight.enable(gl, GL10.GL_LIGHT1);
-//			material.enable(gl);
+			material.enable(gl);
 
 
-			gl.glEnable(GL10.GL_COLOR_MATERIAL);    // 環境光と拡散光のマテリアル色として頂点色を使うとき
+//			gl.glEnable(GL10.GL_COLOR_MATERIAL);    // 環境光と拡散光のマテリアル色として頂点色を使うとき
 			// 床を描画
 			gl.glColor4f(1f, 1f, 1f, 0);
 			plateModel.draw();
-			gl.glDisable(GL10.GL_COLOR_MATERIAL);    // 環境光と拡散光のマテリアル色として頂点色を使うとき
+//			gl.glDisable(GL10.GL_COLOR_MATERIAL);    // 環境光と拡散光のマテリアル色として頂点色を使うとき
 
+//			gl.glEnable(GL10.GL_COLOR_MATERIAL);    // 環境光と拡散光のマテリアル色として頂点色を使うとき
+//			material.enable(gl);
 			// モデルを描画
 			material.enable(gl);
 			droneModel.draw();
+//			gl.glDisable(GL10.GL_COLOR_MATERIAL);    // 環境光と拡散光のマテリアル色として頂点色を使うとき
 
 			// 3D描画処理終了
 			pointLight.disable(gl);
 			directionLight.disable(gl);
 
 			// ここから2Dの描画処理
+			gl.glEnable(GL10.GL_BLEND);
+			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 //			guiCamera.setViewportAndMatrix();
 			// この後に2DのGL描画を行う
+
+			gl.glDisable(GL10.GL_BLEND);
 		}
 
 		@Override

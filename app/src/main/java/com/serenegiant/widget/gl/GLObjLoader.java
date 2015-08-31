@@ -1,5 +1,6 @@
 package com.serenegiant.widget.gl;
 
+import android.util.Log;
 import android.view.View;
 
 import java.io.BufferedReader;
@@ -9,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GLObjLoader {
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final String TAG = "GLObjLoader";
+
 	private final IModelView mModelView;
 	private final float[] vertexArray;
 	private final float[] normalArray;
@@ -109,13 +113,15 @@ public class GLObjLoader {
 		} catch (Exception e) {
 			throw new RuntimeException("couldn't load '" + fileName + "'");
 		} finally {
-			if (in != null)
+			if (in != null) {
 				try {
 					in.close();
 				} catch (Exception e) {
-					
+
 				}
+			}
 		}
+		if (DEBUG) Log.v(TAG, String.format("vertex=%d,normal=%d,uv=%d,face=%d", numVertex, numNormal, numUV, numFace));
 	}
 
 	public Vertex getVertex() {

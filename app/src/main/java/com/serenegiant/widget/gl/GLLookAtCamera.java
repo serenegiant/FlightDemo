@@ -3,10 +3,15 @@ package com.serenegiant.widget.gl;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.opengl.GLU;
+import android.util.Log;
 
+import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
 
 public class GLLookAtCamera {
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final String TAG = "GLLookAtCamera";
+
 	private final Vector position;
 	private final Vector up;
 	private final Vector lookAt;
@@ -16,6 +21,7 @@ public class GLLookAtCamera {
 	private final float far;
 	
 	public GLLookAtCamera(float fieldOfView, float aspectRatio, float near, float far) {
+		if (DEBUG) Log.v(TAG, String.format("GLLookAtCamera:fieldOfView=%f,aspectRatio=%f,near=%f,far=%f", fieldOfView, aspectRatio, near, far));
 		this.fieldOfView = fieldOfView;
 		this.aspectRatio = aspectRatio;
 		this.near = near;
@@ -56,13 +62,17 @@ public class GLLookAtCamera {
 
 
 	public void setMatrix(GL10 gl) {
+//		if (DEBUG) Log.v(TAG, "setMatrix:" + gl);
 		gl.glMatrixMode(GL10.GL_PROJECTION);
+		GLHelper.checkGlError(gl, "GLLookAtCamera#glMatrixMode");
 		gl.glLoadIdentity();
 		GLU.gluPerspective(gl, fieldOfView, aspectRatio, near, far);
+		GLHelper.checkGlError(gl, "GLLookAtCamera#gluPerspective");
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
 		gl.glLoadIdentity();
 		GLU.gluLookAt(gl, position.x, position.y, position.z,
-			lookAt.x, lookAt.y, lookAt.z, up.x, up.y, up.z);
+						 lookAt.x, lookAt.y, lookAt.z, up.x, up.y, up.z);
+		GLHelper.checkGlError(gl, "GLLookAtCamera#gluLookAt");
 	}
 	
 	private final Vector v = new Vector();

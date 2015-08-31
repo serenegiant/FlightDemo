@@ -1,5 +1,7 @@
 package com.serenegiant.widget.gl;
 
+import com.serenegiant.glutils.GLHelper;
+
 import javax.microedition.khronos.opengles.GL10;
 
 public class GLAmbientLight extends GLLight {
@@ -20,6 +22,7 @@ public class GLAmbientLight extends GLLight {
 	
 	public void enable(GL10 gl) {
 		gl.glLightModelfv(GL10.GL_LIGHT_MODEL_AMBIENT, ambient, 0);
+		GLHelper.checkGlError(gl, "GLAmbientLight#glLightModelfv");
 	}
 	
 	@Override

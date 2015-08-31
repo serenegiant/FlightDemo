@@ -13,9 +13,12 @@ import android.opengl.GLUtils;
 import android.support.v4.util.LruCache;
 import android.text.TextUtils;
 
+import com.serenegiant.glutils.GLHelper;
+
 public class Texture {
-	protected static final String TAG = "Texture";
-	
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final String TAG = "Vertex";
+
 	private static final int LOAD_NON = -1;
 	private static final int LOAD_ASSET = 0;
 	private static final int LOAD_FILE = 1;
@@ -129,8 +132,10 @@ public class Texture {
 			} else {			// ミップマップしない時
 				gl.glBindTexture(GL10.GL_TEXTURE_2D, textureID);
 				GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
+				GLHelper.checkGlError(gl, "Texture#texImage2D");
 				setFilters(gl, GL10.GL_NEAREST, GL10.GL_NEAREST);
 				gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
+				GLHelper.checkGlError(gl, "Texture#glBindTexture");
 			}
 			bitmap.recycle();
 			bitmap = null;	// 2013/05/24
@@ -156,7 +161,7 @@ public class Texture {
 	 * @param gl
 	 * @param bitmap
 	 */
-	private void createMipmaps(GL10 gl, Bitmap bitmap) {
+	private void createMipmaps(final GL10 gl, Bitmap bitmap) {
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureID);
 		setFilters(gl, GL10.GL_LINEAR_MIPMAP_NEAREST, GL10.GL_LINEAR);
 		
@@ -166,6 +171,7 @@ public class Texture {
 		Bitmap newBitmap;
 		while (true) {
 			GLUtils.texImage2D(GL10.GL_TEXTURE_2D, level, bitmap, 0);
+			GLHelper.checkGlError(gl, "Texture#texImage2D");
 			newWidth /= 2;
 			newHeight /= 2;
 			if ((newWidth <= 0) || (newHeight <= 0))
@@ -187,14 +193,17 @@ public class Texture {
 		}
 		maxMipmappedLevel = level;
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
+		GLHelper.checkGlError(gl, "Texture#glBindTexture");
 	}
 	
 	public void reload() {
 		internal_load(loadType);
 		final GL10 gl = glGraphics.getGL();
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textureID);
+		GLHelper.checkGlError(gl, "Texture#glBindTexture");
 		setFilters(gl, mMinFilter, mMagFilter);
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
+		GLHelper.checkGlError(gl, "Texture#glBindTexture");
 	}
 	
 	private void setFilters(GL10 gl, int minFilter, int magFilter) {
@@ -202,6 +211,7 @@ public class Texture {
 		this.mMagFilter = magFilter;
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, minFilter);
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, magFilter);
+		GLHelper.checkGlError(gl, "Texture#glTexParameterf");
 	}
 	
 	public void bind() {

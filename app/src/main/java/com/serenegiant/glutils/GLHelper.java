@@ -7,8 +7,11 @@ package com.serenegiant.glutils;
  *
 */
 
+import android.opengl.GLES10;
 import android.opengl.GLES20;
 import android.util.Log;
+
+import javax.microedition.khronos.opengles.GL10;
 
 /**
  * OpenGL|ES用のヘルパークラス
@@ -25,12 +28,25 @@ public final class GLHelper {
         final int error = GLES20.glGetError();
         if (error != GLES20.GL_NO_ERROR) {
             final String msg = op + ": glError 0x" + Integer.toHexString(error);
-            Log.e(TAG, msg);
+//			Log.e(TAG, msg);
+            new Throwable(msg).printStackTrace();
 //         	if (DEBUG) {
 //	            throw new RuntimeException(msg);
 //       	}
         }
     }
+
+	public static void checkGlError(final GL10 gl, final String op) {
+		final int error = gl.glGetError();
+		if (error != GL10.GL_NO_ERROR) {
+			final String msg = op + ": glError 0x" + Integer.toHexString(error);
+//			Log.e(TAG, msg);
+			new Throwable(msg).printStackTrace();
+//         	if (DEBUG) {
+//	            throw new RuntimeException(msg);
+//       	}
+		}
+	}
 
 	/**
 	 * テクスチャ名を生成(GL_TEXTURE0のみ)
@@ -62,8 +78,8 @@ public final class GLHelper {
 
 	/**
 	 * load, compile and link shader
-	 * @param VERTEX_SHADER source of vertex shader
-	 * @param FRAGMENT_SHADER_OES source of fragment shader
+	 * @param vss source of vertex shader
+	 * @param fss source of fragment shader
 	 * @return
 	 */
 	public static int loadShader(final String vss, final String fss) {

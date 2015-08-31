@@ -51,6 +51,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 		if (DEBUG) Log.v(TAG, "コンストラクタ");
 		glGraphics = new GLGraphics(this);
 
+//		setEGLContextClientVersion(2);	// GLES2を使う時
 		setEGLConfigChooser(8, 8, 8, 8, 16, 1);	 // RGBA8888D16S1 これはsetContentView,　setRendererよりも前に呼び出すこと
 		setRenderer(renderer);
 //		getHolder().setFormat(PixelFormat.TRANSLUCENT);
@@ -168,6 +169,8 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 		float deltaTime;
 		@Override
 		public void onDrawFrame(final GL10 gl) {
+			if ((isInEditMode())) return;
+
 			ModelState localState = null;
 			synchronized (mStateSyncObj) {
 				localState = mState;
@@ -209,6 +212,8 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 		@Override
 		public void onSurfaceChanged(final GL10 gl, final int width, final int height) {
 			if (DEBUG) Log.v(TAG, "onSurfaceChanged:width=" + width + ",height=" + height + ",gl=" + gl);
+			if ((isInEditMode())) return;
+
 			mIsLandscape = (width > height);
 			glGraphics.setGL(gl);	// 2013/11/20追加 なぜかonSurfaceCreatedで正しくセットされてない時がある
 			synchronized (mStateSyncObj) {
@@ -225,6 +230,8 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 		@Override
 		public void onSurfaceCreated(final GL10 gl, final EGLConfig config) {
 			if (DEBUG) Log.v(TAG, "onSurfaceCreated" + gl);
+			if ((isInEditMode())) return;
+
 			ModelState localState;
 			glActive = true;
 			glGraphics.setGL(gl);
