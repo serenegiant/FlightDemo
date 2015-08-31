@@ -82,7 +82,7 @@ public class AttitudeView extends GLModelView {
 			// 視線カメラ
 			lookAtCamera = new GLLookAtCamera(
 				67, glGraphics.getViewWidth() / (float)glGraphics.getViewHeight(), 0.1f, 25f);
-			lookAtCamera.setPosition(-5, 7, -5);
+			lookAtCamera.setPosition(-4.5f, 7, -4.5f);
 
 		}
 
