@@ -1022,8 +1022,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final Runnable mUpdateStatusUITask = new Runnable() {
 		@Override
 		public synchronized void run() {
-			final String s = String.format("%5.1f,%5.1f,%5.1f/%5.1f", mCurrentRoll, mCurrentPitch, mCurrentYaw, mCurrentAltitude);
-			if (DEBUG) Log.v(TAG, "Attitude:" + s);
+//			final String s = String.format("%5.1f,%5.1f,%5.1f/%5.1f", mCurrentRoll, mCurrentPitch, mCurrentYaw, mCurrentAltitude);
+//			if (DEBUG) Log.v(TAG, "Attitude:" + s);
 		}
 	};
 

@@ -34,7 +34,9 @@ public class AttitudeView extends GLModelView {
 		private final GLPointLight pointLight;
 		private final GLDirectionLight directionLight;
 		private final GLMaterial material;
+
 		private final GLLookAtCamera lookAtCamera;
+		private final GLCamera2D guiCamera;
 
 		private final Vector modelOffset = new Vector(0, 0, 0);
 		private final Texture droneTexture;
@@ -59,7 +61,7 @@ public class AttitudeView extends GLModelView {
 			// 地面
 			// テクスチャは正方形で2の乗数サイズでないとだめ
 			plateTexture = new Texture(modelView, "model/ichimatsu_arrow.png");
-			plateModel = new GLCubeModel(glGraphics, Vector.zeroVector, 100, 0.01f, 100, 10);
+			plateModel = new GLCubeModel(glGraphics, Vector.zeroVector, 50, 0.01f, 50, 10);
 			plateModel.setTexture(plateTexture);
 
 			ambientLight = new GLAmbientLight();
@@ -72,10 +74,13 @@ public class AttitudeView extends GLModelView {
 			directionLight.setDirection(5, 10, 5);
 
 			material = new GLMaterial();
+
+			// 2Dカメラ
+			guiCamera = new GLCamera2D(glGraphics, 800, 480);
 			// 視線カメラ
 			lookAtCamera = new GLLookAtCamera(
 				67, glGraphics.getViewWidth() / (float)glGraphics.getViewHeight(), 0.1f, 25f);
-			lookAtCamera.setPosition(0, 1, 0);
+			lookAtCamera.setPosition(0, 10, 0);
 
 		}
 
@@ -92,12 +97,14 @@ public class AttitudeView extends GLModelView {
 //			if (DEBUG) Log.v(TAG_SCREEN, "draw");
 			// 画面表示更新
 			final GL10 gl = glGraphics.getGL();
+			gl.glClearColor(1f, 1f, 1f, 1f);
+			gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 			// カメラの準備
 			lookAtCamera.setMatrix(gl);
 
 			// ここから3Dの描画処理
 //			gl.glEnable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
-			gl.glEnable(GL10.GL_CULL_FACE);			//ポリゴンの背面を描画しない
+			gl.glEnable(GL10.GL_CULL_FACE);            //ポリゴンの背面を描画しない
 			gl.glEnable(GL10.GL_LIGHTING);
 //			gl.glEnable(GL10.GL_DEPTH_TEST);
 //			gl.glEnable(GL10.GL_TEXTURE_2D);
@@ -108,11 +115,11 @@ public class AttitudeView extends GLModelView {
 //			material.enable(gl);
 
 
-			gl.glEnable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
+			gl.glEnable(GL10.GL_COLOR_MATERIAL);    // 環境光と拡散光のマテリアル色として頂点色を使うとき
 			// 床を描画
 			gl.glColor4f(1f, 1f, 1f, 0);
 			plateModel.draw();
-			gl.glDisable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
+			gl.glDisable(GL10.GL_COLOR_MATERIAL);    // 環境光と拡散光のマテリアル色として頂点色を使うとき
 
 			// モデルを描画
 			material.enable(gl);
@@ -121,6 +128,10 @@ public class AttitudeView extends GLModelView {
 			// 3D描画処理終了
 			pointLight.disable(gl);
 			directionLight.disable(gl);
+
+			// ここから2Dの描画処理
+//			guiCamera.setViewportAndMatrix();
+			// この後に2DのGL描画を行う
 		}
 
 		@Override

@@ -67,8 +67,16 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	public void onPause() {
 //		if (DEBUG) Log.v(TAG, "GLGameFragment#onPause:isFinishing=" + getActivity().isFinishing());
 		stopTimerThread();
-		mState = ModelState.PAUSE;
-		glActive = false;
+		synchronized (mStateSyncObj) {
+			mState = ModelState.PAUSE;
+			if (glActive) {
+				try {
+					mStateSyncObj.wait(50);
+				} catch (final InterruptedException e) {
+				}
+			}
+			glActive = false;
+		}
 		super.onPause();
 	}
 
@@ -76,7 +84,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	 * タイマースレッドが存在しなければ生成する
 	 */
 	private void startTimerThread() {
-//		if (DEBUG) Log.v(TAG, "GLGameFragment#startTimerThread");
+		if (DEBUG) Log.v(TAG, "startTimerThread:");
 		if (timerThread == null) {
 			timerThread = new TimerThread();
 			timerThread.start();
@@ -87,12 +95,13 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	 * タイマースレッドが存在すれば停止・破棄する
 	 */
 	private void stopTimerThread() {
-//		if (DEBUG) Log.v(TAG, "GLGameFragment#stopTimerThread");
+		if (DEBUG) Log.v(TAG, "stopTimerThread:");
 		if (timerThread != null) {
 			timerThread.pause();
 			timerThread = null;
 		}
 	}
+
 	/**
 	 * 一定時間毎にGLSurfaceViewのレンダラースレッドを起床させるスレッド
 	 * このスレッドが起床要求するかtouchEvent/accelEventが発生するとレンダラースレッドが起床される
@@ -103,13 +112,13 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 
 		@Override
 		public void run() {
+			if (DEBUG) Log.v(TAG, "TimerThread#run:");
 			long prevTime = System.nanoTime();
-			long delta, nano_time;
 
 			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);	// requestRenderが呼ばれた時だけ描画する
-			while (isRunning) {
-				nano_time = System.nanoTime();
-				delta = nano_time - prevTime;
+			for ( ; isRunning ; ) {
+				final long nano_time = System.nanoTime();
+				final long delta = nano_time - prevTime;
 				synchronized(mRendererSyncObj) {
 					if (mForceRender || (delta > mUpdateIntervals)) {	// 起床要求の時間確認
 						prevTime = nano_time;
@@ -127,10 +136,11 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 			synchronized (mRendererSyncObj) {
 				mRendererSyncObj.notifyAll();
 			}
+			if (DEBUG) Log.v(TAG, "TimerThread#run:終了");
 		}
 
 		public void pause() {
-//			if (DEBUG) Log.v(TAG, "GLGameFragment#timerthread#pause");
+			if (DEBUG) Log.v(TAG, "TimerThread#pause:");
 			isRunning = false;
 			synchronized (mRendererSyncObj) {
 				while (true) {
@@ -198,7 +208,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 
 		@Override
 		public void onSurfaceChanged(final GL10 gl, final int width, final int height) {
-//			if (DEBUG) Log.v(TAG, "GLGameFragment#onSurfaceChanged:width=" + width + " height=" + height);
+			if (DEBUG) Log.v(TAG, "onSurfaceChanged:width=" + width + ",height=" + height + ",gl=" + gl);
 			mIsLandscape = (width > height);
 			glGraphics.setGL(gl);	// 2013/11/20追加 なぜかonSurfaceCreatedで正しくセットされてない時がある
 			synchronized (mStateSyncObj) {
@@ -214,7 +224,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 
 		@Override
 		public void onSurfaceCreated(final GL10 gl, final EGLConfig config) {
-//			if (DEBUG) Log.v(TAG, "GLGameFragment#onSurfaceCreated");
+			if (DEBUG) Log.v(TAG, "onSurfaceCreated" + gl);
 			ModelState localState;
 			glActive = true;
 			glGraphics.setGL(gl);
@@ -246,6 +256,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	};
 
 	protected void initialize() {
+		if (DEBUG) Log.v(TAG, "initialize:");
 	}
 
 	/**
@@ -278,7 +289,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	 * @param screen
 	 */
 	protected void internalSetScreen(final Screen screen) {
-//		if (DEBUG) Log.v(TAG, "BaseGameFragment#internalSetScreen");
+		if (DEBUG) Log.v(TAG, "internalSetScreen:" + screen);
 		if (screen == null)
 			throw new IllegalArgumentException("Screen must not be null");
 		if ((mScreen != null) && (mScreen != screen)) {
