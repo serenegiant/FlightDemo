@@ -38,7 +38,7 @@ public class AttitudeView extends GLModelView {
 		private final GLLookAtCamera lookAtCamera;
 		private final GLCamera2D guiCamera;
 
-		private final Vector modelOffset = new Vector(0, 4f, 0);
+		private final Vector modelOffset = new Vector(0, 2f, 0);
 		private final Texture droneTexture;
 		private final GLLoadableModel droneModel;
 		private final DroneObject droneObj;
@@ -51,9 +51,9 @@ public class AttitudeView extends GLModelView {
 			if (DEBUG) Log.v(TAG_SCREEN, "コンストラクタ");
 
 			// ドローンの3Dモデル
-			droneObj = new DroneObject(0f, 0f, 0f, 0.3f);
+			droneObj = new DroneObject(0f, 0f, 0f, 1.0f);
 			droneTexture = new Texture(modelView, "model/myrocket.png");
-			droneModel = new GLLoadableModel(glGraphics, modelOffset, 2.0f);
+			droneModel = new GLLoadableModel(glGraphics, modelOffset, 1.0f);
 			droneModel.loadModel(modelView, "model/myrocket.obj");
 			droneModel.setTexture(droneTexture);
 /*			droneTexture = new Texture(modelView, "model/bebop_drone_body_tex.png");
@@ -73,7 +73,7 @@ public class AttitudeView extends GLModelView {
 //			pointLight.setSpecular(0.5f, 0.5f, 0.5f, 1);
 
 			directionLight = new GLDirectionLight();
-			directionLight.setDirection(5, 10, 5);
+			directionLight.setDirection(5, 5, 5);
 
 			material = new GLMaterial();
 
@@ -82,7 +82,7 @@ public class AttitudeView extends GLModelView {
 			// 視線カメラ
 			lookAtCamera = new GLLookAtCamera(
 				67, glGraphics.getViewWidth() / (float)glGraphics.getViewHeight(), 0.1f, 25f);
-			lookAtCamera.setPosition(-20, 10, 0);
+			lookAtCamera.setPosition(-5, 7, -5);
 
 		}
 

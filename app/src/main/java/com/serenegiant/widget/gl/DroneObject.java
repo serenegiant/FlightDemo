@@ -16,9 +16,9 @@ public class DroneObject extends DynamicGameObject {
 
 	@Override
 	public void update(final float deltaTime) {
-		angle.x += 29 * deltaTime;	// とりあえずくりくりまわすだけ
-		angle.y += 43 * deltaTime;	// とりあえずくりくりまわすだけ
-		angle.z += 7 * deltaTime;	// とりあえずくりくりまわすだけ
+		angle.x += 120 * deltaTime;	// とりあえずくりくりまわすだけ
+		angle.y += 137 * deltaTime;	// とりあえずくりくりまわすだけ
+		angle.z += 45 * deltaTime;	// とりあえずくりくりまわすだけ
 	}
 
 	public void update(final float deltaTime, final Vector force) {
