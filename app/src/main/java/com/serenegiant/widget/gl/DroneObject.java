@@ -3,26 +3,25 @@ package com.serenegiant.widget.gl;
 import com.serenegiant.math.CylinderBounds;
 import com.serenegiant.math.Vector;
 
-public class DroneObject extends DynamicGameObject {
+public abstract class DroneObject extends DynamicGameObject {
 
-	public DroneObject(final Vector position, final float radius) {
-		this(position.x, position.y, position.z, radius);
+	protected final RotorObject mFrontLeftRotorObj;	// ローター左前
+	protected final RotorObject mFrontRightRotorObj;// ローター右前
+	protected final RotorObject mRearLeftRotorObj;	// ローター左後
+	protected final RotorObject mRearRightRotorObj;	// ローター右後
+
+	public DroneObject(final Vector position, final float scale) {
+		this(position.x, position.y, position.z, scale);
 	}
 
-	public DroneObject(final float x, final float y, final float z, final float radius) {
-		super(x, y, z, radius);
-		setBounds(new CylinderBounds(x, y, z, 5, radius));	// TODO height/radiusが適当
+	public DroneObject(final float x, final float y, final float z, final float scale) {
+		super(x, y, z, scale);
+		setBounds(new CylinderBounds(x, y, z, 5, scale));	// TODO height/radiusが適当
+		mFrontLeftRotorObj = new RotorObject(0, 0, 0, true);
+		mFrontRightRotorObj = new RotorObject(0, 0, 0, false);
+		mRearLeftRotorObj = new RotorObject(0, 0, 0, false);
+		mRearRightRotorObj = new RotorObject(0, 0, 0, true);
 	}
 
-	@Override
-	public void update(final float deltaTime) {
-		angle.x += 120 * deltaTime;	// とりあえずくりくりまわすだけ
-		angle.y += 137 * deltaTime;	// とりあえずくりくりまわすだけ
-		angle.z += 45 * deltaTime;	// とりあえずくりくりまわすだけ
-	}
-
-	public void update(final float deltaTime, final Vector force) {
-		// 境界位置の更新
-		bounds.position.set(position);
-	}
+	protected abstract Vector getOffset();
 }

@@ -85,9 +85,9 @@ public abstract class GLPolygonModel {
 //--------------------------------------------------------------------------------
 		// 原点をオフセット
 		gl.glTranslatef(
-			mPosition.x + mOffset.x,
-			mPosition.y + mOffset.y,
-			mPosition.z + mOffset.z);
+			mPosition.x/* + mOffset.x*/,
+			mPosition.y/* + mOffset.y*/,
+			mPosition.z/* + mOffset.z*/);
 		GLHelper.checkGlError(gl, "GLPolygonModel#glTranslatef");
 		// 回転
 		if (mAngle.x != 0) {
@@ -104,6 +104,8 @@ public abstract class GLPolygonModel {
 		}
 		// サイズ変更
 		gl.glScalef(mScale, mScale, mScale);
+		// モデルの原点をオフセット
+		gl.glTranslatef(mOffset.x, mOffset.y, mOffset.z);	// XXX
 		GLHelper.checkGlError(gl, "GLPolygonModel#glScalef");
 		// 描画
 		mVertex.draw(GL10.GL_TRIANGLES);		// vertex, indexの数はVertexクラスに任せる

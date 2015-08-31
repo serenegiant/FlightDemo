@@ -110,7 +110,7 @@ public class GLObjLoader {
 					continue;
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new RuntimeException("couldn't load '" + fileName + "'");
 		} finally {
 			if (in != null) {
