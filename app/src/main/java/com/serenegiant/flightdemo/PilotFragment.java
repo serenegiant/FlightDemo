@@ -37,6 +37,7 @@ import com.serenegiant.widget.SideMenuListView;
 import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
 import com.serenegiant.widget.TouchPilotView;
+import com.serenegiant.widget.gl.AttitudeView;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,6 +101,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	/** タッチ描画操縦 */
 	private final TouchFlight mTouchFlight;
 	private boolean mTouchMoveRunning;
+	/** モデル表示 */
+	private AttitudeView mModelView;
 
 	private VideoStream mVideoStream;
 
@@ -280,6 +283,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
 		mAlertMessage.setVisibility(View.INVISIBLE);
 
+		// 機体モデル表示
+		mModelView = (AttitudeView)rootView.findViewById(R.id.drone_view);
 		return rootView;
 	}
 

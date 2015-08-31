@@ -58,9 +58,9 @@ public class GLGraphics implements BaseGraphics {
 		// glReadPixelsはGL_RGBAとGL_UNSIGNED_BYTEの組み合わせ、または
 		// GL_IMPLEMENTATION_COLOR_READ_FORMAT_OESとGL_IMPLEMENTATION_COLOR_READ_TYPE_OES(glGetIntegervで取得する)
 		// の組み合わせの2通りのみ有効
-		readPixel.position(0);	// 使いまわしているのでpositionをリセットしないとダメ
+		readPixel.clear();	// 使いまわしているのでpositionをリセットしないとダメ
 		mGL.glReadPixels(x, y, 1, 1, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, readPixel);
-		readPixel.position(0);
+		readPixel.clear();
 		int cl = readPixel.getInt();
 		if (mNativeOrder == ByteOrder.LITTLE_ENDIAN) {
 			// color = (alpha << 24) | (red << 16) | (green << 8) | blue					ARGB

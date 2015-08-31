@@ -11,4 +11,7 @@ public interface IModelView {
 	//
 	public int getNextPickId();
 	public boolean isLandscape();
+
+	public void requestRender();
+	public void setFpsRequest(final float fps);
 }

@@ -1,14 +1,16 @@
 package com.serenegiant.widget.gl;
 
-import android.app.Activity;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public abstract class GLModelView extends GLSurfaceView implements IModelView {
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final String TAG = "GLModelView";
 
 	protected enum ModelState {
 		INITIALIZE,
@@ -20,7 +22,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 		FINISH
 	}
 
-	protected GLGraphics glGraphics;
+	protected final GLGraphics glGraphics;
 	protected Screen mScreen;
 	/** UIスレッドからscreenを切り替える際の中継用変数 */
 	protected Screen mNextScreen;
@@ -46,6 +48,13 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 
 	public GLModelView(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		if (DEBUG) Log.v(TAG, "コンストラクタ");
+		glGraphics = new GLGraphics(this);
+
+		setEGLConfigChooser(8, 8, 8, 8, 16, 1);	 // RGBA8888D16S1 これはsetContentView,　setRendererよりも前に呼び出すこと
+		setRenderer(renderer);
+//		getHolder().setFormat(PixelFormat.TRANSLUCENT);
+		setZOrderOnTop(false);	// これを入れないとadViewが上に表示されない
 	}
 
 	@Override
@@ -58,6 +67,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	public void onPause() {
 //		if (DEBUG) Log.v(TAG, "GLGameFragment#onPause:isFinishing=" + getActivity().isFinishing());
 		stopTimerThread();
+		mState = ModelState.PAUSE;
 		glActive = false;
 		super.onPause();
 	}
@@ -101,9 +111,9 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 				nano_time = System.nanoTime();
 				delta = nano_time - prevTime;
 				synchronized(mRendererSyncObj) {
-					if (mForceRender || (delta > mUpdateIntervals)) {			// 起床要求の時間確認
+					if (mForceRender || (delta > mUpdateIntervals)) {	// 起床要求の時間確認
 						prevTime = nano_time;
-						requestRender();				// レンダラースレッドを起床要求
+						GLModelView.super.requestRender();				// レンダラースレッドを起床要求
 						mForceRender = false;
 					} else {
 						try {
@@ -154,8 +164,9 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 			}
 
 			if (localState == ModelState.RUNNING) {	// 実行
-				deltaTime = (System.nanoTime() - mPrevTime) / 1000000000.0f;
-				mPrevTime = System.nanoTime();
+				final long t = System.nanoTime();
+				deltaTime = (t - mPrevTime) / 1000000000.0f;
+				mPrevTime = t;
 				mScreen.update(deltaTime);
 				mScreen.draw(deltaTime);
 				// 出来るだけこのタイミングでガベージコレクションが走って欲しいんだけど、頻度が高すぎる
@@ -324,14 +335,36 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 		return glGraphics;
 	}
 
+	private static int mNextPickId = 1;
 	@Override
 	public int getNextPickId() {
-		// FIXME 未実装
-		return 0;
+		return mNextPickId++;
 	}
 
 	@Override
 	public boolean isLandscape() {
 		return mIsLandscape;
 	}
+
+	@Override
+	public void requestRender() {
+		// 自前のスレッドで描画タイミングを制御しているのでここではGLSurfaceView#requestRenderは呼び出さない
+		synchronized (mRendererSyncObj) {
+			mForceRender = true;
+			mRendererSyncObj.notifyAll();
+		}
+	}
+
+	@Override
+	public void setFpsRequest(final float fps) {
+		synchronized (mRendererSyncObj) {
+			mFpsRequested = fps;
+			mContinueRendering = (fps > 0);
+			if (mContinueRendering)
+				mUpdateIntervals = (long)(1000 * 1000000 / fps);	// 更新頻度[ナノ秒]
+			else
+				mUpdateIntervals = 1000 * 1000000;					// 更新頻度1秒[ナノ秒]
+		}
+	}
+
 }

@@ -4,23 +4,23 @@ import com.serenegiant.math.Vector;
 
 public class GLLoadableModel extends GLPolygonModel {
 
-	public GLLoadableModel(GLGraphics glGraphics) {
+	public GLLoadableModel(final GLGraphics glGraphics) {
 		super(glGraphics, Vector.zeroVector);
 	}
 
-	public GLLoadableModel(GLGraphics glGraphics, Vector offset) {
+	public GLLoadableModel(final GLGraphics glGraphics, final Vector offset) {
 		super(glGraphics, offset);
 	}
 
-	public GLLoadableModel(GLGraphics glGraphics, Vector offset, float scale) {
+	public GLLoadableModel(final GLGraphics glGraphics, final Vector offset, final float scale) {
 		super(glGraphics, offset, scale);
 	}
 
-	public void loadModel(IModelView modelView, String fileName) {
+	public void loadModel(final IModelView modelView, final String fileName) {
 		mVertex = GLObjLoader.load(modelView,  fileName);
 	}
 	
-	public void loadModel(GLObjLoader objLoader) {
+	public void loadModel(final GLObjLoader objLoader) {
 		if (objLoader != null)
 			mVertex = objLoader.getVertex();
 	}

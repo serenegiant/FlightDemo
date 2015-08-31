@@ -122,6 +122,10 @@ public abstract class GLPolygonModel {
 		mPosition.set(x, y, z);
 	}
 
+	public Vector getPosition() {
+		return mPosition;
+	}
+
 	public void rotate(Vector angle) {
 		mAngle.set(angle);
 	}
