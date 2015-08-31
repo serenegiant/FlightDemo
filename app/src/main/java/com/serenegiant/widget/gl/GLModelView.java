@@ -295,21 +295,28 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 		}
 	};
 
+	/**
+	 * 表示画面を生成
+	 * @return
+	 */
 	protected abstract Screen getScreen();
 
 	@Override
 	public FileIO getAssetIO() {
-		return null;
+		final Context app = getContext().getApplicationContext();
+		return (app instanceof IModelViewApplication) ? ((IModelViewApplication)app).getAssetIO() : null;
 	}
 
 	@Override
 	public FileIO getExtFileIO() {
-		return null;
+		final Context app = getContext().getApplicationContext();
+		return (app instanceof IModelViewApplication) ? ((IModelViewApplication)app).getExtFileIO() : null;
 	}
 
 	@Override
 	public FileIO getFileIO() {
-		return null;
+		final Context app = getContext().getApplicationContext();
+		return (app instanceof IModelViewApplication) ? ((IModelViewApplication)app).getFileIO() : null;
 	}
 
 	@Override
@@ -319,6 +326,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 
 	@Override
 	public int getNextPickId() {
+		// FIXME 未実装
 		return 0;
 	}
 

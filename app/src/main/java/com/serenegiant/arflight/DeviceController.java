@@ -54,6 +54,7 @@ import com.parrot.arsdk.arnetwork.ARNetworkManager;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_ERROR_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.parrot.arsdk.arsal.ARNativeData;
+import com.serenegiant.math.Vector;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -1555,7 +1556,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/**
-	 * 北磁極に対する角度を設定・・・でもローリングスパイダーでは動かない
+	 * 北磁極に対する角度を設定・・・機体側で実装されてない
 	 * @param heading
 	 */
 	@Override

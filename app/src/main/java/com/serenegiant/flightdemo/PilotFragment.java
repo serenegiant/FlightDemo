@@ -29,9 +29,9 @@ import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.arflight.TouchFlight;
-import com.serenegiant.arflight.Vector;
 import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.dialog.SelectFileDialogFragment;
+import com.serenegiant.math.Vector;
 import com.serenegiant.utils.FileUtils;
 import com.serenegiant.widget.SideMenuListView;
 import com.serenegiant.widget.StickView;
@@ -991,11 +991,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		public void run() {
 			if ((mController != null) && mController.canGetAttitude()) {
 				mAttitude.set(mController.getAttitude());
+				mAttitude.toDegree();	// ラジアンを度に変換
 				final float altitude = mController.getAltitude();
 				if ((mCurrentRoll != mAttitude.x())
-						|| (mCurrentPitch != mAttitude.y()
-								|| (mCurrentYaw != mAttitude.z()))
-						|| (mCurrentAltitude != altitude)) {
+					|| (mCurrentPitch != mAttitude.y()
+					|| (mCurrentYaw != mAttitude.z()))
+					|| (mCurrentAltitude != altitude)) {
 
 					synchronized (mUpdateStatusUITask) {
 						mCurrentRoll = mAttitude.x();

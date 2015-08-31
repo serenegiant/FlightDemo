@@ -1,71 +1,134 @@
 package com.serenegiant.arflight;
 
 public class AttributePosition {
-	private static final double INVALID_VALUE = 500.0;
+	public static final double INVALID_VALUE = 500.0;
 
-	private double mLatitude;	// 緯度[度], 無効値:500.0
-	private double mLongitude;	// 経度[度], 無効値:500.0
-	private double mAltitude;	// 高度[m]
+	private boolean mGPSIsValid;
+	private double mGPSLatitude;	// 緯度[度], 無効値:500.0
+	private double mGPSLongitude;	// 経度[度], 無効値:500.0
+	private double mGPSAltitude;	// 高度[m], 無効値:500.0
+	private double mAltitude;		// 対地高度[m]
 
+	/**
+	 * コンストラクタ
+	 */
 	public AttributePosition() {
-		this(500.0, 500.0, 0);
-	}
-
-	public AttributePosition(final double latitude, final double longitude, final double altitude) {
-		mLatitude = latitude;
-		mLongitude = longitude;
-		mAltitude = altitude;
-	}
-
-	public AttributePosition(final AttributePosition other) {
-		mLatitude = other != null ? other.mLatitude : INVALID_VALUE;
-		mLongitude = other != null ? other.mLongitude : INVALID_VALUE;;
-		mAltitude = other != null ? other.mAltitude : 0;
-	}
-
-	public void set(final AttributePosition other) {
-		mLatitude = other != null ? other.mLatitude : INVALID_VALUE;
-		mLongitude = other != null ? other.mLongitude : INVALID_VALUE;;
-		mAltitude = other != null ? other.mAltitude : 0;
-	}
-
-	public void set(final double latitude, final double longitude, final double altitude) {
-		mLatitude = latitude;
-		mLongitude = longitude;
-		mAltitude = altitude;
-	}
-
-	public void latitude(final double latitude) {
-		mLatitude = latitude;
-	}
-	public double latitude() {
-		return mLatitude;
-	}
-
-	public void longitude(final double longitude) {
-		mLongitude = longitude;
-	}
-	public double longitude() {
-		return mLongitude;
-	}
-
-	public void altitude(final double altitude) {
-		mAltitude = altitude;
-	}
-	public double altitude() {
-		return mAltitude;
+		this(INVALID_VALUE, INVALID_VALUE, INVALID_VALUE);
 	}
 
 	/**
-		 * 2点間の距離を計算(高度差は考慮してない)
-		 * @param other
-		 * @return 距離[m]
-		 */
+	 * コンストラクタ(GPS座標を指定)
+	 * @param latitude
+	 * @param longitude
+	 * @param altitude
+	 */
+	public AttributePosition(final double latitude, final double longitude, final double altitude) {
+		mGPSLatitude = latitude;
+		mGPSLongitude = longitude;
+		mGPSAltitude = altitude;
+		mAltitude = 0;
+		mGPSIsValid = (latitude != INVALID_VALUE) && (longitude != INVALID_VALUE) && (altitude != INVALID_VALUE);
+	}
+
+	/**
+	 * コピーコンストラクタ
+	 * @param other
+	 */
+	public AttributePosition(final AttributePosition other) {
+		mGPSLatitude = other != null ? other.mGPSLatitude : INVALID_VALUE;
+		mGPSLongitude = other != null ? other.mGPSLongitude : INVALID_VALUE;;
+		mGPSAltitude = other != null ? other.mGPSAltitude : INVALID_VALUE;
+		mAltitude = other != null ? other.mAltitude : 0;
+		mGPSIsValid = other != null ? other.mGPSIsValid : false;
+	}
+
+	public boolean isGPSValid() {
+		return mGPSIsValid;
+	}
+
+	public void set(final AttributePosition other) {
+		mGPSLatitude = other != null ? other.mGPSLatitude : INVALID_VALUE;
+		mGPSLongitude = other != null ? other.mGPSLongitude : INVALID_VALUE;;
+		mGPSAltitude = other != null ? other.mAltitude : INVALID_VALUE;
+		mAltitude = other != null ? other.mAltitude : 0;
+		mGPSIsValid = other != null ? other.mGPSIsValid : false;
+	}
+
+	/**
+	 * GPS座標をセット
+	 * @param latitude
+	 * @param longitude
+	 * @param altitude
+	 */
+	public void set(final double latitude, final double longitude, final double altitude) {
+		mGPSLatitude = latitude;
+		mGPSLongitude = longitude;
+		mGPSAltitude = altitude;
+		mGPSIsValid = (latitude != INVALID_VALUE) && (longitude != INVALID_VALUE) && (altitude != INVALID_VALUE);
+	}
+
+
+	/**
+	 * GPS緯度をセット
+	 * @param latitude
+	 */
+	public void latitude(final double latitude) {
+		mGPSLatitude = latitude;
+		mGPSIsValid = mGPSIsValid && (latitude != INVALID_VALUE);
+	}
+
+	/**
+	 * GPS緯度を取得
+	 * @return
+	 */
+	public double latitude() {
+		return mGPSLatitude ;
+	}
+
+	/**
+	 * GPS経度をセット
+	 * @param longitude
+	 */
+	public void longitude(final double longitude) {
+		mGPSLongitude = longitude;
+		mGPSIsValid = mGPSIsValid && (longitude != INVALID_VALUE);
+	}
+
+	/**
+	 * GPS経度を取得
+	 * @return
+	 */
+	public double longitude() {
+		return mGPSLongitude;
+	}
+
+	/**
+	 * 高度をセット、これでセットするのは対地高度
+	 * @param altitude
+	 */
+	public void altitude(final double altitude) {
+		mAltitude = altitude;
+		mGPSIsValid = mGPSIsValid && (altitude != INVALID_VALUE);
+	}
+
+	/**
+	 * GPS高度が無効値でなければGPS高度を返す。GPS高度が無効値ならば通常の高度を返す
+	 * @return
+	 */
+	public double altitude() {
+		return mGPSAltitude != INVALID_VALUE ? mGPSAltitude : mAltitude;
+	}
+
+	/**
+	 * 2点間の距離を計算(高度差は考慮してない)
+	 * @param other
+	 * @return 距離[m]
+	 */
 	public double distance(final AttributePosition other) {
 		if ((other == null)
-			|| (mLatitude >= INVALID_VALUE) || (mLongitude >= INVALID_VALUE)
-			|| (other.mLatitude >= INVALID_VALUE) || (other.mLongitude >= INVALID_VALUE)) return 0;
-		return calcDistHubeny(mLatitude, mLongitude, other.mLatitude, other.mLongitude);
+			|| (mGPSLatitude >= INVALID_VALUE) || (mGPSLongitude >= INVALID_VALUE)
+			|| (other.mGPSLatitude >= INVALID_VALUE) || (other.mGPSLongitude >= INVALID_VALUE)) return 0;
+		return calcDistHubeny(mGPSLatitude, mGPSLongitude, other.mGPSLatitude, other.mGPSLongitude);
 	}
 
 	// 緯度経度と距離の変換用

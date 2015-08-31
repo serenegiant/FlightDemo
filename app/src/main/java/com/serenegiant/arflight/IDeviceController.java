@@ -1,6 +1,7 @@
 package com.serenegiant.arflight;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.serenegiant.math.Vector;
 
 import java.sql.Date;
 
@@ -188,7 +189,8 @@ public interface IDeviceController {
 	 */
 	public boolean canGetAttitude();
 	/**
-	 * 機体姿勢を取得
+	 * 機体姿勢を取得(ラジアン)
+	 * x:roll, y:pitch, z:yaw
 	 * @return
 	 */
 	public Vector getAttitude();

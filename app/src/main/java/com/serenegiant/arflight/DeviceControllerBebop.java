@@ -220,7 +220,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			= new ARCommandARDrone3PilotingStateFlatTrimChangedListener() {
 		@Override
 		public void onARDrone3PilotingStateFlatTrimChangedUpdate() {
-			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateFlatTrimChangedUpdate:");
 			callOnFlatTrimChanged();
 		}
 	};
@@ -234,7 +233,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3PilotingStateFlyingStateChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
-			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateFlyingStateChangedUpdate:");
 			mStatus.setFlyingState(state.getValue());
 			callOnFlyingStateChangedUpdate(getState());
 		}
@@ -250,7 +248,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		public void onARDrone3PilotingStateAlertStateChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM state) {
 
-			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateAlertStateChangedUpdate:");
 			mStatus.setAlarm(state.getValue());
 			callOnAlarmStateChangedUpdate(getAlarm());
 		}
@@ -287,7 +284,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 					}
 				}
 			}
-			// FIXME
+			// FIXME UI側へ異常を通知する
 		}
 	};
 
@@ -304,11 +301,12 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		public void onARDrone3SettingsStateMotorErrorLastErrorChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORLASTERRORCHANGED_MOTORERROR_ENUM error) {
 			if (DEBUG) Log.v(TAG, "onARDrone3SettingsStateMotorErrorLastErrorChangedUpdate:" + error);
+			// FIXME 未実装
 		}
 	};
 
 	/**
-	 * 自動離陸モードを受信した時のコールバックリスナー
+	 * 自動離陸モード設定を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3PilotingStateAutoTakeOffModeChangedListener
 		mPilotingStateAutoTakeOffModeChangedListener
@@ -318,7 +316,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3PilotingStateAutoTakeOffModeChangedUpdate(final byte state) {
-			if (DEBUG) Log.v(TAG, "onARDrone3PilotingStateAutoTakeOffModeChangedUpdate:");
 			mSettings.setAutoTakeOffMode(state != 0);
 		}
 	};
@@ -340,7 +337,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final String ssid, final short rssi,
 			final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_BAND_ENUM band,
 			final byte channel) {
-			// FIXME
+			// FIXME 未実装
 		}
 	};
 
@@ -352,7 +349,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			= new ARCommandARDrone3NetworkStateAllWifiScanChangedListener() {
 		@Override
 		public void onARDrone3NetworkStateAllWifiScanChangedUpdate() {
-			// FIXME
+			// FIXME 未実装
 		}
 	};
 
@@ -372,7 +369,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFIAUTHCHANNELLISTCHANGED_BAND_ENUM band,
 			final byte channel,
 			final byte in_or_out) {
-			// FIXME
+			// FIXME 未実装
 		}
 	};
 
@@ -384,7 +381,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			= new ARCommandARDrone3NetworkStateAllWifiAuthChannelChangedListener() {
 		@Override
 		public void onARDrone3NetworkStateAllWifiAuthChannelChangedUpdate() {
-			// FIXME
+			// FIXME 未実装
 		}
 	};
 
@@ -404,7 +401,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM type,
 			final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM band,
 			final byte channel) {
-			// FIXME
+			// FIXME 未実装
 		}
 	};
 
@@ -424,7 +421,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3SettingsStateProductMotorVersionListChangedUpdate(
 			final byte motor, final String type, final String software, final String hardware) {
-			if (DEBUG) Log.v(TAG, "onARDrone3SettingsStateProductMotorVersionListChangedUpdate:");
 			try {
 				final int ix = (motor - 1) % getMotorNums();
 				final AttributeMotor _motor = mStatus.getMotor(ix);
@@ -450,7 +446,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		public void onARDrone3SettingsStateProductGPSVersionChangedUpdate(
 			final String software, final String hardware) {
 
-			if (DEBUG) Log.v(TAG, "onARDrone3SettingsStateProductGPSVersionChangedUpdate:");
 			mGPS.set(software, hardware);
 		}
 	};
@@ -488,7 +483,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		public void onARDrone3PilotingSettingsStateMaxAltitudeChangedUpdate(
 			final float current, final float min, final float max) {
 			mSettings.setMaxAltitude(current, min, max);
-			if (DEBUG) Log.v(TAG, "onARDrone3PilotingSettingsStateMaxAltitudeChangedUpdate:");
 		}
 	};
 
@@ -507,12 +501,11 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		public void onARDrone3PilotingSettingsStateMaxTiltChangedUpdate(
 			final float current, final float min, final float max) {
 			mSettings.setMaxTilt(current, min, max);
-			if (DEBUG) Log.v(TAG, "onARDrone3PilotingSettingsStateMaxTiltChangedUpdate:");
 		}
 	};
 
 	/**
-	 * AbsoluteControlChanged(ってなんやろ)を受信した時
+	 * AbsoluteControlChanged(ってなんやろ)を受信した時, 機体側で実装されてないみたい
 	 */
 	private final ARCommandARDrone3PilotingSettingsStateAbsolutControlChangedListener
 		mPilotingSettingsStateAbsolutControlChangedListener
@@ -522,7 +515,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3PilotingSettingsStateAbsolutControlChangedUpdate(final byte onoff) {
-			// FIXME
+			// FIXME 未実装
 		}
 	};
 
@@ -541,7 +534,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		public void onARDrone3SpeedSettingsStateMaxVerticalSpeedChangedUpdate(
 			final float current, final float min, final float max) {
 			mSettings.setMaxVerticalSpeed(current, min, max);
-			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateMaxVerticalSpeedChangedUpdate:");
 		}
 	};
 
@@ -560,7 +552,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		public void onARDrone3SpeedSettingsStateMaxRotationSpeedChangedUpdate(
 			final float current, final float min, final float max) {
 			mSettings.setMaxRotationSpeed(current, min, max);
-			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateMaxRotationSpeedChangedUpdate:");
 		}
 	};
 
@@ -575,7 +566,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3SpeedSettingsStateHullProtectionChangedUpdate(final byte present) {
-			if (DEBUG) Log.v(TAG, "onARDrone3SpeedSettingsStateHullProtectionChangedUpdate:");
 			mSettings.setHasGuard(present != 0);
 		}
 	};
@@ -583,7 +573,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	/** 室外モードか室内モードかを受信した時 */
 	private boolean mOutdoorMode;
 	/**
-	 * 室外モードか室内モードかが変更された時
+	 * 室外モードか室内モードを受信した時
 	 */
 	private final ARCommandARDrone3SpeedSettingsStateOutdoorChangedListener
 		mSpeedSettingsStateOutdoorChangedListener
@@ -598,7 +588,9 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 飛行速度設定を受信した時
+	 * 飛行速度を受信した時<br>
+	 * GPS座標から計算しているみたいなのでGPSを受信してないと0しか返ってこない<br>
+	 * 数百ミリ秒に１回程度呼び出される
 	 */
 	private final ARCommandARDrone3PilotingStateSpeedChangedListener
 		mPilotingStateSpeedChangedListener
@@ -610,7 +602,9 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3PilotingStateSpeedChangedUpdate(
-																 final float speedX, final float speedY, final float speedZ) {
+			final float speedX, final float speedY, final float speedZ) {
+
+//			if (DEBUG) Log.v(TAG, String.format("SpeedChangedUpdate(%f,%f,%f)", speedX, speedY, speedZ));
 			mStatus.setSpeed(speedY, speedX, -speedZ);
 		}
 	};
@@ -629,7 +623,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3SettingsStateMotorFlightsStatusChangedUpdate(
 			final short nbFlights, final short lastFlightDuration, final int totalFlightDuration) {
-			// FIXME
+
+			mStatus.setFlightDuration(nbFlights, lastFlightDuration, totalFlightDuration);
 		}
 	};
 
@@ -650,7 +645,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * 機体位置を受信した時
+	 * 機体位置(GPS座標)を受信した時
 	 */
 	private final ARCommandARDrone3PilotingStatePositionChangedListener
 		mPilotingStatePositionChangedListener
@@ -658,7 +653,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		/**
 		 * @param latitude GPS緯度[度] (500.0: 不明)
 		 * @param longitude GPS経度[度] (500.0: 不明)
-		 * @param altitude GPS高度[m](from GPS)
+		 * @param altitude GPS高度[m](500.0: 不明)
 		 */
 		@Override
 		public void onARDrone3PilotingStatePositionChangedUpdate(
@@ -675,9 +670,9 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		mPilotingStateAttitudeChangedListener
 		= new ARCommandARDrone3PilotingStateAttitudeChangedListener() {
 		/**
-		 * @param roll roll value (in radian)
-		 * @param pitch Pitch value (in radian)
-		 * @param yaw Yaw value (in radian)
+		 * @param roll 機体の横回転(ラジアン), 右に回転すると正、左に回転すると負, [-π,+π]
+		 * @param pitch 機種の上下(ラジアン), 機種を上げると正、機種を下げると負, [-π,+π]
+		 * @param yaw 機体の水平回転(ラジアン), 多分北磁極が０、東向きが正, 西向きが負, [-π,+π]
 		 */
 		@Override
 		public void onARDrone3PilotingStateAttitudeChangedUpdate(
@@ -688,7 +683,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * ホーム位置を受信した時
+	 * ホーム位置(GPS座標)を受信した時
 	 */
 	private final ARCommandARDrone3GPSSettingsStateHomeChangedListener
 		mGPSSettingsStateHomeChangedListener
@@ -701,12 +696,13 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3GPSSettingsStateHomeChangedUpdate(
 			final double latitude, final double longitude, final double altitude) {
-			// FIXME
+
+			mStatus.setHome(latitude, longitude, altitude);
 		}
 	};
 
 	/**
-	 * ホーム位置がリセットされた時
+	 * ホーム位置(GPS座標)がリセットされた時
 	 */
 	private final ARCommandARDrone3GPSSettingsStateResetHomeChangedListener
 		mGPSSettingsStateResetHomeChangedListener
@@ -719,7 +715,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3GPSSettingsStateResetHomeChangedUpdate(
 			final double latitude, final double longitude, final double altitude) {
-			// FIXME
+
+			mStatus.setHome(latitude, longitude, altitude);
 		}
 	};
 
@@ -777,10 +774,18 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3GPSSettingsStateGPSUpdateStateChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_ENUM state) {
-			// state=0: Drone GPS update succeed
-			// state=1: Drone GPS update In progress
-			// state=2: Drone GPS update failed
-			// FIXME
+			switch (state) {
+			case ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_UPDATED:
+				// 0: Drone GPS update succeed
+				break;
+			case ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_INPROGRESS:
+				// 1: Drone GPS update In progress
+				break;
+			case ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_FAILED:
+				// 2: Drone GPS update failed
+				mStatus.setPosition(AttributePosition.INVALID_VALUE, AttributePosition.INVALID_VALUE, AttributePosition.INVALID_VALUE);
+				break;
+			}
 		}
 	};
 
@@ -798,6 +803,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		public void onARDrone3MediaRecordStatePictureStateChangedUpdate(
 			final byte state, final byte mass_storage_id) {
 			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStatePictureStateChangedUpdate:");
+			// FIXME 未実装
 		}
 	};
 
@@ -813,6 +819,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR_ENUM error) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStatePictureStateChangedV2Update:state=" + state + ",error=" + error);
+			// FIXME 未実装
 		}
 	};
 
@@ -828,6 +835,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM error) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordEventPictureEventChangedUpdate:event=" + event + ",error=" + error);
+			// FIXME 未実装
 		}
 	};
 
@@ -844,7 +852,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3MediaRecordStateVideoStateChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED_STATE_ENUM state, final byte mass_storage_id) {
-			// FIXME
+			// FIXME 未実装
 //			0: Video was stopped
 //			1: Video was started
 //			2: Video was failed
@@ -870,7 +878,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final ARCOMMANDS_ARDRONE3_PICTURESETTINGSSTATE_PICTUREFORMATCHANGED_TYPE_ENUM type) {
 			if (mPictureFormat != type.getValue()) {
 				mPictureFormat = type.getValue();
-				// FIXME
+				// FIXME 未実装
 			}
 		}
 	};
@@ -954,7 +962,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3PictureSettingsStateVideoAutorecordChangedUpdate(
 			final byte enabled, final byte mass_storage_id) {
-			// FIXME
+			// FIXME 未実装
 		}
 	};
 
@@ -987,7 +995,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3CameraStateOrientationUpdate(
 			final byte tilt, final byte pan) {
-			// FIXME
+			// FIXME 未実装
 		}
 	};
 
@@ -1002,7 +1010,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedUpdate(final byte drone2BatteryUsed) {
-			// FIXME
+			// FIXME 未実装
 		}
 	};
 
@@ -1017,7 +1025,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate(final byte nbSatellite) {
-			// FIXME
+			// FIXME 未実装
 		}
 	};
 
@@ -1477,6 +1485,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 			cmdError = cmd.setARDrone3PictureSettingsAutoWhiteBalanceSelection(type);
 		} else {
+			// FIXME 手動設定の時の設定値はどうやって設定するんやろ?
 			cmdError = cmd.setARDrone3DebugVideoManualWhiteBalance();
 		}
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
@@ -1539,7 +1548,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	}
 
 	/**
-	 * タイムラプス設定
+	 * タイムラプス設定(一定時間毎に自動撮影)
 	 * @param enabled
 	 * @param interval 撮影間隔[秒]
 	 * @return
@@ -1660,7 +1669,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 // GPS関係
 //********************************************************************************
 	/**
-	 * ホーム位置を設定
+	 * ホーム位置を設定(GPS座標)
 	 * @param latitude 緯度[度]
 	 * @param longitude 経度[度]
 	 * @param altitude 高度[m]
@@ -1707,7 +1716,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	}
 
 	/**
-	 * ナビゲーションホーム実行
+	 * ナビゲーションホーム実行(FIXME GPS座標が無効なら無視したほうが良い?)
 	 * @param start
 	 * @return
 	 */
@@ -1812,16 +1821,18 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			try {
 				try {
 					if (current != rotation_speed.max()) {
+						// 最大回転速度に変更する
 						sendMaxRotationSpeed(rotation_speed.max());
 						Thread.sleep(5);
 					}
-					final long t = (long) Math.abs(degree / rotation_speed.max() * 1000);    // 回転時間[ミリ秒]
+					final long t = (long) Math.abs(degree / rotation_speed.max() * 1000);    // 回転時間[ミリ秒]を計算
 					setYaw(degree > 0 ? 100 : -100);
 					Thread.sleep(t + 5);
 				} catch (InterruptedException e) {
 				}
 				setYaw(0);
 			} finally {
+				// 元の回転速度設定に戻す
 				sendMaxRotationSpeed(current);
 			}
 		}
@@ -1845,7 +1856,9 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 	}
 
-	/** ビデオストリーミングデータを受信するためのスレッド */
+	/**
+	 * ビデオストリーミングデータを受信するためのスレッド
+	 */
 	private class VideoThread extends LooperThread {
 		private final ARStreamManager streamManager;
 
@@ -1891,17 +1904,21 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		}
 	}
 
+	/**
+	 * ビデオストリーミングデータ受信スレッドを開始
+	 */
 	protected void startVideoThread() {
 		if (DEBUG) Log.v(TAG, "startVideoThread");
-		if (mVideoThread != null) {
-			mVideoThread.stopThread();
-		}
+		// 既に動いていれば一旦停止させる
+		stopVideoThread();
 		mVideoThread = new VideoThread();
 		mVideoThread.start();
 		if (DEBUG) Log.v(TAG, "startVideoThread:終了");
 	}
 
-	/** ストリーミングデータ受信スレッドを終了(終了するまで戻らない) */
+	/**
+	 * ストリーミングデータ受信スレッドを終了(終了するまで戻らない)
+	 */
 	protected void stopVideoThread() {
 		if (DEBUG) Log.v(TAG, "stopVideoThread:");
         /* Cancel the looper thread and block until it is stopped. */

@@ -1,5 +1,7 @@
 package com.serenegiant.arflight;
 
+import com.serenegiant.math.Vector;
+
 public class DroneStatus {
 	public static final int STATE_FLYING_LANDED = 0x0000;	// FlyingState=0
 	public static final int STATE_FLYING_TAKEOFF = 0x0100;	// FlyingState=1
@@ -101,11 +103,65 @@ public class DroneStatus {
 		}
 	}
 
-	private Vector mSpeed = new Vector();		// 移動速度[m/s]
-	private Vector mAttitude = new Vector();	// 機体姿勢[度]
+	private AttributePosition mHomePosition = new AttributePosition();
 
 	/**
-	 * 機体の移動速度設定(ParrotのSDKから返ってくる値とxy順番、zの符号が違うので注意)
+	 * 座標をセット
+	 * @param latitude
+	 * @param longitude
+	 * @param altitude
+	 */
+	public void setHome(final double latitude, final double longitude, final double altitude) {
+		synchronized (mSync) {
+			mPosition.set(latitude, longitude, altitude);
+		}
+	}
+
+	/** 経度をセット */
+	public void homeLatitude(final double latitude) {
+		synchronized (mSync) {
+			mPosition.latitude(latitude);
+		}
+	}
+	/** 緯度を取得[度] */
+	public double homeLatitude() {
+		synchronized (mSync) {
+			return mPosition.latitude();
+		}
+	}
+
+	/** 経度をセット */
+	public void homeLongitude(final double longitude) {
+		synchronized (mSync) {
+			mPosition.longitude(longitude);
+		}
+	}
+	/** 経度を取得[度] */
+	public double homeLongitude() {
+		synchronized (mSync) {
+			return mPosition.longitude();
+		}
+	}
+
+	/** 高度[m]を設定  */
+	public void homeAltitude(final double altitude) {
+		synchronized (mSync) {
+			mPosition.altitude(altitude);
+		}
+	}
+	/** 高度[m]を取得 */
+	public double homeAltitude() {
+		synchronized (mSync) {
+			return mPosition.altitude();
+		}
+	}
+
+	/** 移動速度[m/s] */
+	private Vector mSpeed = new Vector();
+
+	/**
+	 * 機体の移動速度(ParrotのSDKから返ってくる値とxy順番、zの符号が違うので注意)<br>
+	 * GPS座標から計算しているみたいなのでGPSを受信してないと0しか返ってこない
 	 * @param x 左右方向の移動速度[m/s] (正:右)
 	 * @param y 前後方向の移動速度[m/s] (正:前進)
 	 * @param z 上下方向の移動速度[m/s] (正:上昇)
@@ -117,7 +173,8 @@ public class DroneStatus {
 	}
 
 	/**
-	 * 機体の移動速度設定(ParrotのSDKから返ってくる値とxyの順番、zの符号が違うので注意)
+	 * 機体の移動速度設定(ParrotのSDKから返ってくる値とxyの順番、zの符号が違うので注意)<br>
+	 * GPS座標から計算しているみたいなのでGPSを受信してないと0しか返ってこない
  	 * @return
 	 */
 	public Vector speed() {
@@ -126,11 +183,14 @@ public class DroneStatus {
 		}
 	}
 
+	/** 機体姿勢[ラジアン] */
+	private Vector mAttitude = new Vector();
+
 	/**
 	 * 機体姿勢をセット
-	 * @param roll
-	 * @param pitch
-	 * @param yaw
+	 * @param roll ラジアン
+	 * @param pitch ラジアン
+	 * @param yaw ラジアン
 	 */
 	public void setAttitude(final float roll, final float pitch, final float yaw) {
 		synchronized (mSync) {
@@ -139,7 +199,7 @@ public class DroneStatus {
 	}
 
 	/**
-	 * 機体姿勢を取得
+	 * 機体姿勢を取得(ラジアン)
 	 * @return Vector(x=roll, y=pitch, z=yaw)
 	 */
 	public Vector attitude() {
@@ -148,6 +208,46 @@ public class DroneStatus {
 		}
 	}
 
+	/**
+	 * 飛行回数, 飛行時間, 合計飛行時間
+	 */
+	private AttributeFlightDuration mAttributeFlightDuration = new AttributeFlightDuration();
+
+	public AttributeFlightDuration setFlightDuration(final int counts, final int duration, final int total) {
+		synchronized (mSync) {
+			return mAttributeFlightDuration.set(counts, duration, total);
+		}
+	}
+
+	/**
+	 * 飛行回数を取得
+	 * @return
+	 */
+	public int flightCounts() {
+		synchronized (mSync) {
+			return mAttributeFlightDuration.counts();
+		}
+	}
+
+	/**
+	 * 飛行時間を取得
+	 * @return
+	 */
+	public int flightDuration() {
+		synchronized (mSync) {
+			return mAttributeFlightDuration.duration();
+		}
+	}
+
+	/**
+	 * 合計飛行時間を取得
+	 * @return
+	 */
+	public int flightTotalDuration() {
+		synchronized (mSync) {
+			return mAttributeFlightDuration.total();
+		}
+	}
 //********************************************************************************
 //********************************************************************************
 	/** 飛行状態をセット */
