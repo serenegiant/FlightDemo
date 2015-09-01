@@ -29,7 +29,6 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 	protected ModelState mState = ModelState.INITIALIZE;
 	protected final Object mStateSyncObj = new Object();
 	protected long mPrevTime = System.nanoTime();
-	private TimerThread timerThread = null;
 	private long mGameThreadID;
 	private boolean mIsLandscape;
 	//
@@ -55,16 +54,14 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 //		getHolder().setFormat(PixelFormat.TRANSLUCENT);
 	}
 
-	@Override
+/*	@Override
 	public void onResume() {
 		super.onResume();
-		startTimerThread();
-	}
+	} */
 
 	@Override
 	public void onPause() {
 //		if (DEBUG) Log.v(TAG, "GLGameFragment#onPause:isFinishing=" + getActivity().isFinishing());
-		stopTimerThread();
 		synchronized (mStateSyncObj) {
 			mState = ModelState.PAUSE;
 			if (glActive) {
@@ -78,90 +75,7 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 		super.onPause();
 	}
 
-	/**
-	 * タイマースレッドが存在しなければ生成する
-	 */
-	private void startTimerThread() {
-		if (DEBUG) Log.v(TAG, "startTimerThread:");
-		if (timerThread == null) {
-			timerThread = new TimerThread();
-			timerThread.start();
-		}
-	}
-
-	/**
-	 * タイマースレッドが存在すれば停止・破棄する
-	 */
-	private void stopTimerThread() {
-		if (DEBUG) Log.v(TAG, "stopTimerThread:");
-		if (timerThread != null) {
-			timerThread.pause();
-			timerThread = null;
-		}
-	}
-
-	/**
-	 * 一定時間毎にGLSurfaceViewのレンダラースレッドを起床させるスレッド
-	 * このスレッドが起床要求するかtouchEvent/accelEventが発生するとレンダラースレッドが起床される
-	 *
-	 */
-	private class TimerThread extends Thread {
-		public volatile boolean isRunning = true;
-
-		@Override
-		public void run() {
-			if (DEBUG) Log.v(TAG, "TimerThread#run:");
-			long prevTime = System.nanoTime();
-
-//			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);	// requestRenderが呼ばれた時だけ描画する
-			for ( ; isRunning ; ) {
-				final long nano_time = System.nanoTime();
-				final long delta = nano_time - prevTime;
-				synchronized(mRendererSyncObj) {
-					if (mForceRender || (delta > mUpdateIntervals)) {	// 起床要求の時間確認
-						prevTime = nano_time;
-//						GLTextureModelView.super.requestRender();		// レンダラースレッドを起床要求
-						mForceRender = false;
-					} else {
-						try {
-							mRendererSyncObj.wait(5);	// 5msecが経過するか、別スレッドからnotifyされるまで待つ。
-						} catch (final InterruptedException e) {
-						}
-					}
-				}
-			}
-//			setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);	// 連続描画に戻す
-			synchronized (mRendererSyncObj) {
-				mRendererSyncObj.notifyAll();
-			}
-			if (DEBUG) Log.v(TAG, "TimerThread#run:終了");
-		}
-
-		public void pause() {
-			if (DEBUG) Log.v(TAG, "TimerThread#pause:");
-			isRunning = false;
-			synchronized (mRendererSyncObj) {
-				while (true) {
-					try {
-						mRendererSyncObj.wait();
-						break;
-					} catch (final InterruptedException e) {
-						// リトライ
-					}
-				}
-			}
-			while (isAlive()) {
-				try {
-					join();
-					break;
-				} catch (final InterruptedException e) {
-					// リトライする
-				}
-			}
-		}
-	}
-
-	// GLSurfaceViewのレンダラー
+	// GLTextureViewのレンダラー
 	private final Renderer renderer = new Renderer() {
 		float deltaTime;
 		@Override
