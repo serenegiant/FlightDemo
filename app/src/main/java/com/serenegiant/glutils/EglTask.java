@@ -18,6 +18,7 @@ package com.serenegiant.glutils;
 */
 
 import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.opengles.GL;
 
 import com.serenegiant.utils.MessageTask;
 
@@ -33,15 +34,20 @@ public abstract class EglTask extends MessageTask {
 
 	public EglTask(final EGLContext shared_context, final int flags) {
 //		if (DEBUG) Log.i(TAG, "shared_context=" + shared_context);
-		init(flags, 0, shared_context);
+		init(flags, 3, shared_context);
+	}
+
+	public EglTask(final int max_version, final EGLContext shared_context, final int flags) {
+//		if (DEBUG) Log.i(TAG, "shared_context=" + shared_context);
+		init(flags, max_version, shared_context);
 	}
 
 	@Override
-	protected void onInit(final int request, final int arg1, final int arg2, final Object obj) {
-		if ((obj == null) || (obj instanceof EGLContext))
-			mEgl = new EGLBase(((EGLContext)obj),
-				(arg1 & EGL_FLAG_DEPTH_BUFFER) == EGL_FLAG_DEPTH_BUFFER,
-				(arg1 & EGL_FLAG_RECORDABLE) == EGL_FLAG_RECORDABLE);
+	protected void onInit(final int request, final int flags, final int max_version, final Object shared_context) {
+		if ((shared_context == null) || (shared_context instanceof EGLContext))
+			mEgl = new EGLBase(max_version, ((EGLContext)shared_context),
+				(flags & EGL_FLAG_DEPTH_BUFFER) == EGL_FLAG_DEPTH_BUFFER,
+				(flags & EGL_FLAG_RECORDABLE) == EGL_FLAG_RECORDABLE);
 		if (mEgl == null) {
 			callOnError(new RuntimeException("failed to create EglCore"));
 			releaseSelf();
@@ -75,6 +81,10 @@ public abstract class EglTask extends MessageTask {
 
 	protected EGLContext getContext() {
 		return mEgl != null ? mEgl.getContext() : null;
+	}
+
+	protected GL getGl() {
+		return mEgl != null ? mEgl.getGl() : null;
 	}
 
 	protected void makeCurrent() {

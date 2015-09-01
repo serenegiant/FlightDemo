@@ -11,7 +11,7 @@ import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
 
 public class GLGraphics implements BaseGraphics {
-	private final GLSurfaceView mGLView;
+	private final IModelView mGLView;
 	private GL10 mGL;
 	final ByteOrder mNativeOrder = ByteOrder.nativeOrder();
 	final ByteBuffer readPixel;
@@ -20,7 +20,7 @@ public class GLGraphics implements BaseGraphics {
 	protected static final int[] viewPort = new int[4];
 	protected static final float[] pos = new float[4];
 
-	public GLGraphics(final GLSurfaceView glView) {
+	public GLGraphics(final IModelView glView) {
 		mGLView = glView;
 		readPixel = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder());
 	}

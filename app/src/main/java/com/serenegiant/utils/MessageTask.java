@@ -239,7 +239,7 @@ LOOP:	for (; mIsRunning; ) {
 	/**
 	 * offer request to run on worker thread
 	 * @param request minus values and zero are reserved
-	 * @param arg1
+	 * @param obj
 	 */
 	public void offer(final int request, final Object obj) {
 		mRequestQueue.offer(obtain(request, 0, 0, obj));

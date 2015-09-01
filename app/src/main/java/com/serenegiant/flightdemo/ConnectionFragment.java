@@ -15,6 +15,7 @@ import android.widget.ListView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
+import com.serenegiant.widget.gl.IModelView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class ConnectionFragment extends Fragment {
 	}
 
 	private ListView mDeviceListView;
+	private IModelView mModelView;
 
 	public ConnectionFragment() {
 		super();
@@ -58,12 +60,14 @@ public class ConnectionFragment extends Fragment {
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		manager.startDiscovery();
 		manager.addCallback(mManagerCallback);
+		mModelView.onResume();
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.d(TAG, "onPause:");
 
+		mModelView.onPause();
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		manager.removeCallback(mManagerCallback);
 		manager.stopDiscovery();
@@ -86,6 +90,7 @@ public class ConnectionFragment extends Fragment {
 		mDeviceListView.setEmptyView(empty_view);
 		mDeviceListView.setAdapter(adapter);
 		mDeviceListView.setOnItemClickListener(mOnItemClickListener);
+		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 	}
 
 	/**

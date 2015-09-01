@@ -16,6 +16,8 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
+import javax.microedition.khronos.opengles.GL;
+import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
@@ -29,7 +31,7 @@ import com.serenegiant.utils.BuildCheck;
  * EGLを使用してSurfaceおよびオフスクリーン(PBuffer)へOpenGL|ESで描画をするためのクラス
  */
 public class EGLBase {
-//	private static final boolean DEBUG = false;	// FIXME set false on release
+	private static final boolean DEBUG = true;	// FIXME set false on release
 	private static final String TAG = "EGLBase";
 
     private static final int EGL_RECORDABLE_ANDROID = 0x3142;
@@ -77,11 +79,15 @@ public class EGLBase {
 
 		/**
 		 * 指定したEGLSurfaceをカレントの描画Surfaceに設定する
-		 * Surface全面に描画できるようにViewportも変更するので必要であればswapの後に変更すること
+		 * Surface全面に描画できるようにViewportも変更するので必要であればmakeCurrentの後に変更すること
 		 */
 		public void makeCurrent() {
 			mEgl.makeCurrent(mEglSurface);
-			GLES20.glViewport(0, 0, mEgl.getSurfaceWidth(mEglSurface), mEgl.getSurfaceHeight(mEglSurface));
+			if (mEgl.mGlVersion >= 2) {
+				GLES20.glViewport(0, 0, mEgl.getSurfaceWidth(mEglSurface), mEgl.getSurfaceHeight(mEglSurface));
+			} else {
+				((GL10)mEgl.getGl()).glViewport(0, 0, mEgl.getSurfaceWidth(mEglSurface), mEgl.getSurfaceHeight(mEglSurface));
+			}
 		}
 
 		/**
@@ -114,7 +120,19 @@ public class EGLBase {
 	 */
 	public EGLBase(final EGLContext shared_context, final boolean with_depth_buffer, final boolean isRecordable) {
 //		if (DEBUG) Log.v(TAG, "EGLBase:");
-		init(shared_context, with_depth_buffer, isRecordable);
+		init(3, shared_context, with_depth_buffer, isRecordable);
+	}
+
+	/**
+	 * コンストラクタ
+	 * @param max_version 生成するEGLコンテキストの最大バージョン, 1:ES1, 2:ES2, 3:ES3 共有コンテキストを使用するときは元と合わせる
+	 * @param shared_context  共有コンテキストを使用する場合に指定
+	 * @param with_depth_buffer
+	 * @param isRecordable trueならMediaCodec等の録画用Surfaceを使用する場合に、EGL_RECORDABLE_ANDROIDフラグ付きでコンフィグする
+	 */
+	public EGLBase(final int max_version, final EGLContext shared_context, final boolean with_depth_buffer, final boolean isRecordable) {
+//		if (DEBUG) Log.v(TAG, "EGLBase:");
+		init(max_version, shared_context, with_depth_buffer, isRecordable);
 	}
 
 	/**
@@ -171,6 +189,25 @@ public class EGLBase {
 	}
 
 	/**
+	 * 現在のEGLレンダリングコンテキストの設定を取得する
+	 * @return
+	 */
+	public EGLConfig getConfig() {
+		return mEglConfig;
+	}
+
+	/**
+	 * 現在のEGLContextに描画するためのGLコンテキストを取得する. GLES1以外ではRuntimeExceptionを生成
+	 * @return
+	 */
+	public GL getGl() throws RuntimeException {
+		if (mGlVersion > 1) {
+			throw new RuntimeException("Should not use this method for GLES2/GLES3");
+		}
+		return mEglContext.getGL();
+	}
+
+	/**
 	 * EGLレンダリングコンテキストとスレッドの紐付けを解除する
 	 */
 	public void makeDefault() {
@@ -196,12 +233,13 @@ public class EGLBase {
 
 	/**
 	 * 初期化の下請け
+	 * @param max_version
 	 * @param shared_context
 	 * @param with_depth_buffer
 	 * @param isRecordable
 	 */
-	private final void init(EGLContext shared_context, final boolean with_depth_buffer, final boolean isRecordable) {
-//		if (DEBUG) Log.v(TAG, "init:");
+	private final void init(final int max_version, EGLContext shared_context, final boolean with_depth_buffer, final boolean isRecordable) {
+		if (DEBUG) Log.v(TAG, "init:");
 		shared_context = shared_context != null ? shared_context : EGL10.EGL_NO_CONTEXT;
 		if (mEgl == null) {
 			mEgl = (EGL10)EGLContext.getEGL();
@@ -209,39 +247,58 @@ public class EGLBase {
 	        if (mEglDisplay == EGL10.EGL_NO_DISPLAY) {
 	            throw new RuntimeException("eglGetDisplay failed");
 	        }
-			final int[] version = new int[2];
-	        if (!mEgl.eglInitialize(mEglDisplay, version)) {
+			final int[] version_attribute = new int[2];
+	        if (!mEgl.eglInitialize(mEglDisplay, version_attribute)) {
 	        	mEglDisplay = null;
 	            throw new RuntimeException("eglInitialize failed");
 	        }
 		}
-        // GLES3で取得できるかどうか試してみる
-		EGLConfig config = getConfig(3, with_depth_buffer, isRecordable);
-        if (config != null) {
-            final EGLContext context = createContext(shared_context, config, 3);
-            if ((mEgl.eglGetError()) == EGL10.EGL_SUCCESS) {
-                //Log.d(TAG, "Got GLES 3 config");
-            	mEglConfig = config;
-            	mEglContext = context;
-                mGlVersion = 3;
-            }
-        }
-        if (mEglContext == EGL10.EGL_NO_CONTEXT) {
-            config = getConfig(2, with_depth_buffer, isRecordable);
-            if (mEglConfig == null) {
-               	throw new RuntimeException("chooseConfig failed");
-            }
-            // create EGL rendering context
-            final EGLContext context = createContext(shared_context, config, 2);
+		EGLConfig config;
+        if (max_version >= 3) {
+			if (DEBUG) Log.v(TAG, "GLES3で取得できるかどうか試してみる");
+			config = getConfig(3, with_depth_buffer, isRecordable);
+			if (config != null) {
+				final EGLContext context = createContext(shared_context, config, 3);
+				if ((mEgl.eglGetError()) == EGL10.EGL_SUCCESS) {
+					//Log.d(TAG, "Got GLES 3 config");
+					mEglConfig = config;
+					mEglContext = context;
+					mGlVersion = 3;
+				}
+			}
+		}
+		if (max_version >= 2) {
+			if (DEBUG) Log.v(TAG, "GLES2で取得できるかどうか試してみる");
+			if (mEglContext == EGL10.EGL_NO_CONTEXT) {
+				config = getConfig(2, with_depth_buffer, isRecordable);
+				if (config == null) {
+					throw new RuntimeException("chooseConfig failed");
+				}
+				// create EGL rendering context
+				final EGLContext context = createContext(shared_context, config, 2);
+				checkEglError("eglCreateContext");
+				mEglConfig = config;
+				mEglContext = context;
+				mGlVersion = 2;
+			}
+		}
+		if (mEglContext == EGL10.EGL_NO_CONTEXT) {
+			if (DEBUG) Log.v(TAG, "GLES1で取得できるかどうか試してみる");
+			config = getConfig(1, with_depth_buffer, isRecordable);
+			if (config == null) {
+				throw new RuntimeException("chooseConfig failed");
+			}
+			// create EGL rendering context
+			final EGLContext context = createContext(shared_context, config, 1);
 			checkEglError("eglCreateContext");
 			mEglConfig = config;
 			mEglContext = context;
-            mGlVersion = 2;
-        }
+			mGlVersion = 1;
+		}
         // confirm whether the EGL rendering context is successfully created
 		final int[] values = new int[1];
 		mEgl.eglQueryContext(mEglDisplay, mEglContext, EGL_CONTEXT_CLIENT_VERSION, values);
-//		if (DEBUG) Log.d(TAG, "EGLContext created, client version " + values[0]);
+		if (DEBUG) Log.d(TAG, "EGLContext created, client version " + values[0]);
         makeDefault();
 	}
 
@@ -280,14 +337,15 @@ public class EGLBase {
     }
 
     private final EGLContext createContext(final EGLContext shared_context, final EGLConfig config, final int version) {
-//		if (DEBUG) Log.v(TAG, "createContext:");
+		if (DEBUG) Log.v(TAG, "createContext:");
 
         final int[] attrib_list = {
         	EGL_CONTEXT_CLIENT_VERSION, version,
         	EGL10.EGL_NONE
         };
-        final EGLContext context = mEgl.eglCreateContext(mEglDisplay, config, shared_context, attrib_list);
-//		checkEglError("eglCreateContext");
+        final EGLContext context = mEgl.eglCreateContext(mEglDisplay, config, shared_context, version != 1 ? attrib_list : null);
+		checkEglError("eglCreateContext");
+		if (DEBUG) Log.v(TAG, "createContext:" + context);
         return context;
     }
 
@@ -389,25 +447,28 @@ public class EGLBase {
 
     @SuppressWarnings("unused")
 	private final EGLConfig getConfig(final int version, final boolean has_depth_buffer, final boolean isRecordable/*, boolean dirtyRegions*/) {
+		if (DEBUG) Log.v(TAG, "getConfig:version=" + version);
         int renderableType = EGL_OPENGL_ES2_BIT;
         if (version >= 3) {
             renderableType |= EGL_OPENGL_ES3_BIT_KHR;
         }
 //		final int swapBehavior = dirtyRegions ? EGL_SWAP_BEHAVIOR_PRESERVED_BIT : 0;
-        final int[] attribList = {
-        	EGL10.EGL_RENDERABLE_TYPE, renderableType,
-			EGL10.EGL_RED_SIZE, 8,
-			EGL10.EGL_GREEN_SIZE, 8,
-        	EGL10.EGL_BLUE_SIZE, 8,
-        	EGL10.EGL_ALPHA_SIZE, 8,
-//        	EGL10.EGL_SURFACE_TYPE, EGL10.EGL_WINDOW_BIT | swapBehavior,
-        	EGL10.EGL_NONE, EGL10.EGL_NONE,	//EGL10.EGL_STENCIL_SIZE, 8,
-        	EGL10.EGL_NONE, EGL10.EGL_NONE,	// EGL_RECORDABLE_ANDROID, 1,	// this flag need to recording of MediaCodec
-        	EGL10.EGL_NONE,	EGL10.EGL_NONE,	// with_depth_buffer ? EGL10.EGL_DEPTH_SIZE : EGL10.EGL_NONE,
-											// with_depth_buffer ? 16 : 0,
-			EGL10.EGL_NONE
-        };
-        int offset = 10;
+		final int[] attribList = new int[17];
+		int offset = 0;
+		if (version != 1) {
+			attribList[offset++] = EGL10.EGL_RENDERABLE_TYPE;
+			attribList[offset++] = renderableType;
+		}
+		attribList[offset++] = EGL10.EGL_RED_SIZE;
+		attribList[offset++] = 8;
+		attribList[offset++] = EGL10.EGL_GREEN_SIZE;
+		attribList[offset++] = 8;
+		attribList[offset++] = EGL10.EGL_BLUE_SIZE;
+		attribList[offset++] = 8;
+		attribList[offset++] = EGL10.EGL_ALPHA_SIZE;
+		attribList[offset++] = 8;
+//		attribList[offset++] = EGL10.EGL_SURFACE_TYPE;
+//		attribList[offset++] = EGL10.EGL_WINDOW_BIT | swapBehavior;
         if (false) {				// ステンシルバッファ(常時未使用)
         	attribList[offset++] = EGL10.EGL_STENCIL_SIZE;
         	attribList[offset++] = 8;
@@ -420,6 +481,7 @@ public class EGLBase {
         	attribList[offset++] = EGL_RECORDABLE_ANDROID;	// A-1000F(Android4.1.2)はこのフラグをつけるとうまく動かない
         	attribList[offset++] = 1;
         }
+        if (DEBUG) Log.v(TAG, "offset=" + offset);
         for (int i = attribList.length - 1; i >= offset; i--) {
         	attribList[i] = EGL10.EGL_NONE;
         }
@@ -430,6 +492,7 @@ public class EGLBase {
             Log.w(TAG, "unable to find RGBA8888:");
             return null;
         }
+        if (DEBUG) Log.v(TAG, "getConfig:" + configs[0]);
         return configs[0];
     }
 }

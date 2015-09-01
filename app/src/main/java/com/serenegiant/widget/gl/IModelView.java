@@ -14,4 +14,9 @@ public interface IModelView {
 
 	public void requestRender();
 	public void setFpsRequest(final float fps);
+
+	public int getWidth();
+	public int getHeight();
+	public void onResume();
+	public void onPause();
 }

@@ -7,7 +7,7 @@
 	android:foreground="?android:windowContentOverlay"
 	tools:context="com.serenegiant.flightdemo.ConnectionFragment">
 
-	<com.serenegiant.widget.gl.AttitudeView
+	<com.serenegiant.widget.gl.AttitudeTextureView
 		android:layout_width="200dp"
 		android:layout_height="200dp"
 		android:id="@+id/drone_view"
