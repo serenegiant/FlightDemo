@@ -310,4 +310,29 @@ public interface IDeviceController {
 	 */
 	public boolean sendAnimationsCap(final int degree);
 
+	/**
+	 * 静止画撮影要求
+	 * @param mass_storage_id
+	 * @return
+	 */
+	public boolean sendTakePicture(final int mass_storage_id);
+	/**
+	 * 静止画撮影要求
+	 * @return
+	 */
+	public boolean sendTakePicture();
+
+	/**
+	 * 録画開始停止指示
+	 * @param start true: 録画開始, false: 録画終了
+	 * @param mass_storage_id
+	 * @return
+	 */
+	public boolean sendVideoRecording(final boolean start, final int mass_storage_id);
+	/**
+	 * 録画開始停止指示
+	 * @param start true: 録画開始, false: 録画終了
+	 * @return
+	 */
+	public boolean sendVideoRecording(final boolean start);
 }

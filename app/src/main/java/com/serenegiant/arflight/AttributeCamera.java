@@ -31,14 +31,9 @@ public class AttributeCamera {
 	public void setSettings(final float fov, final float panMax, final float panMin, final float tiltMax, final float tiltMin) {
 		synchronized (mSync) {
 			mFov = fov;
+			mTilt.set(mTilt.current(), tiltMin, tiltMax);
+			mPan.set(mPan.current(), panMin, panMax);
 		}
-		mTilt.set(mTilt.current(), tiltMin, tiltMax);
-		mPan.set(mPan.current(), panMin, panMax);
-	}
-
-	public void set(final float tilt, final float pan) {
-		mTilt.current(tilt);
-		mPan.current(pan);
 	}
 
 	public float fov() {
@@ -48,11 +43,22 @@ public class AttributeCamera {
 	}
 
 	public AttributeFloat tilt() {
-		return mTilt;
+		synchronized (mSync) {
+			return mTilt;
+		}
 	}
 
 	public AttributeFloat pan() {
-		return mPan;
+		synchronized (mSync) {
+			return mPan;
+		}
+	}
+
+	public void pantilt(final float pan, final float tilt) {
+		synchronized (mSync) {
+			mPan.current(pan);
+			mTilt.current(tilt);
+		}
 	}
 
 	public void autoWhiteBalance(final int auto_white_balance) {
@@ -71,18 +77,24 @@ public class AttributeCamera {
 	private final AttributeFloat mExposure = new AttributeFloat();
 
 	public void setExposure(final float current, final float min, final float max) {
-		mExposure.set(current, min, max);
+		synchronized (mSync) {
+			mExposure.set(current, min, max);
+		}
 	}
 
 	public AttributeFloat exposure() {
-		return mExposure;
+		synchronized (mSync) {
+			return mExposure;
+		}
 	}
 
 	/** 彩度設定 */
 	private final AttributeFloat mSaturation = new AttributeFloat();
 
 	public void setSaturation(final float current, final float min, final float max) {
-		mSaturation.set(current, min, max);
+		synchronized (mSync) {
+			mSaturation.set(current, min, max);
+		}
 	}
 
 	public AttributeFloat saturation() {
@@ -93,15 +105,32 @@ public class AttributeCamera {
 	private final AttributeTimeLapse mTimeLapse = new AttributeTimeLapse();
 
 	public void setTimeLapse(final boolean enabled, final float current, final float min, final float max) {
-		mTimeLapse.set(enabled, current, min, max);
+		synchronized (mSync) {
+			mTimeLapse.set(enabled, current, min, max);
+		}
 	}
 
 	public AttributeTimeLapse timeLapse() {
-		return mTimeLapse;
+		synchronized (mSync) {
+			return mTimeLapse;
+		}
 	}
 
+	/**
+	 * ビデオストリーミング状態<br>
+	 * 0: Video streaming is enabled.<br>
+	 * 1: Video streaming is disabled.<br>
+	 * 2: Video streaming failed to start.<br>
+	 */
 	private int mVideoStreamingState;
 
+	/**
+	 * ビデオストリーミング状態
+	 * @param state
+	 * 0: Video streaming is enabled.
+	 * 1: Video streaming is disabled.
+	 * 2: Video streaming failed to start.
+	 */
 	public void videoStateState(final int state) {
 		synchronized (mSync) {
 			mVideoStreamingState = state;

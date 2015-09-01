@@ -11,6 +11,8 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREE
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED_STATE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM;
@@ -790,6 +792,31 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
+	 * 写真撮影のフォーマット<br>
+	 * 0: Take raw image<br>
+	 * 1: Take a 4:3 jpeg photo<br>
+	 * 2: Take a 16:9 snapshot from camera<br>
+	 */
+	private int mPictureFormat;
+	/**
+	 * 写真撮影時のフォーマットを受信した時
+	 */
+	private final ARCommandARDrone3PictureSettingsStatePictureFormatChangedListener
+		mPictureSettingsStatePictureFormatChangedListener
+		= new ARCommandARDrone3PictureSettingsStatePictureFormatChangedListener() {
+		@Override
+		public void onARDrone3PictureSettingsStatePictureFormatChangedUpdate(
+			final ARCOMMANDS_ARDRONE3_PICTURESETTINGSSTATE_PICTUREFORMATCHANGED_TYPE_ENUM type) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3PictureSettingsStatePictureFormatChangedUpdate:" + type);
+			if (mPictureFormat != type.getValue()) {
+				mPictureFormat = type.getValue();
+				// FIXME 未実装
+			}
+		}
+	};
+
+	/**
 	 * 写真撮影状態を受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3MediaRecordStatePictureStateChangedListener
@@ -802,7 +829,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3MediaRecordStatePictureStateChangedUpdate(
 			final byte state, final byte mass_storage_id) {
-			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStatePictureStateChangedUpdate:");
+			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStatePictureStateChangedUpdate:state=" + state + ",mass_storage_id=" + mass_storage_id);
 			// FIXME 未実装
 		}
 	};
@@ -820,11 +847,15 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStatePictureStateChangedV2Update:state=" + state + ",error=" + error);
 			// FIXME 未実装
+			// state:
+			// ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_READY	撮影可能
+			// ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_BUSY	ビジー
+			// ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_NOTAVAILABLE	撮影不可
 		}
 	};
 
 	/**
-	 * 写真撮影状態を受信した時のコールバックリスナー
+	 * 写真撮影イベントを受信した時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3MediaRecordEventPictureEventChangedListener
 		mMediaRecordEventPictureEventChangedListener
@@ -836,6 +867,9 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordEventPictureEventChangedUpdate:event=" + event + ",error=" + error);
 			// FIXME 未実装
+			// event:
+			// ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_TAKEN
+			// ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_FAILED
 		}
 	};
 
@@ -852,34 +886,13 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3MediaRecordStateVideoStateChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED_STATE_ENUM state, final byte mass_storage_id) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStateVideoStateChangedUpdate:state=" + state + ",mass_storage_id=" + mass_storage_id);
 			// FIXME 未実装
 //			0: Video was stopped
 //			1: Video was started
 //			2: Video was failed
 //			3: Video was auto stopped
-		}
-	};
-
-	/**
-	 * 写真撮影のフォーマット<br>
-	 * 0: Take raw image<br>
-	 * 1: Take a 4:3 jpeg photo<br>
-	 * 2: Take a 16:9 snapshot from camera<br>
-	 */
-	private int mPictureFormat;
-	/**
-	 * 写真撮影時のフォーマットを受信した時
-	 */
-	private final ARCommandARDrone3PictureSettingsStatePictureFormatChangedListener
-		mPictureSettingsStatePictureFormatChangedListener
-			= new ARCommandARDrone3PictureSettingsStatePictureFormatChangedListener() {
-		@Override
-		public void onARDrone3PictureSettingsStatePictureFormatChangedUpdate(
-			final ARCOMMANDS_ARDRONE3_PICTURESETTINGSSTATE_PICTUREFORMATCHANGED_TYPE_ENUM type) {
-			if (mPictureFormat != type.getValue()) {
-				mPictureFormat = type.getValue();
-				// FIXME 未実装
-			}
 		}
 	};
 
@@ -962,6 +975,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3PictureSettingsStateVideoAutorecordChangedUpdate(
 			final byte enabled, final byte mass_storage_id) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3PictureSettingsStateVideoAutorecordChangedUpdate:enabled=" + enabled + ",mass_storage_id=" + mass_storage_id);
 			// FIXME 未実装
 		}
 	};
@@ -995,7 +1010,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3CameraStateOrientationUpdate(
 			final byte tilt, final byte pan) {
-			// FIXME 未実装
+
+			mSettings.mCamera.pantilt(pan, tilt);
 		}
 	};
 
@@ -1010,6 +1026,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedUpdate(final byte drone2BatteryUsed) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedUpdate:drone2BatteryUsed=" + drone2BatteryUsed);
 			// FIXME 未実装
 		}
 	};
@@ -1025,6 +1043,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate(final byte nbSatellite) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate:nbSatellite=" + nbSatellite);
 			// FIXME 未実装
 		}
 	};
@@ -1597,7 +1617,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 	/**
 	 * ビデオストリーミング設定
-	 * @param enabled
+	 * @param enabled true: ビデオストリーミング開始, false:ビデオストリーミング停止
 	 * @return
 	 */
 	public boolean sendVideoEnable(final boolean enabled) {
@@ -1660,6 +1680,110 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send Exposure command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 静止画撮影要求
+	 * @param mass_storage_id
+	 * @return
+	 */
+	@Override
+	public boolean sendTakePicture(final int mass_storage_id) {
+		boolean sentStatus = true;
+
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaRecordPicture((byte) mass_storage_id);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Picture command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 静止画撮影要求
+	 * @return
+	 */
+	public boolean sendTakePicture() {
+		boolean sentStatus = true;
+
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaRecordPictureV2();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send PictureV2 command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 録画開始停止指示
+	 * @param start true: 録画開始, false: 録画終了
+	 * @param mass_storage_id
+	 * @return
+	 */
+	@Override
+	public boolean sendVideoRecording(final boolean start, final int mass_storage_id) {
+		boolean sentStatus = true;
+
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM record
+			= ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM.getFromValue(start ? 1 : 0);
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaRecordVideo(record, (byte) mass_storage_id);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Video recording command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 録画開始停止指示
+	 * @param start true: 録画開始, false: 録画終了
+	 * @return
+	 */
+	public boolean sendVideoRecording(final boolean start) {
+		boolean sentStatus = true;
+
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_ENUM record
+			= ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_ENUM.getFromValue(start ? 1 : 0);
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaRecordVideoV2(record);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Video recording command.");
 		}
 
 		return sentStatus;

@@ -659,6 +659,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		return sentStatus;
 	}
 
+	@Override
 	public boolean sendHasGuard(final boolean has_wheel) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -675,6 +676,74 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		}
 
 		return sentStatus;
+	}
+
+	/**
+	 * 静止画撮影要求
+	 * @param mass_storage_id
+	 * @return
+	 */
+	@Override
+	public boolean sendTakePicture(final int mass_storage_id) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneMediaRecordPicture((byte) mass_storage_id);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send picture command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 静止画撮影要求
+	 * @return
+	 */
+	@Override
+	public boolean sendTakePicture() {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDroneMediaRecordPictureV2();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send pictureV2 command.");
+		}
+
+		return sentStatus;
+	}
+	
+	/**
+	 * 録画開始停止指示
+	 * @param start true: 録画開始, false: 録画終了
+	 * @param mass_storage_id
+	 * @return MiniDroneでは録画をサポートしていないので常にfalseを返す
+	 */
+	@Override
+	public boolean sendVideoRecording(final boolean start, final int mass_storage_id) {
+		return false;
+	}
+
+	/**
+	 * 録画開始停止指示
+	 * @param start true: 録画開始, false: 録画終了
+	 * @return MiniDroneでは録画をサポートしていないので常にfalseを返す
+	 */
+	@Override
+	public boolean sendVideoRecording(final boolean start) {
+		return false;
 	}
 
 	/**

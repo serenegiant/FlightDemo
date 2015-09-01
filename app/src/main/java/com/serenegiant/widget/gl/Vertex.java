@@ -15,7 +15,7 @@ import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
 
 public class Vertex {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+//	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "Vertex";
 
 	public static final int DIM_2D = 2;				// 2次元座標系
@@ -368,12 +368,12 @@ public class Vertex {
 	}
 
 	public void resume() {
-		if (DEBUG) Log.v(TAG, "resume:");
+//		if (DEBUG) Log.v(TAG, "resume:");
 		createVBO();
 	}
 
 	public void pause() {
-		if (DEBUG) Log.v(TAG, "pause:");
+//		if (DEBUG) Log.v(TAG, "pause:");
 		destroyVBO();
 	}
 
@@ -389,13 +389,13 @@ public class Vertex {
 	}
 
 	protected void createVBO() {
-		if (DEBUG) Log.v(TAG, "createVBO:");
+//		if (DEBUG) Log.v(TAG, "createVBO:");
 		final GL10 gl = glGraphics.getGL();
 
 	    destroyVBO();
 
 		if (!(gl instanceof GL11)) {
-			if (DEBUG) Log.v(TAG, "GL11じゃなかった");
+			Log.w(TAG, "GL11じゃなかった");
 			return;
 		}
 		final GL11 gl11 = (GL11)gl;

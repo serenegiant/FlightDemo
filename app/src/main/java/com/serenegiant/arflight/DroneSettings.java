@@ -50,12 +50,18 @@ public class DroneSettings {
 	public AttributeFloat cameraTilt() {
 		return mCamera.tilt();
 	}
+	public void currentCameraTilt(final float tilt) {
+		mCamera.tilt().current(tilt);
+	}
 	public float currentCameraTilt() {
 		return mCamera.tilt().current();
 	}
 
 	public AttributeFloat cameraPan() {
 		return mCamera.pan();
+	}
+	public void currentCameraPan(final float pan) {
+		mCamera.pan().current(pan);
 	}
 	public float currentCameraPan() {
 		return mCamera.pan().current();

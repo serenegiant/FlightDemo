@@ -31,7 +31,7 @@ import com.serenegiant.utils.BuildCheck;
  * EGLを使用してSurfaceおよびオフスクリーン(PBuffer)へOpenGL|ESで描画をするためのクラス
  */
 public class EGLBase {
-	private static final boolean DEBUG = true;	// FIXME set false on release
+//	private static final boolean DEBUG = false;	// FIXME set false on release
 	private static final String TAG = "EGLBase";
 
     private static final int EGL_RECORDABLE_ANDROID = 0x3142;
@@ -239,7 +239,7 @@ public class EGLBase {
 	 * @param isRecordable
 	 */
 	private final void init(final int max_version, EGLContext shared_context, final boolean with_depth_buffer, final boolean isRecordable) {
-		if (DEBUG) Log.v(TAG, "init:");
+//		if (DEBUG) Log.v(TAG, "init:");
 		shared_context = shared_context != null ? shared_context : EGL10.EGL_NO_CONTEXT;
 		if (mEgl == null) {
 			mEgl = (EGL10)EGLContext.getEGL();
@@ -255,7 +255,7 @@ public class EGLBase {
 		}
 		EGLConfig config;
         if (max_version >= 3) {
-			if (DEBUG) Log.v(TAG, "GLES3で取得できるかどうか試してみる");
+//			if (DEBUG) Log.v(TAG, "GLES3で取得できるかどうか試してみる");
 			config = getConfig(3, with_depth_buffer, isRecordable);
 			if (config != null) {
 				final EGLContext context = createContext(shared_context, config, 3);
@@ -268,7 +268,7 @@ public class EGLBase {
 			}
 		}
 		if (max_version >= 2) {
-			if (DEBUG) Log.v(TAG, "GLES2で取得できるかどうか試してみる");
+//			if (DEBUG) Log.v(TAG, "GLES2で取得できるかどうか試してみる");
 			if (mEglContext == EGL10.EGL_NO_CONTEXT) {
 				config = getConfig(2, with_depth_buffer, isRecordable);
 				if (config == null) {
@@ -283,7 +283,7 @@ public class EGLBase {
 			}
 		}
 		if (mEglContext == EGL10.EGL_NO_CONTEXT) {
-			if (DEBUG) Log.v(TAG, "GLES1で取得できるかどうか試してみる");
+//			if (DEBUG) Log.v(TAG, "GLES1で取得できるかどうか試してみる");
 			config = getConfig(1, with_depth_buffer, isRecordable);
 			if (config == null) {
 				throw new RuntimeException("chooseConfig failed");
@@ -298,7 +298,7 @@ public class EGLBase {
         // confirm whether the EGL rendering context is successfully created
 		final int[] values = new int[1];
 		mEgl.eglQueryContext(mEglDisplay, mEglContext, EGL_CONTEXT_CLIENT_VERSION, values);
-		if (DEBUG) Log.d(TAG, "EGLContext created, client version " + values[0]);
+//		if (DEBUG) Log.d(TAG, "EGLContext created, client version " + values[0]);
         makeDefault();
 	}
 
@@ -314,7 +314,7 @@ public class EGLBase {
         if (surface == null || surface == EGL10.EGL_NO_SURFACE) {
             final int error = mEgl.eglGetError();
             if (error == EGL10.EGL_BAD_NATIVE_WINDOW) {
-                Log.e(TAG, "makeCurrent:EGL_BAD_NATIVE_WINDOW");
+				Log.w(TAG, "makeCurrent:EGL_BAD_NATIVE_WINDOW");
             }
             return false;
         }
@@ -337,7 +337,7 @@ public class EGLBase {
     }
 
     private final EGLContext createContext(final EGLContext shared_context, final EGLConfig config, final int version) {
-		if (DEBUG) Log.v(TAG, "createContext:");
+//		if (DEBUG) Log.v(TAG, "createContext:");
 
         final int[] attrib_list = {
         	EGL_CONTEXT_CLIENT_VERSION, version,
@@ -345,7 +345,7 @@ public class EGLBase {
         };
         final EGLContext context = mEgl.eglCreateContext(mEglDisplay, config, shared_context, version != 1 ? attrib_list : null);
 		checkEglError("eglCreateContext");
-		if (DEBUG) Log.v(TAG, "createContext:" + context);
+//		if (DEBUG) Log.v(TAG, "createContext:" + context);
         return context;
     }
 
@@ -353,8 +353,7 @@ public class EGLBase {
 //		if (DEBUG) Log.v(TAG, "destroyContext:");
 
         if (!mEgl.eglDestroyContext(mEglDisplay, mEglContext)) {
-            Log.e("destroyContext", "display:" + mEglDisplay + " context: " + mEglContext);
-            Log.e(TAG, "eglDestroyContex:" + mEgl.eglGetError());
+            Log.e("eglDestroyContext", "display:" + mEglDisplay + ",context: " + mEglContext + ",err=" + mEgl.eglGetError());
         }
         mEglContext = EGL10.EGL_NO_CONTEXT;
     }
@@ -374,14 +373,14 @@ public class EGLBase {
             if (result == null || result == EGL10.EGL_NO_SURFACE) {
                 final int error = mEgl.eglGetError();
                 if (error == EGL10.EGL_BAD_NATIVE_WINDOW) {
-                    Log.e(TAG, "createWindowSurface returned EGL_BAD_NATIVE_WINDOW.");
+                    Log.w(TAG, "createWindowSurface returned EGL_BAD_NATIVE_WINDOW.");
                 }
                 throw new RuntimeException("createWindowSurface failed error=" + error);
             }
             makeCurrent(result);
 			// 画面サイズ・フォーマットの取得
 		} catch (final IllegalArgumentException e) {
-			Log.e(TAG, "eglCreateWindowSurface", e);
+			Log.w(TAG, "eglCreateWindowSurface", e);
 		}
 		return result;
 	}
@@ -419,9 +418,9 @@ public class EGLBase {
 	            throw new RuntimeException("surface was null");
 	        }
 		} catch (final IllegalArgumentException e) {
-			Log.e(TAG, "createOffscreenSurface", e);
+			Log.w(TAG, "createOffscreenSurface", e);
 		} catch (final RuntimeException e) {
-			Log.e(TAG, "createOffscreenSurface", e);
+			Log.w(TAG, "createOffscreenSurface", e);
 		}
 		return result;
     }
@@ -447,7 +446,7 @@ public class EGLBase {
 
     @SuppressWarnings("unused")
 	private final EGLConfig getConfig(final int version, final boolean has_depth_buffer, final boolean isRecordable/*, boolean dirtyRegions*/) {
-		if (DEBUG) Log.v(TAG, "getConfig:version=" + version);
+//		if (DEBUG) Log.v(TAG, "getConfig:version=" + version);
         int renderableType = EGL_OPENGL_ES2_BIT;
         if (version >= 3) {
             renderableType |= EGL_OPENGL_ES3_BIT_KHR;
@@ -481,7 +480,7 @@ public class EGLBase {
         	attribList[offset++] = EGL_RECORDABLE_ANDROID;	// A-1000F(Android4.1.2)はこのフラグをつけるとうまく動かない
         	attribList[offset++] = 1;
         }
-        if (DEBUG) Log.v(TAG, "offset=" + offset);
+//		if (DEBUG) Log.v(TAG, "offset=" + offset);
         for (int i = attribList.length - 1; i >= offset; i--) {
         	attribList[i] = EGL10.EGL_NONE;
         }
@@ -492,7 +491,7 @@ public class EGLBase {
             Log.w(TAG, "unable to find RGBA8888:");
             return null;
         }
-        if (DEBUG) Log.v(TAG, "getConfig:" + configs[0]);
+//		if (DEBUG) Log.v(TAG, "getConfig:" + configs[0]);
         return configs[0];
     }
 }
