@@ -38,6 +38,7 @@ import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
 import com.serenegiant.widget.TouchPilotView;
 import com.serenegiant.widget.gl.AttitudeView;
+import com.serenegiant.widget.gl.IModelView;
 
 import java.io.File;
 import java.io.IOException;
@@ -102,7 +103,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final TouchFlight mTouchFlight;
 	private boolean mTouchMoveRunning;
 	/** モデル表示 */
-	private AttitudeView mModelView;
+	private IModelView mModelView;
 
 	private VideoStream mVideoStream;
 
@@ -284,7 +285,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mAlertMessage.setVisibility(View.INVISIBLE);
 
 		// 機体モデル表示
-		mModelView = (AttitudeView)rootView.findViewById(R.id.drone_view);
+		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 		return rootView;
 	}
 
@@ -302,11 +303,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
 		startDeviceController();
+		mModelView.onResume();
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
+		mModelView.onPause();
 		stopVideoStreaming();
 		stopRecord();
 		stopPlay();
@@ -596,6 +599,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
+					mModelView.onPause();
+					mModelView.setVisibility(View.GONE);
 					mVideoTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
 					mVideoTextureView.setVisibility(View.VISIBLE);
 				}
@@ -611,6 +616,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
+				mModelView.onResume();
+				mModelView.setVisibility(View.VISIBLE);
 				mVideoTextureView.setVisibility(View.GONE);
 				mVideoTextureView.setSurfaceTextureListener(null);
 			}

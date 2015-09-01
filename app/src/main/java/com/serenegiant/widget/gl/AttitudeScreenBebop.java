@@ -1,16 +1,23 @@
 package com.serenegiant.widget.gl;
 
-public class AttitudeScreenBebopRandom extends AttitudeScreenBase {
-
-	public AttitudeScreenBebopRandom(final IModelView modelView) {
-		super(modelView);
+public class AttitudeScreenBebop extends AttitudeScreenBase {
+	public AttitudeScreenBebop(final IModelView modelView, final int ctrl_type) {
+		super(modelView, ctrl_type);
 	}
 
 	@Override
 	protected void initModel() {
-		// ドローンの3Dモデル
 		// 機体
-		droneObj = new DroneObjectBebopRandom(0, 0, 0, 1.0f);
+		switch (mCtrlType) {
+		case CTRL_PILOT:
+		case CTRL_ATTITUDE:
+			droneObj = new DroneObjectBebop(0, 0, 0, 1.0f);
+			break;
+		case CTRL_RANDOM:
+		default:
+			droneObj = new DroneObjectBebopRandom(0, 0, 0, 1.0f);
+			break;
+		}
 		final Texture droneTexture = new Texture(mModelView, "model/bebop_drone_body_tex.png");
 		droneModel = new GLLoadableModel(glGraphics);
 		droneModel.loadModel(mModelView, "model/bebop_drone_body.obj");

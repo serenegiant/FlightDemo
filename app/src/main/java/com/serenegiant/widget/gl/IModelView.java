@@ -19,4 +19,5 @@ public interface IModelView {
 	public int getHeight();
 	public void onResume();
 	public void onPause();
+	public void setVisibility(final int visibility);
 }

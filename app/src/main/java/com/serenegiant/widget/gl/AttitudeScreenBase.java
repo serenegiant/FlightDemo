@@ -11,6 +11,10 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "AttitudeScreenBase";
 
+	public static final int CTRL_RANDOM = 0;	// ランダム回転
+	public static final int CTRL_PILOT = 1;		// 操縦に追随
+	public static final int CTRL_ATTITUDE = 2;	// 機体姿勢に追随
+
 	protected final GLAmbientLight ambientLight;
 	protected final GLPointLight pointLight;
 	protected final GLDirectionLight directionLight;
@@ -19,6 +23,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	protected final GLLookAtCamera lookAtCamera;
 	protected final GLCamera2D guiCamera;
 
+	protected final int mCtrlType;
 	// 3Dモデルデータ
 	protected GLLoadableModel droneModel;
 	protected GLLoadableModel frontLeftRotorModel;
@@ -38,10 +43,10 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	private TextureDrawer2D mDrawer;
 	private final int screenCenterX, screenCenterY;
 
-	public AttitudeScreenBase(final IModelView modelView) {
+	public AttitudeScreenBase(final IModelView modelView, final int ctrl_type) {
 		super(modelView);
 		if (DEBUG) Log.v(TAG, String.format("コンストラクタ(%d,%d)", screenWidth, screenHeight));
-
+		mCtrlType = ctrl_type;
 		// 背景
 		backgroundTexture = new Texture(modelView, "background.png");
 		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, screenWidth, screenHeight);
@@ -79,6 +84,9 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		initModel();
 	}
 
+	/**
+	 * 機体モデルを読み込み
+	 */
 	protected abstract void initModel();
 
 	@Override
