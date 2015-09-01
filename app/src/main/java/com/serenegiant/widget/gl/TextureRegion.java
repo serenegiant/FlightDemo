@@ -8,7 +8,7 @@ public class TextureRegion {
 	public final float width, height;
 	public final Texture texture;
 	
-	public TextureRegion(Texture texture, float x, float y, float width, float height) {
+	public TextureRegion(final Texture texture, final float x, final float y, final float width, final float height) {
 		this.width = width;
 		this.height = height;
 		this.u1 = x / texture.width;
@@ -18,15 +18,15 @@ public class TextureRegion {
 		this.texture = texture;
 	}
 	
-	public Rect makeBoundsRect(float center_x, float center_y) {
+	public Rect makeBoundsRect(final float center_x, final float center_y) {
 		return makeBoundsRect(center_x, center_y, 1f, 1f);
 	}
 
-	public Rect makeBoundsRect(float center_x, float center_y, float a) {
+	public Rect makeBoundsRect(final float center_x, final float center_y, final float a) {
 		return makeBoundsRect(center_x, center_y, a, a);
 	}
 
-	public Rect makeBoundsRect(float center_x, float center_y, float ax, float bx) {
+	public Rect makeBoundsRect(final float center_x, final float center_y, final float ax, final float bx) {
 		final float w = width * ax / 2f;
 		final float h = height * bx / 2f;
 		final Rect rect = new Rect(

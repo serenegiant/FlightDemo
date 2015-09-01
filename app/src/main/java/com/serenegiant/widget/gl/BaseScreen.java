@@ -14,6 +14,8 @@ public abstract class BaseScreen implements Screen {
 
 	public BaseScreen(final IModelView modelView) {
 		mModelView = modelView;
+		screenWidth = modelView.getWidth();
+		screenHeight = modelView.getHeight();
 	}
 		
 	@Override

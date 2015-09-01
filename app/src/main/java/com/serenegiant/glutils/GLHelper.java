@@ -68,12 +68,41 @@ public final class GLHelper {
 	}
 
 	/**
+	 * テクスチャ名を生成(GL_TEXTURE0のみ)
+	 * @param gl
+	 * @param texTarget
+	 * @param filter_param テクスチャの補間方法を指定 GL_LINEARとかGL_NEAREST
+	 * @return
+	 */
+	public static int initTex(final GL10 gl, final int texTarget, final int filter_param) {
+//		if (DEBUG) Log.v(TAG, "initTex:target=" + texTarget);
+		final int[] tex = new int[1];
+		gl.glActiveTexture(GLES20.GL_TEXTURE0);
+		gl.glGenTextures(1, tex, 0);
+		gl.glBindTexture(texTarget, tex[0]);
+		gl.glTexParameterx(texTarget, GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
+		gl.glTexParameterx(texTarget, GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
+		gl.glTexParameterx(texTarget, GL10.GL_TEXTURE_MIN_FILTER, filter_param);
+		gl.glTexParameterx(texTarget, GL10.GL_TEXTURE_MAG_FILTER, filter_param);
+		return tex[0];
+	}
+
+	/**
 	 * delete specific texture
 	 */
 	public static void deleteTex(final int hTex) {
 //		if (DEBUG) Log.v(TAG, "deleteTex:");
 		final int[] tex = new int[] {hTex};
 		GLES20.glDeleteTextures(1, tex, 0);
+	}
+
+	/**
+	 * delete specific texture
+	 */
+	public static void deleteTex(final GL10 gl, final int hTex) {
+//		if (DEBUG) Log.v(TAG, "deleteTex:");
+		final int[] tex = new int[] {hTex};
+		gl.glDeleteTextures(1, tex, 0);
 	}
 
 	/**

@@ -240,7 +240,7 @@ public class GLTextureView extends TextureView {
 		private EGLBase.EglSurface mRenderSurface;
 		private GL10 mGl;
 		public RendererTask(final GLTextureView parent) {
-			super(1, null, 0);	// GLES1
+			super(1, null, EglTask.EGL_FLAG_DEPTH_BUFFER);	// GLES1
 			if (DEBUG) Log.v(TAG, "RendererTask:コンストラクタ");
 			mWeakParent = new WeakReference<GLTextureView>(parent);
 		}

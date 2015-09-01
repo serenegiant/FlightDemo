@@ -19,6 +19,9 @@ public class DroneObjectBebopRandom extends DroneObjectBebop {
 		angle.x += 200 * deltaTime;
 		angle.y += 187 * deltaTime;
 		angle.z += 89 * deltaTime;
+//		angle.x += 20 * deltaTime;
+//		angle.y += 18 * deltaTime;
+//		angle.z += 9 * deltaTime;
 	}
 
 }

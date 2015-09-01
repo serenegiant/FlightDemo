@@ -8,12 +8,13 @@
 	tools:context="com.serenegiant.flightdemo.ConnectionFragment">
 
 	<com.serenegiant.widget.gl.AttitudeTextureView
-		android:layout_width="200dp"
-		android:layout_height="200dp"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
 		android:id="@+id/drone_view"
 		android:layout_gravity="center"
 		android:visibility="visible"
-		android:layout_centerInParent="true"/>
+		android:layout_centerInParent="true"
+		android:background="@null"/>
 
 	<ListView
 		android:id="@+id/list"

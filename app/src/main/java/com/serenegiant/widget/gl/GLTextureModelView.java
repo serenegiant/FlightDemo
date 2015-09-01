@@ -49,7 +49,6 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 		super(context, attrs);
 		if (DEBUG) Log.v(TAG, "コンストラクタ");
 		glGraphics = new GLGraphics(this);
-
 		setRenderer(renderer);
 //		getHolder().setFormat(PixelFormat.TRANSLUCENT);
 	}

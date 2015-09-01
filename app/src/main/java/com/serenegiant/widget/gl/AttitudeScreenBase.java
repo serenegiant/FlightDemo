@@ -27,15 +27,30 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	protected GLLoadableModel rearRightRotorModel;
 	// オブジェクト
 	protected DroneObject droneObj;				// 機体本体
-
+	// 地面
 	private final GLCubeModel plateModel;
 	private final Texture plateTexture;
-
 	protected boolean mShowGround = true;
+	// 背景
+	private Texture backgroundTexture;
+	private TextureRegion backgroundRegion;
+//	private Sprite mSprite;
+	private TextureDrawer2D mDrawer;
+	private final int screenCenterX, screenCenterY;
 
 	public AttitudeScreenBase(final IModelView modelView) {
 		super(modelView);
-		if (DEBUG) Log.v(TAG, "コンストラクタ");
+		if (DEBUG) Log.v(TAG, String.format("コンストラクタ(%d,%d)", screenWidth, screenHeight));
+
+		// 背景
+		backgroundTexture = new Texture(modelView, "background.png");
+		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, screenWidth, screenHeight);
+		screenCenterX = screenWidth / 2;
+		screenCenterY = screenHeight / 2;
+//		mSprite = new Sprite(glGraphics);
+//		mSprite.draw(screenCenterX, screenCenterY, screenWidth, screenHeight, backgroundRegion);
+		mDrawer = new TextureDrawer2D(glGraphics);
+		mDrawer.draw(screenWidth, screenHeight, backgroundRegion);
 
 		// 地面
 		// テクスチャは正方形で2の乗数サイズでないとだめ
@@ -47,7 +62,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 
 		pointLight = new GLPointLight();
 		pointLight.setPosition(0, 10, 0);
-//			pointLight.setSpecular(0.5f, 0.5f, 0.5f, 1);
+//		pointLight.setSpecular(0.5f, 0.5f, 0.5f, 1);
 
 		directionLight = new GLDirectionLight();
 		directionLight.setDirection(5, 5, 5);
@@ -55,7 +70,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		material = new GLMaterial();
 
 		// 2Dカメラ
-		guiCamera = new GLCamera2D(glGraphics, 800, 480);
+		guiCamera = new GLCamera2D(glGraphics, screenWidth, screenHeight);
 		// 視線カメラ
 		lookAtCamera = new GLLookAtCamera(
 			67, glGraphics.getViewWidth() / (float)glGraphics.getViewHeight(), 0.1f, 25f);
@@ -95,22 +110,30 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		// 画面表示更新
 		final GL10 gl = glGraphics.getGL();
 
-		gl.glClearColor(1, 1, 1, 0.1f);
+		guiCamera.setMatrix();
+		// ここから2Dの描画処理
+		gl.glEnable(GL10.GL_TEXTURE_2D);
+		gl.glDisable(GL10.GL_LIGHTING);			// ライティングを無効化
+		gl.glDisable(GL10.GL_CULL_FACE);		// ポリゴンのカリングを無効にする
+//		gl.glColor4f(1f, 1f, 1f, 1f);
+//		gl.glClearColor(1, 1, 1, 1);
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
-
-		gl.glEnable(GL10.GL_BLEND);
-		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		gl.glColor4f(1f, 1f, 1f, 1f);
+		backgroundTexture.bind();
+//		mSprite.draw();
+		mDrawer.draw();
 
 		// カメラの準備
 		lookAtCamera.setMatrix(gl);
-
 		// ここから3Dの描画処理
+		gl.glEnable(GL10.GL_BLEND);
+		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);	// アルファブレンド
+//		gl.glBlendFunc(GL10.GL_ONE, GL10.GL_ZERO);	// 上書き
+		gl.glColor4f(1f, 1f, 1f, 0f);
 //		gl.glEnable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
 		gl.glEnable(GL10.GL_CULL_FACE);			// ポリゴンのカリングを有効にする
 		gl.glCullFace(GL10.GL_BACK);			// 裏面を描画しない
 		gl.glEnable(GL10.GL_LIGHTING);			// ライティングを有効化
-//		gl.glEnable(GL10.GL_DEPTH_TEST);
+		gl.glEnable(GL10.GL_DEPTH_TEST);
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 
 		ambientLight.enable(gl);
@@ -119,15 +142,11 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		material.enable(gl);
 
 
-//		gl.glEnable(GL10.GL_COLOR_MATERIAL);    // 環境光と拡散光のマテリアル色として頂点色を使うとき
 		// 床を描画
 		if (mShowGround) {
 			gl.glColor4f(1f, 1f, 1f, 1f);
 			plateModel.draw();
 		}
-//		gl.glDisable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
-
-//		gl.glEnable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
 //		material.enable(gl);
 		// モデルを描画
 		material.enable(gl);
@@ -141,7 +160,6 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			rearRightRotorModel.draw();
 		}
 		gl.glPopMatrix();
-//		gl.glDisable(GL10.GL_COLOR_MATERIAL);    // 環境光と拡散光のマテリアル色として頂点色を使うとき
 
 		// 3D描画処理終了
 		pointLight.disable(gl);
@@ -179,6 +197,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	public void resume() {
 		if (DEBUG) Log.v(TAG, "resume");
 		plateTexture.reload();
+		backgroundTexture.reload();
 		plateModel.resume();
 		droneModel.resume();
 	}
@@ -193,6 +212,8 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	@Override
 	public void dispose() {
 		if (DEBUG) Log.v(TAG, "dispose");
+		backgroundTexture.dispose();
+		plateTexture.dispose();
 	}
 
 	@Override
