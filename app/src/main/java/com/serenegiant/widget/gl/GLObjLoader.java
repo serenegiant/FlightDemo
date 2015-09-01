@@ -1,7 +1,6 @@
 package com.serenegiant.widget.gl;
 
 import android.util.Log;
-import android.view.View;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

@@ -1330,7 +1330,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param pitch [-100,100]
 	 * @param yaw [-100,100]
 	 * @param gaz [-100,100]
-	 * @param heading [-180,180]
+	 * @param heading [-180,180] (無効みたい)
 	 * @return
 	 */
 	protected abstract boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading);

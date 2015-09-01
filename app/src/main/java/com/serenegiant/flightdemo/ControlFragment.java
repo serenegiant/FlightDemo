@@ -12,8 +12,8 @@ import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceControllerListener;
-import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IVideoStreamController;
 
 public abstract class ControlFragment extends Fragment {

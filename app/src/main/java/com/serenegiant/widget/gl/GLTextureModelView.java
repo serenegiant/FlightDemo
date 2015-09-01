@@ -1,7 +1,6 @@
 package com.serenegiant.widget.gl;
 
 import android.content.Context;
-import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 
@@ -41,11 +40,11 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 	protected long mUpdateIntervals = 0;			// 連続描画間隔?
 	protected boolean glActive = false;
 
-	public GLTextureModelView(Context context) {
+	public GLTextureModelView(final Context context) {
 		this(context, null);
 	}
 
-	public GLTextureModelView(Context context, AttributeSet attrs) {
+	public GLTextureModelView(final Context context, final  AttributeSet attrs) {
 		super(context, attrs);
 		if (DEBUG) Log.v(TAG, "コンストラクタ");
 		glGraphics = new GLGraphics(this);
@@ -93,8 +92,7 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 				mScreen.update(deltaTime);
 				mScreen.draw(deltaTime);
 				// 出来るだけこのタイミングでガベージコレクションが走って欲しいんだけど、頻度が高すぎる
-			}
-			else if (localState == ModelState.PAUSE) {		// 中断処理
+			} else if (localState == ModelState.PAUSE) {		// 中断処理
 				mScreen.pause();
 				if (mLoadableInterface != null) {
 					mLoadableInterface.pause();
@@ -104,8 +102,8 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 					mState = ModelState.IDLE;
 					mStateSyncObj.notifyAll();
 				}
-			}
-			else if (localState == ModelState.FINISH) {	// 終了処理
+			} else if (localState == ModelState.FINISH) {	// 終了処理
+				onRelease();
 				mScreen.pause();
 				mScreen.dispose();
 				if (mLoadableInterface != null) {
@@ -157,7 +155,7 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 				localState = mState;
 			}
 			if (localState == ModelState.INITIALIZE) {
-				initialize();
+				onInitialize();
 			}
 			if (mLoadableInterface != null) {
 				if (localState == ModelState.INITIALIZE) {
@@ -176,8 +174,12 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 		}
 	};
 
-	protected void initialize() {
-		if (DEBUG) Log.v(TAG, "initialize:");
+	protected void onInitialize() {
+		if (DEBUG) Log.v(TAG, "onInitialize:");
+	}
+
+	protected void onRelease() {
+		if (DEBUG) Log.v(TAG, "onRelease:");
 	}
 
 	/**

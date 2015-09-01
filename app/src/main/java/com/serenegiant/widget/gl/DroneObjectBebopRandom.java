@@ -14,7 +14,7 @@ public class DroneObjectBebopRandom extends DroneObjectBebop {
 	}
 
 	@Override
-	public void update(float deltaTime) {
+	public void update(final float deltaTime) {
 		super.update(deltaTime);
 		angle.x += 200 * deltaTime;
 		angle.y += 187 * deltaTime;

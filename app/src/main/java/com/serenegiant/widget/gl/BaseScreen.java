@@ -19,7 +19,7 @@ public abstract class BaseScreen implements Screen {
 	}
 		
 	@Override
-	public boolean confirmCanClose(String message) {
+	public boolean confirmCanClose(final String message) {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(mModelView.getContext());
 		builder.setMessage(message);
 		// 肯定応答用ボタンの登録
@@ -47,13 +47,13 @@ public abstract class BaseScreen implements Screen {
 	}
 
 	@Override
-	public void setScreenSize(int width, int height) {
+	public void setScreenSize(final int width, final int height) {
 		screenWidth = width;
 		screenHeight = height;
 	}
 	
 	@Override
-	public void onSizeChanged(int width, int height) {
+	public void onSizeChanged(final int width, final int height) {
 	}
 
 	@Override
@@ -61,12 +61,12 @@ public abstract class BaseScreen implements Screen {
 	}
 	
 	@Override
-	public boolean onOptionMenu(int id) {
+	public boolean onOptionMenu(final int id) {
 		return false;
 	}
 
 	@Override
-	public void onTouchEvent(TouchEvent event) {
+	public void onTouchEvent(final TouchEvent event) {
 //		mModelView.requestRender();
 	}
 	
@@ -83,7 +83,7 @@ public abstract class BaseScreen implements Screen {
 	 * @param height
 	 * @return
 	 */
-	public static Rect makeBoundsRect(int center_x, int center_y, int width, int height) {
+	public static Rect makeBoundsRect(final int center_x, final int center_y, final int width, final int height) {
 		return new Rect(center_x - width / 2, center_y - height / 2, center_x + width / 2, center_y + height / 2);
 	}
 }

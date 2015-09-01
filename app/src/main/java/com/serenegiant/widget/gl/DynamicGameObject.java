@@ -12,19 +12,19 @@ public abstract class DynamicGameObject extends GameObject {
 	public final Vector accel;
 	public Vector angle;
 	
-	public DynamicGameObject(float x, float y, float z, float radius) {
+	public DynamicGameObject(final float x, final float y, final float z, final float radius) {
 		super(x, y, z, radius);
 		velocity = new Vector();
 		accel = new Vector();
 		setBounds(bounds);
 	}
 
-	public DynamicGameObject(Vector center, float radius) {
+	public DynamicGameObject(final Vector center, final float radius) {
 		this(center.x, center.y, center.z, radius);
 	}
 
 	@Override
-	public void setBounds(BaseBounds bounds) {
+	public void setBounds(final BaseBounds bounds) {
 		super.setBounds(bounds);
 		angle = bounds.angle;
 	}

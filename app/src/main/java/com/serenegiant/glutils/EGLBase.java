@@ -11,13 +11,6 @@ package com.serenegiant.glutils;
  * プライベートスレッド上でOpenGL|ESを使って描画するための
  * EGLレンダリングコンテキストを生成＆使用するためのヘルパークラス
  */
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.egl.EGLDisplay;
-import javax.microedition.khronos.egl.EGLSurface;
-import javax.microedition.khronos.opengles.GL;
-import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
@@ -26,6 +19,14 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.serenegiant.utils.BuildCheck;
+
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.egl.EGLDisplay;
+import javax.microedition.khronos.egl.EGLSurface;
+import javax.microedition.khronos.opengles.GL;
+import javax.microedition.khronos.opengles.GL10;
 
 /**
  * EGLを使用してSurfaceおよびオフスクリーン(PBuffer)へOpenGL|ESで描画をするためのクラス

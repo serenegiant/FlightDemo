@@ -7,8 +7,6 @@ package com.serenegiant.glutils;
  *
 */
 
-import java.io.IOException;
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -16,6 +14,8 @@ import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.text.TextUtils;
+
+import java.io.IOException;
 
 /**
  * OpenGL|ESのテクスチャ操作用のヘルパークラス

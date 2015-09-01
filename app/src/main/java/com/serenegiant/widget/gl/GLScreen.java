@@ -1,12 +1,12 @@
 package com.serenegiant.widget.gl;
 
-import javax.microedition.khronos.opengles.GL10;
-import javax.microedition.khronos.opengles.GL11;
-
 import android.opengl.GLU;
 
 import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
+
+import javax.microedition.khronos.opengles.GL10;
+import javax.microedition.khronos.opengles.GL11;
 
 public abstract class GLScreen extends BaseScreen {
 	protected final GLGraphics glGraphics;

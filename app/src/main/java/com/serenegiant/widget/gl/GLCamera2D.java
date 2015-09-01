@@ -25,7 +25,7 @@ public class GLCamera2D implements Camera2D {
 	 * @param screenWidth 画面横幅(描画幅、実端末の横幅でなくても良い 普段は縦長なら480f、横長なら800f)
 	 * @param screenHeight 画面高さ(描画高さ、実端末の高さでなくても良い 普段は縦長なら800f、横長なら480f)
 	 */
-	public GLCamera2D(BaseGraphics graphics, float screenWidth, float screenHeight) {
+	public GLCamera2D(final BaseGraphics graphics, final float screenWidth, final float screenHeight) {
 		mGraphics = graphics;
 		setScreenSize(screenWidth, screenHeight);
 	}
@@ -58,7 +58,7 @@ public class GLCamera2D implements Camera2D {
 	 * @param screenHeight
 	 */
 	@Override
-	public void setScreenSize(float screenWidth, float screenHeight) {
+	public void setScreenSize(final float screenWidth, final float screenHeight) {
 		this.screenWidth =  screenWidth;
 		this.screenHeight = screenHeight;
 		viewWidth = mGraphics.getViewWidth();
@@ -73,7 +73,7 @@ public class GLCamera2D implements Camera2D {
 	 * @param pos
 	 */
 	@Override
-	public void viewToCamera(Vector pos) {
+	public void viewToCamera(final Vector pos) {
 		pos.x = (pos.x / viewWidth) * screenWidth * mZoom;
 		pos.y = (1 - pos.y / viewHeight) * screenHeight * mZoom;
 		pos.add(position).sub(w2 * mZoom, h2 * mZoom);
@@ -83,7 +83,7 @@ public class GLCamera2D implements Camera2D {
 	 * 拡大率をセット
 	 */
 	@Override
-	public void setZoom(float zoom) {
+	public void setZoom(final float zoom) {
 		mZoom = zoom;
 	}
 	

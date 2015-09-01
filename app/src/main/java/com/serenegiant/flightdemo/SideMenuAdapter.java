@@ -1,7 +1,5 @@
 package com.serenegiant.flightdemo;
 
-import java.util.List;
-
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -11,6 +9,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import java.util.List;
 
 public class SideMenuAdapter extends ArrayAdapter<String> {
 

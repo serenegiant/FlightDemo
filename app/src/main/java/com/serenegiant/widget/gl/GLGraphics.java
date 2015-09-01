@@ -1,14 +1,13 @@
 package com.serenegiant.widget.gl;
 
+import android.graphics.Bitmap;
+import android.opengl.GLException;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
-
-import android.graphics.Bitmap;
-import android.opengl.GLException;
-import android.opengl.GLSurfaceView;
 
 public class GLGraphics implements BaseGraphics {
 	private final IModelView mGLView;

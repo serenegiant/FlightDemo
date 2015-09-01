@@ -385,7 +385,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 	 * @param pitch [-100,100]
 	 * @param yaw [-100,100]
 	 * @param gaz [-100,100]
-	 * @param heading [-180,180]
+	 * @param heading [-180,180] (無効みたい)
 	 * @return
 	 */
 	@Override
@@ -724,7 +724,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 		return sentStatus;
 	}
-	
+
 	/**
 	 * 録画開始停止指示
 	 * @param start true: 録画開始, false: 録画終了

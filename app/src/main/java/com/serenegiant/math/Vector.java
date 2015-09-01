@@ -1,9 +1,9 @@
 package com.serenegiant.math;
 
+import android.opengl.Matrix;
+
 import java.io.Serializable;
 import java.util.Locale;
-
-import android.opengl.Matrix;
 
 public class Vector implements Serializable {
 	/**

@@ -1059,7 +1059,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	 * @param pitch [-100,100]
 	 * @param yaw [-100,100]
 	 * @param gaz [-100,100]
-	 * @param heading [-180,180]
+	 * @param heading [-180,180] (無効みたい)
 	 * @return
 	 */
 	@Override

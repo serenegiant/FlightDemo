@@ -8,15 +8,15 @@ public class StringsTexture extends Texture {
 	protected final int mColCount;			// 列数
 	protected final int mTextCount;			// 文字列数
 
-	public StringsTexture(IModelView glGame, String fileName, String[] strings, int textSize) {
+	public StringsTexture(final IModelView glGame, final String fileName, final String[] strings, final int textSize) {
 		this(glGame, fileName, strings, textSize, true, false);
 	}
 	
-	public StringsTexture(IModelView glGame, String fileName, String[] strings, int textSize, boolean mipmapped) {
+	public StringsTexture(final IModelView glGame, final String fileName, final String[] strings, final int textSize, final boolean mipmapped) {
 		this(glGame, fileName, strings, textSize, mipmapped, false);
 	}
 	
-	public StringsTexture(IModelView glGame, String fileName, String[] strings, int textSize, boolean mipmapped, boolean forceCreate) {
+	public StringsTexture(final IModelView glGame, final String fileName, final String[] strings, final int textSize, final boolean mipmapped, final boolean forceCreate) {
 		super(glGame, null, mipmapped);
 		final StringTextureBuilder builder = new StringTextureBuilder(textSize, forceCreate);
 //		builder.isSaveExternal = true;
@@ -36,7 +36,7 @@ public class StringsTexture extends Texture {
 	 * @param index
 	 * @return TextureRegion(indexが0未満またはmTextCount以上ならnull)
 	 */
-	public TextureRegion getTextureRegion(int index) {
+	public TextureRegion getTextureRegion(final int index) {
 		if ((index < 0) || (index >= mTextCount)) return null;
 		final int r = (int)(index / mColCount);	// 行番号
 		final int c = index - r * mColCount;	// 列番号

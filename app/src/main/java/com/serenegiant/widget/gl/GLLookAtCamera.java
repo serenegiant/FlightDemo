@@ -1,12 +1,12 @@
 package com.serenegiant.widget.gl;
 
-import javax.microedition.khronos.opengles.GL10;
-
 import android.opengl.GLU;
 import android.util.Log;
 
 import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
+
+import javax.microedition.khronos.opengles.GL10;
 
 public class GLLookAtCamera {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること

@@ -1,13 +1,13 @@
 package com.serenegiant.widget.gl;
 
-import javax.microedition.khronos.opengles.GL10;
-
 import android.opengl.GLU;
 import android.opengl.Matrix;
 import android.util.Log;
 
 import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
+
+import javax.microedition.khronos.opengles.GL10;
 
 /**
  * 3D描画用のカメラ</br>
@@ -37,7 +37,7 @@ public class GLCamera3D {
 	 * @param near 視錐台の手前位置(カメラから前方クリップ面までの距離, 正値)
 	 * @param far 視錐台の奥位置(カメラから後方クリップ面までの距離, 正値)
 	 */
-	public GLCamera3D(float fieldOfView, float aspectRatio, float near, float far) {
+	public GLCamera3D(final float fieldOfView, final float aspectRatio, final float near, final float far) {
 		mFieldOfView = fieldOfView;
 		mAspectRatio = aspectRatio;
 		mNear = near;
@@ -56,7 +56,7 @@ public class GLCamera3D {
 	 * カメラ位置を設定(Vector)
 	 * @param pos
 	 */
-	public void setPosition(Vector pos) {
+	public void setPosition(final Vector pos) {
 		position.set(pos);
 	}
 	
@@ -66,7 +66,7 @@ public class GLCamera3D {
 	 * @param y
 	 * @param z
 	 */
-	public void setPosition(float x, float y, float z) {
+	public void setPosition(final float x, final float y, final float z) {
 		position.set(x, y, z);
 	}
 	
@@ -118,6 +118,10 @@ public class GLCamera3D {
 	 * @param pitch
 	 */
 	public void setAngles(float yaw, float pitch) {
+		if (yaw < 0)
+			yaw += 360;
+		if (yaw >= 360)
+			yaw -= 360;
 		if (pitch < -90)
 			pitch = -90;
 		if (pitch > 90)
@@ -149,7 +153,7 @@ public class GLCamera3D {
 	 * 3D描画前に呼び出す
 	 * @param gl
 	 */
-	public void setMatrix(GL10 gl) {
+	public void setMatrix(final GL10 gl) {
 		if (DEBUG) Log.v(TAG, "setMatrix:" + gl);
 		gl.glMatrixMode(GL10.GL_PROJECTION);
 		GLHelper.checkGlError(gl, "GLCamera3D#glMatrixMode");

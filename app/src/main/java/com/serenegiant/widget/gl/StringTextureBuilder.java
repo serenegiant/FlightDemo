@@ -1,15 +1,15 @@
 package com.serenegiant.widget.gl;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
-
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.Typeface;
 import android.util.Log;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class StringTextureBuilder {
 	protected String TAG = getClass().getSimpleName();
@@ -34,7 +34,7 @@ public class StringTextureBuilder {
 	 * @param textSize		描画文字サイズ
 	 * @param forceCreate
 	 */
-	public StringTextureBuilder(int textSize, boolean forceCreate) {
+	public StringTextureBuilder(final int textSize, final boolean forceCreate) {
 		// 等幅フォントにする・・・今はglyphWidths[]に各文字列毎の幅を保持しているので等幅でなくても行ける気がする
 		paint.setTypeface(Typeface.MONOSPACE);
 		paint.setTextSize(textSize); 
@@ -50,7 +50,7 @@ public class StringTextureBuilder {
 	 * @param texts 文字列配列
 	 * @return 最大幅
 	 */
-	private float calcTextWidths(String[] texts) {
+	private float calcTextWidths(final String[] texts) {
 		final int nn = texts.length;
 		glyphWidths = new float[nn];
 		// 文字列の幅を計算&分割
@@ -75,7 +75,7 @@ public class StringTextureBuilder {
 	 * @param texts
 	 * @return テクスチャ
 	 */
-	public Texture generate(IModelView game, String fileName, String[] texts, boolean mipmapped) {
+	public Texture generate(final IModelView game, final String fileName, final String[] texts, final boolean mipmapped) {
 		generateOnly(game, fileName, texts);
         return new Texture(game, fileName, mipmapped);
 	}
@@ -93,7 +93,7 @@ public class StringTextureBuilder {
 	 * @param fileName	ファイル名
 	 * @param texts		文字列配列
 	 */
-	public void generateOnly(IModelView game, String fileName, String[] texts) {
+	public void generateOnly(final IModelView game, final String fileName, final String[] texts) {
 		// 指定した文字列配列を描画した場合の各行の描画幅、最大幅と最大文字数を計算
 		final float w = calcTextWidths(texts);				// w=最大幅		
 		final int nn = texts.length;						// 行数
@@ -153,7 +153,7 @@ public class StringTextureBuilder {
 	 * @param perRow	1行あたりの文字数
 	 * @return			テクスチャ
 	 */
-	public Texture generate(IModelView game, String name, String text, int perRow, boolean mipmapped) {
+	public Texture generate(final IModelView game, final String name, final String text, final int perRow, final boolean mipmapped) {
 		generateOnly(game, name, text, perRow);
         return new Texture(game, name, mipmapped);
 	}
@@ -165,7 +165,7 @@ public class StringTextureBuilder {
 	 * @param text		文字列
 	 * @param perRow	1行あたりの文字数
 	 */
-	public void generateOnly(IModelView game, String fileName, String text, int perRow) {
+	public void generateOnly(final IModelView game, final String fileName, final String text, final int perRow) {
 		final int n = text.length();	// 文字数
 		int nn = n / perRow;			// 行数=文字数÷1行あたりの文字数
 		while (nn * perRow < n) nn++;
@@ -189,7 +189,7 @@ public class StringTextureBuilder {
 		// 内部ファイルは見れないのでデバッグ用にはSDカードへ保存する
 		FileIO fileIO;
 		if (isSaveExternal)					// WRITE_EXTERNAL_STORAGEパーミッションが必要
-			fileIO = game.getExtFileIO();	// SDカードへ(Nexsusなら保存されるpathが違うだけで同じこと)
+			fileIO = game.getExtFileIO();	// SDカードへ(Nexusなら保存されるpathが違うだけで同じこと)
 		else
 			fileIO = game.getFileIO();		// 内部ファイルへ
 		// 同名のファイルが存在しないとき
@@ -218,7 +218,7 @@ public class StringTextureBuilder {
 	 * @param height	ビットマップの高さ
 	 * @return			生成したビットマップ
 	 */
-	private Bitmap generateBitmap(String[] texts, int width, int height) {
+	private Bitmap generateBitmap(final String[] texts, int width, int height) {
 //		Log.w(TAG, "generateBitmap:width=" + width + " height=" + height);
 		// ミップマップする時は2の乗数で正方形でないとダメ
 		if (isSquare) {

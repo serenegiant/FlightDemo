@@ -10,18 +10,18 @@ public class GLMaterial extends GLPointLight {
 	}
 
 	@Override
-	public void enable(GL10 gl, int lightID) {
+	public void enable(final GL10 gl, final int lightID) {
 		enable(gl);
 	}
 
-	public void enable(GL10 gl) {
+	public void enable(final GL10 gl) {
 		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_AMBIENT, ambient, 0);
 		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_DIFFUSE, diffuse, 0);
 		gl.glMaterialfv(GL10.GL_FRONT_AND_BACK, GL10.GL_SPECULAR, specular, 0);
 	}
 
 	@Override
-	public void disable(GL10 gl) {
+	public void disable(final GL10 gl) {
 	
 	}
 }

@@ -6,30 +6,30 @@ import com.serenegiant.math.Vector;
 // 立方体オブジェクトクラス
 public class GLCubeModel extends GLPolygonModel {
 	
-	public GLCubeModel(GLGraphics glGraphics, float scale, int texMapNum) {
+	public GLCubeModel(final GLGraphics glGraphics, final float scale, final int texMapNum) {
 		this(glGraphics, Vector.zeroVector, scale, scale, scale, texMapNum);
 	}
 
-	public GLCubeModel(GLGraphics glGraphics, Vector offset, float scale, int texMapNum) {
+	public GLCubeModel(final GLGraphics glGraphics, final Vector offset, final float scale, final int texMapNum) {
 		this(glGraphics, offset, scale, scale, scale, texMapNum);
 	}
 
-	public GLCubeModel(GLGraphics glGraphics, Vector offset, int texMapNum) {
+	public GLCubeModel(final GLGraphics glGraphics, final Vector offset, final int texMapNum) {
 		this(glGraphics, Vector.zeroVector, 1f, 1f, 1f, texMapNum);
 	}
 
-	public GLCubeModel(GLGraphics glGraphics, int texMapNum) {
+	public GLCubeModel(final GLGraphics glGraphics, final int texMapNum) {
 		this(glGraphics, Vector.zeroVector, 1f, 1f, 1f, texMapNum);
 	}
 
-	public GLCubeModel(GLGraphics glGraphics, Vector offset,
-		float width, float height, float depth) {
+	public GLCubeModel(final GLGraphics glGraphics, final Vector offset,
+		final float width, final float height, final float depth) {
 		
 		this(glGraphics, offset, width, height, depth, 0);
 	}
 	
-	public GLCubeModel(GLGraphics glGraphics, Vector offset,
-		float width, float height, float depth, int texMapNum) {
+	public GLCubeModel(final GLGraphics glGraphics, final Vector offset,
+		final float width, final float height, final float depth, final int texMapNum) {
 
 		super(glGraphics, offset);
 		final float x = width / 2;

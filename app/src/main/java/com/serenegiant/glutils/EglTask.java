@@ -17,10 +17,10 @@ package com.serenegiant.glutils;
  *  limitations under the License.
 */
 
+import com.serenegiant.utils.MessageTask;
+
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL;
-
-import com.serenegiant.utils.MessageTask;
 
 public abstract class EglTask extends MessageTask {
 //	private static final boolean DEBUG = false;

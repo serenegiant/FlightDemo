@@ -23,8 +23,6 @@ package com.serenegiant.glutils;
  * Files in the jni/libjpeg, jni/libusb and jin/libuvc folder may have a different license, see the respective files.
 */
 
-import javax.microedition.khronos.egl.EGLContext;
-
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.os.Handler;
@@ -33,6 +31,8 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+
+import javax.microedition.khronos.egl.EGLContext;
 
 /**
  * Draw shared texture on specific whole Surface using OpenGL|ES

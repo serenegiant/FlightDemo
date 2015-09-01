@@ -1,10 +1,5 @@
 package com.serenegiant.widget.gl;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.microedition.khronos.opengles.GL10;
-
 import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -15,6 +10,11 @@ import android.support.v4.util.LruCache;
 import android.text.TextUtils;
 
 import com.serenegiant.glutils.GLHelper;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.microedition.khronos.opengles.GL10;
 
 public class Texture {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -79,7 +79,7 @@ public class Texture {
 			load();
 	}
 	
-	public void load(String fileName) {
+	public void load(final String fileName) {
 		mFileName = fileName;
 		load();
 	}
@@ -94,7 +94,7 @@ public class Texture {
 		}		
 	}
 	
-	private boolean internal_load(int loadType) {	
+	private boolean internal_load(final int loadType) {
 		InputStream in = null;
 		try {
 //			Bitmap bitmap = getMemoryCache(mFileName);
@@ -239,7 +239,7 @@ public class Texture {
 	 * @param key
 	 * @param bitmap
 	 */
-	private void putMemoryCache(String key, Bitmap bitmap) {
+	private void putMemoryCache(final String key, final Bitmap bitmap) {
 		mMemoryCache.put(key, bitmap);
 	}
 	
@@ -249,7 +249,7 @@ public class Texture {
 	 * @param key
 	 * @return
 	 */
-	private Bitmap getMemoryCache(String key) {
+	private Bitmap getMemoryCache(final String key) {
 		return mMemoryCache.get(key);
 	}
 	

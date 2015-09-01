@@ -8,11 +8,11 @@ public class AttitudeTextureView extends GLTextureModelView {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "AttitudeTextureView";
 
-	public AttitudeTextureView(Context context) {
+	public AttitudeTextureView(final Context context) {
 		this(context, null);
 	}
 
-	public AttitudeTextureView(Context context, AttributeSet attrs) {
+	public AttitudeTextureView(final Context context, final AttributeSet attrs) {
 		super(context, attrs);
 		if (DEBUG) Log.v(TAG, "コンストラクタ");
 	}

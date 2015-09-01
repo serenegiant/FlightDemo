@@ -1,6 +1,5 @@
 package com.serenegiant.flightdemo;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.Bundle;

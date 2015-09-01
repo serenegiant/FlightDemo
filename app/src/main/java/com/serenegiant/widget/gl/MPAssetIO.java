@@ -1,10 +1,10 @@
 package com.serenegiant.widget.gl;
 
+import android.content.res.AssetManager;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import android.content.res.AssetManager;
 
 /**
  * assetsファイルアクセスクラス

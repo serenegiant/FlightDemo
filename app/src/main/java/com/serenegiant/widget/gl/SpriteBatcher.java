@@ -1,12 +1,12 @@
 package com.serenegiant.widget.gl;
 
-import javax.microedition.khronos.opengles.GL10;
-
 import android.graphics.Rect;
 import android.graphics.RectF;
 
 import com.serenegiant.math.RectangleBounds;
 import com.serenegiant.math.Vector;
+
+import javax.microedition.khronos.opengles.GL10;
 
 public class SpriteBatcher {
 	private final float[] vertexBuffer;
@@ -14,7 +14,7 @@ public class SpriteBatcher {
 	private int bufferIndex;
 	private int numSprite;
 	
-	public SpriteBatcher(GLGraphics glGraphics, int maxSprites) {
+	public SpriteBatcher(final GLGraphics glGraphics, final int maxSprites) {
 		vertexBuffer = new float[maxSprites * 4 * 4];
 		vertex = new Vertex(Vertex.DIM_2D, glGraphics, maxSprites * 4, maxSprites * 6, false, true, false);
 		bufferIndex = 0;
@@ -34,7 +34,7 @@ public class SpriteBatcher {
 		vertex.setIndexs(index, 0, index.length);
 	}
 	
-	public void beginBatch(Texture texture) {
+	public void beginBatch(final Texture texture) {
 		texture.bind();
 		numSprite = 0;
 		bufferIndex = 0;
@@ -48,56 +48,56 @@ public class SpriteBatcher {
 	}
 	
 //--------------------------------------------------------------------------------
-	public void drawSprite(RectangleBounds bounds, TextureRegion region) {
+	public void drawSprite(final RectangleBounds bounds, final TextureRegion region) {
 		drawSprite(bounds.position.x, bounds.position.y, bounds.box.x * 2f, bounds.box.y * 2f, region);
 	}
 
-	public void drawSprite(Rect bounds, TextureRegion region) {
+	public void drawSprite(final Rect bounds, final TextureRegion region) {
 		drawSprite(bounds.centerX(), bounds.centerY(), region.width, region.height, region);
 	}
 
-	public void drawSprite(RectF bounds, TextureRegion region) {
+	public void drawSprite(final RectF bounds, final TextureRegion region) {
 		drawSprite(bounds.centerX(), bounds.centerY(), region.width, region.height, region);
 	}
 //--------------------------------------------------------------------------------
-	public void drawSprite(RectangleBounds bounds, TextureRegion region, float aspect) {
+	public void drawSprite(final RectangleBounds bounds, final TextureRegion region, final float aspect) {
 		drawSprite(bounds.position.x, bounds.position.y, region.width * aspect, region.height * aspect, region);
 	}
 
-	public void drawSprite(Rect bounds, TextureRegion region, float aspect) {
+	public void drawSprite(final Rect bounds, final TextureRegion region, final float aspect) {
 		drawSprite(bounds.centerX(), bounds.centerY(), region.width * aspect, region.height * aspect, region);
 	}
 
-	public void drawSprite(RectF bounds, TextureRegion region, float aspect) {
+	public void drawSprite(final RectF bounds, final TextureRegion region, final float aspect) {
 		drawSprite(bounds.centerX(), bounds.centerY(), region.width * aspect, region.height * aspect, region);
 	}
 //--------------------------------------------------------------------------------
-	public void drawSprite(RectangleBounds bounds, TextureRegion region, float aspect_width, float aspect_height) {
+	public void drawSprite(final RectangleBounds bounds, final TextureRegion region, final float aspect_width, final float aspect_height) {
 		drawSprite(bounds.position.x, bounds.position.y, region.width * aspect_width, region.height * aspect_height, region);
 	}
 
-	public void drawSprite(Rect bounds, TextureRegion region, float aspect_width, float aspect_height) {
+	public void drawSprite(final Rect bounds, final TextureRegion region, final float aspect_width, final float aspect_height) {
 		drawSprite(bounds.centerX(), bounds.centerY(), region.width * aspect_width, region.height * aspect_height, region);
 	}
 
-	public void drawSprite(RectF bounds, TextureRegion region, float aspect_width, float aspect_height) {
+	public void drawSprite(final RectF bounds, final TextureRegion region, final float aspect_width, final float aspect_height) {
 		drawSprite(bounds.centerX(), bounds.centerY(), region.width * aspect_width, region.height * aspect_height, region);
 	}
 //--------------------------------------------------------------------------------
-	public void drawSprite(float center_x, float center_y, TextureRegion region) {
+	public void drawSprite(final float center_x, final float center_y, final TextureRegion region) {
 		drawSprite(center_x, center_y, region.width, region.height, region);
 	}
 
-	public void drawSprite(float center_x, float center_y, TextureRegion region, float a) {
+	public void drawSprite(final float center_x, final float center_y, final TextureRegion region, final float a) {
 		drawSprite(center_x, center_y, region.width * a, region.height * a, region);
 	}
 
-	public void drawSprite(float center_x, float center_y, TextureRegion region, float aspect_width, float aspect_height) {
+	public void drawSprite(final float center_x, final float center_y, final TextureRegion region, final float aspect_width, final float aspect_height) {
 		drawSprite(center_x, center_y, region.width * aspect_width, region.height * aspect_height, region);
 	}
 //--------------------------------------------------------------------------------
 	// 回転角付き
-	public void drawSprite(float center_x, float center_y, float angle, TextureRegion region) {
+	public void drawSprite(final float center_x, final float center_y, final float angle, final TextureRegion region) {
 		if (angle == 0) {
 			drawSprite(center_x, center_y, region.width, region.height, region);
 			return;
@@ -105,7 +105,7 @@ public class SpriteBatcher {
 		drawSprite(center_x, center_y, region.width, region.height, angle, region);
 	}
 
-	public void drawSprite(float center_x, float center_y, float angle, TextureRegion region, float a) {
+	public void drawSprite(final float center_x, final float center_y, final float angle, final TextureRegion region, final float a) {
 		if (angle == 0) {
 			drawSprite(center_x, center_y, region.width * a, region.height * a, region);
 			return;
@@ -113,7 +113,7 @@ public class SpriteBatcher {
 		drawSprite(center_x, center_y, region.width * a, region.height * a, angle, region);
 	}
 
-	public void drawSprite(float center_x, float center_y, float angle, TextureRegion region, float aspect_width, float aspect_height) {
+	public void drawSprite(final float center_x, final float center_y, final float angle, final TextureRegion region, final float aspect_width, final float aspect_height) {
 		if (angle == 0) {
 			drawSprite(center_x, center_y, region.width * aspect_width, region.height * aspect_height, region);
 			return;
@@ -121,7 +121,7 @@ public class SpriteBatcher {
 		drawSprite(center_x, center_y, region.width * aspect_width, region.height * aspect_height, angle, region);
 	}
 //--------------------------------------------------------------------------------
-	public void drawSprite(float center_x, float center_y, float width, float height, TextureRegion region) {
+	public void drawSprite(final float center_x, final float center_y, final float width, final float height, final TextureRegion region) {
 		final float halfWidth = width / 2;
 		final float halfHeight = height / 2;
 		
@@ -155,7 +155,7 @@ public class SpriteBatcher {
 
 //--------------------------------------------------------------------------------
 	// 回転角付き
-	public void drawSprite(float center_x, float center_y, float width, float height, float angle, TextureRegion region) {
+	public void drawSprite(final float center_x, final float center_y, final float width, final float height, final float angle, final TextureRegion region) {
 		if (angle == 0) {
 			drawSprite(center_x, center_y, width, height, region);
 			return;

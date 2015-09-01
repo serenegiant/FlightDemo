@@ -11,24 +11,24 @@ public interface FileIO {
 	 * @return
 	 * @throws IOException
 	 */
-	public InputStream readFile(String fileName) throws IOException;
+	public InputStream readFile(final String fileName) throws IOException;
 	/**
 	 * ファイル名を指定して書き込み用ストリームを開く
 	 * @param fileName
 	 * @return
 	 * @throws IOException
 	 */
-	public OutputStream writeFile(String fileName) throws IOException;
+	public OutputStream writeFile(final String fileName) throws IOException;
 	/**
 	 * 指定したファイルが存在するかどうかを返す
 	 * @param fileName
 	 * @return 指定したファイルが存在していればtrueを返す
 	 */
-	public boolean fileExists(String fileName);
+	public boolean fileExists(final String fileName);
 	/**
 	 * 指定したファイルを削除する
 	 * @param fileName
 	 * @return 正常に削除出来ればtrueを返す
 	 */
-	public boolean deleteFile(String fileName);
+	public boolean deleteFile(final String fileName);
 }

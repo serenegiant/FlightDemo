@@ -12,7 +12,7 @@ public class TouchEvent {
 	public long eventTime, downTime;
 	public int pointer;
 
-	public TouchEvent set(TouchEvent src) {
+	public TouchEvent set(final TouchEvent src) {
 		if (src != null) {
 			type = src.type;
 			pointer = src.pointer;

@@ -10,23 +10,23 @@ public class GLAmbientLight extends GLLight {
 		super();
 	}
 
-	public GLAmbientLight(float r, float g, float b, float a) {
+	public GLAmbientLight(final float r, final float g, final float b, final float a) {
 		super();
 		setAmbient(r, g, b, a);
 	}
 	
 	@Override
-	public void enable(GL10 gl, int lightID) {
+	public void enable(final GL10 gl, final int lightID) {
 		enable(gl);		
 	}
 	
-	public void enable(GL10 gl) {
+	public void enable(final GL10 gl) {
 		gl.glLightModelfv(GL10.GL_LIGHT_MODEL_AMBIENT, ambient, 0);
 		GLHelper.checkGlError(gl, "GLAmbientLight#glLightModelfv");
 	}
 	
 	@Override
-	public void disable(GL10 gl) {
+	public void disable(final GL10 gl) {
 		
 	}
 	

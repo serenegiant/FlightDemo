@@ -1,7 +1,5 @@
 package com.serenegiant.widget.gl;
 
-import android.util.Log;
-
 import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
 

@@ -20,8 +20,8 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.AutoFlightListener;
+import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.GamePad;
 import com.serenegiant.arflight.IAutoFlight;
@@ -37,7 +37,6 @@ import com.serenegiant.widget.SideMenuListView;
 import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
 import com.serenegiant.widget.TouchPilotView;
-import com.serenegiant.widget.gl.AttitudeView;
 import com.serenegiant.widget.gl.IModelView;
 
 import java.io.File;

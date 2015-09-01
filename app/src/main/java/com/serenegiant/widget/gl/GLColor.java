@@ -1,7 +1,8 @@
 package com.serenegiant.widget.gl;
 
-import javax.microedition.khronos.opengles.GL10;
 import android.graphics.Color;
+
+import javax.microedition.khronos.opengles.GL10;
 
 public class GLColor {
 	private final float[] mColors = new float[4];

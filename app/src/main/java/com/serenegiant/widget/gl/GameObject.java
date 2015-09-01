@@ -33,41 +33,41 @@ public abstract class GameObject implements Serializable {
 	}
 	
 	// x, yはオブジェクトの中心座標
-	public GameObject(float x, float y, float z, float radius) {
+	public GameObject(final float x, final float y, final float z, final float radius) {
 		this();
 		bounds.radius = radius;
 		bounds.setPosition(x, y, z);
 	}
 
 	// x, yはオブジェクトの中心座標
-	public GameObject(float x, float y, float radius) {
+	public GameObject(final float x, final float y, final float radius) {
 		this(x, y, 0f, radius);
 	}
 
-	public GameObject(Vector center, float radius) {
+	public GameObject(final Vector center, final float radius) {
 		this(center.x, center.y, center.z, radius);
 	}
 
-	public void setBounds(BaseBounds bounds) {
+	public void setBounds(final BaseBounds bounds) {
 		this.bounds = bounds;
 		position = bounds.position;
 	}
 	
-	public void setPosition(Vector pos) {
+	public void setPosition(final Vector pos) {
 		bounds.setPosition(pos);
 	}
 	
-	public void setPosition(float x, float y, float z) {
+	public void setPosition(final float x, final float y, final float z) {
 		bounds.setPosition(x, y, z);
 	}
 
-	public void setPosition(float x, float y) {
+	public void setPosition(final float x, final float y) {
 		bounds.setPosition(x, y);
 	}
 	
-	public void rotate(Vector angle) {
+	public void rotate(final Vector angle) {
 		bounds.rotate(angle);
 	}
 	
-	public abstract void update(float deltaTime);
+	public abstract void update(final float deltaTime);
 }

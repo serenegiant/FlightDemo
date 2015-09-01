@@ -7,12 +7,12 @@ package com.serenegiant.glutils;
  *
 */
 
+import android.opengl.GLES20;
+import android.opengl.Matrix;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-
-import android.opengl.GLES20;
-import android.opengl.Matrix;
 
 /**
  * 描画領域全面にテクスチャを2D描画するためのヘルパークラス

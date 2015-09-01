@@ -42,11 +42,11 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	protected long mUpdateIntervals = 0;			// 連続描画間隔?
 	protected boolean glActive = false;
 
-	public GLModelView(Context context) {
+	public GLModelView(final Context context) {
 		this(context, null);
 	}
 
-	public GLModelView(Context context, AttributeSet attrs) {
+	public GLModelView(final Context context, final AttributeSet attrs) {
 		super(context, attrs);
 		if (DEBUG) Log.v(TAG, "コンストラクタ");
 		glGraphics = new GLGraphics(this);
@@ -263,7 +263,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	};
 
 	protected void initialize() {
-		if (DEBUG) Log.v(TAG, "initialize:");
+		if (DEBUG) Log.v(TAG, "onInitialize:");
 	}
 
 	/**

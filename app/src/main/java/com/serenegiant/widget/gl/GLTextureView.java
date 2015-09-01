@@ -66,15 +66,15 @@ public class GLTextureView extends TextureView {
 	private volatile boolean mIsActive;
 	private int mRenderMode = RENDERMODE_CONTINUOUSLY;
 
-	public GLTextureView(Context context) {
+	public GLTextureView(final Context context) {
 		this(context, null, 0);
 	}
 
-	public GLTextureView(Context context, AttributeSet attrs) {
+	public GLTextureView(final Context context, final AttributeSet attrs) {
 		this(context, attrs, 0);
 	}
 
-	public GLTextureView(Context context, AttributeSet attrs, int defStyleAttr) {
+	public GLTextureView(final Context context, final AttributeSet attrs, final int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
 		setSurfaceTextureListener(mSurfaceTextureListener);
 	}
@@ -205,6 +205,7 @@ public class GLTextureView extends TextureView {
 		@Override
 		public void onSurfaceTextureSizeChanged(final SurfaceTexture surface, final int width, final int height) {
 			if (DEBUG) Log.v(TAG, "onSurfaceTextureSizeChanged:" + mRendererTask);
+			// XXX ここに来るときには既にmRendererTaskは開放されているかも
 			if (mRendererTask != null) {
 				mRendererTask.offer(CMD_SIZE_CHANGED, width, height, surface);
 				if (DEBUG) Log.v(TAG, "offer CMD_SIZE_CHANGED");
@@ -237,16 +238,16 @@ public class GLTextureView extends TextureView {
 	private static final int CMD_RUN = 6;
 	private static class RendererTask extends EglTask {
 		private final WeakReference<GLTextureView> mWeakParent;
-		private EGLBase.EglSurface mRenderSurface;
+		private EGLBase.EglSurface mRenderSurface;	// TextureViewへOpenGL|ESを使って描画するためのeglSurface
 		private GL10 mGl;
 		public RendererTask(final GLTextureView parent) {
-			super(1, null, EglTask.EGL_FLAG_DEPTH_BUFFER);	// GLES1
+			super(1, null, EglTask.EGL_FLAG_DEPTH_BUFFER);	// GLES1で初期化
 			if (DEBUG) Log.v(TAG, "RendererTask:コンストラクタ");
 			mWeakParent = new WeakReference<GLTextureView>(parent);
 		}
 
 		@Override
-		protected void onInit(int request, int flags, int max_version, Object shared_context) {
+		protected void onInit(final int request, final int flags, final int max_version, final Object shared_context) {
 			if (DEBUG) Log.v(TAG, "RendererTask#onInit:");
 			super.onInit(request, flags, max_version, shared_context);
 			if (DEBUG) Log.v(TAG, "RendererTask#onInit:終了");
@@ -260,6 +261,7 @@ public class GLTextureView extends TextureView {
 		@Override
 		protected void onStop() {
 			if (DEBUG) Log.v(TAG, "RendererTask#onStop:");
+			// FIXME ここで#callOnSurfaceDestroyedを呼び出すようにした方がいいかも
 			if (mRenderSurface != null) {
 				mRenderSurface.release();
 				mRenderSurface = null;
@@ -268,7 +270,7 @@ public class GLTextureView extends TextureView {
 		}
 
 		@Override
-		protected boolean processRequest(int request, int arg1, int arg2, Object obj) {
+		protected boolean processRequest(final int request, final int arg1, final int arg2, final Object obj) {
 			final GLTextureView parent = mWeakParent.get();
 			switch (request) {
 			case CMD_AVAILABLE:
@@ -289,6 +291,7 @@ public class GLTextureView extends TextureView {
 				break;
 			case CMD_DESTROYED:
 				if (DEBUG) Log.v(TAG, "CMD_DESTROYED:");
+				// FIXME ここには来ないかも
 				if (parent != null) {
 					parent.callOnSurfaceDestroyed(mGl);
 				}
@@ -299,6 +302,7 @@ public class GLTextureView extends TextureView {
 				break;
 			case CMD_UPDATED:
 				if (DEBUG) Log.v(TAG, "CMD_UPDATED:");
+				// ここは来ない
 				break;
 			case CMD_DRAW:
 				if (mRenderSurface != null) {

@@ -22,7 +22,7 @@ public class DroneObjectBebop extends DroneObject {
 
 
 	@Override
-	public void update(float deltaTime) {
+	public void update(final float deltaTime) {
 		mFrontLeftRotorObj.update(deltaTime);
 		mFrontRightRotorObj.update(deltaTime);
 		mRearLeftRotorObj.update(deltaTime);

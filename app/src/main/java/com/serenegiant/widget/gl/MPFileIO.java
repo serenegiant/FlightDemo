@@ -1,11 +1,10 @@
 package com.serenegiant.widget.gl;
 
+import android.content.Context;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-
-import android.content.Context;
 
 /**
  * 内部ストレージアクセスクラス

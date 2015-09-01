@@ -2,6 +2,9 @@ package com.serenegiant.widget.gl;
 
 import android.util.Log;
 
+import com.serenegiant.glutils.GLHelper;
+import com.serenegiant.math.Vector;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -10,9 +13,6 @@ import java.util.Arrays;
 
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
-
-import com.serenegiant.glutils.GLHelper;
-import com.serenegiant.math.Vector;
 
 public class Vertex {
 //	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること

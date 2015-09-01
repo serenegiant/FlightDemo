@@ -6,7 +6,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class GLSphereModel extends GLPolygonModel {
 
-	public GLSphereModel(GLGraphics glGraphics, Vector offset, float radius, int num_theta, int num_phi) {
+	public GLSphereModel(final GLGraphics glGraphics, final Vector offset, final float radius, final int num_theta, final int num_phi) {
 		super(glGraphics, offset);
 		final double d_theta = 2 * Math.PI / num_theta;
 		final double d_phi = Math.PI / num_phi;
