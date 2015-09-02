@@ -146,6 +146,16 @@ public abstract class DeviceController implements IDeviceController {
 		return mStatus.getAlarm();
 	}
 
+	@Override
+	public int getStillCaptureState() {
+		return mStatus.getStillCaptureState();
+	}
+
+	@Override
+	public int getVideoRecordingState() {
+		return mStatus.getVideoRecordingState();
+	}
+
 	/**
 	 * 接続開始
 	 * @return
@@ -1260,15 +1270,42 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/**
+	 * 静止画撮影ステータスが変化した時のコールバックを呼び出す
+	 * @param state
+	 */
 	protected void callOnStillCaptureStateChanged(final int state) {
-		mStatus.setStillCaptureState(state);
-		synchronized (mListenerSync) {
-			for (DeviceControllerListener listener: mListeners) {
-				if (listener != null) {
-					try {
-						listener.onStillCaptureStateChanged(state);
-					} catch (final Exception e) {
-						if (DEBUG) Log.w(TAG, e);
+		final boolean changed = mStatus.setStillCaptureState(state);
+		if (changed) {
+			synchronized (mListenerSync) {
+				for (DeviceControllerListener listener : mListeners) {
+					if (listener != null) {
+						try {
+							listener.onStillCaptureStateChanged(state);
+						} catch (final Exception e) {
+							if (DEBUG) Log.w(TAG, e);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 動画撮影ステータスが変化した時のコールバックを呼び出す
+	 * @param state
+	 */
+	protected void callOnVideoRecordingStateChanged(final int state) {
+		final boolean changed = mStatus.setVideoRecordingState(state);
+		if (changed) {
+			synchronized (mListenerSync) {
+				for (DeviceControllerListener listener : mListeners) {
+					if (listener != null) {
+						try {
+							listener.onVideoRecordingStateChanged(state);
+						} catch (final Exception e) {
+							if (DEBUG) Log.w(TAG, e);
+						}
 					}
 				}
 			}

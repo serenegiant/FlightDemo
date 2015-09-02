@@ -128,6 +128,14 @@ public abstract class ControlFragment extends Fragment {
 		return mController != null ? mController.getAlarm() : DroneStatus.ALARM_DISCONNECTED;
 	}
 
+	protected int getStillCaptureState() {
+		return mController != null ? mController.getStillCaptureState() : DroneStatus.MEDIA_UNAVAILABLE;
+	}
+
+	protected int getVideoRecordingState() {
+		return mController != null ? mController.getVideoRecordingState() : DroneStatus.MEDIA_UNAVAILABLE;
+	}
+
 	protected void startVideoStreaming() {
 		if (mController instanceof IVideoStreamController) {
 			((IVideoStreamController)mController).enableVideoStreaming(true);
@@ -318,9 +326,16 @@ public abstract class ControlFragment extends Fragment {
 
 	/**
 	 * 静止画撮影ステータスが変化した時のコールバック
-	 * @param picture_state IDeviceController#PICTURE_XXX
+	 * @param picture_state DroneStatus#MEDIA_XXX
 	 */
-	protected void updatePictureState(final int picture_state) {
+	protected void updatePictureCaptureState(final int picture_state) {
+	}
+
+	/**
+	 * 動画撮影ステータスが変化した時のコールバック
+	 * @param video_state DroneStatus#MEDIA_XXX
+	 */
+	protected void updateVideoRecordingState(final int video_state) {
 	}
 
 	protected void onConnect(final IDeviceController controller) {
@@ -381,7 +396,12 @@ public abstract class ControlFragment extends Fragment {
 
 		@Override
 		public void onStillCaptureStateChanged(int state) {
-			updatePictureState(state);
+			updatePictureCaptureState(state);
+		}
+
+		@Override
+		public void onVideoRecordingStateChanged(int state) {
+			updateVideoRecordingState(state);
 		}
 
 	};

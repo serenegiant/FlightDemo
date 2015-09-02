@@ -12,17 +12,6 @@ public interface IDeviceController {
 	public static final int FLIP_RIGHT = 3;
 	public static final int FLIP_LEFT = 4;
 
-	/** 静止画撮影不可 */
-	public static final int PICTURE_UNAVAILABLE = -1;
-	/** 静止画撮影可能 */
-	public static final int PICTURE_READY = 0;
-	/** 静止画撮影中 */
-	public static final int PICTURE_BUSY = 1;
-	public static final int PICTURE_SUCCESS = 2;
-	public static final int PICTURE_ERROR = 9;
-//	PICTURE_READY => PICTURE_BUSY => PICTURE_SUCCESS => PICTURE_READY
-//	PICTURE_READY => PICTURE_BUSY => PICTURE_ERROR => PICTURE_READY
-
 	// センサーの種類
 	/** 慣性測定(ジャイロ/加速度) */
 	public static final int SENSOR_IMU = 0;
@@ -101,6 +90,8 @@ public interface IDeviceController {
 	 */
 	public int getState();
 	public int getAlarm();
+	public int getStillCaptureState();
+	public int getVideoRecordingState();
 
 	public boolean start();
 

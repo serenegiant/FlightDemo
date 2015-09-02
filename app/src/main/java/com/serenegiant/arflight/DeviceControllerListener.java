@@ -27,5 +27,15 @@ public interface DeviceControllerListener extends DeviceConnectionListener {
 	 */
 	public void onFlatTrimChanged();
 
+	/**
+	 * 静止画撮影ステータスが変更された
+	 * @param state
+	 */
 	public void onStillCaptureStateChanged(final int state);
+
+	/**
+	 * 動画撮影ステータスが変更された
+	 * @param state
+	 */
+	public void onVideoRecordingStateChanged(final int state);
 }

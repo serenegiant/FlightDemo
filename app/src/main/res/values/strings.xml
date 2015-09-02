@@ -21,6 +21,11 @@
 	<string name="alarm_motor_cut_out">Motor cut out</string>
 	<string name="alarm_disconnected">Disconnected</string>
 
+	<string name="capture_error">Still capturing failed</string>
+	<string name="capture_success">Still capturing success</string>
+	<string name="video_error">Video recording failed</string>
+	<string name="video_success">Video recording finished</string>
+
 	<string name="detecting">Detecting drones...</string>
 	<string name="disconnecting">Disconnecting…</string>
 	<string name="connecting">Connecting…</string>
@@ -68,4 +73,5 @@
 	<string name="info_version_software">Software version:</string>
 	<string name="info_version_hardware">Hardware version:</string>
 	<string name="info_version_app">App version:</string>
+
 </resources>

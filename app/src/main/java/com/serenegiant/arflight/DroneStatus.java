@@ -17,8 +17,18 @@ public class DroneStatus {
 	public static final int ALARM_BATTERY_CRITICAL = 3;
 	public static final int ALARM_BATTERY = 4;
 	public static final int ALARM_TOO_MUCH_ANGLE = 5;
+	public static final int ALARM_DISCONNECTED = 100;	// これはアプリ内のみで有効
 
-	public static final int ALARM_DISCONNECTED = 100;
+	/** 動画/静止画撮影不可 */
+	public static final int MEDIA_UNAVAILABLE = -1;
+	/** 動画/静止画撮影可能 */
+	public static final int MEDIA_READY = 0;
+	/** 動画/静止画撮影中 */
+	public static final int MEDIA_BUSY = 1;
+	public static final int MEDIA_SUCCESS = 2;
+	public static final int MEDIA_ERROR = 9;
+//	MEDIA_READY => MEDIA_BUSY => MEDIA_SUCCESS => MEDIA_READY
+//	MEDIA_READY => MEDIA_BUSY => MEDIA_ERROR => MEDIA_READY
 
 	private final Object mStateSync = new Object();
 	private final Object mSync = new Object();
@@ -27,8 +37,8 @@ public class DroneStatus {
 	private int mAlarmState = ALARM_NON;
 	private int mBatteryState = -1;
 	private final AttributeMotor[] mMotors;
-	private int mStillCaptureState;
-
+	private int mStillCaptureState = MEDIA_UNAVAILABLE;
+	private int mVideoRecordingState = MEDIA_UNAVAILABLE;
 
 	public DroneStatus(final int motor_num) {
 		mMotors = new AttributeMotor[motor_num];
@@ -305,16 +315,48 @@ public class DroneStatus {
 	}
 
 	/** 静止画撮影ステータス */
-	public void setStillCaptureState(final int state) {
+	public boolean setStillCaptureState(final int state) {
 		synchronized (mStateSync) {
+			final boolean result = mStillCaptureState != state;
 			mStillCaptureState = state;
+			return result;
+		}
+	}
+
+	/** 静止画撮影ステータス */
+	public int getStillCaptureState() {
+		synchronized (mStateSync) {
+			return mStillCaptureState;
 		}
 	}
 
 	/** 静止画撮影可能かどうか */
 	public boolean isStillCaptureReady() {
 		synchronized (mStateSync) {
-			return mStillCaptureState != 0;
+			return mStillCaptureState == MEDIA_READY;
+		}
+	}
+
+	/** 動画撮影ステータス */
+	public boolean setVideoRecordingState(final int state) {
+		synchronized (mStateSync) {
+			final boolean result = mVideoRecordingState != state;
+			mVideoRecordingState = state;
+			return result;
+		}
+	}
+
+	/** 動画撮影ステータス */
+	public int getVideoRecordingState() {
+		synchronized (mStateSync) {
+			return mVideoRecordingState;
+		}
+	}
+
+	/** 動画撮影可能かどうか */
+	public boolean isVideoRecordingReady() {
+		synchronized (mStateSync) {
+			return mVideoRecordingState == MEDIA_READY;
 		}
 	}
 }

@@ -8,8 +8,12 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_ERROR_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_ERROR_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM;
@@ -40,9 +44,11 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateGPSUpdateSta
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateHomeChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateResetHomeChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordEventPictureEventChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordEventVideoEventChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordStatePictureStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordStatePictureStateChangedV2Listener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordStateVideoStateChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordStateVideoStateChangedV2Listener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaStreamingStateVideoEnableChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3NetworkSettingsStateWifiSelectionChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3NetworkStateAllWifiAuthChannelChangedListener;
@@ -119,6 +125,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		ARCommand.setARDrone3MediaRecordStatePictureStateChangedV2Listener(mMediaRecordStatePictureStateChangedV2Listener);
 		ARCommand.setARDrone3MediaRecordEventPictureEventChangedListener(mMediaRecordEventPictureEventChangedListener);
 		ARCommand.setARDrone3MediaRecordStateVideoStateChangedListener(mMediaRecordStateVideoStateChangedListener);
+		ARCommand.setARDrone3MediaRecordStateVideoStateChangedV2Listener(mMediaRecordStateVideoStateChangedV2Listener);
+		ARCommand.setARDrone3MediaRecordEventVideoEventChangedListener(mMediaRecordEventVideoEventChangedListener);
 		ARCommand.setARDrone3PilotingStateFlatTrimChangedListener(mPilotingStateFlatTrimChangedListener);
 		ARCommand.setARDrone3PilotingStateFlyingStateChangedListener(mPilotingStateFlyingStateChangedListener);
 		ARCommand.setARDrone3PilotingStateAlertStateChangedListener(mPilotingStateAlertStateChangedListener);
@@ -168,7 +176,10 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	protected void unregisterARCommandsListener() {
 		ARCommand.setARDrone3MediaRecordStatePictureStateChangedListener(null);
 		ARCommand.setARDrone3MediaRecordStatePictureStateChangedV2Listener(null);
+		ARCommand.setARDrone3MediaRecordEventPictureEventChangedListener(null);
 		ARCommand.setARDrone3MediaRecordStateVideoStateChangedListener(null);
+		ARCommand.setARDrone3MediaRecordStateVideoStateChangedV2Listener(null);
+		ARCommand.setARDrone3MediaRecordEventVideoEventChangedListener(null);
 		ARCommand.setARDrone3PilotingStateFlatTrimChangedListener(null);
 		ARCommand.setARDrone3PilotingStateFlyingStateChangedListener(null);
 		ARCommand.setARDrone3PilotingStateAlertStateChangedListener(null);
@@ -831,7 +842,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final byte state, final byte mass_storage_id) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStatePictureStateChangedUpdate:state=" + state + ",mass_storage_id=" + mass_storage_id);
-//			callOnStillCaptureStateChanged(state == 1 ? PICTURE_SUCCESS : PICTURE_ERROR);
 		}
 	};
 
@@ -851,14 +861,14 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			int _state;
 			switch (state) {
 			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_READY:		// 撮影可能
-				_state = PICTURE_READY;
+				_state = DroneStatus.MEDIA_READY;
 				break;
 			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_BUSY:			// 撮影中
-				_state = PICTURE_BUSY;
+				_state = DroneStatus.MEDIA_BUSY;
 				break;
 			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_NOTAVAILABLE:	// 撮影不可
 			default:
-				_state = PICTURE_UNAVAILABLE;
+				_state = DroneStatus.MEDIA_UNAVAILABLE;
 				break;
 			}
 			callOnStillCaptureStateChanged(_state);
@@ -880,11 +890,11 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			int _state;
 			switch (event) {
 			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_TAKEN:			// 撮影成功
-				_state = PICTURE_SUCCESS;
+				_state = DroneStatus.MEDIA_SUCCESS;
 				break;
 			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_FAILED:			// 撮影失敗
 			default:
-				_state = PICTURE_ERROR;
+				_state = DroneStatus.MEDIA_ERROR;
 				break;
 			}
 			callOnStillCaptureStateChanged(_state);
@@ -906,11 +916,67 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED_STATE_ENUM state, final byte mass_storage_id) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStateVideoStateChangedUpdate:state=" + state + ",mass_storage_id=" + mass_storage_id);
-			// FIXME 未実装
-//			0: Video was stopped
-//			1: Video was started
-//			2: Video was failed
-//			3: Video was auto stopped
+		}
+	};
+
+	/**
+	 * ビデオ撮影状態を受信した時
+	 */
+	private final ARCommandARDrone3MediaRecordStateVideoStateChangedV2Listener
+		mMediaRecordStateVideoStateChangedV2Listener
+			= new ARCommandARDrone3MediaRecordStateVideoStateChangedV2Listener() {
+
+		@Override
+		public void onARDrone3MediaRecordStateVideoStateChangedV2Update(
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE_ENUM state,
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_ERROR_ENUM error) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStateVideoStateChangedV2Update:state=" + state + ",error=" + error);
+			int _state;
+			switch (state) {
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE_STOPPED:
+				_state = DroneStatus.MEDIA_READY;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE_STARTED:
+				_state = DroneStatus.MEDIA_BUSY;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE_NOTAVAILABLE:
+			default:
+				_state = DroneStatus.MEDIA_UNAVAILABLE;
+				break;
+			}
+			callOnVideoRecordingStateChanged(_state);
+		}
+	};
+
+	/**
+	 * 動画撮影イベントを受信した時
+	 */
+	private final ARCommandARDrone3MediaRecordEventVideoEventChangedListener
+		mMediaRecordEventVideoEventChangedListener
+			= new ARCommandARDrone3MediaRecordEventVideoEventChangedListener() {
+
+		@Override
+		public void onARDrone3MediaRecordEventVideoEventChangedUpdate(
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_ENUM event,
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_ERROR_ENUM error) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStateVideoStateChangedV2Update:state=" + event + ",error=" + error);
+			int _state;
+			switch (event) {
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_START:
+				_state = DroneStatus.MEDIA_BUSY;
+				// XXX ここはreturnした方がいいかも?
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_STOP:
+				_state = DroneStatus.MEDIA_SUCCESS;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_FAILED:
+			default:
+				_state = DroneStatus.MEDIA_ERROR;
+				break;
+			}
+			callOnVideoRecordingStateChanged(_state);
 		}
 	};
 

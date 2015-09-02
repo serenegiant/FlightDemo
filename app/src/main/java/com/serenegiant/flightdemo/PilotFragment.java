@@ -18,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.AutoFlightListener;
@@ -83,6 +84,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private ImageButton mMoveButton;		// 移動ボタン(タッチ描画操縦)
 	// 右サイドパネル
 	private View mRightSidePanel;
+	private ImageButton mStillCaptureBtn;
 	private ImageButton mVideoRecordingBtn;
 	// 左サイドパネル
 	private View mLeftSidePanel;
@@ -224,15 +226,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mActionViews.add(mRightSidePanel);
 
 		// 静止画撮影
-		button = (ImageButton)rootView.findViewById(R.id.still_capture_btn);
-		button.setOnClickListener(mOnClickListener);
-		mActionViews.add(button);
+		mStillCaptureBtn = (ImageButton)rootView.findViewById(R.id.still_capture_btn);
+		mStillCaptureBtn.setOnClickListener(mOnClickListener);
 
 		// 動画撮影
 		mVideoRecordingBtn = (ImageButton)rootView.findViewById(R.id.video_capture_btn);
 		mVideoRecordingBtn.setOnClickListener(mOnClickListener);
-		mVideoRecordingBtn.setVisibility(View.INVISIBLE);
-		mActionViews.add(mVideoRecordingBtn);
 
 		button = (ImageButton)rootView.findViewById(R.id.cap_p45_btn);
 		button.setOnClickListener(mOnClickListener);
@@ -447,9 +446,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				}
 				break;
 			case R.id.still_capture_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
-				if (mController != null) {
-					mController.sendTakePicture();
+				if (getStillCaptureState() == DroneStatus.MEDIA_READY) {
+					setColorFilter((ImageView) view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+					if (mController != null) {
+						mController.sendTakePicture();
+					}
 				}
 				break;
 			case R.id.video_capture_btn:
@@ -705,13 +706,64 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	@Override
-	protected void updatePictureState(final int picture_state) {
+	protected void updateBattery() {
+		runOnUiThread(mUpdateBatteryTask);
+	}
+
+	@Override
+	protected void updatePictureCaptureState(final int picture_state) {
+		switch (picture_state) {
+		case DroneStatus.MEDIA_UNAVAILABLE:
+		case DroneStatus.MEDIA_READY:
+		case DroneStatus.MEDIA_BUSY:
+			break;
+		case DroneStatus.MEDIA_SUCCESS:
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Toast.makeText(getActivity(), R.string.capture_success, Toast.LENGTH_SHORT).show();
+				}
+			});
+			break;
+		case DroneStatus.MEDIA_ERROR:
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Toast.makeText(getActivity(), R.string.capture_error, Toast.LENGTH_SHORT).show();
+				}
+			});
+			break;
+		}
 		updateButtons();
 	}
 
 	@Override
-	protected void updateBattery() {
-		runOnUiThread(mUpdateBatteryTask);
+	protected void updateVideoRecordingState(final int video_state) {
+		switch (video_state) {
+		case DroneStatus.MEDIA_UNAVAILABLE:
+		case DroneStatus.MEDIA_READY:
+		case DroneStatus.MEDIA_BUSY:
+			break;
+		case DroneStatus.MEDIA_SUCCESS:
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Toast.makeText(getActivity(), R.string.video_success, Toast.LENGTH_SHORT).show();
+				}
+			});
+			mVideoRecording = false;
+			break;
+		case DroneStatus.MEDIA_ERROR:
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Toast.makeText(getActivity(), R.string.video_error, Toast.LENGTH_SHORT).show();
+				}
+			});
+			mVideoRecording = false;
+			break;
+		}
+		updateButtons();
 	}
 
 	/**
@@ -1174,6 +1226,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		public void run() {
 			final int state = getState();
 			final int alarm_state = getAlarm();
+			final int still_capture_state = getStillCaptureState();
+			final int video_recording_state = getVideoRecordingState();
 			final boolean is_connected = isConnected();
 			final boolean is_recording = mFlightRecorder.isRecording();
 			final boolean is_playing = mFlightRecorder.isPlaying();
@@ -1233,7 +1287,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 			// 右サイドパネル(とmCapXXXBtn等)
 			mRightSidePanel.setEnabled(can_fly);
-			mVideoRecordingBtn.setImageResource(mVideoRecording ? android.R.drawable.presence_video_online : android.R.drawable.presence_video_busy);
+
+			mStillCaptureBtn.setEnabled(still_capture_state == DroneStatus.MEDIA_READY);
+			mStillCaptureBtn.setVisibility(still_capture_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
+
+			mVideoRecordingBtn.setEnabled(video_recording_state == DroneStatus.MEDIA_READY);
+			mStillCaptureBtn.setVisibility(video_recording_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
+			mVideoRecordingBtn.setImageResource(mVideoRecording ? android.R.drawable.presence_video_busy : android.R.drawable.presence_video_online);
+
 			// 左サイドパネル(とmFlipXXXBtn等)
 			mLeftSidePanel.setEnabled(can_fly);
 			// 右スティックパネル(東/西ボタン)

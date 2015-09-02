@@ -169,7 +169,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			final byte state, final byte mass_storage_id) {
 
 			if (DEBUG) Log.v(TAG, "onMiniDroneMediaRecordStatePictureStateChangedUpdate:state=" + state + ",mass_storage_id=" + mass_storage_id);
-//			callOnStillCaptureStateChanged(state == 1 ? PICTURE_SUCCESS : PICTURE_ERROR);
+//			callOnStillCaptureStateChanged(state == 1 ? MEDIA_SUCCESS : MEDIA_ERROR);
 		}
 	};
 
@@ -189,14 +189,14 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			int _state;
 			switch (state) {
 			case ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_READY:			// 撮影可能
-				_state = PICTURE_READY;
+				_state = MEDIA_READY;
 				break;
 			case ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_BUSY:			// 撮影中
-				_state = PICTURE_BUSY;
+				_state = MEDIA_BUSY;
 				break;
 			case ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_NOTAVAILABLE:	// 撮影不可
 			default:
-				_state = PICTURE_UNAVAILABLE;
+				_state = MEDIA_UNAVAILABLE;
 				break;
 			}
 			callOnStillCaptureStateChanged(_state);
@@ -218,11 +218,11 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			int _state;
 			switch (event) {
 			case ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_TAKEN:		// 撮影成功
-				_state = PICTURE_SUCCESS;
+				_state = MEDIA_SUCCESS;
 				break;
 			case ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_FAILED:	// 撮影失敗
 			default:
-				_state = PICTURE_ERROR;
+				_state = MEDIA_ERROR;
 				break;
 			}
 			callOnStillCaptureStateChanged(_state);
