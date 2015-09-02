@@ -4,7 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Rect;
 
-public abstract class BaseScreen implements Screen {
+public abstract class BaseScreen implements IScreen {
 	protected String TAG = getClass().getSimpleName();
 	
 	public int screenIx = 0;

@@ -829,8 +829,9 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		@Override
 		public void onARDrone3MediaRecordStatePictureStateChangedUpdate(
 			final byte state, final byte mass_storage_id) {
+
 			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStatePictureStateChangedUpdate:state=" + state + ",mass_storage_id=" + mass_storage_id);
-			// FIXME 未実装
+//			callOnStillCaptureStateChanged(state == 1 ? PICTURE_SUCCESS : PICTURE_ERROR);
 		}
 	};
 
@@ -846,11 +847,21 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR_ENUM error) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStatePictureStateChangedV2Update:state=" + state + ",error=" + error);
-			// FIXME 未実装
-			// state:
-			// ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_READY	撮影可能
-			// ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_BUSY	ビジー
-			// ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_NOTAVAILABLE	撮影不可
+
+			int _state;
+			switch (state) {
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_READY:		// 撮影可能
+				_state = PICTURE_READY;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_BUSY:			// 撮影中
+				_state = PICTURE_BUSY;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_NOTAVAILABLE:	// 撮影不可
+			default:
+				_state = PICTURE_UNAVAILABLE;
+				break;
+			}
+			callOnStillCaptureStateChanged(_state);
 		}
 	};
 
@@ -866,10 +877,17 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM error) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordEventPictureEventChangedUpdate:event=" + event + ",error=" + error);
-			// FIXME 未実装
-			// event:
-			// ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_TAKEN
-			// ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_FAILED
+			int _state;
+			switch (event) {
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_TAKEN:			// 撮影成功
+				_state = PICTURE_SUCCESS;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_FAILED:			// 撮影失敗
+			default:
+				_state = PICTURE_ERROR;
+				break;
+			}
+			callOnStillCaptureStateChanged(_state);
 		}
 	};
 

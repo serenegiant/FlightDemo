@@ -122,6 +122,22 @@
 				android:layout_alignParentTop="true"
 				android:orientation="vertical">
 
+				<ImageButton
+					android:id="@+id/still_capture_btn"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@android:drawable/ic_menu_camera"/>
+
+				<ImageButton
+					android:id="@+id/video_capture_btn"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="@android:drawable/presence_video_online"/>
+
 				<FrameLayout
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
@@ -142,53 +158,6 @@
 						android:layout_gravity="center"
 						android:gravity="center"
 						android:text="+45"
-						android:textSize="@dimen/text_sz_button"
-						android:textColor="@color/DARKVIOLET"/>
-				</FrameLayout>
-
-
-				<FrameLayout
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:background="@null">
-
-					<ImageButton
-						android:id="@+id/cap_p15_btn"
-						android:layout_width="@dimen/btn_size_action"
-						android:layout_height="@dimen/btn_size_action"
-						android:background="@null"
-						android:scaleType="fitXY"
-						android:src="@drawable/turn_right144x144"/>
-
-					<TextView
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:layout_gravity="center"
-						android:gravity="center"
-						android:text="+15"
-						android:textSize="@dimen/text_sz_button"
-						android:textColor="@color/DARKVIOLET"/>
-				</FrameLayout>
-
-				<FrameLayout
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:background="@null">
-
-					<ImageButton
-						android:id="@+id/cap_m15_btn"
-						android:layout_width="@dimen/btn_size_action"
-						android:layout_height="@dimen/btn_size_action"
-						android:background="@null"
-						android:scaleType="fitXY"
-						android:src="@drawable/turn_left144x144"/>
-
-					<TextView
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:layout_gravity="center"
-						android:gravity="center"
-						android:text="-15"
 						android:textSize="@dimen/text_sz_button"
 						android:textColor="@color/DARKVIOLET"/>
 				</FrameLayout>

@@ -167,7 +167,9 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		@Override
 		public void onMiniDroneMediaRecordStatePictureStateChangedUpdate(
 			final byte state, final byte mass_storage_id) {
-			if (DEBUG) Log.v(TAG, "onMiniDroneMediaRecordStatePictureStateChangedUpdate:");
+
+			if (DEBUG) Log.v(TAG, "onMiniDroneMediaRecordStatePictureStateChangedUpdate:state=" + state + ",mass_storage_id=" + mass_storage_id);
+//			callOnStillCaptureStateChanged(state == 1 ? PICTURE_SUCCESS : PICTURE_ERROR);
 		}
 	};
 
@@ -183,11 +185,26 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			final ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR_ENUM error) {
 
 			if (DEBUG) Log.v(TAG, "onMiniDroneMediaRecordStatePictureStateChangedV2Update:state=" + state + ",error=" + error);
+
+			int _state;
+			switch (state) {
+			case ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_READY:			// 撮影可能
+				_state = PICTURE_READY;
+				break;
+			case ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_BUSY:			// 撮影中
+				_state = PICTURE_BUSY;
+				break;
+			case ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_NOTAVAILABLE:	// 撮影不可
+			default:
+				_state = PICTURE_UNAVAILABLE;
+				break;
+			}
+			callOnStillCaptureStateChanged(_state);
 		}
 	};
 
 	/**
-	 * 写真撮影状態を受信した時のコールバックリスナー
+	 * 写真撮影イベントを受信した時のコールバックリスナー
 	 */
 	private final ARCommandMiniDroneMediaRecordEventPictureEventChangedListener
 		mMediaRecordEventPictureEventChangedListener
@@ -198,6 +215,17 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			final ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM error) {
 
 			if (DEBUG) Log.v(TAG, "onMiniDroneMediaRecordEventPictureEventChangedUpdate:event=" + event + ",error=" + error);
+			int _state;
+			switch (event) {
+			case ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_TAKEN:		// 撮影成功
+				_state = PICTURE_SUCCESS;
+				break;
+			case ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_FAILED:	// 撮影失敗
+			default:
+				_state = PICTURE_ERROR;
+				break;
+			}
+			callOnStillCaptureStateChanged(_state);
 		}
 	};
 

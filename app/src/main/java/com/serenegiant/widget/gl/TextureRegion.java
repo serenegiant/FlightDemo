@@ -6,9 +6,9 @@ public class TextureRegion {
 	public final float u1, v1;
 	public final float u2, v2;
 	public final float width, height;
-	public final Texture texture;
+	public final StaticTexture texture;
 	
-	public TextureRegion(final Texture texture, final float x, final float y, final float width, final float height) {
+	public TextureRegion(final StaticTexture texture, final float x, final float y, final float width, final float height) {
 		this.width = width;
 		this.height = height;
 		this.u1 = x / texture.width;

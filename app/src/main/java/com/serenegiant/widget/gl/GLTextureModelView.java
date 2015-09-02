@@ -21,9 +21,9 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 
 
 	protected final GLGraphics glGraphics;
-	protected Screen mScreen;
+	protected IScreen mScreen;
 	/** UIスレッドからscreenを切り替える際の中継用変数 */
-	protected Screen mNextScreen;
+	protected IScreen mNextScreen;
 	protected int mState = INITIALIZE;
 	protected final Object mStateSyncObj = new Object();
 	protected long mPrevTime;
@@ -84,155 +84,13 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 		super.release();
 	}
 
-	// GLTextureViewのレンダラー
-	private final Renderer renderer = new Renderer() {
-		float deltaTime;
-		@Override
-		public void onDrawFrame(final GL10 gl) {
-			if ((isInEditMode())) return;
-
-			int localState;
-			synchronized (mStateSyncObj) {
-				localState = mState;
-			}
-
-			switch (localState) {
-			case RUNNING:	// 実行中
-				final long t = System.nanoTime();
-				deltaTime = (t - mPrevTime) / 1000000000.0f;
-				mPrevTime = t;
-				mScreen.update(deltaTime);
-				mScreen.draw(deltaTime);
-				break;
-			case PAUSE:		// 中断処理
-				handlePause();
-				break;
-			case FINISH:	// 終了処理
-				handleFinish();
-				break;
-			}
-		}
-
-		private void handlePause() {
-			synchronized (mStateSyncObj) {
-				mState = PAUSE;
-			}
-			mScreen.pause();
-			if (mLoadableInterface != null) {
-				mLoadableInterface.pause();
-			}
-			synchronized (mStateSyncObj) {
-				mState = IDLE;
-				mStateSyncObj.notifyAll();
-			}
-		}
-
-		private void handleFinish() {
-			synchronized (mStateSyncObj) {
-				mState = FINISH;
-			}
-			onRelease();
-			if (mScreen != null) {
-				mScreen.pause();
-				mScreen.dispose();
-				mScreen = null;
-			}
-			if (mLoadableInterface != null) {
-				mLoadableInterface.dispose();
-				mLoadableInterface = null;
-			}
-			synchronized (mStateSyncObj) {
-				mState = IDLE;
-				mStateSyncObj.notifyAll();
-			}
-		}
-
-		@Override
-		public void onSurfaceDestroyed(final GL10 gl) {
-			if (DEBUG) Log.v(TAG, "onSurfaceDestroyed:gl=" + gl);
-			int localState;
-			synchronized (mStateSyncObj) {
-				localState = mState;
-			}
-			if (localState == RUNNING) {    // 実行中
-				handleFinish();
-			}
-			glActive = false;
-		}
-
-		@Override
-		public void onSurfaceChanged(final GL10 gl, final int width, final int height) {
-			if (DEBUG) Log.v(TAG, "onSurfaceChanged:width=" + width + ",height=" + height + ",gl=" + gl);
-			if ((isInEditMode())) return;
-
-			mIsLandscape = (width > height);
-			glGraphics.setGL(gl);
-			synchronized (mStateSyncObj) {
-				if (mState == RUNNING) {
-					setScreenSize(mScreen, width, height);
-				} else {
-					setScreen(mScreen == null ? getScreen() : mScreen);
-					mState = RUNNING;
-				}
-			}
-			gl.glViewport(0, 0, width, height);
-		}
-
-		@Override
-		public void onSurfaceCreated(final GL10 gl, final EGLConfig config) {
-			if (DEBUG) Log.v(TAG, "onSurfaceCreated:gl=" + gl);
-			if ((isInEditMode())) return;
-
-			int localState;
-			glActive = true;
-			glGraphics.setGL(gl);
-			synchronized (mStateSyncObj) {
-				mRendererThreadID = Thread.currentThread().getId();
-				if (mScreen == null) {
-					mState = INITIALIZE;
-				}
-				localState = mState;
-			}
-			if (localState == INITIALIZE) {
-				onInitialize();
-			}
-			if (mLoadableInterface != null) {
-				if (localState == INITIALIZE) {
-					mLoadableInterface.load(getContext());
-				} else {
-					mLoadableInterface.reload(getContext());
-				}
-				mLoadableInterface.resume(getContext());
-			}
-			System.gc();
-			mPrevTime = System.nanoTime();
-		}
-	};
-
-	protected void onInitialize() {
-		if (DEBUG) Log.v(TAG, "onInitialize:");
+	@Override
+	public IScreen getCurrentScreen() {
+		return mScreen;
 	}
 
-	protected void onRelease() {
-		if (DEBUG) Log.v(TAG, "onRelease:");
-	}
-
-	/**
-	 * サイズ変更時の処理
-	 * onSurfaceChangedから呼び出される
-	 * @param screen
-	 * @param width
-	 * @param height
-	 */
-	protected void setScreenSize(final Screen screen, final int width, final int height) {
-		if (screen != null) {
-			screen.setScreenSize(width, height);
-			screen.onSizeChanged(width, height);
-			requestRender();
-		}
-	}
-
-	public void setScreen(final Screen screen) {
+	@Override
+	public void setScreen(final IScreen screen) {
 		// 呼び出し元のスレッドIDに応じて直接呼び出すかrunnable経由で呼び出すかを切り替える
 		if (mRendererThreadID == Thread.currentThread().getId()) {	// ゲームスレッド内から呼び出された時
 			internalSetScreen(screen);							// 直接実行する
@@ -241,45 +99,6 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 			queueEvent(mChangeScreenRunnable);					// runnableをゲームスレッドに渡して実行してもらう
 		}
 	}
-
-	/**
-	 * screen切り替え処理の実体(無限ループにならないようにrunnableからsetScreenを再び呼び出さないようにするため別メソッド化)
-	 * @param screen
-	 */
-	protected void internalSetScreen(final Screen screen) {
-		if (DEBUG) Log.v(TAG, "internalSetScreen:" + screen);
-		if (screen == null)
-			throw new IllegalArgumentException("Screen must not be null");
-		if ((mScreen != null) && (mScreen != screen)) {
-			mScreen.pause();
-			mScreen.dispose();
-		}
-		System.gc();	// 2013/05/24
-		setScreenSize(screen, getWidth(), getHeight());
-		synchronized (mStateSyncObj) {
-			mScreen = screen;
-		}
-		screen.resume();
-		requestRender();	// 2013/06/23
-//		mNextScreen = null;
-	}
-
-	/**
-	 * UIスレッドからscreenを切り替える際にゲームスレッドに変更を要求するためのrunnable
-	 */
-	protected final Runnable mChangeScreenRunnable = new Runnable() {
-		@Override
-		public void run() {
-//			if (DEBUG) Log.v(TAG, "BaseGameFragment#mChangeScreenRunnable#run");
-			internalSetScreen(mNextScreen);
-		}
-	};
-
-	/**
-	 * 表示画面を生成
-	 * @return
-	 */
-	protected abstract Screen getScreen();
 
 	@Override
 	public FileIO getAssetIO() {
@@ -335,5 +154,193 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 				mUpdateIntervals = 1000 * 1000000;					// 更新頻度1秒[ナノ秒]
 		}
 	}
+
+	// GLTextureViewのレンダラー
+	private final Renderer renderer = new Renderer() {
+		float deltaTime;
+		@Override
+		public void onDrawFrame(final GL10 gl) {
+			if ((isInEditMode())) return;
+
+			int localState;
+			synchronized (mStateSyncObj) {
+				localState = mState;
+			}
+
+			switch (localState) {
+			case RUNNING:	// 実行中
+				final long t = System.nanoTime();
+				deltaTime = (t - mPrevTime) / 1000000000.0f;
+				mPrevTime = t;
+				mScreen.update(deltaTime);
+				mScreen.draw(deltaTime);
+				break;
+			case PAUSE:		// 中断処理
+				handlePause();
+				break;
+			case FINISH:	// 終了処理
+				handleFinish();
+				break;
+			}
+		}
+
+		private void handlePause() {
+			synchronized (mStateSyncObj) {
+				mState = PAUSE;
+			}
+			mScreen.pause();
+			if (mLoadableInterface != null) {
+				mLoadableInterface.pause();
+			}
+			synchronized (mStateSyncObj) {
+				mState = IDLE;
+				mStateSyncObj.notifyAll();
+			}
+		}
+
+		private void handleFinish() {
+			synchronized (mStateSyncObj) {
+				mState = FINISH;
+			}
+			onRelease();
+			if (mScreen != null) {
+				mScreen.pause();
+				mScreen.release();
+				mScreen = null;
+			}
+			if (mLoadableInterface != null) {
+				mLoadableInterface.dispose();
+				mLoadableInterface = null;
+			}
+			synchronized (mStateSyncObj) {
+				mState = IDLE;
+				mStateSyncObj.notifyAll();
+			}
+		}
+
+		@Override
+		public void onSurfaceDestroyed(final GL10 gl) {
+			if (DEBUG) Log.v(TAG, "onSurfaceDestroyed:gl=" + gl);
+			int localState;
+			synchronized (mStateSyncObj) {
+				localState = mState;
+			}
+			if (localState == RUNNING) {    // 実行中
+				handleFinish();
+			}
+			glActive = false;
+		}
+
+		@Override
+		public void onSurfaceChanged(final GL10 gl, final int width, final int height) {
+			if (DEBUG) Log.v(TAG, "onSurfaceChanged:width=" + width + ",height=" + height + ",gl=" + gl);
+			if ((isInEditMode())) return;
+
+			mIsLandscape = (width > height);
+			glGraphics.setGL(gl);
+			synchronized (mStateSyncObj) {
+				if (mState == RUNNING) {
+					setScreenSize(mScreen, width, height);
+				} else {
+					setScreen(mScreen == null ? createScreen() : mScreen);
+					mState = RUNNING;
+				}
+			}
+			gl.glViewport(0, 0, width, height);
+		}
+
+		@Override
+		public void onSurfaceCreated(final GL10 gl, final EGLConfig config) {
+			if (DEBUG) Log.v(TAG, "onSurfaceCreated:gl=" + gl);
+			if ((isInEditMode())) return;
+
+			int localState;
+			glActive = true;
+			glGraphics.setGL(gl);
+			synchronized (mStateSyncObj) {
+				mRendererThreadID = Thread.currentThread().getId();
+				if (mScreen == null) {
+					mState = INITIALIZE;
+				}
+				localState = mState;
+			}
+			if (localState == INITIALIZE) {
+				onInitialize();
+			}
+			if (mLoadableInterface != null) {
+				if (localState == INITIALIZE) {
+					mLoadableInterface.load(getContext());
+				} else {
+					mLoadableInterface.reload(getContext());
+				}
+				mLoadableInterface.resume(getContext());
+			}
+			System.gc();
+			mPrevTime = System.nanoTime();
+		}
+	};
+
+	protected void onInitialize() {
+		if (DEBUG) Log.v(TAG, "onInitialize:");
+	}
+
+	protected void onRelease() {
+		if (DEBUG) Log.v(TAG, "onRelease:");
+	}
+
+	/**
+	 * サイズ変更時の処理
+	 * onSurfaceChangedから呼び出される
+	 * @param screen
+	 * @param width
+	 * @param height
+	 */
+	protected void setScreenSize(final IScreen screen, final int width, final int height) {
+		if (screen != null) {
+			screen.setScreenSize(width, height);
+			screen.onSizeChanged(width, height);
+			requestRender();
+		}
+	}
+
+	/**
+	 * screen切り替え処理の実体(無限ループにならないようにrunnableからsetScreenを再び呼び出さないようにするため別メソッド化)
+	 * @param screen
+	 */
+	protected void internalSetScreen(final IScreen screen) {
+		if (DEBUG) Log.v(TAG, "internalSetScreen:" + screen);
+		if (screen == null)
+			throw new IllegalArgumentException("Screen must not be null");
+		if ((mScreen != null) && (mScreen != screen)) {
+			mScreen.pause();
+			mScreen.release();
+		}
+		System.gc();	// 2013/05/24
+		setScreenSize(screen, getWidth(), getHeight());
+		synchronized (mStateSyncObj) {
+			mScreen = screen;
+		}
+		screen.resume();
+		requestRender();	// 2013/06/23
+//		mNextScreen = null;
+	}
+
+	/**
+	 * UIスレッドからscreenを切り替える際にゲームスレッドに変更を要求するためのrunnable
+	 */
+	protected final Runnable mChangeScreenRunnable = new Runnable() {
+		@Override
+		public void run() {
+//			if (DEBUG) Log.v(TAG, "BaseGameFragment#mChangeScreenRunnable#run");
+			internalSetScreen(mNextScreen);
+		}
+	};
+
+	/**
+	 * 表示画面を生成
+	 * @return
+	 */
+	protected abstract IScreen createScreen();
+
 
 }

@@ -9,5 +9,5 @@
 		android:type="linear" />
 	<size
 		android:width="100dp"
-		android:height="100dp" />
+		android:height="@dimen/bottom_panel_height" />
 </shape>

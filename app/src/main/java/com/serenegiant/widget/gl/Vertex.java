@@ -112,12 +112,12 @@ public class Vertex {
 		} else {
 			indexArray = null;
 		}
-		// vertexArrayをコピー
+		// vertexArrayをディープコピー
 		if (vertexArray != null) {
 			vertexArray.position(0);
 			vertexArray.put(other.vertexArray);
 		}
-		// indexArrayをコピー
+		// indexArrayをディープコピー
 		if (indexArray != null) {
 			indexArray.position(0);
 			indexArray.put(other.indexArray);

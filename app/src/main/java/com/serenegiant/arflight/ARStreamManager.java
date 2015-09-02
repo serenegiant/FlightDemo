@@ -77,7 +77,7 @@ public class ARStreamManager {
 				}
 				mAckThread = null;
 			}
-			if (DEBUG) Log.v(TAG, "stop:dispose ARStreamReader");
+			if (DEBUG) Log.v(TAG, "stop:release ARStreamReader");
 			if (mARStreamReader != null) {
 				mARStreamReader.dispose();
 				mARStreamReader = null;

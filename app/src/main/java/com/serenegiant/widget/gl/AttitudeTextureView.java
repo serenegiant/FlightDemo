@@ -18,8 +18,8 @@ public class AttitudeTextureView extends GLTextureModelView {
 	}
 
 	@Override
-	protected Screen getScreen() {
-		if (DEBUG) Log.v(TAG, "getScreen");
+	protected IScreen createScreen() {
+		if (DEBUG) Log.v(TAG, "createScreen");
 		return new AttitudeScreenBebop(this, AttitudeScreenBase.CTRL_RANDOM);
 	}
 }

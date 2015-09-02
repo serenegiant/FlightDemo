@@ -26,4 +26,6 @@ public interface DeviceControllerListener extends DeviceConnectionListener {
 	 * フラットトリム状態が変更された
 	 */
 	public void onFlatTrimChanged();
+
+	public void onStillCaptureStateChanged(final int state);
 }

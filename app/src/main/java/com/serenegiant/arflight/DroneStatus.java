@@ -27,6 +27,7 @@ public class DroneStatus {
 	private int mAlarmState = ALARM_NON;
 	private int mBatteryState = -1;
 	private final AttributeMotor[] mMotors;
+	private int mStillCaptureState;
 
 
 	public DroneStatus(final int motor_num) {
@@ -300,6 +301,20 @@ public class DroneStatus {
 	public boolean isConnected() {
 		synchronized (mStateSync) {
 			return (mAlarmState != ALARM_DISCONNECTED);
+		}
+	}
+
+	/** 静止画撮影ステータス */
+	public void setStillCaptureState(final int state) {
+		synchronized (mStateSync) {
+			mStillCaptureState = state;
+		}
+	}
+
+	/** 静止画撮影可能かどうか */
+	public boolean isStillCaptureReady() {
+		synchronized (mStateSync) {
+			return mStillCaptureState != 0;
 		}
 	}
 }

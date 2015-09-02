@@ -316,6 +316,13 @@ public abstract class ControlFragment extends Fragment {
 	protected void updateAlarmState(final int alert_state) {
 	}
 
+	/**
+	 * 静止画撮影ステータスが変化した時のコールバック
+	 * @param picture_state IDeviceController#PICTURE_XXX
+	 */
+	protected void updatePictureState(final int picture_state) {
+	}
+
 	protected void onConnect(final IDeviceController controller) {
 		startVideoStreaming();
 	}
@@ -370,6 +377,11 @@ public abstract class ControlFragment extends Fragment {
 					}
 				}
 			}, 0);
+		}
+
+		@Override
+		public void onStillCaptureStateChanged(int state) {
+			updatePictureState(state);
 		}
 
 	};

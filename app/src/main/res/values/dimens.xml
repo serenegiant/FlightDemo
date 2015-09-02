@@ -6,6 +6,7 @@
 	<dimen name="double_padding">32dp</dimen>
 	<dimen name="list_padding">8dp</dimen>
 	<dimen name="quater_padding">4dp</dimen>
+	<dimen name="top_panel_height">48dp</dimen>
 	<dimen name="bottom_panel_height">48dp</dimen>
 	<dimen name="stick_size">96dp</dimen>
 	<dimen name="stick_frame_width">192dp</dimen>
@@ -17,7 +18,7 @@
 	<dimen name="text_sz_button">16sp</dimen>
 	<dimen name="text_sz_on_image_button">9sp</dimen>
 	<dimen name="text_sz_list">28sp</dimen>
-	<dimen name="btn_size_action">48dp</dimen>
+	<dimen name="btn_size_action">38dp</dimen>
 	<dimen name="switch_height">64dp</dimen>
 	<dimen name="thumbnail_margin">16dp</dimen>
 </resources>

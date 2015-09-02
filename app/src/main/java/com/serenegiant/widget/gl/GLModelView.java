@@ -21,9 +21,9 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	protected static final int FINISH = 6;
 
 	protected final GLGraphics glGraphics;
-	protected Screen mScreen;
+	protected IScreen mScreen;
 	/** UIスレッドからscreenを切り替える際の中継用変数 */
-	protected Screen mNextScreen;
+	protected IScreen mNextScreen;
 	protected int mState = INITIALIZE;
 	protected final Object mStateSyncObj = new Object();
 	protected long mPrevTime = System.nanoTime();
@@ -79,6 +79,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 		super.onPause();
 	}
 
+	@Override
 	public void release() {
 		stopTimerThread();
 		synchronized (mStateSyncObj) {
@@ -92,6 +93,77 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 			glActive = false;
 		}
 		super.onPause();
+	}
+
+	@Override
+	public IScreen getCurrentScreen() {
+		return mScreen;
+	}
+
+	@Override
+	public void setScreen(final IScreen screen) {
+		// 呼び出し元のスレッドIDに応じて直接呼び出すかrunnable経由で呼び出すかを切り替える
+		if (mGameThreadID == Thread.currentThread().getId()) {	// ゲームスレッド内から呼び出された時
+			internalSetScreen(screen);							// 直接実行する
+		} else {												// 他スレッドから呼び出された時
+			mNextScreen = screen;
+			queueEvent(mChangeScreenRunnable);					// runnableをゲームスレッドに渡して実行してもらう
+		}
+	}
+
+	@Override
+	public FileIO getAssetIO() {
+		final Context app = getContext().getApplicationContext();
+		return (app instanceof IModelViewApplication) ? ((IModelViewApplication)app).getAssetIO() : null;
+	}
+
+	@Override
+	public FileIO getExtFileIO() {
+		final Context app = getContext().getApplicationContext();
+		return (app instanceof IModelViewApplication) ? ((IModelViewApplication)app).getExtFileIO() : null;
+	}
+
+	@Override
+	public FileIO getFileIO() {
+		final Context app = getContext().getApplicationContext();
+		return (app instanceof IModelViewApplication) ? ((IModelViewApplication)app).getFileIO() : null;
+	}
+
+	@Override
+	public GLGraphics getGLGraphics() {
+		return glGraphics;
+	}
+
+	private static int mNextPickId = 1;
+	@Override
+	public int getNextPickId() {
+		return mNextPickId++;
+	}
+
+	@Override
+	public boolean isLandscape() {
+		return mIsLandscape;
+	}
+
+	@Override
+	public void requestRender() {
+		// 自前のスレッドで描画タイミングを制御しているのでここではGLSurfaceView#requestRenderは呼び出さない
+		synchronized (mRendererSyncObj) {
+			mForceRender = true;
+			mRendererSyncObj.notifyAll();
+		}
+	}
+
+	@Override
+	public void setFpsRequest(final float fps) {
+		synchronized (mRendererSyncObj) {
+			mFpsRequested = fps;
+			mContinueRendering = (fps > 0);
+			if (mContinueRendering)
+				mUpdateIntervals = (long)(1000 * 1000000 / fps);	// 更新頻度[ナノ秒]
+			else
+				mUpdateIntervals = 1000 * 1000000;					// 更新頻度1秒[ナノ秒]
+		}
 	}
 
 	/**
@@ -119,7 +191,6 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	/**
 	 * 一定時間毎にGLSurfaceViewのレンダラースレッドを起床させるスレッド
 	 * このスレッドが起床要求するかtouchEvent/accelEventが発生するとレンダラースレッドが起床される
-	 *
 	 */
 	private class TimerThread extends Thread {
 		public volatile boolean isRunning = true;
@@ -198,27 +269,44 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 				// 出来るだけこのタイミングでガベージコレクションが走って欲しいんだけど、頻度が高すぎる
 			}
 			else if (localState == PAUSE) {		// 中断処理
-				mScreen.pause();
-				if (mLoadableInterface != null) {
-					mLoadableInterface.pause();
-				}
-				synchronized (mStateSyncObj) {
-//					localState = GLGameState.IDLE;
-					mState = IDLE;
-					mStateSyncObj.notifyAll();
-				}
+				handlePause();
 			}
 			else if (localState == FINISH) {	// 終了処理
+				handleFinish();
+			}
+		}
+
+		private void handlePause() {
+			synchronized (mStateSyncObj) {
+				mState = PAUSE;
+			}
+			mScreen.pause();
+			if (mLoadableInterface != null) {
+				mLoadableInterface.pause();
+			}
+			synchronized (mStateSyncObj) {
+				mState = IDLE;
+				mStateSyncObj.notifyAll();
+			}
+		}
+
+		private void handleFinish() {
+			synchronized (mStateSyncObj) {
+				mState = FINISH;
+			}
+			onRelease();
+			if (mScreen != null) {
 				mScreen.pause();
-				mScreen.dispose();
-				if (mLoadableInterface != null) {
-					mLoadableInterface.dispose();
-					mLoadableInterface = null;
-				}
-				synchronized (mStateSyncObj) {
-					mState = IDLE;
-					mStateSyncObj.notifyAll();
-				}
+				mScreen.release();
+				mScreen = null;
+			}
+			if (mLoadableInterface != null) {
+				mLoadableInterface.dispose();
+				mLoadableInterface = null;
+			}
+			synchronized (mStateSyncObj) {
+				mState = IDLE;
+				mStateSyncObj.notifyAll();
 			}
 		}
 
@@ -256,7 +344,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 				localState = mState;
 			}
 			if (localState == INITIALIZE) {
-				initialize();
+				onInitialize();
 			}
 			if (mLoadableInterface != null) {
 				if (localState == INITIALIZE) {
@@ -275,8 +363,12 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 		}
 	};
 
-	protected void initialize() {
+	protected void onInitialize() {
 		if (DEBUG) Log.v(TAG, "onInitialize:");
+	}
+
+	protected void onRelease() {
+		if (DEBUG) Log.v(TAG, "onRelease:");
 	}
 
 	/**
@@ -286,7 +378,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	 * @param width
 	 * @param height
 	 */
-	protected void setScreenSize(final Screen screen, final int width, final int height) {
+	protected void setScreenSize(final IScreen screen, final int width, final int height) {
 		if (screen != null) {
 			screen.setScreenSize(width, height);
 			screen.onSizeChanged(width, height);
@@ -294,27 +386,17 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 		}
 	}
 
-	public void setScreen(final Screen screen) {
-		// 呼び出し元のスレッドIDに応じて直接呼び出すかrunnable経由で呼び出すかを切り替える
-		if (mGameThreadID == Thread.currentThread().getId()) {	// ゲームスレッド内から呼び出された時
-			internalSetScreen(screen);							// 直接実行する
-		} else {												// 他スレッドから呼び出された時
-			mNextScreen = screen;
-			queueEvent(mChangeScreenRunnable);					// runnableをゲームスレッドに渡して実行してもらう
-		}
-	}
-
 	/**
 	 * screen切り替え処理の実体(無限ループにならないようにrunnableからsetScreenを再び呼び出さないようにするため別メソッド化)
 	 * @param screen
 	 */
-	protected void internalSetScreen(final Screen screen) {
+	protected void internalSetScreen(final IScreen screen) {
 		if (DEBUG) Log.v(TAG, "internalSetScreen:" + screen);
 		if (screen == null)
 			throw new IllegalArgumentException("Screen must not be null");
 		if ((mScreen != null) && (mScreen != screen)) {
 			mScreen.pause();
-			mScreen.dispose();
+			mScreen.release();
 		}
 		System.gc();	// 2013/05/24
 		setScreenSize(screen, getWidth(), getHeight());
@@ -341,61 +423,6 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	 * 表示画面を生成
 	 * @return
 	 */
-	protected abstract Screen getScreen();
-
-	@Override
-	public FileIO getAssetIO() {
-		final Context app = getContext().getApplicationContext();
-		return (app instanceof IModelViewApplication) ? ((IModelViewApplication)app).getAssetIO() : null;
-	}
-
-	@Override
-	public FileIO getExtFileIO() {
-		final Context app = getContext().getApplicationContext();
-		return (app instanceof IModelViewApplication) ? ((IModelViewApplication)app).getExtFileIO() : null;
-	}
-
-	@Override
-	public FileIO getFileIO() {
-		final Context app = getContext().getApplicationContext();
-		return (app instanceof IModelViewApplication) ? ((IModelViewApplication)app).getFileIO() : null;
-	}
-
-	@Override
-	public GLGraphics getGLGraphics() {
-		return glGraphics;
-	}
-
-	private static int mNextPickId = 1;
-	@Override
-	public int getNextPickId() {
-		return mNextPickId++;
-	}
-
-	@Override
-	public boolean isLandscape() {
-		return mIsLandscape;
-	}
-
-	@Override
-	public void requestRender() {
-		// 自前のスレッドで描画タイミングを制御しているのでここではGLSurfaceView#requestRenderは呼び出さない
-		synchronized (mRendererSyncObj) {
-			mForceRender = true;
-			mRendererSyncObj.notifyAll();
-		}
-	}
-
-	@Override
-	public void setFpsRequest(final float fps) {
-		synchronized (mRendererSyncObj) {
-			mFpsRequested = fps;
-			mContinueRendering = (fps > 0);
-			if (mContinueRendering)
-				mUpdateIntervals = (long)(1000 * 1000000 / fps);	// 更新頻度[ナノ秒]
-			else
-				mUpdateIntervals = 1000 * 1000000;					// 更新頻度1秒[ナノ秒]
-		}
-	}
+	protected abstract IScreen getScreen();
 
 }

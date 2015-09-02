@@ -75,9 +75,9 @@ public class StringTextureBuilder {
 	 * @param texts
 	 * @return テクスチャ
 	 */
-	public Texture generate(final IModelView game, final String fileName, final String[] texts, final boolean mipmapped) {
+	public StaticTexture generate(final IModelView game, final String fileName, final String[] texts, final boolean mipmapped) {
 		generateOnly(game, fileName, texts);
-        return new Texture(game, fileName, mipmapped);
+        return new StaticTexture(game, fileName, mipmapped);
 	}
 	
 	private int roundUp2(float v) {
@@ -153,9 +153,9 @@ public class StringTextureBuilder {
 	 * @param perRow	1行あたりの文字数
 	 * @return			テクスチャ
 	 */
-	public Texture generate(final IModelView game, final String name, final String text, final int perRow, final boolean mipmapped) {
+	public StaticTexture generate(final IModelView game, final String name, final String text, final int perRow, final boolean mipmapped) {
 		generateOnly(game, name, text, perRow);
-        return new Texture(game, name, mipmapped);
+        return new StaticTexture(game, name, mipmapped);
 	}
 	
 	/**

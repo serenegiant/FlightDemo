@@ -21,8 +21,8 @@ public class GLDrawer2D {
 //	private static final boolean DEBUG = false; // FIXME set false on release
 //	private static final String TAG = "GLDrawer2D";
 
-    public static final int GL_TEXTURE_EXTERNAL_OES                                 = 0x8D65;
-    public static final int GL_TEXTURE_2D                              = 0x0DE1;
+    public static final int GL_TEXTURE_EXTERNAL_OES	= 0x8D65;
+    public static final int GL_TEXTURE_2D           = 0x0DE1;
 
 	private static final String VERTEX_SHADER
 		= "uniform mat4 uMVPMatrix;\n"

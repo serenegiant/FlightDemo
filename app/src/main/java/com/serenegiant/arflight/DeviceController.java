@@ -492,7 +492,7 @@ public abstract class DeviceController implements IDeviceController {
 				Log.w(TAG, e);
 			}
 
-            /* dispose discoveryData it not needed more */
+            /* release discoveryData it not needed more */
             if (discoveryData != null) {
 				discoveryData.dispose();
 				discoveryData = null;
@@ -1252,6 +1252,21 @@ public abstract class DeviceController implements IDeviceController {
 				if (listener != null) {
 					try {
 						listener.onFlatTrimChanged();
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	protected void callOnStillCaptureStateChanged(final int state) {
+		mStatus.setStillCaptureState(state);
+		synchronized (mListenerSync) {
+			for (DeviceControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onStillCaptureStateChanged(state);
 					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}

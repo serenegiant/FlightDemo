@@ -34,7 +34,7 @@ public class SpriteBatcher {
 		vertex.setIndexs(index, 0, index.length);
 	}
 	
-	public void beginBatch(final Texture texture) {
+	public void beginBatch(final StaticTexture texture) {
 		texture.bind();
 		numSprite = 0;
 		bufferIndex = 0;

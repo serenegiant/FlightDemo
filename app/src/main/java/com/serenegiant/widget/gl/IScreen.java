@@ -1,6 +1,6 @@
 package com.serenegiant.widget.gl;
 
-public interface Screen {
+public interface IScreen {
 
 	public void update(final float deltaTime);
 	public void draw(final float deltaTime);
@@ -14,7 +14,7 @@ public interface Screen {
 	 * 通常のsetScreenでの切替時は呼ばれるが、電断とかバックグラウンドで自動的にアプリが破棄された時とかは呼ばれない事があるかも</br>
 	 * なのでゲーム状態の保存等はpause()で行うこと。disposeはオブジェクトの破棄を行う。
 	 */
-	public void dispose();
+	public void release();
 	/**
 	 * バックキーを押して離した時の処理</br>
 	 * ここはUIスレッド内で実行される

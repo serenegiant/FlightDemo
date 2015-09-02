@@ -3,7 +3,7 @@ package com.serenegiant.widget.gl;
 import javax.microedition.khronos.opengles.GL10;
 
 public abstract class GLLight {
-	protected float[] ambient = { 0.2f, 0.2f, 0.2f, 1.0f };
+	protected final float[] ambient = { 0.2f, 0.2f, 0.2f, 1.0f };
 
 	public abstract void enable(final GL10 gl, final int lightID);
 	public abstract void disable(final GL10 gl);

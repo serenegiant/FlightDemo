@@ -18,7 +18,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	protected final GLAmbientLight ambientLight;
 	protected final GLPointLight pointLight;
 	protected final GLDirectionLight directionLight;
-	protected final GLMaterial material;
+//	protected final GLMaterial material;
 
 	protected final GLLookAtCamera lookAtCamera;
 	protected final GLCamera2D guiCamera;
@@ -34,12 +34,12 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	protected DroneObject droneObj;				// 機体本体
 	// 地面
 	private final GLCubeModel plateModel;
-	private final Texture plateTexture;
+	private final StaticTexture plateTexture;
 	protected boolean mShowGround = true;
 	// 背景
-	private Texture backgroundTexture;
+	private StaticTexture backgroundTexture;
 	private TextureRegion backgroundRegion;
-	private TextureDrawer2D mDrawer;
+	protected TextureDrawer2D mFullScreenDrawer;
 	private final int screenCenterX, screenCenterY;
 
 	public AttitudeScreenBase(final IModelView modelView, final int ctrl_type) {
@@ -47,16 +47,16 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		if (DEBUG) Log.v(TAG, String.format("コンストラクタ(%d,%d)", screenWidth, screenHeight));
 		mCtrlType = ctrl_type;
 		// 背景
-		backgroundTexture = new Texture(modelView, "background.png");
+		backgroundTexture = new StaticTexture(modelView, "background.png");
 		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, screenWidth, screenHeight);
 		screenCenterX = screenWidth / 2;
 		screenCenterY = screenHeight / 2;
-		mDrawer = new TextureDrawer2D(glGraphics);
-		mDrawer.draw(screenWidth, screenHeight, backgroundRegion);
+		mFullScreenDrawer = new TextureDrawer2D(glGraphics);
+		mFullScreenDrawer.draw(screenWidth, screenHeight, backgroundRegion);
 
 		// 地面
 		// テクスチャは正方形で2の乗数サイズでないとだめ
-		plateTexture = new Texture(modelView, "model/ichimatsu_arrow.png");
+		plateTexture = new StaticTexture(modelView, "model/ichimatsu_arrow.png");
 		plateModel = new GLCubeModel(glGraphics, Vector.zeroVector, 30, 0.01f, 30, 10);
 		plateModel.setTexture(plateTexture);
 
@@ -64,12 +64,11 @@ public abstract class AttitudeScreenBase extends GLScreen {
 
 		pointLight = new GLPointLight();
 		pointLight.setPosition(0, 10, 0);
-//		pointLight.setSpecular(0.5f, 0.5f, 0.5f, 1);
+		pointLight.setSpecular(0.5f, 0.5f, 0.5f, 1);
 
 		directionLight = new GLDirectionLight();
 		directionLight.setDirection(5, 5, 5);
-
-		material = new GLMaterial();
+//		material = new GLMaterial();
 
 		// 2Dカメラ
 		guiCamera = new GLCamera2D(glGraphics, screenWidth, screenHeight);
@@ -109,6 +108,22 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		lookAtCamera.setLookAt(droneModel.getPosition());	// 常に機体の方向を向くようにする
 	}
 
+	protected void drawBackground(final GL10 gl) {
+		// 背景を描画
+//		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+		backgroundTexture.bind();
+		mFullScreenDrawer.draw();
+	}
+
+	protected void drawModel(final GL10 gl) {
+		moveDrone(gl);
+		droneModel.draw();
+		frontLeftRotorModel.draw();
+		frontRightRotorModel.draw();
+		rearLeftRotorModel.draw();
+		rearRightRotorModel.draw();
+	}
+
 	@Override
 	public void draw(final float deltaTime) {
 //		if (DEBUG) Log.v(TAG_SCREEN, "draw");
@@ -117,58 +132,47 @@ public abstract class AttitudeScreenBase extends GLScreen {
 
 		// ここから2Dの描画処理
 		guiCamera.setMatrix();
-		gl.glEnable(GL10.GL_TEXTURE_2D);
-		gl.glDisable(GL10.GL_LIGHTING);			// ライティングを無効化
-		gl.glDisable(GL10.GL_CULL_FACE);		// ポリゴンのカリングを無効にする
-//		gl.glColor4f(1f, 1f, 1f, 1f);
-//		gl.glClearColor(1, 1, 1, 1);
-		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
-		// 背景を描画
-		backgroundTexture.bind();
-		mDrawer.draw();
+		gl.glEnable(GL10.GL_TEXTURE_2D);			// テクスチャを有効にする
+		gl.glDisable(GL10.GL_LIGHTING);				// ライティングを無効化
+		gl.glDisable(GL10.GL_CULL_FACE);			// ポリゴンのカリングを無効にする
+		gl.glDisable(GL10.GL_DEPTH_TEST);			// デプステストを無効にする
+		drawBackground(gl);
 
 		// ここから3Dの描画処理
 		lookAtCamera.setMatrix(gl);
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);	// アルファブレンド
 //		gl.glBlendFunc(GL10.GL_ONE, GL10.GL_ZERO);	// 上書き
-		gl.glColor4f(1f, 1f, 1f, 0f);
-//		gl.glEnable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
-		gl.glEnable(GL10.GL_CULL_FACE);			// ポリゴンのカリングを有効にする
-		gl.glCullFace(GL10.GL_BACK);			// 裏面を描画しない
-		gl.glEnable(GL10.GL_LIGHTING);			// ライティングを有効化
-		gl.glEnable(GL10.GL_DEPTH_TEST);
-		gl.glEnable(GL10.GL_TEXTURE_2D);
+//		gl.glColor4f(1f, 1f, 1f, 0f);
+		gl.glEnable(GL10.GL_CULL_FACE);         	// ポリゴンのカリングを有効にする
+		gl.glCullFace(GL10.GL_BACK);				// 裏面を描画しない
+		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
+		gl.glEnable(GL10.GL_DEPTH_TEST);			// デプステストを有効にする
+		gl.glClear(GL10.GL_DEPTH_BUFFER_BIT);		// デプスバッファをクリアする(背景上に描画出来ないから)
+		gl.glEnable(GL10.GL_TEXTURE_2D);			// テクスチャを有効にする
 
-		ambientLight.enable(gl);
-		pointLight.enable(gl, GL10.GL_LIGHT0);
-		directionLight.enable(gl, GL10.GL_LIGHT1);
-		material.enable(gl);
-
+		ambientLight.enable(gl);					// 環境光を有効にする
+		pointLight.enable(gl, GL10.GL_LIGHT0);		// 点光源を有効にする
+		directionLight.enable(gl, GL10.GL_LIGHT1);	// 平行光源を有効にする
+//		material.enable(gl);						// これを入れると影が出なくなる
+//		gl.glEnable(GL10.GL_COLOR_MATERIAL);		// 環境光と拡散光のマテリアル色として頂点色を使うとき
 
 		// 床を描画
 		if (mShowGround) {
 			gl.glColor4f(1f, 1f, 1f, 1f);
 			plateModel.draw();
 		}
-//		material.enable(gl);
 		// モデルを描画
-		material.enable(gl);
-		gl.glPushMatrix();
-		{
-			moveDrone(gl);
-			droneModel.draw();
-			frontLeftRotorModel.draw();
-			frontRightRotorModel.draw();
-			rearLeftRotorModel.draw();
-			rearRightRotorModel.draw();
-		}
-		gl.glPopMatrix();
+		gl.glPushMatrix();							// 現在のマトリックスを保存
+		drawModel(gl);
+		gl.glPopMatrix();							// マトリックスを復元
 
 		// 3D描画処理終了
+		ambientLight.disable(gl);
 		pointLight.disable(gl);
 		directionLight.disable(gl);
-
+//		material.disable(gl);
+//		gl.glDisable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
 		gl.glDisable(GL10.GL_BLEND);
 	}
 
@@ -208,10 +212,10 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	}
 
 	@Override
-	public void dispose() {
-		if (DEBUG) Log.v(TAG, "dispose");
-		backgroundTexture.dispose();
-		plateTexture.dispose();
+	public void release() {
+		if (DEBUG) Log.v(TAG, "release");
+		backgroundTexture.release();
+		plateTexture.release();
 	}
 
 	@Override

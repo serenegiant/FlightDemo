@@ -37,7 +37,9 @@ import com.serenegiant.widget.SideMenuListView;
 import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
 import com.serenegiant.widget.TouchPilotView;
+import com.serenegiant.widget.gl.AttitudeScreenBebop;
 import com.serenegiant.widget.gl.IModelView;
+import com.serenegiant.widget.gl.IScreen;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,6 +83,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private ImageButton mMoveButton;		// 移動ボタン(タッチ描画操縦)
 	// 右サイドパネル
 	private View mRightSidePanel;
+	private ImageButton mVideoRecordingBtn;
 	// 左サイドパネル
 	private View mLeftSidePanel;
 	// 操縦用
@@ -88,7 +91,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private StickView mLeftStickPanel;		// 左スティックパネル
 	private TouchPilotView mTouchPilotView;	// タッチ描画パネル
 	// ビデオストリーミング用
-	private TextureView mVideoTextureView;	// ビデオストリーミング表示用
+//	private TextureView mVideoTextureView;	// ビデオストリーミング表示用
 	// サイドメニュー
 	private SideMenuListView mSideMenuListView;
 	/** 操縦に使用するボタン等の一括変更用。操作可・不可に応じてenable/disableを切り替える */
@@ -105,6 +108,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private IModelView mModelView;
 
 	private VideoStream mVideoStream;
+	private boolean mVideoRecording;
 
 	public PilotFragment() {
 		super();
@@ -219,15 +223,18 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mRightSidePanel = rootView.findViewById(R.id.right_side_panel);
 		mActionViews.add(mRightSidePanel);
 
-		button = (ImageButton)rootView.findViewById(R.id.cap_p15_btn);
+		// 静止画撮影
+		button = (ImageButton)rootView.findViewById(R.id.still_capture_btn);
 		button.setOnClickListener(mOnClickListener);
 		mActionViews.add(button);
+
+		// 動画撮影
+		mVideoRecordingBtn = (ImageButton)rootView.findViewById(R.id.video_capture_btn);
+		mVideoRecordingBtn.setOnClickListener(mOnClickListener);
+		mVideoRecordingBtn.setVisibility(View.INVISIBLE);
+		mActionViews.add(mVideoRecordingBtn);
 
 		button = (ImageButton)rootView.findViewById(R.id.cap_p45_btn);
-		button.setOnClickListener(mOnClickListener);
-		mActionViews.add(button);
-
-		button = (ImageButton)rootView.findViewById(R.id.cap_m15_btn);
 		button.setOnClickListener(mOnClickListener);
 		mActionViews.add(button);
 
@@ -277,7 +284,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 
 		// ビデオストリーミング用
-		mVideoTextureView = (TextureView)rootView.findViewById(R.id.video_textureview);
+//		mVideoTextureView = (TextureView)rootView.findViewById(R.id.video_textureview);
 
 		mBatteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
 		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
@@ -412,7 +419,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				updateButtons();
 				break;
 			case R.id.flip_front_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView) view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mController != null) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_FRONT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_FRONT);
@@ -439,11 +446,17 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_LEFT);
 				}
 				break;
-			case R.id.cap_p15_btn:
+			case R.id.still_capture_btn:
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mController != null) {
-					mController.sendAnimationsCap(15);
-					mFlightRecorder.record(FlightRecorder.CMD_CAP, 15);
+					mController.sendTakePicture();
+				}
+				break;
+			case R.id.video_capture_btn:
+				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				if (mController != null) {
+					mVideoRecording = !mVideoRecording;
+					mController.sendVideoRecording(mVideoRecording);
 				}
 				break;
 			case R.id.cap_p45_btn:
@@ -451,13 +464,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.sendAnimationsCap(45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, 45);
-				}
-				break;
-			case R.id.cap_m15_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
-				if (mController != null) {
-					mController.sendAnimationsCap(-15);
-					mFlightRecorder.record(FlightRecorder.CMD_CAP, -15);
 				}
 				break;
 			case R.id.cap_m45_btn:
@@ -595,7 +601,26 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mVideoStream = new VideoStream();
 			}
 			((IVideoStreamController)mController).setVideoStream(mVideoStream);
-			runOnUiThread(new Runnable() {
+			post(new Runnable() {
+				@Override
+				public void run() {
+					final IScreen screen = mModelView.getCurrentScreen();
+					if (DEBUG) Log.v(TAG, "startVideoStreaming:screen=" + screen);
+					if (screen instanceof AttitudeScreenBebop) {
+						final SurfaceTexture surface = ((AttitudeScreenBebop) screen).getVideoTexture();
+						if ((surface != null) && (mSurfaceId == 0)) {
+							final Surface _surface = new Surface(surface);
+							mSurfaceId = _surface.hashCode();
+							mVideoStream.addSurface(mSurfaceId, _surface);
+							((AttitudeScreenBebop) screen).setEnableVideo(true);
+						}
+					} else {
+						post(this, 300);
+					}
+				}
+			}, 100);
+
+/*			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
 					mModelView.onPause();
@@ -603,7 +628,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mVideoTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
 					mVideoTextureView.setVisibility(View.VISIBLE);
 				}
-			});
+			}); */
 		}
 		super.startVideoStreaming();
 	}
@@ -612,7 +637,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	protected void stopVideoStreaming() {
 		if (DEBUG) Log.v(TAG, "stopVideoStreaming:");
 		super.stopVideoStreaming();
-		runOnUiThread(new Runnable() {
+		final IScreen screen = mModelView.getCurrentScreen();
+		if (screen instanceof AttitudeScreenBebop) {
+			((AttitudeScreenBebop) screen).setEnableVideo(false);
+		}
+/*		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				mModelView.onResume();
@@ -620,7 +649,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mVideoTextureView.setVisibility(View.GONE);
 				mVideoTextureView.setSurfaceTextureListener(null);
 			}
-		});
+		}); */
+		mSurfaceId = 0;
 		if (mController instanceof IVideoStreamController) {
 			((IVideoStreamController)mController).setVideoStream(null);
 		}
@@ -634,6 +664,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
 		super.onConnect(controller);
+		mVideoRecording = false;
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				mVideoRecordingBtn.setVisibility(controller instanceof IVideoStreamController ? View.VISIBLE : View.INVISIBLE);
+			}
+		});
 		setSideMenu();
 		startGamePadTask();
 		post(mUpdateStatusTask, 100);
@@ -645,6 +682,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
+		mVideoRecording = false;
 		stopRecord();
 		stopPlay();
 		removeSideMenu();
@@ -663,6 +701,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	protected void updateAlarmState(final int alert_state) {
 		runOnUiThread(mUpdateAlarmMessageTask);
+		updateButtons();
+	}
+
+	@Override
+	protected void updatePictureState(final int picture_state) {
 		updateButtons();
 	}
 
@@ -1190,6 +1233,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 			// 右サイドパネル(とmCapXXXBtn等)
 			mRightSidePanel.setEnabled(can_fly);
+			mVideoRecordingBtn.setImageResource(mVideoRecording ? android.R.drawable.presence_video_online : android.R.drawable.presence_video_busy);
 			// 左サイドパネル(とmFlipXXXBtn等)
 			mLeftSidePanel.setEnabled(can_fly);
 			// 右スティックパネル(東/西ボタン)

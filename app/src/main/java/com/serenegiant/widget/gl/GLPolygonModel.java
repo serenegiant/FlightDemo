@@ -14,7 +14,7 @@ public abstract class GLPolygonModel {
 	protected final Vector mOffset = new Vector();
 	protected final Vector mPosition = new Vector();
 	protected final Vector mAngle = new Vector();
-	protected Texture mTexture;
+	protected StaticTexture mTexture;
 	protected Vertex mVertex;
 	protected boolean mNeedTextureDrawing;
 	protected float mScale = 1.0f;
@@ -45,11 +45,11 @@ public abstract class GLPolygonModel {
 	 * @param other
 	 */
 	protected GLPolygonModel(final GLPolygonModel other) {
-		glGraphics = other.glGraphics;	// シャドーコピー
+		glGraphics = other.glGraphics;	// シャローコピー
 		mOffset.set(other.mOffset);
 		mPosition.set(other.mPosition);
 		mAngle.set(other.mAngle);
-		mTexture = other.mTexture;	// シャドーコピー
+		mTexture = other.mTexture;	// シャローーコピー
 		mVertex = new Vertex(other.mVertex);
 		mNeedTextureDrawing = other.mNeedTextureDrawing;
 		mScale = other.mScale;
@@ -66,11 +66,11 @@ public abstract class GLPolygonModel {
 		mVertex = vertex;
 	}
 
-	public Texture getTexture() {
+	public StaticTexture getTexture() {
 		return mTexture;
 	}
 
-	public void setTexture(final Texture texture) {
+	public void setTexture(final StaticTexture texture) {
 		mNeedTextureDrawing = (texture != null);
 		mTexture = texture;
 	}

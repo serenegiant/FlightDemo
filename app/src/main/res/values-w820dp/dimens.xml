@@ -8,6 +8,7 @@
 	<dimen name="double_padding">128dp</dimen>
 	<dimen name="list_padding">8dp</dimen>
 	<dimen name="quater_padding">16dp</dimen>
+	<dimen name="top_panel_height">60dp</dimen>
 	<dimen name="bottom_panel_height">60dp</dimen>
 	<dimen name="stick_size">144dp</dimen>
 	<dimen name="stick_frame_width">288dp</dimen>

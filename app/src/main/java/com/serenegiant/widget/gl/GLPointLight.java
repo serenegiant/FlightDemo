@@ -3,9 +3,9 @@ package com.serenegiant.widget.gl;
 import javax.microedition.khronos.opengles.GL10;
 
 public class GLPointLight extends GLLight {
-	protected float[] diffuse = { 1f, 1f, 1f, 1f };				// 拡散光=白色
-	protected float[] specular = { 0.8f, 0.8f, 0.8f, 1f };		// 鏡面色=白色
-	protected float[] position = { 0, 0, 0, 1 };				// 最後の要素の1は点光源を意味する
+	protected final float[] diffuse = { 1f, 1f, 1f, 1f };			// 拡散光=白色
+	protected final float[] specular = { 0.8f, 0.8f, 0.8f, 1f };	// 鏡面色=白色
+	protected final float[] position = { 0, 0, 0, 1 };				// 最後の要素の1は点光源を意味する
 	protected int lastLightID = 0;
 	
 	public void setAmbient(final GLAmbientLight amb) {

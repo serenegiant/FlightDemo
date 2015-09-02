@@ -1,6 +1,6 @@
 package com.serenegiant.widget.gl;
 
-public class StringsTexture extends Texture {
+public class StringsTexture extends StaticTexture {
 	protected final float mGlyphWidth;		// 半角1文字の幅
 	protected final float mGlyphHeight;		// 1文字(1行)の高さ
 	protected final float[] mGlyphWidths;	// 各行の描画幅
