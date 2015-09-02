@@ -20,13 +20,44 @@ public interface IModelView {
 	public IScreen getCurrentScreen();
 	public void setScreen(final IScreen screen);
 
-	public void requestRender();
+	/**
+	 * 目標FPS設定
+	 * @param fps
+	 */
 	public void setFpsRequest(final float fps);
 
-	public int getWidth();
-	public int getHeight();
 	public void onResume();
 	public void onPause();
 	public void release();
+
+	/**
+	 * Viewを表示するかどうかを設定
+	 * @param visibility View#VISIBLE/INVISIBLE/GONE
+	 */
 	public void setVisibility(final int visibility);
+	/**
+	 * 描画要求
+	 */
+	public void requestRender();
+
+	/**
+	 * Viewの幅を取得
+	 * @return
+	 */
+	public int getWidth();
+
+	/**
+	 * Viewの高さを取得
+	 * @return
+	 */
+	public int getHeight();
+
+	/**
+	 * 機体姿勢をセット
+	 * @param roll 左右の傾き[-100,100] => 今は[-30,+30][度]に対応
+	 * @param pitch 前後の傾き(機種の上げ下げ)[-100,100] => 今は[-30,+30][度]に対応
+	 * @param yaw 水平回転[-180,+180][度], 0は進行方向と一致
+	 * @param gaz 高さ移動量 [-100,100] 単位未定
+	 */
+	public void setAttitude(final float roll, final float pitch, final float yaw, final float gaz);
 }

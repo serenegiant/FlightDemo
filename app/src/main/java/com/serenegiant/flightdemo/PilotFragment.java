@@ -158,17 +158,17 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mGamepadScaleZ = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_Z, 1.0f);
 		mGamepadScaleR = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_R, 1.0f);
 
-		final ViewGroup rootView = (ViewGroup)inflater.inflate(operation_type == 1 ?
-			R.layout.fragment_pilot_reverse
-			: (operation_type == 2 ? R.layout.fragment_pilot_touch
-			: R.layout.fragment_pilot),
-			container, false);
+		final ViewGroup rootView = (ViewGroup) inflater.inflate(operation_type == 1 ?
+																	R.layout.fragment_pilot_reverse
+																	: (operation_type == 2 ? R.layout.fragment_pilot_touch
+																		   : R.layout.fragment_pilot),
+																   container, false);
 
 //		rootView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
 //		rootView.setOnKeyListener(mOnKeyListener);
 //		rootView.setFocusable(true);
 
-		mControllerView = (ViewGroup)rootView.findViewById(R.id.controller_frame);
+		mControllerView = (ViewGroup) rootView.findViewById(R.id.controller_frame);
 //		mControllerView.setFocusable(true);
 //		mControllerView.requestFocus();
 
@@ -177,48 +177,48 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mTopPanel = rootView.findViewById(R.id.top_panel);
 		mActionViews.add(mTopPanel);
 
-		mFlatTrimBtn = (ImageButton)rootView.findViewById(R.id.flat_trim_btn);
+		mFlatTrimBtn = (ImageButton) rootView.findViewById(R.id.flat_trim_btn);
 		mFlatTrimBtn.setOnLongClickListener(mOnLongClickListener);
 		mActionViews.add(mFlatTrimBtn);
 
-		mConfigShowBtn = (ImageButton)rootView.findViewById(R.id.config_show_btn);
+		mConfigShowBtn = (ImageButton) rootView.findViewById(R.id.config_show_btn);
 		mConfigShowBtn.setOnClickListener(mOnClickListener);
 
 		// 下パネル
 		mBottomPanel = rootView.findViewById(R.id.bottom_panel);
-		mEmergencyBtn = (ImageButton)rootView.findViewById(R.id.emergency_btn);
+		mEmergencyBtn = (ImageButton) rootView.findViewById(R.id.emergency_btn);
 		mEmergencyBtn.setOnClickListener(mOnClickListener);
 
-		mTakeOnOffBtn = (ImageButton)rootView.findViewById(R.id.take_onoff_btn);
+		mTakeOnOffBtn = (ImageButton) rootView.findViewById(R.id.take_onoff_btn);
 		mTakeOnOffBtn.setOnClickListener(mOnClickListener);
 		mActionViews.add(mTakeOnOffBtn);
 
-		mRecordBtn = (ImageButton)rootView.findViewById(R.id.record_btn);
+		mRecordBtn = (ImageButton) rootView.findViewById(R.id.record_btn);
 		mRecordBtn.setOnClickListener(mOnClickListener);
 		mRecordBtn.setOnLongClickListener(mOnLongClickListener);
 
-		mRecordLabel = (TextView)rootView.findViewById(R.id.record_label);
+		mRecordLabel = (TextView) rootView.findViewById(R.id.record_label);
 
-		mPlayBtn = (ImageButton)rootView.findViewById(R.id.play_btn);
+		mPlayBtn = (ImageButton) rootView.findViewById(R.id.play_btn);
 		mPlayBtn.setOnClickListener(mOnClickListener);
 		mPlayBtn.setOnLongClickListener(mOnLongClickListener);
 
-		mPlayLabel = (TextView)rootView.findViewById(R.id.play_label);
+		mPlayLabel = (TextView) rootView.findViewById(R.id.play_label);
 
-		mLoadBtn = (ImageButton)rootView.findViewById(R.id.load_btn);
+		mLoadBtn = (ImageButton) rootView.findViewById(R.id.load_btn);
 		mLoadBtn.setOnClickListener(mOnClickListener);
 		mLoadBtn.setOnLongClickListener(mOnLongClickListener);
 
-		mTimeLabelTv = (TextView)rootView.findViewById(R.id.time_label);
+		mTimeLabelTv = (TextView) rootView.findViewById(R.id.time_label);
 		mTimeLabelTv.setVisibility(View.INVISIBLE);
 
 		// クリアボタン(タッチ描画操縦)
-		mClearButton = (ImageButton)rootView.findViewById(R.id.clear_btn);
+		mClearButton = (ImageButton) rootView.findViewById(R.id.clear_btn);
 		if (mClearButton != null) {
 			mClearButton.setOnClickListener(mOnClickListener);
 		}
 		// 移動ボタン(タッチ描画操縦)
-		mMoveButton = (ImageButton)rootView.findViewById(R.id.move_btn);
+		mMoveButton = (ImageButton) rootView.findViewById(R.id.move_btn);
 		if (mMoveButton != null) {
 			mMoveButton.setOnClickListener(mOnClickListener);
 		}
@@ -229,18 +229,18 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mActionViews.add(mRightSidePanel);
 
 		// 静止画撮影
-		mStillCaptureBtn = (ImageButton)rootView.findViewById(R.id.still_capture_btn);
+		mStillCaptureBtn = (ImageButton) rootView.findViewById(R.id.still_capture_btn);
 		mStillCaptureBtn.setOnClickListener(mOnClickListener);
 
 		// 動画撮影
-		mVideoRecordingBtn = (ImageButton)rootView.findViewById(R.id.video_capture_btn);
+		mVideoRecordingBtn = (ImageButton) rootView.findViewById(R.id.video_capture_btn);
 		mVideoRecordingBtn.setOnClickListener(mOnClickListener);
 
-		button = (ImageButton)rootView.findViewById(R.id.cap_p45_btn);
+		button = (ImageButton) rootView.findViewById(R.id.cap_p45_btn);
 		button.setOnClickListener(mOnClickListener);
 		mActionViews.add(button);
 
-		button = (ImageButton)rootView.findViewById(R.id.cap_m45_btn);
+		button = (ImageButton) rootView.findViewById(R.id.cap_m45_btn);
 		button.setOnClickListener(mOnClickListener);
 		mActionViews.add(button);
 
@@ -248,38 +248,38 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mLeftSidePanel = rootView.findViewById(R.id.left_side_panel);
 		mActionViews.add(mLeftSidePanel);
 
-		button = (ImageButton)rootView.findViewById(R.id.flip_right_btn);
+		button = (ImageButton) rootView.findViewById(R.id.flip_right_btn);
 		button.setOnClickListener(mOnClickListener);
 		mActionViews.add(button);
 
-		button = (ImageButton)rootView.findViewById(R.id.flip_left_btn);
+		button = (ImageButton) rootView.findViewById(R.id.flip_left_btn);
 		button.setOnClickListener(mOnClickListener);
 		mActionViews.add(button);
 
-		button = (ImageButton)rootView.findViewById(R.id.flip_front_btn);
+		button = (ImageButton) rootView.findViewById(R.id.flip_front_btn);
 		button.setOnClickListener(mOnClickListener);
 		mActionViews.add(button);
 
-		button = (ImageButton)rootView.findViewById(R.id.flip_back_btn);
+		button = (ImageButton) rootView.findViewById(R.id.flip_back_btn);
 		button.setOnClickListener(mOnClickListener);
 		mActionViews.add(button);
 
 		// 右スティックパネル
-		mRightStickPanel = (StickView)rootView.findViewById(R.id.stick_view_right);
+		mRightStickPanel = (StickView) rootView.findViewById(R.id.stick_view_right);
 		if (mRightStickPanel != null) {
 			mRightStickPanel.setOnStickMoveListener(mOnStickMoveListener);
 			mActionViews.add(mRightStickPanel);
 		}
 
 		// 左スティックパネル
-		mLeftStickPanel = (StickView)rootView.findViewById(R.id.stick_view_left);
+		mLeftStickPanel = (StickView) rootView.findViewById(R.id.stick_view_left);
 		if (mLeftStickPanel != null) {
 			mLeftStickPanel.setOnStickMoveListener(mOnStickMoveListener);
 			mActionViews.add(mRightStickPanel);
 		}
 
 		// タッチパイロットView(タッチ描画操縦)
-		mTouchPilotView = (TouchPilotView)rootView.findViewById(R.id.touch_pilot_view);
+		mTouchPilotView = (TouchPilotView) rootView.findViewById(R.id.touch_pilot_view);
 		if (mTouchPilotView != null) {
 			mTouchPilotView.setTouchPilotListener(mTouchPilotListener);
 			mActionViews.add(mTouchPilotView);
@@ -288,20 +288,25 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		// ビデオストリーミング用
 //		mVideoTextureView = (TextureView)rootView.findViewById(R.id.video_textureview);
 
-		mBatteryLabel = (TextView)rootView.findViewById(R.id.batteryLabel);
-		mAlertMessage = (TextView)rootView.findViewById(R.id.alert_message);
+		mBatteryLabel = (TextView) rootView.findViewById(R.id.batteryLabel);
+		mAlertMessage = (TextView) rootView.findViewById(R.id.alert_message);
 		mAlertMessage.setVisibility(View.INVISIBLE);
 
 		// 機体モデル表示
 		final int model;
-		if (mController instanceof DeviceControllerMiniDrone)
+		final int ctrl;
+		if (mController instanceof DeviceControllerMiniDrone) {
 			model = IModelView.MODEL_MINIDRONE;
-		else if (mController instanceof DeviceControllerBebop)
+			ctrl = AttitudeScreenBase.CTRL_PILOT;
+		} else if (mController instanceof DeviceControllerBebop) {
 			model = IModelView.MODEL_BEBOP;
-		else
+			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
+		} else {
 			model = IModelView.MODEL_BEBOP;
+			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
+		}
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
-		mModelView.setModel(model, AttitudeScreenBase.CTRL_PILOT);
+		mModelView.setModel(model, ctrl);
 		return rootView;
 	}
 
@@ -1123,11 +1128,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 						mCurrentPitch = mAttitude.y();
 						mCurrentYaw = mAttitude.z();
 						mCurrentAltitude = altitude;
-						postUIThread(mUpdateStatusUITask, 1);
+						mModelView.setAttitude(mAttitude.x(), mAttitude.y(), mAttitude.z(), altitude);
+//						postUIThread(mUpdateStatusUITask, 1);
 					}
 				}
 			}
-			post(this, 200);	// 200ミリ秒=1秒間に最大で約5回更新
+			post(this, 100);	// 100ミリ秒=1秒間に最大で約10回更新
 		}
 	};
 
@@ -1139,6 +1145,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		public synchronized void run() {
 //			final String s = String.format("%5.1f,%5.1f,%5.1f/%5.1f", mCurrentRoll, mCurrentPitch, mCurrentYaw, mCurrentAltitude);
 //			if (DEBUG) Log.v(TAG, "Attitude:" + s);
+//			mModelView.setAttitude(mCurrentRoll, mCurrentPitch, mCurrentYaw, mCurrentAltitude);
 		}
 	};
 

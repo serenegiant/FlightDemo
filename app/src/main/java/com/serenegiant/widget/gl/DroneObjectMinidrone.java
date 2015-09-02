@@ -13,12 +13,11 @@ public class DroneObjectMinidrone extends DroneObject {
 
 	public DroneObjectMinidrone(final float x, final float y, final float z, final float scale) {
 		super(OFFSET.x + x, OFFSET.y + y, OFFSET.z + z, scale);
-		mFrontLeftRotorObj.setPosition(OFFSET.x + x + 2.28305f, OFFSET.y + y, OFFSET.z + z + 2.06648f);
-		mFrontRightRotorObj.setPosition(OFFSET.x + x + -2.28305f, OFFSET.y + y, OFFSET.z + z + 2.06648f);
-		mRearLeftRotorObj.setPosition(OFFSET.x + x + 2.27451f, OFFSET.y + y, OFFSET.z + z - 1.58124f);
-		mRearRightRotorObj.setPosition(OFFSET.x + x + -2.27451f, OFFSET.y + y, OFFSET.z + z - 1.58124f);
+		mFrontLeftRotorObj.setPosition(OFFSET.x + x + 3.33891f, OFFSET.y + y - 0.19459f, OFFSET.z + z + 3.26455f);
+		mFrontRightRotorObj.setPosition(OFFSET.x + x -3.33891f, OFFSET.y + y - 0.19459f, OFFSET.z + z + 3.26455f);
+		mRearLeftRotorObj.setPosition(OFFSET.x + x + 3.36173f, OFFSET.y + y - 0.19459f, OFFSET.z + z - 3.46190f);
+		mRearRightRotorObj.setPosition(OFFSET.x + x -3.36173f, OFFSET.y + y - 0.19459f, OFFSET.z + z - 3.46190f);
 	}
-
 
 	@Override
 	public void update(final float deltaTime) {

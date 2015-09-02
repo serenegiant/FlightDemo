@@ -31,8 +31,10 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	protected GLLoadableModel frontRightRotorModel;
 	protected GLLoadableModel rearLeftRotorModel;
 	protected GLLoadableModel rearRightRotorModel;
+
 	// オブジェクト
 	protected DroneObject droneObj;				// 機体本体
+	protected final Object mDroneSync = new Object();
 	// 地面
 	private final GLCubeModel plateModel;
 	private final StaticTexture plateTexture;
@@ -50,8 +52,8 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		// 背景
 		backgroundTexture = new StaticTexture(modelView, "background.png");
 		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, screenWidth, screenHeight);
-		screenCenterX = screenWidth / 2;
-		screenCenterY = screenHeight / 2;
+		screenCenterX = screenWidth >>> 1;
+		screenCenterY = screenHeight >>> 1;
 		mFullScreenDrawer = new TextureDrawer2D(glGraphics);
 		mFullScreenDrawer.draw(screenWidth, screenHeight, backgroundRegion);
 
@@ -75,7 +77,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		guiCamera = new GLCamera2D(glGraphics, screenWidth, screenHeight);
 		// 視線カメラ
 		lookAtCamera = new GLLookAtCamera(
-			67, glGraphics.getViewWidth() / (float)glGraphics.getViewHeight(), 0.1f, 25f);
+			67, glGraphics.getViewWidth() / (float)glGraphics.getViewHeight(), 0.01f, 40f);
 		lookAtCamera.setPosition(-4.5f, 4, -4.5f);
 
 		initModel();
@@ -147,22 +149,22 @@ public abstract class AttitudeScreenBase extends GLScreen {
 //		gl.glColor4f(1f, 1f, 1f, 0f);
 		gl.glEnable(GL10.GL_CULL_FACE);         	// ポリゴンのカリングを有効にする
 		gl.glCullFace(GL10.GL_BACK);				// 裏面を描画しない
-		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
+//		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
 		gl.glEnable(GL10.GL_DEPTH_TEST);			// デプステストを有効にする
-		gl.glClear(GL10.GL_DEPTH_BUFFER_BIT);		// デプスバッファをクリアする(背景上に描画出来ないから)
+		gl.glClear(GL10.GL_DEPTH_BUFFER_BIT);		// デプスバッファをクリアする
 		gl.glEnable(GL10.GL_TEXTURE_2D);			// テクスチャを有効にする
 
+		// 床を描画
+		if (mShowGround) {
+//			gl.glColor4f(1f, 1f, 1f, 1f);
+			plateModel.draw();
+		}
+		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
 		ambientLight.enable(gl);					// 環境光を有効にする
 		pointLight.enable(gl, GL10.GL_LIGHT0);		// 点光源を有効にする
 		directionLight.enable(gl, GL10.GL_LIGHT1);	// 平行光源を有効にする
 //		material.enable(gl);						// これを入れると影が出なくなる
 //		gl.glEnable(GL10.GL_COLOR_MATERIAL);		// 環境光と拡散光のマテリアル色として頂点色を使うとき
-
-		// 床を描画
-		if (mShowGround) {
-			gl.glColor4f(1f, 1f, 1f, 1f);
-			plateModel.draw();
-		}
 		// モデルを描画
 		gl.glPushMatrix();							// 現在のマトリックスを保存
 		drawModel(gl);
@@ -172,28 +174,32 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		ambientLight.disable(gl);
 		pointLight.disable(gl);
 		directionLight.disable(gl);
+		gl.glDisable(GL10.GL_LIGHTING);				// ライティングを無効化
 //		material.disable(gl);
-//		gl.glDisable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
+//		gl.glDisable(GL10.GL_COLOR_MATERIAL);		// 環境光と拡散光のマテリアル色として頂点色を使うとき
 		gl.glDisable(GL10.GL_BLEND);
 	}
 
 	private void moveDrone(final GL10 gl) {
-		final Vector position = droneObj.getOffset();
-		gl.glTranslatef(position.x, position.y, position.z);
-		if (droneObj.angle.x != 0) {
-			gl.glRotatef(droneObj.angle.x, 1, 0, 0);
-			GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+		synchronized (mDroneSync) {
+			final Vector position = droneObj.position;
+			gl.glTranslatef(position.x, position.y, position.z);
+			final Vector angle = droneObj.angle;
+			if (angle.x != 0) {
+				gl.glRotatef(angle.x, 1, 0, 0);
+				GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+			}
+			if (angle.y != 0) {
+				gl.glRotatef(angle.y, 0, 1, 0);
+				GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+			}
+			if (angle.z != 0) {
+				gl.glRotatef(angle.z, 0, 0, 1);
+				GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+			}
+			final Vector offset = droneObj.getOffset();
+			gl.glTranslatef(-offset.x, -offset.y, -offset.z);
 		}
-		if (droneObj.angle.y != 0) {
-			gl.glRotatef(droneObj.angle.y, 0, 1, 0);
-			GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
-		}
-		if (droneObj.angle.z != 0) {
-			gl.glRotatef(droneObj.angle.z, 0, 0, 1);
-			GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
-		}
-		final Vector offset = droneObj.getOffset();
-		gl.glTranslatef(-offset.x, -offset.y, -offset.z);
 	}
 
 	@Override
@@ -233,4 +239,28 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	public void onAccelEvent() {
 
 	}
+
+	/**
+	 * 機体姿勢をセット
+	 * @param roll 左右の傾き[度], 0は水平
+	 * @param pitch 前後の傾き(機種の上げ下げ)[度], 0は水平
+	 * @param yaw 水平回転[-180,+180][度], 0は北磁極
+	 * @param gaz 高さ[m]
+	 */
+	public void setAttitude(final float roll, final float pitch, final float yaw, final float gaz) {
+		synchronized (mDroneSync) {
+			final Vector angle = droneObj.angle;
+			// roll
+			angle.z = roll;
+			angle.z -= Math.signum(angle.z) * 2f;
+			// pitch
+			angle.x = pitch;
+			angle.x -= Math.signum(angle.x) * 2f;
+			// yaw
+			angle.y = yaw;
+			if (angle.y < -180f) angle.y = -180f;
+			else if (angle.y > 180f) angle.y = 180f;
+		}
+	}
+
 }

@@ -18,6 +18,7 @@ public class Texture {
 	protected int textureID;
 	protected int mMinFilter;
 	protected int mMagFilter;
+	protected int mWrapMode = GL10.GL_REPEAT;
 	protected final float[] mTexMatrix = new float[16];
 
 	public Texture(final IModelView modelView) {
@@ -34,11 +35,20 @@ public class Texture {
 		final GL10 gl = glGraphics.getGL();
 		mMinFilter = minFilter;
 		mMagFilter = magFilter;
-		gl.glTexParameterf(mTexTarget, GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
-		gl.glTexParameterf(mTexTarget, GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
 		gl.glTexParameterf(mTexTarget, GL10.GL_TEXTURE_MIN_FILTER, minFilter);
 		gl.glTexParameterf(mTexTarget, GL10.GL_TEXTURE_MAG_FILTER, magFilter);
 		GLHelper.checkGlError(gl, "Texture#glTexParameterf");
+	}
+
+	/**
+	 * テクスチャの繰り返しを指定
+	 * @param wrap_mode GL_REPEAT(初期値)/GL_CLAMP_TO_EDGE/
+	 */
+	public void setWrap(final int wrap_mode) {
+		final GL10 gl = glGraphics.getGL();
+		mWrapMode = wrap_mode;
+		gl.glTexParameterf(mTexTarget, GL10.GL_TEXTURE_WRAP_S, wrap_mode);
+		gl.glTexParameterf(mTexTarget, GL10.GL_TEXTURE_WRAP_T, wrap_mode);
 	}
 
 	public void bind() {

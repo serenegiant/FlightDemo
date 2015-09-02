@@ -22,15 +22,18 @@ public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 		case CTRL_PILOT:
 			droneObj = new DroneObjectMinidrone(0, 0, 0, 1.0f);
 			lookAtCamera.setPosition(0, 16, -18f);
+			mShowGround = false;
 			break;
 		case CTRL_ATTITUDE:
 			droneObj = new DroneObjectMinidrone(0, 0, 0, 1.0f);
 			lookAtCamera.setPosition(0, 16, -18f);
+			mShowGround = false;
 			break;
 		case CTRL_RANDOM:
 		default:
 			droneObj = new DroneObjectMinidroneRandom(0, 0, 0, 1.0f);
-			lookAtCamera.setPosition(-18, 16, -18);
+			lookAtCamera.setPosition(-9, 8, -9);
+			mShowGround = false;
 			break;
 		}
 		final StaticTexture droneTexture = new StaticTexture(mModelView, "model/minidrone_red.png");
@@ -59,8 +62,6 @@ public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 //		rearRightRotorModel = new GLLoadableModel(glGraphics);
 //		rearRightRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_cw.obj");
 		rearRightRotorModel.setTexture(droneTexture);
-		//
-		mShowGround = false;
 	}
 
 /*	@Override

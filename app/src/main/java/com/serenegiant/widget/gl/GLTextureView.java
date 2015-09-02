@@ -321,7 +321,7 @@ public class GLTextureView extends TextureView {
 						mRenderSurface.swap();
 						if (parent.mIsActive && (parent.mRenderMode == RENDERMODE_CONTINUOUSLY)) {
 							try {
-								Thread.sleep(10);
+								Thread.sleep(30);	// FIXME FPSを設定できるようにする
 							} catch (final InterruptedException e) {
 							}
 							offer(CMD_DRAW);

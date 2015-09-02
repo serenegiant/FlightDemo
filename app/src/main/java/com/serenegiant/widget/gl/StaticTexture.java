@@ -127,6 +127,7 @@ public class StaticTexture extends Texture {
 				GLUtils.texImage2D(mTexTarget, 0, bitmap, 0);
 				GLHelper.checkGlError(gl, "Texture#texImage2D");
 				setFilters(GL10.GL_NEAREST, GL10.GL_NEAREST);
+//				setWrap(GL10.GL_CLAMP_TO_EDGE);
 				gl.glBindTexture(mTexTarget, 0);
 				GLHelper.checkGlError(gl, "Texture#glBindTexture");
 			}
@@ -157,7 +158,8 @@ public class StaticTexture extends Texture {
 		final GL10 gl = glGraphics.getGL();
 		gl.glBindTexture(mTexTarget, textureID);
 		setFilters(GL10.GL_LINEAR_MIPMAP_NEAREST, GL10.GL_LINEAR);
-		
+//		setWrap(GL10.GL_REPEAT);
+
 		int level = 0;
 		int newWidth = width;
 		int newHeight = height;
@@ -195,6 +197,7 @@ public class StaticTexture extends Texture {
 		gl.glBindTexture(mTexTarget, textureID);
 		GLHelper.checkGlError(gl, "Texture#glBindTexture");
 		setFilters(mMinFilter, mMagFilter);
+		setWrap(mWrapMode);
 		gl.glBindTexture(mTexTarget, 0);
 		GLHelper.checkGlError(gl, "Texture#glBindTexture");
 	}

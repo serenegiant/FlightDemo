@@ -157,7 +157,7 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 
 	// GLTextureViewのレンダラー
 	private final Renderer renderer = new Renderer() {
-		float deltaTime;
+		private float deltaTime;
 		@Override
 		public void onDrawFrame(final GL10 gl) {
 			if ((isInEditMode())) return;
