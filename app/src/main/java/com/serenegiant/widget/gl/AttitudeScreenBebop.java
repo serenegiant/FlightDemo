@@ -23,25 +23,25 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 		droneModel.loadModel(mModelView, "model/bebop_drone_body.obj");
 		droneModel.setTexture(droneTexture);
 		// 左前ローター
-		final Texture frontLeftTexture = new Texture(mModelView, "model/bebop_drone_rotor_front_tex.png");
+		final Texture frontTexture = new Texture(mModelView, "model/bebop_drone_rotor_front_tex.png");
 		frontLeftRotorModel = new GLLoadableModel(glGraphics);
 		frontLeftRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_cw.obj");
-		frontLeftRotorModel.setTexture(frontLeftTexture);
+		frontLeftRotorModel.setTexture(frontTexture);
 		// 右前ローター
-		final Texture frontRightTexture = new Texture(mModelView, "model/bebop_drone_rotor_front_tex.png");
+//		final Texture frontRightTexture = new Texture(mModelView, "model/bebop_drone_rotor_front_tex.png");
 		frontRightRotorModel = new GLLoadableModel(glGraphics);
 		frontRightRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_ccw.obj");
-		frontRightRotorModel.setTexture(frontRightTexture);
+		frontRightRotorModel.setTexture(frontTexture);
 		// 左後ローター
-		final Texture rearLeftTexture = new Texture(mModelView, "model/bebop_drone_rotor_rear_tex.png");
+		final Texture rearTexture = new Texture(mModelView, "model/bebop_drone_rotor_rear_tex.png");
 		rearLeftRotorModel = new GLLoadableModel(glGraphics);
 		rearLeftRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_ccw.obj");
-		rearLeftRotorModel.setTexture(rearLeftTexture);
+		rearLeftRotorModel.setTexture(rearTexture);
 		// 右後ローター
-		final Texture rearRightTexture = new Texture(mModelView, "model/bebop_drone_rotor_rear_tex.png");
+//		final Texture rearRightTexture = new Texture(mModelView, "model/bebop_drone_rotor_rear_tex.png");
 		rearRightRotorModel = new GLLoadableModel(glGraphics);
 		rearRightRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_cw.obj");
-		rearRightRotorModel.setTexture(rearRightTexture);
+		rearRightRotorModel.setTexture(rearTexture);
 		//
 		mShowGround = false;
 	}

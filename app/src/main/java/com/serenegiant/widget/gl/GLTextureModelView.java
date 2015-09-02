@@ -11,24 +11,23 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "GLTextureModelView";
 
-	protected enum ModelState {
-		INITIALIZE,
-		RESUME0,
-		RESUME1,
-		RUNNING,
-		PAUSE,
-		IDLE,
-		FINISH
-	}
+	protected static final int IDLE = 0;
+	protected static final int INITIALIZE = 1;
+	protected static final int RESUME0 = 2;
+	protected static final int RESUME1 = 3;
+	protected static final int RUNNING = 4;
+	protected static final int PAUSE = 5;
+	protected static final int FINISH = 6;
+
 
 	protected final GLGraphics glGraphics;
 	protected Screen mScreen;
 	/** UIスレッドからscreenを切り替える際の中継用変数 */
 	protected Screen mNextScreen;
-	protected ModelState mState = ModelState.INITIALIZE;
+	protected int mState = INITIALIZE;
 	protected final Object mStateSyncObj = new Object();
-	protected long mPrevTime = System.nanoTime();
-	private long mGameThreadID;
+	protected long mPrevTime;
+	private long mRendererThreadID;
 	private boolean mIsLandscape;
 	//
 	protected LoadableInterface mLoadableInterface;
@@ -49,7 +48,6 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 		if (DEBUG) Log.v(TAG, "コンストラクタ");
 		glGraphics = new GLGraphics(this);
 		setRenderer(renderer);
-//		getHolder().setFormat(PixelFormat.TRANSLUCENT);
 	}
 
 /*	@Override
@@ -61,16 +59,29 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 	public void onPause() {
 //		if (DEBUG) Log.v(TAG, "GLGameFragment#onPause:isFinishing=" + getActivity().isFinishing());
 		synchronized (mStateSyncObj) {
-			mState = ModelState.PAUSE;
-			if (glActive) {
+			if (mState == RUNNING) {
+				mState = PAUSE;
 				try {
 					mStateSyncObj.wait(50);
 				} catch (final InterruptedException e) {
 				}
 			}
-			glActive = false;
 		}
 		super.onPause();
+	}
+
+	@Override
+	public void release() {
+		synchronized (mStateSyncObj) {
+			if (mState != IDLE) {
+				mState = FINISH;
+				try {
+					mStateSyncObj.wait(50);
+				} catch (final InterruptedException e) {
+				}
+			}
+		}
+		super.release();
 	}
 
 	// GLTextureViewのレンダラー
@@ -80,45 +91,73 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 		public void onDrawFrame(final GL10 gl) {
 			if ((isInEditMode())) return;
 
-			ModelState localState = null;
+			int localState;
 			synchronized (mStateSyncObj) {
 				localState = mState;
 			}
 
-			if (localState == ModelState.RUNNING) {	// 実行
+			switch (localState) {
+			case RUNNING:	// 実行中
 				final long t = System.nanoTime();
 				deltaTime = (t - mPrevTime) / 1000000000.0f;
 				mPrevTime = t;
 				mScreen.update(deltaTime);
 				mScreen.draw(deltaTime);
-				// 出来るだけこのタイミングでガベージコレクションが走って欲しいんだけど、頻度が高すぎる
-			} else if (localState == ModelState.PAUSE) {		// 中断処理
-				mScreen.pause();
-				if (mLoadableInterface != null) {
-					mLoadableInterface.pause();
-				}
-				synchronized (mStateSyncObj) {
-//					localState = GLGameState.IDLE;
-					mState = ModelState.IDLE;
-					mStateSyncObj.notifyAll();
-				}
-			} else if (localState == ModelState.FINISH) {	// 終了処理
-				onRelease();
+				break;
+			case PAUSE:		// 中断処理
+				handlePause();
+				break;
+			case FINISH:	// 終了処理
+				handleFinish();
+				break;
+			}
+		}
+
+		private void handlePause() {
+			synchronized (mStateSyncObj) {
+				mState = PAUSE;
+			}
+			mScreen.pause();
+			if (mLoadableInterface != null) {
+				mLoadableInterface.pause();
+			}
+			synchronized (mStateSyncObj) {
+				mState = IDLE;
+				mStateSyncObj.notifyAll();
+			}
+		}
+
+		private void handleFinish() {
+			synchronized (mStateSyncObj) {
+				mState = FINISH;
+			}
+			onRelease();
+			if (mScreen != null) {
 				mScreen.pause();
 				mScreen.dispose();
-				if (mLoadableInterface != null) {
-					mLoadableInterface.dispose();
-					mLoadableInterface = null;
-				}
-				synchronized (mStateSyncObj) {
-					mState = ModelState.IDLE;
-					mStateSyncObj.notifyAll();
-				}
+				mScreen = null;
+			}
+			if (mLoadableInterface != null) {
+				mLoadableInterface.dispose();
+				mLoadableInterface = null;
+			}
+			synchronized (mStateSyncObj) {
+				mState = IDLE;
+				mStateSyncObj.notifyAll();
 			}
 		}
 
 		@Override
 		public void onSurfaceDestroyed(final GL10 gl) {
+			if (DEBUG) Log.v(TAG, "onSurfaceDestroyed:gl=" + gl);
+			int localState;
+			synchronized (mStateSyncObj) {
+				localState = mState;
+			}
+			if (localState == RUNNING) {    // 実行中
+				handleFinish();
+			}
+			glActive = false;
 		}
 
 		@Override
@@ -127,13 +166,13 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 			if ((isInEditMode())) return;
 
 			mIsLandscape = (width > height);
-			glGraphics.setGL(gl);	// 2013/11/20追加 なぜかonSurfaceCreatedで正しくセットされてない時がある
+			glGraphics.setGL(gl);
 			synchronized (mStateSyncObj) {
-				if (mState == ModelState.RUNNING) {
+				if (mState == RUNNING) {
 					setScreenSize(mScreen, width, height);
 				} else {
 					setScreen(mScreen == null ? getScreen() : mScreen);
-					mState = ModelState.RUNNING;
+					mState = RUNNING;
 				}
 			}
 			gl.glViewport(0, 0, width, height);
@@ -141,36 +180,32 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 
 		@Override
 		public void onSurfaceCreated(final GL10 gl, final EGLConfig config) {
-			if (DEBUG) Log.v(TAG, "onSurfaceCreated:" + gl);
+			if (DEBUG) Log.v(TAG, "onSurfaceCreated:gl=" + gl);
 			if ((isInEditMode())) return;
 
-			ModelState localState;
+			int localState;
 			glActive = true;
 			glGraphics.setGL(gl);
 			synchronized (mStateSyncObj) {
-				mGameThreadID = Thread.currentThread().getId(); // 2013/07/22
-				if (mScreen == null) {	// 2013/06/05
-					mState = ModelState.INITIALIZE;
+				mRendererThreadID = Thread.currentThread().getId();
+				if (mScreen == null) {
+					mState = INITIALIZE;
 				}
 				localState = mState;
 			}
-			if (localState == ModelState.INITIALIZE) {
+			if (localState == INITIALIZE) {
 				onInitialize();
 			}
 			if (mLoadableInterface != null) {
-				if (localState == ModelState.INITIALIZE) {
+				if (localState == INITIALIZE) {
 					mLoadableInterface.load(getContext());
 				} else {
 					mLoadableInterface.reload(getContext());
 				}
 				mLoadableInterface.resume(getContext());
 			}
-			mPrevTime = System.nanoTime();
-/*			setScreen(mScreen == null ? getStartScreen() : mScreen);
-			synchronized (mStateSyncObj) {
-				mState = GameState.RUNNING;
-			} */
 			System.gc();
+			mPrevTime = System.nanoTime();
 		}
 	};
 
@@ -199,7 +234,7 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 
 	public void setScreen(final Screen screen) {
 		// 呼び出し元のスレッドIDに応じて直接呼び出すかrunnable経由で呼び出すかを切り替える
-		if (mGameThreadID == Thread.currentThread().getId()) {	// ゲームスレッド内から呼び出された時
+		if (mRendererThreadID == Thread.currentThread().getId()) {	// ゲームスレッド内から呼び出された時
 			internalSetScreen(screen);							// 直接実行する
 		} else {												// 他スレッドから呼び出された時
 			mNextScreen = screen;

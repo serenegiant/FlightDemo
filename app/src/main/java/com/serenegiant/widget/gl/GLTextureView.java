@@ -79,16 +79,33 @@ public class GLTextureView extends TextureView {
 		setSurfaceTextureListener(mSurfaceTextureListener);
 	}
 
-	@Override
+/*	@Override
 	protected void onAttachedToWindow() {
 		super.onAttachedToWindow();
 		if (DEBUG) Log.v(TAG, "onAttachedToWindow:");
-	}
+	} */
 
-	@Override
+/*	@Override
 	protected void onDetachedFromWindow() {
 		if (DEBUG) Log.v(TAG, "onDetachedFromWindow:");
 		super.onDetachedFromWindow();
+	} */
+
+	public void onResume() {
+		if (DEBUG) Log.v(TAG, "onResume:");
+		// XXX ここでは何もしなくてもいいかも
+		startRenderTask();
+		mRendererTask.offer(CMD_DRAW);
+	}
+
+	public void onPause() {
+		if (DEBUG) Log.v(TAG, "onPause:");
+		// XXX ここでは何もしなくてもいいかも
+		stopRenderTask();
+	}
+
+	public void release() {
+		stopRenderTask();
 	}
 
 	public void setRenderer(final Renderer renderer) {
@@ -112,28 +129,9 @@ public class GLTextureView extends TextureView {
 		return mRenderMode;
 	}
 
-	public void onResume() {
-		if (DEBUG) Log.v(TAG, "onResume:");
-		mIsActive = true;
-		if (mRendererTask == null) {
-			mRendererTask = new RendererTask(this);
-			new Thread(mRendererTask, "RendererThread").start();
-			mRendererTask.waitReady();
-		}
-		mRendererTask.offer(CMD_DRAW);
-	}
-
-	public void onPause() {
-		if (DEBUG) Log.v(TAG, "onPause:");
-		mIsActive = false;
-		if (mRendererTask != null) {
-			mRendererTask.release();
-			mRendererTask = null;
-		}
-	}
-
 	public void requestRender() {
 		if (mRendererTask != null) {
+			mRendererTask.removeRequest(CMD_DRAW);
 			mRendererTask.offer(CMD_DRAW);
 		}
 	}
@@ -192,13 +190,31 @@ public class GLTextureView extends TextureView {
 		}
 	}
 
+	private void startRenderTask() {
+		mIsActive = true;
+		if (mRendererTask == null) {
+			mRendererTask = new RendererTask(this);
+			new Thread(mRendererTask, "RendererThread").start();
+			mRendererTask.waitReady();
+		}
+	}
+
+	private void stopRenderTask() {
+		mIsActive = false;
+		if (mRendererTask != null) {
+			mRendererTask.release();
+			mRendererTask = null;
+		}
+	}
+
 	private final SurfaceTextureListener mSurfaceTextureListener = new SurfaceTextureListener() {
 		@Override
 		public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
 			if (DEBUG) Log.v(TAG, "onSurfaceTextureAvailable:" + mRendererTask);
+			startRenderTask();
 			if (mRendererTask != null) {
-				mRendererTask.offer(CMD_AVAILABLE, width, height, surface);
 				if (DEBUG) Log.v(TAG, "offer CMD_AVAILABLE");
+				mRendererTask.offer(CMD_AVAILABLE, width, height, surface);
 			}
 		}
 
@@ -207,18 +223,15 @@ public class GLTextureView extends TextureView {
 			if (DEBUG) Log.v(TAG, "onSurfaceTextureSizeChanged:" + mRendererTask);
 			// XXX ここに来るときには既にmRendererTaskは開放されているかも
 			if (mRendererTask != null) {
-				mRendererTask.offer(CMD_SIZE_CHANGED, width, height, surface);
 				if (DEBUG) Log.v(TAG, "offer CMD_SIZE_CHANGED");
+				mRendererTask.offer(CMD_SIZE_CHANGED, width, height, surface);
 			}
 		}
 
 		@Override
 		public boolean onSurfaceTextureDestroyed(final SurfaceTexture surface) {
 			if (DEBUG) Log.v(TAG, "onSurfaceTextureDestroyed:" + mRendererTask);
-			if (mRendererTask != null) {
-				mRendererTask.offerFirst(CMD_DESTROYED, 0, 0, surface);
-				if (DEBUG) Log.v(TAG, "offer CMD_DESTROYED");
-			}
+			stopRenderTask();
 			return true;
 		}
 
@@ -232,7 +245,6 @@ public class GLTextureView extends TextureView {
 
 	private static final int CMD_AVAILABLE = 1;
 	private static final int CMD_SIZE_CHANGED = 2;
-	private static final int CMD_DESTROYED = 3;
 	private static final int CMD_UPDATED = 4;
 	private static final int CMD_DRAW = 5;
 	private static final int CMD_RUN = 6;
@@ -262,6 +274,11 @@ public class GLTextureView extends TextureView {
 		protected void onStop() {
 			if (DEBUG) Log.v(TAG, "RendererTask#onStop:");
 			// FIXME ここで#callOnSurfaceDestroyedを呼び出すようにした方がいいかも
+			final GLTextureView parent = mWeakParent.get();
+			if (parent != null) {
+				parent.callOnSurfaceDestroyed(mGl);
+			}
+			makeCurrent();
 			if (mRenderSurface != null) {
 				mRenderSurface.release();
 				mRenderSurface = null;
@@ -288,17 +305,6 @@ public class GLTextureView extends TextureView {
 				if (parent != null) {
 					parent.callOnSurfaceChanged(mGl, arg1, arg2);
 				}
-				break;
-			case CMD_DESTROYED:
-				if (DEBUG) Log.v(TAG, "CMD_DESTROYED:");
-				// FIXME ここには来ないかも
-				if (parent != null) {
-					parent.callOnSurfaceDestroyed(mGl);
-				}
-				mGl = null;
-				mRenderSurface.release();
-				mRenderSurface = null;
-				makeCurrent();
 				break;
 			case CMD_UPDATED:
 				if (DEBUG) Log.v(TAG, "CMD_UPDATED:");

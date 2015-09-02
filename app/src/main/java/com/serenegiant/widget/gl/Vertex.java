@@ -14,7 +14,7 @@ import java.util.Arrays;
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
 
-public class Vertex {
+public class Vertex implements Cloneable {
 //	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "Vertex";
 
@@ -89,20 +89,22 @@ public class Vertex {
 		}
 	}
 
-	// 既存のVertextの内容をコピーして新しいVertexを生成する
-	public Vertex copy() {
-		final Vertex vert = new Vertex(dim_num, glGraphics, maxVertex, maxIndex, hasColor, hasTexCoord, hasNormals);
+	// 既存のVertexの内容をコピーして新しいVertexを生成する
+	@Override
+	public Vertex clone() throws CloneNotSupportedException {
+		final Vertex result = (Vertex)super.clone();
+//		final Vertex vert = new Vertex(dim_num, glGraphics, maxVertex, maxIndex, hasColor, hasTexCoord, hasNormals);
 		// vertexArrayをコピー
 		if (vertexArray != null) {
 			vertexArray.position(0);
-			vert.vertexArray.put(vertexArray);
+			result.vertexArray.put(vertexArray);
 		}
 		// indexArrayをコピー
 		if (indexArray != null) {
 			indexArray.position(0);
-			vert.indexArray.put(indexArray);
+			result.indexArray.put(indexArray);
 		}
-		return vert;
+		return result;
 	}
 
 	// 既存のVertextから頂点/インデックスのオフセットと個数を指定してコピーして新しいVertexを生成する

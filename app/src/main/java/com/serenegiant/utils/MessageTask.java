@@ -265,7 +265,12 @@ LOOP:	for (; mIsRunning; ) {
 	}
 
 	public void removeRequest(final Request request) {
-		for (; mRequestQueue.remove(request) ;) {};
+		for (; mRequestQueue.remove(request) && mIsRunning ;) {};
+	}
+
+	public void removeRequest(final int request) {
+		final Request req = obtain(request, 0, 0, null);
+		removeRequest(req);
 	}
 
 	/**

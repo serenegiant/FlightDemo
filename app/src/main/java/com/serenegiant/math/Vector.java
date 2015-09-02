@@ -5,7 +5,7 @@ import android.opengl.Matrix;
 import java.io.Serializable;
 import java.util.Locale;
 
-public class Vector implements Serializable {
+public class Vector implements Serializable, Cloneable {
 	/**
 	 * serialVersionUID
 	 */
@@ -13,7 +13,6 @@ public class Vector implements Serializable {
 
 	public static final float TO_RADIAN = (1 / 180.0f) * (float)Math.PI;
 	public static final float TO_DEGREE = (1 / (float)Math.PI) * 180.0f;
-	public float x, y, z;
 
 	public static final Vector zeroVector = new Vector();
 	public static final Vector normVector = new Vector(1,1,1);
@@ -21,6 +20,8 @@ public class Vector implements Serializable {
 	private static final float[] matrix = new float[16];
 	private static final float[] inVec = new float[4];
 	private static final float[] outVec = new float[4];
+
+	public float x, y, z;
 
 	public Vector() {
 	}
@@ -47,8 +48,9 @@ public class Vector implements Serializable {
 		return new Vector(v.x, v.y, v.z);
 	}
 
-	public Vector copy() {
-		return new Vector(x, y, z);
+	public Vector clone() throws CloneNotSupportedException {
+		final Vector result = (Vector)super.clone();
+		return result;
 	}
 
 	public Vector clear(final float scalar) {

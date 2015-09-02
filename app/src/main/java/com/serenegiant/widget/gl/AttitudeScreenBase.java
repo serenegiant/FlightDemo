@@ -39,7 +39,6 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	// 背景
 	private Texture backgroundTexture;
 	private TextureRegion backgroundRegion;
-//	private Sprite mSprite;
 	private TextureDrawer2D mDrawer;
 	private final int screenCenterX, screenCenterY;
 
@@ -52,8 +51,6 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, screenWidth, screenHeight);
 		screenCenterX = screenWidth / 2;
 		screenCenterY = screenHeight / 2;
-//		mSprite = new Sprite(glGraphics);
-//		mSprite.draw(screenCenterX, screenCenterY, screenWidth, screenHeight, backgroundRegion);
 		mDrawer = new TextureDrawer2D(glGraphics);
 		mDrawer.draw(screenWidth, screenHeight, backgroundRegion);
 
@@ -118,21 +115,20 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		// 画面表示更新
 		final GL10 gl = glGraphics.getGL();
 
-		guiCamera.setMatrix();
 		// ここから2Dの描画処理
+		guiCamera.setMatrix();
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glDisable(GL10.GL_LIGHTING);			// ライティングを無効化
 		gl.glDisable(GL10.GL_CULL_FACE);		// ポリゴンのカリングを無効にする
 //		gl.glColor4f(1f, 1f, 1f, 1f);
 //		gl.glClearColor(1, 1, 1, 1);
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+		// 背景を描画
 		backgroundTexture.bind();
-//		mSprite.draw();
 		mDrawer.draw();
 
-		// カメラの準備
-		lookAtCamera.setMatrix(gl);
 		// ここから3Dの描画処理
+		lookAtCamera.setMatrix(gl);
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);	// アルファブレンド
 //		gl.glBlendFunc(GL10.GL_ONE, GL10.GL_ZERO);	// 上書き
@@ -172,12 +168,6 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		// 3D描画処理終了
 		pointLight.disable(gl);
 		directionLight.disable(gl);
-
-		// ここから2Dの描画処理
-		gl.glEnable(GL10.GL_BLEND);
-		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-//			guiCamera.setViewportAndMatrix();
-		// この後に2DのGL描画を行う
 
 		gl.glDisable(GL10.GL_BLEND);
 	}
