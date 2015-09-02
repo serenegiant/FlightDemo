@@ -6,7 +6,7 @@ import com.serenegiant.math.Vector;
 import javax.microedition.khronos.opengles.GL10;
 
 
-public abstract class GLPolygonModel implements Cloneable {
+public abstract class GLPolygonModel {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "GLPolygonModel";
 
@@ -40,13 +40,22 @@ public abstract class GLPolygonModel implements Cloneable {
 		mWidth = mHeight =  mDepth = 1f;
 	}
 
-	public GLPolygonModel clone() throws CloneNotSupportedException {
-		final GLPolygonModel result = (GLPolygonModel)super.clone();
-		result.mVertex = mVertex.clone();
-		result.mOffset.set(mOffset);
-		result.mPosition.set(mPosition);
-		result.mAngle.set(mAngle);
-		return result;
+	/**
+	 * コピーコンストラクタ
+	 * @param other
+	 */
+	protected GLPolygonModel(final GLPolygonModel other) {
+		glGraphics = other.glGraphics;	// シャドーコピー
+		mOffset.set(other.mOffset);
+		mPosition.set(other.mPosition);
+		mAngle.set(other.mAngle);
+		mTexture = other.mTexture;	// シャドーコピー
+		mVertex = new Vertex(other.mVertex);
+		mNeedTextureDrawing = other.mNeedTextureDrawing;
+		mScale = other.mScale;
+		mWidth = other.mWidth;
+		mHeight = other.mHeight;
+		mDepth = other.mDepth;
 	}
 
 	public Vertex getVertex() {

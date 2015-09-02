@@ -14,7 +14,7 @@ import java.util.Arrays;
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
 
-public class Vertex implements Cloneable {
+public class Vertex {
 //	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "Vertex";
 
@@ -89,22 +89,39 @@ public class Vertex implements Cloneable {
 		}
 	}
 
-	// 既存のVertexの内容をコピーして新しいVertexを生成する
-	@Override
-	public Vertex clone() throws CloneNotSupportedException {
-		final Vertex result = (Vertex)super.clone();
+
+	// コピーコンストラクタ
+	public Vertex(final Vertex other) {
 //		final Vertex vert = new Vertex(dim_num, glGraphics, maxVertex, maxIndex, hasColor, hasTexCoord, hasNormals);
+		this.dim_num = other.dim_num;
+		this.glGraphics = other.glGraphics;
+		this.maxVertex = other.maxVertex;
+		this.maxIndex = other.maxIndex;
+		this.hasColor = other.hasColor;
+		this.hasTexCoord = other.hasTexCoord;
+		this.hasNormals = other.hasNormals;
+		this.vertexSize = other.vertexSize;
+		// 頂点情報配列の準備
+		tmpBuffer = new int[vertexSize * maxVertex / INT_SZ];	// [int x 個]
+		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(vertexSize * maxVertex).order(ByteOrder.nativeOrder());
+		vertexArray = byteBuffer.asIntBuffer();
+		// 頂点インデックス配列の準備
+		if (maxIndex > 0) {
+			byteBuffer = ByteBuffer.allocateDirect(SHORT_SZ * maxIndex).order(ByteOrder.nativeOrder()); // [バイト]
+			indexArray = byteBuffer.asShortBuffer();
+		} else {
+			indexArray = null;
+		}
 		// vertexArrayをコピー
 		if (vertexArray != null) {
 			vertexArray.position(0);
-			result.vertexArray.put(vertexArray);
+			vertexArray.put(other.vertexArray);
 		}
 		// indexArrayをコピー
 		if (indexArray != null) {
 			indexArray.position(0);
-			result.indexArray.put(indexArray);
+			indexArray.put(other.indexArray);
 		}
-		return result;
 	}
 
 	// 既存のVertextから頂点/インデックスのオフセットと個数を指定してコピーして新しいVertexを生成する

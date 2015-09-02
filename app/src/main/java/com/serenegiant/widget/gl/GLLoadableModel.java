@@ -16,6 +16,14 @@ public class GLLoadableModel extends GLPolygonModel {
 		super(glGraphics, offset, scale);
 	}
 
+	/**
+	 * コピーコンストラクタ
+	 * @param other
+	 */
+	public GLLoadableModel(final GLLoadableModel other) {
+		super(other);
+	}
+
 	public void loadModel(final IModelView modelView, final String fileName) {
 		mVertex = GLObjLoader.load(modelView,  fileName);
 	}

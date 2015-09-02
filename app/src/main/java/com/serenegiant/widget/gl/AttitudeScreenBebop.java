@@ -34,13 +34,15 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 		frontRightRotorModel.setTexture(frontTexture);
 		// 左後ローター
 		final Texture rearTexture = new Texture(mModelView, "model/bebop_drone_rotor_rear_tex.png");
-		rearLeftRotorModel = new GLLoadableModel(glGraphics);
-		rearLeftRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_ccw.obj");
+		rearLeftRotorModel = new GLLoadableModel(frontRightRotorModel);
+//		rearLeftRotorModel = new GLLoadableModel(glGraphics);
+//		rearLeftRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_ccw.obj");
 		rearLeftRotorModel.setTexture(rearTexture);
 		// 右後ローター
 //		final Texture rearRightTexture = new Texture(mModelView, "model/bebop_drone_rotor_rear_tex.png");
-		rearRightRotorModel = new GLLoadableModel(glGraphics);
-		rearRightRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_cw.obj");
+		rearRightRotorModel = new GLLoadableModel(frontLeftRotorModel);
+//		rearRightRotorModel = new GLLoadableModel(glGraphics);
+//		rearRightRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_cw.obj");
 		rearRightRotorModel.setTexture(rearTexture);
 		//
 		mShowGround = false;
