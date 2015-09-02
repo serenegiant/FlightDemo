@@ -22,6 +22,8 @@ import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.AutoFlightListener;
+import com.serenegiant.arflight.DeviceControllerBebop;
+import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.GamePad;
@@ -38,6 +40,7 @@ import com.serenegiant.widget.SideMenuListView;
 import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
 import com.serenegiant.widget.TouchPilotView;
+import com.serenegiant.widget.gl.AttitudeScreenBase;
 import com.serenegiant.widget.gl.AttitudeScreenBebop;
 import com.serenegiant.widget.gl.IModelView;
 import com.serenegiant.widget.gl.IScreen;
@@ -290,7 +293,15 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mAlertMessage.setVisibility(View.INVISIBLE);
 
 		// 機体モデル表示
+		final int model;
+		if (mController instanceof DeviceControllerMiniDrone)
+			model = IModelView.MODEL_MINIDRONE;
+		else if (mController instanceof DeviceControllerBebop)
+			model = IModelView.MODEL_BEBOP;
+		else
+			model = IModelView.MODEL_BEBOP;
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
+		mModelView.setModel(model, AttitudeScreenBase.CTRL_PILOT);
 		return rootView;
 	}
 
@@ -315,6 +326,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		mModelView.onPause();
+		if (mController != null) {
+			mController.sendVideoRecording(false);
+		}
 		stopVideoStreaming();
 		stopRecord();
 		stopPlay();
@@ -1291,7 +1305,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mStillCaptureBtn.setEnabled(still_capture_state == DroneStatus.MEDIA_READY);
 			mStillCaptureBtn.setVisibility(still_capture_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
 
-			mVideoRecordingBtn.setEnabled(video_recording_state == DroneStatus.MEDIA_READY);
+			mVideoRecordingBtn.setEnabled((video_recording_state == DroneStatus.MEDIA_READY) || (video_recording_state == DroneStatus.MEDIA_BUSY) );
 			mStillCaptureBtn.setVisibility(video_recording_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
 			mVideoRecordingBtn.setImageResource(mVideoRecording ? android.R.drawable.presence_video_busy : android.R.drawable.presence_video_online);
 

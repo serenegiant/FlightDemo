@@ -14,6 +14,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	public static final int CTRL_RANDOM = 0;	// ランダム回転
 	public static final int CTRL_PILOT = 1;		// 操縦に追随
 	public static final int CTRL_ATTITUDE = 2;	// 機体姿勢に追随
+	public static final int CTRL_NUM = 3;
 
 	protected final GLAmbientLight ambientLight;
 	protected final GLPointLight pointLight;

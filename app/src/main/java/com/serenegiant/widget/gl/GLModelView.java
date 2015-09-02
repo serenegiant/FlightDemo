@@ -321,7 +321,7 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 				if (mState == RUNNING) {
 					setScreenSize(mScreen, width, height);
 				} else {
-					setScreen(mScreen == null ? getScreen() : mScreen);
+					setScreen(mScreen == null ? createScreen() : mScreen);
 					mState = RUNNING;
 				}
 			}
@@ -423,6 +423,6 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 	 * 表示画面を生成
 	 * @return
 	 */
-	protected abstract IScreen getScreen();
+	protected abstract IScreen createScreen();
 
 }

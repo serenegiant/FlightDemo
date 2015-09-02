@@ -3,6 +3,12 @@ package com.serenegiant.widget.gl;
 import android.content.Context;
 
 public interface IModelView {
+	public static final int MODEL_BEBOP = 0;
+	public static final int MODEL_MINIDRONE = 1;
+	public static final int MODEL_JUMPINGSUMO = 2;
+	public static final int MODEL_NUM = 3;
+
+	public void setModel(final int model, final int type);
 	public GLGraphics getGLGraphics();
 	public FileIO getFileIO();
 	public FileIO getExtFileIO();

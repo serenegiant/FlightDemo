@@ -189,14 +189,14 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			int _state;
 			switch (state) {
 			case ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_READY:			// 撮影可能
-				_state = MEDIA_READY;
+				_state = DroneStatus.MEDIA_READY;
 				break;
 			case ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_BUSY:			// 撮影中
-				_state = MEDIA_BUSY;
+				_state = DroneStatus.MEDIA_BUSY;
 				break;
 			case ARCOMMANDS_MINIDRONE_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_NOTAVAILABLE:	// 撮影不可
 			default:
-				_state = MEDIA_UNAVAILABLE;
+				_state = DroneStatus.MEDIA_UNAVAILABLE;
 				break;
 			}
 			callOnStillCaptureStateChanged(_state);
@@ -218,11 +218,11 @@ public class DeviceControllerMiniDrone extends DeviceController {
 			int _state;
 			switch (event) {
 			case ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_TAKEN:		// 撮影成功
-				_state = MEDIA_SUCCESS;
+				_state = DroneStatus.MEDIA_SUCCESS;
 				break;
 			case ARCOMMANDS_MINIDRONE_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_FAILED:	// 撮影失敗
 			default:
-				_state = MEDIA_ERROR;
+				_state = DroneStatus.MEDIA_ERROR;
 				break;
 			}
 			callOnStillCaptureStateChanged(_state);

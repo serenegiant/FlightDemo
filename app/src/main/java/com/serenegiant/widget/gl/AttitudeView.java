@@ -8,6 +8,9 @@ public class AttitudeView extends GLModelView {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "AttitudeView";
 
+	private int mModel = MODEL_BEBOP;
+	private int mCtrlType = AttitudeScreenBase.CTRL_RANDOM;
+
 	public AttitudeView(final Context context) {
 		this(context, null);
 	}
@@ -18,8 +21,21 @@ public class AttitudeView extends GLModelView {
 	}
 
 	@Override
-	protected IScreen getScreen() {
+	public void setModel(final int model, final int type) {
+		mModel = model % MODEL_NUM;
+		mCtrlType = type % AttitudeScreenBase.CTRL_NUM;
+	}
+
+	@Override
+	protected IScreen createScreen() {
 		if (DEBUG) Log.v(TAG, "createScreen");
-		return new AttitudeScreenBebop(this, AttitudeScreenBase.CTRL_RANDOM);
+		switch (mModel) {
+		case MODEL_MINIDRONE:
+		case MODEL_JUMPINGSUMO:
+			return new AttitudeScreenMinidrone(this, mCtrlType);
+		case MODEL_BEBOP:
+		default:
+			return new AttitudeScreenBebop(this, mCtrlType);
+		}
 	}
 }

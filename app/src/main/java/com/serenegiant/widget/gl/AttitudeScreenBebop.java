@@ -28,12 +28,17 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 		// 機体
 		switch (mCtrlType) {
 		case CTRL_PILOT:
+			droneObj = new DroneObjectBebop(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(0, 8, -9f);
+			break;
 		case CTRL_ATTITUDE:
 			droneObj = new DroneObjectBebop(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(0, 8, -9f);
 			break;
 		case CTRL_RANDOM:
 		default:
 			droneObj = new DroneObjectBebopRandom(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(-4.5f, 4, -4.5f);
 			break;
 		}
 		final StaticTexture droneTexture = new StaticTexture(mModelView, "model/bebop_drone_body_tex.png");

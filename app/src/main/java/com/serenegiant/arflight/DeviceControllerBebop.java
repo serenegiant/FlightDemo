@@ -961,7 +961,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			final ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_ENUM event,
 			final ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_ERROR_ENUM error) {
 
-			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStateVideoStateChangedV2Update:state=" + event + ",error=" + error);
+			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordEventVideoEventChangedUpdate:state=" + event + ",error=" + error);
 			int _state;
 			switch (event) {
 			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_START:
