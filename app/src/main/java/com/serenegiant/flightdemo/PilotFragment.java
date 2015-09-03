@@ -822,17 +822,17 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private static final int[] SENSOR_TYPES = {
 		Sensor.TYPE_MAGNETIC_FIELD,
 		Sensor.TYPE_GRAVITY,
-//		Sensor.TYPE_ACCELEROMETER,
+		Sensor.TYPE_ACCELEROMETER,
 //		Sensor.TYPE_GYROSCOPE,
 	};
 	private SensorManager mSensorManager;
 	private int mRotation;									// 画面の向き
 	private final Object mSensorSync = new Object();		// センサー値同期用
 	private final float[] mMagnetValues = new float[3];		// 磁気[μT]
-	private final float[] mAccelValues = new float[3];		// 加速度[m/s^2]
 	private final float[] mGravityValues = new float[3];	// 重力[m/s^2]
-	private final float[] mGyroValues = new float[3];		// ジャイロ[radian/s]
 	private final float[] mAzimuthValues = new float[3];	// 方位[-180,+180][度]
+//	private final float[] mAccelValues = new float[3];		// 加速度[m/s^2]
+//	private final float[] mGyroValues = new float[3];		// ジャイロ[radian/s]
 
 	/**
 	 * 磁気センサー・加速度センサー等を読み取り開始
@@ -840,12 +840,17 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private void startSensor() {
 		final Display display = getActivity().getWindowManager().getDefaultDisplay();
 		mRotation = display.getRotation();
+		boolean hasGravity = false;
 		if (mSensorManager == null) {
 			mSensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
 			for (final int sensor_type : SENSOR_TYPES) {
 				final List<Sensor> sensors = mSensorManager.getSensorList(sensor_type);
 				if ((sensors != null) && (sensors.size() > 0)) {
-					mSensorManager.registerListener(mSensorEventListener, sensors.get(0), SensorManager.SENSOR_DELAY_GAME);
+					if (sensor_type == Sensor.TYPE_GRAVITY)
+						hasGravity = true;
+					if (!hasGravity || (sensor_type != Sensor.TYPE_ACCELEROMETER)) {
+						mSensorManager.registerListener(mSensorEventListener, sensors.get(0), SensorManager.SENSOR_DELAY_GAME);
+					}
 				}
 			}
 		}
@@ -919,6 +924,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					// alpha=t/(t+dt), dt≒20msec@SENSOR_DELAY_GAME, tはローパスフィルタの時定数(t=80)
 					highPassFilter(mMagnetValues, values, 0.8f);
 //					System.arraycopy(values, 0, mMagnetValues, 0, 3);
+					// 磁気センサーの値と重力センサーの値から
 					SensorManager.getRotationMatrix(mRotateMatrix, mInclinationMatrix, mGravityValues, mMagnetValues);
 					getOrientation(mRotateMatrix, mAzimuthValues);
 					mAzimuthValues[0] *= TO_DEGREE;
@@ -926,21 +932,22 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mAzimuthValues[2] *= TO_DEGREE;
 				}
 				break;
-			case Sensor.TYPE_ACCELEROMETER:		// 加速度センサー
-				synchronized (mSensorSync) {
-					System.arraycopy(values, 0, mAccelValues, 0, 3);
-				}
-				break;
 			case Sensor.TYPE_GRAVITY:			// 重力センサー
 				synchronized (mSensorSync) {
 					System.arraycopy(values, 0, mGravityValues, 0, 3);
 				}
 				break;
-			case Sensor.TYPE_GYROSCOPE:			// ジャイロセンサー
+			case Sensor.TYPE_ACCELEROMETER:		// 加速度センサー
 				synchronized (mSensorSync) {
-					System.arraycopy(values, 0, mGyroValues, 0, 3);
+//					System.arraycopy(values, 0, mAccelValues, 0, 3);
+					System.arraycopy(values, 0, mGravityValues, 0, 3);	// 重力センサーが無い時は加速度センサーで代用
 				}
 				break;
+//			case Sensor.TYPE_GYROSCOPE:			// ジャイロセンサー
+//				synchronized (mSensorSync) {
+//					System.arraycopy(values, 0, mGyroValues, 0, 3);
+//				}
+//				break;
 			default:
 				if (DEBUG) Log.v(TAG, "onSensorChanged:" + String.format("その他%d(%f,%f,%f)", type, values[0], values[1], values[2]));
 				break;

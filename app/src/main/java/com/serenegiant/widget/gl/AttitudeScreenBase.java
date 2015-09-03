@@ -185,15 +185,15 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			final Vector position = droneObj.position;
 			gl.glTranslatef(position.x, position.y, position.z);
 			final Vector angle = droneObj.angle;
-			if (angle.x != 0) {
+			if (angle.x != 0) {	// pitch
 				gl.glRotatef(-angle.x, 1, 0, 0);
 				GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
 			}
-			if (angle.y != 0) {
+			if (angle.y != 0) {	// yaw
 				gl.glRotatef(angle.y, 0, 1, 0);
 				GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
 			}
-			if (angle.z != 0) {
+			if (angle.z != 0) {	// roll
 				gl.glRotatef(angle.z, 0, 0, 1);
 				GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
 			}
@@ -258,8 +258,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			angle.x -= Math.signum(angle.x) * 2f;
 			// yaw
 			angle.y = yaw;
-/*			if (angle.y < -180f) angle.y = -180f;
-			else if (angle.y > 180f) angle.y = 180f; */
+			// FIXME 高度・・・カメラワーク・・・は未実装
 		}
 	}
 

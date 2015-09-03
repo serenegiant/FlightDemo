@@ -32,25 +32,25 @@ public class TextureDrawer2D {
 	 */
 	public void draw(final float width, final float height, final TextureRegion region) {
 		// vertexの割り当て
-		vertexBuffer[0] = 0;
-		vertexBuffer[1] = 0;
-		vertexBuffer[2] = 0; // region.u1;
-		vertexBuffer[3] = 1; // region.v2;
+		vertexBuffer[0] = 0;		// 頂点0:x
+		vertexBuffer[1] = 0;		// 頂点0:y
+		vertexBuffer[2] = 0;		// 頂点0:tex:x	// region.u1;
+		vertexBuffer[3] = 0;		// 頂点0:tex:y	// region.v2;
 
-		vertexBuffer[4] = width;
-		vertexBuffer[5] = 0;
-		vertexBuffer[6] = 1; // region.u2;
-		vertexBuffer[7] = 1; // region.v2;
+		vertexBuffer[4] = 1;		// 頂点1:x
+		vertexBuffer[5] = 0;		// 頂点1:y
+		vertexBuffer[6] = 1;		// 頂点1:tex:x	// region.u2;
+		vertexBuffer[7] = 0;		// 頂点1:tex:y	// region.v2;
 
-		vertexBuffer[8] = width;
-		vertexBuffer[9] = height;
-		vertexBuffer[10] = 1; // region.u2;
-		vertexBuffer[11] = 0; // region.v1;
+		vertexBuffer[8] = 1;		// 頂点2:x
+		vertexBuffer[9] = 1;		// 頂点2:y
+		vertexBuffer[10] = 1;		// 頂点2:tex:x	// region.u2;
+		vertexBuffer[11] = 1;		// 頂点2:tex:y	// region.v1;
 
-		vertexBuffer[12] = 0;
-		vertexBuffer[13] = height;
-		vertexBuffer[14] = 0; // region.u1;
-		vertexBuffer[15] = 0; // region.v1;
+		vertexBuffer[12] = 0;		// 頂点3:x
+		vertexBuffer[13] = 1;		// 頂点3:y
+		vertexBuffer[14] = 0;		// 頂点3:tex:x	// region.u1;
+		vertexBuffer[15] = 1;		// 頂点3:tex:y	// region.v1;
 		vertex.setVertex(vertexBuffer, 0, 16);
 		// 描画処理
 		draw();
