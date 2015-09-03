@@ -1865,10 +1865,11 @@ public abstract class DeviceController implements IDeviceController {
 
 	/**
 	 * LEDの明るさをセット
-	 * @param left [0,255]
-	 * @param right [0,255]
+	 * @param left [0,255], 範囲外は256の剰余を適用
+	 * @param right [0,255], 範囲外は256の剰余を適用
 	 * @return
 	 */
+	@Override
 	public boolean sendHeadlightsIntensity(final int left, final int right) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -1888,9 +1889,11 @@ public abstract class DeviceController implements IDeviceController {
 
 	/**
 	 * 指定したアニメーション動作を開始。全部動くんかな?
-	 * @param animation
+	 * 共通のコマンドやけどJumpingSumoでしか動かないような予感。
+	 * @param animation [0,12]
 	 * @return
 	 */
+	@Override
 	public boolean sendStartAnimation(final int animation) {
 //		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_HEADLIGHTS_FLASH(0, "Flash headlights."),
 //		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_HEADLIGHTS_BLINK(1, "Blink headlights."),
@@ -1927,9 +1930,10 @@ public abstract class DeviceController implements IDeviceController {
 
 	/**
 	 * 指定したアニメーション動作を停止。全部動くんかな?
-	 * @param animation
+	 * @param animation [0,12]
 	 * @return
 	 */
+	@Override
 	public boolean sendStopAnimation(final int animation) {
 //		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_HEADLIGHTS_FLASH(0, "Flash headlights."),
 //		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_HEADLIGHTS_BLINK(1, "Blink headlights."),
@@ -1968,6 +1972,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * 実行中のアニメーション動作を全て停止させる
 	 * @return
 	 */
+	@Override
 	public boolean sendStopAllAnimation() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -2141,9 +2146,11 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/** 機体との接続処理用スレッド */
 	private class ConnectionThread extends Thread {
 		private ARDISCOVERY_ERROR_ENUM error;
 
+		@Override
 		public void run() {
 			error = discoveryData.ControllerConnection(discoveryPort, discoveryIp);
 			if (error != ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK) {
@@ -2159,6 +2166,7 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/** 操縦コマンドの値保持用 */
 	private static final class DataPCMD {
 		public int flag;
 		public float roll;
@@ -2224,6 +2232,7 @@ public abstract class DeviceController implements IDeviceController {
 
 	/** 機体からのデータ受信タイムアウト[ミリ秒] */
 	private static final int MAX_READ_TIMEOUT_MS = 1000;
+
 	/** 機体からデータを受信するためのスレッド */
 	private class ReaderThread extends LooperThread {
 		private final int mBufferId;
@@ -2315,6 +2324,7 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/** 機体との接続のコールバック用インターフェース */
 	public interface NetworkNotificationListener {
 		public void networkDidSendFrame (final NetworkNotificationData notificationData);
 		public void networkDidReceiveAck (final NetworkNotificationData notificationData);
@@ -2330,6 +2340,7 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	/** 機体へのコマンド送信時のコールバック情報保持用クラス */
 	private static class ARNetworkSendInfo {
 		private ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM mTimeoutPolicy;
 		private NetworkNotificationListener mNotificationListener;

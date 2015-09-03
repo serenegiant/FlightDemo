@@ -12,6 +12,21 @@ public interface IDeviceController {
 	public static final int FLIP_RIGHT = 3;
 	public static final int FLIP_LEFT = 4;
 
+	// アニメーション動作の種類
+	public static final int ANIM_HEADLIGHTS_FLASH = 0;
+	public static final int ANIM_HEADLIGHTS_BLINK = 1;
+	public static final int ANIM_HEADLIGHTS_OSCILLATION = 2;
+	public static final int ANIM_SPIN = 3;
+	public static final int ANIM_TAP = 4;
+	public static final int ANIM_SLOW_SHAKE = 5;
+	public static final int ANIM_METRONOME = 6;
+	public static final int ANIM_ONDULATION = 7;
+	public static final int ANIM_SPIN_JUMP = 8;
+	public static final int ANIM_SPIN_TO_POSTURE = 9;
+	public static final int ANIM_SPIRAL = 10;
+	public static final int ANIM_SLALOM = 11;
+	public static final int ANIM_BOOST = 12;
+
 	// センサーの種類
 	/** 慣性測定(ジャイロ/加速度) */
 	public static final int SENSOR_IMU = 0;
@@ -337,4 +352,30 @@ public interface IDeviceController {
 	 * @return
 	 */
 	public boolean sendVideoRecording(final boolean start);
+
+	/**
+	 * LEDの明るさをセット
+	 * @param left [0,255], 範囲外は256の剰余を適用
+	 * @param right [0,255], 範囲外は256の剰余を適用
+	 * @return
+	 */
+	public boolean sendHeadlightsIntensity(final int left, final int right);
+	/**
+	 * 指定したアニメーション動作を開始。全部動くんかな?
+	 * 共通のコマンドやけどJumpingSumoでしか動かないような予感。
+	 * @param animation [0,12], ANIM_XXX定数
+	 * @return
+	 */
+	public boolean sendStartAnimation(final int animation);
+	/**
+	 * 指定したアニメーション動作を停止。全部動くんかな?
+	 * @param animation [0,12], ANIM_XXX定数
+	 * @return
+	 */
+	public boolean sendStopAnimation(final int animation);
+	/**
+	 * 実行中のアニメーション動作を全て停止させる
+	 * @return
+	 */
+	public boolean sendStopAllAnimation();
 }
