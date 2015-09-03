@@ -7,12 +7,16 @@ import com.serenegiant.glutils.GLHelper;
 
 import javax.microedition.khronos.opengles.GL10;
 
+/**
+ * SurfaceTextureで画像を受け取ってテクスチャとして使用するためのクラス
+ */
 public class DynamicTexture extends Texture {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = DynamicTexture.class.getSimpleName();
 
 	private SurfaceTexture mSurfaceTexture;
 	private volatile boolean mNeedUpdate;
+	private volatile boolean mIsAvailable;
 
 	public DynamicTexture(final IModelView modelView) {
 		super(modelView, GL_TEXTURE_EXTERNAL_OES);
@@ -25,6 +29,7 @@ public class DynamicTexture extends Texture {
 			mSurfaceTexture.release();
 			mSurfaceTexture = null;
 		}
+		mIsAvailable = false;
 		super.release();
 	}
 
@@ -34,7 +39,6 @@ public class DynamicTexture extends Texture {
 
 	public void bind() {
 //		if (DEBUG) Log.v(TAG, "bind:mNeedUpdate=" + mNeedUpdate);
-		super.bind();
 		if (mSurfaceTexture != null) {
 			if (mNeedUpdate) {
 				mNeedUpdate = false;
@@ -42,6 +46,7 @@ public class DynamicTexture extends Texture {
 				mSurfaceTexture.getTransformMatrix(mTexMatrix);
 			}
 		}
+		super.bind();
 	}
 
 	public void setSize(final int width, final int height) {
@@ -49,10 +54,16 @@ public class DynamicTexture extends Texture {
 		if (mSurfaceTexture != null) {
 			mSurfaceTexture.setDefaultBufferSize(width, height);
 		}
+		mIsAvailable = false;
+	}
+
+	public boolean isAvailable() {
+		return mIsAvailable;
 	}
 
 	private void init() {
 		if (DEBUG) Log.v(TAG, "init:");
+		mIsAvailable = false;
 		textureID = GLHelper.initTex(glGraphics.getGL(), mTexTarget, GL10.GL_LINEAR);
 		mSurfaceTexture = new SurfaceTexture(textureID);
 		mSurfaceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener);
@@ -62,7 +73,7 @@ public class DynamicTexture extends Texture {
 		@Override
 		public void onFrameAvailable(SurfaceTexture surfaceTexture) {
 //			if (DEBUG) Log.v(TAG, "onFrameAvailable:");
-			mNeedUpdate = true;
+			mNeedUpdate = mIsAvailable = true;
 		}
 	};
 

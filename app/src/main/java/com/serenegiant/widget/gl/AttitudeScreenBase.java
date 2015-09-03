@@ -132,7 +132,6 @@ public abstract class AttitudeScreenBase extends GLScreen {
 
 		// ここから2Dの描画処理
 		guiCamera.setMatrix();
-		gl.glEnable(GL10.GL_TEXTURE_2D);			// テクスチャを有効にする
 		gl.glDisable(GL10.GL_LIGHTING);				// ライティングを無効化
 		gl.glDisable(GL10.GL_CULL_FACE);			// ポリゴンのカリングを無効にする
 		gl.glDisable(GL10.GL_DEPTH_TEST);			// デプステストを無効にする
@@ -147,7 +146,6 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
 		gl.glEnable(GL10.GL_DEPTH_TEST);			// デプステストを有効にする
 		gl.glClear(GL10.GL_DEPTH_BUFFER_BIT);		// デプスバッファをクリアする
-		gl.glEnable(GL10.GL_TEXTURE_2D);			// テクスチャを有効にする
 
 		// 床を描画
 		if (mShowGround) {
@@ -159,10 +157,10 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
 		gl.glEnable(GL10.GL_CULL_FACE);         	// ポリゴンのカリングを有効にする
 		gl.glCullFace(GL10.GL_BACK);				// 裏面を描画しない
+		gl.glEnable(GL10.GL_DEPTH_TEST);			// デプステストを有効にする
 		ambientLight.enable(gl);					// 環境光を有効にする
 		pointLight.enable(gl, GL10.GL_LIGHT0);		// 点光源を有効にする
 		directionLight.enable(gl, GL10.GL_LIGHT1);	// 平行光源を有効にする
-		gl.glEnable(GL10.GL_TEXTURE_2D);			// テクスチャを有効にする
 //		material.enable(gl);						// これを入れると影が出なくなる
 //		gl.glEnable(GL10.GL_COLOR_MATERIAL);		// 環境光と拡散光のマテリアル色として頂点色を使うとき
 		// モデルを描画
@@ -177,7 +175,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		gl.glDisable(GL10.GL_LIGHTING);				// ライティングを無効化
 //		material.disable(gl);
 //		gl.glDisable(GL10.GL_COLOR_MATERIAL);		// 環境光と拡散光のマテリアル色として頂点色を使うとき
-		gl.glDisable(GL10.GL_BLEND);
+		gl.glDisable(GL10.GL_BLEND);				// ブレンディングを無効
 	}
 
 	private void moveDrone(final GL10 gl) {
@@ -249,10 +247,8 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			final Vector angle = droneObj.angle;
 			// roll
 			angle.z = roll;
-			angle.z -= Math.signum(angle.z) * 2f;
 			// pitch
 			angle.x = pitch;
-			angle.x -= Math.signum(angle.x) * 2f;
 			// yaw
 			angle.y = yaw;
 			// FIXME 高度・・・カメラワーク・・・は未実装

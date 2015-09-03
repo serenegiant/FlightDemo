@@ -15,6 +15,9 @@ import java.io.InputStream;
 
 import javax.microedition.khronos.opengles.GL10;
 
+/**
+ * 静止画を読み込んでテクスチャとして使用するためのクラス
+ */
 public class StaticTexture extends Texture {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "StaticTexture";

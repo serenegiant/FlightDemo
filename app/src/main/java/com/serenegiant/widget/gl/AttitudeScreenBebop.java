@@ -18,9 +18,9 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 		super.resume();
 		droneModel.resume();
 		frontLeftRotorModel.resume();
-		frontRightRotorModel.resume(false);
+		frontRightRotorModel.resume(false);	// テクスチャを共有しているのでテクスチャのリロードは不要
 		rearLeftRotorModel.resume();
-		rearRightRotorModel.resume(false);
+		rearRightRotorModel.resume(false);	// テクスチャを共有しているのでテクスチャのリロードは不要
 	}
 
 	@Override
@@ -104,13 +104,13 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 
 	@Override
 	protected void drawBackground(final GL10 gl) {
-		if (mVideoEnabled && (mVideoFrameTexture != null)) {
-			gl.glPushMatrix();
-				mVideoFrameTexture.bind();
-//				gl.glMultMatrixf(mVideoFrameTexture.texMatrix(), 0);	// これを入れると表示サイズがおかしい
-				mFullScreenDrawer.draw();
-				mVideoFrameTexture.unbind();
-			gl.glPopMatrix();
+		if (mVideoEnabled && (mVideoFrameTexture != null) && mVideoFrameTexture.isAvailable()) {
+//			gl.glPushMatrix();
+			mVideoFrameTexture.bind();
+//			gl.glMultMatrixf(mVideoFrameTexture.texMatrix(), 0);	// これを入れると表示サイズがおかしい
+			mFullScreenDrawer.draw();
+			mVideoFrameTexture.unbind();
+//			gl.glPopMatrix();
 		} else {
 			super.drawBackground(gl);
 		}

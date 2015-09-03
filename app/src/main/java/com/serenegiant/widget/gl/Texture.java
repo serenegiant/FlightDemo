@@ -6,7 +6,7 @@ import com.serenegiant.glutils.GLHelper;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class Texture {
+public abstract class Texture {
 	public static final int GL_TEXTURE_EXTERNAL_OES	= 0x8D65;
 	public static final int GL_TEXTURE_2D           = 0x0DE1;	// = GL10.GL_TEXTURE_2D
 
