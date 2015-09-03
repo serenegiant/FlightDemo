@@ -90,7 +90,7 @@ public abstract class GLPolygonModel {
 		// 準備
 		gl.glPushMatrix();
 		if (hasTexture) {
-			gl.glEnable(GL10.GL_TEXTURE_2D);
+//			gl.glEnable(GL10.GL_TEXTURE_2D);
 			GLHelper.checkGlError(gl, "GLPolygonModel#glEnable");
 			mTexture.bind();
 		}	
@@ -131,7 +131,8 @@ public abstract class GLPolygonModel {
 		gl.glDisable(GL10.GL_DEPTH_TEST);
 		GLHelper.checkGlError(gl, "GLPolygonModel#glDisable");
 		if (hasTexture) {
-			gl.glDisable(GL10.GL_TEXTURE_2D);
+			mTexture.unbind();
+//			gl.glDisable(GL10.GL_TEXTURE_2D);
 			GLHelper.checkGlError(gl, "GLPolygonModel#glDisable");
 		}
 		
@@ -141,9 +142,13 @@ public abstract class GLPolygonModel {
 	}
 	
 	public void resume() {
+		resume(true);
+	}
+
+	public void resume(final boolean needReloadTexture) {
 		if (mVertex != null)
 			mVertex.resume();
-		if (mTexture != null)
+		if (needReloadTexture && (mTexture != null))
 			mTexture.reload();	// 2013/05/16
 	}
 	

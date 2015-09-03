@@ -1,6 +1,7 @@
 package com.serenegiant.widget.gl;
 
 import android.graphics.SurfaceTexture;
+import android.util.Log;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -10,6 +11,26 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 
 	public AttitudeScreenBebop(final IModelView modelView, final int ctrl_type) {
 		super(modelView, ctrl_type);
+	}
+
+	@Override
+	public void resume() {
+		super.resume();
+		droneModel.resume();
+		frontLeftRotorModel.resume();
+		frontRightRotorModel.resume(false);
+		rearLeftRotorModel.resume();
+		rearRightRotorModel.resume(false);
+	}
+
+	@Override
+	public void pause() {
+		droneModel.pause();
+		frontLeftRotorModel.pause();
+		frontRightRotorModel.pause();
+		rearLeftRotorModel.pause();
+		rearRightRotorModel.pause();
+		super.pause();
 	}
 
 	@Override
@@ -84,8 +105,12 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 	@Override
 	protected void drawBackground(final GL10 gl) {
 		if (mVideoEnabled && (mVideoFrameTexture != null)) {
-			mVideoFrameTexture.bind();
-			mFullScreenDrawer.draw();
+			gl.glPushMatrix();
+				mVideoFrameTexture.bind();
+//				gl.glMultMatrixf(mVideoFrameTexture.texMatrix(), 0);	// これを入れると表示サイズがおかしい
+				mFullScreenDrawer.draw();
+				mVideoFrameTexture.unbind();
+			gl.glPopMatrix();
 		} else {
 			super.drawBackground(gl);
 		}

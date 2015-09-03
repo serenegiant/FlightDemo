@@ -209,8 +209,12 @@ public class VideoStream implements IVideoStream {
 
 		private void releaseMediaCodec() {
 			if ((mediaCodec != null) && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)) {
-				if (isCodecConfigured) {
-					mediaCodec.stop();
+				try {
+					if (isCodecConfigured) {
+						mediaCodec.stop();
+					}
+				} catch (final IllegalStateException e) {
+					Log.w(TAG, e);
 				}
 				isCodecConfigured = false;
 				mediaCodec.release();

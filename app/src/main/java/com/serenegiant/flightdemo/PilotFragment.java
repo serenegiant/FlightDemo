@@ -772,21 +772,25 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		case DroneStatus.MEDIA_BUSY:
 			break;
 		case DroneStatus.MEDIA_SUCCESS:
-			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					Toast.makeText(getActivity(), R.string.video_success, Toast.LENGTH_SHORT).show();
-				}
-			});
+			if (mVideoRecording) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						Toast.makeText(getActivity(), R.string.video_success, Toast.LENGTH_SHORT).show();
+					}
+				});
+			}
 			mVideoRecording = false;
 			break;
 		case DroneStatus.MEDIA_ERROR:
-			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					Toast.makeText(getActivity(), R.string.video_error, Toast.LENGTH_SHORT).show();
-				}
-			});
+			if (mVideoRecording) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						Toast.makeText(getActivity(), R.string.video_error, Toast.LENGTH_SHORT).show();
+					}
+				});
+			}
 			mVideoRecording = false;
 			break;
 		}

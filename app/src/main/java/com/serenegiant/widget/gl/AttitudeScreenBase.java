@@ -43,7 +43,6 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	private StaticTexture backgroundTexture;
 	private TextureRegion backgroundRegion;
 	protected TextureDrawer2D mFullScreenDrawer;
-	private final int screenCenterX, screenCenterY;
 
 	public AttitudeScreenBase(final IModelView modelView, final int ctrl_type) {
 		super(modelView);
@@ -52,10 +51,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		// 背景
 		backgroundTexture = new StaticTexture(modelView, "background.png");
 		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, screenWidth, screenHeight);
-		screenCenterX = screenWidth >>> 1;
-		screenCenterY = screenHeight >>> 1;
-		mFullScreenDrawer = new TextureDrawer2D(glGraphics);
-		mFullScreenDrawer.draw(screenWidth, screenHeight, backgroundRegion);
+		mFullScreenDrawer = new TextureDrawer2D(glGraphics, screenWidth, screenHeight);
 
 		// 地面
 		// テクスチャは正方形で2の乗数サイズでないとだめ
@@ -77,7 +73,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		guiCamera = new GLCamera2D(glGraphics, screenWidth, screenHeight);
 		// 視線カメラ
 		lookAtCamera = new GLLookAtCamera(
-			67, glGraphics.getViewWidth() / (float)glGraphics.getViewHeight(), 0.01f, 40f);
+			67, screenWidth / (float)screenHeight, 0.01f, 40f);
 		lookAtCamera.setPosition(-4.5f, 4, -4.5f);
 
 		initModel();
@@ -116,6 +112,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 //		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		backgroundTexture.bind();
 		mFullScreenDrawer.draw();
+		backgroundTexture.unbind();
 	}
 
 	protected void drawModel(final GL10 gl) {
@@ -147,9 +144,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);	// アルファブレンド
 //		gl.glBlendFunc(GL10.GL_ONE, GL10.GL_ZERO);	// 上書き
 //		gl.glColor4f(1f, 1f, 1f, 0f);
-		gl.glEnable(GL10.GL_CULL_FACE);         	// ポリゴンのカリングを有効にする
-		gl.glCullFace(GL10.GL_BACK);				// 裏面を描画しない
-//		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
+		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
 		gl.glEnable(GL10.GL_DEPTH_TEST);			// デプステストを有効にする
 		gl.glClear(GL10.GL_DEPTH_BUFFER_BIT);		// デプスバッファをクリアする
 		gl.glEnable(GL10.GL_TEXTURE_2D);			// テクスチャを有効にする
@@ -157,12 +152,17 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		// 床を描画
 		if (mShowGround) {
 //			gl.glColor4f(1f, 1f, 1f, 1f);
+//			plateTexture.bind();
 			plateModel.draw();
+//			plateTexture.unbind();
 		}
 		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
+		gl.glEnable(GL10.GL_CULL_FACE);         	// ポリゴンのカリングを有効にする
+		gl.glCullFace(GL10.GL_BACK);				// 裏面を描画しない
 		ambientLight.enable(gl);					// 環境光を有効にする
 		pointLight.enable(gl, GL10.GL_LIGHT0);		// 点光源を有効にする
 		directionLight.enable(gl, GL10.GL_LIGHT1);	// 平行光源を有効にする
+		gl.glEnable(GL10.GL_TEXTURE_2D);			// テクスチャを有効にする
 //		material.enable(gl);						// これを入れると影が出なくなる
 //		gl.glEnable(GL10.GL_COLOR_MATERIAL);		// 環境光と拡散光のマテリアル色として頂点色を使うとき
 		// モデルを描画
@@ -205,17 +205,14 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	@Override
 	public void resume() {
 		if (DEBUG) Log.v(TAG, "resume");
-		plateTexture.reload();
-		backgroundTexture.reload();
 		plateModel.resume();
-		droneModel.resume();
+		backgroundTexture.reload();
 	}
 
 	@Override
 	public void pause() {
 		if (DEBUG) Log.v(TAG, "pause");
 		plateModel.pause();
-		droneModel.pause();
 	}
 
 	@Override

@@ -34,13 +34,13 @@ public class DynamicTexture extends Texture {
 
 	public void bind() {
 //		if (DEBUG) Log.v(TAG, "bind:mNeedUpdate=" + mNeedUpdate);
+		super.bind();
 		if (mSurfaceTexture != null) {
 			if (mNeedUpdate) {
 				mNeedUpdate = false;
 				mSurfaceTexture.updateTexImage();
 				mSurfaceTexture.getTransformMatrix(mTexMatrix);
 			}
-			super.bind();
 		}
 	}
 

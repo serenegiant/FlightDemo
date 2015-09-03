@@ -52,11 +52,15 @@ public class Texture {
 	}
 
 	public void bind() {
-		glGraphics.getGL().glBindTexture(mTexTarget, textureID);
+		final GL10 gl = glGraphics.getGL();
+		gl.glEnable(mTexTarget);
+		gl.glBindTexture(mTexTarget, textureID);
 	}
 
 	public void unbind() {
-		glGraphics.getGL().glBindTexture(mTexTarget, 0);
+		final GL10 gl = glGraphics.getGL();
+		gl.glBindTexture(mTexTarget, 0);
+		gl.glDisable(mTexTarget);
 	}
 
 	public float[] texMatrix() {

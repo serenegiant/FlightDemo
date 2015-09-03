@@ -10,6 +10,26 @@ public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 		super(modelView, ctrl_type);
 	}
 
+	@Override
+	public void resume() {
+		super.resume();
+		droneModel.resume();
+		frontLeftRotorModel.resume(false);
+		frontRightRotorModel.resume(false);
+		rearLeftRotorModel.resume(false);
+		rearRightRotorModel.resume(false);
+	}
+
+	@Override
+	public void pause() {
+		droneModel.pause();
+		frontLeftRotorModel.pause();
+		frontRightRotorModel.pause();
+		rearLeftRotorModel.pause();
+		rearRightRotorModel.pause();
+		super.pause();
+	}
+
 /*	@Override
 	public void release() {
 		super.release();
