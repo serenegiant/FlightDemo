@@ -1,13 +1,19 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
@@ -159,10 +165,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mGamepadScaleR = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_R, 1.0f);
 
 		final ViewGroup rootView = (ViewGroup) inflater.inflate(operation_type == 1 ?
-																	R.layout.fragment_pilot_reverse
-																	: (operation_type == 2 ? R.layout.fragment_pilot_touch
-																		   : R.layout.fragment_pilot),
-																   container, false);
+			R.layout.fragment_pilot_reverse
+			: (operation_type == 2 ? R.layout.fragment_pilot_touch
+			: R.layout.fragment_pilot),
+			container, false);
 
 //		rootView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
 //		rootView.setOnKeyListener(mOnKeyListener);
@@ -324,6 +330,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
 		startDeviceController();
+		startSensor();
 		mModelView.onResume();
 	}
 
@@ -339,6 +346,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		stopPlay();
 		stopScript();
 		stopTouchMove();
+		stopSensor();
 		removeSideMenu();
 		remove(mGamePadTask);
 		remove(mUpdateStatusTask);
@@ -811,6 +819,145 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		stopTouchMove();
 	}
 
+	private static final int[] SENSOR_TYPES = {
+		Sensor.TYPE_MAGNETIC_FIELD,
+		Sensor.TYPE_GRAVITY,
+//		Sensor.TYPE_ACCELEROMETER,
+//		Sensor.TYPE_GYROSCOPE,
+	};
+	private SensorManager mSensorManager;
+	private int mRotation;									// 画面の向き
+	private final Object mSensorSync = new Object();		// センサー値同期用
+	private final float[] mMagnetValues = new float[3];		// 磁気[μT]
+	private final float[] mAccelValues = new float[3];		// 加速度[m/s^2]
+	private final float[] mGravityValues = new float[3];	// 重力[m/s^2]
+	private final float[] mGyroValues = new float[3];		// ジャイロ[radian/s]
+	private final float[] mAzimuthValues = new float[3];	// 方位[-180,+180][度]
+
+	/**
+	 * 磁気センサー・加速度センサー等を読み取り開始
+	 */
+	private void startSensor() {
+		final Display display = getActivity().getWindowManager().getDefaultDisplay();
+		mRotation = display.getRotation();
+		if (mSensorManager == null) {
+			mSensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
+			for (final int sensor_type : SENSOR_TYPES) {
+				final List<Sensor> sensors = mSensorManager.getSensorList(sensor_type);
+				if ((sensors != null) && (sensors.size() > 0)) {
+					mSensorManager.registerListener(mSensorEventListener, sensors.get(0), SensorManager.SENSOR_DELAY_GAME);
+				}
+			}
+		}
+	}
+
+	/**
+	 * 磁気センサー・加速度センサー等からの読み取り終了
+	 */
+	private void stopSensor() {
+		if (mSensorManager != null) {
+			mSensorManager.unregisterListener(mSensorEventListener);
+			mSensorManager = null;
+		}
+	}
+
+	private final SensorEventListener mSensorEventListener = new SensorEventListener() {
+		/**
+		 * ハイパスフィルターを通して値をセットする
+		 * @param values 値を保持するためのfloat配列
+		 * @param new_values 新しい値を渡すためのfloat配列
+		 * @param alpha フィルター定数(alpha=t/(t+dt)
+		 */
+		private void highPassFilter(final float[] values, final float[] new_values, final float alpha) {
+			values[0] = alpha * values[0] + (1 - alpha) * new_values[0];
+			values[1] = alpha * values[1] + (1 - alpha) * new_values[1];
+			values[2] = alpha * values[2] + (1 - alpha) * new_values[2];
+		}
+
+		private final float[] outR = new float[16];
+		private final float[] outR2 = new float[16];
+		private void getOrientation(final float[] rotateMatrix, final float[] result) {
+
+			switch (mRotation) {
+			case Surface.ROTATION_0:
+				SensorManager.getOrientation(rotateMatrix, result);
+				return;
+			case Surface.ROTATION_90:
+				SensorManager.remapCoordinateSystem(
+					rotateMatrix, SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, outR);
+				break;
+			case Surface.ROTATION_180:
+				SensorManager.remapCoordinateSystem(
+					rotateMatrix, SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, outR2);
+				SensorManager.remapCoordinateSystem(
+					outR2, SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, outR);
+				break;
+			case Surface.ROTATION_270:
+				SensorManager.remapCoordinateSystem(
+					outR, SensorManager.AXIS_MINUS_Y, SensorManager.AXIS_MINUS_X, outR);
+				break;
+			}
+			SensorManager.getOrientation(outR, result);
+		}
+
+		private static final float TO_DEGREE = (float)(180 / Math.PI);
+		private final float[] mRotateMatrix = new float[16];			// 回転行列
+		private final float[] mInclinationMatrix = new float[16];    	// 傾斜行列
+
+		/**
+		 * センサーの値が変化した時のコールバック
+		 * @param event
+		 */
+		@Override
+		public void onSensorChanged(final SensorEvent event) {
+			final float[] values = event.values;
+			final int type = event.sensor.getType();
+			switch (type) {
+			case Sensor.TYPE_MAGNETIC_FIELD:	// 磁気センサー
+				synchronized (mSensorSync) {
+					// ハイパスフィルターを通して取得
+					// alpha=t/(t+dt), dt≒20msec@SENSOR_DELAY_GAME, tはローパスフィルタの時定数(t=80)
+					highPassFilter(mMagnetValues, values, 0.8f);
+//					System.arraycopy(values, 0, mMagnetValues, 0, 3);
+					SensorManager.getRotationMatrix(mRotateMatrix, mInclinationMatrix, mGravityValues, mMagnetValues);
+					getOrientation(mRotateMatrix, mAzimuthValues);
+					mAzimuthValues[0] *= TO_DEGREE;
+					mAzimuthValues[1] *= TO_DEGREE;
+					mAzimuthValues[2] *= TO_DEGREE;
+				}
+				break;
+			case Sensor.TYPE_ACCELEROMETER:		// 加速度センサー
+				synchronized (mSensorSync) {
+					System.arraycopy(values, 0, mAccelValues, 0, 3);
+				}
+				break;
+			case Sensor.TYPE_GRAVITY:			// 重力センサー
+				synchronized (mSensorSync) {
+					System.arraycopy(values, 0, mGravityValues, 0, 3);
+				}
+				break;
+			case Sensor.TYPE_GYROSCOPE:			// ジャイロセンサー
+				synchronized (mSensorSync) {
+					System.arraycopy(values, 0, mGyroValues, 0, 3);
+				}
+				break;
+			default:
+				if (DEBUG) Log.v(TAG, "onSensorChanged:" + String.format("その他%d(%f,%f,%f)", type, values[0], values[1], values[2]));
+				break;
+			}
+		}
+
+		/**
+		 * センサーの精度が変更された時のコールバック
+		 * @param sensor
+		 * @param accuracy
+		 */
+		@Override
+		public void onAccuracyChanged(final Sensor sensor, int accuracy) {
+		}
+	};
+
+
 	/**
 	 * 離陸指示
 	 */
@@ -1118,22 +1265,23 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mAttitude.set(mController.getAttitude());
 				mAttitude.toDegree();	// ラジアンを度に変換
 				final float altitude = mController.getAltitude();
+				float yaw = mAzimuthValues[0] - mAttitude.z();
 				if ((mCurrentRoll != mAttitude.x())
-					|| (mCurrentPitch != mAttitude.y()
-					|| (mCurrentYaw != mAttitude.z()))
+					|| (mCurrentPitch != mAttitude.y())
+					|| (mCurrentYaw != yaw)
 					|| (mCurrentAltitude != altitude)) {
 
-					synchronized (mUpdateStatusUITask) {
+//					synchronized (mUpdateStatusUITask) {
 						mCurrentRoll = mAttitude.x();
 						mCurrentPitch = mAttitude.y();
-						mCurrentYaw = mAttitude.z();
+						mCurrentYaw = yaw;
 						mCurrentAltitude = altitude;
-						mModelView.setAttitude(mAttitude.x(), mAttitude.y(), mAttitude.z(), altitude);
+						mModelView.setAttitude(mCurrentRoll, mCurrentPitch, yaw, altitude);
 //						postUIThread(mUpdateStatusUITask, 1);
-					}
+//					}
 				}
 			}
-			post(this, 100);	// 100ミリ秒=1秒間に最大で約10回更新
+			post(this, 50);	// 50ミリ秒=1秒間に最大で約20回更新
 		}
 	};
 

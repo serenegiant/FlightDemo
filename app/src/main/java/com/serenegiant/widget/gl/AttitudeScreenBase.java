@@ -186,7 +186,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			gl.glTranslatef(position.x, position.y, position.z);
 			final Vector angle = droneObj.angle;
 			if (angle.x != 0) {
-				gl.glRotatef(angle.x, 1, 0, 0);
+				gl.glRotatef(-angle.x, 1, 0, 0);
 				GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
 			}
 			if (angle.y != 0) {
@@ -244,7 +244,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	 * 機体姿勢をセット
 	 * @param roll 左右の傾き[度], 0は水平
 	 * @param pitch 前後の傾き(機種の上げ下げ)[度], 0は水平
-	 * @param yaw 水平回転[-180,+180][度], 0は北磁極
+	 * @param yaw 水平回転[-180,+180][度], 0は端末の向きと一致
 	 * @param gaz 高さ[m]
 	 */
 	public void setAttitude(final float roll, final float pitch, final float yaw, final float gaz) {
@@ -258,8 +258,8 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			angle.x -= Math.signum(angle.x) * 2f;
 			// yaw
 			angle.y = yaw;
-			if (angle.y < -180f) angle.y = -180f;
-			else if (angle.y > 180f) angle.y = 180f;
+/*			if (angle.y < -180f) angle.y = -180f;
+			else if (angle.y > 180f) angle.y = 180f; */
 		}
 	}
 
