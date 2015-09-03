@@ -11,7 +11,7 @@ import javax.microedition.khronos.opengles.GL10;
  * SurfaceTextureで画像を受け取ってテクスチャとして使用するためのクラス
  */
 public class DynamicTexture extends Texture {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = DynamicTexture.class.getSimpleName();
 
 	private SurfaceTexture mSurfaceTexture;

@@ -22,7 +22,7 @@ import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
 
 public class Vertex {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "Vertex";
 
 	public static final int DIM_2D = 2;				// 2次元座標系
@@ -357,24 +357,24 @@ public class Vertex {
 	    if (hasVbo) {
 			// 頂点配列の指定
 			gl11.glBindBuffer(GL11.GL_ARRAY_BUFFER, vboId[VBO_VERTEX]);
-			GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
 			gl11.glVertexPointer(dim_num, GL10.GL_FLOAT, vertexSize, 0);
-			GLHelper.checkGlError(gl, "Vertex#glVertexPointer");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glVertexPointer");
 	    } else {
 	    	vertexArray.position(0);
 	    	gl.glVertexPointer(dim_num, GL10.GL_FLOAT, vertexSize, vertexArray);
-			GLHelper.checkGlError(gl, "Vertex#glVertexPointer");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glVertexPointer");
 	    }
 		// 頂点色情報設定
 	    if (hasColor) {
 	        gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
 		    if (hasVbo) {
 		    	gl11.glColorPointer(COLOR_NUM, GL10.GL_FLOAT, vertexSize, dim_num * FLOAT_SZ);
-				GLHelper.checkGlError(gl, "Vertex#glColorPointer");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glColorPointer");
 		    } else {
 		        vertexArray.position(dim_num);
 		        gl.glColorPointer(COLOR_NUM, GL10.GL_FLOAT, vertexSize, vertexArray);
-				GLHelper.checkGlError(gl, "Vertex#glColorPointer");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glColorPointer");
 		    }
 	    }
 		// テクスチャ座標設定
@@ -383,11 +383,11 @@ public class Vertex {
 	    	offset_num = dim_num + (hasColor ? COLOR_NUM : 0);
 		    if (hasVbo) {
 	    		gl11.glTexCoordPointer(COORD_NUM, GL10.GL_FLOAT, vertexSize, offset_num * FLOAT_SZ);
-				GLHelper.checkGlError(gl, "Vertex#glTexCoordPointer");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glTexCoordPointer");
 		    } else {
 		    	vertexArray.position(offset_num);
 		    	gl.glTexCoordPointer(COORD_NUM, GL10.GL_FLOAT, vertexSize, vertexArray);
-				GLHelper.checkGlError(gl, "Vertex#glTexCoordPointer");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glTexCoordPointer");
 		    }
 	    }
 	    // 頂点法線設定
@@ -396,17 +396,17 @@ public class Vertex {
 	    	offset_num = dim_num + (hasColor ? COLOR_NUM : 0) + (hasTexCoord ? COORD_NUM : 0);
 		    if (hasVbo) {
 		    	gl11.glNormalPointer(GL10.GL_FLOAT, vertexSize, offset_num * FLOAT_SZ);
-				GLHelper.checkGlError(gl, "Vertex#glNormalPointer");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glNormalPointer");
 		    } else {
 		    	vertexArray.position(offset_num);
 		    	gl.glNormalPointer(GL10.GL_FLOAT, vertexSize, vertexArray);
-				GLHelper.checkGlError(gl, "Vertex#glNormalPointer");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glNormalPointer");
 		    }
 	    }
 	    // 頂点インデックス
 	    if ((indexArray != null) && (hasVbo)) {
 			gl11.glBindBuffer(GL11.GL_ELEMENT_ARRAY_BUFFER, vboId[VBO_INDEX]);
-			GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
 	    }
 
 	}
@@ -415,25 +415,25 @@ public class Vertex {
 		final GL10 gl = glGraphics.getGL();
 	    if (hasTexCoord) {
 			gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-			GLHelper.checkGlError(gl, "Vertex#glDisableClientState");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glDisableClientState");
 		}
 
 	    if (hasColor) {
 			gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
-			GLHelper.checkGlError(gl, "Vertex#glDisableClientState");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glDisableClientState");
 		}
 
 	    if (hasNormals) {
 			gl.glDisableClientState(GL10.GL_NORMAL_ARRAY);
-			GLHelper.checkGlError(gl, "Vertex#glDisableClientState");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glDisableClientState");
 		}
 		if ((gl instanceof GL11) && hasVbo) {
 			final GL11 gl11 = (GL11)gl;
     		gl11.glBindBuffer(GL11.GL_ARRAY_BUFFER, 0);
-			GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
     		if (indexArray != null) {
 				gl11.glBindBuffer(GL11.GL_ELEMENT_ARRAY_BUFFER, 0);
-				GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
 			}
     	}
 	}
@@ -453,19 +453,19 @@ public class Vertex {
 			// 頂点インデックス設定
 	    	if (hasVbo) {
 				gl11.glDrawElements(primitiveType, numVertex, GL10.GL_UNSIGNED_SHORT, offset);
-				GLHelper.checkGlError(gl, "Vertex#glDrawElements");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glDrawElements");
 	    	} else {
 	    		indexArray.position(offset);
 	    		gl.glDrawElements(primitiveType, numVertex, GL10.GL_UNSIGNED_SHORT, indexArray);
-				GLHelper.checkGlError(gl, "Vertex#glDrawElements");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glDrawElements");
 	    	}
 	    } else {
 	    	if (hasVbo) {
 	    		gl11.glDrawArrays(primitiveType, offset, numVertex);
-				GLHelper.checkGlError(gl, "Vertex#glDrawArrays");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glDrawArrays");
 	    	} else {
 	    		gl.glDrawArrays(primitiveType, offset, numVertex);
-				GLHelper.checkGlError(gl, "Vertex#glDrawArrays");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glDrawArrays");
 	    	}
 	    }
 	}
@@ -513,28 +513,28 @@ public class Vertex {
 
 		// VBO ID 配列の生成
 		gl11.glGenBuffers(vboId.length, vboId, 0);
-		GLHelper.checkGlError(gl, "Vertex#glGenBuffers");
+		if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glGenBuffers");
 
 		// データの転送
 		if (vboId[VBO_VERTEX] != 0) {
 			// Vertexデータの転送
 			vertexArray.position(0);
 			gl11.glBindBuffer(GL11.GL_ARRAY_BUFFER, vboId[VBO_VERTEX]);
-			GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
 			gl11.glBufferData(GL11.GL_ARRAY_BUFFER, vertexArray.limit() * INT_SZ, vertexArray, GL11.GL_STATIC_DRAW);
-			GLHelper.checkGlError(gl, "Vertex#glBufferData");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glBufferData");
 			gl11.glBindBuffer(GL11.GL_ARRAY_BUFFER, 0);
-			GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
+			if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
 
 			// TriangleVertexIndexデータの転送
 			if (indexArray != null) {
 				indexArray.position(0);
 				gl11.glBindBuffer(GL11.GL_ELEMENT_ARRAY_BUFFER, vboId[VBO_INDEX]);
-				GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
 				gl11.glBufferData(GL11.GL_ELEMENT_ARRAY_BUFFER, indexArray.limit() * SHORT_SZ, indexArray, GL11.GL_STATIC_DRAW);
-				GLHelper.checkGlError(gl, "Vertex#glBufferData");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glBufferData");
 				gl11.glBindBuffer(GL11.GL_ELEMENT_ARRAY_BUFFER, 0);
-				GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
+				if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glBindBuffer");
 			}
 			hasVbo = true;
 		}
@@ -553,7 +553,7 @@ public class Vertex {
 		final GL11 gl11 = (GL11)gl;
 
 		gl11.glDeleteBuffers(vboId.length, vboId, 0);
-		GLHelper.checkGlError(gl, "Vertex#glDeleteBuffers");
+		if (DEBUG) GLHelper.checkGlError(gl, "Vertex#glDeleteBuffers");
 		Arrays.fill(vboId, 0);
 	}
 

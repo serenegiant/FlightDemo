@@ -7,7 +7,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 
 public abstract class GLPolygonModel {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "GLPolygonModel";
 
 	protected final GLGraphics glGraphics;
@@ -91,11 +91,11 @@ public abstract class GLPolygonModel {
 		gl.glPushMatrix();
 		if (hasTexture) {
 //			gl.glEnable(GL10.GL_TEXTURE_2D);
-			GLHelper.checkGlError(gl, "GLPolygonModel#glEnable");
+			if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glEnable");
 			mTexture.bind();
 		}	
 		gl.glEnable(GL10.GL_DEPTH_TEST);
-		GLHelper.checkGlError(gl, "GLPolygonModel#glEnable");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glEnable");
 		mVertex.bind();
 
 //--------------------------------------------------------------------------------
@@ -104,41 +104,41 @@ public abstract class GLPolygonModel {
 			mPosition.x/* + mOffset.x*/,
 			mPosition.y/* + mOffset.y*/,
 			mPosition.z/* + mOffset.z*/);
-		GLHelper.checkGlError(gl, "GLPolygonModel#glTranslatef");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glTranslatef");
 		// 回転
 		if (mAngle.x != 0) {
 			gl.glRotatef(mAngle.x, 1, 0, 0);
-			GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+			if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
 		}
 		if (mAngle.y != 0) {
 			gl.glRotatef(mAngle.y, 0, 1, 0);
-			GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+			if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
 		}
 		if (mAngle.z != 0) {
 			gl.glRotatef(mAngle.z, 0, 0, 1);
-			GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+			if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
 		}
 		// サイズ変更
 		gl.glScalef(mScale, mScale, mScale);
 		// モデルの原点をオフセット
 		gl.glTranslatef(mOffset.x, mOffset.y, mOffset.z);	// XXX
-		GLHelper.checkGlError(gl, "GLPolygonModel#glScalef");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glScalef");
 		// 描画
 		mVertex.draw(GL10.GL_TRIANGLES);		// vertex, indexの数はVertexクラスに任せる
 //--------------------------------------------------------------------------------
 
 		// 後始末
 		gl.glDisable(GL10.GL_DEPTH_TEST);
-		GLHelper.checkGlError(gl, "GLPolygonModel#glDisable");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glDisable");
 		if (hasTexture) {
 			mTexture.unbind();
 //			gl.glDisable(GL10.GL_TEXTURE_2D);
-			GLHelper.checkGlError(gl, "GLPolygonModel#glDisable");
+			if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glDisable");
 		}
 		
 		mVertex.unbind();
 		gl.glPopMatrix();
-		GLHelper.checkGlError(gl, "GLPolygonModel#glPopMatrix");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glPopMatrix");
 	}
 	
 	public void resume() {

@@ -4,6 +4,11 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ERROR_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_STATE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_CALIBRATIONSTATE_MAGNETOCALIBRATIONAXISTOCALIBRATECHANGED_AXIS_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED_STATE_ENUM;
@@ -11,6 +16,10 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_COMMON_MAVLINKSTATE_MAVLINKFILEPLA
 import com.parrot.arsdk.arcommands.ARCOMMANDS_DECODER_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
+import com.parrot.arsdk.arcommands.ARCommandCommonAnimationsStartAnimationListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonAnimationsStateListListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonAnimationsStopAllAnimationsListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonAnimationsStopAnimationListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCalibrationStateMagnetoCalibrationRequiredStateListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCalibrationStateMagnetoCalibrationStartedChangedListener;
@@ -27,6 +36,8 @@ import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateSensorsStatesListCh
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateWifiSignalChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonControllerStateIsPilotingChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonDebugStatsEventSendPacketListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonHeadlightsIntensityListener;
+import com.parrot.arsdk.arcommands.ARCommandCommonHeadlightsStateIntensityChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonMavlinkStateMavlinkFilePlayingStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonOverHeatStateOverHeatChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonOverHeatStateOverHeatRegulationChangedListener;
@@ -625,6 +636,15 @@ public abstract class DeviceController implements IDeviceController {
 		ARCommand.setCommonCameraSettingsStateCameraSettingsChangedListener(mARCommandCommonCameraSettingsStateCameraSettingsChangedListener);
 
 		ARCommand.setCommonDebugStatsEventSendPacketListener(mARCommandCommonDebugStatsEventSendPacketListener);
+
+		// LED
+		ARCommand.setCommonHeadlightsIntensityListener(mARCommandCommonHeadlightsIntensityListener);
+		ARCommand.setCommonHeadlightsStateIntensityChangedListener(mARCommandCommonHeadlightsStateIntensityChangedListener);
+		// アニメーション
+		ARCommand.setCommonAnimationsStartAnimationListener(mARCommandCommonAnimationsStartAnimationListener);
+		ARCommand.setCommonAnimationsStopAnimationListener(mARCommandCommonAnimationsStopAnimationListener);
+		ARCommand.setCommonAnimationsStopAllAnimationsListener(mARCommandCommonAnimationsStopAllAnimationsListener);
+		ARCommand.setCommonAnimationsStateListListener(mARCommandCommonAnimationsStateListListener);
 	}
 
 	/**
@@ -668,6 +688,16 @@ public abstract class DeviceController implements IDeviceController {
 		ARCommand.setCommonCameraSettingsStateCameraSettingsChangedListener(null);
 
 		ARCommand.setCommonDebugStatsEventSendPacketListener(null);
+
+		// LED関係
+		ARCommand.setCommonHeadlightsIntensityListener(null);
+		ARCommand.setCommonHeadlightsStateIntensityChangedListener(null);
+		// アニメーション
+		ARCommand.setCommonAnimationsStartAnimationListener(null);
+		ARCommand.setCommonAnimationsStopAnimationListener(null);
+		ARCommand.setCommonAnimationsStopAllAnimationsListener(null);
+		ARCommand.setCommonAnimationsStateListListener(null);
+
 	}
 
 	/**
@@ -1136,6 +1166,93 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
+	/**
+	 * LED強度の変更通知?
+	 */
+	private final ARCommandCommonHeadlightsIntensityListener
+		mARCommandCommonHeadlightsIntensityListener
+			= new ARCommandCommonHeadlightsIntensityListener() {
+		@Override
+		public void onCommonHeadlightsIntensityUpdate(final byte left, final byte right) {
+			// FIXME 未実装
+			if (DEBUG) Log.v(TAG, String.format("onCommonHeadlightsIntensityUpdate(%d,%d)", left, right));
+		}
+	};
+
+	/**
+	 * LED強度の変更通知?
+	 */
+	private final ARCommandCommonHeadlightsStateIntensityChangedListener
+		mARCommandCommonHeadlightsStateIntensityChangedListener
+			= new ARCommandCommonHeadlightsStateIntensityChangedListener() {
+		@Override
+		public void onCommonHeadlightsStateIntensityChangedUpdate(final byte left, final byte right) {
+			// FIXME 未実装
+			if (DEBUG) Log.v(TAG, String.format("onCommonHeadlightsIntensityUpdate(%d,%d)", left, right));
+		}
+	};
+
+	/**
+	 * アニメーション動作開始通知
+	 */
+	private final ARCommandCommonAnimationsStartAnimationListener
+		mARCommandCommonAnimationsStartAnimationListener
+			= new ARCommandCommonAnimationsStartAnimationListener() {
+		@Override
+		public void onCommonAnimationsStartAnimationUpdate(
+			final ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_ENUM anim) {
+
+			// FIXME 未実装
+			if (DEBUG) Log.v(TAG, "onCommonAnimationsStartAnimationUpdate:" + anim);
+		}
+	};
+
+	/**
+	 * アニメーション動作終了通知
+	 */
+	private final ARCommandCommonAnimationsStopAnimationListener
+		mARCommandCommonAnimationsStopAnimationListener
+			= new ARCommandCommonAnimationsStopAnimationListener() {
+		@Override
+		public void onCommonAnimationsStopAnimationUpdate(
+			final ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_ENUM anim) {
+
+			// FIXME 未実装
+			if (DEBUG) Log.v(TAG, "onCommonAnimationsStopAnimationUpdate:" + anim);
+		}
+	};
+
+	/**
+	 * 全てのアニメーション動作終了したことの通知
+	 */
+	private final ARCommandCommonAnimationsStopAllAnimationsListener
+		mARCommandCommonAnimationsStopAllAnimationsListener
+			= new ARCommandCommonAnimationsStopAllAnimationsListener() {
+		@Override
+		public void onCommonAnimationsStopAllAnimationsUpdate() {
+
+			// FIXME 未実装
+			if (DEBUG) Log.v(TAG, "onCommonAnimationsStopAnimationUpdate:");
+		}
+	};
+
+	/**
+	 * アニメーションリスト変更通知
+	 */
+	private final ARCommandCommonAnimationsStateListListener
+		mARCommandCommonAnimationsStateListListener
+			= new ARCommandCommonAnimationsStateListListener() {
+
+		@Override
+		public void onCommonAnimationsStateListUpdate(
+			final ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_ENUM anim,
+			final ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_STATE_ENUM state,
+			final ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ERROR_ENUM error) {
+
+			// FIXME 未実装
+			if (DEBUG) Log.v(TAG, "onCommonAnimationsStateListUpdate:anim=" + anim + ",state=" + state + ",error=" + error);
+		}
+	};
 //================================================================================
 // コールバック関係
 //================================================================================
@@ -1746,6 +1863,181 @@ public abstract class DeviceController implements IDeviceController {
 		return mStatus.getMotor(index);
 	}
 
+	/**
+	 * LEDの明るさをセット
+	 * @param left [0,255]
+	 * @param right [0,255]
+	 * @return
+	 */
+	public boolean sendHeadlightsIntensity(final int left, final int right) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonHeadlightsIntensity((byte)(left % 256), (byte)(right % 256));
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send flip command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 指定したアニメーション動作を開始。全部動くんかな?
+	 * @param animation
+	 * @return
+	 */
+	public boolean sendStartAnimation(final int animation) {
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_HEADLIGHTS_FLASH(0, "Flash headlights."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_HEADLIGHTS_BLINK(1, "Blink headlights."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_HEADLIGHTS_OSCILLATION(2, "Oscillating headlights."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_SPIN(3, "Spin animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_TAP(4, "Tap animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_SLOW_SHAKE(5, "Slow shake animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_METRONOME(6, "Metronome animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_ONDULATION(7, "Standing dance animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_SPIN_JUMP(8, "Spin jump animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_SPIN_TO_POSTURE(9, "Spin that end in standing posture, or in jumper if it was standing animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_SPIRAL(10, "Spiral animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_SLALOM(11, "Slalom animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_BOOST(12, "Boost animation."),
+		final ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_ENUM anim = ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_ENUM.getFromValue(animation);
+		if (anim == ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_ENUM.eARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_UNKNOWN_ENUM_VALUE)
+			return false;
+
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonAnimationsStartAnimation(anim);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send StartAnimation command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 指定したアニメーション動作を停止。全部動くんかな?
+	 * @param animation
+	 * @return
+	 */
+	public boolean sendStopAnimation(final int animation) {
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_HEADLIGHTS_FLASH(0, "Flash headlights."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_HEADLIGHTS_BLINK(1, "Blink headlights."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_HEADLIGHTS_OSCILLATION(2, "Oscillating headlights."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_SPIN(3, "Spin animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_TAP(4, "Tap animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_SLOW_SHAKE(5, "Slow shake animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_METRONOME(6, "Metronome animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_ONDULATION(7, "Standing dance animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_SPIN_JUMP(8, "Spin jump animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_SPIN_TO_POSTURE(9, "Spin that end in standing posture, or in jumper if it was standing animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_SPIRAL(10, "Spiral animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_SLALOM(11, "Slalom animation."),
+//		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_BOOST(12, "Boost animation."),
+
+		final ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_ENUM anim = ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_ENUM.getFromValue(animation);
+		if (anim == ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_ENUM.eARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_UNKNOWN_ENUM_VALUE)
+			return false;
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonAnimationsStopAnimation(anim);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send startAnimation command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 実行中のアニメーション動作を全て停止させる
+	 * @return
+	 */
+	public boolean sendStopAllAnimation() {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonAnimationsStopAllAnimations();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send stopAllAnimations command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * アニメーション動作関係らしいけど何するメソッドかよくわからん
+	 * @param anim
+	 * @param state
+	 * @param error
+	 * @return
+	 */
+	public boolean sendAnimationStateList(final int anim, final int state, final int error) {
+		final ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_ENUM _anim = ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_ENUM.getFromValue(anim);
+		if (_anim == ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_ENUM.eARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_UNKNOWN_ENUM_VALUE)
+			return false;
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_HEADLIGHTS_FLASH(0, "Flash headlights."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_HEADLIGHTS_BLINK(1, "Blink headlights."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_HEADLIGHTS_OSCILLATION(2, "Oscillating headlights."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_SPIN(3, "Spin animation."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_TAP(4, "Tap animation."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_SLOW_SHAKE(5, "Slow shake animation."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_METRONOME(6, "Metronome animation."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_ONDULATION(7, "Standing dance animation."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_SPIN_JUMP(8, "Spin jump animation."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_SPIN_TO_POSTURE(9, "Spin that end in standing posture, or in jumper if it was standing animation."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_SPIRAL(10, "Spiral animation."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_SLALOM(11, "Slalom animation."),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ANIM_BOOST(12, "Boost animation."),
+
+		final ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_STATE_ENUM _state = ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_STATE_ENUM.getFromValue(state);
+		if (_state == ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_STATE_ENUM.eARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_STATE_UNKNOWN_ENUM_VALUE)
+			return false;
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_STATE_STOPPED(0, "animation is stopped"),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_STATE_STARTED(1, "animation is started"),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_STATE_NOTAVAILABLE(2, "The animation is not available"),
+
+		final ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ERROR_ENUM _error = ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ERROR_ENUM.getFromValue(error);
+		if (_error == ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ERROR_ENUM.eARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ERROR_UNKNOWN_ENUM_VALUE)
+			return false;
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ERROR_OK(0, "No Error"),
+//			ARCOMMANDS_COMMON_ANIMATIONSSTATE_LIST_ERROR_UNKNOWN(1, "Unknown generic error"),
+
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonAnimationsStateList(_anim, _state, _error);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send AnimationsStateList command.");
+		}
+
+		return sentStatus;
+	}
 //********************************************************************************
 // データ送受信関係
 //********************************************************************************

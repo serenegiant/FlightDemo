@@ -5,7 +5,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 
 public class AttitudeView extends GLModelView {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "AttitudeView";
 
 	private int mModel = MODEL_BEBOP;

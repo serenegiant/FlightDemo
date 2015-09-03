@@ -9,6 +9,8 @@ import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
 
 public abstract class GLScreen extends BaseScreen {
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+
 	protected final GLGraphics glGraphics;
 	protected static final float[] projectionM = new float[16];	// プロジェクション行列
 	protected static final float[] modelViewM = new float[16];	// モデルビュー行列
@@ -32,10 +34,10 @@ public abstract class GLScreen extends BaseScreen {
 			viewPort[3] = glGraphics.getViewHeight();
 			// プロジェクション変換行列を取得
 			gl11.glGetFloatv(GL11.GL_PROJECTION_MATRIX, projectionM, 0);
-			GLHelper.checkGlError(gl, "GLScreen#glGetFloatv");
+			if (DEBUG) GLHelper.checkGlError(gl, "GLScreen#glGetFloatv");
 			// モデルビュー変換行列を取得
 			gl11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, modelViewM, 0);
-			GLHelper.checkGlError(gl, "GLScreen#glGetFloatv");
+			if (DEBUG) GLHelper.checkGlError(gl, "GLScreen#glGetFloatv");
 		}
 	}
 	
@@ -52,7 +54,7 @@ public abstract class GLScreen extends BaseScreen {
 			pos, 0) == GL10.GL_TRUE) {										//ここにワールド座標に変換されたデータが格納される
 			worldPos.set(pos[0], pos[1], pos[2]);
 		}
-		GLHelper.checkGlError(glGraphics.getGL(), "GLScreen#gluUnProject");
+		if (DEBUG) GLHelper.checkGlError(glGraphics.getGL(), "GLScreen#gluUnProject");
 	}
 	
 	/**
@@ -68,7 +70,7 @@ public abstract class GLScreen extends BaseScreen {
 			pos, 0) == GL10.GL_TRUE) {						// ここにワールド座標に変換されたデータが格納される
 			viewPos.set(pos[0], pos[1], pos[2]);
 		}
-		GLHelper.checkGlError(glGraphics.getGL(), "GLScreen#gluProject");
+		if (DEBUG) GLHelper.checkGlError(glGraphics.getGL(), "GLScreen#gluProject");
 	}
 
 	/**

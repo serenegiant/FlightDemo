@@ -9,7 +9,7 @@ import com.serenegiant.math.Vector;
 import javax.microedition.khronos.opengles.GL10;
 
 public class GLLookAtCamera {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "GLLookAtCamera";
 
 	private final Vector position;
@@ -64,15 +64,15 @@ public class GLLookAtCamera {
 	public void setMatrix(GL10 gl) {
 //		if (DEBUG) Log.v(TAG, "setMatrix:" + gl);
 		gl.glMatrixMode(GL10.GL_PROJECTION);
-		GLHelper.checkGlError(gl, "GLLookAtCamera#glMatrixMode");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLLookAtCamera#glMatrixMode");
 		gl.glLoadIdentity();
 		GLU.gluPerspective(gl, fieldOfView, aspectRatio, near, far);
-		GLHelper.checkGlError(gl, "GLLookAtCamera#gluPerspective");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLLookAtCamera#gluPerspective");
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
 		gl.glLoadIdentity();
 		GLU.gluLookAt(gl, position.x, position.y, position.z,
 						 lookAt.x, lookAt.y, lookAt.z, up.x, up.y, up.z);
-		GLHelper.checkGlError(gl, "GLLookAtCamera#gluLookAt");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLLookAtCamera#gluLookAt");
 	}
 	
 	private final Vector v = new Vector();

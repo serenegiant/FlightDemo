@@ -17,7 +17,7 @@ import javax.microedition.khronos.opengles.GL10;
  * ワールド座標系全体を回転・移動させる
  */
 public class GLCamera3D {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "GLCamera3D";
 
 	private final Vector position = new Vector();
@@ -156,19 +156,19 @@ public class GLCamera3D {
 	public void setMatrix(final GL10 gl) {
 		if (DEBUG) Log.v(TAG, "setMatrix:" + gl);
 		gl.glMatrixMode(GL10.GL_PROJECTION);
-		GLHelper.checkGlError(gl, "GLCamera3D#glMatrixMode");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLCamera3D#glMatrixMode");
 		gl.glLoadIdentity();
 		GLU.gluPerspective(gl, mFieldOfView, mAspectRatio, mNear, mFar);
-		GLHelper.checkGlError(gl, "GLCamera3D#gluPerspective");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLCamera3D#gluPerspective");
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
-		GLHelper.checkGlError(gl, "GLCamera3D#glMatrixMode");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLCamera3D#glMatrixMode");
 		gl.glLoadIdentity();
 		gl.glRotatef(-mPitch, 1, 0, 0);
-		GLHelper.checkGlError(gl, "GLCamera3D#glRotatef");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLCamera3D#glRotatef");
 		gl.glRotatef(-mYaw, 0, 1, 0);
-		GLHelper.checkGlError(gl, "GLCamera3D#glRotatef");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLCamera3D#glRotatef");
 		gl.glTranslatef(-position.x, -position.y, -position.z);
-		GLHelper.checkGlError(gl, "GLCamera3D#glTranslatef");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLCamera3D#glTranslatef");
 	}
 	
 	private final float[] matrix = new float[16];

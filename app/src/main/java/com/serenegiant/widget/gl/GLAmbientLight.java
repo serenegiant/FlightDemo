@@ -5,6 +5,7 @@ import com.serenegiant.glutils.GLHelper;
 import javax.microedition.khronos.opengles.GL10;
 
 public class GLAmbientLight extends GLLight {
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	
 	public GLAmbientLight() {
 		super();
@@ -22,7 +23,7 @@ public class GLAmbientLight extends GLLight {
 	
 	public void enable(final GL10 gl) {
 		gl.glLightModelfv(GL10.GL_LIGHT_MODEL_AMBIENT, ambient, 0);
-		GLHelper.checkGlError(gl, "GLAmbientLight#glLightModelfv");
+		if (DEBUG) GLHelper.checkGlError(gl, "GLAmbientLight#glLightModelfv");
 	}
 	
 	@Override

@@ -19,7 +19,7 @@ import javax.microedition.khronos.opengles.GL10;
  * 静止画を読み込んでテクスチャとして使用するためのクラス
  */
 public class StaticTexture extends Texture {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "StaticTexture";
 
 	private static final int LOAD_NON = -1;
@@ -128,11 +128,11 @@ public class StaticTexture extends Texture {
 			} else {			// ミップマップしない時
 				gl.glBindTexture(mTexTarget, textureID);
 				GLUtils.texImage2D(mTexTarget, 0, bitmap, 0);
-				GLHelper.checkGlError(gl, "Texture#texImage2D");
+				if (DEBUG) GLHelper.checkGlError(gl, "Texture#texImage2D");
 				setFilters(GL10.GL_NEAREST, GL10.GL_NEAREST);
 //				setWrap(GL10.GL_CLAMP_TO_EDGE);
 				gl.glBindTexture(mTexTarget, 0);
-				GLHelper.checkGlError(gl, "Texture#glBindTexture");
+				if (DEBUG) GLHelper.checkGlError(gl, "Texture#glBindTexture");
 			}
 			bitmap.recycle();
 			bitmap = null;	// 2013/05/24
@@ -169,7 +169,7 @@ public class StaticTexture extends Texture {
 		Bitmap newBitmap;
 		while (true) {
 			GLUtils.texImage2D(mTexTarget, level, bitmap, 0);
-			GLHelper.checkGlError(gl, "Texture#texImage2D");
+			if (DEBUG) GLHelper.checkGlError(gl, "Texture#texImage2D");
 			newWidth /= 2;
 			newHeight /= 2;
 			if ((newWidth <= 0) || (newHeight <= 0))
@@ -191,18 +191,18 @@ public class StaticTexture extends Texture {
 		}
 		maxMipmappedLevel = level;
 		gl.glBindTexture(mTexTarget, 0);
-		GLHelper.checkGlError(gl, "Texture#glBindTexture");
+		if (DEBUG) GLHelper.checkGlError(gl, "Texture#glBindTexture");
 	}
 	
 	public void reload() {
 		internal_load(loadType);
 		final GL10 gl = glGraphics.getGL();
 		gl.glBindTexture(mTexTarget, textureID);
-		GLHelper.checkGlError(gl, "Texture#glBindTexture");
+		if (DEBUG) GLHelper.checkGlError(gl, "Texture#glBindTexture");
 		setFilters(mMinFilter, mMagFilter);
 		setWrap(mWrapMode);
 		gl.glBindTexture(mTexTarget, 0);
-		GLHelper.checkGlError(gl, "Texture#glBindTexture");
+		if (DEBUG) GLHelper.checkGlError(gl, "Texture#glBindTexture");
 	}
 	
 	public void release() {

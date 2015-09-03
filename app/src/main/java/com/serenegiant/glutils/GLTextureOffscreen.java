@@ -15,7 +15,7 @@ import android.opengl.Matrix;
  * テクスチャをカラーバッファとしてFBOに割り当てる
  */
 public class GLTextureOffscreen {
-//	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 //	private static final String TAG = "GLTextureOffscreen";
 
 	private final int TEX_TARGET = GLES20.GL_TEXTURE_2D;
@@ -101,7 +101,7 @@ public class GLTextureOffscreen {
      * オフスクリーン描画用のフレームバッファを準備する
      */
     private final void prepareFramebuffer(final int width, final int height, final boolean use_depth_buffer) {
-    	GLHelper.checkGlError("prepareFramebuffer start");
+		if (DEBUG) GLHelper.checkGlError("prepareFramebuffer start");
 
     	// テクスチャのサイズは2の乗数にする
 		int w = 32;

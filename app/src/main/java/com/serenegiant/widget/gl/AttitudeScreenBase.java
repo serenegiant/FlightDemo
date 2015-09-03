@@ -10,7 +10,7 @@ import java.io.IOException;
 import javax.microedition.khronos.opengles.GL10;
 
 public abstract class AttitudeScreenBase extends GLScreen {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "AttitudeScreenBase";
 
 	public static final int CTRL_RANDOM = 0;	// ランダム回転
@@ -187,15 +187,15 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			final Vector angle = droneObj.angle;
 			if (angle.x != 0) {	// pitch
 				gl.glRotatef(-angle.x, 1, 0, 0);
-				GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+				if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
 			}
 			if (angle.y != 0) {	// yaw
 				gl.glRotatef(angle.y, 0, 1, 0);
-				GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+				if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
 			}
 			if (angle.z != 0) {	// roll
 				gl.glRotatef(angle.z, 0, 0, 1);
-				GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+				if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
 			}
 			final Vector offset = droneObj.getOffset();
 			gl.glTranslatef(-offset.x, -offset.y, -offset.z);
