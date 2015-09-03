@@ -3,9 +3,12 @@ package com.serenegiant.widget.gl;
 import android.graphics.SurfaceTexture;
 import android.util.Log;
 
+import java.io.IOException;
+
 import javax.microedition.khronos.opengles.GL10;
 
 public class AttitudeScreenBebop extends AttitudeScreenBase {
+	private static final String TAG = "AttitudeScreenBebop";
 
 	private DynamicTexture mVideoFrameTexture;
 
@@ -65,32 +68,26 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 			mShowGround = false;
 			break;
 		}
+		// 3Dモデルの読み込み
+		final FileIO io = mModelView.getFileIO();
 		final StaticTexture droneTexture = new StaticTexture(mModelView, "model/bebop_drone_body_tex.png");
-		droneModel = new GLLoadableModel(glGraphics);
-		droneModel.loadModel(mModelView, "model/bebop_drone_body.obj");
+		droneModel = loadModel(io, "model/bebop_drone_body.obj");
 		droneModel.setTexture(droneTexture);
+
 		// 左前ローター
 		final StaticTexture frontTexture = new StaticTexture(mModelView, "model/bebop_drone_rotor_front_tex.png");
-		frontLeftRotorModel = new GLLoadableModel(glGraphics);
-		frontLeftRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_cw.obj");
+		frontLeftRotorModel = loadModel(io, "model/bebop_drone_rotor_cw.obj");
 		frontLeftRotorModel.setTexture(frontTexture);
 		// 右前ローター
-//		final Texture frontRightTexture = new Texture(mModelView, "model/bebop_drone_rotor_front_tex.png");
-		frontRightRotorModel = new GLLoadableModel(glGraphics);
-		frontRightRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_ccw.obj");
-		frontRightRotorModel.setTexture(frontTexture);
+		frontRightRotorModel = loadModel(io, "model/bebop_drone_rotor_ccw.obj");
+		frontRightRotorModel.setTexture(frontTexture);	// テクスチャは左前と共通
 		// 左後ローター
 		final StaticTexture rearTexture = new StaticTexture(mModelView, "model/bebop_drone_rotor_rear_tex.png");
-		rearLeftRotorModel = new GLLoadableModel(frontRightRotorModel);
-//		rearLeftRotorModel = new GLLoadableModel(glGraphics);
-//		rearLeftRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_ccw.obj");
+		rearLeftRotorModel = new GLLoadableModel(frontRightRotorModel);	// コピーコンストラクタ
 		rearLeftRotorModel.setTexture(rearTexture);
 		// 右後ローター
-//		final Texture rearRightTexture = new Texture(mModelView, "model/bebop_drone_rotor_rear_tex.png");
-		rearRightRotorModel = new GLLoadableModel(frontLeftRotorModel);
-//		rearRightRotorModel = new GLLoadableModel(glGraphics);
-//		rearRightRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_cw.obj");
-		rearRightRotorModel.setTexture(rearTexture);
+		rearRightRotorModel = new GLLoadableModel(frontLeftRotorModel);	// コピーコンストラクタ
+		rearRightRotorModel.setTexture(rearTexture);	// テクスチャは左後と共通
 	}
 
 	private volatile boolean mVideoEnabled;

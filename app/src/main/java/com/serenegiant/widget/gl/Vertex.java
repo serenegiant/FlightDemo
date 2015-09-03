@@ -9,10 +9,9 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -23,7 +22,7 @@ import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
 
 public class Vertex {
-//	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "Vertex";
 
 	public static final int DIM_2D = 2;				// 2次元座標系
@@ -131,10 +130,10 @@ public class Vertex {
 		}
 	}
 
-	public void save(final String _path) {
-		final String path = _path.replace("/", "_");
+	public void save(final OutputStream _out) {
+		if (DEBUG) Log.v(TAG, "save:");
 		try {
-			final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(path)));
+			final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(_out));
 			try {
 				out.writeInt(dim_num);
 				out.writeInt(maxVertex);
@@ -149,7 +148,7 @@ public class Vertex {
 				for (int i = 0; i < verts_num; i++) {
 					out.writeFloat(verts[i]);
 				}
-				final int index_num = indexArray.capacity();
+				final int index_num = indexArray != null ? indexArray.capacity() : 0;
 				out.writeInt(index_num);
 				if (index_num > 0) {
 					final short[] indexes = new short[index_num];
@@ -163,18 +162,16 @@ public class Vertex {
 			} finally {
 				out.close();
 			}
-		} catch (final FileNotFoundException e) {
-			Log.w(TAG, e);
 		} catch (final IOException e) {
 			Log.w(TAG, e);
 		}
 	}
 
-	public static Vertex load(final GLGraphics glGraphics, final String _path) {
+	public static Vertex load(final GLGraphics glGraphics, final InputStream _in) {
+		if (DEBUG) Log.v(TAG, "load:");
 		Vertex result = null;
-		final String path = _path.replace("/", "_");
 		try {
-			final DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(path)));
+			final DataInputStream in = new DataInputStream(new BufferedInputStream(_in));
 			try {
 				final int dim_num = in.readInt();
 				final int maxVertex = in.readInt();
@@ -213,8 +210,6 @@ public class Vertex {
 			} finally {
 				in.close();
 			}
-		} catch (final FileNotFoundException e) {
-			Log.w(TAG, e);
 		} catch (final IOException e) {
 			Log.w(TAG, e);
 		}

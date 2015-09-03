@@ -56,32 +56,23 @@ public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 			mShowGround = false;
 			break;
 		}
+		// 3Dモデルの読み込み
+		final FileIO io = mModelView.getFileIO();
 		final StaticTexture droneTexture = new StaticTexture(mModelView, "model/minidrone_red.png");
-		droneModel = new GLLoadableModel(glGraphics);
-		droneModel.loadModel(mModelView, "model/minidrone_body.obj");
+		droneModel = loadModel(io, "model/minidrone_body.obj");
 		droneModel.setTexture(droneTexture);
 		// 左前ローター
-//		final StaticTexture frontTexture = new StaticTexture(mModelView, "model/minidrone_red.png");
-		frontLeftRotorModel = new GLLoadableModel(glGraphics);
-		frontLeftRotorModel.loadModel(mModelView, "model/minidrone_rotor_cw.obj");
-		frontLeftRotorModel.setTexture(droneTexture);
+		frontLeftRotorModel = loadModel(io, "model/minidrone_rotor_cw.obj");
+		frontLeftRotorModel.setTexture(droneTexture);	// テクスチャは今は共通
 		// 右前ローター
-//		final Texture frontRightTexture = new Texture(mModelView, "model/minidrone_red.png");
-		frontRightRotorModel = new GLLoadableModel(glGraphics);
-		frontRightRotorModel.loadModel(mModelView, "model/minidrone_rotor_ccw.obj");
-		frontRightRotorModel.setTexture(droneTexture);
+		frontRightRotorModel = loadModel(io, "model/minidrone_rotor_ccw.obj");
+		frontRightRotorModel.setTexture(droneTexture);	// テクスチャは今は共通
 		// 左後ローター
-//		final StaticTexture rearTexture = new StaticTexture(mModelView, "model/minidrone_red.png");
-		rearLeftRotorModel = new GLLoadableModel(frontRightRotorModel);
-//		rearLeftRotorModel = new GLLoadableModel(glGraphics);
-//		rearLeftRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_ccw.obj");
-		rearLeftRotorModel.setTexture(droneTexture);
+		rearLeftRotorModel = new GLLoadableModel(frontRightRotorModel);	// コピーコンストラクタ
+		rearLeftRotorModel.setTexture(droneTexture);	// テクスチャは今は共通
 		// 右後ローター
-//		final Texture rearRightTexture = new Texture(mModelView, "model/minidrone_red.png");
-		rearRightRotorModel = new GLLoadableModel(frontLeftRotorModel);
-//		rearRightRotorModel = new GLLoadableModel(glGraphics);
-//		rearRightRotorModel.loadModel(mModelView, "model/bebop_drone_rotor_cw.obj");
-		rearRightRotorModel.setTexture(droneTexture);
+		rearRightRotorModel = new GLLoadableModel(frontLeftRotorModel);	// コピーコンストラクタ
+		rearRightRotorModel.setTexture(droneTexture);	// テクスチャは今は共通
 	}
 
 /*	@Override

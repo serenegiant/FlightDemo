@@ -5,6 +5,8 @@ import android.util.Log;
 import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
 
+import java.io.IOException;
+
 import javax.microedition.khronos.opengles.GL10;
 
 public abstract class AttitudeScreenBase extends GLScreen {
@@ -253,6 +255,30 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			angle.y = yaw;
 			// FIXME 高度・・・カメラワーク・・・は未実装
 		}
+	}
+
+	/**
+	 * 可能ならアプリのプライベートストレージからバイナリ形式の3Dモデルを読み込む
+	 * 読み込めなければassetsから読み込んでプライベートストレージへバイナリ形式で書き出す
+	 * @param io
+	 * @param file_name
+	 * @return
+	 */
+	protected GLLoadableModel loadModel(final FileIO io, final String file_name) {
+		final String path = file_name.replace("/", "$");
+		final GLLoadableModel model = new GLLoadableModel(glGraphics);
+		try {
+			model.setVertex(Vertex.load(glGraphics, io.readFile(path)));
+		} catch (final Exception e) {
+			Log.w(TAG, e);
+			model.loadModel(mModelView, file_name);
+			try {
+				model.getVertex().save(io.writeFile(path));
+			} catch (final IOException e2) {
+				Log.w(TAG, e2);
+			}
+		}
+		return model;
 	}
 
 }
