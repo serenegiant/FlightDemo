@@ -5,6 +5,14 @@ import android.util.Log;
 import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -89,7 +97,6 @@ public class Vertex {
 		}
 	}
 
-
 	// コピーコンストラクタ
 	public Vertex(final Vertex other) {
 //		final Vertex vert = new Vertex(dim_num, glGraphics, maxVertex, maxIndex, hasColor, hasTexCoord, hasNormals);
@@ -122,6 +129,96 @@ public class Vertex {
 			indexArray.position(0);
 			indexArray.put(other.indexArray);
 		}
+	}
+
+	public void save(final String _path) {
+		final String path = _path.replace("/", "_");
+		try {
+			final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(path)));
+			try {
+				out.writeInt(dim_num);
+				out.writeInt(maxVertex);
+				out.writeInt(maxIndex);
+				out.writeBoolean(hasColor);
+				out.writeBoolean(hasTexCoord);
+				out.writeBoolean(hasNormals);
+				out.writeInt(vertexSize);
+				final float[] verts = getAsFloat();
+				final int verts_num = verts != null ? verts.length : 0;
+				out.writeInt(verts_num);
+				for (int i = 0; i < verts_num; i++) {
+					out.writeFloat(verts[i]);
+				}
+				final int index_num = indexArray.capacity();
+				out.writeInt(index_num);
+				if (index_num > 0) {
+					final short[] indexes = new short[index_num];
+					indexArray.clear();
+					indexArray.get(indexes);
+					for (int i = 0; i < index_num; i++) {
+						out.writeShort(indexes[i]);
+					}
+				}
+				out.flush();
+			} finally {
+				out.close();
+			}
+		} catch (final FileNotFoundException e) {
+			Log.w(TAG, e);
+		} catch (final IOException e) {
+			Log.w(TAG, e);
+		}
+	}
+
+	public static Vertex load(final GLGraphics glGraphics, final String _path) {
+		Vertex result = null;
+		final String path = _path.replace("/", "_");
+		try {
+			final DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(path)));
+			try {
+				final int dim_num = in.readInt();
+				final int maxVertex = in.readInt();
+				final int maxIndex = in.readInt();
+				final boolean hasColor = in.readBoolean();
+				final boolean hasTexCoord = in.readBoolean();
+				final boolean hasNormals = in.readBoolean();
+				final int vertexSize = in.readInt();
+				final float[] verts;
+				final int verts_num = in.readInt();
+				if (verts_num > 0) {
+					verts = new float[verts_num];
+					for (int i = 0; i < verts_num; i++) {
+						verts[i] = in.readFloat();
+					}
+				} else {
+					verts = null;
+				}
+				final short[] indexes;
+				final int index_num = in.readInt();
+				if (index_num > 0) {
+					indexes = new short[index_num];
+					for (int i = 0; i < index_num; i++) {
+						indexes[i] = in.readShort();
+					}
+				} else {
+					indexes = null;
+				}
+				result = new Vertex(dim_num, glGraphics, verts_num, index_num, hasColor, hasTexCoord, hasNormals);
+				if (verts_num > 0) {
+					result.setVertex(verts, 0, verts_num);
+				}
+				if (index_num > 0) {
+					result.setIndexs(indexes, 0, index_num);
+				}
+			} finally {
+				in.close();
+			}
+		} catch (final FileNotFoundException e) {
+			Log.w(TAG, e);
+		} catch (final IOException e) {
+			Log.w(TAG, e);
+		}
+		return result;
 	}
 
 	// 既存のVertextから頂点/インデックスのオフセットと個数を指定してコピーして新しいVertexを生成する
