@@ -68,8 +68,10 @@ public class ConnectionFragment extends Fragment {
 
 		mModelView.onPause();
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-		manager.removeCallback(mManagerCallback);
-		manager.stopDiscovery();
+		if (manager != null) {
+			manager.removeCallback(mManagerCallback);
+			manager.stopDiscovery();
+		}
 
 		super.onPause();
 	}

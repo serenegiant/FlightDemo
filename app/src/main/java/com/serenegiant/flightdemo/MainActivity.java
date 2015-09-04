@@ -202,18 +202,23 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 					mUiHandler.postDelayed(mHideSideMenuTask, TIMEOUT_HIDE_SIDE_MENU);
 				}
 
-/*				@Override
-				public void onDrawerSlide(final View drawerView, final float slideOffset) {
-					super.onDrawerSlide(drawerView, slideOffset);
-				} */
+//				@Override
+//				public void onDrawerSlide(final View drawerView, final float slideOffset) {
+//					super.onDrawerSlide(drawerView, slideOffset);
+//					if (DEBUG) Log.v(TAG, "onDrawerSlide:" + slideOffset);
+//				}
 
-/*				@Override
-				public void onDrawerStateChanged(final int newState) {
-					// 表示済み、閉じ済みの状態：0
-					// ドラッグ中状態:1
-					// ドラッグを放した後のアニメーション中：2
-					super.onDrawerStateChanged(newState);
-				} */
+//				/**
+//				 * @param newState <br>
+//				 * 0: 表示済み、閉じ済みの状態 <br>
+//				 * 1: ドラッグ中状態 <br>
+//				 * 2: ドラッグを放した後のアニメーション中 <br>
+//				 */
+//				@Override
+//				public void onDrawerStateChanged(final int newState) {
+//					super.onDrawerStateChanged(newState);
+//					if (DEBUG) Log.v(TAG, "onDrawerStateChanged	:" + newState);
+//				}
 
 /*				@Override
 				public boolean onOptionsItemSelected(final MenuItem item) {
@@ -254,6 +259,13 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 	 * (今のところサイドメニューの項目のスライドアウトアニメーションが全て終了した時に呼ばれる)
 	 */
 	private final ISideMenuView.OnSidleMenuListener mOnSidleMenuListener = new ISideMenuView.OnSidleMenuListener() {
+		@Override
+		public void onSideMenuShow(View view) {
+			if (DEBUG) Log.v(TAG, "onSideMenuShow:");
+			mUiHandler.removeCallbacks(mHideSideMenuTask);
+			mUiHandler.postDelayed(mHideSideMenuTask, TIMEOUT_HIDE_SIDE_MENU);
+		}
+
 		@Override
 		public void onSideMenuHide(final View view) {
 			if (DEBUG) Log.v(TAG, "onSideMenuHide:");

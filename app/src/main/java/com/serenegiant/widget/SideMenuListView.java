@@ -2,6 +2,7 @@ package com.serenegiant.widget;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
@@ -10,10 +11,11 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import com.serenegiant.flightdemo.R;
+import com.serenegiant.flightdemo.SideMenuAdapter;
 
 public class SideMenuListView extends ListView implements ISideMenuView {
-//	private static final boolean DEBUG = false;
-//	private static final String TAG = "SideMenuListView";
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final String TAG = "SideMenuListView";
 
 	private OnSidleMenuListener mOnSidleMenuListener;
 	private ListAdapter mAdapter;
@@ -30,13 +32,23 @@ public class SideMenuListView extends ListView implements ISideMenuView {
 		super(context, attrs, defStyleAttr);
 	}
 
+	private SideMenuAdapter.SideMenuAdapterListener mOrgSideMenuAdapterListener;
 	@Override
 	public void setAdapter(final ListAdapter adapter) {
 		super.setAdapter(adapter);
 		// リスト項目のアニメーションを簡単にリセットする為に保持しておく
 		// 内部から呼ぶ時はsuper.setAdapterを呼び出すこと
 		// でないとmAdapterの値が更新されてしまってリストの内容がわからなくなってしまう
-		mAdapter = adapter;
+		if (mAdapter != adapter) {
+			mAdapter = adapter;
+			if (adapter instanceof SideMenuAdapter) {
+				final SideMenuAdapter.SideMenuAdapterListener listener = ((SideMenuAdapter) adapter).getSideMenuAdapterListener();
+				if (listener != mSideMenuAdapterListener) {
+					mOrgSideMenuAdapterListener = listener;
+				}
+				((SideMenuAdapter) adapter).setSideMenuAdapterListener(mSideMenuAdapterListener);
+			}
+		}
 	}
 
 	/**
@@ -60,6 +72,7 @@ public class SideMenuListView extends ListView implements ISideMenuView {
 	 */
 	@Override
 	public void reset() {
+		if (DEBUG) Log.v(TAG, "reset:");
 		super.setAdapter(mAdapter);
 	}
 
@@ -68,10 +81,11 @@ public class SideMenuListView extends ListView implements ISideMenuView {
 	 */
 	private volatile int mVisibleCount;
 	/**
-	 * リスト項目を上から順にアニメーションでスライドアウトさせる
+	 * サイドメニュー項目を上から順にアニメーションでスライドアウトさせる
 	 */
 	@Override
 	public void hide() {
+		if (DEBUG) Log.v(TAG, "hide:");
 		mVisibleCount = 0;
 		final int first = getFirstVisiblePosition();
 		final int last = getLastVisiblePosition();
@@ -98,18 +112,34 @@ public class SideMenuListView extends ListView implements ISideMenuView {
 	private final AnimationListener mAnimationListener = new AnimationListener() {
 		@Override
 		public void onAnimationStart(final Animation animation) {
+			if (DEBUG) Log.v(TAG, "onAnimationStart:mVisibleCount=" + mVisibleCount);
 		}
 		@Override
 		public void onAnimationEnd(final Animation animation) {
+			if (DEBUG) Log.v(TAG, "onAnimationEnd:mVisibleCount=" + mVisibleCount);
 			mVisibleCount--;
 			if (mVisibleCount <= 0) {
 				// 全ての表示項目のアニメーションが終わればコールバックを呼び出す
-				if (mOnSidleMenuListener != null)
+				if (mOnSidleMenuListener != null) {
 					mOnSidleMenuListener.onSideMenuHide(SideMenuListView.this);
+				}
 			}
 		}
 		@Override
 		public void onAnimationRepeat(final Animation animation) {
+		}
+	};
+
+	private final SideMenuAdapter.SideMenuAdapterListener mSideMenuAdapterListener = new SideMenuAdapter.SideMenuAdapterListener() {
+		@Override
+		public void onAnimationFinished(final SideMenuAdapter adapter) {
+			if (DEBUG) Log.v(TAG, "onAnimationFinished:");
+			if (mOnSidleMenuListener != null) {
+				mOnSidleMenuListener.onSideMenuShow(SideMenuListView.this);
+			}
+			if (mOrgSideMenuAdapterListener != null) {
+				mOrgSideMenuAdapterListener.onAnimationFinished(adapter);
+			}
 		}
 	};
 }

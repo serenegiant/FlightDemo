@@ -2,6 +2,7 @@ package com.serenegiant.flightdemo;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,9 +14,15 @@ import android.widget.TextView;
 import java.util.List;
 
 public class SideMenuAdapter extends ArrayAdapter<String> {
+	private static final String TAG = SideMenuAdapter.class.getSimpleName();
+
+	public interface SideMenuAdapterListener {
+		public void onAnimationFinished(SideMenuAdapter adapter);
+	}
 
 	private final LayoutInflater mInflater;
 	private final int itemLayoutId;
+	private SideMenuAdapterListener mListener;
 
 	public SideMenuAdapter(final Context context, final int itemResId) {
 		super(context, itemResId);
@@ -82,6 +89,7 @@ public class SideMenuAdapter extends ArrayAdapter<String> {
 
 		// XMLで定義したアニメーションを読み込む
 		final Animation anim = AnimationUtils.loadAnimation(getContext(), R.anim.slide_in_left);
+		anim.setAnimationListener(mAnimationListener);
 		// リストアイテムのアニメーションを開始
 		anim.setStartOffset(position * 100);
 		convertView.startAnimation(anim);
@@ -91,4 +99,38 @@ public class SideMenuAdapter extends ArrayAdapter<String> {
 	private static class ViewHolder {
         TextView titleTv;
     }
+
+	public void setSideMenuAdapterListener(final SideMenuAdapterListener listener) {
+		mListener = listener;
+	}
+
+	public SideMenuAdapterListener getSideMenuAdapterListener() {
+		return mListener;
+	}
+
+    private int mAnimationCount;
+	private final Animation.AnimationListener mAnimationListener = new Animation.AnimationListener() {
+		@Override
+		public void onAnimationStart(final Animation animation) {
+			mAnimationCount++;
+		}
+		@Override
+		public void onAnimationEnd(final Animation animation) {
+			mAnimationCount--;
+			if (mAnimationCount <= 0) {
+				// 全ての表示項目のアニメーションが終わればコールバックを呼び出す
+				if (mListener != null) {
+					try {
+						mListener.onAnimationFinished(SideMenuAdapter.this);
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					}
+				}
+			}
+		}
+		@Override
+		public void onAnimationRepeat(final Animation animation) {
+		}
+	};
+
 }

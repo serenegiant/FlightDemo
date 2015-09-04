@@ -1895,6 +1895,8 @@ public abstract class DeviceController implements IDeviceController {
 	 */
 	@Override
 	public boolean sendStartAnimation(final int animation) {
+		// FIXME 実行開始したアニメーション動作を保持してコールバック&stopAnimationActionで更新するようにした方がいいのかも
+
 //		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_HEADLIGHTS_FLASH(0, "Flash headlights."),
 //		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_HEADLIGHTS_BLINK(1, "Blink headlights."),
 //		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_HEADLIGHTS_OSCILLATION(2, "Oscillating headlights."),

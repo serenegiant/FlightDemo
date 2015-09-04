@@ -46,7 +46,7 @@ public class ManagerFragment extends Fragment {
 	 */
 	public static ManagerFragment getInstance(final Activity activity) {
 		ManagerFragment result = null;
-		if (activity != null) {
+		if ((activity != null) && !activity.isFinishing()) {
 			final FragmentManager fm = activity.getFragmentManager();
 			result = (ManagerFragment)fm.findFragmentByTag(TAG);
 			if (result == null) {

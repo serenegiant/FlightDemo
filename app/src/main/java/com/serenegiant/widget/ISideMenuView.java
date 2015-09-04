@@ -8,6 +8,11 @@ public interface ISideMenuView {
 	 */
 	public interface OnSidleMenuListener {
 		/**
+		 * サイドメニュー項目が表示された時のコールバック
+		 * @param view
+		 */
+		public void onSideMenuShow(View view);
+		/**
 		 * サイドメニュー項目がすべて非表示になった時のコールバック
 		 * @param view
 		 */

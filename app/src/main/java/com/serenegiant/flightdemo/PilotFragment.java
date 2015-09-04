@@ -1180,7 +1180,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * @param anim
 	 */
 	private void startAnimationAction(final int anim) {
-		// FIXME 実行開始したアニメーション動作を保持してコールバック&stopAnimationActionで更新するようにした方がいいのかも
 		if (!mFlightRecorder.isPlaying()) {
 			mController.sendStartAnimation(anim);
 			updateButtons();
@@ -1859,7 +1858,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (DEBUG) Log.v(TAG, "onItemClick:" + position);
 			final MainActivity activity = (MainActivity)getActivity();
 			activity.closeSideMenu();
-			if ((position >= 0) && (position <= SCRIPT_NUM)) {
+			if ((position >= 0) && (position < SCRIPT_NUM)) {
 				startScript(position);
 			} else {
 				startAnimationAction(position - SCRIPT_NUM);
