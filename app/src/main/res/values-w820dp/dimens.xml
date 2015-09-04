@@ -8,18 +8,24 @@
 	<dimen name="double_padding">128dp</dimen>
 	<dimen name="list_padding">8dp</dimen>
 	<dimen name="quater_padding">16dp</dimen>
+
 	<dimen name="top_panel_height">60dp</dimen>
 	<dimen name="bottom_panel_height">60dp</dimen>
+
 	<dimen name="stick_size">144dp</dimen>
 	<dimen name="stick_frame_width">288dp</dimen>
 	<dimen name="stick_frame_height">216dp</dimen>
+
 	<dimen name="btn_width_takeoff">96dp</dimen>
 	<dimen name="btn_height_takeoff">72dp</dimen>
+	<dimen name="btn_size_action">72dp</dimen>
+
 	<dimen name="text_sz_message">42sp</dimen>
 	<dimen name="text_sz_button">28sp</dimen>
 	<dimen name="text_sz_on_image_button">12sp</dimen>
 	<dimen name="text_sz_list">26sp</dimen>
-	<dimen name="btn_size_action">72dp</dimen>
+	<dimen name="text_sz_side_menu_item">18sp</dimen>
+
 	<dimen name="switch_height">84dp</dimen>
 	<dimen name="thumbnail_margin">16dp</dimen>
 

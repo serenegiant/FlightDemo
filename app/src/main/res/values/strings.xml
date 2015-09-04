@@ -74,4 +74,23 @@
 	<string name="info_version_hardware">Hardware version:</string>
 	<string name="info_version_app">App version:</string>
 
+	<!-- サイドメニューの項目 -->
+	<string name="script_circle_xy">circle_xy</string>
+	<string name="script_circle_xz">circle_xz</string>
+	<string name="script_revolution_xr">revolution_xr</string>
+	<string name="script_revolution_yr">revolution_yr</string>
+	<string name="anim_headlights_flash">LED flash</string>
+	<string name="anim_headlights_blink">LED blink</string>
+	<string name="anim_headlights_oscillation">LED oscillation</string>
+	<string name="anim_spin">Spin</string>
+	<string name="anim_tap">Tap</string>
+	<string name="anim_slow_shake">Slow shake</string>
+	<string name="anim_metronome">Metronome</string>
+	<string name="anim_ondulation">Ondulation</string>
+	<string name="anim_spin_jump">Spin jump</string>
+	<string name="anim_spin_to_posture">Spin to posture</string>
+	<string name="anim_spiral">Spiral</string>
+	<string name="anim_slalome">Slalom</string>
+	<string name="anim_boost">Boost</string>
+
 </resources>

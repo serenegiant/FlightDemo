@@ -721,22 +721,37 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		super.onDisconnect(controller);
 	}
 
+	/**
+	 * 飛行ステータスが変化した時のコールバック
+	 * @param state
+	 */
 	@Override
 	protected void updateFlyingState(final int state) {
 		updateButtons();
 	}
 
+	/**
+	 * 異常ステータスが変化した時のコールバック
+	 * @param alert_state
+	 */
 	@Override
 	protected void updateAlarmState(final int alert_state) {
 		runOnUiThread(mUpdateAlarmMessageTask);
 		updateButtons();
 	}
 
+	/**
+	 * バッテリー残量が変化した時のコールバック
+	 */
 	@Override
 	protected void updateBattery() {
 		runOnUiThread(mUpdateBatteryTask);
 	}
 
+	/**
+	 * 静止画撮影ステータスが変化した時のコールバック
+	 * @param picture_state DroneStatus#MEDIA_XXX
+	 */
 	@Override
 	protected void updatePictureCaptureState(final int picture_state) {
 		switch (picture_state) {
@@ -764,6 +779,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		updateButtons();
 	}
 
+	/**
+	 * 動画撮影ステータスが変化した時のコールバック
+	 * @param video_state DroneStatus#MEDIA_XXX
+	 */
 	@Override
 	protected void updateVideoRecordingState(final int video_state) {
 		switch (video_state) {
@@ -817,10 +836,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	@Override
 	protected void emergencyStop() {
-		super.emergencyStop();
+		super.emergencyStop();	// stopMoveはこの中から呼び出されるので自前では呼ばない
 		stopPlay();
 		stopScript();
 		stopTouchMove();
+		stopAnimationActionAll();
 	}
 
 	private static final int[] SENSOR_TYPES = {
@@ -840,10 +860,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	/**
 	 * 磁気センサー・加速度センサー等を読み取り開始
+	 * (MiniDroneの時は何もしない)
 	 */
 	private void startSensor() {
+		if (mController instanceof DeviceControllerMiniDrone) return;
 		final Display display = getActivity().getWindowManager().getDefaultDisplay();
 		mRotation = display.getRotation();
+		// 重力センサーがあればそれを使う。なければ加速度センサーで代用する
 		boolean hasGravity = false;
 		if (mSensorManager == null) {
 			mSensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
@@ -1054,11 +1077,29 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	}
 
-	private static final String[] SCRIPTS = {
-		"circle_xy",
-		"circle_xz",
-		"revolution_xr",
-		"revolution_yr",
+	private static final int SCRIPT_NUM = 4;
+	/**
+	 * 左サイドメニューの項目
+	 */
+	private static final int[] SIDE_MENU_ITEMS = {
+		R.string.script_circle_xy,			// スクリプト
+		R.string.script_circle_xz,			// スクリプト
+		R.string.script_revolution_xr,		// スクリプト
+		R.string.script_revolution_yr,		// スクリプト
+		// 以下アニメーション動作
+		R.string.anim_headlights_flash,
+		R.string.anim_headlights_blink,
+		R.string.anim_headlights_oscillation,
+		R.string.anim_spin,
+		R.string.anim_tap,
+		R.string.anim_slow_shake,
+		R.string.anim_metronome,
+		R.string.anim_ondulation,
+		R.string.anim_spin_jump,
+		R.string.anim_spin_to_posture,
+		R.string.anim_spiral,
+		R.string.anim_slalome,
+		R.string.anim_boost,
 	};
 
 	/**
@@ -1110,7 +1151,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void startTouchMove() {
 		if (DEBUG) Log.v(TAG, "startTouchMove:");
-		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
+		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isPlaying()) {
 			mTouchMoveRunning = true;
 			try {
 				mTouchFlight.prepare((float)mMaxControlValue, (float)mScaleX, (float)mScaleY, (float)mScaleZ, (float)mScaleR);
@@ -1134,6 +1175,34 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	}
 
+	/**
+	 * アニメーション動作開始指示
+	 * @param anim
+	 */
+	private void startAnimationAction(final int anim) {
+		// FIXME 実行開始したアニメーション動作を保持してコールバック&stopAnimationActionで更新するようにした方がいいのかも
+		if (!mFlightRecorder.isPlaying()) {
+			mController.sendStartAnimation(anim);
+			updateButtons();
+		}
+	}
+
+	/**
+	 * アニメーション動作停止指示
+	 * @param anim
+	 */
+	private void stopAnimationAction(final int anim) {
+		mController.sendStopAnimation(anim);
+	}
+
+	/**
+	 * アニメーション動作を全て停止
+	 */
+	private void stopAnimationActionAll() {
+		mController.sendStopAllAnimation();
+		updateButtons();
+	}
+
 	private static final String asString(final int[] values) {
 		final int n = values != null ? values.length : 0;
 		final StringBuilder sb = new StringBuilder();
@@ -1142,7 +1211,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 		return sb.toString();
 	}
-
 
 	/**
 	 * 自動フライト実行時のコールバックリスナー
@@ -1745,8 +1813,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mSideMenuListView.setOnItemClickListener(mOnItemClickListener);
 				}
 				final List<String> labelList = new ArrayList<String>();
-				for (int i = 0; i < SCRIPTS.length; i++) {
-					labelList.add(SCRIPTS[i]);
+				for (int i = 0; i < SIDE_MENU_ITEMS.length; i++) {
+					labelList.add(getString(SIDE_MENU_ITEMS[i]));
 				}
 				ListAdapter adapter = mSideMenuListView.getAdapter();
 				if (adapter instanceof SideMenuAdapter) {
@@ -1791,7 +1859,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (DEBUG) Log.v(TAG, "onItemClick:" + position);
 			final MainActivity activity = (MainActivity)getActivity();
 			activity.closeSideMenu();
-			startScript(position);
+			if ((position >= 0) && (position <= SCRIPT_NUM)) {
+				startScript(position);
+			} else {
+				startAnimationAction(position - SCRIPT_NUM);
+			}
 		}
 	};
 

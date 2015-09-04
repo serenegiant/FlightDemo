@@ -315,12 +315,23 @@ public abstract class ControlFragment extends Fragment {
 		}
 	}
 
+	/**
+	 * バッテリー残量が変化した時のコールバック
+	 */
 	protected void updateBattery() {
 	}
 
+	/**
+	 * 飛行ステータスが変化した時のコールバック
+	 * @param state
+	 */
 	protected void updateFlyingState(final int state) {
 	}
 
+	/**
+	 * 異常ステータスが変化した時のコールバック
+	 * @param alert_state
+	 */
 	protected void updateAlarmState(final int alert_state) {
 	}
 

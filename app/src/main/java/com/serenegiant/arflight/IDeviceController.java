@@ -13,6 +13,7 @@ public interface IDeviceController {
 	public static final int FLIP_LEFT = 4;
 
 	// アニメーション動作の種類
+	public static final int ANIM_NON = -1;
 	public static final int ANIM_HEADLIGHTS_FLASH = 0;
 	public static final int ANIM_HEADLIGHTS_BLINK = 1;
 	public static final int ANIM_HEADLIGHTS_OSCILLATION = 2;

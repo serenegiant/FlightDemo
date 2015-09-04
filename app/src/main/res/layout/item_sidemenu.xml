@@ -16,6 +16,6 @@
         android:gravity="left|center_vertical"
         android:minHeight="64dp"
         android:text="TextView"
-        android:textSize="@dimen/text_sz_button"/>
+        android:textSize="@dimen/text_sz_side_menu_item"/>
 
 </com.serenegiant.widget.CheckableRelativeLayout>
