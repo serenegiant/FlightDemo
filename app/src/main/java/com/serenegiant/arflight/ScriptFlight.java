@@ -221,6 +221,76 @@ public class ScriptFlight implements IAutoFlight {
 				return null;
 			}
 		});
+		// 機体のroll角[度]を取得(Rollingspiderは出力している値, Bebopは機体から受信した値)
+		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getRoll", "") {
+			@Override
+			protected Object execute(final List<Number> args) {
+				Number result = null;
+				try {
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getRoll:" + args);
+					result = (mAutoFlightListener.getAttitude(0));
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+				return result;
+			}
+		});
+		// 機体のpitch角[度]を取得(Rollingspiderは出力している値, Bebopは機体から受信した値)
+		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getPitch", "") {
+			@Override
+			protected Object execute(final List<Number> args) {
+				Number result = null;
+				try {
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getPitch:" + args);
+					result = (mAutoFlightListener.getAttitude(1));
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+				return result;
+			}
+		});
+		// 機体のyaw角[度]を取得(Rollingspiderは出力している値, Bebopは機体から受信した値)
+		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getYaw", "") {
+			@Override
+			protected Object execute(final List<Number> args) {
+				Number result = null;
+				try {
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getYaw:" + args);
+					result = (mAutoFlightListener.getAttitude(2));
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+				return result;
+			}
+		});
+		// 機体の高度[m]を取得
+		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getGaz", "") {
+			@Override
+			protected Object execute(final List<Number> args) {
+				Number result = null;
+				try {
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getGaz:" + args);
+					result = (mAutoFlightListener.getAttitude(3));
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+				return result;
+			}
+		});
+		// 機体の方向を取得
+		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getCompass", "") {
+			@Override
+			protected Object execute(final List<Number> args) {
+				Number result = null;
+				try {
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getCompass:" + args);
+					result = (mAutoFlightListener.getAttitude(4));
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+				return result;
+			}
+		});
 	}
 
 	/**

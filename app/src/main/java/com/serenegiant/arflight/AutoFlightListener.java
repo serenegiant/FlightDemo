@@ -23,6 +23,12 @@ public interface AutoFlightListener {
 	public boolean onStep(final int cmd, final int[] values, final long t);
 
 	/**
+	 * 機体姿勢を取得
+	 * @param axis, 0:roll, 1:pitch, 2:yaw, 3:gaz, 4:compass
+	 * @return
+	 */
+	public float getAttitude(final int axis);
+	/**
 	 * 自動フライト停止
 	 */
 	public void onStop();

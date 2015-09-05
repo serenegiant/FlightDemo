@@ -1310,6 +1310,29 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 
 		@Override
+		public float getAttitude(int axis) {
+			if (axis >= 0 && axis < 3) {
+				final Vector attitude = new Vector(mController.getAttitude());
+				attitude.toDegree();
+				switch (axis) {
+				case 0:    // roll
+					return attitude.x;
+				case 1:    // pitch
+					return attitude.y;
+				case 2:    // yaw
+					return attitude.z;
+				}
+			} else {
+				switch (axis) {
+				case 3:    // gaz
+					return mController.getAltitude();
+				case 4:    // compass
+				}
+			}
+			return 0;
+		}
+
+		@Override
 		public void onStop() {
 			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStop:");
 			stopPlay();
