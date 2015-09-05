@@ -863,6 +863,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * (MiniDroneの時は何もしない)
 	 */
 	private void startSensor() {
+		for (int i = 0; i < 3; i++) {
+			mMagnetValues[i] = mGravityValues[i] = mAzimuthValues[i] = 0;
+//			mAccelValues[i] = mGyroValues[i] = 0;
+		}
 		if (mController instanceof DeviceControllerMiniDrone) return;
 		final Display display = getActivity().getWindowManager().getDefaultDisplay();
 		mRotation = display.getRotation();
@@ -1349,29 +1353,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					|| (mCurrentYaw != yaw)
 					|| (mCurrentAltitude != altitude)) {
 
-//					synchronized (mUpdateStatusUITask) {
 						mCurrentRoll = mAttitude.x();
 						mCurrentPitch = mAttitude.y();
 						mCurrentYaw = yaw;
 						mCurrentAltitude = altitude;
 						mModelView.setAttitude(mCurrentRoll, mCurrentPitch, yaw, altitude);
-//						postUIThread(mUpdateStatusUITask, 1);
-//					}
 				}
 			}
 			post(this, 50);	// 50ミリ秒=1秒間に最大で約20回更新
-		}
-	};
-
-	/**
-	 * ポーリングによるステータス更新処理のUIスレッドでの実行部
-	 */
-	private final Runnable mUpdateStatusUITask = new Runnable() {
-		@Override
-		public synchronized void run() {
-//			final String s = String.format("%5.1f,%5.1f,%5.1f/%5.1f", mCurrentRoll, mCurrentPitch, mCurrentYaw, mCurrentAltitude);
-//			if (DEBUG) Log.v(TAG, "Attitude:" + s);
-//			mModelView.setAttitude(mCurrentRoll, mCurrentPitch, mCurrentYaw, mCurrentAltitude);
 		}
 	};
 

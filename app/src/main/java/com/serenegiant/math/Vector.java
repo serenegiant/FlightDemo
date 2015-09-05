@@ -11,8 +11,8 @@ public class Vector implements Serializable, Cloneable {
 	 */
 	private static final long serialVersionUID = 1620440892067002860L;
 
-	public static final float TO_RADIAN = (1 / 180.0f) * (float)Math.PI;
-	public static final float TO_DEGREE = (1 / (float)Math.PI) * 180.0f;
+	public static final float TO_RADIAN = (float)(Math.PI / 180.0f);
+	public static final float TO_DEGREE = (float)(180.0f / Math.PI);
 
 	public static final Vector zeroVector = new Vector();
 	public static final Vector normVector = new Vector(1,1,1);
@@ -53,23 +53,52 @@ public class Vector implements Serializable, Cloneable {
 		return result;
 	}
 
+	/**
+	 * ベクトルの各成分に指定したスカラ値をセット
+	 * @param scalar
+	 * @return
+	 */
 	public Vector clear(final float scalar) {
 		x = y = z = scalar;
 		return this;
 	}
 
+	/**
+	 * ベクトルの各成分に指定したスカラ値をセット, zは0
+	 * @param x
+	 * @param y
+	 * @return
+	 */
 	public Vector set(final float x, final float y) {
 		return set(x, y, 0.0f);
 	}
 
+	/**
+	 * ベクトルに指定したベクトルをセット v = v'
+	 * @param v
+	 * @return
+	 */
 	public Vector set(final Vector v) {
 		return set(v.x, v.y, v.z);
 	}
 
+	/**
+	 * ベクトルに指定したベクトルをセット(スケール変換あり) v' = v * a
+	 * @param v
+	 * @param a
+	 * @return
+	 */
 	public Vector set(final Vector v, final float a) {
 		return set(v.x, v.y, v.z, a);
 	}
 
+	/**
+	 * ベクトルの各成分に指定したスカラ値をセット v = (x,y,z)
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
 	public Vector set(final float x, final float y, final float z) {
 		this.x = x;
 		this.y = y;
@@ -77,6 +106,14 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
+	/**
+	 * ベクトルの各成分に指定したスカラ値をセット(スケール変換有り) v = (x,y,z) * a
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param a
+	 * @return
+	 */
 	public Vector set(final float x, final float y, final float z, final float a) {
 		this.x = x * a;
 		this.y = y * a;
@@ -84,34 +121,71 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
+	/**
+	 * x成分値を取得
+	 * @return
+	 */
 	public float x() {
 		return x;
 	}
 
+	/**
+	 * x成分値をセット
+	 * @param x
+	 */
 	public void x(final float x) {
 		this.x = x;
 	}
 
+	/**
+	 * y成分値を取得
+	 * @return
+	 */
 	public float y() {
 		return y;
 	}
 
+	/**
+	 * y成分値をセット
+	 * @param y
+	 */
 	public void y(final float y) {
 		this.y = y;
 	}
 
+	/**
+	 * z成分値を取得
+	 * @return
+	 */
 	public float z() {
 		return z;
 	}
 
+	/**
+	 * z成分値をセット
+	 * @param z
+	 */
 	public void z(final float z) {
 		this.z = z;
 	}
 
+	/**
+	 * ベクトルに加算 v = v + (x,y,0)
+	 * @param x
+	 * @param y
+	 * @return
+	 */
 	public Vector add(final float x, final float y) {
 		return add(x, y, 0.0f);
 	}
 
+	/**
+	 * ベクトルを加算 v = v + (x,y,z)
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
 	public Vector add(final float x, final float y, final float z) {
 		this.x += x;
 		this.y += y;
@@ -119,6 +193,14 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
+	/**
+	 * ベクトルを加算(スケール変換有り)v = v + (x,y,z)*a
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param a
+	 * @return
+	 */
 	public Vector add(final float x, final float y, final float z, final float a) {
 		this.x += x * a;
 		this.y += y * a;
@@ -126,18 +208,40 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
+	/**
+	 * ベクトルを加算 v = v + v'
+	 * @param v
+	 * @return
+	 */
 	public Vector add(final Vector v) {
 		return add(v.x, v.y, v.z);
 	}
 
+	/**
+	 * ベクトルを加算(スケール変換有り) v = v + v' * a
+	 * @param v
+	 * @param a
+	 * @return
+	 */
 	public Vector add(final Vector v, final float a) {
 		return add(v.x, v.y, v.z, a);
 	}
 
+	/**
+	 * ベクトルを減算 v = v - (x,y,0)
+	 * @param x
+	 * @param y
+	 * @return
+	 */
 	public Vector sub(final float x, final float y) {
 		return add(-x, -y, 0.0f);
 	}
 
+	/**
+	 * ベクトルを減算 v = v - v'
+	 * @param v
+	 * @return
+	 */
 	public Vector sub(final Vector v) {
 		return add(-v.x, -v.y, -v.z);
 	}
@@ -146,15 +250,32 @@ public class Vector implements Serializable, Cloneable {
 		return add(-v.x, -v.y, -v.z, a);
 	}
 
+	/**
+	 * ベクトルを減算 v = v - (x,y,z)
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
 	public Vector sub(final float x, final float y, final float z) {
 		return add(-x, -y, -z);
 	}
 
+	/**
+	 * ベクトルを減算(スケール変換有り)v = v - (x,y,z)*a
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @param a
+	 * @return
+	 */
 	public Vector sub(final float x, final float y, final float z, final float a) {
 		return add(-x, -y, -z, a);
 	}
 
-	// ベクトルにスカラ値をかけ算
+	/**
+	 * ベクトルの各成分にスカラ値をかけ算
+	 */
 	public Vector mult(final float scalar) {
 		this.x *= scalar;
 		this.y *= scalar;
@@ -162,12 +283,16 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
-	// ベクトルをスカラ値で割り算
+	/**
+	 * ベクトルの各成分をスカラ値で割り算
+	 */
 	public Vector div(final float scalar) {
 		return mult(1 / scalar);
 	}
 
-	// ベクトルをスカラ値で剰余計算
+	/**
+	 * ベクトルの各成分をスカラ値で剰余計算
+	 */
 	public Vector mod(final float scalar) {
 		this.x %= scalar;
 		this.y %= scalar;
@@ -191,6 +316,11 @@ public class Vector implements Serializable, Cloneable {
 		return mult(TO_DEGREE);
 	}
 
+	/**
+	 * x,y,z各成分を指定した値[-scalar, +scalar]に収まるように制限する
+	 * @param scalar
+	 * @return
+	 */
 	public Vector limit(final float scalar) {
 		while (x >= scalar) x -= scalar;
 		while (x < -scalar) x += scalar;
@@ -201,17 +331,23 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
-	// ベクトルの長さを取得
+	/**
+	 * ベクトルの長さを取得
+	 */
 	public float len() {
 		return (float)Math.sqrt(x * x + y * y + z * z);
 	}
 
-	// ベクトルの長さの２乗を取得
+	/**
+	 * ベクトルの長さの２乗を取得
+	 */
 	public float lenSquared() {
 		return x * x + y * y + z * z;
 	}
 
-	// ベクトルを正規化(長さを1にする)
+	/**
+	 * ベクトルを正規化(長さを1にする)
+	 */
 	public Vector normalize() {
 		final float len = len();
 		if (len != 0) {
@@ -222,31 +358,41 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
-	// ベクトルの内積を取得
-	// 標準化ベクトルv2を含む直線にベクトルv1を真っ直ぐ下ろした（正射影した）時の長さ
+	/**
+	 * ベクトルの内積を取得
+	 * 標準化ベクトルv2を含む直線にベクトルv1を真っ直ぐ下ろした（正射影した）時の長さ
+	 */
 	public float dotProduct(final Vector v) {
 		return x * v.x + y * v.y + z * v.z;
 	}
 
-	// ベクトルの内積を取得
+	/**
+	 * ベクトルの内積を取得
+	 */
 	public float dotProduct(final float x, final float y, final float z) {
 		return this.x * x + this.y * y + this.z * z;
 	}
 
-	// ベクトルの外積を計算(2D)
-	// v1×v2= x1*y2-x2*y1 = |v1||v2|sin(θ)
+	/**
+	 * ベクトルの外積を計算(2D)
+	 * v1×v2= x1*y2-x2*y1 = |v1||v2|sin(θ)
+	 */
 	public float crossProduct2(final Vector v) {
 		return x * v.y - v.x * y;
 	}
 
-	// ベクトルの外積を計算(3D)
-	// v1×v2= (y1*z2-z1*y2, z1*x2-x1*z2, x1*y2-y1*x2) = (x3, y3, z3) =  v3
-	// 2つのベクトルに垂直な方向を向いた大きさが|v1||v2|sinθのベクトル
+	/*
+	 * ベクトルの外積を計算(3D)
+	 * v1×v2= (y1*z2-z1*y2, z1*x2-x1*z2, x1*y2-y1*x2) = (x3, y3, z3) =  v3
+	 * 2つのベクトルに垂直な方向を向いた大きさが|v1||v2|sinθのベクトル
+	 */
 	public Vector crossProduct(final Vector v) {
 		return crossProduct(this, this, v);
 	}
 
-	// ベクトルの外積を計算(3D)
+	/**
+	 * ベクトルの外積を計算(3D)
+	 */
 	public static Vector crossProduct(final Vector v3, final Vector v1, final Vector v2) {
 		final float x3 = v1.y * v2.z - v1.z * v2.y;
 		final float y3 = v1.z * v2.x - v1.x * v2.z;
@@ -255,7 +401,9 @@ public class Vector implements Serializable, Cloneable {
 		return v3;
 	}
 
-	// XY平面上でベクトルとX軸の角度を取得
+	/**
+	 * XY平面上でベクトルとX軸の角度を取得
+	 */
 	public float angleXY() {
 		float angle = (float)Math.atan2(y, x) * TO_DEGREE;
 		if (angle < 0)
@@ -263,7 +411,9 @@ public class Vector implements Serializable, Cloneable {
 		return angle;
 	}
 
-	// XZ平面上でベクトルとX軸の角度を取得
+	/**
+	 * XZ平面上でベクトルとX軸の角度を取得
+	 */
 	public float angleXZ() {
 		float angle = (float)Math.atan2(z, x) * TO_DEGREE;
 		if (angle < 0)
@@ -271,7 +421,9 @@ public class Vector implements Serializable, Cloneable {
 		return angle;
 	}
 
-	// YZ平面上でベクトルとY軸の角度を取得
+	/**
+	 * YZ平面上でベクトルとY軸の角度を取得
+	 */
 	public float angleYZ() {
 		float angle = (float)Math.atan2(z, y) * TO_DEGREE;
 		if (angle < 0)
@@ -279,11 +431,15 @@ public class Vector implements Serializable, Cloneable {
 		return angle;
 	}
 
-	// ベクトル間の角度を取得
-	// ベクトル１ Za=(X1,Y1,Z1)、ベクトル２ Zb=(X2,Y2,Z2)、求める角φとすると、
-	// cos φ ＝ Za・Zb / (|Za| |Zb|)
-	//  =(X1X2+Y1Y2+Z1Z2) / √{(X1^2 + Y1^2 + Z1^2)(X2^2 + Y2^2 + Z2^2)}
-	// 上式のアークコサイン(cos^-1)を取ればOK。
+	/**
+	 * ベクトル間の角度を取得
+	 * ベクトル１ Za=(X1,Y1,Z1)、ベクトル２ Zb=(X2,Y2,Z2)、求める角φとすると、
+	 * cos φ ＝ Za・Zb / (|Za| |Zb|)
+	 *  =(X1X2+Y1Y2+Z1Z2) / √{(X1^2 + Y1^2 + Z1^2)(X2^2 + Y2^2 + Z2^2)}
+	 *  上式のアークコサイン(cos^-1)を取ればOK。
+	 * @param v
+	 * @return
+	 */
 	public float getAngle(final Vector v) {
 		final double cos = dotProduct(v) / (float)Math.sqrt(lenSquared() * v.lenSquared());
 		return (float)Math.acos(cos) * TO_DEGREE;
@@ -304,7 +460,9 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
-	// Y軸周りに(XZ平面上で)ベクトルを指定した角度[度]回転させる
+	/**
+	 * Y軸周りに(XZ平面上で)ベクトルを指定した角度[度]回転させる
+	 */
 	public Vector rotateXZ(final float angle) {
 		final float rad = angle * TO_RADIAN;
 		final float cos = (float)Math.cos(rad);
@@ -319,7 +477,9 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
-	// X軸周りに(YZ平面上で)ベクトルを指定した角度[度]回転させる
+	/**
+	 * X軸周りに(YZ平面上で)ベクトルを指定した角度[度]回転させる
+	 */
 	public Vector rotateYZ(final float angle) {
 		final float rad = angle * TO_RADIAN;
 		final float cos = (float)Math.cos(rad);
@@ -334,8 +494,15 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
-	// ベクトルを回転
-	// x軸：(1,0,0), y軸(0,1,0), z軸(0,0,1)
+	/**
+	 * ベクトルを回転(スレッドセーフではない)
+	 * x軸：(1,0,0), y軸(0,1,0), z軸(0,0,1)
+	 * @param angle [度]
+	 * @param axisX
+	 * @param axisY
+	 * @param axisZ
+	 * @return
+	 */
 	public Vector rotate(final float angle, final float axisX, final float axisY, final float axisZ) {
 		inVec[0] = x;
 		inVec[1] = y;
@@ -350,10 +517,25 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
+	/**
+	 * ベクトルを回転(スレッドセーフではない)
+	 * @param angleX [度]
+	 * @param angleY [度]
+	 * @param angleZ [度]
+	 * @return
+	 */
 	public Vector rotate(final float angleX, final float angleY, final float angleZ) {
 		return rotate(this, angleX, angleY, angleZ);
 	}
 
+	/**
+	 * ベクトルを回転(スレッドセーフではない)
+	 * @param v 回転させるベクトル
+	 * @param angleX [度]
+	 * @param angleY [度]
+	 * @param angleZ [度]
+	 * @return
+	 */
 	public static Vector rotate(final Vector v, final float angleX, final float angleY, final float angleZ) {
 		inVec[0] = v.x;
 		inVec[1] = v.y;
@@ -373,6 +555,14 @@ public class Vector implements Serializable, Cloneable {
 		return v;
 	}
 
+	/**
+	 * ベクトル配列内の各ベクトルを回転(スレッドセーフでは無い)
+	 * @param v ベクトル配列
+	 * @param angleX [度]
+	 * @param angleY [度]
+	 * @param angleZ [度]
+	 * @return
+	 */
 	public static Vector[] rotate(final Vector[] v, final float angleX, final float angleY, final float angleZ) {
 		Matrix.setIdentityM(matrix, 0);
 		if (angleX != 0)
@@ -396,6 +586,12 @@ public class Vector implements Serializable, Cloneable {
 		return v;
 	}
 
+	/**
+	 * ベクトルを回転(スレッドセーフではない) v = v#rot(angle * a)
+	 * @param angle 回転角, 各成分は [度]
+	 * @param a　スケール変換
+	 * @return
+	 */
 	public Vector rotate(final Vector angle, final float a) {
 		rotate(angle.x * a, angle.y * a, angle.z * a);
 		return this;
@@ -405,6 +601,13 @@ public class Vector implements Serializable, Cloneable {
 		return rotate(angle.x, angle.y, angle.z);
 	}
 
+	/**
+	 * 逆回転(スレッドセーフではない)
+	 * @param angleX
+	 * @param angleY
+	 * @param angleZ
+	 * @return
+	 */
 	public Vector rotate_inv(final float angleX, final float angleY, final float angleZ) {
 		inVec[0] = x;
 		inVec[1] = y;
@@ -424,16 +627,31 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
+	/**
+	 * 逆回転(スレッドセーフではない)
+	 * @param angle
+	 * @param a
+	 * @return
+	 */
 	public Vector rotate_inv(final Vector angle, final float a) {
 		rotate_inv(angle.x * a, angle.y * a, angle.z * a);
 		return this;
 	}
 
+	/**
+	 * 逆回転(スレッドセーフではない)
+	 * @param angle
+	 * @return
+	 */
 	public Vector rotate_inv(final Vector angle) {
 		rotate_inv(angle, -1f);
 		return this;
 	}
 
+	/**
+	 * クオータニオンとして取得(4番目の成分は1)
+	 * @return
+	 */
 	public float[] getQuat() {
 		final float[] q = new float[4];
 		q[0] = x;
@@ -443,6 +661,11 @@ public class Vector implements Serializable, Cloneable {
 		return q;
 	}
 
+	/**
+	 * クオータニオンをセット(4番目の成分は無視される)
+	 * @param q
+	 * @return
+	 */
 	public Vector setQuat(final float[] q) {
 		x = q[0];
 		y = q[1];
@@ -450,27 +673,60 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
-	// ベクトル間の距離を取得する
+	/**
+	 * ベクトル間の距離を取得する
+	 */
 	public float distance(final Vector v) {
 		return distance(v.x, v.y, v.z);
 	}
 
+	/**
+	 * ベクトル間の距離を取得する
+	 * @param x
+	 * @param y
+	 * @return
+	 */
 	public float distance(final float x, final float y) {
 		return distance(x, y, this.z);
 	}
 
+	/**
+	 * ベクトル間の距離を取得する
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
 	public float distance(final float x, final float y, final float z) {
 		return (float)Math.sqrt(distSquared(x, y, z));
 	}
 
+	/**
+	 * ベクトル間の距離の2乗を取得する
+	 * @param v
+	 * @return
+	 */
 	public float distSquared(final Vector v) {
 		return distSquared(v.x, v.y, v.z);
 	}
 
+	/**
+	 * ベクトル間の距離の2乗を取得する
+	 * @param x
+	 * @param y
+	 * @return
+	 */
 	public float distSquared(final float x, final float y) {
 		return distSquared(x, y, this.z);
 	}
 
+	/**
+	 * ベクトル間の距離の2乗を取得する
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
 	public float distSquared(final float x, final float y, final float z) {
 		final float dx = this.x - x;
 		final float dy = this.y - y;
@@ -478,7 +734,9 @@ public class Vector implements Serializable, Cloneable {
 		return dx * dx + dy * dy + dz * dz;
 	}
 
-	// ベクトルの各成分を交換
+	/**
+	 * ベクトルの各成分を交換
+	 */
 	public Vector swap(final Vector v) {
 		float w = x; x = v.x; v.x = w;
 		w = y; y = v.y; v.y = w;
@@ -486,13 +744,17 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
-	// x成分とy成分を交換
+	/**
+	 * x成分とy成分を交換
+	 */
 	public Vector swapXY() {
 		final float w = x; x = y; y = w;
 		return this;
 	}
 
-	// 傾き
+	/**
+	 * 2つのベクトルで示す点を通る直線の傾きを取得(2D)
+	 */
 	public float slope(final Vector v) {
 		if (v.x != x)
 			return (v.y - y) / (v.x - x);
@@ -500,6 +762,10 @@ public class Vector implements Serializable, Cloneable {
 			return (v.y - y >= 0 ? Float.MAX_VALUE : Float.MIN_VALUE);
 	}
 
+	/**
+	 * 原点とこのベクトルが示す点を通る直線の傾きを取得(2D)
+	 * @return
+	 */
 	public float slope() {
 		if (x != 0)
 			return y / x;
@@ -512,7 +778,7 @@ public class Vector implements Serializable, Cloneable {
 		return String.format(Locale.US, "(%f,%f,%f)", x, y, z);
 	}
 
-/*	public String toString(String fmt) {
+	public String toString(String fmt) {
 		return String.format(Locale.US, fmt, x, y, z);
-	} */
+	}
 }

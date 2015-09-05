@@ -113,9 +113,9 @@ public abstract class DeviceController implements IDeviceController {
 	private final Object mStateSync = new Object();
 	private int mState = STATE_STOPPED;
 
-	protected final Object mDataSync = new Object();
+	private final Object mDataSync = new Object();
 	private final DataPCMD mDataPCMD = new DataPCMD();
-	private final DataPCMD mSendingPCMD = new DataPCMD();
+//	private final DataPCMD mSendingPCMD = new DataPCMD();
 
 	private final Object mListenerSync = new Object();
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
@@ -1802,6 +1802,14 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	protected void getPCMD(final DataPCMD dest) {
+		if (dest != null) {
+			synchronized (mDataSync) {
+				dest.set(mDataPCMD);
+			}
+		}
+	}
+
 	/**
 	 * 最大高度設定値を返す
 	 * @return
@@ -2169,7 +2177,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/** 操縦コマンドの値保持用 */
-	private static final class DataPCMD {
+	protected static final class DataPCMD {
 		public int flag;
 		public float roll;
 		public float pitch;

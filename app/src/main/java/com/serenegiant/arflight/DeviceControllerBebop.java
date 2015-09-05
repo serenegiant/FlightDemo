@@ -1151,10 +1151,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError;
-		synchronized (mDataSync) {
-			cmdError = cmd.setARDrone3PilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, heading);
-		}
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, heading);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dNackId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);

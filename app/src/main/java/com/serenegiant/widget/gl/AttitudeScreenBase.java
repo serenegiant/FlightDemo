@@ -76,7 +76,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		// 視線カメラ
 		lookAtCamera = new GLLookAtCamera(
 			67, screenWidth / (float)screenHeight, 0.01f, 40f);
-		lookAtCamera.setPosition(-4.5f, 4, -4.5f);
+		lookAtCamera.setPosition(0, 4, -6.4f);
 
 		initModel();
 	}
@@ -105,8 +105,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		// 右後ローター
 		rearRightRotorModel.setPosition(droneObj.mRearRightRotorObj.position);
 		rearRightRotorModel.rotate(droneObj.mRearRightRotorObj.angle);
-		// 視点カメラ
-		lookAtCamera.setLookAt(droneModel.getPosition());	// 常に機体の方向を向くようにする
+		updateCamera(deltaTime);
 	}
 
 	protected void drawBackground(final GL10 gl) {
@@ -229,19 +228,17 @@ public abstract class AttitudeScreenBase extends GLScreen {
 
 	@Override
 	public void onTouchEvent(final TouchEvent event) {
-
 	}
 
 	@Override
 	public void onAccelEvent() {
-
 	}
 
 	/**
 	 * 機体姿勢をセット
 	 * @param roll 左右の傾き[度], 0は水平
 	 * @param pitch 前後の傾き(機種の上げ下げ)[度], 0は水平
-	 * @param yaw 水平回転[-180,+180][度], 0は端末の向きと一致
+	 * @param yaw 水平回転[度], 0は端末の向きと一致
 	 * @param gaz 高さ[m]
 	 */
 	public void setAttitude(final float roll, final float pitch, final float yaw, final float gaz) {
@@ -255,6 +252,64 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			angle.y = yaw;
 			// FIXME 高度・・・カメラワーク・・・は未実装
 		}
+	}
+
+	// 今のカメラの初期位置(-4.5f,4.0f,-4.5f)だと距離が約18.55
+	private static final float DISTANCE_MAX = 24f;
+	private static final float DISTANCE_MIN = 14f;
+	private static final float DISTANCE_AVE = (DISTANCE_MAX + DISTANCE_MIN) / 2.0f;
+	private static final float DISTANCE_MAX2 = DISTANCE_MAX * DISTANCE_MAX;
+	private static final float DISTANCE_MIN2 = DISTANCE_MIN * DISTANCE_MIN;
+	private static final float DISTANCE_AVE2 = DISTANCE_AVE * DISTANCE_AVE;
+	private static final float SPEED_FACTOR = 0.1f;
+	private static final float ACCEL_FACTOR = 1.0f;
+
+	private final Vector prevAngle = new Vector();		// 前回の機体姿勢
+	private final Vector deltaAngle = new Vector();		// 機体姿勢の変化量
+	protected final Vector mCameraSpeed = new Vector();	// カメラの移動速度
+	protected final Vector mCameraAccel = new Vector();	// カメラ移動の加速度
+
+	/**
+	 * 視点カメラの位置を計算
+	 * @param deltaTime
+	 */
+	private void updateCamera(final float deltaTime) {
+		if (mCtrlType != CTRL_RANDOM) {
+			deltaAngle.set(prevAngle);
+			synchronized (mDroneSync) {
+				deltaAngle.sub(droneObj.angle).toRadian();	// 前回と今回の機体姿勢の変化量[ラジアン]
+				prevAngle.set(droneObj.angle);	// 今回の機体姿勢を保存[度]
+			}
+			// 機体の位置は常に(0,0,0)なのでカメラ位置=カメラ位置と機体位置の差ベクトル
+			final Vector cameraPos = lookAtCamera.getPosition();
+			// 機体とカメラの距離
+			final float distance = cameraPos.len();
+			if (distance > DISTANCE_MAX) {
+				// 距離が離れすぎないようにする
+				cameraPos.mult(DISTANCE_MAX / distance);
+				mCameraAccel.mult(0);
+			} else if (distance < DISTANCE_MIN) {
+				// 距離が近づき過ぎないようにする
+				cameraPos.mult(DISTANCE_MIN / distance);
+				mCameraAccel.mult(0);
+			}
+			// 機体のroll/pitch角に応じて機体の加速度が変化するので加速度に換算
+			deltaAngle.z = (float)Math.sin(deltaAngle.z) * ACCEL_FACTOR;	// roll
+			deltaAngle.x = (float) Math.sin(deltaAngle.x) * ACCEL_FACTOR;	// pitch
+			deltaAngle.y = 0;
+			// 機体の加速度のx/zそれぞれの軸方向の成分を計算
+			deltaAngle.rotateXZ(prevAngle.y);	// 機体の加速度
+			deltaAngle.mult(-1.0f);    			// カメラは機体の移動と逆方向に動かす
+			mCameraAccel.add(deltaAngle);		// カメラの加速度へ加算
+			// 機体に追随させるために機体方向にも加速度を加算
+			mCameraAccel.add(1f, 0f, 1f, deltaTime * (DISTANCE_AVE - distance) * ACCEL_FACTOR);
+			// カメラの位置を計算・・・現在位置に加速度✕時間を加算
+			cameraPos.add(mCameraAccel.z, 0, mCameraAccel.x, deltaTime * SPEED_FACTOR);
+			// 加速度を減衰させる
+			mCameraAccel.mult(1 - deltaTime * 0.05f);	// 今は1秒で0.05=5%減衰
+		}
+		// 最後に常に機体の方向を向くようにする
+		lookAtCamera.setLookAt(droneModel.getPosition());
 	}
 
 	/**

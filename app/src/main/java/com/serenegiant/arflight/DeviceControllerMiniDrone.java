@@ -32,7 +32,6 @@ import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateWheelsCha
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 
-
 public class DeviceControllerMiniDrone extends DeviceController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceControllerMiniDrone";
@@ -421,10 +420,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError;
-		synchronized (mDataSync) {
-			cmdError = cmd.setMiniDronePilotingPCMD((byte)flag, (byte)roll, (byte)pitch, (byte)yaw, (byte)gaz, heading);
-		}
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingPCMD((byte)flag, (byte)roll, (byte)pitch, (byte)yaw, (byte)gaz, heading);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dNackId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -628,7 +624,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 	@Override
 	public boolean canGetAttitude() {
-		return false;
+		return true;
 	}
 
 	/**
@@ -704,6 +700,88 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		}
 
 		return sentStatus;
+	}
+
+	@Override
+	public void setGaz(float gaz) {
+		super.setGaz(gaz);
+		updateAttitude();
+	}
+
+	@Override
+	public void setHeading(float heading) {
+		super.setHeading(heading);
+		updateAttitude();
+	}
+
+	@Override
+	public void setMove(float roll, float pitch) {
+		super.setMove(roll, pitch);
+		updateAttitude();
+	}
+
+	@Override
+	public void setMove(float roll, float pitch, float gaz) {
+		super.setMove(roll, pitch, gaz);
+		updateAttitude();
+	}
+
+	@Override
+	public void setMove(float roll, float pitch, float gaz, float yaw) {
+		super.setMove(roll, pitch, gaz, yaw);
+		updateAttitude();
+	}
+
+	@Override
+	public void setMove(float roll, float pitch, float gaz, float yaw, int flag) {
+		super.setMove(roll, pitch, gaz, yaw, flag);
+		updateAttitude();
+	}
+
+	@Override
+	public void setPitch(float pitch) {
+		super.setPitch(pitch);
+		updateAttitude();
+	}
+
+	@Override
+	public void setPitch(float pitch, boolean move) {
+		super.setPitch(pitch, move);
+		updateAttitude();
+	}
+
+	@Override
+	public void setRoll(float roll) {
+		super.setRoll(roll);
+		updateAttitude();
+	}
+
+	@Override
+	public void setRoll(float roll, boolean move) {
+		super.setRoll(roll, move);
+		updateAttitude();
+	}
+
+	@Override
+	public void setYaw(float yaw) {
+		super.setYaw(yaw);
+		updateAttitude();
+	}
+
+	private static final float TO_RADIAN = (float)(Math.PI / 180.0f);
+	private final DataPCMD mAttitudePCMD = new DataPCMD();
+	/**
+	 * 機体姿勢を更新
+	 */
+	private void updateAttitude() {
+		getPCMD(mAttitudePCMD);	// 現在の操縦コマンドを取得
+		final float tilt_rate = mSettings.maxTilt().current() * 2;	// 傾き[度/100]
+		final float roll = mAttitudePCMD.flag == 0 ? 0 : tilt_rate * mAttitudePCMD.roll / 100f * TO_RADIAN;
+		final float pitch = mAttitudePCMD.flag == 0 ? 0 : -tilt_rate * mAttitudePCMD.pitch / 100f * TO_RADIAN;
+		final float rot_rate = mSettings.maxRotationSpeed().current() / 5;	// 回転速度
+		final float yaw = rot_rate * mAttitudePCMD.yaw / 100 * TO_RADIAN;
+		mStatus.setAttitude(roll, pitch, yaw);
+		// FIXME yaw軸は機体の向きを変えるだけじゃなくて実際に回転の計算をした方がいいかも
 	}
 
 	/**

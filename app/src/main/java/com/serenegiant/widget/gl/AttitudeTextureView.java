@@ -47,7 +47,7 @@ public class AttitudeTextureView extends GLTextureModelView {
 	 * @param gaz 高さ移動量 [-100,100] 単位未定
 	 */
 	public void setAttitude(final float roll, final float pitch, final float yaw, final float gaz) {
-		if (mScreen instanceof  AttitudeScreenBase) {
+		if (mScreen instanceof AttitudeScreenBase) {
 			((AttitudeScreenBase)mScreen).setAttitude(roll, pitch, yaw, gaz);
 		}
 	}

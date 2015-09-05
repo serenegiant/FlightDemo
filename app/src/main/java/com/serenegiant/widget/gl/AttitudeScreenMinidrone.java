@@ -58,7 +58,7 @@ public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 		}
 		// 3Dモデルの読み込み
 		final FileIO io = mModelView.getFileIO();
-		final StaticTexture droneTexture = new StaticTexture(mModelView, "model/minidrone_red.png");
+		final StaticTexture droneTexture = new StaticTexture(mModelView, "model/minidrone_tex_red.png");
 		droneModel = loadModel(io, "model/minidrone_body.obj");
 		droneModel.setTexture(droneTexture);
 		// 左前ローター

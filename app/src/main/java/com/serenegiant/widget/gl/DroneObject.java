@@ -17,10 +17,10 @@ public abstract class DroneObject extends DynamicGameObject {
 	public DroneObject(final float x, final float y, final float z, final float scale) {
 		super(x, y, z, scale);
 		setBounds(new CylinderBounds(x, y, z, 5, scale));	// TODO height/radiusが適当
-		mFrontLeftRotorObj = new RotorObject(0, 0, 0, true);
-		mFrontRightRotorObj = new RotorObject(0, 0, 0, false);
-		mRearLeftRotorObj = new RotorObject(0, 0, 0, false);
-		mRearRightRotorObj = new RotorObject(0, 0, 0, true);
+		mFrontLeftRotorObj = new RotorObject(true);
+		mFrontRightRotorObj = new RotorObject(false);
+		mRearLeftRotorObj = new RotorObject(false);
+		mRearRightRotorObj = new RotorObject(true);
 	}
 
 	protected abstract Vector getOffset();

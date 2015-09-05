@@ -54,9 +54,9 @@ public interface IModelView {
 
 	/**
 	 * 機体姿勢をセット
-	 * @param roll 左右の傾き[-100,100] => 今は[-30,+30][度]に対応
-	 * @param pitch 前後の傾き(機種の上げ下げ)[-100,100] => 今は[-30,+30][度]に対応
-	 * @param yaw 水平回転[-180,+180][度], 0は進行方向と一致
+	 * @param roll 左右の傾き[度]
+	 * @param pitch 前後の傾き(機種の上げ下げ)[度]
+	 * @param yaw 水平回転[度], 0は進行方向と一致
 	 * @param gaz 高さ移動量 [-100,100] 単位未定
 	 */
 	public void setAttitude(final float roll, final float pitch, final float yaw, final float gaz);
