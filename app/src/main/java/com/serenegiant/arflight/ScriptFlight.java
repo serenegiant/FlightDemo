@@ -7,6 +7,7 @@ import android.util.Log;
 import com.serenegiant.lang.script.ASTParse;
 import com.serenegiant.lang.script.Script;
 import com.serenegiant.lang.script.ScriptVisitorImpl;
+import com.serenegiant.lang.script.Variable;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -14,7 +15,7 @@ import java.util.List;
 
 public class ScriptFlight implements IAutoFlight {
 	private static final boolean DEBUG = false;				// FIXME 実働時はfalseにすること
-	private static final boolean DEBUG_PRESETFUNC = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG_PRESETFUNC = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "ScriptFlight";
 
 	private final Object mSync = new Object();
@@ -225,10 +226,10 @@ public class ScriptFlight implements IAutoFlight {
 		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getRoll", "") {
 			@Override
 			protected Object execute(final List<Number> args) {
-				Number result = null;
+				Variable result = null;
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getRoll:" + args);
-					result = (mAutoFlightListener.getAttitude(0));
+					result = new Variable(mAutoFlightListener.getValues(0));
 				} catch (final Exception e) {
 					Log.w(TAG, e);
 				}
@@ -239,10 +240,10 @@ public class ScriptFlight implements IAutoFlight {
 		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getPitch", "") {
 			@Override
 			protected Object execute(final List<Number> args) {
-				Number result = null;
+				Variable result = null;
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getPitch:" + args);
-					result = (mAutoFlightListener.getAttitude(1));
+					result = new Variable(mAutoFlightListener.getValues(1));
 				} catch (final Exception e) {
 					Log.w(TAG, e);
 				}
@@ -253,10 +254,10 @@ public class ScriptFlight implements IAutoFlight {
 		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getYaw", "") {
 			@Override
 			protected Object execute(final List<Number> args) {
-				Number result = null;
+				Variable result = null;
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getYaw:" + args);
-					result = (mAutoFlightListener.getAttitude(2));
+					result = new Variable(mAutoFlightListener.getValues(2));
 				} catch (final Exception e) {
 					Log.w(TAG, e);
 				}
@@ -267,10 +268,10 @@ public class ScriptFlight implements IAutoFlight {
 		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getGaz", "") {
 			@Override
 			protected Object execute(final List<Number> args) {
-				Number result = null;
+				Variable result = null;
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getGaz:" + args);
-					result = (mAutoFlightListener.getAttitude(3));
+					result = new Variable(mAutoFlightListener.getValues(3));
 				} catch (final Exception e) {
 					Log.w(TAG, e);
 				}
@@ -281,10 +282,52 @@ public class ScriptFlight implements IAutoFlight {
 		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getCompass", "") {
 			@Override
 			protected Object execute(final List<Number> args) {
-				Number result = null;
+				Variable result = null;
 				try {
 					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getCompass:" + args);
-					result = (mAutoFlightListener.getAttitude(4));
+					result = new Variable(mAutoFlightListener.getValues(4));
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+				return result;
+			}
+		});
+		// 最大傾き[度]を取得(傾き設定-100/+100の時の機体のroll/pitch角)
+		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getMaxTilt", "") {
+			@Override
+			protected Object execute(final List<Number> args) {
+				Variable result = null;
+				try {
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getMaxTilt:" + args);
+					result = new Variable(mAutoFlightListener.getValues(5));
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+				return result;
+			}
+		});
+		// 最大回転速度[度/秒]を取得
+		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getMaxRotationSpeed", "") {
+			@Override
+			protected Object execute(final List<Number> args) {
+				Variable result = null;
+				try {
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getMaxRotationSpeed:" + args);
+					result = new Variable(mAutoFlightListener.getValues(6));
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+				return result;
+			}
+		});
+		// 最大上昇降下速度[m/s]を取得
+		ScriptVisitorImpl.addPresetFunc(new ScriptVisitorImpl.FuncDef("getMaxVerticalSpeed", "") {
+			@Override
+			protected Object execute(final List<Number> args) {
+				Variable result = null;
+				try {
+					if (DEBUG_PRESETFUNC) Log.v(TAG, "execute getMaxVerticalSpeed:" + args);
+					result = new Variable(mAutoFlightListener.getValues(6));
 				} catch (final Exception e) {
 					Log.w(TAG, e);
 				}

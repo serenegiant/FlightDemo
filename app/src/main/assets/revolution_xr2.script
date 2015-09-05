@@ -44,22 +44,16 @@ void main(const double radius, const double scale_x, const double scale_y, const
 	wait(radius);
 	move(0, 0, 0, 0);
 	double radian = PI / 2;
+	float
 	for (int c = 0; c < 3; c++) {
 		wait(1000);
-/*		switch (c) {
-		case 0: step_num = 6; break;
-		case 1:	step_num = 12; break;
-		case 2:	step_num = 24; break;
-		default:
-			break;
-		} */
 		int n = step_num;
 		long wait_time = 5000 / n;
 		double step_radian = 360 / n * TO_RADIAN;
 		double step_yaw = 180 / n * scale_r;
-		double y = radius * scale_y;
+		double x = radius * scale_x;
 		for (int i = 0; i <= n; i++) {
-			move(0, y, 0, (step_yaw * 1000) / wait_time);
+			move(x, 0, 0, (step_yaw * 1000) / wait_time);
 			wait(wait_time);
 		}
 		move(0, 0, 0, 0);

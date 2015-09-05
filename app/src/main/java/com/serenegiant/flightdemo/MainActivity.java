@@ -72,7 +72,7 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 	private final Handler mUiHandler = new Handler();
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		final Toolbar tool_bar = (Toolbar) findViewById(R.id.sample_toolbar);

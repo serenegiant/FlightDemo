@@ -75,7 +75,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		guiCamera = new GLCamera2D(glGraphics, screenWidth, screenHeight);
 		// 視線カメラ
 		lookAtCamera = new GLLookAtCamera(
-			67, screenWidth / (float)screenHeight, 0.01f, 40f);
+			67, screenWidth / (float)screenHeight, 0.01f, 30f);
 		lookAtCamera.setPosition(0, 4, -6.4f);
 
 		initModel();
@@ -107,8 +107,8 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		rearRightRotorModel.rotate(droneObj.mRearRightRotorObj.angle);
 		// カメラを移動
 //		updateCamera(deltaTime);
-		// 最後に常に機体の方向を向くようにする・・・でもいつも原点にいるからセット不要
-//		lookAtCamera.setLookAt(droneModel.getPosition());
+		// 最後に常に機体の方向を向くようにする・・・でもいつも原点にいるからセット不要?
+		lookAtCamera.setLookAt(droneModel.getPosition());
 	}
 
 	protected void drawBackground(final GL10 gl) {

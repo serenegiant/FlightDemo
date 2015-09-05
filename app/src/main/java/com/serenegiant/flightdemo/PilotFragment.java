@@ -1081,15 +1081,16 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	}
 
-	private static final int SCRIPT_NUM = 4;
+	private static final int SCRIPT_NUM = 5;
 	/**
 	 * 左サイドメニューの項目
 	 */
 	private static final int[] SIDE_MENU_ITEMS = {
-		R.string.script_circle_xy,			// スクリプト
-		R.string.script_circle_xz,			// スクリプト
-		R.string.script_revolution_xr,		// スクリプト
-		R.string.script_revolution_yr,		// スクリプト
+		R.string.script_circle_xy,				// スクリプト
+		R.string.script_circle_xz,				// スクリプト
+		R.string.script_revolution_xr,			// スクリプト
+		R.string.script_revolution_yr,			// スクリプト
+		R.string.script_revolution_yr_bebop,	// スクリプト
 		// 以下アニメーション動作
 		R.string.anim_headlights_flash,
 		R.string.anim_headlights_blink,
@@ -1126,6 +1127,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					break;
 				case 3:
 					mScriptFlight.prepare(getResources().getAssets().open("revolution_yr.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
+					break;
+				case 4:
+					mScriptFlight.prepare(getResources().getAssets().open("revolution_yr_bebop.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
 					break;
 				default:
 					throw new IOException("スクリプトファイルが見つからない(範囲外)");
@@ -1224,18 +1228,21 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		public void onPrepared() {
 			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onPrepared:");
 			if (mScriptRunning) {
+				// スクリプト操縦
 				if (mScriptFlight.isPrepared()) {
 					mScriptFlight.play();
 				} else {
 					mScriptRunning = false;
 				}
 			} else if (mTouchMoveRunning) {
+				// タッチ描画操縦
 				if (mTouchFlight.isPrepared()) {
 					mTouchFlight.play();
 				} else {
 					mTouchMoveRunning = false;
 				}
 			} else if (mFlightRecorder.isPrepared()) {
+				// 飛行記録を再生
 				mFlightRecorder.pos(0);
 				mFlightRecorder.play();
 			}
@@ -1310,7 +1317,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 
 		@Override
-		public float getAttitude(int axis) {
+		public float getValues(int axis) {
 			if (axis >= 0 && axis < 3) {
 				final Vector attitude = new Vector(mController.getAttitude());
 				attitude.toDegree();
@@ -1326,7 +1333,15 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				switch (axis) {
 				case 3:    // gaz
 					return mController.getAltitude();
-				case 4:    // compass
+				case 4:    // FIXME compass
+					return 0;
+				case 5:		// max_tilt
+					return mController.getMaxTilt().current();
+				case 6:		// max_rotation_speed
+					return mController.getMaxRotationSpeed().current();
+				case 7:		// max_vertical_speed
+					return mController.getMaxVerticalSpeed().current();
+
 				}
 			}
 			return 0;

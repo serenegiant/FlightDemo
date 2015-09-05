@@ -79,6 +79,7 @@
 	<string name="script_circle_xz">circle_xz</string>
 	<string name="script_revolution_xr">revolution_xr</string>
 	<string name="script_revolution_yr">revolution_yr</string>
+	<string name="script_revolution_yr_bebop">bebop_revo_yr</string>
 	<string name="anim_headlights_flash">LED flash</string>
 	<string name="anim_headlights_blink">LED blink</string>
 	<string name="anim_headlights_oscillation">LED oscillation</string>

@@ -1,24 +1,41 @@
-int step_num = 12;	// 12角形で近似
-
+// extern sin/cos/tan/asin/acos/atan/atan2/sinh/cosh/tanhsqrt/abs/exp/log/log10/hypot/pow/random/wait
 // extern void emergency(void);
 // extern void takeoff(void);
 // extern void landing(void);
-// roll/pitch/gaz/yaw=[-100,+100]
 // extern void move(int roll, int pitch, int gaz, int yaw);
-// gaz=[-100,+100]
+//		roll/pitch/gaz/yaw=[-100,+100]
 // extern void updown(int gaz);
-// roll=[-100,+100]
+// 		gaz=[-100,+100]
 // extern void rightleft(int roll);
-// pitch=[-100,+100]
+//		roll=[-100,+100]
 // extern void frontback(int pitch);
-// yaw=[-100,+100]
+//		pitch=[-100,+100]
 // extern void turn(int yaw);
-// degree=[-360,+360]
+//		yaw=[-100,+100]
 // extern void compass(int degree);
-// mode=[1:front, 2:back, 3:right, 4:left]
+//		degree=[-360,+360]
 // extern void flip(int mode);
-// degree=[-180,+180]
+//		mode=[1:front, 2:back, 3:right, 4:left]
 // extern void cap(int degree);
+//		degree=[-180,+180]
+// extern float getRoll();
+//		return current roll angle as degree
+// extern float getPitch();
+//		return current pitch angle as degree
+// extern float getYaw();
+//		return current yaw angle as degree
+// extern float getGaz();
+//		return current height as meter
+// extern float getCompass();
+//		return always zero now
+// extern float getMaxTilt();
+//		return max tilt angle as degree for roll/pitch
+// extern float getMaxRotationSpeed();
+//		return max rotation speed [degree/sec]
+// extern float getMaxVerticalSpeed();
+//		return max vertical speed [m/s]
+
+int step_num = 12;
 
 void main(const double radius, const double scale_x, const double scale_y, const double scale_z, const double scale_r) {
 	takeoff();
@@ -42,11 +59,11 @@ void main(const double radius, const double scale_x, const double scale_y, const
 		double step_yaw = 180 / n * scale_r;
 		double x = radius * scale_x;
 		for (int i = 0; i <= n; i++) {
-			move(x, 0, 0, step_yaw);
+			move(x, 0, 0, (step_yaw * 1000) / wait_time);
 			wait(wait_time);
 		}
+		move(0, 0, 0, 0);
 	}
-	move(0, 0, 0, 0);
 	wait(1000);
 	landing();
 }

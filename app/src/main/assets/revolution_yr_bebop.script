@@ -54,12 +54,14 @@ void main(const double radius, const double scale_x, const double scale_y, const
 			break;
 		} */
 		int n = step_num;
-		long wait_time = 5000 / n;
+		long wait_time = 10000 / n;
 		double step_radian = 360 / n * TO_RADIAN;
-		double step_yaw = 180 / n * scale_r;
+		double step_yaw = 360 / n * scale_r;
 		double y = radius * scale_y;
+		float yaw_start = getYaw();
 		for (int i = 0; i <= n; i++) {
-			move(0, y, 0, (step_yaw * 1000) / wait_time);
+			float yaw = step_yaw * i + yaw_start;
+			move(0, y, 0, ((getYaw() - yaw) * 1000) / wait_time);
 			wait(wait_time);
 		}
 		move(0, 0, 0, 0);
