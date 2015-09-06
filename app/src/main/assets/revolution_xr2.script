@@ -35,7 +35,7 @@
 // extern float getMaxVerticalSpeed();
 //		return max vertical speed [m/s]
 
-int step_num = 12;
+double speed_factor = 0.2;	// 0.46;
 
 void main(const double radius, const double scale_x, const double scale_y, const double scale_z, const double scale_r) {
 	takeoff();
@@ -44,18 +44,20 @@ void main(const double radius, const double scale_x, const double scale_y, const
 	wait(radius);
 	move(0, 0, 0, 0);
 	double radian = PI / 2;
-	float
+	double r = radius / 100;
+	double tilt_max = getMaxTilt();
+	double t_max1 = 2 * PI * r / tilt_max / speed_factor;
+	double vr_max = getMaxRotationSpeed();
+	double t_max2 = 360 / vr_max;
+	double t_max = t_max1;
+	if (t_max2 > t_max) t_max = t_max2;
+	double tilt100 = 2 * PI * r / t_max / speed_factor / tilt_max * 100 * scale_x;
+	double vr100 = 360 / t_max / vr_max * 100 * scale_r;
+
 	for (int c = 0; c < 3; c++) {
 		wait(1000);
-		int n = step_num;
-		long wait_time = 5000 / n;
-		double step_radian = 360 / n * TO_RADIAN;
-		double step_yaw = 180 / n * scale_r;
-		double x = radius * scale_x;
-		for (int i = 0; i <= n; i++) {
-			move(x, 0, 0, (step_yaw * 1000) / wait_time);
-			wait(wait_time);
-		}
+		move(tilt100, 0, 0, vr100);
+		wait(t_max * 1000);
 		move(0, 0, 0, 0);
 	}
 	wait(1000);

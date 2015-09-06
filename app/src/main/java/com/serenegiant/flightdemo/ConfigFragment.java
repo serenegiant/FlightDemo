@@ -170,6 +170,7 @@ public class ConfigFragment extends ControlFragment {
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateMaxAltitude(mMaxAltitude.current());
 		// 最大傾斜設定
+		// bebopは5-30度。最大時速約50km/hrからすると13.9m/s/30度≒0.46[m/s/度]
 		mMaxTiltLabel = (TextView)root.findViewById(R.id.max_tilt_textview);
 		seekbar = (SeekBar)root.findViewById(R.id.max_tilt_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);

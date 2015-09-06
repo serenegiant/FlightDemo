@@ -1081,7 +1081,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	}
 
-	private static final int SCRIPT_NUM = 5;
+	private static final int SCRIPT_NUM = 6;
 	/**
 	 * 左サイドメニューの項目
 	 */
@@ -1090,21 +1090,22 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		R.string.script_circle_xz,				// スクリプト
 		R.string.script_revolution_xr,			// スクリプト
 		R.string.script_revolution_yr,			// スクリプト
-		R.string.script_revolution_yr_bebop,	// スクリプト
-		// 以下アニメーション動作
-		R.string.anim_headlights_flash,
-		R.string.anim_headlights_blink,
-		R.string.anim_headlights_oscillation,
-		R.string.anim_spin,
-		R.string.anim_tap,
-		R.string.anim_slow_shake,
-		R.string.anim_metronome,
-		R.string.anim_ondulation,
-		R.string.anim_spin_jump,
-		R.string.anim_spin_to_posture,
-		R.string.anim_spiral,
-		R.string.anim_slalome,
-		R.string.anim_boost,
+		R.string.script_revolution_xr2,			// スクリプト
+		R.string.script_revolution_yr2,			// スクリプト
+		// 以下アニメーション動作。動かないのでコメントアウト実質jumpingsumo専用なのかも
+//		R.string.anim_headlights_flash,
+//		R.string.anim_headlights_blink,
+//		R.string.anim_headlights_oscillation,
+//		R.string.anim_spin,
+//		R.string.anim_tap,
+//		R.string.anim_slow_shake,
+//		R.string.anim_metronome,
+//		R.string.anim_ondulation,
+//		R.string.anim_spin_jump,
+//		R.string.anim_spin_to_posture,
+//		R.string.anim_spiral,
+//		R.string.anim_slalome,
+//		R.string.anim_boost,
 	};
 
 	/**
@@ -1129,7 +1130,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mScriptFlight.prepare(getResources().getAssets().open("revolution_yr.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
 					break;
 				case 4:
-					mScriptFlight.prepare(getResources().getAssets().open("revolution_yr_bebop.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
+					mScriptFlight.prepare(getResources().getAssets().open("revolution_xr2.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
+					break;
+				case 5:
+					mScriptFlight.prepare(getResources().getAssets().open("revolution_yr2.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
 					break;
 				default:
 					throw new IOException("スクリプトファイルが見つからない(範囲外)");
@@ -1199,14 +1203,18 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * @param anim
 	 */
 	private void stopAnimationAction(final int anim) {
-		mController.sendStopAnimation(anim);
+		if (mController != null) {
+			mController.sendStopAnimation(anim);
+		}
 	}
 
 	/**
 	 * アニメーション動作を全て停止
 	 */
 	private void stopAnimationActionAll() {
-		mController.sendStopAllAnimation();
+		if (mController != null) {
+			mController.sendStopAllAnimation();
+		}
 		updateButtons();
 	}
 
