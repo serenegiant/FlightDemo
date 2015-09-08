@@ -115,7 +115,6 @@ public abstract class DeviceController implements IDeviceController {
 
 	private final Object mDataSync = new Object();
 	private final DataPCMD mDataPCMD = new DataPCMD();
-//	private final DataPCMD mSendingPCMD = new DataPCMD();
 
 	private final Object mListenerSync = new Object();
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();

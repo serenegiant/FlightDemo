@@ -45,18 +45,19 @@ void main(const double radius, const double scale_x, const double scale_y, const
 	move(0, 0, 0, 0);
 	double radian = PI / 2;
 	double r = radius / 100;
+	double sf = speed_factor * scale_x;
 	double tilt_max = getMaxTilt();
-	double t_max1 = 2 * PI * r / tilt_max / speed_factor;
+	double t_max1 = 2 * PI * r / tilt_max / sf;
 	double vr_max = getMaxRotationSpeed();
 	double t_max2 = 360 / vr_max;
 	double t_max = t_max1;
 	if (t_max2 > t_max) t_max = t_max2;
-	double tilt100 = 2 * PI * r / t_max / speed_factor / tilt_max * 100 * scale_x;
-	double vr100 = 360 / t_max / vr_max * 100 * scale_r;
+	double tilt100 = 2 * PI * r / t_max / sf / tilt_max * 100;
+	double vr100 = 360 / t_max / vr_max * 100;
 
 	for (int c = 0; c < 3; c++) {
 		wait(1000);
-		move(0, tilt100, 0, vr100);
+		move(0, tilt100, 0, -vr100);
 		wait(t_max * 1000);
 		move(0, 0, 0, 0);
 	}
