@@ -74,6 +74,8 @@
 	<string name="info_version_hardware">Hardware version:</string>
 	<string name="info_version_app">App version:</string>
 
+	<string name="media_title_list">List of Media</string>
+
 	<!-- サイドメニューの項目 -->
 	<string name="script_circle_xy">circle_xy</string>
 	<string name="script_circle_xz">circle_xz</string>

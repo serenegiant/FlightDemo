@@ -122,7 +122,7 @@ public class ConfigFragment extends ControlFragment {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final View rootView = inflater.inflate(R.layout.fragment_config, container, false);
 		mPagerAdapter = new ConfigPagerAdapter(inflater);
-		mViewPager = (ViewPager)rootView.findViewById(R.id.config_pager);
+		mViewPager = (ViewPager)rootView.findViewById(R.id.pager);
 		mViewPager.setAdapter(mPagerAdapter);
 		return rootView;
 	}

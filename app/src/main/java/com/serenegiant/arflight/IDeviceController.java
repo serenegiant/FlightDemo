@@ -57,6 +57,14 @@ public interface IDeviceController {
 	public String getName();
 
 	/**
+	 * 製品名を取得
+	 * @return
+	 */
+	public String getProductName();
+
+	public int getProductId();
+
+	/**
 	 * 機体のソフトウエアバージョンを取得
 	 * @return
 	 */
@@ -108,6 +116,10 @@ public interface IDeviceController {
 	public int getAlarm();
 	public int getStillCaptureState();
 	public int getVideoRecordingState();
+
+	public int getMassStorageId();
+	public String getMassStorageName();
+
 
 	public boolean start();
 

@@ -65,12 +65,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	static {
 		FileUtils.DIR_NAME = "FlightDemo";
 	}
-
 	public static PilotFragment newInstance(final ARDiscoveryDeviceService device) {
 		final PilotFragment fragment = new PilotFragment();
 		fragment.setDevice(device);
 		return fragment;
 	}
+
 
 	private ViewGroup mControllerView;		// 操作パネル全体
 	// 上パネル
@@ -350,7 +350,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		removeSideMenu();
 		remove(mGamePadTask);
 		remove(mUpdateStatusTask);
-		removeFromUIThread(mPopBackStackTask);
 		mResetColorFilterTasks.clear();
 		super.onPause();
 	}
@@ -436,8 +435,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
 				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
-				mIsFlying = !mIsFlying;
-				if (mIsFlying) {
+				final boolean isFlying = (getState() &  IDeviceController.STATE_MASK_FLYING) != 0;
+				if (!isFlying) {
 					takeOff();
 				} else {
 					landing();
@@ -716,8 +715,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		removeSideMenu();
 		stopGamePadTask();
 		remove(mUpdateStatusTask);
-		removeFromUIThread(mPopBackStackTask);
-		postUIThread(mPopBackStackTask, POP_BACK_STACK_DELAY);	// UIスレッド上で遅延実行
+		requestPopBackStack(POP_BACK_STACK_DELAY);
 		super.onDisconnect(controller);
 	}
 
@@ -1005,7 +1003,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mController.sendTakeoff();
 			mFlightRecorder.record(FlightRecorder.CMD_TAKEOFF);
 		} else {
-			mIsFlying = false;
+//			mIsFlying = false;
 		}
 	}
 
@@ -1019,7 +1017,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mController.sendLanding();
 			mFlightRecorder.record(FlightRecorder.CMD_LANDING);
 		}
-		mIsFlying = false;
+//		mIsFlying = false;
 	}
 
 	/**
@@ -1597,21 +1595,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (view instanceof ImageView) {
 					((ImageView)view).setColorFilter(can_fly ? 0 : DISABLE_COLOR);
 				}
-			}
-		}
-	};
-
-	/**
-	 * 一定時間後にフラグメントを終了するためのRunnable
-	 * 切断された時に使用
-	 */
-	private final Runnable mPopBackStackTask = new Runnable() {
-		@Override
-		public void run() {
-			try {
-				getFragmentManager().popBackStack();
-			} catch (final Exception e) {
-				Log.w(TAG, e);
 			}
 		}
 	};

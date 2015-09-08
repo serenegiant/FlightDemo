@@ -91,6 +91,7 @@ public class ConnectionFragment extends Fragment {
 		mDeviceListView.setEmptyView(empty_view);
 		mDeviceListView.setAdapter(adapter);
 		mDeviceListView.setOnItemClickListener(mOnItemClickListener);
+		mDeviceListView.setOnItemLongClickListener(mOnItemLongClickListener);
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 	}
 
@@ -129,7 +130,7 @@ public class ConnectionFragment extends Fragment {
 	 */
 	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
 		@Override
-		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+		public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
 
 			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 
@@ -155,6 +156,35 @@ public class ConnectionFragment extends Fragment {
 					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
 					.replace(R.id.container, fragment).commit();
 			}
+		}
+	};
+
+	private final AdapterView.OnItemLongClickListener mOnItemLongClickListener = new AdapterView.OnItemLongClickListener() {
+		@Override
+		public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+
+			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+
+			final String itemValue = ((ArrayAdapter<String>)parent.getAdapter()).getItem(position);
+			final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
+			// 製品名を取得
+			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
+
+			Fragment fragment = null;
+			switch (product) {
+			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+				fragment = MediaFragment.newInstance(service);
+			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+				break;
+			}
+			if (fragment != null) {
+				getFragmentManager().beginTransaction()
+					.addToBackStack(null)
+					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+					.replace(R.id.container, fragment).commit();
+			}
+			return false;
 		}
 	};
 }

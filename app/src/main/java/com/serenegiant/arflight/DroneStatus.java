@@ -1,6 +1,12 @@
 package com.serenegiant.arflight;
 
+import android.util.SparseArray;
+import android.util.SparseIntArray;
+
 import com.serenegiant.math.Vector;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class DroneStatus {
 	public static final int STATE_FLYING_LANDED = 0x0000;	// FlyingState=0
@@ -259,6 +265,65 @@ public class DroneStatus {
 			return mAttributeFlightDuration.total();
 		}
 	}
+
+	private int mCurrentMassStorageId;
+	private final SparseArray<AttributeMassStorage> mMassStorage = new SparseArray<AttributeMassStorage>();
+
+	/**
+	 * マスストレージIDをセット
+	 */
+	public void setMassStorage(final int mass_storage_id, final String mass_storage_name) {
+		synchronized (mSync) {
+			AttributeMassStorage storage = mMassStorage.get(mass_storage_id);
+			if (storage == null) {
+				storage = new AttributeMassStorage();
+				storage.mMassStorageId = mass_storage_id;
+				storage.mMassStorageName = mass_storage_name;
+				mMassStorage.append(mass_storage_id, storage);
+			}
+			mCurrentMassStorageId = mass_storage_id;
+		}
+	}
+
+	public void setMassStorageInfo(final byte mass_storage_id, final int size, final int used_size, final byte plugged, final byte full, final byte internal) {
+		synchronized (mSync) {
+			AttributeMassStorage storage = mMassStorage.get(mass_storage_id);
+			if (storage != null) {
+				// FIXME 未実装
+			}
+		}
+	}
+
+	/**
+	 * マスストレージIDを取得
+	 * @return
+	 */
+	public int massStorageId() {
+		synchronized (mSync) {
+			return mCurrentMassStorageId;
+		}
+	}
+
+	/**
+	 * マスストレージ名を取得
+	 * @return
+	 */
+	public String massStorageName() {
+		return massStorageName(mCurrentMassStorageId);
+	}
+	/**
+	 * マスストレージ名を取得
+	 * @param mass_storage_id
+	 * @return
+	 */
+	public String massStorageName(final int mass_storage_id) {
+		synchronized (mSync) {
+			final AttributeMassStorage storage = mMassStorage.get(mass_storage_id);
+			return storage != null ? storage.mMassStorageName : null;
+		}
+	}
+
+
 //********************************************************************************
 //********************************************************************************
 	/** 飛行状態をセット */

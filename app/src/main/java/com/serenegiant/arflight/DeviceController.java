@@ -136,6 +136,15 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	@Override
+	public String getProductName() {
+		return mDeviceService != null ? ARDiscoveryService.getProductName(ARDiscoveryService.getProductFromProductID(mDeviceService.getProductID())) : null;
+	}
+
+	public int getProductId() {
+		return mDeviceService != null ? mDeviceService.getProductID() : 0;
+	}
+
+	@Override
 	public ARDiscoveryDeviceService getDeviceService() {
 		return mDeviceService;
 	}
@@ -164,6 +173,16 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public int getVideoRecordingState() {
 		return mStatus.getVideoRecordingState();
+	}
+
+	@Override
+	public int getMassStorageId() {
+		return mStatus.massStorageId();
+	}
+
+	@Override
+	public String getMassStorageName() {
+		return mStatus.massStorageName();
 	}
 
 	/**
@@ -878,7 +897,9 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onCommonCommonStateMassStorageStateListChangedUpdate(
 			final byte mass_storage_id, final String name) {
-			// XXX
+
+			if (DEBUG) Log.v(TAG, String.format("onCommonCommonStateMassStorageStateListChangedUpdate:mass_storage_id=%d,name=%s", mass_storage_id, name));
+			mStatus.setMassStorage(mass_storage_id, name);
 		}
 	};
 
@@ -899,7 +920,9 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onCommonCommonStateMassStorageInfoStateListChangedUpdate(
 			final byte mass_storage_id, final int size, final int used_size, final byte plugged, final byte full, final byte internal) {
-			// XXX
+
+			if (DEBUG) Log.v(TAG, String.format("onCommonCommonStateMassStorageInfoStateListChangedUpdate:mass_storage_id=%d,size=%d,used_size=%d,plugged=%d,full=%d,internal=%d", mass_storage_id, size, used_size, plugged, full, internal));
+			mStatus.setMassStorageInfo(mass_storage_id, size, used_size, plugged, full, internal);
 		}
 	};
 
@@ -917,6 +940,8 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onCommonCommonStateMassStorageInfoRemainingListChangedUpdate(
 			final int free_space, final short rec_time, final int photo_remaining) {
+			if (DEBUG) Log.v(TAG, String.format("free_space=%d,rec_time=%d,photo_remaining=%d", free_space, rec_time, photo_remaining));
+			// FIXME 未実装
 			// XXX
 		}
 	};
