@@ -922,7 +922,7 @@ public abstract class DeviceController implements IDeviceController {
 			final byte mass_storage_id, final int size, final int used_size, final byte plugged, final byte full, final byte internal) {
 
 //			if (DEBUG) Log.v(TAG, String.format("onCommonCommonStateMassStorageInfoStateListChangedUpdate:mass_storage_id=%d,size=%d,used_size=%d,plugged=%d,full=%d,internal=%d", mass_storage_id, size, used_size, plugged, full, internal));
-			mStatus.setMassStorageInfo(mass_storage_id, size, used_size, plugged, full, internal);
+			callOnUpdateStorageState(mass_storage_id, size, used_size, plugged != 0, full != 0, internal != 0);
 		}
 	};
 
@@ -1312,7 +1312,7 @@ public abstract class DeviceController implements IDeviceController {
 	 */
 	protected void callOnConnect() {
 		synchronized (mListenerSync) {
-			for (DeviceConnectionListener listener: mConnectionListeners) {
+			for (final DeviceConnectionListener listener: mConnectionListeners) {
 				if (listener != null) {
 					try {
 						listener.onConnect(this);
@@ -1329,7 +1329,7 @@ public abstract class DeviceController implements IDeviceController {
 	 */
 	protected void callOnDisconnect() {
 		synchronized (mListenerSync) {
-			for (DeviceConnectionListener listener: mConnectionListeners) {
+			for (final DeviceConnectionListener listener: mConnectionListeners) {
 				if (listener != null) {
 					try {
 						listener.onDisconnect(this);
@@ -1346,7 +1346,7 @@ public abstract class DeviceController implements IDeviceController {
 	 */
 	protected void callOnUpdateBattery(final int percent) {
 		synchronized (mListenerSync) {
-			for (DeviceControllerListener listener: mListeners) {
+			for (final DeviceControllerListener listener: mListeners) {
 				if (listener != null) {
 					try {
 						listener.onUpdateBattery(percent);
@@ -1364,7 +1364,7 @@ public abstract class DeviceController implements IDeviceController {
 	 */
 	protected void callOnFlyingStateChangedUpdate(final int state) {
 		synchronized (mListenerSync) {
-			for (DeviceControllerListener listener: mListeners) {
+			for (final DeviceControllerListener listener: mListeners) {
 				if (listener != null) {
 					try {
 						listener.onFlyingStateChangedUpdate(state);
@@ -1382,7 +1382,7 @@ public abstract class DeviceController implements IDeviceController {
 	 */
 	protected void callOnAlarmStateChangedUpdate(final int state) {
 		synchronized (mListenerSync) {
-			for (DeviceControllerListener listener: mListeners) {
+			for (final DeviceControllerListener listener: mListeners) {
 				if (listener != null) {
 					try {
 						listener.onAlarmStateChangedUpdate(state);
@@ -1399,7 +1399,7 @@ public abstract class DeviceController implements IDeviceController {
 	 */
 	protected void callOnFlatTrimChanged() {
 		synchronized (mListenerSync) {
-			for (DeviceControllerListener listener: mListeners) {
+			for (final DeviceControllerListener listener: mListeners) {
 				if (listener != null) {
 					try {
 						listener.onFlatTrimChanged();
@@ -1419,7 +1419,7 @@ public abstract class DeviceController implements IDeviceController {
 		final boolean changed = mStatus.setStillCaptureState(state);
 		if (changed) {
 			synchronized (mListenerSync) {
-				for (DeviceControllerListener listener : mListeners) {
+				for (final DeviceControllerListener listener : mListeners) {
 					if (listener != null) {
 						try {
 							listener.onStillCaptureStateChanged(state);
@@ -1440,10 +1440,36 @@ public abstract class DeviceController implements IDeviceController {
 		final boolean changed = mStatus.setVideoRecordingState(state);
 		if (changed) {
 			synchronized (mListenerSync) {
-				for (DeviceControllerListener listener : mListeners) {
+				for (final DeviceControllerListener listener : mListeners) {
 					if (listener != null) {
 						try {
 							listener.onVideoRecordingStateChanged(state);
+						} catch (final Exception e) {
+							if (DEBUG) Log.w(TAG, e);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 機体のストレージ状態が変化した時のコールバックを呼び出す
+	 * @param mass_storage_id
+	 * @param size
+	 * @param used_size
+	 * @param plugged
+	 * @param full
+	 * @param internal
+	 */
+	protected void callOnUpdateStorageState(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal) {
+		final boolean changed = mStatus.setMassStorageInfo(mass_storage_id, size, used_size, plugged, full, internal);
+		if (changed) {
+			synchronized (mListenerSync) {
+				for (final DeviceControllerListener listener : mListeners) {
+					if (listener != null) {
+						try {
+							listener.onUpdateStorageState(mass_storage_id, size, used_size, plugged, full, internal);
 						} catch (final Exception e) {
 							if (DEBUG) Log.w(TAG, e);
 						}

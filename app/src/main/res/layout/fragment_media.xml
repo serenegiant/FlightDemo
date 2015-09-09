@@ -3,13 +3,14 @@
 	android:orientation="vertical"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:padding="@dimen/half_padding">
+			  android:background="@drawable/back">
 
 	<android.support.v4.view.ViewPager
 		android:id="@+id/pager"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		android:layout_weight="1">
+<!--
 		<android.support.v4.view.PagerTitleStrip
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
@@ -18,5 +19,6 @@
 			android:textSize="@dimen/text_sz_list"
 			android:paddingTop="10dp"
 			android:paddingBottom="10dp"/>
+-->
 	</android.support.v4.view.ViewPager>
 </LinearLayout>

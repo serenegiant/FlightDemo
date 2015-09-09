@@ -38,4 +38,15 @@ public interface DeviceControllerListener extends DeviceConnectionListener {
 	 * @param state
 	 */
 	public void onVideoRecordingStateChanged(final int state);
+
+	/**
+	 * 機体のストレージ状態が変化した時にコールバック
+	 * @param mass_storage_id
+	 * @param size
+	 * @param used_size
+	 * @param plugged
+	 * @param full
+	 * @param internal
+	 */
+	public void onUpdateStorageState(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal);
 }

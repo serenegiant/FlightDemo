@@ -340,15 +340,39 @@ public abstract class ControlBaseFragment extends Fragment {
 	protected void updateVideoRecordingState(final int video_state) {
 	}
 
+	/**
+	 * 機体のストレージ状態が変化した時のコールバック
+	 * @param mass_storage_id
+	 * @param size
+	 * @param used_size
+	 * @param plugged
+	 * @param full
+	 * @param internal
+	 */
+	protected void updateStorageState(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal) {
+	}
+
+	/**
+	 * 接続された
+	 * @param controller
+	 */
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onConnect:");
 	}
 
+	/**
+	 * 切断された
+	 * @param controller
+	 */
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onDisconnect:");
 		stopDeviceController(true);
 	}
 
+	/**
+	 * アラーム状態が変化した時のコールバック
+	 * @param alert_state
+	 */
 	protected void onAlarmStateChangedUpdate(int alert_state) {
 	}
 
@@ -402,6 +426,11 @@ public abstract class ControlBaseFragment extends Fragment {
 		@Override
 		public void onVideoRecordingStateChanged(final int state) {
 			updateVideoRecordingState(state);
+		}
+
+		@Override
+		public void onUpdateStorageState(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal) {
+			updateStorageState(mass_storage_id, size, used_size, plugged, full, internal);
 		}
 
 	};

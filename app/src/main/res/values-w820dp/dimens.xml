@@ -28,5 +28,7 @@
 
 	<dimen name="switch_height">84dp</dimen>
 	<dimen name="thumbnail_margin">16dp</dimen>
+	<dimen name="thumbnail_min_size">64dp</dimen>
+	<dimen name="progress_sz_freespace">400dp</dimen>
 
 </resources>

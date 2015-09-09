@@ -159,6 +159,10 @@ public abstract class FTPController {
 		}
 	}
 
+	public void updateMedia() {
+		mFTPHandler.sendEmptyMessage(CMD_LIST_MEDIAS);
+	}
+
 	private ARUtilsManager createARUtilsManager() {
 		ARUtilsManager result = null;
 		try {
@@ -278,7 +282,7 @@ public abstract class FTPController {
 		}
 	}
 
-	private List<ARMediaObject>  getAvailableMedias() {
+	private List<ARMediaObject> getAvailableMedias() {
 		if (DEBUG) Log.v(TAG, "getAvailableMedias:");
 		int num = -1;
 		final List<ARMediaObject> medias = new ArrayList<ARMediaObject>();
@@ -302,9 +306,9 @@ public abstract class FTPController {
 	}
 
 	private List<ARMediaObject> getMediaThumbnails(final List<ARMediaObject> medias) {
+		if (DEBUG) Log.v(TAG, "getMediaThumbnails:");
 		final int num = medias.size();
 		final Resources res = mWeakContext.get().getResources();
-		if (DEBUG) Log.v(TAG, "getMediaThumbnails:num=" + num);
 		int foundMediasThumbnail = -1;
 		int i = -1;
 		for (final ARMediaObject mediaObject: medias) {
@@ -313,7 +317,6 @@ public abstract class FTPController {
 			if (thumbnail != null) {
 				foundMediasThumbnail++;
 				mediaObject.updateThumbnailWithDataTransferMedia(res, mediaObject.media);
-				if (DEBUG) Log.v(TAG, "mediaObject" + i + ":" + mediaObject);
 			}
 		}
 		return medias;

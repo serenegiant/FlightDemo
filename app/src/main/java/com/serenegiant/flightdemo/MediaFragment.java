@@ -9,10 +9,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.parrot.arsdk.armedia.ARMediaObject;
 import com.serenegiant.arflight.FTPController;
 import com.serenegiant.arflight.IDeviceController;
+
+import java.util.List;
 
 public class MediaFragment extends ControlBaseFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -27,6 +33,7 @@ public class MediaFragment extends ControlBaseFragment {
 	private FTPController mFTPController;
 	private ViewPager mViewPager;
 	private MediaPagerAdapter mPagerAdapter;
+	private MediaListAdapter mMediaListAdapter;	// 取得したメディアファイルの一覧アクセス用Adapter
 
 	public MediaFragment() {
 		// デフォルトコンストラクタが必要
@@ -47,8 +54,10 @@ public class MediaFragment extends ControlBaseFragment {
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
-		final View rootView = inflater.inflate(R.layout.fragment_media, container, false);
+		mMediaListAdapter = new MediaListAdapter(getActivity(), R.layout.list_item_media);
 		mPagerAdapter = new MediaPagerAdapter(inflater);
+
+		final View rootView = inflater.inflate(R.layout.fragment_media, container, false);
 		mViewPager = (ViewPager)rootView.findViewById(R.id.pager);
 		mViewPager.setAdapter(mPagerAdapter);
 		return rootView;
@@ -83,6 +92,7 @@ public class MediaFragment extends ControlBaseFragment {
 		if (DEBUG) Log.v(TAG, "#onConnect");
 		super.onConnect(controller);
 		mFTPController = FTPController.newInstance(getActivity().getApplicationContext(), mController);
+		mFTPController.setCallback(mCallback);
 		post(mConnectCheckTask, 500);
 	}
 
@@ -95,22 +105,79 @@ public class MediaFragment extends ControlBaseFragment {
 		super.onDisconnect(controller);
 	}
 
+	/**
+	 * 接続後機体のストレージ状態を受信するまで待機するためのRunnable
+	 */
 	private final Runnable mConnectCheckTask = new Runnable() {
 		@Override
 		public void run() {
 			final String mass_storage_id = mController.getMassStorageName();
 			if (TextUtils.isEmpty(mass_storage_id)) {
-				post(this, 1000);
+				post(this, 1000);	// まだ準備出来てないので1秒後に再実行
 			} else {
 				mFTPController.connect();
 			}
 		}
 	};
 
+	/**
+	 * FTPControllerからのコールバック
+	 */
+	private final FTPController.FTPControllerCallback mCallback = new FTPController.FTPControllerCallback() {
+		@Override
+		public boolean onError(final Exception e) {
+			Log.w(TAG, e);
+			return false;
+		}
 
+		@Override
+		public void onProgress(final int cmd, final float progress) {
+			// FIXME 未実装
+		}
+
+		@Override
+		public void onMediaListUpdated(final List<ARMediaObject> medias) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					mMediaListAdapter.clear();
+					mMediaListAdapter.addAll(medias);
+					mMediaListAdapter.notifyDataSetChanged();
+				}
+			});
+		}
+	};
+
+	private ProgressBar mFreeSpaceProgressbar;
+	/**
+	 * メディアファイル一覧画面の準備
+	 * @param rootView
+	 */
 	private void initMediaList(final View rootView) {
+		final ListView listview = (ListView)rootView.findViewById(R.id.listView);
+		if (listview != null) {
+			final View empty_view = rootView.findViewById(R.id.empty_view);
+			listview.setEmptyView(empty_view);
+			listview.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+				@Override
+				public void onItemSelected(final AdapterView<?> parent, final View view, final int position, final long id) {
+				}
+				@Override
+				public void onNothingSelected(final AdapterView<?> parent) {
+				}
+			});
+			listview.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+			listview.setAdapter(mMediaListAdapter);
+		}
+		mFreeSpaceProgressbar = (ProgressBar)rootView.findViewById(R.id.frees_pace_progress);
 	}
 
+	@Override
+	protected void updateStorageState(int mass_storage_id, int size, int used_size, boolean plugged, boolean full, boolean internal) {
+		if (mFreeSpaceProgressbar != null) {
+			mFreeSpaceProgressbar.setProgress((int)(used_size / (float)size * 100f));
+		}
+	}
 
 	private static interface AdapterItemHandler {
 		public void initialize(final MediaFragment parent, final View view);
@@ -185,9 +252,9 @@ public class MediaFragment extends ControlBaseFragment {
 		public CharSequence getPageTitle(final int position) {
 			if (DEBUG) Log.v(TAG, "getPageTitle:position=" + position);
 			CharSequence result = null;
-			if ((position >= 0) && (position < PAGER_MEDIA.length)) {
+/*			if ((position >= 0) && (position < PAGER_MEDIA.length)) {
 				result = getString(PAGER_MEDIA[position].title_id);
-			}
+			} */
 			return result;
 		}
 	}

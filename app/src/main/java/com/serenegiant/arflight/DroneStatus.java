@@ -285,13 +285,35 @@ public class DroneStatus {
 		}
 	}
 
-	public void setMassStorageInfo(final byte mass_storage_id, final int size, final int used_size, final byte plugged, final byte full, final byte internal) {
+	/**
+	 * マスストレージの状態をセット
+	 * @param mass_storage_id
+	 * @param size
+	 * @param used_size
+	 * @param plugged
+	 * @param full
+	 * @param internal
+	 * @return
+	 */
+	public boolean setMassStorageInfo(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal) {
+		boolean result = false;
 		synchronized (mSync) {
-			AttributeMassStorage storage = mMassStorage.get(mass_storage_id);
+			final AttributeMassStorage storage = mMassStorage.get(mass_storage_id);
 			if (storage != null) {
-				// FIXME 未実装
+				result = (storage.size != size) || (storage.used_size != used_size)
+					|| (storage.plugged != plugged) || (storage.full != full) || (storage.internal != internal);
+				if (result) {
+					storage.size = size;
+					storage.used_size = used_size;
+					storage.plugged = plugged;
+					storage.full = full;
+					storage.internal = internal;
+				}
+			} else {
+				result = true;
 			}
 		}
+		return result;
 	}
 
 	/**
