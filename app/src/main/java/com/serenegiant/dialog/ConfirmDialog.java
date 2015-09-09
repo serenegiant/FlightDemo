@@ -7,28 +7,28 @@ public class ConfirmDialog extends BaseDialogFragment {
 	private static final String TAG = "ConfirmDialog";
 
 	public static ConfirmDialog showDialog(final Activity parent) {
-		ConfirmDialog dialog = newInstance();
+		ConfirmDialog fragemnt = newInstance();
 		try {
-  			dialog.show(parent.getFragmentManager(), TAG);
+  			fragemnt.show(parent.getFragmentManager(), TAG);
 		} catch (final IllegalStateException e) {
-			dialog = null;
+			fragemnt = null;
 		}
-		return dialog;
+		return fragemnt;
 	}
 
 	public static ConfirmDialog showDialog(final Fragment parent) {
-		ConfirmDialog dialog = newInstance();
-		dialog.setTargetFragment(parent, parent.getId());
+		ConfirmDialog fragment = newInstance();
+		fragment.setTargetFragment(parent, parent.getId());
 		try {
-  			dialog.show(parent.getFragmentManager(), TAG);
+  			fragment.show(parent.getFragmentManager(), TAG);
 		} catch (final IllegalStateException e) {
-			dialog = null;
+			fragment = null;
 		}
-		return dialog;
+		return fragment;
 	}
 
 	public static ConfirmDialog newInstance() {
-		final ConfirmDialog dialog = new ConfirmDialog();
-		return dialog;
+		final ConfirmDialog fragment = new ConfirmDialog();
+		return fragment;
 	}
 }

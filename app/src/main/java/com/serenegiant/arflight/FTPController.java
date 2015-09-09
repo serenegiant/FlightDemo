@@ -31,6 +31,9 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public abstract class FTPController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -50,26 +53,39 @@ public abstract class FTPController {
 		public boolean onError(final Exception e);
 
 		/**
-		 * 進捗状況更新時のコールバック
-		 * @param cmd
-		 * @param progress
-		 */
-		public void onProgress(final int cmd, final float progress, final int current, final int total, final Object token);
-
-		/**
 		 * メディアリスト更新時のコールバック
 		 * @param medias
 		 */
 		public void onMediaListUpdated(final List<ARMediaObject>medias);
 
 		/**
+		 * 進捗状況更新時のコールバック
+		 * @param cmd
+		 * @param progress
+		 * @param current
+		 * @param total
+		 * @param media
+		 */
+		public void onProgress(final int cmd, final float progress, final int current, final int total, final ARMediaObject media);
+
+		/**
 		 * 非同期処理終了時のコールバック
 		 * @param cmd
 		 * @param error
-		 * @param token
+		 * @param current
+		 * @param total
+		 * @param media
 		 */
-		public void onFinished(final int cmd, final int error, final Object token);
+		public void onFinished(final int cmd, final int error, final int current, final int total, final ARMediaObject media);
 	}
+
+    // for thread pool
+    private static final int CORE_POOL_SIZE = 0;		// initial/minimum threads
+    private static final int MAX_POOL_SIZE = 8;			// maximum threads
+    private static final int KEEP_ALIVE_TIME = 10;		// time periods while keep the idle thread
+    protected static final ThreadPoolExecutor EXECUTER
+		= new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE, KEEP_ALIVE_TIME,
+			TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
 	protected final WeakReference<Context>mWeakContext;
 	protected final WeakReference<IDeviceController>mWeakController;
@@ -193,6 +209,7 @@ public abstract class FTPController {
 	 * メディアファイル一覧更新要求
 	 */
 	public void updateMedia() {
+		if (DEBUG) Log.v(TAG, "updateMedia:" + mConnected);
 		if (mConnected) {
 			mRequestCancel = false;
 			mFTPHandler.removeMessages(REQ_LIST_MEDIAS);	// 未処理は無かったことにする
@@ -206,6 +223,7 @@ public abstract class FTPController {
 	 * @param deleteAfterFetch true:取得後に削除する
 	 */
 	public void transfer(final ARMediaObject[] medias, final boolean deleteAfterFetch) {
+		if (DEBUG) Log.v(TAG, "transfer:" + mConnected);
 		if (mConnected) {
 			mRequestCancel = false;
 			if (deleteAfterFetch) {
@@ -218,12 +236,13 @@ public abstract class FTPController {
 
 	/**
 	 * 指定したメディアファイルを削除要求
-	 * @param mediaObject
+	 * @param medias
 	 */
-	public void deleteMedia(final ARMediaObject mediaObject) {
+	public void delete(final ARMediaObject[] medias) {
+		if (DEBUG) Log.v(TAG, "delete:" + mConnected);
 		if (mConnected) {
 			mRequestCancel = false;
-			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_DELETE, mediaObject));
+			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_DELETE, medias));
 		}
 	}
 
@@ -308,18 +327,24 @@ public abstract class FTPController {
 	 * @param needDelete
 	 */
 	protected void handleTransfer(final ARMediaObject[] medias, final boolean needDelete) {
+		if (DEBUG) Log.v(TAG, "handleTransfer:" + medias);
 		final int n = medias != null ? medias.length : 0;
 		if (n > 0) {
 			synchronized (mHandlingSync) {
 				mTotalMediaNum = n;
 				mFinishedNum = 1;
 			}
+			if (DEBUG) Log.v(TAG, "request transfer");
+			final Runnable downloaderQueueRunnable = mDownLoader.getDownloaderQueueRunnable();
 			for (final ARMediaObject mediaObject : medias) {
 				handleTransferOne(mediaObject, needDelete);
 			}
+			if (DEBUG) Log.v(TAG, "run downloaderQueueRunnable");
+			downloaderQueueRunnable.run();
 			synchronized (mHandlingSync) {
 				for (; mConnected && !mRequestCancel && (mFinishedNum < mTotalMediaNum); ) {
 					try {
+						if (DEBUG) Log.v(TAG, String.format("wait for finishing transfer:%d/%d", mFinishedNum, mTotalMediaNum));
 						mHandlingSync.wait(1000);
 					} catch (final InterruptedException e) {
 						break;
@@ -327,6 +352,7 @@ public abstract class FTPController {
 				}
 			}
 		}
+		if (DEBUG) Log.v(TAG, "handleTransfer:finished");
 	}
 
 	/**
@@ -334,12 +360,16 @@ public abstract class FTPController {
 	 * @param medias
 	 */
 	protected void handleDelete(final ARMediaObject[] medias) {
+		if (DEBUG) Log.v(TAG, "handleDelete:" + medias);
 		final int n = medias != null ? medias.length : 0;
 		if (n > 0) {
+			int i = 0;
 			for (final ARMediaObject mediaObject: medias) {
-				handleDeleteOne(mediaObject);
+				final boolean result = handleDeleteOne(mediaObject);
+				callOnFinished(CALLBACK_CMD_MEDIA_DELETE, result ? 1 : 0, ++i, n, mediaObject);
 			}
 		}
+		if (DEBUG) Log.v(TAG, "handleDelete:finished");
 	}
 
 	/**
@@ -349,23 +379,23 @@ public abstract class FTPController {
 	 */
 	protected boolean handleTransferOne(final ARMediaObject mediaObject, final boolean needDelete) {
 		boolean result = false;
-		if (DEBUG) dumpMediaObject(mediaObject);
 		if (mediaObject != null) {
 			final File file = new File(mediaObject.getFilePath());
 			try {
 				final TransferRec rec = new TransferRec(mediaObject, needDelete);
 				if (!file.exists()) {    // 端末内にファイルが存在しない時
-					final Runnable downloaderQueueRunnable = mDownLoader.getDownloaderQueueRunnable();
-					downloaderQueueRunnable.run();
+					if (DEBUG) Log.v(TAG, "addMediaToQueue:");
 					mDownLoader.addMediaToQueue(mediaObject.media,
-						mTransferProcessListener, rec,		// progressArg
+						mTransferProcessListener, rec,        // progressArg
 						mTransferCompletionListener, rec);	// completionArg
 					result = true;
 				} else {
+					if (DEBUG) Log.w(TAG, "既に読み込み済");
 					// 転送完了したことにする
 					finishTransferOne(0, rec);
 				}
 			} catch (final Exception e) {
+				if (DEBUG) Log.w(TAG, "例外発生", e);
 				// 転送失敗したことにする
 				finishTransferOne(-1, null);
 			}
@@ -380,6 +410,7 @@ public abstract class FTPController {
 		= new ARDataTransferMediasDownloaderProgressListener() {
 		@Override
 		public void didMediaProgress(final Object progressArg, final ARDataTransferMedia media, final float progress) {
+//			if (DEBUG) Log.v(TAG, "didMediaProgress:arg=" + progressArg +",progress=" + progress);
 			// progressArgはTransferRec
 			callOnProgress(CALLBACK_CMD_MEDIA_TRANSFER, progress, mFinishedNum, mTotalMediaNum, ((TransferRec)progressArg).mediaObject);
 		}
@@ -393,6 +424,8 @@ public abstract class FTPController {
 		@Override
 		public void didMediaComplete(final Object completionArg, final ARDataTransferMedia media,
 			final ARDATATRANSFER_ERROR_ENUM error) {
+
+//			if (DEBUG) Log.v(TAG, "didMediaProgress:arg=" + completionArg +",error=" + error);
 			// completionArgはTransferRec
 			finishTransferOne(error.getValue(), (TransferRec)completionArg);
 		}
@@ -415,7 +448,7 @@ public abstract class FTPController {
 				handleDeleteOne(mediaObject);
 			}
 		}
-		callOnFinished(CALLBACK_CMD_MEDIA_TRANSFER, error, mediaObject);
+		callOnFinished(CALLBACK_CMD_MEDIA_TRANSFER, error, mFinishedNum, mTotalMediaNum, mediaObject);
 	}
 
 	/**
@@ -426,14 +459,12 @@ public abstract class FTPController {
  	protected boolean handleDeleteOne(final ARMediaObject mediaObject) {
 		boolean result = false;
 		if (mediaObject != null) {
-			if (DEBUG) dumpMediaObject(mediaObject);
 			final ARDATATRANSFER_ERROR_ENUM err = mDownLoader.deleteMedia(mediaObject.media);
 			if (err != ARDATATRANSFER_ERROR_ENUM.ARDATATRANSFER_OK) {
 				Log.w(TAG, "failed to delete media: err=" + err);
 				result = true;
 			}
 		}
-		callOnFinished(CALLBACK_CMD_MEDIA_DELETE, result ? 1 : 0, mediaObject);
 		return result;
 	}
 
@@ -484,11 +515,11 @@ public abstract class FTPController {
 	 * @param cmd
 	 * @param progress	 [0,1]
 	 */
-	protected void callOnProgress(final int cmd, final float progress, final int current, final int total, final Object token) {
+	protected void callOnProgress(final int cmd, final float progress, final int current, final int total, final ARMediaObject media) {
 		synchronized (mCallbackSync) {
 			if (mCallback != null) {
 				try {
-					mCallback.onProgress(cmd, progress, current, total, token);
+					mCallback.onProgress(cmd, progress, current, total, media);
 				} catch (final Exception e) {
 					Log.w(TAG, e);
 				}
@@ -496,11 +527,11 @@ public abstract class FTPController {
 		}
 	}
 
-	protected void callOnFinished(final int cmd, final int error, final Object token) {
+	protected void callOnFinished(final int cmd, final int error, final int current, final int total, final ARMediaObject media) {
 		synchronized (mCallbackSync) {
 			if (mCallback != null) {
 				try {
-					mCallback.onFinished(cmd, error, token);
+					mCallback.onFinished(cmd, error, current, total, media);
 				} catch (final Exception e) {
 					Log.w(TAG, e);
 				}
@@ -536,14 +567,14 @@ public abstract class FTPController {
 				for (int i = 0; i < num; i++) {
 					final ARDataTransferMedia media = mDownLoader.getAvailableMediaAtIndex(i);
 					final ARMediaObject mediaObject = new ARMediaObject();
-					callOnProgress(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, i / (float)num, i, num, mediaObject);
+					callOnProgress(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, i / (float) num, 1, 1, mediaObject);
 					mediaObject.updateDataTransferMedia(res, media);
 					medias.add(mediaObject);
 				}
-				callOnFinished(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, 0, null);
+				callOnFinished(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, 0, 1, 1, null);
 			}
 		} catch (final ARDataTransferException e) {
-			callOnFinished(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, 1, null);
+			callOnFinished(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, 1, 1, 1, null);
 			callOnError(e);
 		}
 		return medias;
@@ -556,13 +587,13 @@ public abstract class FTPController {
 		int foundMediasThumbnail = -1;
 		int i = -1;
 		for (final ARMediaObject mediaObject: medias) {
-			callOnProgress(CALLBACK_CMD_GET_MEDIA_THUMBNAILS, ++i / (float)num, i, num, mediaObject);
+			callOnProgress(CALLBACK_CMD_GET_MEDIA_THUMBNAILS, ++i / (float)num, 1, 1, mediaObject);
 			final byte[] thumbnail = mDownLoader.getMediaThumbnail(mediaObject.media);
 			if (thumbnail != null) {
 				foundMediasThumbnail++;
 				mediaObject.updateThumbnailWithDataTransferMedia(res, mediaObject.media);
 			}
-			callOnFinished(CALLBACK_CMD_GET_MEDIA_THUMBNAILS, 0, null);
+			callOnFinished(CALLBACK_CMD_GET_MEDIA_THUMBNAILS, 0, 1, 1, null);
 		}
 		return medias;
 	}
