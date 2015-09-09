@@ -7,11 +7,15 @@ import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseBooleanArray;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -19,11 +23,12 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.armedia.ARMediaObject;
 import com.serenegiant.arflight.FTPController;
 import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.dialog.TransferProgressDialogFragment;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MediaFragment extends ControlBaseFragment {
+public class MediaFragment extends ControlBaseFragment implements TransferProgressDialogFragment.TransferProgressDialogListener {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = MediaFragment.class.getSimpleName();
 
@@ -154,14 +159,17 @@ public class MediaFragment extends ControlBaseFragment {
 
 		@Override
 		public void onProgress(final int cmd, final float progress, final int current, final int total, final ARMediaObject media) {
-			if (DEBUG) Log.v(TAG, String.format("onProgress:%d,%f,%d/%d,", cmd, progress, current, total) + media);
+//			if (DEBUG) Log.v(TAG, String.format("onProgress:%d,%f,%d/%d,", cmd, progress, current, total) + media);
+			if (mTransferProgressDialogFragment != null) {
+				mTransferProgressDialogFragment.setProgress(current, total, progress);
+			}
 		}
 
 		@Override
 		public void onFinished(final int cmd, final int error, final int current, final int total, final ARMediaObject media) {
-			if (DEBUG) Log.v(TAG, String.format("onFinished:%d,%d,", cmd, error) + media);
-			if (mMediaListView != null) {
-				mMediaListView.clearChoices();
+			if (DEBUG) Log.v(TAG, String.format("onFinished:%d,%d,%d/%d,", cmd, error, current, total) + media);
+			if (current >= total) {
+				hideTransferProgress();
 			}
 		}
 	};
@@ -194,20 +202,38 @@ public class MediaFragment extends ControlBaseFragment {
 		}
 	}
 
+	private TransferProgressDialogFragment mTransferProgressDialogFragment;
 	private void transferMedias() {
+		final boolean needDelete = mDeleteAfterFetchCheckBox != null ? mDeleteAfterFetchCheckBox.isChecked() : false;
 		final ARMediaObject[] medias = getSelectedMedias();
 		if (medias != null) {
-			mFTPController.transfer(medias, false);
+			mTransferProgressDialogFragment = TransferProgressDialogFragment.showDialog(this, getString(R.string.loading), null);
+			mFTPController.transfer(medias, needDelete);
 		}
-		if (mMediaListView != null) {
-			mMediaListView.clearChoices();
-		}
+	}
+
+	private void hideTransferProgress() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (mTransferProgressDialogFragment != null) {
+					mTransferProgressDialogFragment.dismiss();
+					mTransferProgressDialogFragment = null;
+				}
+				if (mMediaListView != null) {
+					mMediaListView.clearChoices();
+					mMediaListAdapter.notifyDataSetChanged();
+				}
+				updateMediaList();
+			}
+		});
 	}
 
 	private MediaListAdapter mMediaListAdapter;	// 取得したメディアファイルの一覧アクセス用Adapter
 	private ListView mMediaListView;
 	private Button mDeleteBtn;
 	private Button mFetchBtn;
+	private CheckBox mDeleteAfterFetchCheckBox;
 	private ProgressBar mFreeSpaceProgressbar;
 	/**
 	 * メディアファイル一覧画面の準備
@@ -219,14 +245,10 @@ public class MediaFragment extends ControlBaseFragment {
 			mMediaListAdapter = new MediaListAdapter(getActivity(), R.layout.list_item_media);
 			final View empty_view = rootView.findViewById(R.id.empty_view);
 			mMediaListView.setEmptyView(empty_view);
-			mMediaListView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+			mMediaListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 				@Override
-				public void onItemSelected(final AdapterView<?> parent, final View view, final int position, final long id) {
-					updateMediaList();
-				}
-
-				@Override
-				public void onNothingSelected(final AdapterView<?> parent) {
+				public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+//					if (DEBUG) Log.v(TAG, "onItemClick:");
 					updateMediaList();
 				}
 			});
@@ -238,6 +260,8 @@ public class MediaFragment extends ControlBaseFragment {
 		mDeleteBtn.setOnClickListener(mOnClickListener);
 		mFetchBtn = (Button)rootView.findViewById(R.id.fetch_btn);
 		mFetchBtn.setOnClickListener(mOnClickListener);
+		mDeleteAfterFetchCheckBox = (CheckBox)rootView.findViewById(R.id.delete_after_fetch_checkbox);
+		updateMediaList();
 	}
 
 	private void updateMediaList() {
@@ -247,6 +271,7 @@ public class MediaFragment extends ControlBaseFragment {
 	private final Runnable mUpdateMediaListTask = new Runnable() {
 		@Override
 		public void run() {
+			if (DEBUG) Log.v(TAG, "mUpdateMediaListTask:count=" + mMediaListView.getCheckedItemCount());
 			final boolean selected = mMediaListView != null ? mMediaListView.getCheckedItemCount() > 0 : false;
 			final int visibility = selected ? View.VISIBLE : View.INVISIBLE;
 			if (mDeleteBtn != null) {
@@ -254,6 +279,12 @@ public class MediaFragment extends ControlBaseFragment {
 			}
 			if (mFetchBtn != null) {
 				mFetchBtn.setVisibility(visibility);
+			}
+			if (mDeleteAfterFetchCheckBox != null) {
+				if (visibility != mDeleteAfterFetchCheckBox.getVisibility()) {
+					mDeleteAfterFetchCheckBox.setChecked(false);
+				}
+				mDeleteAfterFetchCheckBox.setVisibility(visibility);
 			}
 		}
 	};
@@ -285,6 +316,12 @@ public class MediaFragment extends ControlBaseFragment {
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public void onCancel(final int requestID) {
+		mFTPController.cancel();
+		hideTransferProgress();
 	}
 
 	private static interface AdapterItemHandler {

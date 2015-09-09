@@ -15,6 +15,7 @@
 	<string name="action_stop">停止</string>
 	<string name="action_clear">消去</string>
 	<string name="action_move">移動</string>
+	<string name="action_delete_after_fetch">読み込み後に削除</string>
 
 	<string name="alarm_low_battery">ローバッテリー</string>
 	<string name="alarm_low_battery_critical">致命的ローバッテリー</string>

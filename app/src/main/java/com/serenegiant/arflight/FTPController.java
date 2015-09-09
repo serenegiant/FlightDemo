@@ -332,22 +332,24 @@ public abstract class FTPController {
 		if (n > 0) {
 			synchronized (mHandlingSync) {
 				mTotalMediaNum = n;
-				mFinishedNum = 1;
+				mFinishedNum = 0;
 			}
 			if (DEBUG) Log.v(TAG, "request transfer");
-			final Runnable downloaderQueueRunnable = mDownLoader.getDownloaderQueueRunnable();
 			for (final ARMediaObject mediaObject : medias) {
 				handleTransferOne(mediaObject, needDelete);
 			}
-			if (DEBUG) Log.v(TAG, "run downloaderQueueRunnable");
-			downloaderQueueRunnable.run();
 			synchronized (mHandlingSync) {
-				for (; mConnected && !mRequestCancel && (mFinishedNum < mTotalMediaNum); ) {
-					try {
-						if (DEBUG) Log.v(TAG, String.format("wait for finishing transfer:%d/%d", mFinishedNum, mTotalMediaNum));
-						mHandlingSync.wait(1000);
-					} catch (final InterruptedException e) {
-						break;
+				if (mConnected && !mRequestCancel && (mFinishedNum < mTotalMediaNum)) {
+					if (DEBUG) Log.v(TAG, "run downloaderQueueRunnable");
+					final Runnable downloaderQueueRunnable = mDownLoader.getDownloaderQueueRunnable();
+					downloaderQueueRunnable.run();
+					for (; mConnected && !mRequestCancel && (mFinishedNum < mTotalMediaNum); ) {
+						try {
+							if (DEBUG) Log.v(TAG, String.format("wait for finishing transfer:%d/%d", mFinishedNum, mTotalMediaNum));
+							mHandlingSync.wait(1000);
+						} catch (final InterruptedException e) {
+							break;
+						}
 					}
 				}
 			}
@@ -383,7 +385,8 @@ public abstract class FTPController {
 			final File file = new File(mediaObject.getFilePath());
 			try {
 				final TransferRec rec = new TransferRec(mediaObject, needDelete);
-				if (!file.exists()) {    // 端末内にファイルが存在しない時
+				if (!file.exists() || (file.length() != mediaObject.getSize())) {
+					// 端末内にファイルが存在しないかサイズが異なる時
 					if (DEBUG) Log.v(TAG, "addMediaToQueue:");
 					mDownLoader.addMediaToQueue(mediaObject.media,
 						mTransferProcessListener, rec,        // progressArg

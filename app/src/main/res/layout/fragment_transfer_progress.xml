@@ -1,49 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-			 android:layout_width="match_parent"
-			 android:layout_height="match_parent"
-			 android:orientation="vertical">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:orientation="vertical"
+			  android:padding="@dimen/half_padding"
+			  android:background="@color/ALICEBLUE">
 
-	<TableRow
+	<ProgressBar
+		style="@android:style/Widget.ProgressBar.Horizontal"
+		android:id="@+id/progressBar1"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent">
-		<TextView
-			android:id="@+id/label1"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:paddingRight="@dimen/quater_padding"
-			android:text="label1"
-			android:textSize="@dimen/text_sz_list"/>
+		android:layout_height="@dimen/progress_height"
+		android:layout_gravity="center_vertical"
+		android:max="100"
+		android:progress="0"
+		android:layout_marginBottom="@dimen/quater_padding"/>
 
-		<ProgressBar
-			style="@android:style/Widget.ProgressBar.Horizontal"
-			android:id="@+id/progressBar1"
-			android:layout_width="match_parent"
-			android:layout_height="@dimen/progress_height"
-			android:layout_gravity="center_vertical"
-			android:max="100"
-			android:progress="0"/>
-	</TableRow>
-
-	<TableRow android:id="@+id/transfer_row_2"
+	<ProgressBar
+		style="@android:style/Widget.ProgressBar.Horizontal"
+		android:id="@+id/progressBar2"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent">
-
-		<TextView
-			android:id="@+id/label2"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:paddingRight="@dimen/quater_padding"
-			android:text="label2"
-			android:textSize="@dimen/text_sz_list"/>
-
-		<ProgressBar
-			style="@android:style/Widget.ProgressBar.Horizontal"
-			android:id="@+id/progressBar2"
-			android:layout_width="match_parent"
-			android:layout_height="@dimen/progress_height"
-			android:layout_gravity="center_vertical"
-			android:progress="0"
-			android:max="100"/>
-	</TableRow>
-</TableLayout>
+		android:layout_height="@dimen/progress_height"
+		android:layout_gravity="center_vertical"
+		android:progress="0"
+		android:max="100"
+		android:layout_marginBottom="@dimen/quater_padding"/>
+	<Button
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@android:string/cancel"
+		android:id="@+id/cancel_btn"
+		android:layout_gravity="center_horizontal"/>
+</LinearLayout>

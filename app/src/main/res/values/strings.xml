@@ -14,6 +14,7 @@
 	<string name="action_stop">stop</string>
 	<string name="action_clear">Clear</string>
 	<string name="action_move">Move</string>
+	<string name="action_delete_after_fetch">Delete after load</string>
 
 	<string name="alarm_low_battery">Low battery</string>
 	<string name="alarm_low_battery_critical">Critical low battery</string>

@@ -10,8 +10,7 @@
 		android:layout_height="wrap_content"
 		android:layout_alignParentBottom="false"
 		android:layout_alignParentTop="true"
-		android:paddingBottom="@dimen/quater_padding"
-		android:paddingTop="@dimen/quater_padding">
+		android:padding="@dimen/quater_padding">
 
 		<Button
 			android:layout_width="wrap_content"
@@ -19,7 +18,7 @@
 			android:text="@string/action_clear"
 			android:id="@+id/delete_btn"
 			android:layout_alignParentLeft="true"
-			android:gravity="center_vertical"/>
+			android:gravity="center"/>
 
 		<Button
 				android:layout_width="wrap_content"
@@ -27,8 +26,20 @@
 				android:text="@string/action_load"
 				android:id="@+id/fetch_btn"
 				android:layout_toRightOf="@+id/delete_btn"
-				android:gravity="center_vertical"
-				android:layout_marginLeft="@dimen/half_padding"/>
+				android:gravity="center"
+				android:layout_marginLeft="@dimen/half_padding"
+			/>
+
+		<CheckBox
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/action_delete_after_fetch"
+			android:id="@+id/delete_after_fetch_checkbox"
+			android:layout_centerVertical="true"
+			android:layout_toRightOf="@+id/fetch_btn"
+			android:layout_toEndOf="@+id/fetch_btn"
+			android:layout_marginLeft="@dimen/half_padding"/>
+
 		<ProgressBar
 				style="@android:style/Widget.ProgressBar.Horizontal"
 				android:layout_width="@dimen/progress_sz_freespace"
