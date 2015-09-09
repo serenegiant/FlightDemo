@@ -9,9 +9,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
-import android.util.Pair;
 
-import com.parrot.arsdk.ardatatransfer.ARDATATRANSFER_ERROR_ENUM;
 import com.parrot.arsdk.ardatatransfer.ARDataTransferException;
 import com.parrot.arsdk.ardatatransfer.ARDataTransferManager;
 import com.parrot.arsdk.ardatatransfer.ARDataTransferMedia;
@@ -53,9 +51,14 @@ public abstract class FTPController {
 		} else if (controller instanceof DeviceControllerMiniDrone) {
 			return new FTPControllerBLE(context, controller);
 		}
+		controller.sendVideoRecording(false);
+		if (controller instanceof IVideoStreamController) {
+			((IVideoStreamController)controller).enableVideoStreaming(false);
+		}
 		return null;
 	}
 
+	private final ARSAL_PRINT_LEVEL_ENUM mOrgLevel;
 	/**
 	 * コンストラクタ
 	 * @param context
@@ -66,6 +69,10 @@ public abstract class FTPController {
 		HandlerThread thread = new HandlerThread("FTPThread");
 		thread.start();
 		mFTPHandler = new FTPHandler(thread.getLooper());
+
+		mOrgLevel = ARSALPrint.getMinimumLogLevel();
+		ARSALPrint.setMinimumLogLevel(ARSAL_PRINT_LEVEL_ENUM.ARSAL_PRINT_VERBOSE);
+
 		mFTPListManager = createARUtilsManager();
 		mFTPQueueManager = createARUtilsManager();
 		mDataTransferManager = createARDataTransferManager();
@@ -94,6 +101,7 @@ public abstract class FTPController {
 		} catch (final Exception e) {
 			Log.w(TAG, e);
 		}
+		ARSALPrint.setMinimumLogLevel(mOrgLevel);
 	}
 
 	/**
@@ -170,13 +178,8 @@ public abstract class FTPController {
 		if (DEBUG) Log.v(TAG, "getAvailableMedias:");
 		int num = -1;
 		try {
-			final ARSAL_PRINT_LEVEL_ENUM level = ARSALPrint.getMinimumLogLevel();
-			try {
-				ARSALPrint.setMinimumLogLevel(ARSAL_PRINT_LEVEL_ENUM.ARSAL_PRINT_VERBOSE);
-				num = mDownLoader.getAvailableMediasSync(false);	// これがftp errorになって実行できない
-			} finally {
-				ARSALPrint.setMinimumLogLevel(level);
-			}
+			// int ARDataTransferMediasDownloader#getAvailableMediasSync(boolean withThumbnail)
+			num = mDownLoader.getAvailableMediasSync(false);	// これがftp errorになって実行できない
 			if (num > 0) {
 				final List<ARMediaObject> medias = new ArrayList<ARMediaObject>();
 				final Resources res = mWeakContext.get().getResources();
