@@ -1515,7 +1515,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	 * @param pictureFormat 0: Take raw image, 1: Take a 4:3 jpeg photo, 2: Take a 16:9 snapshot from camera
 	 * @return
 	 */
-	public boolean SendPictureFormat(final int pictureFormat) {
+	public boolean sendPictureFormat(final int pictureFormat) {
 
 		final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM type
 			= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM.getFromValue(pictureFormat);
@@ -1702,6 +1702,8 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	 * @return
 	 */
 	public boolean sendVideoEnable(final boolean enabled) {
+		mVideoThread.enabled(enabled);
+
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1715,6 +1717,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send Exposure command.");
 		}
+		mVideoThread.enabled(enabled && sentStatus);
 
 		return sentStatus;
 	}
@@ -1948,7 +1951,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	 * @param use_drone2Battery
 	 * @return
 	 */
-	public boolean SendUseDrone2Battery(final boolean use_drone2Battery) {
+	public boolean sendUseDrone2Battery(final boolean use_drone2Battery) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -2061,10 +2064,82 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 	}
 
+	private class VideoThread extends Thread {
+		private final Object mSync = new Object();
+		private volatile boolean mIsRunning;
+		private volatile boolean mEnabled;
+
+		public VideoThread () {
+			mIsRunning = true;
+			mEnabled = false;
+		}
+
+		public void stopThread() {
+			synchronized (mSync) {
+				mIsRunning = false;
+				mSync.notifyAll();
+			}
+		}
+
+		public boolean isRunning() {
+			return mIsRunning;
+		}
+
+		public boolean isEnabled() {
+			return mIsRunning && mEnabled;
+		}
+
+		public void enabled(final boolean enabled) {
+			synchronized (mSync) {
+				mEnabled = enabled;
+				mSync.notifyAll();
+			}
+		}
+
+		@Override
+		public void run() {
+			for (; mIsRunning ;) {
+				if (!mEnabled) {
+					synchronized (mSync) {
+						try {
+							mSync.wait(500);
+						} catch (final InterruptedException e) {
+							break;
+						}
+						continue;
+					}
+				}
+				final ARStreamManager streamManager = new ARStreamManager(mARNetManager,
+					mNetConfig.getVideoDataIOBuffer(), mNetConfig.getVideoAckIOBuffer(),
+					videoFragmentSize, videoMaxAckInterval);
+				streamManager.start();
+				try {
+					for (; mIsRunning && mEnabled ;) {
+						final ARFrame frame = streamManager.getFrameWithTimeout(VIDEO_RECEIVE_TIMEOUT_MS);
+						if (frame != null) {
+							try {
+								synchronized (mStreamSync) {
+									if (mVideoStreamListener != null) {
+										mVideoStreamListener.onReceiveFrame(frame);
+									}
+								}
+							} finally {
+								streamManager.recycle(frame);
+							}
+						}
+					}
+				} finally {
+					streamManager.stop();
+					streamManager.release();
+				}
+			}
+		}
+	}
+
 	/**
 	 * ビデオストリーミングデータを受信するためのスレッド
 	 */
-	private class VideoThread extends LooperThread {
+/*	private class VideoThread extends LooperThread {
 		private final ARStreamManager streamManager;
 
 		public VideoThread () {
@@ -2107,7 +2182,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 			if (DEBUG) Log.v(TAG, "VideoThread#onStop:終了");
 			super.onStop();
 		}
-	}
+	} */
 
 	/**
 	 * ビデオストリーミングデータ受信スレッドを開始

@@ -898,7 +898,7 @@ public abstract class DeviceController implements IDeviceController {
 		public void onCommonCommonStateMassStorageStateListChangedUpdate(
 			final byte mass_storage_id, final String name) {
 
-			if (DEBUG) Log.v(TAG, String.format("onCommonCommonStateMassStorageStateListChangedUpdate:mass_storage_id=%d,name=%s", mass_storage_id, name));
+//			if (DEBUG) Log.v(TAG, String.format("onCommonCommonStateMassStorageStateListChangedUpdate:mass_storage_id=%d,name=%s", mass_storage_id, name));
 			mStatus.setMassStorage(mass_storage_id, name);
 		}
 	};
@@ -921,7 +921,7 @@ public abstract class DeviceController implements IDeviceController {
 		public void onCommonCommonStateMassStorageInfoStateListChangedUpdate(
 			final byte mass_storage_id, final int size, final int used_size, final byte plugged, final byte full, final byte internal) {
 
-			if (DEBUG) Log.v(TAG, String.format("onCommonCommonStateMassStorageInfoStateListChangedUpdate:mass_storage_id=%d,size=%d,used_size=%d,plugged=%d,full=%d,internal=%d", mass_storage_id, size, used_size, plugged, full, internal));
+//			if (DEBUG) Log.v(TAG, String.format("onCommonCommonStateMassStorageInfoStateListChangedUpdate:mass_storage_id=%d,size=%d,used_size=%d,plugged=%d,full=%d,internal=%d", mass_storage_id, size, used_size, plugged, full, internal));
 			mStatus.setMassStorageInfo(mass_storage_id, size, used_size, plugged, full, internal);
 		}
 	};

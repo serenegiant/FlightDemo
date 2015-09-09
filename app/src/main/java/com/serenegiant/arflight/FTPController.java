@@ -33,6 +33,28 @@ public abstract class FTPController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "FTPController:";
 
+	public interface FTPControllerCallback {
+		/**
+		 * エラー発生時のコールバック
+		 * @param e
+		 * @return
+		 */
+		public boolean onError(final Exception e);
+
+		/**
+		 * 進捗状況更新時のコールバック
+		 * @param cmd
+		 * @param progress
+		 */
+		public void onProgress(final int cmd, final float progress);
+
+		/**
+		 * メディアリスト更新時のコールバック
+		 * @param medias
+		 */
+		public void onMediaListUpdated(final List<ARMediaObject>medias);
+	}
+
 	protected final WeakReference<Context>mWeakContext;
 	protected final WeakReference<IDeviceController>mWeakController;
 	protected final FTPHandler mFTPHandler;
@@ -44,6 +66,9 @@ public abstract class FTPController {
 	protected ARUtilsManager mFTPQueueManager;
 	protected ARDataTransferMediasDownloader mDownLoader;
 	protected volatile boolean mRequestCancel;
+
+	private final Object mCallbackSync = new Object();
+	private FTPControllerCallback mCallback;
 
 	public static FTPController newInstance(final Context context, final IDeviceController controller) {
 		if (controller instanceof DeviceControllerBebop) {
@@ -58,6 +83,7 @@ public abstract class FTPController {
 		return null;
 	}
 
+	/** デバッグレベル保持用 */
 	private final ARSAL_PRINT_LEVEL_ENUM mOrgLevel;
 	/**
 	 * コンストラクタ
@@ -71,7 +97,9 @@ public abstract class FTPController {
 		mFTPHandler = new FTPHandler(thread.getLooper());
 
 		mOrgLevel = ARSALPrint.getMinimumLogLevel();
-		ARSALPrint.setMinimumLogLevel(ARSAL_PRINT_LEVEL_ENUM.ARSAL_PRINT_VERBOSE);
+		if (DEBUG) {
+//			ARSALPrint.setMinimumLogLevel(ARSAL_PRINT_LEVEL_ENUM.ARSAL_PRINT_VERBOSE);
+		}
 
 		mFTPListManager = createARUtilsManager();
 		mFTPQueueManager = createARUtilsManager();
@@ -116,6 +144,18 @@ public abstract class FTPController {
 			mFTPHandler.sendEmptyMessage(CMD_CANCEL);
 		} catch (final Exception e) {
 			Log.w(TAG, e);
+		}
+	}
+
+	public void setCallback(final FTPControllerCallback callback) {
+		synchronized (mCallbackSync) {
+			mCallback = callback;
+		}
+	}
+
+	public FTPControllerCallback getCallback() {
+		synchronized (mCallbackSync) {
+			return mCallback;
 		}
 	}
 
@@ -174,35 +214,109 @@ public abstract class FTPController {
 		}
 	}
 
-	private void getAvailableMedias() {
+	/**
+	 * メディア一覧を更新
+	 */
+	protected void handleUpdateMediaList() {
+		final List<ARMediaObject> medias = getMediaThumbnails(getAvailableMedias());
+		callOnMediaListUpdated(medias);
+	}
+
+	/**
+	 * エラー発生時のコールバックを呼び出す
+	 * @param e
+	 */
+	protected void callOnError(final Exception e) {
+		boolean result = true;
+		synchronized (mCallbackSync) {
+			if (mCallback != null) {
+				try {
+					result = mCallback.onError(e);
+				} catch (final Exception e1) {
+					Log.w(TAG, e1);
+				}
+			}
+		}
+		if (result) {
+			Log.w(TAG, e);
+			cancel();
+		}
+	}
+
+	private static final int CALLBACK_CMD_GET_AVAILABLE_MEDIAS = 0;
+	private static final int CALLBACK_CMD_GET_MEDIA_THUMBNAILS = 1;
+	/**
+	 * 進捗状況更新のコールバックを呼び出す
+	 * @param cmd
+	 * @param progress	 [0,1]
+	 */
+	protected void callOnProgress(final int cmd, final float progress) {
+		synchronized (mCallbackSync) {
+			if (mCallback != null) {
+				try {
+					mCallback.onProgress(cmd, progress);
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+			}
+		}
+	}
+
+	/**
+	 * メディア一覧を更新した時のコールバックを呼び出す
+	 * @param medias
+	 */
+	protected void callOnMediaListUpdated(final List<ARMediaObject> medias) {
+		synchronized (mCallbackSync) {
+			if (mCallback != null) {
+				try {
+					mCallback.onMediaListUpdated(medias);
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+			}
+		}
+	}
+
+	private List<ARMediaObject>  getAvailableMedias() {
 		if (DEBUG) Log.v(TAG, "getAvailableMedias:");
 		int num = -1;
+		final List<ARMediaObject> medias = new ArrayList<ARMediaObject>();
 		try {
 			// int ARDataTransferMediasDownloader#getAvailableMediasSync(boolean withThumbnail)
-			num = mDownLoader.getAvailableMediasSync(false);	// これがftp errorになって実行できない
+			num = mDownLoader.getAvailableMediasSync(false);
 			if (num > 0) {
-				final List<ARMediaObject> medias = new ArrayList<ARMediaObject>();
 				final Resources res = mWeakContext.get().getResources();
 				for (int i = 0; i < num; i++) {
+					callOnProgress(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, i / (float)num);
 					final ARDataTransferMedia media = mDownLoader.getAvailableMediaAtIndex(i);
 					final ARMediaObject mediaObject = new ARMediaObject();
 					mediaObject.updateDataTransferMedia(res, media);
 					medias.add(mediaObject);
-					if (DEBUG) Log.v(TAG, "mediaObject" + i + ":" + mediaObject);
 				}
 			}
 		} catch (final ARDataTransferException e) {
 			callOnError(e);
 		}
-
+		return medias;
 	}
 
-	/**
-	 * エラー発生時のコールバックを呼び出す FIXME 未実装
-	 * @param e
-	 */
-	protected void callOnError(final Exception e) {
-		if (DEBUG) Log.w(TAG, e);
+	private List<ARMediaObject> getMediaThumbnails(final List<ARMediaObject> medias) {
+		final int num = medias.size();
+		final Resources res = mWeakContext.get().getResources();
+		if (DEBUG) Log.v(TAG, "getMediaThumbnails:num=" + num);
+		int foundMediasThumbnail = -1;
+		int i = -1;
+		for (final ARMediaObject mediaObject: medias) {
+			callOnProgress(CALLBACK_CMD_GET_MEDIA_THUMBNAILS, ++i / (float)num);	// XXX CMDは暫定値
+			final byte[] thumbnail = mDownLoader.getMediaThumbnail(mediaObject.media);
+			if (thumbnail != null) {
+				foundMediasThumbnail++;
+				mediaObject.updateThumbnailWithDataTransferMedia(res, mediaObject.media);
+				if (DEBUG) Log.v(TAG, "mediaObject" + i + ":" + mediaObject);
+			}
+		}
+		return medias;
 	}
 
 	private static final int CMD_INIT = 1;
@@ -234,10 +348,10 @@ public abstract class FTPController {
 				final IDeviceController controller = mWeakController.get();
 				mRemotePath = String.format("%s_%03d", controller.getMassStorageName(), controller.getMassStorageId());
 				handleConnect();
-				mFTPHandler.sendEmptyMessage(CMD_LIST_MEDIAS);	// FIXME
+				mFTPHandler.sendEmptyMessage(CMD_LIST_MEDIAS);
 				break;
 			case CMD_LIST_MEDIAS:
-				getAvailableMedias();	// FIXME
+				handleUpdateMediaList();
 				break;
 			case CMD_CANCEL:
 				if (mDownLoader != null) {
@@ -265,7 +379,7 @@ public abstract class FTPController {
 
 	private static final String USER_NAME = "anonymous";
 	private static final String PASSWORD = "";
-
+	private static final int HOST_PORT = 21;
 	/**
 	 * WiFi接続用のFTP処理クラス
 	 */
@@ -279,18 +393,17 @@ public abstract class FTPController {
 		protected void handleInit(final IDeviceController controller) {
 			final Object device = controller.getDeviceService().getDevice();
 			final String hostAddr;
-			final int hostPort;
 			if (device instanceof ARDiscoveryDeviceNetService) {
 				hostAddr = ((ARDiscoveryDeviceNetService)device).getIp();
-				hostPort = ((ARDiscoveryDeviceNetService)device).getPort();
+//				hostPort = ((ARDiscoveryDeviceNetService)device).getPort();	// これはFTP接続用じゃない
 			} else {
 				throw new IllegalArgumentException("ARDiscoveryDeviceNetServiceじゃない");
 			}
-			ARUTILS_ERROR_ENUM result = mFTPListManager.initWifiFtp(hostAddr, hostPort, USER_NAME, PASSWORD);
+			ARUTILS_ERROR_ENUM result = mFTPListManager.initWifiFtp(hostAddr, HOST_PORT, USER_NAME, PASSWORD);
 			if (result != ARUTILS_ERROR_ENUM.ARUTILS_OK) {
 				throw new IllegalArgumentException("initWifiFtpが失敗:err=" + result);
 			}
-			result = mFTPQueueManager.initWifiFtp(hostAddr, hostPort, USER_NAME, PASSWORD);
+			result = mFTPQueueManager.initWifiFtp(hostAddr, HOST_PORT, USER_NAME, PASSWORD);
 			if (result != ARUTILS_ERROR_ENUM.ARUTILS_OK) {
 				mFTPListManager.closeWifiFtp();
 				mFTPListManager.dispose();
@@ -324,19 +437,16 @@ public abstract class FTPController {
 		protected void handleInit(final IDeviceController controller) {
 			final Context context = mWeakContext.get();
 			final Object device = controller.getDeviceService().getDevice();
-			final int hostPort;
-			if (device instanceof ARDiscoveryDeviceBLEService) {
-				hostPort = 0x15;	// XXX これ合ってるかなぁ
-			} else {
+			if (!(device instanceof ARDiscoveryDeviceBLEService)) {
 				throw new IllegalArgumentException("ARDiscoveryDeviceBLEServiceじゃない");
 			}
 			final ARSALBLEManager arSALBLEManager = ARSALBLEManager.getInstance(context);
 			final BluetoothGatt gatt = arSALBLEManager.getGatt();
-			ARUTILS_ERROR_ENUM result = mFTPListManager.initBLEFtp(context, gatt, hostPort);
+			ARUTILS_ERROR_ENUM result = mFTPListManager.initBLEFtp(context, gatt, HOST_PORT);
 			if (result != ARUTILS_ERROR_ENUM.ARUTILS_OK) {
 				throw new IllegalArgumentException("initBLEFtpが失敗:err=" + result);
 			}
-			result = mFTPQueueManager.initBLEFtp(context, gatt, hostPort);
+			result = mFTPQueueManager.initBLEFtp(context, gatt, HOST_PORT);
 			if (result != ARUTILS_ERROR_ENUM.ARUTILS_OK) {
 				mFTPListManager.closeBLEFtp(context);
 				mFTPListManager.dispose();
