@@ -10,10 +10,13 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import com.parrot.arsdk.ardatatransfer.ARDATATRANSFER_ERROR_ENUM;
 import com.parrot.arsdk.ardatatransfer.ARDataTransferException;
 import com.parrot.arsdk.ardatatransfer.ARDataTransferManager;
 import com.parrot.arsdk.ardatatransfer.ARDataTransferMedia;
 import com.parrot.arsdk.ardatatransfer.ARDataTransferMediasDownloader;
+import com.parrot.arsdk.ardatatransfer.ARDataTransferMediasDownloaderCompletionListener;
+import com.parrot.arsdk.ardatatransfer.ARDataTransferMediasDownloaderProgressListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceNetService;
 import com.parrot.arsdk.armedia.ARMediaObject;
@@ -33,6 +36,11 @@ public abstract class FTPController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "FTPController:";
 
+	public static final int CALLBACK_CMD_GET_AVAILABLE_MEDIAS = 0;
+	public static final int CALLBACK_CMD_GET_MEDIA_THUMBNAILS = 1;
+	public static final int CALLBACK_CMD_MEDIA_TRANSFER = 2;
+	public static final int CALLBACK_CMD_MEDIA_DELETE = 3;
+
 	public interface FTPControllerCallback {
 		/**
 		 * エラー発生時のコールバック
@@ -46,13 +54,21 @@ public abstract class FTPController {
 		 * @param cmd
 		 * @param progress
 		 */
-		public void onProgress(final int cmd, final float progress);
+		public void onProgress(final int cmd, final float progress, final int current, final int total, final Object token);
 
 		/**
 		 * メディアリスト更新時のコールバック
 		 * @param medias
 		 */
 		public void onMediaListUpdated(final List<ARMediaObject>medias);
+
+		/**
+		 * 非同期処理終了時のコールバック
+		 * @param cmd
+		 * @param error
+		 * @param token
+		 */
+		public void onFinished(final int cmd, final int error, final Object token);
 	}
 
 	protected final WeakReference<Context>mWeakContext;
@@ -66,6 +82,7 @@ public abstract class FTPController {
 	protected ARUtilsManager mFTPQueueManager;
 	protected ARDataTransferMediasDownloader mDownLoader;
 	protected volatile boolean mRequestCancel;
+	protected volatile boolean mConnected;
 
 	private final Object mCallbackSync = new Object();
 	private FTPControllerCallback mCallback;
@@ -104,16 +121,17 @@ public abstract class FTPController {
 		mFTPListManager = createARUtilsManager();
 		mFTPQueueManager = createARUtilsManager();
 		mDataTransferManager = createARDataTransferManager();
-		final String productName = controller.getProductName().replace(" ", "_");
-		final File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM),
-			"FlightDemo/" + productName);
+		// 場所は気に入らないけど純正アプリと同じ場所に保存する
+		final String productName = controller.getProductName(); // .replace(" ", "_");
+		final File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), productName);
 		path.mkdirs();	// バカだからここで作っといてあげないとだめ
 		mExternalDirectory = path.getAbsolutePath();
 	}
 
 	public void connect() {
 		try {
-			mFTPHandler.sendEmptyMessage(CMD_CONNECT);
+			mConnected = true;
+			mFTPHandler.sendEmptyMessage(REQ_CONNECT);
 		} catch (final Exception e) {
 			Log.w(TAG, e);
 		}
@@ -125,7 +143,8 @@ public abstract class FTPController {
 	public void release() {
 		cancel();
 		try {
-			mFTPHandler.sendEmptyMessage(CMD_RELEASE);
+			mConnected = false;
+			mFTPHandler.sendEmptyMessage(REQ_RELEASE);
 		} catch (final Exception e) {
 			Log.w(TAG, e);
 		}
@@ -138,29 +157,74 @@ public abstract class FTPController {
 	public void cancel() {
 		try {
 			// FIXME ここで未実行のCMD_RELEASE以外のコマンドを取り除く
-			mFTPHandler.removeMessages(CMD_CANCEL);
+			mFTPHandler.removeMessages(REQ_CANCEL);
+			mFTPHandler.removeMessages(REQ_DELETE);
+			mFTPHandler.removeMessages(REQ_TRANSFER);
+			mFTPHandler.removeMessages(REQ_TRANSFER_AND_DELETE);
 			// キャンセル要求
 			mRequestCancel = true;
-			mFTPHandler.sendEmptyMessage(CMD_CANCEL);
+			mFTPHandler.sendEmptyMessage(REQ_CANCEL);
 		} catch (final Exception e) {
 			Log.w(TAG, e);
 		}
 	}
 
+	/**
+	 * コールバックを設定
+	 * @param callback
+	 */
 	public void setCallback(final FTPControllerCallback callback) {
 		synchronized (mCallbackSync) {
 			mCallback = callback;
 		}
 	}
 
+	/**
+	 * コールバックを取得
+	 * @return
+	 */
 	public FTPControllerCallback getCallback() {
 		synchronized (mCallbackSync) {
 			return mCallback;
 		}
 	}
 
+	/**
+	 * メディアファイル一覧更新要求
+	 */
 	public void updateMedia() {
-		mFTPHandler.sendEmptyMessage(CMD_LIST_MEDIAS);
+		if (mConnected) {
+			mRequestCancel = false;
+			mFTPHandler.removeMessages(REQ_LIST_MEDIAS);	// 未処理は無かったことにする
+			mFTPHandler.sendEmptyMessage(REQ_LIST_MEDIAS);
+		}
+	}
+
+	/**
+	 * メディアファイルを取得要求
+	 * @param medias
+	 * @param deleteAfterFetch true:取得後に削除する
+	 */
+	public void transfer(final ARMediaObject[] medias, final boolean deleteAfterFetch) {
+		if (mConnected) {
+			mRequestCancel = false;
+			if (deleteAfterFetch) {
+				mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_TRANSFER_AND_DELETE, medias));
+			} else {
+				mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_TRANSFER, medias));
+			}
+		}
+	}
+
+	/**
+	 * 指定したメディアファイルを削除要求
+	 * @param mediaObject
+	 */
+	public void deleteMedia(final ARMediaObject mediaObject) {
+		if (mConnected) {
+			mRequestCancel = false;
+			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_DELETE, mediaObject));
+		}
 	}
 
 	private ARUtilsManager createARUtilsManager() {
@@ -187,8 +251,7 @@ public abstract class FTPController {
 	 * FTP接続を初期化
 	 * @param controller
 	 */
-	protected void handleInit(final IDeviceController controller) {
-	}
+	protected abstract void handleInit(final IDeviceController controller);
 
 	protected void handleConnect() {
 		if (DEBUG) Log.v(TAG, String.format("handleConnect:mExternalDirectory=%s,mRemotePath=%s", mExternalDirectory, mRemotePath));
@@ -196,6 +259,7 @@ public abstract class FTPController {
 			mDownLoader = mDataTransferManager.getARDataTransferMediasDownloader();
 			mDownLoader.createMediasDownloader(mFTPListManager, mFTPQueueManager, mRemotePath, mExternalDirectory);
 		} catch (final ARDataTransferException e) {
+			mConnected = false;
 			Log.w(TAG, e);
 		}
 	}
@@ -226,6 +290,174 @@ public abstract class FTPController {
 		callOnMediaListUpdated(medias);
 	}
 
+	private static class TransferRec {
+		public final ARMediaObject mediaObject;
+		public final boolean needDelete;
+		public TransferRec(final ARMediaObject media_obj, final boolean need_delete) {
+			mediaObject = media_obj;
+			needDelete = need_delete;
+		}
+	}
+
+	private final Object mHandlingSync = new Object();
+	private int mTotalMediaNum = 0;
+	private int mFinishedNum = 0;
+	/**
+	 * 複数のメディアファイルを読み込み(既に読み込まれていれば何もしない)
+	 * @param medias
+	 * @param needDelete
+	 */
+	protected void handleTransfer(final ARMediaObject[] medias, final boolean needDelete) {
+		final int n = medias != null ? medias.length : 0;
+		if (n > 0) {
+			synchronized (mHandlingSync) {
+				mTotalMediaNum = n;
+				mFinishedNum = 1;
+			}
+			for (final ARMediaObject mediaObject : medias) {
+				handleTransferOne(mediaObject, needDelete);
+			}
+			synchronized (mHandlingSync) {
+				for (; mConnected && !mRequestCancel && (mFinishedNum < mTotalMediaNum); ) {
+					try {
+						mHandlingSync.wait(1000);
+					} catch (final InterruptedException e) {
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 複数のメディアファイルを削除
+	 * @param medias
+	 */
+	protected void handleDelete(final ARMediaObject[] medias) {
+		final int n = medias != null ? medias.length : 0;
+		if (n > 0) {
+			for (final ARMediaObject mediaObject: medias) {
+				handleDeleteOne(mediaObject);
+			}
+		}
+	}
+
+	/**
+	 * メディアファイルを１つ読み込む(既に読み込まれていれば何もしない)
+	 * @param mediaObject
+	 * @return
+	 */
+	protected boolean handleTransferOne(final ARMediaObject mediaObject, final boolean needDelete) {
+		boolean result = false;
+		if (DEBUG) dumpMediaObject(mediaObject);
+		if (mediaObject != null) {
+			final File file = new File(mediaObject.getFilePath());
+			try {
+				final TransferRec rec = new TransferRec(mediaObject, needDelete);
+				if (!file.exists()) {    // 端末内にファイルが存在しない時
+					final Runnable downloaderQueueRunnable = mDownLoader.getDownloaderQueueRunnable();
+					downloaderQueueRunnable.run();
+					mDownLoader.addMediaToQueue(mediaObject.media,
+						mTransferProcessListener, rec,		// progressArg
+						mTransferCompletionListener, rec);	// completionArg
+					result = true;
+				} else {
+					// 転送完了したことにする
+					finishTransferOne(0, rec);
+				}
+			} catch (final Exception e) {
+				// 転送失敗したことにする
+				finishTransferOne(-1, null);
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * メディアファイル転送時の進捗状況のコールバック
+	 */
+	private final ARDataTransferMediasDownloaderProgressListener mTransferProcessListener
+		= new ARDataTransferMediasDownloaderProgressListener() {
+		@Override
+		public void didMediaProgress(final Object progressArg, final ARDataTransferMedia media, final float progress) {
+			// progressArgはTransferRec
+			callOnProgress(CALLBACK_CMD_MEDIA_TRANSFER, progress, mFinishedNum, mTotalMediaNum, ((TransferRec)progressArg).mediaObject);
+		}
+	};
+
+	/**
+	 * メディアファイル転送完了時のコールバック
+	 */
+	private final ARDataTransferMediasDownloaderCompletionListener mTransferCompletionListener
+		= new ARDataTransferMediasDownloaderCompletionListener() {
+		@Override
+		public void didMediaComplete(final Object completionArg, final ARDataTransferMedia media,
+			final ARDATATRANSFER_ERROR_ENUM error) {
+			// completionArgはTransferRec
+			finishTransferOne(error.getValue(), (TransferRec)completionArg);
+		}
+	};
+
+	/**
+	 * ファイル転送完了時の処理
+	 * @param error
+	 * @param completionArg
+	 */
+	private void finishTransferOne(final int error, final TransferRec completionArg) {
+		synchronized (mHandlingSync) {
+			mFinishedNum++;
+			mHandlingSync.notifyAll();
+		}
+		final ARMediaObject mediaObject = completionArg != null ? completionArg.mediaObject : null;
+		if (completionArg != null) {
+			if (completionArg.needDelete) {
+				// 削除要求
+				handleDeleteOne(mediaObject);
+			}
+		}
+		callOnFinished(CALLBACK_CMD_MEDIA_TRANSFER, error, mediaObject);
+	}
+
+	/**
+	 * メディアファイルを１つ削除
+	 * @param mediaObject
+	 * @return
+	 */
+ 	protected boolean handleDeleteOne(final ARMediaObject mediaObject) {
+		boolean result = false;
+		if (mediaObject != null) {
+			if (DEBUG) dumpMediaObject(mediaObject);
+			final ARDATATRANSFER_ERROR_ENUM err = mDownLoader.deleteMedia(mediaObject.media);
+			if (err != ARDATATRANSFER_ERROR_ENUM.ARDATATRANSFER_OK) {
+				Log.w(TAG, "failed to delete media: err=" + err);
+				result = true;
+			}
+		}
+		callOnFinished(CALLBACK_CMD_MEDIA_DELETE, result ? 1 : 0, mediaObject);
+		return result;
+	}
+
+
+	private void dumpMediaObject(final ARMediaObject mediaObject) {
+		Log.d(TAG, "dumpMediaObject:getName=" + mediaObject.getName());
+		Log.d(TAG, "dumpMediaObject:getFilePath=" + mediaObject.getFilePath());
+		Log.d(TAG, "dumpMediaObject:getProductId=" + mediaObject.getProductId());
+		Log.d(TAG, "dumpMediaObject:getProduct=" + mediaObject.getProduct());
+		Log.d(TAG, "dumpMediaObject:getDate=" + mediaObject.getDate());
+		Log.d(TAG, "dumpMediaObject:getRunDate=" + mediaObject.getRunDate());
+		Log.d(TAG, "dumpMediaObject:getUUID=" + mediaObject.getUUID());
+		Log.d(TAG, "dumpMediaObject:getMediaType=" + mediaObject.getMediaType());
+		Log.d(TAG, "dumpMediaObject:getThumbnail=" + mediaObject.getThumbnail());
+		// getName=Bebop_Drone_2015-09-02T171319+0000_0A88CE.mp4
+		// getFilePath=/storage/emulated/0/DCIM/FlightDemo/Bebop_Drone/Bebop_Drone_2015-09-02T171319+0000_0A88CE.mp4
+		// getProductId=0901
+		// getProduct=AR DRONE product
+		// getDate=2015-09-02T171319+0000
+		// getRunDate=null
+		// getUUID=0A88CE
+		// getMediaType=MEDIA_TYPE_VIDEO
+		// getThumbnail=android.graphics.drawable.BitmapDrawable@1bd23e32
+	}
 	/**
 	 * エラー発生時のコールバックを呼び出す
 	 * @param e
@@ -247,18 +479,28 @@ public abstract class FTPController {
 		}
 	}
 
-	private static final int CALLBACK_CMD_GET_AVAILABLE_MEDIAS = 0;
-	private static final int CALLBACK_CMD_GET_MEDIA_THUMBNAILS = 1;
 	/**
 	 * 進捗状況更新のコールバックを呼び出す
 	 * @param cmd
 	 * @param progress	 [0,1]
 	 */
-	protected void callOnProgress(final int cmd, final float progress) {
+	protected void callOnProgress(final int cmd, final float progress, final int current, final int total, final Object token) {
 		synchronized (mCallbackSync) {
 			if (mCallback != null) {
 				try {
-					mCallback.onProgress(cmd, progress);
+					mCallback.onProgress(cmd, progress, current, total, token);
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+			}
+		}
+	}
+
+	protected void callOnFinished(final int cmd, final int error, final Object token) {
+		synchronized (mCallbackSync) {
+			if (mCallback != null) {
+				try {
+					mCallback.onFinished(cmd, error, token);
 				} catch (final Exception e) {
 					Log.w(TAG, e);
 				}
@@ -292,14 +534,16 @@ public abstract class FTPController {
 			if (num > 0) {
 				final Resources res = mWeakContext.get().getResources();
 				for (int i = 0; i < num; i++) {
-					callOnProgress(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, i / (float)num);
 					final ARDataTransferMedia media = mDownLoader.getAvailableMediaAtIndex(i);
 					final ARMediaObject mediaObject = new ARMediaObject();
+					callOnProgress(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, i / (float)num, i, num, mediaObject);
 					mediaObject.updateDataTransferMedia(res, media);
 					medias.add(mediaObject);
 				}
+				callOnFinished(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, 0, null);
 			}
 		} catch (final ARDataTransferException e) {
+			callOnFinished(CALLBACK_CMD_GET_AVAILABLE_MEDIAS, 1, null);
 			callOnError(e);
 		}
 		return medias;
@@ -312,21 +556,25 @@ public abstract class FTPController {
 		int foundMediasThumbnail = -1;
 		int i = -1;
 		for (final ARMediaObject mediaObject: medias) {
-			callOnProgress(CALLBACK_CMD_GET_MEDIA_THUMBNAILS, ++i / (float)num);	// XXX CMDは暫定値
+			callOnProgress(CALLBACK_CMD_GET_MEDIA_THUMBNAILS, ++i / (float)num, i, num, mediaObject);
 			final byte[] thumbnail = mDownLoader.getMediaThumbnail(mediaObject.media);
 			if (thumbnail != null) {
 				foundMediasThumbnail++;
 				mediaObject.updateThumbnailWithDataTransferMedia(res, mediaObject.media);
 			}
+			callOnFinished(CALLBACK_CMD_GET_MEDIA_THUMBNAILS, 0, null);
 		}
 		return medias;
 	}
 
-	private static final int CMD_INIT = 1;
-	private static final int CMD_CONNECT = 2;
-	private static final int CMD_LIST_MEDIAS = 3;
-	private static final int CMD_CANCEL = 8;
-	private static final int CMD_RELEASE = 9;
+	private static final int REQ_INIT = 1;
+	private static final int REQ_CONNECT = 2;
+	private static final int REQ_LIST_MEDIAS = 3;
+	private static final int REQ_TRANSFER = 4;
+	private static final int REQ_TRANSFER_AND_DELETE = 5;
+	private static final int REQ_DELETE = 6;
+	private static final int REQ_CANCEL = 8;
+	private static final int REQ_RELEASE = 9;
 
 	/**
 	 * FTP関係の処理を非同期で実行するためのHandler
@@ -340,29 +588,38 @@ public abstract class FTPController {
 		@Override
 		public void handleMessage(final Message msg) {
 			switch (msg.what) {
-			case CMD_INIT:
+			case REQ_INIT:
 				try {
 					handleInit((IDeviceController) msg.obj);
 				} catch (final Exception e) {
 					callOnError(e);
 				}
 				break;
-			case CMD_CONNECT:
+			case REQ_CONNECT:
 				final IDeviceController controller = mWeakController.get();
 				mRemotePath = String.format("%s_%03d", controller.getMassStorageName(), controller.getMassStorageId());
 				handleConnect();
-				mFTPHandler.sendEmptyMessage(CMD_LIST_MEDIAS);
+				mFTPHandler.sendEmptyMessage(REQ_LIST_MEDIAS);
 				break;
-			case CMD_LIST_MEDIAS:
+			case REQ_LIST_MEDIAS:
 				handleUpdateMediaList();
 				break;
-			case CMD_CANCEL:
+			case REQ_TRANSFER:
+			case REQ_TRANSFER_AND_DELETE:
+				handleTransfer((ARMediaObject[]) msg.obj, msg.what == REQ_TRANSFER_AND_DELETE);
+				updateMedia();
+				break;
+			case REQ_DELETE:
+				handleDelete((ARMediaObject[]) msg.obj);
+				updateMedia();
+				break;
+			case REQ_CANCEL:
 				if (mDownLoader != null) {
 					mDownLoader.cancelGetAvailableMedias();
 					mDownLoader.cancelQueueThread();
 				}
 				break;
-			case CMD_RELEASE:
+			case REQ_RELEASE:
 				if (mDownLoader != null) {
 					mDownLoader.dispose();
 					mDownLoader = null;
@@ -389,7 +646,7 @@ public abstract class FTPController {
 	public static class FTPControllerWiFi extends FTPController {
 		public FTPControllerWiFi(final Context context, final IDeviceController controller) {
 			super(context, controller);
-			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(CMD_INIT, controller));
+			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_INIT, controller));
 		}
 
 		@Override
@@ -412,7 +669,6 @@ public abstract class FTPController {
 				mFTPListManager.dispose();
 				throw new IllegalArgumentException("initWifiFtpが失敗:err=" + result);
 			}
-			super.handleInit(controller);
 		}
 
 		@Override
@@ -423,6 +679,7 @@ public abstract class FTPController {
 			if ((mFTPQueueManager != null) && mFTPQueueManager.isCorrectlyInitialized()) {
 				mFTPQueueManager.closeWifiFtp();
 			}
+			super.handleRelease();
 		}
 
 	}
@@ -433,7 +690,7 @@ public abstract class FTPController {
 	public static class FTPControllerBLE extends FTPController {
 		public FTPControllerBLE(final Context context, final IDeviceController controller) {
 			super(context, controller);
-			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(CMD_INIT, controller));
+			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_INIT, controller));
 		}
 
 		@Override
@@ -455,7 +712,6 @@ public abstract class FTPController {
 				mFTPListManager.dispose();
 				throw new IllegalArgumentException("initBLEFtpが失敗:err=" + result);
 			}
-			super.handleInit(controller);
 		}
 
 		@Override
@@ -467,6 +723,7 @@ public abstract class FTPController {
 			if ((mFTPQueueManager != null) && mFTPQueueManager.isCorrectlyInitialized()) {
 				mFTPQueueManager.closeBLEFtp(context);
 			}
+			super.handleRelease();
 		}
 
 	}

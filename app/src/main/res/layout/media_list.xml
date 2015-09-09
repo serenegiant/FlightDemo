@@ -16,18 +16,19 @@
 		<Button
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="New Button"
-			android:id="@+id/button"
+			android:text="@string/action_clear"
+			android:id="@+id/delete_btn"
 			android:layout_alignParentLeft="true"
 			android:gravity="center_vertical"/>
 
 		<Button
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:text="New Button"
-				android:id="@+id/button2"
-				android:layout_toRightOf="@+id/button"
-				android:gravity="center_vertical"/>
+				android:text="@string/action_load"
+				android:id="@+id/fetch_btn"
+				android:layout_toRightOf="@+id/delete_btn"
+				android:gravity="center_vertical"
+				android:layout_marginLeft="@dimen/half_padding"/>
 		<ProgressBar
 				style="@android:style/Widget.ProgressBar.Horizontal"
 				android:layout_width="@dimen/progress_sz_freespace"
@@ -39,7 +40,7 @@
 				android:layout_marginLeft="@dimen/quater_padding"
 				android:layout_alignParentEnd="true"
 				android:layout_alignParentRight="true"
-				android:layout_alignBottom="@+id/button"/>
+				android:layout_alignBottom="@+id/delete_btn"/>
 
 	</RelativeLayout>
 

@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -96,6 +97,13 @@ public class MediaFragment extends ControlBaseFragment {
 		post(mConnectCheckTask, 500);
 	}
 
+	@Override
+	protected void updateStorageState(int mass_storage_id, int size, int used_size, boolean plugged, boolean full, boolean internal) {
+		if (mFreeSpaceProgressbar != null) {
+			mFreeSpaceProgressbar.setProgress((int)(used_size / (float)size * 100f));
+		}
+	}
+
 	/** 切断された時に前のフラグメントに戻るまでの遅延時間[ミリ秒] */
 	private static final long POP_BACK_STACK_DELAY = 2000;
 	@Override
@@ -148,6 +156,16 @@ public class MediaFragment extends ControlBaseFragment {
 		}
 	};
 
+	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
+		@Override
+		public void onClick(View view) {
+			switch (view.getId()) {
+			case R.id.delete_btn:
+			case R.id.fetch_btn:
+			}
+		}
+	};
+
 	private ProgressBar mFreeSpaceProgressbar;
 	/**
 	 * メディアファイル一覧画面の準備
@@ -170,13 +188,10 @@ public class MediaFragment extends ControlBaseFragment {
 			listview.setAdapter(mMediaListAdapter);
 		}
 		mFreeSpaceProgressbar = (ProgressBar)rootView.findViewById(R.id.frees_pace_progress);
-	}
-
-	@Override
-	protected void updateStorageState(int mass_storage_id, int size, int used_size, boolean plugged, boolean full, boolean internal) {
-		if (mFreeSpaceProgressbar != null) {
-			mFreeSpaceProgressbar.setProgress((int)(used_size / (float)size * 100f));
-		}
+		Button button = (Button)rootView.findViewById(R.id.delete_btn);
+		button.setOnClickListener(mOnClickListener);
+		button = (Button)rootView.findViewById(R.id.fetch_btn);
+		button.setOnClickListener(mOnClickListener);
 	}
 
 	private static interface AdapterItemHandler {
