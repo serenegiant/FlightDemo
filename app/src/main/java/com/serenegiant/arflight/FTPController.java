@@ -68,7 +68,7 @@ public abstract class FTPController {
 		 * @param requestCode
 		 * @param error
 		 */
-		public void onFinished(final int requestCode, final int error);
+		public void onFinished(final int requestCode, final int error, final ARMediaObject[] medias);
 	}
 
     // for thread pool
@@ -312,7 +312,7 @@ public abstract class FTPController {
 	protected void handleUpdateMediaList(final int requestCode) {
 		final List<ARMediaObject> medias = getMediaThumbnails(requestCode, getAvailableMedias(requestCode));
 		callOnMediaListUpdated(requestCode, medias);
-		callOnFinished(requestCode, 0);
+		callOnFinished(requestCode, 0, null);
 	}
 
 	/**
@@ -331,7 +331,7 @@ public abstract class FTPController {
 				result |= handleDeleteOne(requestCode, mediaObject);
 			}
 		}
-		callOnFinished(requestCode, result ? 1 : 0);
+		callOnFinished(requestCode, result ? 1 : 0, medias);
 		if (DEBUG) Log.v(TAG, "handleDelete:finished");
 	}
 
@@ -408,7 +408,7 @@ public abstract class FTPController {
 				}
 			}
 		}
-		callOnFinished(requestCode, 0);
+		callOnFinished(requestCode, 0, medias);
 		if (DEBUG) Log.v(TAG, "handleTransfer:finished");
 	}
 
@@ -563,11 +563,11 @@ public abstract class FTPController {
 	 * @param requestCode
 	 * @param error
 	 */
-	protected void callOnFinished(final int requestCode, final int error) {
+	protected void callOnFinished(final int requestCode, final int error, final ARMediaObject[] medias) {
 		synchronized (mCallbackSync) {
 			if (mCallback != null) {
 				try {
-					mCallback.onFinished(requestCode, error);
+					mCallback.onFinished(requestCode, error, medias);
 				} catch (final Exception e) {
 					Log.w(TAG, e);
 				}

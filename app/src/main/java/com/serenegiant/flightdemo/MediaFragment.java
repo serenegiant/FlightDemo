@@ -1,6 +1,7 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
+import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -22,6 +23,7 @@ import com.serenegiant.arflight.FTPController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.TransferProgressDialogFragment;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -166,9 +168,44 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 		}
 
 		@Override
-		public void onFinished(final int requestCode, final int error) {
+		public void onFinished(final int requestCode, final int error, final ARMediaObject[] medias) {
 			if (DEBUG) Log.v(TAG, String.format("onFinished:%d,%d", requestCode, error));
 			hideTransferProgress();
+			if ((error == 0) && (requestCode == REQUEST_FETCH)) {
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						final int n = medias != null ? medias.length : 0;
+						if (n > 0) {
+							final List<String> list = new ArrayList<String>();
+							for (final ARMediaObject mediaObject: medias) {
+								try {
+									final File file = new File(mediaObject.getFilePath());
+									if (file.exists() && (file.length() == mediaObject.getSize())) {
+										list.add(mediaObject.getFilePath());
+									}
+								} catch (final Exception e) {
+								}
+							}
+							final int m = list.size();
+							if (m > 0) {
+								final String[] paths = new String[m];
+								list.toArray(paths);
+								runOnUiThread(new Runnable() {
+									@Override
+									public void run() {
+										try {
+											MediaScannerConnection.scanFile(getActivity().getApplicationContext(), paths, null, null);
+										} catch (final Exception e) {
+											Log.w(TAG, e);
+										}
+									}
+								});
+							}
+						}
+					}
+				}).start();
+			}
 		}
 	};
 
