@@ -1,6 +1,5 @@
 package com.serenegiant.flightdemo;
 
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.media.MediaScannerConnection;
 import android.os.Bundle;
@@ -52,17 +51,17 @@ public class MediaFragment extends ControlBaseFragment
 		// デフォルトコンストラクタが必要
 	}
 
-	@Override
+/*	@Override
 	public void onAttach(final Activity activity) {
 		super.onAttach(activity);
 		if (DEBUG) Log.v(TAG, "onAttach:");
-	}
+	} */
 
-	@Override
+/*	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
 		super.onDetach();
-	}
+	} */
 
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
@@ -93,11 +92,11 @@ public class MediaFragment extends ControlBaseFragment
 		startDeviceController();
 	}
 
-	@Override
+/*	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		super.onPause();
-	}
+	} */
 
 	@Override
 	protected void onConnect(final IDeviceController controller) {

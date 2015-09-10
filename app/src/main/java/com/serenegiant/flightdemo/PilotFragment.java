@@ -129,11 +129,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mTouchFlight = new TouchFlight(mAutoFlightListener);
 	}
 
-	@Override
+/*	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		if (DEBUG) Log.v(TAG, "onAttach:");
-	}
+	} */
 
 	@Override
 	public void onDetach() {

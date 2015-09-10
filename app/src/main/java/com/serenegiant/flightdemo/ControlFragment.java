@@ -25,47 +25,47 @@ public abstract class ControlFragment extends ControlBaseFragment {
 		// デフォルトコンストラクタが必要
 	}
 
-	@Override
+/*	@Override
 	public void onAttach(final Activity activity) {
 		super.onAttach(activity);
 		if (DEBUG) Log.v(TAG, "onAttach:");
-	}
+	} */
 
-	@Override
+/*	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
 		super.onDetach();
-	}
+	} */
 
-	@Override
+/*	@Override
 	public synchronized void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (DEBUG) Log.v(TAG, "onCreate:" + savedInstanceState);
-	}
+	} */
 
-	@Override
+/*	@Override
 	public void onSaveInstanceState(final Bundle outState) {
 		super.onSaveInstanceState(outState);
 		if (DEBUG) Log.v(TAG, "onSaveInstanceState:" + outState);
-	}
+	} */
 
-	@Override
+/*	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
 		super.onDestroy();
-	}
+	} */
 
-	@Override
+/*	@Override
 	public synchronized void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
-	}
+	} */
 
-	@Override
+/*	@Override
 	public synchronized void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		super.onPause();
-	}
+	} */
 
 	/**
 	 * 移動停止
@@ -74,16 +74,6 @@ public abstract class ControlFragment extends ControlBaseFragment {
 		if (DEBUG) Log.v(TAG, "stopMove:");
 		if (mController != null) {
 			mController.setMove(0, 0, 0, 0, 0);
-/*			// 上下移動量をクリア, 正:上, 負:下
-			mController.setGaz(0);
-			// 回転量をクリア, 正:右回り, 負:左回り
-			mController.setYaw(0);
-			// 前後移動量をクリア, 正:前, 負:後
-			mController.setPitch(0);
-			// 左右移動量をクリア, 正:右, 負:左
-			mController.setRoll(0);
-			// pitch/roll移動フラグをクリア
-			mController.setFlag(0); */
 		}
 	}
 

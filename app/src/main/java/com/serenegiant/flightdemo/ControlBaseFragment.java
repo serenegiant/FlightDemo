@@ -31,21 +31,20 @@ public abstract class ControlBaseFragment extends Fragment {
 	protected IDeviceController mController;
 
 	public ControlBaseFragment() {
-		super();
 		// デフォルトコンストラクタが必要
 	}
 
-	@Override
+/*	@Override
 	public void onAttach(final Activity activity) {
 		super.onAttach(activity);
 		if (DEBUG) Log.v(TAG, "onAttach:");
-	}
+	} */
 
-	@Override
+/*	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
 		super.onDetach();
-	}
+	} */
 
 	@Override
 	public synchronized void onCreate(Bundle savedInstanceState) {
