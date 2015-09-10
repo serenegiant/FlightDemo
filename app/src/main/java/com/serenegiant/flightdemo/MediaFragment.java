@@ -1,6 +1,7 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
@@ -21,13 +22,16 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.armedia.ARMediaObject;
 import com.serenegiant.arflight.FTPController;
 import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.dialog.ConfirmDialog;
+import com.serenegiant.dialog.OnDialogResultIntListener;
 import com.serenegiant.dialog.TransferProgressDialogFragment;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MediaFragment extends ControlBaseFragment implements TransferProgressDialogFragment.TransferProgressDialogListener {
+public class MediaFragment extends ControlBaseFragment
+	implements TransferProgressDialogFragment.TransferProgressDialogListener, OnDialogResultIntListener {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = MediaFragment.class.getSimpleName();
 
@@ -214,8 +218,8 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 		public void onClick(View view) {
 			switch (view.getId()) {
 			case R.id.delete_btn:
-				// FIXME 確認ダイアログを表示する
-				deleteMedias();
+				// 削除確認ダイアログを表示
+				ConfirmDialog.showDialog(MediaFragment.this, REQUEST_DELETE, getString(R.string.confirm_delete), null);
 				break;
 			case R.id.fetch_btn:
 				// FIXME 確認ダイアログを表示する?
@@ -226,7 +230,7 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 	};
 
 	/**
-	 * 選択されているファイルを削除する FIXME 確認ダイアログでOKな時のみ実行する
+	 * 選択されているファイルを削除する
 	 */
 	private void deleteMedias() {
 		final ARMediaObject[] medias = getSelectedMedias();
@@ -373,6 +377,18 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 	public void onCancel(final int requestID) {
 		mFTPController.cancel();
 		hideTransferProgress();
+	}
+
+	@Override
+	public void onDialogResult(final DialogInterface dialog, final int id, final int result) {
+		if (result == DialogInterface.BUTTON_POSITIVE) {
+			// OKボタンを押した時
+			switch (id) {
+			case REQUEST_DELETE:
+				deleteMedias();
+				break;
+			}
+		}
 	}
 
 	private static interface AdapterItemHandler {
