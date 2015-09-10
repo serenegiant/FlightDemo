@@ -1698,13 +1698,19 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 	/**
 	 * ビデオストリーミング設定
-	 * @param enabled true: ビデオストリーミング開始, false:ビデオストリーミング停止
+	 * @param _enabled true: ビデオストリーミング開始, false:ビデオストリーミング停止
 	 * @return
 	 */
-	public boolean sendVideoEnable(final boolean enabled) {
-		mVideoThread.enabled(enabled);
-
+	public boolean sendVideoEnable(final boolean _enabled) {
 		boolean sentStatus = true;
+
+		boolean enabled = _enabled;
+		if (mVideoThread != null) {
+			mVideoThread.enabled(enabled);
+		} else {
+			enabled = false;
+		}
+
 		final ARCommand cmd = new ARCommand();
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaStreamingVideoEnable((byte) (enabled ? 1 : 0));
@@ -1717,7 +1723,9 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send Exposure command.");
 		}
-		mVideoThread.enabled(enabled && sentStatus);
+		if (mVideoThread != null) {
+			mVideoThread.enabled(enabled && sentStatus);
+		}
 
 		return sentStatus;
 	}

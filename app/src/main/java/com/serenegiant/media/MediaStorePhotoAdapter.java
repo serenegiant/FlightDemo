@@ -776,7 +776,7 @@ public class MediaStorePhotoAdapter extends CursorAdapter {
 		
 		/**
 		 * start loading image asynchronusly
-		 * @param cursor
+		 * @param id
 		 */
 		public void startLoad(long id) {
         	
