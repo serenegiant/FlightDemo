@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -24,6 +25,7 @@ import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.ConfirmDialog;
 import com.serenegiant.dialog.OnDialogResultIntListener;
 import com.serenegiant.dialog.TransferProgressDialogFragment;
+import com.serenegiant.media.MediaStoreAdapter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -228,6 +230,24 @@ public class MediaFragment extends ControlBaseFragment
 		}
 	};
 
+	@Override
+	public void onCancel(final int requestID) {
+		mFTPController.cancel();
+		hideTransferProgress();
+	}
+
+	@Override
+	public void onDialogResult(final DialogInterface dialog, final int id, final int result) {
+		if (result == DialogInterface.BUTTON_POSITIVE) {
+			// OKボタンを押した時
+			switch (id) {
+			case REQUEST_DELETE:
+				deleteMedias();
+				break;
+			}
+		}
+	}
+
 	/**
 	 * 選択されているファイルを削除する
 	 */
@@ -275,41 +295,6 @@ public class MediaFragment extends ControlBaseFragment
 				updateMediaList();
 			}
 		});
-	}
-
-	private ARMediaObjectListAdapter mARMediaObjectListAdapter;	// 取得したメディアファイルの一覧アクセス用Adapter
-	private ListView mMediaListView;
-	private Button mDeleteBtn;
-	private Button mFetchBtn;
-	private CheckBox mDeleteAfterFetchCheckBox;
-	private ProgressBar mFreeSpaceProgressbar;
-	/**
-	 * メディアファイル一覧画面の準備
-	 * @param rootView
-	 */
-	private void initMediaList(final View rootView) {
-		mMediaListView = (ListView)rootView.findViewById(R.id.listView);
-		if (mMediaListView != null) {
-			mARMediaObjectListAdapter = new ARMediaObjectListAdapter(getActivity(), R.layout.list_item_media);
-			final View empty_view = rootView.findViewById(R.id.empty_view);
-			mMediaListView.setEmptyView(empty_view);
-			mMediaListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-				@Override
-				public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-//					if (DEBUG) Log.v(TAG, "onItemClick:");
-					updateMediaList();
-				}
-			});
-			mMediaListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-			mMediaListView.setAdapter(mARMediaObjectListAdapter);
-		}
-		mFreeSpaceProgressbar = (ProgressBar)rootView.findViewById(R.id.frees_pace_progress);
-		mDeleteBtn = (Button)rootView.findViewById(R.id.delete_btn);
-		mDeleteBtn.setOnClickListener(mOnClickListener);
-		mFetchBtn = (Button)rootView.findViewById(R.id.fetch_btn);
-		mFetchBtn.setOnClickListener(mOnClickListener);
-		mDeleteAfterFetchCheckBox = (CheckBox)rootView.findViewById(R.id.delete_after_fetch_checkbox);
-		updateMediaList();
 	}
 
 	/**
@@ -372,22 +357,48 @@ public class MediaFragment extends ControlBaseFragment
 		return result;
 	}
 
-	@Override
-	public void onCancel(final int requestID) {
-		mFTPController.cancel();
-		hideTransferProgress();
+	private ARMediaObjectListAdapter mARMediaObjectListAdapter;	// 取得したメディアファイルの一覧アクセス用Adapter
+	private ListView mMediaListView;
+	private Button mDeleteBtn;
+	private Button mFetchBtn;
+	private CheckBox mDeleteAfterFetchCheckBox;
+	private ProgressBar mFreeSpaceProgressbar;
+	/**
+	 * メディアファイル一覧画面の準備
+	 * @param rootView
+	 */
+	private void initMediaList(final View rootView) {
+		mMediaListView = (ListView)rootView.findViewById(R.id.listView);
+		if (mMediaListView != null) {
+			mARMediaObjectListAdapter = new ARMediaObjectListAdapter(getActivity(), R.layout.list_item_media);
+			final View empty_view = rootView.findViewById(R.id.empty_view);
+			mMediaListView.setEmptyView(empty_view);
+			mMediaListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+				@Override
+				public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+//					if (DEBUG) Log.v(TAG, "onItemClick:");
+					updateMediaList();
+				}
+			});
+			mMediaListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+			mMediaListView.setAdapter(mARMediaObjectListAdapter);
+		}
+		mFreeSpaceProgressbar = (ProgressBar)rootView.findViewById(R.id.frees_pace_progress);
+		mDeleteBtn = (Button)rootView.findViewById(R.id.delete_btn);
+		mDeleteBtn.setOnClickListener(mOnClickListener);
+		mFetchBtn = (Button)rootView.findViewById(R.id.fetch_btn);
+		mFetchBtn.setOnClickListener(mOnClickListener);
+		mDeleteAfterFetchCheckBox = (CheckBox)rootView.findViewById(R.id.delete_after_fetch_checkbox);
+		updateMediaList();
 	}
 
-	@Override
-	public void onDialogResult(final DialogInterface dialog, final int id, final int result) {
-		if (result == DialogInterface.BUTTON_POSITIVE) {
-			// OKボタンを押した時
-			switch (id) {
-			case REQUEST_DELETE:
-				deleteMedias();
-				break;
-			}
-		}
+	private GridView mGalleyGridView;
+	private MediaStoreAdapter mMediaStoreAdapter;
+
+	private void initMediaGalley(final View rootView) {
+		mGalleyGridView = (GridView)rootView.findViewById(R.id.media_gridview);
+		mMediaStoreAdapter = new MediaStoreAdapter(getActivity(), R.layout.grid_item_media);
+		mGalleyGridView.setAdapter(mMediaStoreAdapter);
 	}
 
 	private static interface AdapterItemHandler {
@@ -408,11 +419,17 @@ public class MediaFragment extends ControlBaseFragment
 
 	private static PagerAdapterConfig[] PAGER_MEDIA;
 	static {
-		PAGER_MEDIA = new PagerAdapterConfig[1];
+		PAGER_MEDIA = new PagerAdapterConfig[2];
 		PAGER_MEDIA[0] = new PagerAdapterConfig(R.string.media_title_list, R.layout.media_list, new AdapterItemHandler() {
 			@Override
 			public void initialize(final MediaFragment parent, final View view) {
 				parent.initMediaList(view);
+			}
+		});
+		PAGER_MEDIA[1] = new PagerAdapterConfig(R.string.media_title_galley, R.layout.media_galley, new AdapterItemHandler() {
+			@Override
+			public void initialize(final MediaFragment parent, final View view) {
+				parent.initMediaGalley(view);
 			}
 		});
 	};

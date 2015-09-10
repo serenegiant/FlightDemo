@@ -393,11 +393,13 @@ public abstract class FTPController {
 				synchronized (mTransferSync) {
 					if (mFinishedTransferNum < mTotalTransferNum) {
 						if (DEBUG) Log.v(TAG, "run downloaderQueueRunnable");
+						// これをEXECUTORを使わずに直接Runするとこの後での待機がいらない?
+						// ここは別スレッドでDownloaderQueueRunnableを実行&終了待ちする方がいいかも
 						EXECUTOR.execute(mDownLoader.getDownloaderQueueRunnable());
 						// ここで待機しないほうがいいかなぁ
 						for (; mConnected && !mRequestCancel && (mFinishedTransferNum < mTotalTransferNum); ) {
 							try {
-								if (DEBUG) Log.v(TAG, String.format("wait for finishing transfer:%d/%d", mFinishedTransferNum, mTotalTransferNum));
+//								if (DEBUG) Log.v(TAG, String.format("wait for finishing transfer:%d/%d", mFinishedTransferNum, mTotalTransferNum));
 								mTransferSync.wait(1000);
 							} catch (final InterruptedException e) {
 								handleCancel();
