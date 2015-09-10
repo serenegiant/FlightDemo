@@ -7,15 +7,12 @@ import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseBooleanArray;
-import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -31,6 +28,9 @@ import java.util.List;
 public class MediaFragment extends ControlBaseFragment implements TransferProgressDialogFragment.TransferProgressDialogListener {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = MediaFragment.class.getSimpleName();
+
+	private static final int REQUEST_DELETE = 1;
+	private static final int REQUEST_FETCH = 2;
 
 	public static MediaFragment newInstance(final ARDiscoveryDeviceService device) {
 		final MediaFragment fragment = new MediaFragment();
@@ -138,39 +138,37 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 	 */
 	private final FTPController.FTPControllerCallback mCallback = new FTPController.FTPControllerCallback() {
 		@Override
-		public boolean onError(final Exception e) {
+		public boolean onError(final int requestCode, final Exception e) {
 			Log.w(TAG, e);
 			return false;
 		}
 
 		@Override
-		public void onMediaListUpdated(final List<ARMediaObject> medias) {
+		public void onMediaListUpdated(final int requestCode, final List<ARMediaObject> medias) {
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					if (mMediaListAdapter != null) {
-						mMediaListAdapter.clear();
-						mMediaListAdapter.addAll(medias);
-						mMediaListAdapter.notifyDataSetChanged();
+					if (mARMediaObjectListAdapter != null) {
+						mARMediaObjectListAdapter.clear();
+						mARMediaObjectListAdapter.addAll(medias);
+						mARMediaObjectListAdapter.notifyDataSetChanged();
 					}
 				}
 			});
 		}
 
 		@Override
-		public void onProgress(final int cmd, final float progress, final int current, final int total, final ARMediaObject media) {
-//			if (DEBUG) Log.v(TAG, String.format("onProgress:%d,%f,%d/%d,", cmd, progress, current, total) + media);
+		public void onProgress(final int requestCode, final float progress, final int current, final int total) {
+//			if (DEBUG) Log.v(TAG, String.format("onProgress:%d,%f,%d/%d", cmd, progress, current, total));
 			if (mTransferProgressDialogFragment != null) {
 				mTransferProgressDialogFragment.setProgress(current, total, progress);
 			}
 		}
 
 		@Override
-		public void onFinished(final int cmd, final int error, final int current, final int total, final ARMediaObject media) {
-			if (DEBUG) Log.v(TAG, String.format("onFinished:%d,%d,%d/%d,", cmd, error, current, total) + media);
-			if (current >= total) {
-				hideTransferProgress();
-			}
+		public void onFinished(final int requestCode, final int error) {
+			if (DEBUG) Log.v(TAG, String.format("onFinished:%d,%d", requestCode, error));
+			hideTransferProgress();
 		}
 	};
 
@@ -190,28 +188,38 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 		}
 	};
 
+	/**
+	 * 選択されているファイルを削除する FIXME 確認ダイアログでOKな時のみ実行する
+	 */
 	private void deleteMedias() {
 		final ARMediaObject[] medias = getSelectedMedias();
 		if (medias != null && medias.length > 0) {
-			mFTPController.delete(medias);
-			if (mMediaListAdapter != null) {
+			mFTPController.delete(REQUEST_DELETE, medias);
+			if (mARMediaObjectListAdapter != null) {
 				for (final ARMediaObject mediaObject: medias) {
-					mMediaListAdapter.remove(mediaObject);
+					mARMediaObjectListAdapter.remove(mediaObject);
 				}
 			}
 		}
 	}
 
 	private TransferProgressDialogFragment mTransferProgressDialogFragment;
+
+	/**
+	 * 選択されているファイルを取得する
+	 */
 	private void transferMedias() {
 		final boolean needDelete = mDeleteAfterFetchCheckBox != null ? mDeleteAfterFetchCheckBox.isChecked() : false;
 		final ARMediaObject[] medias = getSelectedMedias();
 		if (medias != null) {
 			mTransferProgressDialogFragment = TransferProgressDialogFragment.showDialog(this, getString(R.string.loading), null);
-			mFTPController.transfer(medias, needDelete);
+			mFTPController.transfer(REQUEST_FETCH, medias, needDelete);
 		}
 	}
 
+	/**
+	 * ファイル転送進捗ダイアログを閉じる
+	 */
 	private void hideTransferProgress() {
 		runOnUiThread(new Runnable() {
 			@Override
@@ -222,14 +230,14 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 				}
 				if (mMediaListView != null) {
 					mMediaListView.clearChoices();
-					mMediaListAdapter.notifyDataSetChanged();
+					mARMediaObjectListAdapter.notifyDataSetChanged();
 				}
 				updateMediaList();
 			}
 		});
 	}
 
-	private MediaListAdapter mMediaListAdapter;	// 取得したメディアファイルの一覧アクセス用Adapter
+	private ARMediaObjectListAdapter mARMediaObjectListAdapter;	// 取得したメディアファイルの一覧アクセス用Adapter
 	private ListView mMediaListView;
 	private Button mDeleteBtn;
 	private Button mFetchBtn;
@@ -242,7 +250,7 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 	private void initMediaList(final View rootView) {
 		mMediaListView = (ListView)rootView.findViewById(R.id.listView);
 		if (mMediaListView != null) {
-			mMediaListAdapter = new MediaListAdapter(getActivity(), R.layout.list_item_media);
+			mARMediaObjectListAdapter = new ARMediaObjectListAdapter(getActivity(), R.layout.list_item_media);
 			final View empty_view = rootView.findViewById(R.id.empty_view);
 			mMediaListView.setEmptyView(empty_view);
 			mMediaListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -253,7 +261,7 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 				}
 			});
 			mMediaListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-			mMediaListView.setAdapter(mMediaListAdapter);
+			mMediaListView.setAdapter(mARMediaObjectListAdapter);
 		}
 		mFreeSpaceProgressbar = (ProgressBar)rootView.findViewById(R.id.frees_pace_progress);
 		mDeleteBtn = (Button)rootView.findViewById(R.id.delete_btn);
@@ -264,10 +272,16 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 		updateMediaList();
 	}
 
+	/**
+	 * メディア一覧表示を更新(実際の処理はUIスレッドで実行する)
+	 */
 	private void updateMediaList() {
 		runOnUiThread(mUpdateMediaListTask);
 	}
 
+	/**
+	 * メディア一覧表示の更新処理on UIスレッド
+	 */
 	private final Runnable mUpdateMediaListTask = new Runnable() {
 		@Override
 		public void run() {
@@ -350,6 +364,7 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 			}
 		});
 	};
+
 	/**
 	 * メディア画面の各ページ用のViewを提供するためのPagerAdapterクラス
 	 */
@@ -397,9 +412,9 @@ public class MediaFragment extends ControlBaseFragment implements TransferProgre
 		public CharSequence getPageTitle(final int position) {
 			if (DEBUG) Log.v(TAG, "getPageTitle:position=" + position);
 			CharSequence result = null;
-/*			if ((position >= 0) && (position < PAGER_MEDIA.length)) {
+			if ((position >= 0) && (position < PAGER_MEDIA.length)) {
 				result = getString(PAGER_MEDIA[position].title_id);
-			} */
+			}
 			return result;
 		}
 	}

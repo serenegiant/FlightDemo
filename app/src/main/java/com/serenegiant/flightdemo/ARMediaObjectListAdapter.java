@@ -12,58 +12,25 @@ import android.widget.TextView;
 
 import com.parrot.arsdk.armedia.ARMediaObject;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
-public class MediaListAdapter extends ArrayAdapter<ARMediaObject> {
+public class ARMediaObjectListAdapter extends ArrayAdapter<ARMediaObject> {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static final String TAG = "MediaListAdapter";
+	private static final String TAG = ARMediaObjectListAdapter.class.getSimpleName();
 
 	private final SimpleDateFormat mDurationFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
 	private final SimpleDateFormat mDateTimeFormat = new SimpleDateFormat("yyyy-MM-dd\'T\'HHmmss", Locale.getDefault());
 	private final LayoutInflater mInflater;
 	private final int itemLayoutId;
 
-	public MediaListAdapter(final Context context, final int itemResId) {
-		super(context, itemResId);
+	public ARMediaObjectListAdapter(final Context context, final int resource) {
+		super(context, resource);
 		mInflater = LayoutInflater.from(context);
-		itemLayoutId = itemResId;
-	}
-
-	public MediaListAdapter(final Context context, final int resource, final int itemResId) {
-		super(context, resource, itemResId);
-		mInflater = LayoutInflater.from(context);
-		itemLayoutId = itemResId;
-	}
-
-	public MediaListAdapter(final Context context, final int itemResId, final ARMediaObject[] objects) {
-		super(context, itemResId, objects);
-		mInflater = LayoutInflater.from(context);
-		itemLayoutId = itemResId;
-	}
-
-	public MediaListAdapter(final Context context, final int itemResId,
-			final List<ARMediaObject> objects) {
-		super(context, itemResId, objects);
-		mInflater = LayoutInflater.from(context);
-		itemLayoutId = itemResId;
-	}
-
-	public MediaListAdapter(final Context context, final int itemResId,
-			final int textViewResourceId, final ARMediaObject[] objects) {
-		super(context, itemResId, textViewResourceId, objects);
-		mInflater = LayoutInflater.from(context);
-		itemLayoutId = itemResId;
-	}
-
-	public MediaListAdapter(final Context context, final int itemResId,
-			final int textViewResourceId, final List<ARMediaObject> objects) {
-		super(context, itemResId, textViewResourceId, objects);
-		mInflater = LayoutInflater.from(context);
-		itemLayoutId = itemResId;
+		itemLayoutId = resource;
 	}
 
 	@Override
@@ -79,11 +46,13 @@ public class MediaListAdapter extends ArrayAdapter<ARMediaObject> {
 			holder.datetime = (TextView) convertView.findViewById(R.id.datetime);
 			holder.size = (TextView) convertView.findViewById(R.id.size);
 			holder.thumbnail = (ImageView) convertView.findViewById(R.id.thumbnail);
+			holder.playable = (ImageView) convertView.findViewById(R.id.playable_imageview);
 			convertView.setTag(holder);
 		}
 		final ARMediaObject mediaObject = getItem(position);
 		if (mediaObject != null) {
 			// FIXME 非同期でセットするようにした方がいいかも
+			holder.mediaObject = mediaObject;
 			if (holder.title != null) {
 				holder.title.setText(mediaObject.getName());
 			}
@@ -111,15 +80,27 @@ public class MediaListAdapter extends ArrayAdapter<ARMediaObject> {
 			if (holder.thumbnail != null) {
 				holder.thumbnail.setImageDrawable(mediaObject.getThumbnail());
 			}
+			holder.isPlayable = false;
+			if (holder.playable != null) {
+				try {
+					final File file = new File(mediaObject.getFilePath());
+					holder.isPlayable = file.exists() && (file.length() == mediaObject.getSize());
+				} catch (final Exception e) {
+				}
+				holder.playable.setVisibility(holder.isPlayable ? View.VISIBLE : View.INVISIBLE);
+			}
 		}
 		return convertView;
 	}
 
 	private static class ViewHolder {
+		ARMediaObject mediaObject;
         TextView title;
         TextView datetime;
         TextView size;
-        ImageView thumbnail;
+		ImageView thumbnail;
+        ImageView playable;
+        boolean isPlayable;
     }
 
 }
