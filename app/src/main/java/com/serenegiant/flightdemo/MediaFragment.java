@@ -392,15 +392,6 @@ public class MediaFragment extends ControlBaseFragment
 		updateMediaList();
 	}
 
-	private GridView mGalleyGridView;
-	private MediaStoreAdapter mMediaStoreAdapter;
-
-	private void initMediaGalley(final View rootView) {
-		mGalleyGridView = (GridView)rootView.findViewById(R.id.media_gridview);
-		mMediaStoreAdapter = new MediaStoreAdapter(getActivity(), R.layout.grid_item_media);
-		mGalleyGridView.setAdapter(mMediaStoreAdapter);
-	}
-
 	private static interface AdapterItemHandler {
 		public void initialize(final MediaFragment parent, final View view);
 	}
@@ -419,17 +410,11 @@ public class MediaFragment extends ControlBaseFragment
 
 	private static PagerAdapterConfig[] PAGER_MEDIA;
 	static {
-		PAGER_MEDIA = new PagerAdapterConfig[2];
+		PAGER_MEDIA = new PagerAdapterConfig[1];
 		PAGER_MEDIA[0] = new PagerAdapterConfig(R.string.media_title_list, R.layout.media_list, new AdapterItemHandler() {
 			@Override
 			public void initialize(final MediaFragment parent, final View view) {
 				parent.initMediaList(view);
-			}
-		});
-		PAGER_MEDIA[1] = new PagerAdapterConfig(R.string.media_title_galley, R.layout.media_galley, new AdapterItemHandler() {
-			@Override
-			public void initialize(final MediaFragment parent, final View view) {
-				parent.initMediaGalley(view);
 			}
 		});
 	};

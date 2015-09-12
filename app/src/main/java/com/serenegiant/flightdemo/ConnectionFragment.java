@@ -93,6 +93,7 @@ public class ConnectionFragment extends Fragment {
 		mDeviceListView.setOnItemClickListener(mOnItemClickListener);
 		mDeviceListView.setOnItemLongClickListener(mOnItemLongClickListener);
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
+		((View)mModelView).setOnLongClickListener(mOnLongClickListener);	// FIXME テスト用, 長押しでギャラリー表示へ
 	}
 
 	/**
@@ -111,6 +112,7 @@ public class ConnectionFragment extends Fragment {
 					adapter.add(service.getName());
 					break;
 				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+					// FIXME JumpingSumoは未実装
 					break;
 				case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
 					adapter.add(service.getName());
@@ -145,6 +147,7 @@ public class ConnectionFragment extends Fragment {
 				fragment = PilotFragment.newInstance(service);
 				break;
 			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+				//FIXME JumpingSumoは未実装
 				break;
 			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
 				fragment = PilotFragment.newInstance(service);
@@ -159,6 +162,9 @@ public class ConnectionFragment extends Fragment {
 		}
 	};
 
+	/**
+	 * 機体選択リストの項目を長押しした時の処理
+	 */
 	private final AdapterView.OnItemLongClickListener mOnItemLongClickListener = new AdapterView.OnItemLongClickListener() {
 		@Override
 		public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
@@ -176,6 +182,7 @@ public class ConnectionFragment extends Fragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
 				fragment = MediaFragment.newInstance(service);
 			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+				//FIXME JumpingSumoは未実装
 				break;
 			}
 			if (fragment != null) {
@@ -183,6 +190,27 @@ public class ConnectionFragment extends Fragment {
 					.addToBackStack(null)
 					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
 					.replace(R.id.container, fragment).commit();
+			}
+			return false;
+		}
+	};
+
+	/**
+	 * 機体の3D表示を長押しした時の処理
+	 */
+	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
+		@Override
+		public boolean onLongClick(final View view) {
+			switch (view.getId()) {
+			case R.id.drone_view:
+			{	// FIXME テスト用
+				final Fragment fragment = GalleyFragment.newInstance();
+				getFragmentManager().beginTransaction()
+					.addToBackStack(null)
+					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+					.replace(R.id.container, fragment).commit();
+				return true;
+			}
 			}
 			return false;
 		}

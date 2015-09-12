@@ -39,6 +39,7 @@
 	<string name="confirm_fetch">Do you want to transfer selected file(s)?</string>
 	<string name="confirm_fetch_delete">Transfer completed\nDo you want to delete transfered file?</string>
 	<string name="confirm_delete">Do you want to delete selected file(s)?</string>
+	<string name="confirm_delete_after_fetch">Do you want to delete selected file(s) after transfering?</string>
 
 	<string name="stick_text_back">back</string>
 	<string name="stick_text_left">left</string>

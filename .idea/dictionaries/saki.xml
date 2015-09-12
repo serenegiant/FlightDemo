@@ -11,6 +11,8 @@
       <w>arstream</w>
       <w>beebap</w>
       <w>bgen</w>
+      <w>dheight</w>
+      <w>dwidth</w>
       <w>exts</w>
       <w>flattrim</w>
       <w>flightdemo</w>
@@ -26,9 +28,13 @@
       <w>nums</w>
       <w>onoff</w>
       <w>pcmd</w>
+      <w>proj</w>
       <w>recv</w>
+      <w>requery</w>
       <w>symtab</w>
       <w>textview</w>
+      <w>vheight</w>
+      <w>vwidth</w>
     </words>
   </dictionary>
 </component>

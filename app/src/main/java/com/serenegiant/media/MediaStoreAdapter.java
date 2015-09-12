@@ -1,10 +1,7 @@
 package com.serenegiant.media;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -15,7 +12,6 @@ import android.app.ActivityManager;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -30,12 +26,10 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.v4.util.LruCache;
 import android.support.v4.widget.CursorAdapter;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,7 +41,7 @@ import com.serenegiant.flightdemo.R;
 
 public class MediaStoreAdapter extends CursorAdapter {
 
-	private static final boolean DEBUG = false;	// TODO set false when releasing
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = MediaStoreAdapter.class.getSimpleName();
 
 	public static final int MEDIA_ALL = 0;
@@ -68,7 +62,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 	private static final int CACHE_RATE = 8;
 	private static LruCache<Long, Bitmap> sThumbnailCache;
 
-	private static int mThumbnailWidth = 200, mThumbnailHeight = 200;
+	private static int sThumbnailWidth = 200, sThumbnailHeight = 200;
 
 	private static final String[] PROJ_MEDIA = {
 		MediaStore.Files.FileColumns._ID,				// index=0 for Cursor, column number=1 in SQL statement
@@ -120,7 +114,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 	private Cursor mMediaInfoCursor;
 	private String mSelection;
 	private String[] mSelectionArgs;
-	private boolean mShowTitle;
+	private boolean mShowTitle = false;
 	private int mMediaType = MEDIA_ALL;
 	private final MediaInfo info = new MediaInfo();
 
@@ -130,6 +124,28 @@ public class MediaStoreAdapter extends CursorAdapter {
 		public String mime;
 		public String displayName;
 		public int mediaType;
+
+		@Override
+		public String toString() {
+			return String.format("MediaInfo(title=%s,displayName=%s, mediaType=%s,mime=%s,data=%s)", title, displayName, mediaType(), mime, data);
+		}
+
+		private String mediaType() {
+			switch (mediaType) {
+			case MediaStore.Files.FileColumns.MEDIA_TYPE_NONE:
+				return "none";
+			case MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE:
+				return "image";
+			case MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO:
+				return "audio";
+			case MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO:
+				return "video";
+			case MediaStore.Files.FileColumns.MEDIA_TYPE_PLAYLIST:
+				return "playlist";
+			default:
+				return String.format("unknown:%d", mediaType);
+			}
+		}
 	}
 	
 	public MediaStoreAdapter(final Context context, final int id_layout) {
@@ -155,6 +171,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 	public void bindView(final View view, final Context context, final Cursor cursor) {
 		// this method is called within UI thread and should return as soon as possible
 		final ViewHolder holder = getViewHolder(view);
+		// ローカルキャッシュ
 		final ImageView iv = holder.mImageView;
 		final TextView tv = holder.mTitleView;
 		Drawable drawable = iv.getDrawable();
@@ -162,7 +179,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 			drawable = new LoaderDrawable(mCr);
 			iv.setImageDrawable(drawable);
 		}
-		((LoaderDrawable)drawable).startLoad(cursor.getLong(PROJ_INDEX_ID));
+		((LoaderDrawable)drawable).startLoad(cursor.getInt(PROJ_INDEX_MEDIA_TYPE), cursor.getLong(PROJ_INDEX_ID));
 		if (tv != null) {
 			tv.setVisibility(mShowTitle ? View.VISIBLE : View.GONE);
 			if (mShowTitle) {
@@ -221,15 +238,26 @@ public class MediaStoreAdapter extends CursorAdapter {
 
 		getMediaInfo(position, info);
 		if (info.mediaType == MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE) {
+			// 静止画の場合のサムネイル取得
 			try {
-				result = getImageThumbnail(mCr, getItemId(position), mThumbnailWidth, mThumbnailHeight);
+				result = getImageThumbnail(mCr, getItemId(position), sThumbnailWidth, sThumbnailHeight);
 			} catch (final FileNotFoundException e) {
 				Log.w(TAG, e);
 			} catch (final IOException e) {
 				Log.w(TAG, e);
 			}
 		} else if (info.mediaType == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO) {
-			// FIXME 動画の場合のサムネイル取得は未実装
+			// 動画の場合のサムネイル取得
+			try {
+				result = getVideoThumbnail(mCr, getItemId(position), sThumbnailWidth, sThumbnailHeight);
+			} catch (final FileNotFoundException e) {
+				Log.w(TAG, e);
+			} catch (final IOException e) {
+				Log.w(TAG, e);
+			}
+		}
+		if (DEBUG && (result == null)) {
+			Log.w(TAG, "failed to getItem(" + info.title + ") at position=" + position);
 		}
 		return result;
 	}
@@ -253,7 +281,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 	}
 	
 	/**
-	 * get mediainfo at specified position
+	 * get MediaInfo at specified position
 	 * @param position
 	 * @return
 	 */
@@ -302,8 +330,8 @@ public class MediaStoreAdapter extends CursorAdapter {
 	 * @param size
 	 */
 	public void setThumbnailSize(final int size) {
-		if ((mThumbnailWidth != size) || (mThumbnailHeight != size)) {
-			mThumbnailWidth = mThumbnailHeight = size;
+		if ((sThumbnailWidth != size) || (sThumbnailHeight != size)) {
+			sThumbnailWidth = sThumbnailHeight = size;
 			createBitmapCache(true);
 			onContentChanged();
 		}
@@ -315,9 +343,9 @@ public class MediaStoreAdapter extends CursorAdapter {
 	 * @param height
 	 */
 	public void setThumbnailSize(final int width, final int height) {
-		if ((mThumbnailWidth != width) || (mThumbnailHeight != height)) {
-			mThumbnailWidth = width;
-			mThumbnailHeight = height;
+		if ((sThumbnailWidth != width) || (sThumbnailHeight != height)) {
+			sThumbnailWidth = width;
+			sThumbnailHeight = height;
 			createBitmapCache(true);
 			onContentChanged();
 		}
@@ -348,7 +376,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 	/**
 	 * request to run command on other thread than UI thread
 	 */
-	public static void queuEvent(final Runnable command) {
+	public static void queueEvent(final Runnable command) {
 		EXECUTER.execute(command);
 	}
 	
@@ -378,8 +406,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 				}
 				mAdapter.mSelection = SELECTIONS[mAdapter.mMediaType % MEDIA_TYPE_NUM];
 				mAdapter.mSelectionArgs = null;
-				final Uri uri = MediaStore.Files.getContentUri("external");
-				startQuery(0, mAdapter, uri, PROJ_MEDIA,
+				startQuery(0, mAdapter, QUERY_URI, PROJ_MEDIA,
 					mAdapter.mSelection, mAdapter.mSelectionArgs, null);
 			}
 		}
@@ -418,7 +445,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 			EXECUTER.allowCoreThreadTimeOut(true);	// this makes core threads can terminate  
 		}
 		// in many case, calling createBitmapCache method means start the new query
-		// and need to prepare to run asynchronus tasks
+		// and need to prepare to run asynchronous tasks
 		EXECUTER.prestartAllCoreThreads(); 
 	}
 
@@ -431,7 +458,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 		if (pfd != null) {
 			try {
 				final BitmapFactory.Options options = new BitmapFactory.Options();
-				// just decorde to get image size
+				// just decode to get image size
 				options.inJustDecodeBounds = true;
 				BitmapFactory.decodeFileDescriptor(pfd.getFileDescriptor(), null, options);
 				// calculate sub-sampling
@@ -444,7 +471,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 		}
 		return result;
 	}
-	
+
 	private static final Bitmap getImageThumbnail(final ContentResolver cr, final long id, final int requestWidth, final int requestHeight)
 		throws FileNotFoundException, IOException {
 		
@@ -466,6 +493,29 @@ public class MediaStoreAdapter extends CursorAdapter {
 		return result;
 	}
 	
+	private static final Bitmap getVideoThumbnail(final ContentResolver cr, final long id, final int requestWidth, final int requestHeight)
+		throws FileNotFoundException, IOException {
+
+		// try to get from internal thumbnail cache(in memory), this may be redundant
+		Bitmap result = sThumbnailCache.get(id);
+		if (result == null) {
+			BitmapFactory.Options options = null;
+			int kind = MediaStore.Video.Thumbnails.MICRO_KIND;
+			if ((requestWidth > 96) || (requestHeight > 96) || (requestWidth * requestHeight > 128 * 128))
+				kind = MediaStore.Video.Thumbnails.MINI_KIND;
+			result = MediaStore.Video.Thumbnails.getThumbnail(cr, id, kind, options);
+			if (result != null) {
+				if (DEBUG) Log.v(TAG, String.format("getVideoThumbnail:id=%d(%d,%d)", id, result.getWidth(), result.getHeight()));
+				// add to internal thumbnail cache(in memory)
+				sThumbnailCache.put(id, result);
+			} else {
+				Log.w(TAG, "failed to get video thumbnail ofr id=" + id);
+			}
+
+		}
+		return result;
+	}
+
 	/**
 	 * calculate maximum sub-sampling size that the image size is greater or equal to requested size
 	 * @param options
@@ -492,9 +542,9 @@ public class MediaStoreAdapter extends CursorAdapter {
 		int inSampleSize = 1;
 		if ((imageHeight > reqHeight) || (imageWidth > reqWidth)) {
 			if (imageWidth > imageHeight) {
-				inSampleSize = (int)Math.round(imageHeight / (float)reqHeight);	// Math.floor
+				inSampleSize = Math.round(imageHeight / (float)reqHeight);	// Math.floor
 			} else {
-				inSampleSize = (int)Math.round(imageWidth / (float)reqWidth);	// Math.floor
+				inSampleSize = Math.round(imageWidth / (float)reqWidth);	// Math.floor
 			}
 		}
 /*		if (DEBUG) Log.v(TAG, String.format("calcSampleSize:image=(%d,%d),request=(%d,%d),inSampleSize=%d",
@@ -581,18 +631,16 @@ public class MediaStoreAdapter extends CursorAdapter {
 		    final int vheight = bounds.height();
 		
 		    float scale;
-		    float dx = 0, dy = 0;
+		    int dx = 0, dy = 0;
 		    
 		    // Calculates a matrix similar to ScaleType.CENTER_CROP
             if (dwidth * vheight > vwidth * dheight) {
-                scale = (float) vheight / (float) dheight; 
-                dx = (vwidth - dwidth * scale) * 0.5f;
+                scale = vheight / dheight;
+				dx = (int) ((vwidth - dwidth * scale) * 0.5f + 0.5f);
             } else {
-                scale = (float) vwidth / (float) dwidth;
-                dy = (vheight - dheight * scale) * 0.5f;
+                scale = vwidth / dwidth;
+				dy = (int) ((vheight - dheight * scale) * 0.5f + 0.5f);
             }
-            mDrawMatrix.setScale(scale, scale);
-            mDrawMatrix.postTranslate((int) (dx + 0.5f), (int) (dy + 0.5f));
 /*		    // Calculates a matrix similar to ScaleType.CENTER_INSIDE
             if (dwidth <= vwidth && dheight <= vheight) {
                 scale = 1.0f;
@@ -601,10 +649,10 @@ public class MediaStoreAdapter extends CursorAdapter {
                         (float) vheight / (float) dheight);
             }         
             dx = (int) ((vwidth - dwidth * scale) * 0.5f + 0.5f);
-            dy = (int) ((vheight - dheight * scale) * 0.5f + 0.5f);
-		    mDrawMatrix.setScale(scale, scale);
-            mDrawMatrix.postTranslate(dx, dy); */
-		
+            dy = (int) ((vheight - dheight * scale) * 0.5f + 0.5f); */
+			mDrawMatrix.setScale(scale, scale);
+			mDrawMatrix.postTranslate(dx, dy);
+
 		    invalidateSelf();
 		}
 
@@ -625,12 +673,12 @@ public class MediaStoreAdapter extends CursorAdapter {
 
 	    @Override
 	    public int getIntrinsicWidth() {
-	    	return mThumbnailWidth;
+	    	return sThumbnailWidth;
 	    }
 
 	    @Override
 	    public int getIntrinsicHeight() {
-	    	return mThumbnailHeight;
+	    	return sThumbnailHeight;
 	    }
 
 		@Override
@@ -653,7 +701,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 		 * start loading image asynchronusly
 		 * @param id
 		 */
-		public void startLoad(final long id) {
+		public void startLoad(final int media_type, final long id) {
         	
 			if (mLoader != null)
 				mLoader.cancelLoad();
@@ -665,7 +713,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 				mBitmap = null;
 				// re-using ThumbnailLoader will cause several problems on some devices...
 				mLoader = new ThumbnailLoader(this);
-				mLoader.startLoad(id);
+				mLoader.startLoad(media_type, id);
 			} else {
 				setBitmap(newBitmap);
 			}
@@ -686,6 +734,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 	private static final class ThumbnailLoader implements Runnable {
 		private final LoaderDrawable mParent;
 		private final FutureTask<Bitmap> mTask;
+		private int mMediaType;
 		private long mId;
 		private Bitmap mBitmap;
 		
@@ -698,7 +747,8 @@ public class MediaStoreAdapter extends CursorAdapter {
 	     * start loading
 	     * @param id
 	     */
-		public synchronized void startLoad(final long id) {
+		public synchronized void startLoad(final int media_type, final long id) {
+			mMediaType = media_type;
 			mId = id;
 			mBitmap = null;
 			EXECUTER.execute(mTask);
@@ -713,14 +763,24 @@ public class MediaStoreAdapter extends CursorAdapter {
 
 		@Override
 		public void run() {
+			int mediaType;
 			long id;
 			synchronized(this) {
+				mediaType = mMediaType;
 				id = mId;
 			}
 			if (!mTask.isCancelled()) {
 				try {
-					mBitmap = getImageThumbnail(mParent.mContentResolver, id, mThumbnailWidth, mThumbnailHeight);
-				} catch (Exception e) {
+					switch (mediaType) {
+					case MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE:
+						mBitmap = getImageThumbnail(mParent.mContentResolver, id, sThumbnailWidth, sThumbnailHeight);
+						break;
+					case MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO:
+						mBitmap = getVideoThumbnail(mParent.mContentResolver, id, sThumbnailWidth, sThumbnailHeight);
+						break;
+					}
+
+				} catch (final Exception e) {
 					if (DEBUG) Log.w(TAG, e);
 				}
 			}
