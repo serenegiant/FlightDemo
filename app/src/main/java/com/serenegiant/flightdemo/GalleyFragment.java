@@ -61,11 +61,13 @@ public class GalleyFragment extends Fragment {
 		final Fragment fragment;
 		switch (info.mediaType) {
 		case MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE:
-			fragment = null;	// FIXME 未実装
+			// 静止画を選択した時
+			fragment = PhotoFragment.newInstance(id);
 			break;
 		case MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO:
-//			fragment = PlayerFragment.newInstance(info.data);
-			fragment = PlayerFragment2.newInstance(info.data);
+			// 動画を選択した時
+//			fragment = PlayerFragment.newInstance(info.data);	// こっちはMediaCodecを使って自前実装したタイプ
+			fragment = PlayerFragment2.newInstance(info.data);	// こっちはVideoView+MediaControllerを使うタイプ
 			break;
 		default:
 			fragment = null;

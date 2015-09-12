@@ -27,7 +27,7 @@ import android.widget.VideoView;
  */
 public class PlayerFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static final String TAG = "PlayerFragment";
+	private static final String TAG = PlayerFragment.class.getSimpleName();
 
 	private static final String KEY_FILE_NAME = "PlayerFragment_KEY_FILE_NAME";
 
@@ -47,14 +47,15 @@ public class PlayerFragment extends Fragment {
 	}
 
 	public PlayerFragment() {
-		// need default constructor
+		// デフォルトコンストラクタが必要
 		setRetainInstance(true);
 	}
 
-	@Override
+/*	@Override
 	public void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-	}
+		loadArguments(savedInstanceState);
+	} */
 
 	@Override
 	public void onSaveInstanceState(final Bundle outState) {
@@ -68,20 +69,12 @@ public class PlayerFragment extends Fragment {
 	@Override
 	public void onViewStateRestored(Bundle savedInstanceState) {
 		super.onViewStateRestored(savedInstanceState);
-		Bundle args = savedInstanceState;
-		if (args == null) {
-			args = getArguments();
-		}
-		mFileName = args.getString(KEY_FILE_NAME);
+		loadArguments(savedInstanceState);
 	}
 
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-		Bundle args = savedInstanceState;
-		if (args == null) {
-			args = getArguments();
-		}
-		mFileName = args.getString(KEY_FILE_NAME);
+		loadArguments(savedInstanceState);
 
 		final View rootView = inflater.inflate(R.layout.fragment_player, container, false);
 
@@ -106,6 +99,14 @@ public class PlayerFragment extends Fragment {
 			mPlayerView.onPause();
 		}
 		super.onPause();
+	}
+
+	private void loadArguments(final Bundle savedInstanceState) {
+		Bundle args = savedInstanceState;
+		if (args == null) {
+			args = getArguments();
+		}
+		mFileName = args.getString(KEY_FILE_NAME);
 	}
 
 	private void initView(final View rootView) {

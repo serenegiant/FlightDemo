@@ -1,39 +1,35 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Fragment;
-import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.MediaController;
-import android.widget.VideoView;
+import android.widget.StackView;
 
-/**
- * VideoView+MediaControllerを使って動画再生するためのFragment
- */
-public class PlayerFragment2 extends Fragment {
+import com.serenegiant.media.MediaStoreAdapter;
+
+public class PhotoFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = PlayerFragment2.class.getSimpleName();
 
-	private static final String KEY_FILE_NAME = "PlayerFragment2_KEY_FILE_NAME";
+	private static final String KEY_FILE_ID = "PhotoFragment_KEY_FILE_ID";
 
-	private VideoView mVideoView;
-	private String mFileName;
+	private StackView mStackView;
+	private MediaStoreAdapter mAdapter;
+	private long mId;
 
-	public static PlayerFragment2 newInstance(final String file_name) {
-		PlayerFragment2 fragment = new PlayerFragment2();
+	public static PhotoFragment newInstance(final long id) {
+		PhotoFragment fragment = new PhotoFragment();
 		final Bundle args = new Bundle();
-		args.putString(KEY_FILE_NAME, TextUtils.isEmpty(file_name) ? "" : file_name);
+		args.putLong(KEY_FILE_ID, id);
 		fragment.setArguments(args);
 		return fragment;
 	}
 
-	public PlayerFragment2() {
+	public PhotoFragment() {
 		// デフォルトコンストラクタが必要
-		setRetainInstance(true);
 	}
 
 /*	@Override
@@ -61,7 +57,7 @@ public class PlayerFragment2 extends Fragment {
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		loadArguments(savedInstanceState);
 
-		final View rootView = inflater.inflate(R.layout.fragment_player2, container, false);
+		final View rootView = inflater.inflate(R.layout.fragment_photo, container, false);
 		initView(rootView);
 		return rootView;
 	}
@@ -70,20 +66,11 @@ public class PlayerFragment2 extends Fragment {
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
-		if (mVideoView != null) {
-			mVideoView.resume();
-			if (!mVideoView.isPlaying()) {
-				mVideoView.start();
-			}
-		}
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
-		if (mVideoView != null) {
-			mVideoView.suspend();
-		}
 		super.onPause();
 	}
 
@@ -92,21 +79,25 @@ public class PlayerFragment2 extends Fragment {
 		if (args == null) {
 			args = getArguments();
 		}
-		mFileName = args.getString(KEY_FILE_NAME);
+		mId = args.getLong(KEY_FILE_ID);
 	}
 
 	private void initView(final View rootView) {
-		mVideoView = (VideoView)rootView.findViewById(R.id.videoView);
-		mVideoView.setMediaController(new MediaController(getActivity()));
-		mVideoView.setVideoPath(mFileName);
-		mVideoView.setOnCompletionListener(mOnCompletionListener);
-	}
-
-	private final MediaPlayer.OnCompletionListener mOnCompletionListener = new MediaPlayer.OnCompletionListener() {
-		@Override
-		public void onCompletion(final MediaPlayer mp) {
-			// 再生が終了したら一覧画面に戻る
-			getFragmentManager().popBackStack();
+		mAdapter = new MediaStoreAdapter(getActivity(), R.layout.grid_item_media);
+		mAdapter.setMediaType(MediaStoreAdapter.MEDIA_IMAGE);
+		mStackView = (StackView)rootView.findViewById(R.id.stackView);
+		mStackView.setAdapter(mAdapter);
+		mStackView.advance();
+		int position = -1;
+		final int count = mStackView.getCount();
+		for (int i = 0; i < count; i++) {
+			final long id = mStackView.getItemIdAtPosition(i);
+			if (id == mId) {
+				position = i;
+				break;
+			}
 		}
-	};
+		mStackView.setSelection(position);
+		mStackView.setKeepScreenOn(true);
+	}
 }
