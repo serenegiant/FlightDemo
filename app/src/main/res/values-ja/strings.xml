@@ -67,15 +67,18 @@
 	<string name="config_has_hull">バンパー有り</string>
 	<string name="config_cut_out">カットアウト</string>
 	<string name="config_auto_takeoff">自動離陸モード</string>
-	<string name="config_operation_reverse">左右反転</string>
 	<string name="config_scale_x">Xスケール: %5.2f</string>
 	<string name="config_scale_y">Yスケール: %5.2f</string>
 	<string name="config_scale_z">Zスケール: %5.2f</string>
 	<string name="config_scale_r">Rスケール: %5.2f</string>
 	<string name="config_control_max">最大制御値: %5.1f</string>
-	<string name="config_operation_touch">タッチ描画で操縦</string>
-	<string name="config_operation_normal">標準操作画面</string>
 	<string name="config_gamepad_sensitivity">操作感度</string>
+
+	<string name="config_operation_normal">標準操作画面</string>
+	<string name="config_operation_reverse">左右反転</string>
+	<string name="config_operation_mode1">モード1</string>
+	<string name="config_operation_mode2">モード2</string>
+	<string name="config_operation_touch">タッチ描画で操縦</string>
 
 	<string name="info_product_name">製品名:</string>
 	<string name="info_version_software">ソフトウエアバージョン:</string>

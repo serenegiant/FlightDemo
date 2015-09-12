@@ -1,52 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-			  android:orientation="vertical"
+<LinearLayout android:id="@+id/linearLayout"
+			  xmlns:android="http://schemas.android.com/apk/res/android"
 			  android:layout_width="match_parent"
-			  android:layout_height="match_parent"
-				android:minHeight="@dimen/switch_height">
+			  android:layout_height="wrap_content"
+			  android:layout_centerInParent="true"
+			  android:orientation="vertical"
+			  android:weightSum="1">
 
-	<LinearLayout
-		android:orientation="vertical"
+	<RadioGroup
+		android:id="@+id/operation_radiogroup"
 		android:layout_width="match_parent"
+		android:layout_height="match_parent">
+
+		<RadioButton
+			android:id="@+id/operation_normal_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="@dimen/half_padding"
+			android:text="@string/config_operation_normal"
+			android:textSize="@dimen/text_sz_list"
+			/>
+
+		<RadioButton
+			android:id="@+id/operation_reverse_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="@dimen/half_padding"
+			android:text="@string/config_operation_reverse"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<RadioButton
+			android:id="@+id/operation_mode1_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="@dimen/half_padding"
+			android:text="@string/config_operation_mode1"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<RadioButton
+			android:id="@+id/operation_mode2_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="@dimen/half_padding"
+			android:text="@string/config_operation_mode2"
+			android:textSize="@dimen/text_sz_list"/>
+
+	</RadioGroup>
+
+	<CheckBox
+		android:id="@+id/operation_touch_checkbox"
+		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_centerInParent="true"
-		android:id="@+id/linearLayout"
-		android:weightSum="1">
+		android:layout_below="@+id/linearLayout"
+		android:layout_centerHorizontal="true"
+		android:layout_gravity="center_horizontal"
+		android:layout_marginTop="@dimen/half_padding"
+		android:text="@string/config_operation_touch"
+		android:textSize="@dimen/text_sz_list"/>
 
-		<RadioGroup
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:id="@+id/operation_radiogroup">
+</LinearLayout>
 
-			<RadioButton
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="@string/config_operation_normal"
-				android:id="@+id/operation_normal_radiobutton"
-				android:textSize="@dimen/text_sz_list"
-				android:layout_gravity="center_horizontal"
-				android:layout_marginTop="@dimen/half_padding"
-				/>
-
-			<RadioButton
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="@string/config_operation_reverse"
-				android:id="@+id/operation_reverse_radiobutton"
-				android:textSize="@dimen/text_sz_list"
-				android:layout_gravity="center_horizontal"
-				android:layout_marginTop="@dimen/half_padding"/>
-
-			<RadioButton
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:text="@string/config_operation_touch"
-				android:id="@+id/operation_touch_radiobutton"
-				android:textSize="@dimen/text_sz_list"
-				android:layout_gravity="center_horizontal"
-				android:layout_marginTop="@dimen/half_padding"/>
-		</RadioGroup>
-
-	</LinearLayout>
-
-</RelativeLayout>

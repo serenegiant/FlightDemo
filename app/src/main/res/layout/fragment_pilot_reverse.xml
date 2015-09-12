@@ -8,12 +8,6 @@
 	tools:context="com.serenegiant.flightdemo.PilotFragment"
 	android:id="@+id/screen_frame">
 
-	<TextureView
-		android:id="@+id/video_textureview"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:visibility="gone"/>
-
 	<com.serenegiant.widget.gl.AttitudeTextureView
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
@@ -197,7 +191,7 @@
 				android:layout_centerHorizontal="true"
 				android:layout_weight="1"
 				app:stick_height="@dimen/stick_frame_width"
-				app:stick_image_layout="@layout/stick_right"
+				app:stick_image_layout="@layout/stick_mode0_right"
 				app:stick_width="@dimen/stick_frame_width">
 			</com.serenegiant.widget.StickView>
 
@@ -211,7 +205,7 @@
 				android:layout_centerHorizontal="true"
 				android:layout_weight="1"
 				app:stick_height="@dimen/stick_frame_width"
-				app:stick_image_layout="@layout/stick_left"
+				app:stick_image_layout="@layout/stick_mode0_left"
 				app:stick_width="@dimen/stick_frame_width">
 			</com.serenegiant.widget.StickView>
 

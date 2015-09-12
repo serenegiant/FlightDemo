@@ -65,15 +65,18 @@
 	<string name="config_has_hull">with Hull</string>
 	<string name="config_cut_out">Cutout</string>
 	<string name="config_auto_takeoff">Enable auto take-off</string>
-	<string name="config_operation_reverse">Reverse pad</string>
 	<string name="config_scale_x">X scale: %5.2f</string>
 	<string name="config_scale_y">Y scale: %5.2f</string>
 	<string name="config_scale_z">Z scale: %5.2f</string>
 	<string name="config_scale_r">R scale: %5.2f</string>
 	<string name="config_control_max">Max control value: %5.1f</string>
-	<string name="config_operation_touch">Touch drawing control</string>
-	<string name="config_operation_normal">Normal operation screen</string>
 	<string name="config_gamepad_sensitivity">Sensitivity</string>
+
+	<string name="config_operation_normal">Normal operation screen</string>
+	<string name="config_operation_reverse">Reverse pad</string>
+	<string name="config_operation_mode1">Mode1</string>
+	<string name="config_operation_mode2">Mode2</string>
+	<string name="config_operation_touch">Touch drawing control</string>
 
 	<string name="info_product_name">Product name:</string>
 	<string name="info_version_software">Software version:</string>

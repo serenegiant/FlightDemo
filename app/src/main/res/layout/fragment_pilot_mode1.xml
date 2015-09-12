@@ -161,7 +161,7 @@
 				android:layout_centerHorizontal="true"
 				android:layout_weight="1"
 				app:stick_height="@dimen/stick_frame_width"
-				app:stick_image_layout="@layout/stick_mode0_left"
+				app:stick_image_layout="@layout/stick_mode1_left"
 				app:stick_width="@dimen/stick_frame_width">
 			</com.serenegiant.widget.StickView>
 
@@ -175,7 +175,7 @@
 				android:layout_centerHorizontal="true"
 				android:layout_weight="1"
 				app:stick_height="@dimen/stick_frame_width"
-				app:stick_image_layout="@layout/stick_mode0_right"
+				app:stick_image_layout="@layout/stick_mode1_right"
 				app:stick_width="@dimen/stick_frame_width">
 			</com.serenegiant.widget.StickView>
 

@@ -23,6 +23,7 @@ public class ConfigFragment extends ControlFragment {
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
 	public static final String KEY_OPERATION_TYPE = "OPERATION_TYPE";
+	public static final String KEY_OPERATION_TOUCH = "OPERATION_TOUCH";
 	// ゲームパッド
 	public static final String KEY_GAMEPAD_SENSITIVITY = "CONFIG_GAMEPAD_SENSITIVITY";
 	public static final String KEY_GAMEPAD_SCALE_X = "CONFIG_GAMEPAD_SCALE_X";
@@ -263,14 +264,22 @@ public class ConfigFragment extends ControlFragment {
 		case 1:		// 左右反転
 			group.check(R.id.operation_reverse_radiobutton);
 			break;
-		case 2:		// タッチ描画で操作
-			group.check(R.id.operation_touch_radiobutton);
+		case 2:		// モード1
+			group.check(R.id.operation_mode1_radiobutton);
 			break;
+		case 3:		// モード2
+			group.check(R.id.operation_mode2_radiobutton);
+			break;
+		case 0:
 		default:	// 通常
 			group.check(R.id.operation_normal_radiobutton);
 			break;
 		}
 		group.setOnCheckedChangeListener(mOnRadioButtonCheckedChangeListener);
+
+		final CheckBox checkbox = (CheckBox) root.findViewById(R.id.operation_touch_checkbox);
+		checkbox.setChecked(mPref.getBoolean(KEY_OPERATION_TOUCH, false));
+		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
 	private static final float SCALE_FACTOR = 250f;
@@ -803,13 +812,16 @@ public class ConfigFragment extends ControlFragment {
 					mController.sendAutoTakeOffMode(isChecked);
 				}
 				break;
+			case R.id.operation_touch_checkbox:
+				mPref.edit().putBoolean(KEY_OPERATION_TOUCH, isChecked).apply();
+				break;
 			}
 		}
 	};
 
 	private final RadioGroup.OnCheckedChangeListener mOnRadioButtonCheckedChangeListener = new RadioGroup.OnCheckedChangeListener() {
 		@Override
-		public void onCheckedChanged(RadioGroup group, int checkedId) {
+		public void onCheckedChanged(final RadioGroup group, final int checkedId) {
 			switch (checkedId) {
 			case R.id.operation_normal_radiobutton:
 				mPref.edit().putInt(KEY_OPERATION_TYPE, 0).apply();
@@ -817,8 +829,11 @@ public class ConfigFragment extends ControlFragment {
 			case R.id.operation_reverse_radiobutton:
 				mPref.edit().putInt(KEY_OPERATION_TYPE, 1).apply();
 				break;
-			case R.id.operation_touch_radiobutton:
+			case R.id.operation_mode1_radiobutton:
 				mPref.edit().putInt(KEY_OPERATION_TYPE, 2).apply();
+				break;
+			case R.id.operation_mode2_radiobutton:
+				mPref.edit().putInt(KEY_OPERATION_TYPE, 3).apply();
 				break;
 			}
 		}
