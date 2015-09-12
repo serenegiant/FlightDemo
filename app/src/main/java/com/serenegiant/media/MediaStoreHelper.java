@@ -1,55 +1,45 @@
 package com.serenegiant.media;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
+import android.database.ContentObserver;
 import android.database.Cursor;
+import android.database.DataSetObservable;
+import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.PixelFormat;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.v4.util.LruCache;
-import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.serenegiant.flightdemo.R;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
-public class MediaStoreAdapter extends CursorAdapter {
-
+public class MediaStoreHelper {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static final String TAG = MediaStoreAdapter.class.getSimpleName();
+	private static final String TAG = MediaStoreHelper.class.getSimpleName();
 
 	public static final int MEDIA_ALL = 0;
 	public static final int MEDIA_IMAGE = 1;
 	public static final int MEDIA_VIDEO = 2;
 	private static final int MEDIA_TYPE_NUM = 3;
+
+	public static final int FLAG_AUTO_REQUERY = 0x01;
+	public static final int FLAG_REGISTER_CONTENT_OBSERVER = 0x02;
 
     // for thread pool
     private static final int CORE_POOL_SIZE = 4;		// initial/minimum threads
@@ -62,9 +52,8 @@ public class MediaStoreAdapter extends CursorAdapter {
 	// for thumbnail cache(in memory)
 	// rate of memory usage for cache, 'CACHE_RATE = 8' means use 1/8 of available memory for image cache
 	private static final int CACHE_RATE = 8;
-	private static LruCache<String, Bitmap> sThumbnailCache;
-
-	private int mThumbnailWidth = 200, mThumbnailHeight = 200;
+	protected static LruCache<String, Bitmap> sThumbnailCache;
+	protected int mThumbnailWidth = 200, mThumbnailHeight = 200;
 
 	private static final String[] PROJ_MEDIA = {
 		MediaStore.Files.FileColumns._ID,				// index=0 for Cursor, column number=1 in SQL statement
@@ -77,7 +66,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 //		MediaStore.Files.FileColumns.DATE_MODIFIED,		// index=6 for Cursor, column number=2 in SQL statement
 //		MediaStore.Files.FileColumns.DATE_ADDED,		// index=7 for Cursor, column number=2 in SQL statement
 	};
-	
+
 	private static final String SELECTION_MEDIA_ALL
 		= MediaStore.Files.FileColumns.MEDIA_TYPE + "="
 		+ MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
@@ -97,29 +86,37 @@ public class MediaStoreAdapter extends CursorAdapter {
 	private static final String[] SELECTIONS = {SELECTION_MEDIA_ALL, SELECTION_MEDIA_IMAGE, SELECTION_MEDIA_VIDEO};
 
 	// these values should be fit to PROJ_MEDIA
-	private static final int PROJ_INDEX_ID = 0;
-	private static final int PROJ_INDEX_TITLE = 1;
-	private static final int PROJ_INDEX_MEDIA_TYPE = 2;
-	private static final int PROJ_INDEX_MIME_TYPE = 3;
-	private static final int PROJ_INDEX_DATA = 4;
-	private static final int PROJ_INDEX_DISPLAY_NAME = 5;
-//	private static final int PROJ_INDEX_DATE_MODIFIED = 6;
-//	private static final int PROJ_INDEX_DATE_ADDED = 7;
+	public static final int PROJ_INDEX_ID = 0;
+	public static final int PROJ_INDEX_TITLE = 1;
+	public static final int PROJ_INDEX_MEDIA_TYPE = 2;
+	public static final int PROJ_INDEX_MIME_TYPE = 3;
+	public static final int PROJ_INDEX_DATA = 4;
+	public static final int PROJ_INDEX_DISPLAY_NAME = 5;
+//	public static final int PROJ_INDEX_DATE_MODIFIED = 6;
+//	public static final int PROJ_INDEX_DATE_ADDED = 7;
 
 	private static final Uri QUERY_URI = MediaStore.Files.getContentUri("external");
 
-	private final LayoutInflater mInflater;
+	private final WeakReference<Context> mWeakContext;
+//	private final LayoutInflater mInflater;
+//	private final int mLayoutId;
 	private final ContentResolver mCr;
 	private final int mMemClass;
-	private final int mLayoutId;
 	private final MyAsyncQueryHandler mQueryHandler;
-	private final int mHashCode = hashCode();
+	private final int mHashCode;
+	private final DataSetObservable mDataSetObservable = new DataSetObservable();
+	private final MediaInfo info = new MediaInfo();
+	protected ChangeObserver mChangeObserver;
+	protected DataSetObserver mDataSetObserver;
+	private Cursor mCursor;
 	private Cursor mMediaInfoCursor;
 	private String mSelection;
 	private String[] mSelectionArgs;
 	private boolean mShowTitle = false;
 	private int mMediaType = MEDIA_ALL;
-	private final MediaInfo info = new MediaInfo();
+	protected int mRowIDColumn;
+	protected boolean mDataValid;
+	protected boolean mAutoRequery;
 
 	public static class MediaInfo {
 		public long id;
@@ -131,7 +128,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 
 		@Override
 		public String toString() {
-			return String.format("MediaInfo(title=%s,displayName=%s, mediaType=%s,mime=%s,data=%s)", title, displayName, mediaType(), mime, data);
+			return String.format("MediaInfo(id=%d,title=%s,displayName=%s, mediaType=%s,mime=%s,data=%s)", id, title, displayName, mediaType(), mime, data);
 		}
 
 		private String mediaType() {
@@ -151,96 +148,76 @@ public class MediaStoreAdapter extends CursorAdapter {
 			}
 		}
 	}
-	
-	public MediaStoreAdapter(final Context context, final int id_layout) {
-		super(context, null, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
-	    mInflater = LayoutInflater.from(context);
-	    mCr = context.getContentResolver();
-	    mQueryHandler = new MyAsyncQueryHandler(mCr, this);
+
+	public MediaStoreHelper(final Context context) {
+		mWeakContext = new WeakReference<Context>(context);
+//		mInflater = LayoutInflater.from(context);
+//		mLayoutId = id_layout;
+		mCr = context.getContentResolver();
+		mQueryHandler = new MyAsyncQueryHandler(mCr, this);
 		// getMemoryClass return the available memory amounts for app as mega bytes(API >= 5)
-		mMemClass = ((ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE)).getMemoryClass();
-		mLayoutId = id_layout;
-		onContentChanged();
+		mMemClass = ((ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE)).getMemoryClass();
+		mHashCode = hashCode();
 	}
 
-	@Override
-	public View newView(final Context context, final Cursor cursor, final ViewGroup parent) {
-		// this method is called within UI thread and should return as soon as possible
-		final View view = mInflater.inflate(mLayoutId, parent, false);
-		getViewHolder(view);
-		return view;
-	}
-
-	protected LoaderDrawable createLoaderDrawable(final ContentResolver cr) {
-		return new LoaderDrawable(cr, mThumbnailWidth, mThumbnailHeight);
-	}
-
-	@Override
-	public void bindView(final View view, final Context context, final Cursor cursor) {
-		// this method is called within UI thread and should return as soon as possible
-		final ViewHolder holder = getViewHolder(view);
-		// ローカルキャッシュ
-		final ImageView iv = holder.mImageView;
-		final TextView tv = holder.mTitleView;
-		Drawable drawable = iv.getDrawable();
-		if ((drawable == null) || !(drawable instanceof LoaderDrawable)) {
-			drawable = createLoaderDrawable(mCr);
-			iv.setImageDrawable(drawable);
+	void init(Context context, Cursor c, int flags) {
+		if ((flags & FLAG_AUTO_REQUERY) == FLAG_AUTO_REQUERY) {
+			flags |= FLAG_REGISTER_CONTENT_OBSERVER;
+			mAutoRequery = true;
+		} else {
+			mAutoRequery = false;
 		}
-		((LoaderDrawable)drawable).startLoad(cursor.getInt(PROJ_INDEX_MEDIA_TYPE), mHashCode, cursor.getLong(PROJ_INDEX_ID));
-		if (tv != null) {
-			tv.setVisibility(mShowTitle ? View.VISIBLE : View.GONE);
-			if (mShowTitle) {
-				tv.setText(cursor.getString(PROJ_INDEX_TITLE));
-			}
+		boolean cursorPresent = c != null;
+		mCursor = c;
+		mDataValid = cursorPresent;
+		mRowIDColumn = cursorPresent ? c.getColumnIndexOrThrow("_id") : -1;
+		if ((flags & FLAG_REGISTER_CONTENT_OBSERVER) == FLAG_REGISTER_CONTENT_OBSERVER) {
+			mChangeObserver = new ChangeObserver();
+			mDataSetObserver = new MyDataSetObserver();
+		} else {
+			mChangeObserver = null;
+			mDataSetObserver = null;
+		}
+
+		if (cursorPresent) {
+			if (mChangeObserver != null) c.registerContentObserver(mChangeObserver);
+			if (mDataSetObserver != null) c.registerDataSetObserver(mDataSetObserver);
 		}
 	}
 
-	private ViewHolder getViewHolder(final View view) {
-		ViewHolder holder;
-		// you can use View#getTag()/setTag() instead of using View#getTag(int)/setTag(int)
-		// but we assume that using getTag(int)/setTag(int) and keeping getTag()/setTag() left for user is better.
-		holder = (ViewHolder)view.getTag(R.id.mediastorephotoadapter);
-		if (holder == null) {
-			holder = new ViewHolder();
-			if (view instanceof ImageView) {
-				holder.mImageView = (ImageView)view;
-				view.setTag(R.id.mediastorephotoadapter, holder);
-			} else {
-				View v = view.findViewById(R.id.thumbnail);
-				if (v instanceof ImageView)
-					holder.mImageView = (ImageView)v;
-				v = view.findViewById(R.id.title);
-				if (v instanceof TextView)
-					holder.mTitleView = (TextView)v;
-				view.setTag(R.id.mediastorephotoadapter, holder);
-			}
-		}
-		return holder;
-	}
-	
-	@Override
-	protected void finalize() throws Throwable {
-		changeCursor(null);
-		if (mMediaInfoCursor != null) {
-			mMediaInfoCursor.close();
-			mMediaInfoCursor = null;
-		}
-		super.finalize();
+	public ContentResolver getContentResolver() {
+		return mCr;
 	}
 
-	@Override
-	protected void onContentChanged() {
-		createBitmapCache(false);
+	public void requery() {
 		mQueryHandler.requery();
+	}
+
+	public long getItemId(int position) {
+		if (mDataValid && mCursor != null) {
+			if (mCursor.moveToPosition(position)) {
+				return mCursor.getLong(mRowIDColumn);
+			} else {
+				return 0;
+			}
+		} else {
+			return 0;
+		}
+	}
+
+	public int getCount() {
+		if (mDataValid && mCursor != null) {
+			return mCursor.getCount();
+		} else {
+			return 0;
+		}
 	}
 
 	/**
 	 * return thumbnail image at specific position.
 	 * this method is synchronously executed and may take time
-	 * @return null if the position value is out of range etc. 
+	 * @return null if the position value is out of range etc.
 	 */
-	@Override
 	public Bitmap getItem(final int position) {
 		Bitmap result = null;
 
@@ -288,7 +265,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 	 * return image with specific size(only scale-down or original size are available now)
 	 * if width=0 and height=0, return image with original size.
 	 * this method is synchronously executed and may take time
-	 * @return null if the position value is out of range etc. 
+	 * @return null if the position value is out of range etc.
 	 * @param position
 	 * @param width
 	 * @param height
@@ -301,7 +278,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 
 		return getImage(mCr, getItemId(position), width, height);
 	}
-	
+
 	/**
 	 * get MediaInfo at specified position
 	 * @param position
@@ -348,7 +325,6 @@ public class MediaStoreAdapter extends CursorAdapter {
 		info.mediaType = cursor.getInt(PROJ_INDEX_MEDIA_TYPE);
 		return info;
 	}
-
 	/**
 	 * set thumbnail size, if you set size to zero, the size is 96x96(MediaStore.Images.Thumbnails.MICRO_KIND)
 	 * @param size
@@ -381,7 +357,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 			onContentChanged();
 		}
 	}
-	
+
 	public boolean getShowTitle() {
 		return mShowTitle;
 	}
@@ -389,12 +365,60 @@ public class MediaStoreAdapter extends CursorAdapter {
 	public int getMediaType() {
 		return mMediaType % MEDIA_TYPE_NUM;
 	}
-	
+
 	public void setMediaType(final int media_type) {
 		if (mMediaType != (media_type % MEDIA_TYPE_NUM)) {
 			mMediaType = media_type % MEDIA_TYPE_NUM;
 			onContentChanged();
 		}
+	}
+
+	protected void changeCursor(final Cursor cursor) {
+		final Cursor old = swapCursor(cursor);
+		if (old != null) {
+			old.close();
+		}
+	}
+
+	protected Cursor swapCursor(final Cursor newCursor) {
+		if (newCursor == mCursor) {
+			return null;
+		}
+		final Cursor oldCursor = mCursor;
+		if (oldCursor != null) {
+			if (mChangeObserver != null) oldCursor.unregisterContentObserver(mChangeObserver);
+			if (mDataSetObserver != null) oldCursor.unregisterDataSetObserver(mDataSetObserver);
+		}
+		mCursor = newCursor;
+		if (newCursor != null) {
+			if (mChangeObserver != null) newCursor.registerContentObserver(mChangeObserver);
+			if (mDataSetObserver != null) newCursor.registerDataSetObserver(mDataSetObserver);
+			mRowIDColumn = newCursor.getColumnIndexOrThrow("_id");
+			mDataValid = true;
+			// notify the observers about the new cursor
+			notifyDataSetChanged();
+		} else {
+			mRowIDColumn = -1;
+			mDataValid = false;
+			// notify the observers about the lack of a data set
+			notifyDataSetInvalidated();
+		}
+		return oldCursor;
+	}
+
+	protected void onContentChanged() {
+		if (mAutoRequery && mCursor != null && !mCursor.isClosed()) {
+		if (false) Log.v("Cursor", "Auto requerying " + mCursor + " due to update");
+			mDataValid = mCursor.requery();
+		}
+	}
+
+	protected void notifyDataSetChanged() {
+		mDataSetObservable.notifyChanged();
+	}
+
+	protected void notifyDataSetInvalidated() {
+		mDataSetObservable.notifyInvalidated();
 	}
 
 	/**
@@ -403,7 +427,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 	public static void queueEvent(final Runnable command) {
 		EXECUTER.execute(command);
 	}
-	
+
 	/**
 	 * if you finish using this adapter class in your app,
 	 * you can call this method to free internal thumbnail cache
@@ -414,62 +438,92 @@ public class MediaStoreAdapter extends CursorAdapter {
 			sThumbnailCache = null;
 		}
 	}
-	
+
 	private static final class MyAsyncQueryHandler extends AsyncQueryHandler {
-		private final MediaStoreAdapter mAdapter;
-		public MyAsyncQueryHandler(ContentResolver cr, MediaStoreAdapter adapter) {
+		private final MediaStoreHelper mParent;
+		public MyAsyncQueryHandler(ContentResolver cr, MediaStoreHelper parent) {
 			super(cr);
-			mAdapter = adapter;
+			mParent = parent;
 		}
-		
+
 		public void requery() {
-			synchronized (mAdapter) {
-				if (mAdapter.mMediaInfoCursor != null) {
-					mAdapter.mMediaInfoCursor.close();
-					mAdapter.mMediaInfoCursor = null;
+			synchronized (mParent) {
+				if (mParent.mMediaInfoCursor != null) {
+					mParent.mMediaInfoCursor.close();
+					mParent.mMediaInfoCursor = null;
 				}
-				mAdapter.mSelection = SELECTIONS[mAdapter.mMediaType % MEDIA_TYPE_NUM];
-				mAdapter.mSelectionArgs = null;
-				startQuery(0, mAdapter, QUERY_URI, PROJ_MEDIA,
-					mAdapter.mSelection, mAdapter.mSelectionArgs, null);
+				mParent.mSelection = SELECTIONS[mParent.mMediaType % MEDIA_TYPE_NUM];
+				mParent.mSelectionArgs = null;
+				startQuery(0, mParent, QUERY_URI, PROJ_MEDIA,
+					mParent.mSelection, mParent.mSelectionArgs, null);
 			}
 		}
 
 		@Override
 		protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
 //			super.onQueryComplete(token, cookie, cursor);	// this is empty method
-			final Cursor oldCursor = mAdapter.swapCursor(cursor);
+			final Cursor oldCursor = mParent.swapCursor(cursor);
 			if ((oldCursor != null) && !oldCursor.isClosed())
 				oldCursor.close();
 		}
 
 	}
-	
+
+	private class ChangeObserver extends ContentObserver {
+		public ChangeObserver() {
+			super(new Handler());
+		}
+
+		@Override
+		public boolean deliverSelfNotifications() {
+			return true;
+		}
+
+		@Override
+		public void onChange(boolean selfChange) {
+			onContentChanged();
+		}
+	}
+
+	private class MyDataSetObserver extends DataSetObserver {
+		@Override
+		public void onChanged() {
+			mDataValid = true;
+			notifyDataSetChanged();
+		}
+
+		@Override
+		public void onInvalidated() {
+			mDataValid = false;
+			notifyDataSetInvalidated();
+		}
+	}
+
 	/**
 	 * create thumbnail cache
 	 */
 	@SuppressLint("NewApi")
-	private final void createBitmapCache(final boolean clear) {
+	public final void createBitmapCache(final boolean clear) {
 		if (clear && (sThumbnailCache != null)) {
-			clearBitmapCache(hashCode());
+			clearBitmapCache(mHashCode);
 		}
 		if (sThumbnailCache == null) {
 			// use 1/CACHE_RATE of available memory as memory cache
 			final int cacheSize = 1024 * 1024 * mMemClass / CACHE_RATE;	// [MB] => [bytes]
 			sThumbnailCache = new LruCache<String, Bitmap>(cacheSize) {
 				@Override
-				protected int sizeOf(String key, Bitmap bitmap) {
+				protected int sizeOf(final String key, final Bitmap bitmap) {
 					// control memory usage instead of bitmap counts
 					return bitmap.getRowBytes() * bitmap.getHeight();	// [bytes]
 				}
 			};
 		}
 		if (Build.VERSION.SDK_INT >= 9) {
-			EXECUTER.allowCoreThreadTimeOut(true);	// this makes core threads can terminate  
+			EXECUTER.allowCoreThreadTimeOut(true);	// this makes core threads can terminate
 		}
 		// in many case, calling createBitmapCache method means start the new query
 		// and need to prepare to run asynchronous tasks
-		EXECUTER.prestartAllCoreThreads(); 
+		EXECUTER.prestartAllCoreThreads();
 	}
 
 	private static void clearBitmapCache(final int hashCode) {
@@ -493,13 +547,13 @@ public class MediaStoreAdapter extends CursorAdapter {
 		}
 	}
 
-	private static String getKey(final long hashCode, final long id) {
+	protected static String getKey(final long hashCode, final long id) {
 		return String.format("%d_%d", hashCode, id);
 	}
 
-	private static final Bitmap getImage(final ContentResolver cr, final long id, final int requestWidth, final int requestHeight)
+	protected static final Bitmap getImage(final ContentResolver cr, final long id, final int requestWidth, final int requestHeight)
 		throws FileNotFoundException, IOException {
-		
+
 		Bitmap result = null;
 		final ParcelFileDescriptor pfd = cr.openFileDescriptor(
 			ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id), "r");
@@ -520,9 +574,13 @@ public class MediaStoreAdapter extends CursorAdapter {
 		return result;
 	}
 
-	private static final Bitmap getImageThumbnail(final ContentResolver cr, final long hashCode, final long id, final int requestWidth, final int requestHeight)
+	protected static final Bitmap getBitmapCache(final long hashCode, final long id) {
+		return sThumbnailCache.get(getKey(hashCode, id));
+	}
+
+	protected static final Bitmap getImageThumbnail(final ContentResolver cr, final long hashCode, final long id, final int requestWidth, final int requestHeight)
 		throws FileNotFoundException, IOException {
-		
+
 		// try to get from internal thumbnail cache(in memory), this may be redundant
 		final String key = getKey(hashCode, id);
 		Bitmap result = sThumbnailCache.get(key);
@@ -541,12 +599,12 @@ public class MediaStoreAdapter extends CursorAdapter {
 				// add to internal thumbnail cache(in memory)
 				sThumbnailCache.put(key, result);
 			}
-			
+
 		}
 		return result;
 	}
-	
-	private static final Bitmap getVideoThumbnail(final ContentResolver cr, final long hashCode, final long id, final int requestWidth, final int requestHeight)
+
+	protected static final Bitmap getVideoThumbnail(final ContentResolver cr, final long hashCode, final long id, final int requestWidth, final int requestHeight)
 		throws FileNotFoundException, IOException {
 
 		// try to get from internal thumbnail cache(in memory), this may be redundant
@@ -577,7 +635,7 @@ public class MediaStoreAdapter extends CursorAdapter {
 	 * @param requestHeight
 	 * @return maximum sub-sampling size
 	 */
-	private static final int calcSampleSize(final BitmapFactory.Options options, final int requestWidth, final int requestHeight) {
+	protected static final int calcSampleSize(final BitmapFactory.Options options, final int requestWidth, final int requestHeight) {
 		final int imageWidth = options.outWidth;
 		final int imageHeight = options.outHeight;
 		int reqWidth = requestWidth, reqHeight = requestHeight;
@@ -601,264 +659,9 @@ public class MediaStoreAdapter extends CursorAdapter {
 				inSampleSize = Math.round(imageWidth / (float)reqWidth);	// Math.floor
 			}
 		}
-/*		if (DEBUG) Log.v(TAG, String.format("calcSampleSize:image=(%d,%d),request=(%d,%d),inSampleSize=%d",
-				imageWidth, imageHeight, reqWidth, reqHeight, inSampleSize)); */
+		if (DEBUG) Log.v(TAG, String.format("calcSampleSize:image=(%d,%d),request=(%d,%d),inSampleSize=%d",
+				imageWidth, imageHeight, reqWidth, reqHeight, inSampleSize));
 		return inSampleSize;
 	}
 
-	private static final class ViewHolder {
-		TextView mTitleView;
-		ImageView mImageView;
-	}
-
-	/**
-	 * LoaderDrawable is a descendent of Drawable to load image asynchronusly and draw
-	 * We want to use BitmapDrawable but we can't because it has no public/protected method
-	 * to set Bitmap after construction.
-	 * 
-	 * Most code of LoaderDrawable came from BitmapJobDrawable.java in Android Gallery app
-	 * 
-	 * Copyright (C) 2013 The Android Open Source Project
-	 *
-	 * Licensed under the Apache License, Version 2.0 (the "License");
-	 * you may not use this file except in compliance with the License.
-	 * You may obtain a copy of the License at
-	 *
-	 *      http://www.apache.org/licenses/LICENSE-2.0
-	 *
-	 * Unless required by applicable law or agreed to in writing, software
-	 * distributed under the License is distributed on an "AS IS" BASIS,
-	 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	 * See the License for the specific language governing permissions and
-	 * limitations under the License.
-	 */
-	private static final class LoaderDrawable extends Drawable implements Runnable {
-		private final ContentResolver mContentResolver;
-	    private final Paint mPaint = new Paint();
-	    private final Paint mDebugPaint = new Paint();
-	    private final Matrix mDrawMatrix = new Matrix();
-		private Bitmap mBitmap;
-	    private int mRotation = 0;
-	    private ThumbnailLoader mLoader;
-	    private final int mWidth, mHeight;
-		
-		public LoaderDrawable(final ContentResolver cr, final int width, final int height) {
-			mContentResolver = cr;
-			mDebugPaint.setColor(Color.RED);
-			mDebugPaint.setTextSize(18);
-			mWidth = width;
-			mHeight = height;
-		}
-		
-	    @Override
-	    protected void onBoundsChange(Rect bounds) {
-	        super.onBoundsChange(bounds);
-	        updateDrawMatrix(getBounds());
-	    }
-
-	    @Override
-		public void draw(final Canvas canvas) {
-	        final Rect bounds = getBounds();
-	        if (mBitmap != null) {
-	            canvas.save();
-	            canvas.clipRect(bounds);
-	            canvas.concat(mDrawMatrix);
-	            canvas.rotate(mRotation, bounds.centerX(), bounds.centerY());
-	            canvas.drawBitmap(mBitmap, 0, 0, mPaint);
-	            canvas.restore();
-	        } else {
-	            mPaint.setColor(0xFFCCCCCC);
-	            canvas.drawRect(bounds, mPaint);
-	        }
-            if (DEBUG) {
-	            canvas.drawText(Long.toString(mLoader != null ? mLoader.mId : -1),
-	            	bounds.centerX(), bounds.centerY(), mDebugPaint);
-            }
-		}
-
-		private void updateDrawMatrix(final Rect bounds) {
-		    if (mBitmap == null || bounds.isEmpty()) {
-		        mDrawMatrix.reset();
-		        return;
-		    }
-			
-		    final float dwidth = mBitmap.getWidth();
-		    final float dheight = mBitmap.getHeight();
-		    final int vwidth = bounds.width();
-		    final int vheight = bounds.height();
-		
-		    float scale;
-		    int dx = 0, dy = 0;
-		    
-		    // Calculates a matrix similar to ScaleType.CENTER_CROP
-            if (dwidth * vheight > vwidth * dheight) {
-                scale = vheight / dheight;
-				dx = (int) ((vwidth - dwidth * scale) * 0.5f + 0.5f);
-            } else {
-                scale = vwidth / dwidth;
-				dy = (int) ((vheight - dheight * scale) * 0.5f + 0.5f);
-            }
-/*		    // Calculates a matrix similar to ScaleType.CENTER_INSIDE
-            if (dwidth <= vwidth && dheight <= vheight) {
-                scale = 1.0f;
-            } else {
-                scale = Math.min((float) vwidth / (float) dwidth,
-                        (float) vheight / (float) dheight);
-            }         
-            dx = (int) ((vwidth - dwidth * scale) * 0.5f + 0.5f);
-            dy = (int) ((vheight - dheight * scale) * 0.5f + 0.5f); */
-			mDrawMatrix.setScale(scale, scale);
-			mDrawMatrix.postTranslate(dx, dy);
-
-		    invalidateSelf();
-		}
-
-		@Override
-		public void setAlpha(final int alpha) {
-	        int oldAlpha = mPaint.getAlpha();
-	        if (alpha != oldAlpha) {
-	            mPaint.setAlpha(alpha);
-	            invalidateSelf();
-	        }
-		}
-
-		@Override
-		public void setColorFilter(final ColorFilter cf) {
-	        mPaint.setColorFilter(cf);
-	        invalidateSelf();
-		}
-
-	    @Override
-	    public int getIntrinsicWidth() {
-	    	return mWidth;
-	    }
-
-	    @Override
-	    public int getIntrinsicHeight() {
-	    	return mHeight;
-	    }
-
-		@Override
-		public int getOpacity() {
-	        Bitmap bm = mBitmap;
-	        return (bm == null || bm.hasAlpha() || mPaint.getAlpha() < 255) ?
-	                PixelFormat.TRANSLUCENT : PixelFormat.OPAQUE;
-		}
-			
-	    /**
-	     * callback to set bitmap on UI thread after asyncronus loading
-	     * request call this callback in ThumbnailLoader#run at the end of asyncronus loading
-	     */
-		@Override
-		public void run() {
-			setBitmap(mLoader.getBitmap());
-		}	
-
-		protected ThumbnailLoader createThumbnailLoader() {
-			return new ThumbnailLoader(this);
-		}
-
-		/**
-		 * start loading image asynchronusly
-		 * @param id
-		 */
-		public void startLoad(final int media_type, final int hashCode, final long id) {
-        	
-			if (mLoader != null)
-				mLoader.cancelLoad();
-			
-			// try to get from internal thumbnail cache
-			final Bitmap newBitmap = sThumbnailCache.get(getKey(hashCode, id));
-			if (newBitmap == null) {
-				// only start loading if the thumbnail does not exist in internal thumbnail cache
-				mBitmap = null;
-				// re-using ThumbnailLoader will cause several problems on some devices...
-				mLoader = createThumbnailLoader();
-				mLoader.startLoad(media_type, hashCode, id);
-			} else {
-				setBitmap(newBitmap);
-			}
-			invalidateSelf();
-		}
-
-		private void setBitmap(final Bitmap bitmap) {
-			if (bitmap != mBitmap) {
-				mBitmap = bitmap;
-	            updateDrawMatrix(getBounds());
-			}
-		}
-	}
-
-	/**
-	 * Runnable to load image asynchronusly
-	 */
-	private static final class ThumbnailLoader implements Runnable {
-		private final LoaderDrawable mParent;
-		private final FutureTask<Bitmap> mTask;
-		private int mMediaType;
-		private int mHashCode;
-		private long mId;
-		private Bitmap mBitmap;
-		
-	    public ThumbnailLoader(final LoaderDrawable parent) {
-	    	mParent = parent;
-			mTask = new FutureTask<Bitmap>(this, null); 
-	    }
-	    
-	    /**
-		 * start loading
-		 * @param hashCode
-	     * @param id
-	     */
-		public synchronized void startLoad(final int media_type, final int hashCode, final long id) {
-			mMediaType = media_type;
-			mHashCode = hashCode;
-			mId = id;
-			mBitmap = null;
-			EXECUTER.execute(mTask);
-		}
-		
-		/**
-		 * cancel loading
-		 */
-		public void cancelLoad() {
-			mTask.cancel(true);
-		}
-
-		@Override
-		public void run() {
-			int mediaType;
-			int hashCode;
-			long id;
-			synchronized(this) {
-				mediaType = mMediaType;
-				hashCode = mHashCode;
-				id = mId;
-			}
-			if (!mTask.isCancelled()) {
-				try {
-					switch (mediaType) {
-					case MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE:
-						mBitmap = getImageThumbnail(mParent.mContentResolver, hashCode, id, mParent.mWidth, mParent.mHeight);
-						break;
-					case MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO:
-						mBitmap = getVideoThumbnail(mParent.mContentResolver, hashCode, id, mParent.mWidth, mParent.mHeight);
-						break;
-					}
-
-				} catch (final Exception e) {
-					if (DEBUG) Log.w(TAG, e);
-				}
-			}
-			if (mTask.isCancelled() || (id != mId) || (mBitmap == null)) {
-				return;	// return without callback
-			}
-			// set callback
-			mParent.scheduleSelf(mParent, 0);
-		}
-		
-		public Bitmap getBitmap() {
-			return mBitmap;
-		}
-	}
 }

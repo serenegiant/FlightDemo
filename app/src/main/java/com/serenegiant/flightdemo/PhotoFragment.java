@@ -2,17 +2,19 @@ package com.serenegiant.flightdemo;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterViewFlipper;
 import android.widget.StackView;
 
 import com.serenegiant.media.MediaStoreAdapter;
 
 public class PhotoFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static final String TAG = PlayerFragment2.class.getSimpleName();
+	private static final String TAG = PhotoFragment.class.getSimpleName();
 
 	private static final String KEY_FILE_ID = "PhotoFragment_KEY_FILE_ID";
 
@@ -87,17 +89,7 @@ public class PhotoFragment extends Fragment {
 		mAdapter.setMediaType(MediaStoreAdapter.MEDIA_IMAGE);
 		mStackView = (StackView)rootView.findViewById(R.id.stackView);
 		mStackView.setAdapter(mAdapter);
-		mStackView.advance();
-		int position = -1;
-		final int count = mStackView.getCount();
-		for (int i = 0; i < count; i++) {
-			final long id = mStackView.getItemIdAtPosition(i);
-			if (id == mId) {
-				position = i;
-				break;
-			}
-		}
-		mStackView.setSelection(position);
+		mStackView.setSelection(mAdapter.getPositionFromId(mId));
 		mStackView.setKeepScreenOn(true);
 	}
 }
