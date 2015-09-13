@@ -1,15 +1,15 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Fragment;
+import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.StackView;
 
-import com.serenegiant.media.MediaStoreHelper;
-import com.serenegiant.media.MediaStoreAdapter;
+import com.serenegiant.media.MediaStoreImageAdapter;
 
 public class PhotoFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -17,8 +17,8 @@ public class PhotoFragment extends Fragment {
 
 	private static final String KEY_FILE_ID = "PhotoFragment_KEY_FILE_ID";
 
-	private StackView mStackView;
-	private MediaStoreAdapter mAdapter;
+	private ViewPager mViewPager;
+	private MediaStoreImageAdapter mAdapter;
 	private long mId;
 
 	public static PhotoFragment newInstance(final long id) {
@@ -84,11 +84,24 @@ public class PhotoFragment extends Fragment {
 	}
 
 	private void initView(final View rootView) {
-		mAdapter = new MediaStoreAdapter(getActivity(), R.layout.grid_item_media);
-		mAdapter.setMediaType(MediaStoreHelper.MEDIA_IMAGE);
-		mStackView = (StackView)rootView.findViewById(R.id.stackView);
-		mStackView.setAdapter(mAdapter);
-		mStackView.setSelection(mAdapter.getPositionFromId(mId));
-		mStackView.setKeepScreenOn(true);
+		mViewPager = (ViewPager) rootView.findViewById(R.id.viewpager);
+		mViewPager.setKeepScreenOn(true);
+		mAdapter = new MediaStoreImageAdapter(getActivity(), R.layout.grid_item_media, false);
+		// MediaStoreImageAdapterのCursorクエリーは非同期で実行されるので
+		// 生成直後はアイテム数が0なのでクエリー完了時にViewPager#setAdapterを実行する
+		mAdapter.registerDataSetObserver(new DataSetObserver() {
+			@Override
+			public void onChanged() {
+				super.onChanged();
+				mViewPager.setAdapter(mAdapter);
+				mViewPager.setCurrentItem(mAdapter.getItemPositionFromID(mId));
+				mAdapter.unregisterDataSetObserver(this);	// 初回だけでOKなので登録解除する
+			}
+			@Override
+			public void onInvalidated() {
+				super.onInvalidated();
+			}
+		});
+		mAdapter.startQuery();	// 非同期クエリー開始
 	}
 }

@@ -1,6 +1,7 @@
 package com.serenegiant.media;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,13 +14,17 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
 
 import com.serenegiant.utils.ThreadPool;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.concurrent.FutureTask;
 
 public class MediaStoreHelper {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = MediaStoreHelper.class.getSimpleName();
 
 	public static final int MEDIA_ALL = 0;
@@ -35,8 +40,10 @@ public class MediaStoreHelper {
 		android.provider.MediaStore.Files.FileColumns.MIME_TYPE,			// index=3 for Cursor, column number=2 in SQL statement
 		android.provider.MediaStore.Files.FileColumns.DATA,				// index=4 for Cursor, column number=2 in SQL statement
 		android.provider.MediaStore.Files.FileColumns.DISPLAY_NAME,		// index=5 for Cursor, column number=2 in SQL statement
-//		MediaStore.Files.FileColumns.DATE_MODIFIED,		// index=6 for Cursor, column number=2 in SQL statement
-//		MediaStore.Files.FileColumns.DATE_ADDED,		// index=7 for Cursor, column number=2 in SQL statement
+		android.provider.MediaStore.Files.FileColumns.WIDTH,
+		android.provider.MediaStore.Files.FileColumns.HEIGHT,
+//		MediaStore.Files.FileColumns.DATE_MODIFIED,						// index=8 for Cursor, column number=2 in SQL statement
+//		MediaStore.Files.FileColumns.DATE_ADDED,						// index=9 for Cursor, column number=2 in SQL statement
 	};
 
 	protected static final String SELECTION_MEDIA_ALL
@@ -64,8 +71,10 @@ public class MediaStoreHelper {
 	protected static final int PROJ_INDEX_MIME_TYPE = 3;
 	protected static final int PROJ_INDEX_DATA = 4;
 	protected static final int PROJ_INDEX_DISPLAY_NAME = 5;
-//	protected static final int PROJ_INDEX_DATE_MODIFIED = 6;
-//	protected static final int PROJ_INDEX_DATE_ADDED = 7;
+	protected static final int PROJ_INDEX_WIDTH = 6;
+	protected static final int PROJ_INDEX_HEIGHT = 7;
+//	protected static final int PROJ_INDEX_DATE_MODIFIED = 8;
+//	protected static final int PROJ_INDEX_DATE_ADDED = 9;
 
 	protected static final Uri QUERY_URI = android.provider.MediaStore.Files.getContentUri("external");
 
@@ -76,14 +85,23 @@ public class MediaStoreHelper {
 		public String mime;
 		public String displayName;
 		public int mediaType;
+		public int width;
+		public int height;
 
 		protected MediaInfo loadFromCursor(final Cursor cursor) {
-			id = cursor.getLong(PROJ_INDEX_ID);
-			data = cursor.getString(PROJ_INDEX_DATA);
-			title = cursor.getString(PROJ_INDEX_TITLE);
-			mime = cursor.getString(PROJ_INDEX_MIME_TYPE);
-			displayName = cursor.getString(PROJ_INDEX_DISPLAY_NAME);
-			mediaType = cursor.getInt(PROJ_INDEX_MEDIA_TYPE);
+			if (cursor != null) {
+				id = cursor.getLong(PROJ_INDEX_ID);
+				data = cursor.getString(PROJ_INDEX_DATA);
+				title = cursor.getString(PROJ_INDEX_TITLE);
+				mime = cursor.getString(PROJ_INDEX_MIME_TYPE);
+				displayName = cursor.getString(PROJ_INDEX_DISPLAY_NAME);
+				mediaType = cursor.getInt(PROJ_INDEX_MEDIA_TYPE);
+				try {
+					width = cursor.getInt(PROJ_INDEX_WIDTH);
+					height = cursor.getInt(PROJ_INDEX_HEIGHT);
+				} catch (final Exception e) {
+				}
+			}
 			return this;
 		}
 
@@ -150,7 +168,7 @@ public class MediaStoreHelper {
 		}
 
 	    @Override
-	    protected void onBoundsChange(Rect bounds) {
+	    protected void onBoundsChange(final Rect bounds) {
 	        super.onBoundsChange(bounds);
 	        updateDrawMatrix(getBounds());
 	    }
@@ -291,7 +309,7 @@ public class MediaStoreHelper {
 	 * Runnable to load image asynchronously
 	 */
 	protected abstract static class ImageLoader implements Runnable {
-		private final LoaderDrawable mParent;
+		protected final LoaderDrawable mParent;
 		private final FutureTask<Bitmap> mTask;
 		private int mMediaType;
 		private int mHashCode;
@@ -348,6 +366,29 @@ public class MediaStoreHelper {
 		public Bitmap getBitmap() {
 			return mBitmap;
 		}
+	}
+
+	protected static final Bitmap getImage(final ContentResolver cr, final long id, final int requestWidth, final int requestHeight)
+		throws FileNotFoundException, IOException {
+
+		Bitmap result = null;
+		final ParcelFileDescriptor pfd = cr.openFileDescriptor(
+			ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id), "r");
+		if (pfd != null) {
+			try {
+				final BitmapFactory.Options options = new BitmapFactory.Options();
+				// just decode to get image size
+				options.inJustDecodeBounds = true;
+				BitmapFactory.decodeFileDescriptor(pfd.getFileDescriptor(), null, options);
+				// calculate sub-sampling
+				options.inSampleSize = calcSampleSize(options, requestWidth, requestHeight);
+				options.inJustDecodeBounds = false;
+				result = BitmapFactory.decodeFileDescriptor(pfd.getFileDescriptor(), null, options);
+			} finally {
+				pfd.close();
+			}
+		}
+		return result;
 	}
 
 	/**

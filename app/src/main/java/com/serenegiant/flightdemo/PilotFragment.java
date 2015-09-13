@@ -344,6 +344,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
+		mControllerView.setKeepScreenOn(true);
 		startDeviceController();
 		startSensor();
 		mModelView.onResume();
@@ -366,6 +367,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		remove(mGamePadTask);
 		remove(mUpdateStatusTask);
 		mResetColorFilterTasks.clear();
+		mControllerView.setKeepScreenOn(false);
 		super.onPause();
 	}
 
