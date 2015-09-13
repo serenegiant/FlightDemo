@@ -2,14 +2,13 @@ package com.serenegiant.flightdemo;
 
 import android.app.Fragment;
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterViewFlipper;
 import android.widget.StackView;
 
+import com.serenegiant.media.MediaStoreHelper;
 import com.serenegiant.media.MediaStoreAdapter;
 
 public class PhotoFragment extends Fragment {
@@ -86,7 +85,7 @@ public class PhotoFragment extends Fragment {
 
 	private void initView(final View rootView) {
 		mAdapter = new MediaStoreAdapter(getActivity(), R.layout.grid_item_media);
-		mAdapter.setMediaType(MediaStoreAdapter.MEDIA_IMAGE);
+		mAdapter.setMediaType(MediaStoreHelper.MEDIA_IMAGE);
 		mStackView = (StackView)rootView.findViewById(R.id.stackView);
 		mStackView.setAdapter(mAdapter);
 		mStackView.setSelection(mAdapter.getPositionFromId(mId));

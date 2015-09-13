@@ -26,14 +26,12 @@ import com.parrot.arsdk.arsal.ARSAL_PRINT_LEVEL_ENUM;
 import com.parrot.arsdk.arutils.ARUTILS_ERROR_ENUM;
 import com.parrot.arsdk.arutils.ARUtilsException;
 import com.parrot.arsdk.arutils.ARUtilsManager;
+import com.serenegiant.utils.ThreadPool;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public abstract class FTPController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -70,14 +68,6 @@ public abstract class FTPController {
 		 */
 		public void onFinished(final int requestCode, final int error, final ARMediaObject[] medias);
 	}
-
-    // for thread pool
-    private static final int CORE_POOL_SIZE = 0;		// initial/minimum threads
-    private static final int MAX_POOL_SIZE = 4;			// maximum threads
-    private static final int KEEP_ALIVE_TIME = 10;		// time periods while keep the idle thread
-    protected static final ThreadPoolExecutor EXECUTOR
-		= new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE, KEEP_ALIVE_TIME,
-			TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
 	protected final WeakReference<Context>mWeakContext;
 	protected final WeakReference<IDeviceController>mWeakController;
@@ -395,7 +385,7 @@ public abstract class FTPController {
 						if (DEBUG) Log.v(TAG, "run downloaderQueueRunnable");
 						// これをEXECUTORを使わずに直接Runするとこの後での待機がいらない?
 						// ここは別スレッドでDownloaderQueueRunnableを実行&終了待ちする方がいいかも
-						EXECUTOR.execute(mDownLoader.getDownloaderQueueRunnable());
+						ThreadPool.queueEvent(mDownLoader.getDownloaderQueueRunnable());
 						// ここで待機しないほうがいいかなぁ
 						for (; mConnected && !mRequestCancel && (mFinishedTransferNum < mTotalTransferNum); ) {
 							try {

@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.serenegiant.media.MediaStoreAdapter;
+import com.serenegiant.media.MediaStoreHelper;
 
 public class GalleyFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -56,7 +57,7 @@ public class GalleyFragment extends Fragment {
 	};
 
 	private void doPlay(final int position, final long id) {
-		final MediaStoreAdapter.MediaInfo info = mMediaStoreAdapter.getMediaInfo(position);
+		final MediaStoreHelper.MediaInfo info = mMediaStoreAdapter.getMediaInfo(position);
 		if (DEBUG) Log.v(TAG, "" + info);
 		final Fragment fragment;
 		switch (info.mediaType) {

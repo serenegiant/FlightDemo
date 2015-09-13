@@ -9,34 +9,31 @@ public class MediaStoreImageAdapter extends PagerAdapter {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = MediaStoreImageAdapter.class.getSimpleName();
 
-	private final MediaStoreAdapter mAdapter;
-
 	public MediaStoreImageAdapter(final Context context, final int id_layout) {
-		mAdapter = new MediaStoreAdapter(context, id_layout);
 	}
 
 	@Override
 	public int getCount() {
-		return mAdapter.getCount();
+		return 0;
 	}
 
 	@Override
-	public Object instantiateItem(ViewGroup container, int position) {
-		return mAdapter.getView(position, null, container);
+	public Object instantiateItem(final ViewGroup container, final int position) {
+		return null;
 	}
 
 	@Override
-	public void destroyItem(ViewGroup container, int position, Object object) {
+	public void destroyItem(final ViewGroup container, final int position, final Object object) {
 		super.destroyItem(container, position, object);
 	}
 
 	@Override
-	public int getItemPosition(Object object) {
+	public int getItemPosition(final Object object) {
 		return super.getItemPosition(object);
 	}
 
 	@Override
-	public boolean isViewFromObject(View view, Object object) {
-		return false;
+	public boolean isViewFromObject(final View view, final Object object) {
+		return true;
 	}
 }
