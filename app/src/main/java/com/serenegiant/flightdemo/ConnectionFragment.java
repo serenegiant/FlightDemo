@@ -1,5 +1,6 @@
 package com.serenegiant.flightdemo;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
@@ -38,6 +40,7 @@ public class ConnectionFragment extends Fragment {
 
 	private ListView mDeviceListView;
 	private IModelView mModelView;
+	private ImageButton mGalleryBtn, mDownloadBtn, mPilotBtn;
 
 	public ConnectionFragment() {
 		super();
@@ -59,6 +62,7 @@ public class ConnectionFragment extends Fragment {
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		manager.startDiscovery();
 		manager.addCallback(mManagerCallback);
+		updateButtons(false);
 		mModelView.onResume();
 	}
 
@@ -66,6 +70,7 @@ public class ConnectionFragment extends Fragment {
 	public void onPause() {
 		if (DEBUG) Log.d(TAG, "onPause:");
 
+		updateButtons(false);
 		mModelView.onPause();
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		if (manager != null) {
@@ -91,9 +96,37 @@ public class ConnectionFragment extends Fragment {
 		mDeviceListView.setEmptyView(empty_view);
 		mDeviceListView.setAdapter(adapter);
 		mDeviceListView.setOnItemClickListener(mOnItemClickListener);
-		mDeviceListView.setOnItemLongClickListener(mOnItemLongClickListener);
+//		mDeviceListView.setOnItemLongClickListener(mOnItemLongClickListener);
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
-		((View)mModelView).setOnLongClickListener(mOnLongClickListener);	// FIXME テスト用, 長押しでギャラリー表示へ
+//		((View)mModelView).setOnLongClickListener(mOnLongClickListener);	// FIXME テスト用, 長押しでギャラリー表示へ
+
+		mGalleryBtn = (ImageButton)rootView.findViewById(R.id.gallery_button);
+		mGalleryBtn.setOnClickListener(mOnClickListener);
+		mDownloadBtn = (ImageButton)rootView.findViewById(R.id.download_button);
+		mDownloadBtn.setOnClickListener(mOnClickListener);
+		mPilotBtn = (ImageButton)rootView.findViewById(R.id.pilot_button);
+		mPilotBtn.setOnClickListener(mOnClickListener);
+	}
+
+	private void updateButtons(final boolean visible) {
+		final Activity activity = getActivity();
+		if ((activity != null) && !activity.isFinishing()) {
+			getActivity().runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					if (!visible) {
+						try {
+							final ArrayAdapter<String> adapter = (ArrayAdapter<String>) mDeviceListView.getAdapter();
+							adapter.clear();
+						} catch (final Exception e) {
+						}
+					}
+					final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+					mDownloadBtn.setVisibility(visibility);
+					mPilotBtn.setVisibility(visibility);
+				}
+			});
+		}
 	}
 
 	/**
@@ -124,6 +157,7 @@ public class ConnectionFragment extends Fragment {
 				} */
 			}
 			adapter.notifyDataSetChanged();
+			updateButtons(devices.size() > 0);
 		}
 	};
 
@@ -133,26 +167,7 @@ public class ConnectionFragment extends Fragment {
 	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
 		@Override
 		public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-
-			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-
-			final String itemValue = ((ArrayAdapter<String>)parent.getAdapter()).getItem(position);
-			final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
-			// 製品名を取得
-			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
-
-			Fragment fragment = null;
-			switch (product) {
-			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-				fragment = PilotFragment.newInstance(service);
-				break;
-			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
-				//FIXME JumpingSumoは未実装
-				break;
-			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-				fragment = PilotFragment.newInstance(service);
-				break;
-			}
+			final Fragment fragment = getFragment(position, true);
 			if (fragment != null) {
 				getFragmentManager().beginTransaction()
 					.addToBackStack(null)
@@ -165,7 +180,7 @@ public class ConnectionFragment extends Fragment {
 	/**
 	 * 機体選択リストの項目を長押しした時の処理
 	 */
-	private final AdapterView.OnItemLongClickListener mOnItemLongClickListener = new AdapterView.OnItemLongClickListener() {
+/*	private final AdapterView.OnItemLongClickListener mOnItemLongClickListener = new AdapterView.OnItemLongClickListener() {
 		@Override
 		public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
 
@@ -193,12 +208,12 @@ public class ConnectionFragment extends Fragment {
 			}
 			return false;
 		}
-	};
+	}; */
 
 	/**
 	 * 機体の3D表示を長押しした時の処理
 	 */
-	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
+/*	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
 		@Override
 		public boolean onLongClick(final View view) {
 			switch (view.getId()) {
@@ -214,5 +229,51 @@ public class ConnectionFragment extends Fragment {
 			}
 			return false;
 		}
+	}; */
+
+	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
+		@Override
+		public void onClick(final View view) {
+			Fragment fragment = null;
+			switch (view.getId()) {
+			case R.id.gallery_button:
+				fragment = GalleyFragment.newInstance();
+				break;
+			case R.id.download_button:
+				fragment = getFragment(0, false);
+				break;
+			case R.id.pilot_button:
+				fragment = getFragment(0, true);
+				break;
+			}
+			if (fragment != null) {
+				getFragmentManager().beginTransaction()
+					.addToBackStack(null)
+					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+					.replace(R.id.container, fragment).commit();
+			}
+		}
 	};
+
+	private Fragment getFragment(final int position, final boolean isPiloting) {
+		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+		final String itemValue = ((ArrayAdapter<String>)mDeviceListView.getAdapter()).getItem(position);
+		final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
+		// 製品名を取得
+		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
+
+		Fragment fragment = null;
+		switch (product) {
+		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+			fragment = isPiloting ? PilotFragment.newInstance(service) : MediaFragment.newInstance(service);
+			break;
+		case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+			//FIXME JumpingSumoは未実装
+			break;
+		case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+			fragment = isPiloting ? PilotFragment.newInstance(service) : MediaFragment.newInstance(service);
+			break;
+		}
+		return fragment;
+	}
 }

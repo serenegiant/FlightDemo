@@ -19,8 +19,9 @@
 	<ListView
 		android:id="@+id/list"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:minHeight="@dimen/text_sz_list">
+		android:layout_height="match_parent"
+		android:minHeight="@dimen/text_sz_list"
+		android:layout_above="@+id/linearLayout2">
 	</ListView>
 
 	<TextView
@@ -33,4 +34,42 @@
 		android:text="@string/detecting"
 		android:textAlignment="center"
 		android:textSize="@dimen/text_sz_list"/>
+
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:layout_marginBottom="@dimen/half_padding"
+		android:id="@+id/linearLayout2">
+
+		<ImageButton
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/pilot_button"
+			android:background="@null"
+			android:src="@drawable/stick_front144x144"
+			android:layout_weight="1"
+			android:scaleType="fitCenter"/>
+
+		<ImageButton
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:id="@+id/download_button"
+			android:background="@null"
+			android:src="@android:drawable/ic_menu_upload"
+			android:layout_weight="1"
+			android:scaleType="fitCenter"
+			/>
+
+		<ImageButton
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:id="@+id/gallery_button"
+			android:background="@null"
+			android:src="@android:drawable/ic_menu_gallery"
+			android:layout_weight="1"
+			android:scaleType="fitCenter"/>
+
+	</LinearLayout>
 </RelativeLayout>
