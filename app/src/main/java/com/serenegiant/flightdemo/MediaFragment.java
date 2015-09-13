@@ -14,18 +14,17 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.armedia.ARMediaObject;
+import com.serenegiant.arflight.ARMediaObjectListAdapter;
 import com.serenegiant.arflight.FTPController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.ConfirmDialog;
 import com.serenegiant.dialog.OnDialogResultIntListener;
 import com.serenegiant.dialog.TransferProgressDialogFragment;
-import com.serenegiant.media.MediaStoreAdapter;
 
 import java.io.File;
 import java.util.ArrayList;

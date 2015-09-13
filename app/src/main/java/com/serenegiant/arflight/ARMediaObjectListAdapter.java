@@ -1,4 +1,4 @@
-package com.serenegiant.flightdemo;
+package com.serenegiant.arflight;
 
 import android.content.Context;
 import android.text.format.DateUtils;
@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.parrot.arsdk.armedia.ARMediaObject;
+import com.serenegiant.flightdemo.R;
 
 import java.io.File;
 import java.text.ParseException;
