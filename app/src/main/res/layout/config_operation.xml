@@ -3,14 +3,13 @@
 			  xmlns:android="http://schemas.android.com/apk/res/android"
 			  android:layout_width="match_parent"
 			  android:layout_height="wrap_content"
-			  android:layout_centerInParent="true"
 			  android:orientation="vertical"
-			  android:weightSum="1">
+			  android:gravity="center">
 
 	<RadioGroup
 		android:id="@+id/operation_radiogroup"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent">
+		android:layout_height="wrap_content">
 
 		<RadioButton
 			android:id="@+id/operation_normal_radiobutton"
@@ -19,8 +18,7 @@
 			android:layout_gravity="center_horizontal"
 			android:layout_marginTop="@dimen/half_padding"
 			android:text="@string/config_operation_normal"
-			android:textSize="@dimen/text_sz_list"
-			/>
+			android:textSize="@dimen/text_sz_list"/>
 
 		<RadioButton
 			android:id="@+id/operation_reverse_radiobutton"

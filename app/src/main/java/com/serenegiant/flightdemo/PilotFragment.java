@@ -1,6 +1,5 @@
 package com.serenegiant.flightdemo;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
@@ -613,6 +612,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setMove(_mx, -_my);
 					mFlightRecorder.record(FlightRecorder.CMD_MOVE2, _mx, -_my);
+					if (DEBUG) Log.v(TAG, String.format("stick_normal:LR%d,FB%d", _mx, -_my));
 				}
 			}
 			break;
@@ -625,6 +625,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setYaw(mx);
 					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
+					if (DEBUG) Log.v(TAG, String.format("stick_normal:T%d", _mx));
 				}
 			}
 			if (_my != mPrevLeftMY) {	// 上昇下降
@@ -632,6 +633,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setGaz(-_my);
 					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
+					if (DEBUG) Log.v(TAG, String.format("stick_normal:UD%d", -_my));
 				}
 			}
 			break;
@@ -650,6 +652,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setGaz(-_my);
 					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
+					if (DEBUG) Log.v(TAG, String.format("stick_mode1:UD%d", -_my));
 				}
 			}
 			int mx = _mx;
@@ -659,6 +662,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setRoll(mx, true);
 					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, mx);
+					if (DEBUG) Log.v(TAG, String.format("stick_mode1:LR%d", mx));
 				}
 			}
 			break;
@@ -669,6 +673,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setYaw(_mx);
 					mFlightRecorder.record(FlightRecorder.CMD_TURN, _mx);
+					if (DEBUG) Log.v(TAG, String.format("stick_mode1:T%d", _mx));
 				}
 			}
 			if (_my != mPrevLeftMY) {	// 前後移動
@@ -676,6 +681,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setPitch(-_my, true);
 					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -_my);
+					if (DEBUG) Log.v(TAG, String.format("stick_mode1:FB%d", -_my));
 				}
 			}
 			break;
@@ -694,6 +700,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setPitch(-_my, true);
 					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -_my);
+					if (DEBUG) Log.v(TAG, String.format("stick_mode2:FB%d", -_my));
 				}
 			}
 			if (_mx != mPrevRightMX) {	// 左右移動
@@ -701,6 +708,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setRoll(_mx, true);
 					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, _mx);
+					if (DEBUG) Log.v(TAG, String.format("stick_mode2:LR%d", _mx));
 				}
 			}
 			break;
@@ -713,6 +721,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setYaw(mx);
 					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
+					if (DEBUG) Log.v(TAG, String.format("stick_mode2:T%d", _mx));
 				}
 			}
 			if (_my != mPrevLeftMY) {	// 上昇下降
@@ -720,6 +729,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mController != null) {
 					mController.setGaz(-_my);
 					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
+					if (DEBUG) Log.v(TAG, String.format("stick_mode2:UD%d", -_my));
 				}
 			}
 			break;
@@ -1865,55 +1875,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mFlightRecorder.record(FlightRecorder.CMD_MOVE4, (int) 0, (int) 0, (int) 0, (int) 0);
 			}
 			moved = false;
-//				if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", 0f, 0f, 0f, 0f));
+//			if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", 0f, 0f, 0f, 0f));
 		}
 	}
 
 	/** 通常操作モードでのゲームパッド入力処理 */
 	private void gamepad_normal() {
-		// 左側十字キーまたは左側アナログスティックの左右=左右移動
-		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[GamePad.KEY_LEFT_RIGHT]
-			? down_times[GamePad.KEY_LEFT_RIGHT]
-			: (downs[GamePad.KEY_LEFT_LEFT]
-				? -down_times[GamePad.KEY_LEFT_LEFT]
-				: 0)
-		);
-		// 左側十字キーまたは左側アナログスティックの上下=前後移動
-		final float pitch = mGamepadSensitivity * mGamepadScaleY * (downs[GamePad.KEY_LEFT_UP]
-			? down_times[GamePad.KEY_LEFT_UP]
-			: (downs[GamePad.KEY_LEFT_DOWN]
-				? -down_times[GamePad.KEY_LEFT_DOWN]
-				: 0)
-		);
-		// 右側アナログスティックの上下=上昇下降
-		final float gaz = mGamepadSensitivity * mGamepadScaleZ * (downs[GamePad.KEY_RIGHT_UP]
-			? down_times[GamePad.KEY_RIGHT_UP]
-			: (downs[GamePad.KEY_RIGHT_DOWN]
-				? -down_times[GamePad.KEY_RIGHT_DOWN]
-				: 0)
-		);
-		// 右側アナログスティックの左右または上端ボタン(手前側)=左右回転
-		final float yaw = mGamepadSensitivity * (downs[GamePad.KEY_RIGHT_RIGHT] && (down_times[GamePad.KEY_RIGHT_RIGHT] > YAW_LIMIT)
-			? down_times[GamePad.KEY_RIGHT_RIGHT] - YAW_LIMIT
-			: (
-				downs[GamePad.KEY_RIGHT_1]
-				? down_times[GamePad.KEY_RIGHT_1]
-				: (
-					downs[GamePad.KEY_RIGHT_LEFT] && (down_times[GamePad.KEY_RIGHT_LEFT] > YAW_LIMIT)
-					? -down_times[GamePad.KEY_RIGHT_LEFT] + YAW_LIMIT
-					: (
-						downs[GamePad.KEY_LEFT_1]
-						? -down_times[GamePad.KEY_LEFT_1]
-						: 0
-					)
-				)
-			)
-		);
-		gamepad_move(roll, pitch, gaz, yaw);
-	}
-
-	/** 左右反転操作モードでのゲームパッド入力処理 */
-	private void gamepad_reverse() {
 		// 右側十字キーまたは右側アナログスティックの左右=左右移動
 		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[GamePad.KEY_RIGHT_RIGHT]
 			? down_times[GamePad.KEY_RIGHT_RIGHT]
@@ -1944,6 +1911,49 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				: (
 					downs[GamePad.KEY_LEFT_LEFT] && (down_times[GamePad.KEY_LEFT_LEFT] > YAW_LIMIT)
 					? -down_times[GamePad.KEY_LEFT_LEFT] + YAW_LIMIT
+					: (
+						downs[GamePad.KEY_LEFT_1]
+						? -down_times[GamePad.KEY_LEFT_1]
+						: 0
+					)
+				)
+			)
+		);
+		gamepad_move(roll, pitch, gaz, yaw);
+	}
+
+	/** 左右反転操作モードでのゲームパッド入力処理 */
+	private void gamepad_reverse() {
+		// 左側十字キーまたは左側アナログスティックの左右=左右移動
+		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[GamePad.KEY_LEFT_RIGHT]
+			? down_times[GamePad.KEY_LEFT_RIGHT]
+			: (downs[GamePad.KEY_LEFT_LEFT]
+				? -down_times[GamePad.KEY_LEFT_LEFT]
+				: 0)
+		);
+		// 左側十字キーまたは左側アナログスティックの上下=前後移動
+		final float pitch = mGamepadSensitivity * mGamepadScaleY * (downs[GamePad.KEY_LEFT_UP]
+			? down_times[GamePad.KEY_LEFT_UP]
+			: (downs[GamePad.KEY_LEFT_DOWN]
+				? -down_times[GamePad.KEY_LEFT_DOWN]
+				: 0)
+		);
+		// 右側アナログスティックの上下=上昇下降
+		final float gaz = mGamepadSensitivity * mGamepadScaleZ * (downs[GamePad.KEY_RIGHT_UP]
+			? down_times[GamePad.KEY_RIGHT_UP]
+			: (downs[GamePad.KEY_RIGHT_DOWN]
+				? -down_times[GamePad.KEY_RIGHT_DOWN]
+				: 0)
+		);
+		// 右側アナログスティックの左右または上端ボタン(手前側)=左右回転
+		final float yaw = mGamepadSensitivity * (downs[GamePad.KEY_RIGHT_RIGHT] && (down_times[GamePad.KEY_RIGHT_RIGHT] > YAW_LIMIT)
+			? down_times[GamePad.KEY_RIGHT_RIGHT] - YAW_LIMIT
+			: (
+				downs[GamePad.KEY_RIGHT_1]
+				? down_times[GamePad.KEY_RIGHT_1]
+				: (
+					downs[GamePad.KEY_RIGHT_LEFT] && (down_times[GamePad.KEY_RIGHT_LEFT] > YAW_LIMIT)
+					? -down_times[GamePad.KEY_RIGHT_LEFT] + YAW_LIMIT
 					: (
 						downs[GamePad.KEY_LEFT_1]
 						? -down_times[GamePad.KEY_LEFT_1]
