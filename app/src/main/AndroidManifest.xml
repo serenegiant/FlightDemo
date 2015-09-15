@@ -31,6 +31,12 @@
 		</activity>
 
 		<service android:name="com.parrot.arsdk.ardiscovery.ARDiscoveryService"/>
+
+		<receiver android:enabled="true" android:name="com.serenegiant.net.NetworkChangedReceiver">
+		<intent-filter>
+			<action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+		</intent-filter>
+  </receiver>
 	</application>
 
 </manifest>
