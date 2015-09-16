@@ -1,3 +1,22 @@
 <resources>
-	<string name="app_name">arflight</string>
+	<string name="alarm_low_battery">Low battery</string>
+	<string name="alarm_low_battery_critical">Critical low battery</string>
+	<string name="alarm_user_emergency">User emergency stop</string>
+	<string name="alarm_motor_cut_out">Motor cut out</string>
+	<string name="alarm_disconnected">Disconnected</string>
+
+	<string name="capture_error">Still capturing failed</string>
+	<string name="capture_success">Still capturing success</string>
+	<string name="video_error">Video recording failed</string>
+	<string name="video_success">Video recording finished</string>
+
+	<string name="detecting">Detecting drones...</string>
+	<string name="disconnecting">Disconnecting…</string>
+	<string name="connecting">Connecting…</string>
+	<string name="loading">Loading…</string>
+	<string name="battery">Battery:</string>
+	<string name="select">Select</string>
+	<string name="not_selected">No file selected！</string>
+	<string name="parent_dir">Up..</string>
+
 </resources>

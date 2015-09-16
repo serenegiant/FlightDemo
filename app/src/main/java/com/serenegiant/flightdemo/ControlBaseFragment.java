@@ -15,6 +15,7 @@ import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IVideoStreamController;
+import com.serenegiant.arflight.ManagerFragment;
 
 public abstract class ControlBaseFragment extends Fragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること

@@ -1,14 +1,18 @@
 package com.serenegiant.arflight;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Checkable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 
 import org.w3c.dom.Text;
 
@@ -44,9 +48,21 @@ public class ARDeviceServiceAdapter extends ArrayAdapter<ARDiscoveryDeviceServic
 		}
 		if (holder.state != null) {
 			// FIXME 接続状態の更新処理
+			if (rootView instanceof Checkable) {
+				holder.state.setText(((Checkable)rootView).isChecked() ? "選択中" : "---");
+			}
 		}
 		if (holder.thumbnail != null) {
-			// FIXME 機体アイコンの更新処理
+			// FIXME 機体アイコンの更新処理。今はアプリのアイコンと同じまま
+			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
+			switch (product) {
+			case ARDISCOVERY_PRODUCT_ARDRONE:
+//				holder.thumbnail.setImageResource(R.drawable.ic_ardrone);
+				break;
+			case ARDISCOVERY_PRODUCT_MINIDRONE:
+//				holder.thumbnail.setImageResource(R.drawable.ic_minidrone);
+				break;
+			}
 		}
 		return rootView;
 	}

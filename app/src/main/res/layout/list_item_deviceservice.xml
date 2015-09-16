@@ -18,7 +18,7 @@
        		android:layout_width="@dimen/thumbnail_min_size"
        		android:layout_height="@dimen/thumbnail_min_size"
        		android:id="@id/thumbnail"
-       		android:src="@mipmap/ic_launcher_003"
+       		android:src="@mipmap/ic_launcher"
             android:scaleType="centerCrop"
             android:background="@null"/>
 
@@ -39,16 +39,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_toRightOf="@+id/thumbnail_frame"
-        android:layout_toEndOf="@+id/thumbnail_frame">
+        android:layout_toEndOf="@+id/thumbnail_frame"
+        android:gravity="center_vertical">
 
         <TextView
 			android:id="@id/title"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:gravity="left"
+			android:gravity="center_vertical|left"
 			android:textSize="@dimen/text_sz_list"
             android:text="title"/>
 
+<!--
         <TextView
             android:id="@id/state"
             android:layout_width="match_parent"
@@ -56,6 +58,7 @@
             android:gravity="left"
             android:textSize="@dimen/text_sz_list"
             android:text=""/>
+-->
     </LinearLayout>
 
 </com.serenegiant.widget.CheckableRelativeLayout>

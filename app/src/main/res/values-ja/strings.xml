@@ -17,23 +17,6 @@
 	<string name="action_move">移動</string>
 	<string name="action_delete_after_fetch">読み込み後に削除</string>
 
-	<string name="alarm_low_battery">ローバッテリー</string>
-	<string name="alarm_low_battery_critical">致命的ローバッテリー</string>
-	<string name="alarm_user_emergency">ユーザー操作により非常停止</string>
-	<string name="alarm_motor_cut_out">モーター非常停止</string>
-	<string name="alarm_disconnected">切断されました</string>
-
-	<string name="capture_error">静止画撮影失敗</string>
-	<string name="capture_success">静止画撮影完了</string>
-	<string name="video_error">録画失敗</string>
-	<string name="video_success">録画終了</string>
-
-	<string name="detecting">ドローンを検出中...</string>
-	<string name="disconnecting">切断中…</string>
-	<string name="connecting">接続中…</string>
-	<string name="loading">読み込み中…</string>
-	<string name="battery">電池残量:</string>
-
 	<string name="select">選択</string>
 	<string name="not_selected">ファイルが選択されていません！</string>
 	<string name="parent_dir">上へ‥</string>

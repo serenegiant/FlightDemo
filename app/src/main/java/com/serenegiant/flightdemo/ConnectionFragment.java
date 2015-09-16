@@ -8,9 +8,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Checkable;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
@@ -18,9 +18,9 @@ import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.ARDeviceServiceAdapter;
+import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.gl.IModelView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ConnectionFragment extends Fragment {
@@ -95,7 +95,8 @@ public class ConnectionFragment extends Fragment {
 		final View empty_view = rootView.findViewById(R.id.empty_view);
 		mDeviceListView.setEmptyView(empty_view);
 		mDeviceListView.setAdapter(adapter);
-		mDeviceListView.setOnItemClickListener(mOnItemClickListener);
+		mDeviceListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+//		mDeviceListView.setOnItemClickListener(mOnItemClickListener);
 //		mDeviceListView.setOnItemLongClickListener(mOnItemLongClickListener);
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 //		((View)mModelView).setOnLongClickListener(mOnLongClickListener);	// FIXME テスト用, 長押しでギャラリー表示へ
@@ -157,14 +158,25 @@ public class ConnectionFragment extends Fragment {
 				} */
 			}
 			adapter.notifyDataSetChanged();
+			mDeviceListView.setItemChecked(0, true);	// 先頭を選択
 			updateButtons(devices.size() > 0);
 		}
 	};
 
+	private void clearCheck(final ViewGroup parent) {
+		final int n = parent.getChildCount();
+		for (int i = 0; i < n; i++) {
+			final View v = parent.getChildAt(i);
+			if (v instanceof Checkable) {
+				((Checkable) v).setChecked(false);
+			}
+		}
+	}
+
 	/**
 	 * 機体選択リストの項目をタッチした時の処理
 	 */
-	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
+/*	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
 		@Override
 		public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
 			final Fragment fragment = getFragment(position, true);
@@ -175,7 +187,7 @@ public class ConnectionFragment extends Fragment {
 					.replace(R.id.container, fragment).commit();
 			}
 		}
-	};
+	}; */
 
 	/**
 	 * 機体選択リストの項目を長押しした時の処理
@@ -240,10 +252,10 @@ public class ConnectionFragment extends Fragment {
 				fragment = GalleyFragment.newInstance();
 				break;
 			case R.id.download_button:
-				fragment = getFragment(0, false);
+				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), false);
 				break;
 			case R.id.pilot_button:
-				fragment = getFragment(0, true);
+				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), true);
 				break;
 			}
 			if (fragment != null) {

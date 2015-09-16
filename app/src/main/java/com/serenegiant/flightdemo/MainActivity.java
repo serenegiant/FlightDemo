@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.serenegiant.arflight.GamePad;
+import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.net.NetworkChangedReceiver;
 import com.serenegiant.widget.ISideMenuView;
 import com.serenegiant.widget.SideMenuFrameLayout;

@@ -1,4 +1,4 @@
-package com.serenegiant.flightdemo;
+package com.serenegiant.arflight;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -21,10 +21,6 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiver;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiverDelegate;
-import com.serenegiant.arflight.DeviceConnectionListener;
-import com.serenegiant.arflight.DeviceControllerBebop;
-import com.serenegiant.arflight.DeviceControllerMiniDrone;
-import com.serenegiant.arflight.IDeviceController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -445,10 +441,10 @@ public class ManagerFragment extends Fragment {
 	}
 
 	private void unregisterReceivers() {
+		mRegistered = false;
 		final LocalBroadcastManager localBroadcastMgr = LocalBroadcastManager.getInstance(
 			getActivity().getApplicationContext());
 		localBroadcastMgr.unregisterReceiver(mDevicesListUpdatedReceiver);
-		mRegistered = false;
 	}
 
 	private final ARDiscoveryServicesDevicesListUpdatedReceiverDelegate
