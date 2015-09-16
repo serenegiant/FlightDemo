@@ -19,21 +19,17 @@ import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ManagerFragment;
 
-public abstract class ControlBaseFragment extends Fragment {
+public abstract class ControlBaseFragment extends BaseFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = "ControlFragment";
 
 	protected static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";
 
-	private final Handler mUIHandler = new Handler(Looper.getMainLooper());
-	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
-
-	protected Handler mHandler;
-
 	private ARDiscoveryDeviceService mDevice;
 	protected IDeviceController mController;
 
 	public ControlBaseFragment() {
+		super();
 		// デフォルトコンストラクタが必要
 	}
 
@@ -59,31 +55,20 @@ public abstract class ControlBaseFragment extends Fragment {
 			mDevice = savedInstanceState.getParcelable(EXTRA_DEVICE_SERVICE);
 			mController = ManagerFragment.getController(getActivity(), mDevice);
 		}
-		final HandlerThread thread = new HandlerThread(TAG);
-		thread.start();
-		mHandler = new Handler(thread.getLooper());
 		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState + ",mController=" + mController);
 	}
 
-	@Override
+/*	@Override
 	public void onSaveInstanceState(final Bundle outState) {
 		super.onSaveInstanceState(outState);
-		final Bundle args = getArguments();
-		if (args != null) {
-			outState.putAll(args);
-		}
 		if (DEBUG) Log.v(TAG, "onSaveInstanceState:" + outState);
-	}
+	} */
 
-	@Override
+/*	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
-		if (mHandler != null) {
-			mHandler.getLooper().quit();
-			mHandler = null;
-		}
 		super.onDestroy();
-	}
+	} */
 
 	@Override
 	public synchronized void onResume() {
@@ -97,7 +82,6 @@ public abstract class ControlBaseFragment extends Fragment {
 	@Override
 	public synchronized void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
-		removeFromUIThread(mPopBackStackTask);
 		if (mController != null) {
 			mController.removeListener(mDeviceControllerListener);
 		}
@@ -141,89 +125,6 @@ public abstract class ControlBaseFragment extends Fragment {
 		return mController != null ? mController.getVideoRecordingState() : DroneStatus.MEDIA_UNAVAILABLE;
 	}
 
-	protected void runOnUiThread(final Runnable task) {
-		if (task != null) {
-			try {
-				if (mUIThreadId != Thread.currentThread().getId()) {
-					mUIHandler.post(task);
-				} else {
-					task.run();
-				}
-			} catch (final Exception e) {
-				Log.w(TAG, e);
-			}
-		}
-	}
-
-	protected void removeFromUIThread(final Runnable task) {
-		mUIHandler.removeCallbacks(task);
-	}
-
-	/**
-	 * 指定時間後に指定したタスクをUIスレッド上で実行する。
-	 * @param task UIスレッド上で行う処理
-	 * @param delay_msec 0以下ならrunOnUiThreadと同じ
-	 */
-	protected void postUIThread(final Runnable task, final long delay_msec) {
-		if (delay_msec <= 0) {
-			runOnUiThread(task);
-		} else if (task != null) {
-			mUIHandler.postDelayed(task, delay_msec);
-		}
-	}
-
-	/**
-	 * プライベートスレッドでの実行待ちタスクを削除する
-	 * @param task
-	 */
-	protected void remove(final Runnable task) {
-		if (mHandler != null) {
-			mHandler.removeCallbacks(task);
-		} else {
-			removeFromUIThread(task);
-		}
-	}
-	/**
-	 * 指定時間後に指定したタスクをプライベートスレッド上で実行する
-	 * @param task
-	 * @param delay_msec
-	 */
-	protected void post(final Runnable task, final long delay_msec) {
-		if (mHandler != null) {
-			if (delay_msec <= 0) {
-				mHandler.post(task);
-			} else {
-				mHandler.postDelayed(task, delay_msec);
-			}
-		} else {
-			postUIThread(task, delay_msec);
-		}
-	}
-
-	/**
-	 * 指定時間後に前のフラグメントに戻る
-	 * @param delay
-	 */
-	protected void requestPopBackStack(final long delay) {
-		removeFromUIThread(mPopBackStackTask);
-		postUIThread(mPopBackStackTask, delay);	// UIスレッド上で遅延実行
-	}
-
-	/**
-	 * 一定時間後にフラグメントを終了するためのRunnable
-	 * 切断された時に使用
-	 */
-	private final Runnable mPopBackStackTask = new Runnable() {
-		@Override
-		public void run() {
-			try {
-				getFragmentManager().popBackStack();
-			} catch (final Exception e) {
-				Log.w(TAG, e);
-			}
-		}
-	};
-
 	protected synchronized boolean startDeviceController() {
 		if (DEBUG) Log.v(TAG, "startDeviceController:");
 		boolean result = false;
@@ -252,7 +153,7 @@ public abstract class ControlBaseFragment extends Fragment {
 						if (failed) {
 							if (DEBUG) Log.w(TAG, "DeviceControllerを開始できなかった");
 							try {
-								getFragmentManager().popBackStack();
+								popBackStack();
 							} catch (final Exception e) {
 								Log.w(TAG, e);
 							}
@@ -330,6 +231,13 @@ public abstract class ControlBaseFragment extends Fragment {
 	 * @param alert_state
 	 */
 	protected void updateAlarmState(final int alert_state) {
+	}
+
+	/**
+	 * キャリブレーション状態が変化した時のコールバック
+	 * @param need_calibration
+	 */
+	protected void updateCalibrationState(final boolean need_calibration) {
 	}
 
 	/**
@@ -422,6 +330,11 @@ public abstract class ControlBaseFragment extends Fragment {
 					}
 				}
 			}, 0);
+		}
+
+		@Override
+		public void onCalibrationStateChanged(boolean need_calibration) {
+			updateCalibrationState(need_calibration);
 		}
 
 		@Override

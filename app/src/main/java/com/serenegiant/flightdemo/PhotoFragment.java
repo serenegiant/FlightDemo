@@ -30,6 +30,7 @@ public class PhotoFragment extends Fragment {
 	}
 
 	public PhotoFragment() {
+		super();
 		// デフォルトコンストラクタが必要
 	}
 

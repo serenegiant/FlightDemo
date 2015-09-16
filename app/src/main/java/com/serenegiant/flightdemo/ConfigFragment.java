@@ -131,23 +131,23 @@ public class ConfigFragment extends ControlFragment {
 		return rootView;
 	}
 
-	@Override
+/*	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
 		super.onDestroy();
-	}
+	} */
 
-	@Override
+/*	@Override
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
-	}
+	} */
 
-	@Override
+/*	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		super.onPause();
-	}
+	} */
 
 	private AttributeFloat mMaxAltitude;
 	private AttributeFloat mMaxTilt;

@@ -50,6 +50,7 @@ public class MediaFragment extends ControlBaseFragment
 	private String mFreeSpaceFmt;
 
 	public MediaFragment() {
+		super();
 		// デフォルトコンストラクタが必要
 	}
 

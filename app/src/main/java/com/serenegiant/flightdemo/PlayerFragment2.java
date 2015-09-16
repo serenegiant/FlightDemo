@@ -14,8 +14,8 @@ import android.widget.VideoView;
 /**
  * VideoView+MediaControllerを使って動画再生するためのFragment
  */
-public class PlayerFragment2 extends Fragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+public class PlayerFragment2 extends BaseFragment {
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = PlayerFragment2.class.getSimpleName();
 
 	private static final String KEY_FILE_NAME = "PlayerFragment2_KEY_FILE_NAME";
@@ -32,6 +32,7 @@ public class PlayerFragment2 extends Fragment {
 	}
 
 	public PlayerFragment2() {
+		super();
 		// デフォルトコンストラクタが必要
 		setRetainInstance(true);
 	}
@@ -41,21 +42,6 @@ public class PlayerFragment2 extends Fragment {
 		super.onCreate(savedInstanceState);
 		loadArguments(savedInstanceState);
 	} */
-
-	@Override
-	public void onSaveInstanceState(final Bundle outState) {
-		final Bundle args = getArguments();
-		if (args != null) {
-			outState.putAll(args);
-		}
-		super.onSaveInstanceState(outState);
-	}
-
-	@Override
-	public void onViewStateRestored(Bundle savedInstanceState) {
-		super.onViewStateRestored(savedInstanceState);
-		loadArguments(savedInstanceState);
-	}
 
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
@@ -87,7 +73,9 @@ public class PlayerFragment2 extends Fragment {
 		super.onPause();
 	}
 
-	private void loadArguments(final Bundle savedInstanceState) {
+	@Override
+	protected void loadArguments(final Bundle savedInstanceState) {
+		super.loadArguments(savedInstanceState);
 		Bundle args = savedInstanceState;
 		if (args == null) {
 			args = getArguments();
@@ -106,7 +94,7 @@ public class PlayerFragment2 extends Fragment {
 		@Override
 		public void onCompletion(final MediaPlayer mp) {
 			// 再生が終了したら一覧画面に戻る
-			getFragmentManager().popBackStack();
+			popBackStack();
 		}
 	};
 }

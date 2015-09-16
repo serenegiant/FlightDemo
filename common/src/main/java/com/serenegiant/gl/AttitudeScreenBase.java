@@ -13,10 +13,11 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "AttitudeScreenBase";
 
-	public static final int CTRL_RANDOM = 0;	// ランダム回転
-	public static final int CTRL_PILOT = 1;		// 操縦に追随
-	public static final int CTRL_ATTITUDE = 2;	// 機体姿勢に追随
-	public static final int CTRL_NUM = 3;
+	public static final int CTRL_RANDOM = 0;		// ランダム回転
+	public static final int CTRL_PILOT = 1;			// 操縦に追随
+	public static final int CTRL_ATTITUDE = 2;		// 機体姿勢に追随
+	public static final int CTRL_CALIBRATION = 3;	// キャリブレーション用
+	public static final int CTRL_NUM = 4;
 
 	protected final GLAmbientLight ambientLight;
 	protected final GLPointLight pointLight;

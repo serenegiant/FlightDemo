@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent">
+
+	<com.serenegiant.gl.AttitudeTextureView
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:id="@+id/drone_view"
+		android:layout_gravity="center"
+		android:visibility="visible"
+		android:layout_centerInParent="true"
+		android:background="@null"/>
+
+	<ImageView
+		android:layout_width="@dimen/stick_frame_width"
+		android:layout_height="@dimen/stick_frame_height"
+		android:id="@+id/calibration_imageview"
+		android:layout_centerVertical="true"
+		android:layout_centerHorizontal="true"
+		android:src="@mipmap/ic_launcher"/>
+
+</RelativeLayout>

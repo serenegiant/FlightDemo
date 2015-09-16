@@ -366,7 +366,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		removeSideMenu();
 		remove(mGamePadTask);
 		remove(mUpdateStatusTask);
-		mResetColorFilterTasks.clear();
 		mControllerView.setKeepScreenOn(false);
 		super.onPause();
 	}
@@ -388,7 +387,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			switch (view.getId()) {
 			case R.id.load_btn:
 				// 読み込みボタンの処理
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", false);
 				SelectFileDialogFragment.showDialog(PilotFragment.this, root.getAbsolutePath(), false, "fcr");
 				break;
@@ -412,14 +411,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.config_show_btn:
 				// 設定パネル表示処理
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				if (isConnected()) {
 					if ((mController.getState() & IDeviceController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
-						final ConfigFragment fragment = ConfigFragment.newInstance(getDevice());
-						getFragmentManager().beginTransaction()
-							.addToBackStack(null)
-							.replace(R.id.container, fragment)
-							.commit();
+						replace(ConfigFragment.newInstance(getDevice()));
 					} else {
 						landing();
 					}
@@ -427,7 +422,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.clear_btn:
 				// タッチ描画データの消去
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				if (mTouchPilotView != null) {
 					mTouchPilotView.clear();
 				}
@@ -435,7 +430,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.move_btn:
 				// タッチ描画で操縦開始
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				// 再生ボタンの処理
 				PilotFragment.super.stopMove();
 				if (!mTouchFlight.isPlaying()) {
@@ -446,12 +441,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
-				setColorFilter((ImageView) view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView) view);
 				emergencyStop();
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				final boolean isFlying = (getState() &  IDeviceController.STATE_MASK_FLYING) != 0;
 				if (!isFlying) {
 					takeOff();
@@ -461,28 +456,28 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				updateButtons();
 				break;
 			case R.id.flip_front_btn:
-				setColorFilter((ImageView) view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView) view);
 				if (mController != null) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_FRONT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_FRONT);
 				}
 				break;
 			case R.id.flip_back_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				if (mController != null) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_BACK);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_BACK);
 				}
 				break;
 			case R.id.flip_right_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				if (mController != null) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_RIGHT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_RIGHT);
 				}
 				break;
 			case R.id.flip_left_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				if (mController != null) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_LEFT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_LEFT);
@@ -490,28 +485,28 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.still_capture_btn:
 				if (getStillCaptureState() == DroneStatus.MEDIA_READY) {
-					setColorFilter((ImageView) view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+					setColorFilter((ImageView) view);
 					if (mController != null) {
 						mController.sendTakePicture();
 					}
 				}
 				break;
 			case R.id.video_capture_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				if (mController != null) {
 					mVideoRecording = !mVideoRecording;
 					mController.sendVideoRecording(mVideoRecording);
 				}
 				break;
 			case R.id.cap_p45_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				if (mController != null) {
 					mController.sendAnimationsCap(45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, 45);
 				}
 				break;
 			case R.id.cap_m45_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				if (mController != null) {
 					mController.sendAnimationsCap(-45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -45);
@@ -562,7 +557,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				}
 				return true;
 			case R.id.flat_trim_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter((ImageView)view);
 				if ((mController != null) && (mController.getState() == IDeviceController.STATE_STARTED)) {
 					mController.sendFlatTrim();
 					return true;
@@ -824,6 +819,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
 		super.onConnect(controller);
+		// FIXME ここでキャリブレーションが必要かどうかをチェックして必要ならCalibrationFragmentへ遷移させる
 		mVideoRecording = false;
 		runOnUiThread(new Runnable() {
 			@Override
@@ -2059,55 +2055,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			)
 		);
 		gamepad_move(roll, pitch, gaz, yaw);
-	}
-
-	/**
-	 * タッチレスポンス用にカラーフィルターを適用する時間
-	 */
-	private static final long TOUCH_RESPONSE_TIME_MS = 100;	// 200ミリ秒
-	/**
-	 * タッチレスポンス時のカラーフィルター色
-	 */
-	private static final int TOUCH_RESPONSE_COLOR = 0x7f331133;
-
-	/**
-	 * カラーフィルタクリア用のRunnableのキャッシュ
-	 */
-	private final Map<ImageView, ResetColorFilterTask> mResetColorFilterTasks = new HashMap<ImageView, ResetColorFilterTask>();
-
-	/**
-	 * 指定したImageViewに指定した色でカラーフィルターを適用する。
-	 * reset_delayが0より大きければその時間経過後にカラーフィルターをクリアする
-	 * @param image
-	 * @param color
-	 * @param reset_delay ミリ秒
-	 */
-	private void setColorFilter(final ImageView image, final int color, final long reset_delay) {
-		if (image != null) {
-			image.setColorFilter(color);
-			if (reset_delay > 0) {
-				ResetColorFilterTask task = mResetColorFilterTasks.get(image);
-				if (task == null) {
-					task = new ResetColorFilterTask(image);
-				}
-				removeFromUIThread(task);
-				postUIThread(task, reset_delay);	// UIスレッド上で遅延実行
-			}
-		}
-	}
-
-	/**
-	 * 一定時間後にImageView(とImageButton)のカラーフィルターをクリアするためのRunnable
-	 */
-	private static class ResetColorFilterTask implements Runnable {
-		private final ImageView mImage;
-		public ResetColorFilterTask(final ImageView image) {
-			mImage = image;
-		}
-		@Override
-		public void run() {
-			mImage.setColorFilter(0);
-		}
 	}
 
 	private void setSideMenu() {

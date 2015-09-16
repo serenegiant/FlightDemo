@@ -23,7 +23,7 @@ public class DroneStatus {
 	public static final int ALARM_BATTERY_CRITICAL = 3;
 	public static final int ALARM_BATTERY = 4;
 	public static final int ALARM_TOO_MUCH_ANGLE = 5;
-	public static final int ALARM_DISCONNECTED = 100;	// これはアプリ内のみで有効
+	public static final int ALARM_DISCONNECTED = 100;		// 切断, これはアプリ内のみで有効
 
 	/** 動画/静止画撮影不可 */
 	public static final int MEDIA_UNAVAILABLE = -1;
@@ -445,5 +445,22 @@ public class DroneStatus {
 		synchronized (mStateSync) {
 			return mVideoRecordingState == MEDIA_READY;
 		}
+	}
+
+	private AttributeCalibration mAttributeCalibration = new AttributeCalibration();
+
+	/** 機体のキャリブレーション状態を設定 */
+	public void updateCalibrationState(final boolean x, final boolean y, final boolean z, final boolean failed) {
+		mAttributeCalibration.update(x, y, z, failed);
+	}
+
+	/** 機体のキャリブレーションが必要かどうかを設定 */
+	public void needCalibration(final boolean need_calibration) {
+		mAttributeCalibration.needCalibration(need_calibration);
+	}
+
+	/** 機体のキャリブレーションが必要かどうかを取得 */
+	public boolean needCalibration() {
+		return mAttributeCalibration.needCalibration();
 	}
 }

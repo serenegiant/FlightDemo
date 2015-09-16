@@ -23,7 +23,7 @@ import com.serenegiant.gl.IModelView;
 
 import java.util.List;
 
-public class ConnectionFragment extends Fragment {
+public class ConnectionFragment extends BaseFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConnectionFragment.class.getSimpleName();
 
@@ -180,13 +180,7 @@ public class ConnectionFragment extends Fragment {
 /*	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
 		@Override
 		public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-			final Fragment fragment = getFragment(position, true);
-			if (fragment != null) {
-				getFragmentManager().beginTransaction()
-					.addToBackStack(null)
-					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-					.replace(R.id.container, fragment).commit();
-			}
+			replace(getFragment(position, true));
 		}
 	}; */
 
@@ -213,12 +207,7 @@ public class ConnectionFragment extends Fragment {
 				//FIXME JumpingSumoは未実装
 				break;
 			}
-			if (fragment != null) {
-				getFragmentManager().beginTransaction()
-					.addToBackStack(null)
-					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-					.replace(R.id.container, fragment).commit();
-			}
+			replace(fragment);
 			return false;
 		}
 	}; */
@@ -232,11 +221,7 @@ public class ConnectionFragment extends Fragment {
 			switch (view.getId()) {
 			case R.id.drone_view:
 			{	// FIXME テスト用
-				final Fragment fragment = GalleyFragment.newInstance();
-				getFragmentManager().beginTransaction()
-					.addToBackStack(null)
-					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-					.replace(R.id.container, fragment).commit();
+				replace(GalleyFragment.newInstance());
 				return true;
 			}
 			}
@@ -259,12 +244,7 @@ public class ConnectionFragment extends Fragment {
 				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), true);
 				break;
 			}
-			if (fragment != null) {
-				getFragmentManager().beginTransaction()
-					.addToBackStack(null)
-					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-					.replace(R.id.container, fragment).commit();
-			}
+			replace(fragment);
 		}
 	};
 

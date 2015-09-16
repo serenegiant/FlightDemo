@@ -14,7 +14,7 @@ import android.widget.GridView;
 import com.serenegiant.media.MediaStoreAdapter;
 import com.serenegiant.media.MediaStoreHelper;
 
-public class GalleyFragment extends Fragment {
+public class GalleyFragment extends BaseFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = GalleyFragment.class.getSimpleName();
 
@@ -25,6 +25,11 @@ public class GalleyFragment extends Fragment {
 
 	private GridView mGalleyGridView;
 	private MediaStoreAdapter mMediaStoreAdapter;
+
+	public GalleyFragment() {
+		super();
+		// デフォルトコンストラクタが必要
+	}
 
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
@@ -74,11 +79,6 @@ public class GalleyFragment extends Fragment {
 			fragment = null;
 			break;
 		}
-		if (fragment != null) {
-			getFragmentManager().beginTransaction()
-				.addToBackStack(null)
-				.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-				.replace(R.id.container, fragment).commit();
-		}
+		replace(fragment);
 	}
 }

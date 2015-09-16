@@ -15,6 +15,7 @@ public class FlightDemoApplication extends Application implements IModelViewAppl
 	private FileIO mAssetIO;
 
 	public FlightDemoApplication() {
+		super();
 	}
 
 	@Override

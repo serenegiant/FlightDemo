@@ -45,6 +45,11 @@ public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 			lookAtCamera.setPosition(0, 16, -18f);
 			mShowGround = false;
 			break;
+		case CTRL_CALIBRATION:	// 多分これはこない
+			droneObj = new DroneObjectMinidrone(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(0, 16, -18f);
+			mShowGround = false;
+			break;
 		case CTRL_RANDOM:
 		default:
 			droneObj = new DroneObjectMinidroneRandom(0, 0, 0, 1.0f);

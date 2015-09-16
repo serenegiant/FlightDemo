@@ -25,7 +25,7 @@ import android.widget.VideoView;
 /**
  * MediaMoviePlayerを使って動画を再生するためのFragment
  */
-public class PlayerFragment extends Fragment {
+public class PlayerFragment extends BaseFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = PlayerFragment.class.getSimpleName();
 
@@ -47,6 +47,7 @@ public class PlayerFragment extends Fragment {
 	}
 
 	public PlayerFragment() {
+		super();
 		// デフォルトコンストラクタが必要
 		setRetainInstance(true);
 	}
@@ -56,15 +57,6 @@ public class PlayerFragment extends Fragment {
 		super.onCreate(savedInstanceState);
 		loadArguments(savedInstanceState);
 	} */
-
-	@Override
-	public void onSaveInstanceState(final Bundle outState) {
-		final Bundle args = getArguments();
-		if (args != null) {
-			outState.putAll(args);
-		}
-		super.onSaveInstanceState(outState);
-	}
 
 	@Override
 	public void onViewStateRestored(Bundle savedInstanceState) {
@@ -225,7 +217,7 @@ public class PlayerFragment extends Fragment {
 					}
 				});
 			}
-			getFragmentManager().popBackStack();
+			popBackStack();
 		}
 
 		@Override

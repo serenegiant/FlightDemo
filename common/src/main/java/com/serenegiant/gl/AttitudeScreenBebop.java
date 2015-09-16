@@ -58,6 +58,11 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 			lookAtCamera.setPosition(0, 8, -9f);
 			mShowGround = false;
 			break;
+		case CTRL_CALIBRATION:
+			droneObj = new DroneObjectBebop(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(0, 8, -9f);
+			mShowGround = false;
+			break;
 		case CTRL_RANDOM:
 		default:
 			droneObj = new DroneObjectBebopRandom(0, 0, 0, 1.0f);

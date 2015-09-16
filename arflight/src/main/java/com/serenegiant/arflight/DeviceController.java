@@ -1108,7 +1108,8 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onCommonCalibrationStateMagnetoCalibrationStateChangedUpdate(
 			final byte xAxisCalibration, final byte yAxisCalibration, final byte zAxisCalibration, final byte calibrationFailed) {
-			// XXX
+			mStatus.updateCalibrationState(xAxisCalibration == 1, yAxisCalibration == 1, zAxisCalibration == 1, calibrationFailed == 1);
+			callOnCalibrationStateChanged(calibrationFailed == 1);
 		}
 	};
 
@@ -1123,7 +1124,8 @@ public abstract class DeviceController implements IDeviceController {
 		 */
 		@Override
 		public void onCommonCalibrationStateMagnetoCalibrationRequiredStateUpdate(final byte required) {
-			// XXX
+			mStatus.needCalibration(required != 0);
+			callOnCalibrationStateChanged(required != 0);
 		}
 	};
 
@@ -1403,6 +1405,24 @@ public abstract class DeviceController implements IDeviceController {
 				if (listener != null) {
 					try {
 						listener.onFlatTrimChanged();
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * キャリブレーション状態が変更された時のコールバックを呼び出す
+	 * @param need_calibration
+	 */
+	protected void callOnCalibrationStateChanged(final boolean need_calibration) {
+		synchronized (mListenerSync) {
+			for (final DeviceControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onCalibrationStateChanged(need_calibration);
 					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}

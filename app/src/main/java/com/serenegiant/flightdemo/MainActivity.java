@@ -1,6 +1,7 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
@@ -112,9 +113,10 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 	public void onBackPressed() {
 		//　ActionBarActivity/AppCompatActivityはバックキーの処理がおかしくて
 		// バックスタックの処理が正常にできない事に対するworkaround
-		if (getFragmentManager().getBackStackEntryCount() > 0) {
+		final FragmentManager fm = getFragmentManager();
+		if (fm.getBackStackEntryCount() > 0) {
 			Log.i(TAG, "#onBackPressed:popBackStack");
-			getFragmentManager().popBackStack();
+			fm.popBackStack();
 		} else {
 			super.onBackPressed();
 		}
