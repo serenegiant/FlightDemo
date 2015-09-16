@@ -53,6 +53,19 @@
 				android:layout_alignParentRight="true"
 				android:layout_alignBottom="@+id/delete_btn"/>
 
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/free_space_textview"
+			android:layout_alignParentTop="true"
+			android:layout_alignBottom="@+id/frees_pace_progress"
+			android:layout_alignRight="@+id/frees_pace_progress"
+			android:layout_alignEnd="@+id/frees_pace_progress"
+			android:layout_alignLeft="@+id/frees_pace_progress"
+			android:layout_alignStart="@+id/frees_pace_progress"
+			android:gravity="center"
+			android:textSize="@dimen/text_sz_list"/>
+
 	</RelativeLayout>
 
 
@@ -68,7 +81,7 @@
 		android:layout_height="wrap_content"
 		android:layout_below="@+id/list"
 		android:gravity="center"
-		android:text="@string/loading"
+		android:text="@string/media_empty"
 		android:textAlignment="center"
 		android:textSize="@dimen/text_sz_list"
 		android:layout_centerInParent="true"/>

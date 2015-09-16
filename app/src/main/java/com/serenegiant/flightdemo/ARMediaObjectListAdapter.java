@@ -103,4 +103,13 @@ public class ARMediaObjectListAdapter extends ArrayAdapter<ARMediaObject> {
         boolean isPlayable;
     }
 
+	public static String getSizeString(final float size) {
+		final String result;
+		if (size > 1024 * 1024 * 0.5f) {
+			result = String.format("%5.1fMB", size / 1024 / 1024);
+		} else {
+			result = String.format("%5.1fkB", size / 1024);
+		}
+		return result;
+	}
 }

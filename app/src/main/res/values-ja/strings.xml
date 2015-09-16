@@ -70,6 +70,8 @@
 
 	<string name="media_title_list">内蔵メモリ</string>
 	<string name="media_title_galley">メディア一覧</string>
+	<string name="media_empty">メディアファイルがありません</string>
+	<string name="media_free_space">%s 空き</string>
 
 	<!-- サイドメニューの項目 -->
 	<string name="script_circle_xy">circle_xy</string>

@@ -65,6 +65,8 @@
 
 	<string name="media_title_list">Media of internal storage</string>
 	<string name="media_title_galley">Media list</string>
+	<string name="media_empty">No media file</string>
+	<string name="media_free_space">%s free</string>
 
 	<!-- サイドメニューの項目 -->
 	<string name="script_circle_xy">circle_xy</string>

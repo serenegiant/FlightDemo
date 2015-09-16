@@ -343,8 +343,8 @@ public abstract class ControlBaseFragment extends Fragment {
 	/**
 	 * 機体のストレージ状態が変化した時のコールバック
 	 * @param mass_storage_id
-	 * @param size
-	 * @param used_size
+	 * @param size [MB]
+	 * @param used_size [MB]
 	 * @param plugged
 	 * @param full
 	 * @param internal

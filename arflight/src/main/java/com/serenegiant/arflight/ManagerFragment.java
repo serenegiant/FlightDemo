@@ -21,6 +21,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiver;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiverDelegate;
+import com.serenegiant.net.NetworkChangedReceiver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ManagerFragment extends Fragment {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "ManagerFragment";
 
 	public interface ManagerCallback {
@@ -138,6 +139,7 @@ public class ManagerFragment extends Fragment {
 	private final Handler mUIHandler = new Handler(Looper.getMainLooper());
 	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
 
+	private NetworkChangedReceiver mNetworkChangedReceiver;
 	private ARDiscoveryService ardiscoveryService;
 	private boolean ardiscoveryServiceBound = false;
 	private boolean mRegistered = false;
@@ -170,11 +172,16 @@ public class ManagerFragment extends Fragment {
 		super.onResume();
 		if (DEBUG) Log.i(TAG, "onResume:");
 		startDiscovery();
+		mNetworkChangedReceiver = NetworkChangedReceiver.registerNetworkChangedReceiver(getActivity(), mOnNetworkChangedListener);
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.i(TAG, "onPause:");
+		if (mNetworkChangedReceiver != null) {
+			NetworkChangedReceiver.unregisterNetworkChangedReceiver(getActivity(), mNetworkChangedReceiver);
+			mNetworkChangedReceiver = null;
+		}
 		stopDiscovery();
 		super.onPause();
 	}
@@ -535,6 +542,22 @@ public class ManagerFragment extends Fragment {
 		public void onDisconnect(final IDeviceController controller) {
 			if (DEBUG) Log.v(TAG, "onDisconnect:");
 			stopController(controller);
+		}
+	};
+
+	private final NetworkChangedReceiver.OnNetworkChangedListener mOnNetworkChangedListener
+		= new NetworkChangedReceiver.OnNetworkChangedListener() {
+		@Override
+		public void onNetworkChanged(final int isConnectedOrConnecting, final int isConnected, final int activeNetworkFlag) {
+			if (mRegistered && (ardiscoveryService != null)) {
+				if (NetworkChangedReceiver.isWifiNetworkReachable()) {
+					if (DEBUG) Log.v(TAG, "startWifiDiscovering");
+					ardiscoveryService.startWifiDiscovering();
+				} else {
+					if (DEBUG) Log.v(TAG, "stopWifiDiscovering");
+					ardiscoveryService.stopWifiDiscovering();
+				}
+			}
 		}
 	};
 }

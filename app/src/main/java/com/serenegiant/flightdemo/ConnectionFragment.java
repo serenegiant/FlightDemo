@@ -117,9 +117,10 @@ public class ConnectionFragment extends Fragment {
 				public void run() {
 					if (!visible) {
 						try {
-							final ArrayAdapter<String> adapter = (ArrayAdapter<String>) mDeviceListView.getAdapter();
+							final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
 							adapter.clear();
 						} catch (final Exception e) {
+							Log.w(TAG, e);
 						}
 					}
 					final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
@@ -272,20 +273,22 @@ public class ConnectionFragment extends Fragment {
 		final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
 		final String itemValue = adapter.getItemName(position);
 		final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
-		// 製品名を取得
-		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
-
 		Fragment fragment = null;
-		switch (product) {
-		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-			fragment = isPiloting ? PilotFragment.newInstance(service) : MediaFragment.newInstance(service);
-			break;
-		case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
-			//FIXME JumpingSumoは未実装
-			break;
-		case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-			fragment = isPiloting ? PilotFragment.newInstance(service) : MediaFragment.newInstance(service);
-			break;
+		if (service != null) {
+			// 製品名を取得
+			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
+
+			switch (product) {
+			case ARDISCOVERY_PRODUCT_ARDRONE:    // Bebop
+				fragment = isPiloting ? PilotFragment.newInstance(service) : MediaFragment.newInstance(service);
+				break;
+			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
+				//FIXME JumpingSumoは未実装
+				break;
+			case ARDISCOVERY_PRODUCT_MINIDRONE:    // RollingSpider
+				fragment = isPiloting ? PilotFragment.newInstance(service) : MediaFragment.newInstance(service);
+				break;
+			}
 		}
 		return fragment;
 	}

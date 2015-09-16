@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.armedia.ARMediaObject;
@@ -46,6 +47,7 @@ public class MediaFragment extends ControlBaseFragment
 	private FTPController mFTPController;
 	private ViewPager mViewPager;
 	private MediaPagerAdapter mPagerAdapter;
+	private String mFreeSpaceFmt;
 
 	public MediaFragment() {
 		// デフォルトコンストラクタが必要
@@ -71,6 +73,7 @@ public class MediaFragment extends ControlBaseFragment
 		final View rootView = inflater.inflate(R.layout.fragment_media, container, false);
 		mViewPager = (ViewPager)rootView.findViewById(R.id.pager);
 		mViewPager.setAdapter(mPagerAdapter);
+		mFreeSpaceFmt = getString(R.string.media_free_space);
 		return rootView;
 	}
 
@@ -108,10 +111,19 @@ public class MediaFragment extends ControlBaseFragment
 	}
 
 	@Override
-	protected void updateStorageState(int mass_storage_id, int size, int used_size, boolean plugged, boolean full, boolean internal) {
-		if (mFreeSpaceProgressbar != null) {
-			mFreeSpaceProgressbar.setProgress((int)(used_size / (float)size * 100f));
-		}
+	protected void updateStorageState(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (mFreeSpaceProgressbar != null) {
+					mFreeSpaceProgressbar.setProgress((int)(used_size / (float)size * 100f));
+				}
+				if (mFreeSpaceText != null) {
+					final String free_space = ARMediaObjectListAdapter.getSizeString(!full ? (size - used_size) * 1024 * 1024 : 0);
+					mFreeSpaceText.setText(String.format(mFreeSpaceFmt, free_space));
+				}
+			}
+		});
 	}
 
 	/** 切断された時に前のフラグメントに戻るまでの遅延時間[ミリ秒] */
@@ -129,8 +141,8 @@ public class MediaFragment extends ControlBaseFragment
 	private final Runnable mConnectCheckTask = new Runnable() {
 		@Override
 		public void run() {
-			final String mass_storage_id = mController.getMassStorageName();
-			if (TextUtils.isEmpty(mass_storage_id)) {
+			final String mass_storage_name = mController.getMassStorageName();
+			if (TextUtils.isEmpty(mass_storage_name)) {
 				post(this, 1000);	// まだ準備出来てないので1秒後に再実行
 			} else {
 				mFTPController.connect();
@@ -361,6 +373,7 @@ public class MediaFragment extends ControlBaseFragment
 	private Button mFetchBtn;
 	private CheckBox mDeleteAfterFetchCheckBox;
 	private ProgressBar mFreeSpaceProgressbar;
+	private TextView mFreeSpaceText;
 	/**
 	 * メディアファイル一覧画面の準備
 	 * @param rootView
@@ -382,6 +395,7 @@ public class MediaFragment extends ControlBaseFragment
 			mMediaListView.setAdapter(mARMediaObjectListAdapter);
 		}
 		mFreeSpaceProgressbar = (ProgressBar)rootView.findViewById(R.id.frees_pace_progress);
+		mFreeSpaceText = (TextView)rootView.findViewById(R.id.free_space_textview);
 		mDeleteBtn = (Button)rootView.findViewById(R.id.delete_btn);
 		mDeleteBtn.setOnClickListener(mOnClickListener);
 		mFetchBtn = (Button)rootView.findViewById(R.id.fetch_btn);
