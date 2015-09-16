@@ -1,20 +1,13 @@
 package com.serenegiant.flightdemo;
 
-import android.app.Activity;
 import android.app.Application;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
-import com.serenegiant.net.NetworkChangedReceiver;
-import com.serenegiant.widget.gl.FileIO;
-import com.serenegiant.widget.gl.IModelViewApplication;
-import com.serenegiant.widget.gl.MPAssetIO;
-import com.serenegiant.widget.gl.MPExtFileIO;
-import com.serenegiant.widget.gl.MPFileIO;
+import com.serenegiant.gl.FileIO;
+import com.serenegiant.gl.IModelViewApplication;
+import com.serenegiant.gl.MPAssetIO;
+import com.serenegiant.gl.MPExtFileIO;
+import com.serenegiant.gl.MPFileIO;
 
 public class FlightDemoApplication extends Application implements IModelViewApplication {
 	private FileIO mFileIO;

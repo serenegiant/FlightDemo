@@ -91,27 +91,11 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 22 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="libARDiscovery" level="project" />
-    <orderEntry type="library" exported="" name="libARNetwork" level="project" />
     <orderEntry type="library" exported="" name="design-22.2.1" level="project" />
-    <orderEntry type="library" exported="" name="libARCommands" level="project" />
-    <orderEntry type="library" exported="" name="libARNetworkAL" level="project" />
-    <orderEntry type="library" exported="" name="libARController" level="project" />
-    <orderEntry type="library" exported="" name="sanselan-0.97-incubator" level="project" />
-    <orderEntry type="library" exported="" name="libARUpdater" level="project" />
-    <orderEntry type="library" exported="" name="libjson" level="project" />
-    <orderEntry type="library" exported="" name="libARUtils" level="project" />
-    <orderEntry type="library" exported="" name="libARDataTransfer" level="project" />
-    <orderEntry type="library" exported="" name="support-annotations-22.2.1" level="project" />
-    <orderEntry type="library" exported="" name="libopenssl" level="project" />
-    <orderEntry type="library" exported="" name="jmdns" level="project" />
-    <orderEntry type="library" exported="" name="libARMavlink" level="project" />
     <orderEntry type="library" exported="" name="support-v4-22.2.1" level="project" />
-    <orderEntry type="library" exported="" name="libARSAL" level="project" />
-    <orderEntry type="library" exported="" name="libARMedia" level="project" />
-    <orderEntry type="library" exported="" name="libcurl" level="project" />
-    <orderEntry type="library" exported="" name="libARStream" level="project" />
+    <orderEntry type="library" exported="" name="support-annotations-22.2.1" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-22.2.1" level="project" />
-    <orderEntry type="module" module-name="core" exported="" />
+    <orderEntry type="module" module-name="arflight" exported="" />
+    <orderEntry type="module" module-name="common" exported="" />
   </component>
 </module>

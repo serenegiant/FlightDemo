@@ -336,7 +336,7 @@ public class ManagerFragment extends Fragment {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 				result = new DeviceControllerBebop(getActivity(), device);
 				break;
-			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+			case ARDISCOVERY_PRODUCT_JS:		// FIXME JumpingSumoは未対応
 				break;
 			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
 				result = new DeviceControllerMiniDrone(getActivity(), device);
@@ -418,7 +418,7 @@ public class ManagerFragment extends Fragment {
 	private void initServiceConnection() {
 		ardiscoveryServiceConnection = new ServiceConnection() {
 			@Override
-			public void onServiceConnected(ComponentName name, IBinder service) {
+			public void onServiceConnected(final ComponentName name, final IBinder service) {
 				discoveryServiceBinder = service;
 				ardiscoveryService = ((ARDiscoveryService.LocalBinder) service).getService();
 				ardiscoveryServiceBound = true;
@@ -427,7 +427,7 @@ public class ManagerFragment extends Fragment {
 			}
 
 			@Override
-			public void onServiceDisconnected(ComponentName name) {
+			public void onServiceDisconnected(final ComponentName name) {
 				ardiscoveryService = null;
 				ardiscoveryServiceBound = false;
 			}
@@ -474,7 +474,7 @@ public class ManagerFragment extends Fragment {
 
 	private void callOnServicesDevicesListUpdated() {
 		synchronized (mDeviceSync) {
-			for (ManagerCallback cb: mCallbacks) {
+			for (final ManagerCallback cb: mCallbacks) {
 				try {
 					cb.onServicesDevicesListUpdated(mDevices);
 				} catch (final Exception e) {

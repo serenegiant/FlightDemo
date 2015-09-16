@@ -19,7 +19,6 @@ import android.widget.ProgressBar;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.armedia.ARMediaObject;
-import com.serenegiant.arflight.ARMediaObjectListAdapter;
 import com.serenegiant.arflight.FTPController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.ConfirmDialog;

@@ -16,7 +16,7 @@ import android.widget.ListView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.widget.gl.IModelView;
+import com.serenegiant.gl.IModelView;
 
 import java.util.ArrayList;
 import java.util.List;

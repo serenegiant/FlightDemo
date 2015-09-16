@@ -45,10 +45,10 @@ import com.serenegiant.widget.SideMenuListView;
 import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
 import com.serenegiant.widget.TouchPilotView;
-import com.serenegiant.widget.gl.AttitudeScreenBase;
-import com.serenegiant.widget.gl.AttitudeScreenBebop;
-import com.serenegiant.widget.gl.IModelView;
-import com.serenegiant.widget.gl.IScreen;
+import com.serenegiant.gl.AttitudeScreenBase;
+import com.serenegiant.gl.AttitudeScreenBebop;
+import com.serenegiant.gl.IModelView;
+import com.serenegiant.gl.IScreen;
 
 import java.io.File;
 import java.io.IOException;
