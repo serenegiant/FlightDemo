@@ -3,7 +3,8 @@
 	android:orientation="vertical"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:padding="@dimen/half_padding">
+	android:padding="@dimen/half_padding"
+			  android:background="@drawable/back">
 
 	<android.support.v4.view.ViewPager
 		android:id="@+id/pager"

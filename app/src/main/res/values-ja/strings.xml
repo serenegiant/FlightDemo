@@ -41,6 +41,7 @@
 	<string name="config_title_gamepad">ゲームパッド設定</string>
 	<string name="config_title_keymap">ゲームパッドキー設定</string>
 	<string name="config_title_autopilot">自動操縦設定</string>
+	<string name="config_title_network">ネットワーク設定</string>
 	<string name="config_title_info">ドローン情報</string>
 	<string name="config_max_tilt">最大斜度: %5.1f[°]</string>
 	<string name="config_max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>
@@ -55,6 +56,7 @@
 	<string name="config_scale_z">Zスケール: %5.2f</string>
 	<string name="config_scale_r">Rスケール: %5.2f</string>
 	<string name="config_control_max">最大制御値: %5.1f</string>
+	<string name="config_control_max_gamepad">最大制御値: %5.2f</string>
 	<string name="config_gamepad_sensitivity">操作感度</string>
 
 	<string name="config_operation_normal">標準操作画面</string>
@@ -62,6 +64,11 @@
 	<string name="config_operation_mode1">モード1</string>
 	<string name="config_operation_mode2">モード2</string>
 	<string name="config_operation_touch">タッチ描画で操縦</string>
+
+	<string name="config_network_mode">WiFiモード</string>
+	<string name="config_network_freq">周波数帯</string>
+	<string name="config_network_outdoor">屋外</string>
+	<string name="config_network_indoor">屋内</string>
 
 	<string name="info_product_name">製品名:</string>
 	<string name="info_version_software">ソフトウエアバージョン:</string>

@@ -418,7 +418,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		}
 	};
 
-
 	/**
 	 * モーターバージョンを受信した時のコールバックリスナー
 	 */
@@ -583,8 +582,6 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		}
 	};
 
-	/** 室外モードか室内モードかを受信した時 */
-	private boolean mOutdoorMode;
 	/**
 	 * 室外モードか室内モードを受信した時
 	 */
@@ -596,7 +593,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3SpeedSettingsStateOutdoorChangedUpdate(byte outdoor) {
-			mOutdoorMode = (outdoor != 0);
+			mSettings.outdoorMode(outdoor != 0);
 		}
 	};
 
@@ -981,15 +978,12 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 	};
 
 	/**
-	 * オートホワイトバランス設定<br>
+	 * オートホワイトバランス設定を受信した時<br>
 	 * 0: 自動 Auto guess of best white balance params<br>
 	 * 1: 電球色 Tungsten white balance<br>
 	 * 2: 晴天 Daylight white balance<br>
 	 * 3: 曇り空 Cloudy white balance<br>
 	 * 4: フラシュ撮影用 White balance for a flash<br>
-	 */
-	/**
-	 * オートホワイトバランス設定を受信した時
 	 */
 	private final ARCommandARDrone3PictureSettingsStateAutoWhiteBalanceChangedListener
 		mPictureSettingsStateAutoWhiteBalanceChangedListener

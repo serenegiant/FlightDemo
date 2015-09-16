@@ -41,6 +41,17 @@ public class DroneSettings {
 		return mHasGuard;
 	}
 
+	/** 室外モードか室内モードかを受信した時 */
+	private boolean mOutdoorMode;
+
+	public void outdoorMode(final boolean outdoor_mode) {
+		mOutdoorMode = outdoor_mode;
+	}
+
+	public boolean outdoorMode() {
+		return mOutdoorMode;
+	}
+
 	// カメラ設定
 	protected final AttributeCamera mCamera = new AttributeCamera();
 	public void setCameraSettings(final float fov, final float panMax, final float panMin, final float tiltMax, final float tiltMin) {
@@ -128,6 +139,5 @@ public class DroneSettings {
 	public AttributeFloat maxRotationSpeed() {
 		return mMaxRotationSpeed;
 	}
-
 
 }

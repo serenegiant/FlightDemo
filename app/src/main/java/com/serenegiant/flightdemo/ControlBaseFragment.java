@@ -10,7 +10,9 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.IDeviceController;
@@ -113,6 +115,10 @@ public abstract class ControlBaseFragment extends Fragment {
 
 	protected ARDiscoveryDeviceService getDevice() {
 		return mDevice;
+	}
+
+	protected ARDISCOVERY_PRODUCT_ENUM getProduct() {
+		return mDevice != null ? ARDiscoveryService.getProductFromProductID(mDevice.getProductID()) : ARDISCOVERY_PRODUCT_ENUM.eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE;
 	}
 
 	protected boolean isConnected() {

@@ -15,6 +15,7 @@ import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.AttributeFloat;
 
@@ -44,6 +45,7 @@ public class ConfigFragment extends ControlFragment {
 		return fragment;
 	}
 
+	private ARDISCOVERY_PRODUCT_ENUM mProduct;
 	private SharedPreferences mPref;
 	private ViewPager mViewPager;
 	private ConfigPagerAdapter mPagerAdapter;
@@ -100,7 +102,7 @@ public class ConfigFragment extends ControlFragment {
 		mGamepadScaleYFormat = getString(R.string.config_scale_y);
 		mGamepadScaleZFormat = getString(R.string.config_scale_z);
 		mGamepadScaleRFormat = getString(R.string.config_scale_r);
-		mGamepadSensitivityFormat = getString(R.string.config_control_max);
+		mGamepadSensitivityFormat = getString(R.string.config_control_max_gamepad);
 
 		mAutopilotScaleXFormat = getString(R.string.config_scale_x);
 		mAutopilotScaleYFormat = getString(R.string.config_scale_y);
@@ -121,6 +123,7 @@ public class ConfigFragment extends ControlFragment {
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
+		mProduct = getProduct();
 		final View rootView = inflater.inflate(R.layout.fragment_config, container, false);
 		mPagerAdapter = new ConfigPagerAdapter(inflater);
 		mViewPager = (ViewPager)rootView.findViewById(R.id.pager);
@@ -155,8 +158,8 @@ public class ConfigFragment extends ControlFragment {
 	 * 飛行設定画面の準備
 	 * @param root
 	 */
-	private void initConfigMinidrone1(final View root) {
-		if (DEBUG) Log.v(TAG, "initConfigMinidrone1:");
+	private void initConfigFlight(final View root) {
+		if (DEBUG) Log.v(TAG, "initConfigFlight:");
 		// 最大高度設定
 		mMaxAltitudeLabel = (TextView)root.findViewById(R.id.max_altitude_textview);
 		SeekBar seekbar = (SeekBar)root.findViewById(R.id.max_altitude_seekbar);
@@ -213,11 +216,52 @@ public class ConfigFragment extends ControlFragment {
 	}
 
 	/**
-	 * ドローン設定画面の準備
+	 * ミニドローン設定画面の準備
 	 * @param root
 	 */
-	private void initConfigMinidrone2(final View root) {
-		if (DEBUG) Log.v(TAG, "initConfigMinidrone2:");
+	private void initConfigMinidrone1(final View root) {
+		if (DEBUG) Log.v(TAG, "initConfigMinidrone1:");
+		// 自動カットアウトモード
+		CheckBox checkbox = (CheckBox)root.findViewById(R.id.cutout_checkbox);
+		if (checkbox != null) {
+			try {
+				checkbox.setOnCheckedChangeListener(null);
+				checkbox.setChecked(mController.isCutoffMode());
+				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
+		}
+		// 車輪
+		checkbox = (CheckBox)root.findViewById(R.id.wheel_checkbox);
+		if (checkbox != null) {
+			try {
+				checkbox.setOnCheckedChangeListener(null);
+				checkbox.setChecked(mController.hasGuard());
+				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
+		}
+		// 自動離陸モード
+		checkbox = (CheckBox)root.findViewById(R.id.auto_takeoff_checkbox);
+		if (checkbox != null) {
+			try {
+				checkbox.setOnCheckedChangeListener(null);
+				checkbox.setChecked(mController.isAutoTakeOffModeEnabled());
+				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
+		}
+	}
+
+	/**
+	 * ARドローン設定画面の準備
+	 * @param root
+	 */
+	private void initConfigARdrone1(final View root) {
+		if (DEBUG) Log.v(TAG, "initConfigMinidrone1:");
 		// 自動カットアウトモード
 		CheckBox checkbox = (CheckBox)root.findViewById(R.id.cutout_checkbox);
 		if (checkbox != null) {
@@ -436,6 +480,14 @@ public class ConfigFragment extends ControlFragment {
 		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateAutopilotScaleR(mAutopilotScaleR);
+	}
+
+	/**
+	 * ネットワーク設定画面の準備 FIXME 未実装
+	 * @param root
+	 */
+	private void initConfigNetwork(final View root) {
+		// FIXME 未実装
 	}
 
 	/**
@@ -855,45 +907,64 @@ public class ConfigFragment extends ControlFragment {
 		}
 	}
 
-	private static PagerAdapterConfig[] PAGER_CONFIG;
+	private static PagerAdapterConfig[] PAGER_CONFIG_MINIDRONE;
+	private static PagerAdapterConfig[] PAGER_CONFIG_BEBOP;
 	static {
-		PAGER_CONFIG = new PagerAdapterConfig[6];
-		PAGER_CONFIG[0] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.config_minidrone_1, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE = new PagerAdapterConfig[6];
+		PAGER_CONFIG_MINIDRONE[0] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.config_flight, new AdapterItemHandler() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.initConfigFlight(view);
+			}
+		});
+		PAGER_CONFIG_MINIDRONE[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_minidrone, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigMinidrone1(view);
 			}
 		});
-		PAGER_CONFIG[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_minidrone_2, new AdapterItemHandler() {
-			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigMinidrone2(view);
-			}
-		});
-		PAGER_CONFIG[2] = new PagerAdapterConfig(R.string.config_title_operation, R.layout.config_operation, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[2] = new PagerAdapterConfig(R.string.config_title_operation, R.layout.config_operation, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigOperation(view);
 			}
 		});
-		PAGER_CONFIG[3] = new PagerAdapterConfig(R.string.config_title_gamepad, R.layout.config_gamepad, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[3] = new PagerAdapterConfig(R.string.config_title_gamepad, R.layout.config_gamepad, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigGamepad(view);
 			}
 		});
-		PAGER_CONFIG[4] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.config_autopilot, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[4] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.config_autopilot, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigAutopilot(view);
 			}
 		});
-		PAGER_CONFIG[5] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[5] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigInfo(view);
 			}
 		});
+		PAGER_CONFIG_BEBOP = new PagerAdapterConfig[7];
+		PAGER_CONFIG_BEBOP[0] = PAGER_CONFIG_MINIDRONE[0];
+		PAGER_CONFIG_BEBOP[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_bebop, new AdapterItemHandler() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.initConfigARdrone1(view);
+			}
+		});
+		PAGER_CONFIG_BEBOP[2] = PAGER_CONFIG_MINIDRONE[2];
+		PAGER_CONFIG_BEBOP[3] = PAGER_CONFIG_MINIDRONE[3];
+		PAGER_CONFIG_BEBOP[4] = PAGER_CONFIG_MINIDRONE[4];
+		PAGER_CONFIG_BEBOP[5] = new PagerAdapterConfig(R.string.config_title_network, R.layout.config_network, new AdapterItemHandler() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.initConfigNetwork(view);
+			}
+		});
+		PAGER_CONFIG_BEBOP[6] = PAGER_CONFIG_MINIDRONE[5];
 	};
 
 	/**
@@ -901,17 +972,29 @@ public class ConfigFragment extends ControlFragment {
 	 */
 	private class ConfigPagerAdapter extends PagerAdapter {
 		private final LayoutInflater mInflater;
+		private final PagerAdapterConfig[] mConfigs;
 		public ConfigPagerAdapter(final LayoutInflater inflater) {
 			super();
 			mInflater = inflater;
+			switch(mProduct) {
+			case ARDISCOVERY_PRODUCT_ARDRONE:
+				mConfigs = PAGER_CONFIG_BEBOP;
+				break;
+			case ARDISCOVERY_PRODUCT_MINIDRONE:
+				mConfigs = PAGER_CONFIG_MINIDRONE;
+				break;
+			default:
+				mConfigs = null;
+			}
 		}
 
 		@Override
 		public synchronized Object instantiateItem(final ViewGroup container, final int position) {
 			if (DEBUG) Log.v(TAG, "instantiateItem:position=" + position);
 			View view = null;
-			if ((position >= 0) && (position < PAGER_CONFIG.length)) {
-				final PagerAdapterConfig config = PAGER_CONFIG[position];
+			final int n = mConfigs != null ? mConfigs.length : 0;
+			if ((position >= 0) && (position < n)) {
+				final PagerAdapterConfig config = mConfigs[position];
 				view = mInflater.inflate(config.layout_id, container, false);
 				config.handler.initialize(ConfigFragment.this, view);
 			}
@@ -931,7 +1014,7 @@ public class ConfigFragment extends ControlFragment {
 
 		@Override
 		public int getCount() {
-			return PAGER_CONFIG.length;
+			return mConfigs != null ? mConfigs.length : 0;
 		}
 
 		@Override
@@ -943,8 +1026,9 @@ public class ConfigFragment extends ControlFragment {
 		public CharSequence getPageTitle(final int position) {
 			if (DEBUG) Log.v(TAG, "getPageTitle:position=" + position);
 			CharSequence result = null;
-			if ((position >= 0) && (position < PAGER_CONFIG.length)) {
-				result = getString(PAGER_CONFIG[position].title_id);
+			final int n = mConfigs != null ? mConfigs.length : 0;
+			if ((position >= 0) && (position < n)) {
+				result = getString(mConfigs[position].title_id);
 			}
 			return result;
 		}

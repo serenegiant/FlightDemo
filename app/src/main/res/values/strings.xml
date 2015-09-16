@@ -36,6 +36,7 @@
 	<string name="config_title_gamepad">Gamepad settings</string>
 	<string name="config_title_keymap">Keymap of gamepad</string>
 	<string name="config_title_autopilot">Autopilot settings</string>
+	<string name="config_title_network">Network settings</string>
 	<string name="config_title_info">Info</string>
 	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>
 	<string name="config_max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
@@ -50,6 +51,7 @@
 	<string name="config_scale_z">Z scale: %5.2f</string>
 	<string name="config_scale_r">R scale: %5.2f</string>
 	<string name="config_control_max">Max control value: %5.1f</string>
+	<string name="config_control_max_gamepad">Max control value: %5.2f</string>
 	<string name="config_gamepad_sensitivity">Sensitivity</string>
 
 	<string name="config_operation_normal">Normal operation screen</string>
@@ -57,6 +59,11 @@
 	<string name="config_operation_mode1">Mode1</string>
 	<string name="config_operation_mode2">Mode2</string>
 	<string name="config_operation_touch">Touch drawing control</string>
+
+	<string name="config_network_mode">WiFi mode</string>
+	<string name="config_network_freq">WiFi band</string>
+	<string name="config_network_outdoor">outdoor</string>
+	<string name="config_network_indoor">indoor</string>
 
 	<string name="info_product_name">Product name:</string>
 	<string name="info_version_software">Software version:</string>

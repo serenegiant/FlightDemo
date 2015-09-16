@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:layout_width="wrap_content"
+			  android:layout_height="wrap_content"
+			  android:orientation="vertical"
+			  android:gravity="center">
+
+	<CheckBox
+		android:id="@+id/wheel_checkbox"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginBottom="@dimen/half_padding"
+		android:text="@string/config_has_hull"
+		android:textSize="@dimen/text_sz_list"
+		android:gravity="left"/>
+
+</LinearLayout>
