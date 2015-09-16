@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
@@ -16,6 +17,7 @@ import android.widget.ListView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
+import com.serenegiant.arflight.ARDeviceServiceAdapter;
 import com.serenegiant.gl.IModelView;
 
 import java.util.ArrayList;
@@ -87,9 +89,7 @@ public class ConnectionFragment extends Fragment {
 	 */
 	private void initView(final View rootView) {
 
-		final List<String> deviceNames = new ArrayList<String>();
-		final ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
-			R.layout.list_item_1line, R.id.text, deviceNames);
+		final ARDeviceServiceAdapter adapter = new ARDeviceServiceAdapter(getActivity(), R.layout.list_item_deviceservice);
 
 		mDeviceListView = (ListView)rootView.findViewById(R.id.list);
 		final View empty_view = rootView.findViewById(R.id.empty_view);
@@ -135,20 +135,20 @@ public class ConnectionFragment extends Fragment {
 	private ManagerFragment.ManagerCallback mManagerCallback = new ManagerFragment.ManagerCallback() {
 		@Override
 		public void onServicesDevicesListUpdated(List<ARDiscoveryDeviceService> devices) {
-			final ArrayAdapter<String> adapter = (ArrayAdapter<String>) mDeviceListView.getAdapter();
+			final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
 			adapter.clear();
-			for (ARDiscoveryDeviceService service : devices) {
+			for (final ARDiscoveryDeviceService service : devices) {
 				Log.d(TAG, "service :  " + service);
 				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
 				switch (product) {
 				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-					adapter.add(service.getName());
+					adapter.add(service);
 					break;
 				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
 					// FIXME JumpingSumoは未実装
 					break;
 				case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-					adapter.add(service.getName());
+					adapter.add(service);
 					break;
 				}
 /*				// ブルートゥース接続の時だけ追加する
@@ -257,7 +257,8 @@ public class ConnectionFragment extends Fragment {
 
 	private Fragment getFragment(final int position, final boolean isPiloting) {
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-		final String itemValue = ((ArrayAdapter<String>)mDeviceListView.getAdapter()).getItem(position);
+		final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+		final String itemValue = adapter.getItemName(position);
 		final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
 		// 製品名を取得
 		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());

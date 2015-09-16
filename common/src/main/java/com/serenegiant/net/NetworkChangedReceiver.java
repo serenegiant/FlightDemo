@@ -12,6 +12,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.serenegiant.utils.BuildCheck;
+import com.serenegiant.utils.ComponentUtils;
 
 public class NetworkChangedReceiver extends BroadcastReceiver {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
@@ -108,6 +109,14 @@ public class NetworkChangedReceiver extends BroadcastReceiver {
 			final int isConnectedOrConnecting, final int isConnected, final int activeNetworkFlag);
 	}
 
+	public static void enable(final Context context) {
+		ComponentUtils.enable(context, NetworkChangedReceiver.class);
+	}
+
+	public static void disable(final Context context) {
+		ComponentUtils.disable(context, NetworkChangedReceiver.class);
+	}
+
 	/**
 	 * LocalBroadcastManagerにローカルブロードキャスト受信用のレシーバーを登録する
 	 * @param context
@@ -166,8 +175,8 @@ public class NetworkChangedReceiver extends BroadcastReceiver {
 	private static int sIsConnected = 0;
 	private static int sActiveNetworkFlag = 0;
 
-	private static final String ACTION_GLOBAL_CONNECTIVITY_CHANGE = "android.net.conn.CONNECTIVITY_CHANGE";
-	private static final String ACTION_LOCAL_CONNECTIVITY_CHANGE = "com.serenegiant.net.CONNECTIVITY_CHANGE";
+	public static final String ACTION_GLOBAL_CONNECTIVITY_CHANGE = "android.net.conn.CONNECTIVITY_CHANGE";
+	public static final String ACTION_LOCAL_CONNECTIVITY_CHANGE = "com.serenegiant.net.CONNECTIVITY_CHANGE";
 
 	@Override
 	public void onReceive(final Context context, final Intent intent) {

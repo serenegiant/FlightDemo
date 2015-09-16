@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.serenegiant.arflight.GamePad;
+import com.serenegiant.net.NetworkChangedReceiver;
 import com.serenegiant.widget.ISideMenuView;
 import com.serenegiant.widget.SideMenuFrameLayout;
 
@@ -88,6 +89,8 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 		setContentView(R.layout.activity_main);
 		final Toolbar tool_bar = (Toolbar) findViewById(R.id.sample_toolbar);
 		setSupportActionBar(tool_bar);
+
+		NetworkChangedReceiver.enable(getApplicationContext());
 		final ManagerFragment manager = ManagerFragment.getInstance(this);
 		if (savedInstanceState == null) {
 			final Fragment fragment = new ConnectionFragment();
@@ -100,6 +103,7 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 	@Override
 	protected void onDestroy() {
 		hideProgress();
+		NetworkChangedReceiver.disable(getApplicationContext());
 		super.onDestroy();
 	}
 

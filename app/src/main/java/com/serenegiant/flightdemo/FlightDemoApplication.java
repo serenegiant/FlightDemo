@@ -17,7 +17,6 @@ public class FlightDemoApplication extends Application implements IModelViewAppl
 	public FlightDemoApplication() {
 	}
 
-
 	@Override
 	public FileIO getFileIO() {
 		if (mFileIO == null)

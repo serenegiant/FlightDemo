@@ -46,23 +46,16 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:gravity="left"
-			android:textSize="@dimen/text_sz_side_menu_item"
+			android:textSize="@dimen/text_sz_list"
             android:text="title"/>
 
         <TextView
-            android:id="@+id/datetime"
+            android:id="@id/state"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="left"
-            android:textSize="@dimen/text_sz_side_menu_item"
-            android:text="datetime"/>
-        <TextView
-            android:id="@+id/size"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:textSize="@dimen/text_sz_side_menu_item"
-            android:text="datetime"/>
+            android:textSize="@dimen/text_sz_list"
+            android:text=""/>
     </LinearLayout>
 
 </com.serenegiant.widget.CheckableRelativeLayout>
