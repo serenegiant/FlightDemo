@@ -59,12 +59,6 @@ public class PlayerFragment extends BaseFragment {
 	} */
 
 	@Override
-	public void onViewStateRestored(Bundle savedInstanceState) {
-		super.onViewStateRestored(savedInstanceState);
-		loadArguments(savedInstanceState);
-	}
-
-	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		loadArguments(savedInstanceState);
 
@@ -93,7 +87,8 @@ public class PlayerFragment extends BaseFragment {
 		super.onPause();
 	}
 
-	private void loadArguments(final Bundle savedInstanceState) {
+	@Override
+	protected void loadArguments(final Bundle savedInstanceState) {
 		Bundle args = savedInstanceState;
 		if (args == null) {
 			args = getArguments();

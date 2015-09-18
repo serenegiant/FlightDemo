@@ -297,6 +297,11 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	@Override
+	public boolean needCalibration() {
+		return mStatus.needCalibration();
+	}
+
 	/**
 	 * DeviceControllerがstartした時の処理
 	 */
@@ -1108,8 +1113,10 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onCommonCalibrationStateMagnetoCalibrationStateChangedUpdate(
 			final byte xAxisCalibration, final byte yAxisCalibration, final byte zAxisCalibration, final byte calibrationFailed) {
+
+			if (DEBUG) Log.v(TAG, String.format("CalibrationStateChangedUpdate:(%d/%d/%d)%d", xAxisCalibration, yAxisCalibration, zAxisCalibration, calibrationFailed));
 			mStatus.updateCalibrationState(xAxisCalibration == 1, yAxisCalibration == 1, zAxisCalibration == 1, calibrationFailed == 1);
-			callOnCalibrationStateChanged(calibrationFailed == 1);
+			callOnCalibrationRequiredChanged(calibrationFailed == 1);
 		}
 	};
 
@@ -1124,8 +1131,10 @@ public abstract class DeviceController implements IDeviceController {
 		 */
 		@Override
 		public void onCommonCalibrationStateMagnetoCalibrationRequiredStateUpdate(final byte required) {
+			if (DEBUG) Log.v(TAG, "CalibrationRequiredStateUpdate:" + required);
+
 			mStatus.needCalibration(required != 0);
-			callOnCalibrationStateChanged(required != 0);
+			callOnCalibrationRequiredChanged(required != 0);
 		}
 	};
 
@@ -1136,12 +1145,14 @@ public abstract class DeviceController implements IDeviceController {
 		mARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener
 			= new ARCommandCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedListener() {
 		/**
-		 * @param axis The axis to calibrate
+		 * @param axis The axis to calibrate, 0:x, 1:y, 2:z, 3:none
 		 */
 		@Override
 		public void onCommonCalibrationStateMagnetoCalibrationAxisToCalibrateChangedUpdate(
 			final ARCOMMANDS_COMMON_CALIBRATIONSTATE_MAGNETOCALIBRATIONAXISTOCALIBRATECHANGED_AXIS_ENUM axis) {
-			// XXX
+
+			if (DEBUG) Log.v(TAG, "CalibrateAxisChanged:" + axis.getValue());
+			callOnCalibrationAxisChanged(axis.getValue());
 		}
 	};
 
@@ -1156,7 +1167,8 @@ public abstract class DeviceController implements IDeviceController {
 		 */
 		@Override
 		public void onCommonCalibrationStateMagnetoCalibrationStartedChangedUpdate(final byte started) {
-			// XXX
+
+			callOnCalibrationStartStop(started == 1);
 		}
 	};
 
@@ -1417,12 +1429,48 @@ public abstract class DeviceController implements IDeviceController {
 	 * キャリブレーション状態が変更された時のコールバックを呼び出す
 	 * @param need_calibration
 	 */
-	protected void callOnCalibrationStateChanged(final boolean need_calibration) {
+	protected void callOnCalibrationRequiredChanged(final boolean need_calibration) {
 		synchronized (mListenerSync) {
 			for (final DeviceControllerListener listener: mListeners) {
 				if (listener != null) {
 					try {
-						listener.onCalibrationStateChanged(need_calibration);
+						listener.onCalibrationRequiredChanged(need_calibration);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * キャリブレーションを開始/終了した時のコールバックを呼び出す
+	 * @param is_start
+	 */
+	protected void callOnCalibrationStartStop(final boolean is_start) {
+		synchronized (mListenerSync) {
+			for (final DeviceControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onCalibrationStartStop(is_start);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * キャリブレーション中の軸が変更された時のコールバックを呼び出す
+	 * @param axis 0:x, 1:y, z:2, 3:none
+	 */
+	protected void callOnCalibrationAxisChanged(final int axis) {
+		synchronized (mListenerSync) {
+			for (final DeviceControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onCalibrationAxisChanged(axis);
 					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
@@ -1698,6 +1746,29 @@ public abstract class DeviceController implements IDeviceController {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonNetworkDisconnect();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send flip command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * キャリブレーション開始/キャンセル要求
+	 * @param start true:開始, false:キャンセル
+	 * @return
+	 */
+	public boolean sendCalibration(final boolean start) {
+
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCalibrationMagnetoCalibration(start ? (byte)1 : (byte)0);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);

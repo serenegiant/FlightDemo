@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 
 import com.serenegiant.media.MediaStoreImageAdapter;
 
-public class PhotoFragment extends Fragment {
+public class PhotoFragment extends BaseFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = PhotoFragment.class.getSimpleName();
 
@@ -41,21 +41,6 @@ public class PhotoFragment extends Fragment {
 	} */
 
 	@Override
-	public void onSaveInstanceState(final Bundle outState) {
-		final Bundle args = getArguments();
-		if (args != null) {
-			outState.putAll(args);
-		}
-		super.onSaveInstanceState(outState);
-	}
-
-	@Override
-	public void onViewStateRestored(Bundle savedInstanceState) {
-		super.onViewStateRestored(savedInstanceState);
-		loadArguments(savedInstanceState);
-	}
-
-	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		loadArguments(savedInstanceState);
 
@@ -64,19 +49,20 @@ public class PhotoFragment extends Fragment {
 		return rootView;
 	}
 
-	@Override
+/*	@Override
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
-	}
+	} */
 
-	@Override
+/*	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		super.onPause();
-	}
+	} */
 
-	private void loadArguments(final Bundle savedInstanceState) {
+	@Override
+	protected void loadArguments(final Bundle savedInstanceState) {
 		Bundle args = savedInstanceState;
 		if (args == null) {
 			args = getArguments();

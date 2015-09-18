@@ -92,6 +92,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 //		if (DEBUG) Log.v(TAG_SCREEN, "update");
 		// 機体
 		droneObj.update(deltaTime);
+		// XXX 他のオブジェクトの描画都合でmodel側の回転ベクトル未使用。位置座標のみセット
 		droneModel.setPosition(droneObj.position);
 //		droneModel.rotate(droneObj.angle);
 		// 左前ローター
@@ -255,6 +256,24 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			// yaw
 			angle.y = yaw;
 			// FIXME 高度は未実装
+		}
+	}
+
+	public void startEngine() {
+		droneObj.startEngine();
+	}
+
+	public void stopEngine() {
+		droneObj.stopEngine();
+	}
+
+	public void setRotorSpeed(final float speed) {
+		droneObj.setRotorSpeed(speed);
+	}
+
+	public void setAxis(final int axis) {
+		if (droneObj instanceof ICalibrationModelObject) {
+			((ICalibrationModelObject) droneObj).setAxis(axis);
 		}
 	}
 

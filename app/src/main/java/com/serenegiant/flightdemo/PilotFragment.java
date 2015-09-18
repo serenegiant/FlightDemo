@@ -759,15 +759,20 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			post(new Runnable() {
 				@Override
 				public void run() {
+					if (mVideoStream == null) return;
 					final IScreen screen = mModelView.getCurrentScreen();
 					if (DEBUG) Log.v(TAG, "startVideoStreaming:screen=" + screen);
 					if (screen instanceof AttitudeScreenBebop) {
-						final SurfaceTexture surface = ((AttitudeScreenBebop) screen).getVideoTexture();
-						if ((surface != null) && (mSurfaceId == 0)) {
-							final Surface _surface = new Surface(surface);
-							mSurfaceId = _surface.hashCode();
-							mVideoStream.addSurface(mSurfaceId, _surface);
-							((AttitudeScreenBebop) screen).setEnableVideo(true);
+						try {
+							final SurfaceTexture surface = ((AttitudeScreenBebop) screen).getVideoTexture();
+							if ((surface != null) && (mSurfaceId == 0)) {
+								final Surface _surface = new Surface(surface);
+								mSurfaceId = _surface.hashCode();
+								mVideoStream.addSurface(mSurfaceId, _surface);
+								((AttitudeScreenBebop) screen).setEnableVideo(true);
+							}
+						} catch (final Exception e) {
+							Log.w(TAG, e);
 						}
 					} else {
 						post(this, 300);
@@ -819,7 +824,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
 		super.onConnect(controller);
-		// FIXME ここでキャリブレーションが必要かどうかをチェックして必要ならCalibrationFragmentへ遷移させる
 		mVideoRecording = false;
 		runOnUiThread(new Runnable() {
 			@Override
@@ -831,6 +835,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		startGamePadTask();
 		post(mUpdateStatusTask, 100);
 		updateButtons();
+		// FIXME ここでキャリブレーションが必要かどうかをチェックして必要ならCalibrationFragmentへ遷移させる
+		if (true || controller.needCalibration()) {
+			replace(CalibrationFragment.newInstance(getDevice()));
+		}
 	}
 
 	/** 切断された時に前のフラグメントに戻るまでの遅延時間[ミリ秒] */

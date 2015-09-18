@@ -70,6 +70,8 @@
 	<string name="info_version_hardware">Hardware version:</string>
 	<string name="info_version_app">App version:</string>
 
+	<string name="calibration_under_construction">Sorry this feature is under construction.\nPlease calibrate your drone with genuine app.</string>
+
 	<string name="media_title_list">Media of internal storage</string>
 	<string name="media_title_galley">Media list</string>
 	<string name="media_empty">No media file</string>

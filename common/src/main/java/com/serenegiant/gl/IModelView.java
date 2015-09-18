@@ -60,4 +60,9 @@ public interface IModelView {
 	 * @param gaz 高さ移動量 [-100,100] 単位未定
 	 */
 	public void setAttitude(final float roll, final float pitch, final float yaw, final float gaz);
+
+	public void startEngine();
+	public void stopEngine();
+	public void setRotorSpeed(final float speed);
+	public void setAxis(final int axis);
 }

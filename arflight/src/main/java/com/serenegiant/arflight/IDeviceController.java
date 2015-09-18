@@ -114,6 +114,7 @@ public interface IDeviceController {
 	 */
 	public int getState();
 	public int getAlarm();
+	public boolean needCalibration();
 	public int getStillCaptureState();
 	public int getVideoRecordingState();
 
@@ -180,6 +181,12 @@ public interface IDeviceController {
 	 */
 	public boolean sendFlatTrim();
 
+	/**
+	 * キャリブレーションを実行(磁気センサー調整)
+	 * @param start true: 開始要求, false: 停止要求
+	 * @return
+	 */
+	public boolean sendCalibration(final boolean start);
 
 	/**
 	 * 最大高度を設定

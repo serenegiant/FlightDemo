@@ -1,12 +1,8 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -147,7 +143,9 @@ public abstract class ControlBaseFragment extends BaseFragment {
 					@Override
 					public void run() {
 						final boolean failed = mController.start();
-						activity.hideProgress();
+						if (activity != null) {
+							activity.hideProgress();
+						}
 
 //						mIsConnected = !failed;
 						if (failed) {
@@ -234,10 +232,29 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	}
 
 	/**
-	 * キャリブレーション状態が変化した時のコールバック
+	 * キャリブレーションが必要かどうかが変化した時のコールバック
 	 * @param need_calibration
 	 */
-	protected void updateCalibrationState(final boolean need_calibration) {
+	protected void updateCalibrationRequired(final boolean need_calibration) {
+	}
+
+	/**
+	 * キャリブレーションを開始した
+	 */
+	protected void onStartCalibration() {
+	}
+
+	/**
+	 * キャリブレーションが終了した
+	 */
+	protected void onStopCalibration() {
+	}
+
+	/**
+	 * キャリブレーション中の軸が変更された
+	 * @param axis
+	 */
+	protected void updateCalibrationAxisChanged(final int axis) {
 	}
 
 	/**
@@ -321,7 +338,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 
 		@Override
 		public void onFlatTrimChanged() {
-			postUIThread(new Runnable() {
+			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
 					final Activity activity = getActivity();
@@ -329,12 +346,26 @@ public abstract class ControlBaseFragment extends BaseFragment {
 						Toast.makeText(activity, R.string.action_flat_trim_finished, Toast.LENGTH_SHORT).show();
 					}
 				}
-			}, 0);
+			});
 		}
 
 		@Override
-		public void onCalibrationStateChanged(boolean need_calibration) {
-			updateCalibrationState(need_calibration);
+		public void onCalibrationRequiredChanged(final boolean need_calibration) {
+			updateCalibrationRequired(need_calibration);
+		}
+
+		@Override
+		public void onCalibrationStartStop(final boolean isStart) {
+			if (isStart) {
+				onStartCalibration();
+			} else {
+				onStopCalibration();
+			}
+		}
+
+		@Override
+		public void onCalibrationAxisChanged(final int axis) {
+			updateCalibrationAxisChanged(axis);
 		}
 
 		@Override

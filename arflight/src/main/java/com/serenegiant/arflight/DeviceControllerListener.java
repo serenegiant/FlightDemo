@@ -28,10 +28,21 @@ public interface DeviceControllerListener extends DeviceConnectionListener {
 	public void onFlatTrimChanged();
 
 	/**
-	 * キャリブレーション状態が変更された
+	 * キャリブレーションが必要かどうかが変更された
 	 * @param need_calibration
 	 */
-	public void onCalibrationStateChanged(final boolean need_calibration);
+	public void onCalibrationRequiredChanged(final boolean need_calibration);
+
+	/**
+	 * キャリブレーションを開始/終了した
+	 * @param isStart
+	 */
+	public void onCalibrationStartStop(final boolean isStart);
+	/**
+	 * キャリブレーション中の軸が変更された
+	 * @param axis 0:x, 1:y, z:2, 3:none
+	 */
+	public void onCalibrationAxisChanged(final int axis);
 
 	/**
 	 * 静止画撮影ステータスが変更された

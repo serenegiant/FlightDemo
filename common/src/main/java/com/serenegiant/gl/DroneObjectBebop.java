@@ -20,7 +20,6 @@ public class DroneObjectBebop extends DroneObject {
 		mRearRightRotorObj.setPosition(OFFSET.x + x + -2.27451f, OFFSET.y + y, OFFSET.z + z - 1.58124f);
 	}
 
-
 	@Override
 	public void update(final float deltaTime) {
 		mFrontLeftRotorObj.update(deltaTime);

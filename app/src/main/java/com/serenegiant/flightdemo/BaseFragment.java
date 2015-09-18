@@ -129,7 +129,7 @@ public class BaseFragment extends Fragment {
 	 * @param task UIスレッド上で行う処理
 	 * @param delay_msec 0以下ならrunOnUiThreadと同じ
 	 */
-	protected void postUIThread(final Runnable task, final long delay_msec) {
+	protected void runOnUiThread(final Runnable task, final long delay_msec) {
 		if (delay_msec <= 0) {
 			runOnUiThread(task);
 		} else if (task != null) {
@@ -161,7 +161,7 @@ public class BaseFragment extends Fragment {
 				mHandler.postDelayed(task, delay_msec);
 			}
 		} else {
-			postUIThread(task, delay_msec);
+			runOnUiThread(task, delay_msec);
 		}
 	}
 
@@ -171,7 +171,7 @@ public class BaseFragment extends Fragment {
 	 */
 	protected void requestPopBackStack(final long delay) {
 		removeFromUIThread(mPopBackStackTask);
-		postUIThread(mPopBackStackTask, delay);	// UIスレッド上で遅延実行
+		runOnUiThread(mPopBackStackTask, delay);	// UIスレッド上で遅延実行
 	}
 
 	/**
@@ -234,7 +234,7 @@ public class BaseFragment extends Fragment {
 					task = new ResetColorFilterTask(image);
 				}
 				removeFromUIThread(task);
-				postUIThread(task, reset_delay);	// UIスレッド上で遅延実行
+				runOnUiThread(task, reset_delay);	// UIスレッド上で遅延実行
 			}
 		}
 	}

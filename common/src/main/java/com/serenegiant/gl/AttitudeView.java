@@ -52,4 +52,27 @@ public class AttitudeView extends GLModelView {
 		}
 	}
 
+	public void startEngine() {
+		if (mScreen instanceof AttitudeScreenBase) {
+			((AttitudeScreenBase) mScreen).startEngine();
+		}
+	}
+
+	public void stopEngine() {
+		if (mScreen instanceof AttitudeScreenBase) {
+			((AttitudeScreenBase) mScreen).stopEngine();
+		}
+	}
+
+	public void setRotorSpeed(final float speed) {
+		if (mScreen instanceof AttitudeScreenBase) {
+			((AttitudeScreenBase) mScreen).setRotorSpeed(speed);
+		}
+	}
+
+	public void setAxis(final int axis) {
+		if (mScreen instanceof AttitudeScreenBase) {
+			((AttitudeScreenBase) mScreen).setAxis(axis);
+		}
+	}
 }
