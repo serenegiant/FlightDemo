@@ -27,7 +27,7 @@ import com.serenegiant.widget.SideMenuFrameLayout;
 public class MainActivity extends /*Activity*/ AppCompatActivity {
 	// ActionBarActivityを継承するとPilotFragmentから戻る際にクラッシュする
 	// Fragmentが切り替わらずに処理中にもかかわらずActivityが破棄されてしまう
-	private static final boolean DEBUG = true;    // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;    // FIXME 実働時はfalseにすること
 	private static String TAG = MainActivity.class.getSimpleName();
 
 	private static boolean isLoaded = false;

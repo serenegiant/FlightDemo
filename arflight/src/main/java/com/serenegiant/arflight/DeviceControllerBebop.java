@@ -87,7 +87,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 
 public class DeviceControllerBebop extends DeviceController implements IVideoStreamController {
-	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "DeviceControllerBebop";
 
 	private static final int VIDEO_RECEIVE_TIMEOUT_MS = 500;

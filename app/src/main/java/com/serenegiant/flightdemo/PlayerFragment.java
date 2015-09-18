@@ -26,7 +26,7 @@ import android.widget.VideoView;
  * MediaMoviePlayerを使って動画を再生するためのFragment
  */
 public class PlayerFragment extends BaseFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = PlayerFragment.class.getSimpleName();
 
 	private static final String KEY_FILE_NAME = "PlayerFragment_KEY_FILE_NAME";

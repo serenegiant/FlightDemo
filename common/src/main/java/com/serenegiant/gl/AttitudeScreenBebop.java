@@ -17,6 +17,9 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 	public void resume() {
 		super.resume();
 		droneModel.resume();
+		if (guardModel != null) {
+			guardModel.resume();
+		}
 		frontLeftRotorModel.resume();
 		frontRightRotorModel.resume(false);	// テクスチャを共有しているのでテクスチャのリロードは不要
 		rearLeftRotorModel.resume();
@@ -26,6 +29,9 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 	@Override
 	public void pause() {
 		droneModel.pause();
+		if (guardModel != null) {
+			guardModel.pause();
+		}
 		frontLeftRotorModel.pause();
 		frontRightRotorModel.pause();
 		rearLeftRotorModel.pause();
@@ -75,6 +81,10 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 		final StaticTexture droneTexture = new StaticTexture(mModelView, "model/bebop_drone_body_tex.png");
 		droneModel = loadModel(io, "model/bebop_drone_body.obj");
 		droneModel.setTexture(droneTexture);
+		// ガード(ハル)
+		final StaticTexture guardTexture = new StaticTexture(mModelView, "model/bebop_drone_bumper_tex2.png");
+		guardModel = loadModel(io, "model/bebop_drone_bumper.obj");
+		guardModel.setTexture(guardTexture);
 
 		// 左前ローター
 		final StaticTexture frontTexture = new StaticTexture(mModelView, "model/bebop_drone_rotor_front_tex.png");

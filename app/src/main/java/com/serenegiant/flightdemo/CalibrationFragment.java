@@ -13,7 +13,7 @@ import com.serenegiant.gl.AttitudeScreenBase;
 import com.serenegiant.gl.IModelView;
 
 public class CalibrationFragment extends ControlBaseFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = CalibrationFragment.class.getSimpleName();
 
 	public static CalibrationFragment newInstance(final ARDiscoveryDeviceService device) {

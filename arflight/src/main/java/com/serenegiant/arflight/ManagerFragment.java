@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ManagerFragment extends Fragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "ManagerFragment";
 
 	public interface ManagerCallback {
@@ -394,7 +394,7 @@ public class ManagerFragment extends Fragment {
 	}
 
 	private void closeServices() {
-		Log.d(TAG, "closeServices ...");
+		if (DEBUG) Log.d(TAG, "closeServices ...");
 
 		if (ardiscoveryServiceBound) {
 			ardiscoveryServiceBound = false;
@@ -459,7 +459,7 @@ public class ManagerFragment extends Fragment {
 		= new ARDiscoveryServicesDevicesListUpdatedReceiverDelegate() {
 		@Override
 		public void onServicesDevicesListUpdated() {
-			Log.d(TAG, "onServicesDevicesListUpdated ...");
+			if (DEBUG) Log.d(TAG, "onServicesDevicesListUpdated ...");
 
 			if (ardiscoveryService != null) {
 				final List<ARDiscoveryDeviceService> list = ardiscoveryService.getDeviceServicesArray();

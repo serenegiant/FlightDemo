@@ -39,7 +39,7 @@ import android.util.Log;
 import android.view.Surface;
 
 public class MediaMoviePlayer {
-    private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+    private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
     private static final String TAG_STATIC = "MediaMoviePlayer:";
     private final String TAG = TAG_STATIC + getClass().getSimpleName();
 

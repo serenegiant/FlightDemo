@@ -9,6 +9,7 @@ public interface IModelView {
 	public static final int MODEL_NUM = 3;
 
 	public void setModel(final int model, final int type);
+	public void hasGuard(final boolean hasGuard);
 	public GLGraphics getGLGraphics();
 	public FileIO getFileIO();
 	public FileIO getExtFileIO();

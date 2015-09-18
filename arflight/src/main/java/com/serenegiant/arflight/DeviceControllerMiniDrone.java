@@ -702,6 +702,11 @@ public class DeviceControllerMiniDrone extends DeviceController {
 		return sentStatus;
 	}
 
+	public boolean sendCalibration(final boolean start) {
+		// Minidroneではとりあえずキャリブレーションを無効にしておく
+		return false;
+	}
+
 	@Override
 	public void setGaz(float gaz) {
 		super.setGaz(gaz);

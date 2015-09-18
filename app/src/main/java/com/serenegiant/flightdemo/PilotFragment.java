@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = PilotFragment.class.getSimpleName();
 
 	static {
@@ -348,6 +348,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mControllerView.setKeepScreenOn(true);
 		startDeviceController();
 		startSensor();
+		if (mController.isConnected()) {
+			mModelView.hasGuard(mController.hasGuard());
+		}
 		mModelView.onResume();
 	}
 
@@ -829,7 +832,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	@Override
 	protected void onConnect(final IDeviceController controller) {
-		if (DEBUG) Log.v(TAG, "#onConnect");
+		if (DEBUG) Log.v(TAG, "onConnect:");
 		super.onConnect(controller);
 		mVideoRecording = false;
 		runOnUiThread(new Runnable() {
@@ -838,6 +841,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mVideoRecordingBtn.setVisibility(controller instanceof IVideoStreamController ? View.VISIBLE : View.INVISIBLE);
 			}
 		});
+		mModelView.hasGuard(controller.hasGuard());
 		setSideMenu();
 		startGamePadTask();
 		post(mUpdateStatusTask, 100);

@@ -5,6 +5,7 @@ import com.serenegiant.math.Vector;
 
 public abstract class DroneObject extends DynamicGameObject {
 
+	protected final DynamicGameObject mGuardObject;
 	protected final RotorObject mFrontLeftRotorObj;	// ローター左前
 	protected final RotorObject mFrontRightRotorObj;// ローター右前
 	protected final RotorObject mRearLeftRotorObj;	// ローター左後
@@ -18,6 +19,12 @@ public abstract class DroneObject extends DynamicGameObject {
 	public DroneObject(final float x, final float y, final float z, final float scale) {
 		super(x, y, z, scale);
 		setBounds(new CylinderBounds(x, y, z, 5, scale));	// TODO height/radiusが適当
+		mGuardObject = new DynamicGameObject(1, 1, 1, scale) {
+			@Override
+			public void update(float deltaTime) {
+				// 機体と同じ動きをするので特に何もする必要なし
+			}
+		};
 		mFrontLeftRotorObj = new RotorObject(true);
 		mFrontRightRotorObj = new RotorObject(false);
 		mRearLeftRotorObj = new RotorObject(false);

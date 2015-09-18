@@ -13,7 +13,7 @@ import android.os.Build;
  * 四角形シェイプ
  */
 public class BaseShape extends Shape {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	protected final String TAG = getClass().getSimpleName();
 
     protected final RectF mBoundsRect = new RectF();

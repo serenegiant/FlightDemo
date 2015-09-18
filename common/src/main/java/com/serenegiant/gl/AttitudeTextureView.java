@@ -10,6 +10,7 @@ public class AttitudeTextureView extends GLTextureModelView {
 
 	private int mModel = MODEL_BEBOP;
 	private int mCtrlType = AttitudeScreenBase.CTRL_RANDOM;
+	private boolean mHasGuard;
 
 	public AttitudeTextureView(final Context context) {
 		this(context, null);
@@ -29,14 +30,21 @@ public class AttitudeTextureView extends GLTextureModelView {
 	@Override
 	protected IScreen createScreen() {
 		if (DEBUG) Log.v(TAG, "createScreen");
+		IScreen result = null;
 		switch (mModel) {
 		case MODEL_MINIDRONE:
 		case MODEL_JUMPINGSUMO:
-			return new AttitudeScreenMinidrone(this, mCtrlType);
+			result = new AttitudeScreenMinidrone(this, mCtrlType);
+			break;
 		case MODEL_BEBOP:
 		default:
-			return new AttitudeScreenBebop(this, mCtrlType);
+			result = new AttitudeScreenBebop(this, mCtrlType);
+			break;
 		}
+		if (result instanceof AttitudeScreenBase) {
+			((AttitudeScreenBase) result).hasGuard(mHasGuard);
+		}
+		return result;
 	}
 
 	/**
@@ -52,24 +60,36 @@ public class AttitudeTextureView extends GLTextureModelView {
 		}
 	}
 
+	@Override
+	public void hasGuard(final boolean hasGuard) {
+		mHasGuard = hasGuard;
+		if (mScreen instanceof AttitudeScreenBase) {
+			((AttitudeScreenBase) mScreen).hasGuard(hasGuard);
+		}
+	}
+
+	@Override
 	public void startEngine() {
 		if (mScreen instanceof AttitudeScreenBase) {
 			((AttitudeScreenBase) mScreen).startEngine();
 		}
 	}
 
+	@Override
 	public void stopEngine() {
 		if (mScreen instanceof AttitudeScreenBase) {
 			((AttitudeScreenBase) mScreen).stopEngine();
 		}
 	}
 
+	@Override
 	public void setRotorSpeed(final float speed) {
 		if (mScreen instanceof AttitudeScreenBase) {
 			((AttitudeScreenBase) mScreen).setRotorSpeed(speed);
 		}
 	}
 
+	@Override
 	public void setAxis(final int axis) {
 		if (mScreen instanceof AttitudeScreenBase) {
 			((AttitudeScreenBase) mScreen).setAxis(axis);

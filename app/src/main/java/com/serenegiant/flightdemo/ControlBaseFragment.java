@@ -16,7 +16,7 @@ import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ManagerFragment;
 
 public abstract class ControlBaseFragment extends BaseFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = "ControlFragment";
 
 	protected static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";

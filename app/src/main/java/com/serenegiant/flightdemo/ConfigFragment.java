@@ -20,7 +20,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.AttributeFloat;
 
 public class ConfigFragment extends ControlBaseFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
 	public static final String KEY_OPERATION_TYPE = "OPERATION_TYPE";

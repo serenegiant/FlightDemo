@@ -10,6 +10,9 @@ public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 	public void resume() {
 		super.resume();
 		droneModel.resume();
+		if (guardModel != null) {
+			guardModel.resume();
+		}
 		frontLeftRotorModel.resume(false);
 		frontRightRotorModel.resume(false);
 		rearLeftRotorModel.resume(false);
@@ -19,6 +22,9 @@ public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 	@Override
 	public void pause() {
 		droneModel.pause();
+		if (guardModel != null) {
+			guardModel.pause();
+		}
 		frontLeftRotorModel.pause();
 		frontRightRotorModel.pause();
 		rearLeftRotorModel.pause();
@@ -62,6 +68,9 @@ public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 		final StaticTexture droneTexture = new StaticTexture(mModelView, "model/minidrone_tex_red.png");
 		droneModel = loadModel(io, "model/minidrone_body.obj");
 		droneModel.setTexture(droneTexture);
+		// ガード(ハル)
+		guardModel = loadModel(io, "model/minidrone_bumper.obj");
+		guardModel.setTexture(droneTexture);
 		// 左前ローター
 		frontLeftRotorModel = loadModel(io, "model/minidrone_rotor_cw.obj");
 		frontLeftRotorModel.setTexture(droneTexture);	// テクスチャは今は共通

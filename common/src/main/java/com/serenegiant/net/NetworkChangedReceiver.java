@@ -15,7 +15,7 @@ import com.serenegiant.utils.BuildCheck;
 import com.serenegiant.utils.ComponentUtils;
 
 public class NetworkChangedReceiver extends BroadcastReceiver {
-	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = NetworkChangedReceiver.class.getSimpleName();
 
 	public static final String KEY_NETWORK_CHANGED_IS_CONNECTED_OR_CONNECTING = "KEY_NETWORK_CHANGED_IS_CONNECTED_OR_CONNECTING";

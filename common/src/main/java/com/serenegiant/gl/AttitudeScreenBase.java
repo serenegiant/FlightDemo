@@ -10,7 +10,7 @@ import java.io.IOException;
 import javax.microedition.khronos.opengles.GL10;
 
 public abstract class AttitudeScreenBase extends GLScreen {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "AttitudeScreenBase";
 
 	public static final int CTRL_RANDOM = 0;		// ランダム回転
@@ -30,6 +30,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	protected final int mCtrlType;
 	// 3Dモデルデータ
 	protected GLLoadableModel droneModel;
+	protected GLLoadableModel guardModel;
 	protected GLLoadableModel frontLeftRotorModel;
 	protected GLLoadableModel frontRightRotorModel;
 	protected GLLoadableModel rearLeftRotorModel;
@@ -38,6 +39,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	// オブジェクト
 	protected DroneObject droneObj;				// 機体本体
 	protected final Object mDroneSync = new Object();
+	protected volatile boolean mHasGuard;
 	// 地面
 	private final GLCubeModel plateModel;
 	private final StaticTexture plateTexture;
@@ -83,7 +85,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	}
 
 	/**
-	 * 機体モデルを読み込み
+	 * 機体モデル/ハル・車輪を読み込み
 	 */
 	protected abstract void initModel();
 
@@ -95,6 +97,11 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		// XXX 他のオブジェクトの描画都合でmodel側の回転ベクトル未使用。位置座標のみセット
 		droneModel.setPosition(droneObj.position);
 //		droneModel.rotate(droneObj.angle);
+		// ガード
+		if (guardModel != null) {
+			guardModel.setPosition(droneObj.mGuardObject.position);
+			guardModel.rotate(droneObj.mGuardObject.angle);
+		}
 		// 左前ローター
 		frontLeftRotorModel.setPosition(droneObj.mFrontLeftRotorObj.position);
 		frontLeftRotorModel.rotate(droneObj.mFrontLeftRotorObj.angle);
@@ -124,6 +131,9 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	protected void drawModel(final GL10 gl) {
 		moveDrone(gl);
 		droneModel.draw();
+		if (mHasGuard && (guardModel != null)) {
+			guardModel.draw();
+		}
 		frontLeftRotorModel.draw();
 		frontRightRotorModel.draw();
 		rearLeftRotorModel.draw();
@@ -271,6 +281,11 @@ public abstract class AttitudeScreenBase extends GLScreen {
 
 	public void setRotorSpeed(final float speed) {
 		droneObj.setRotorSpeed(speed);
+	}
+
+	public void hasGuard(final boolean hasGuard) {
+		if (DEBUG) Log.v(TAG, "hasGuard:" + hasGuard);
+		mHasGuard = hasGuard;
 	}
 
 	public void setAxis(final int axis) {

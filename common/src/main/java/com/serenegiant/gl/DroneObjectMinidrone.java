@@ -13,6 +13,7 @@ public class DroneObjectMinidrone extends DroneObject {
 
 	public DroneObjectMinidrone(final float x, final float y, final float z, final float scale) {
 		super(OFFSET.x + x, OFFSET.y + y, OFFSET.z + z, scale);
+		mGuardObject.setPosition(OFFSET.x + x + 0, OFFSET.y + y, OFFSET.z + z + 0);
 		mFrontLeftRotorObj.setPosition(OFFSET.x + x + 3.33891f, OFFSET.y + y - 0.19459f, OFFSET.z + z + 3.26455f);
 		mFrontRightRotorObj.setPosition(OFFSET.x + x -3.33891f, OFFSET.y + y - 0.19459f, OFFSET.z + z + 3.26455f);
 		mRearLeftRotorObj.setPosition(OFFSET.x + x + 3.36173f, OFFSET.y + y - 0.19459f, OFFSET.z + z - 3.46190f);

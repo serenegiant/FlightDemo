@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import com.serenegiant.media.MediaStoreImageAdapter;
 
 public class PhotoFragment extends BaseFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = PhotoFragment.class.getSimpleName();
 
 	private static final String KEY_FILE_ID = "PhotoFragment_KEY_FILE_ID";

@@ -15,7 +15,7 @@ import com.serenegiant.media.MediaStoreAdapter;
 import com.serenegiant.media.MediaStoreHelper;
 
 public class GalleyFragment extends BaseFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = GalleyFragment.class.getSimpleName();
 
 	public static GalleyFragment newInstance() {
