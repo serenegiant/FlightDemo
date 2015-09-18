@@ -27,7 +27,7 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7" inherit-compiler-output="false">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_6" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/build/intermediates/classes/debug" />
     <output-test url="file://$MODULE_DIR$/build/intermediates/classes/androidTest/debug" />
     <exclude-output />
@@ -85,19 +85,18 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
-      <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
     <orderEntry type="jdk" jdkName="Android API 22 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="libARDiscovery" level="project" />
     <orderEntry type="library" exported="" name="libARNetwork" level="project" />
+    <orderEntry type="library" exported="" name="libARDiscovery" level="project" />
     <orderEntry type="library" exported="" name="libARCommands" level="project" />
     <orderEntry type="library" exported="" name="libARNetworkAL" level="project" />
     <orderEntry type="library" exported="" name="libARController" level="project" />
-    <orderEntry type="library" exported="" name="libARUpdater" level="project" />
     <orderEntry type="library" exported="" name="sanselan-0.97-incubator" level="project" />
-    <orderEntry type="library" exported="" name="libARUtils" level="project" />
+    <orderEntry type="library" exported="" name="libARUpdater" level="project" />
     <orderEntry type="library" exported="" name="libjson" level="project" />
+    <orderEntry type="library" exported="" name="libARUtils" level="project" />
     <orderEntry type="library" exported="" name="libARDataTransfer" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-22.2.1" level="project" />
     <orderEntry type="library" exported="" name="libopenssl" level="project" />
