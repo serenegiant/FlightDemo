@@ -20,6 +20,8 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	private static String TAG = "ControlFragment";
 
 	protected static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";
+	/** フラグメントに戻るまでの遅延時間[ミリ秒] */
+	protected static final long POP_BACK_STACK_DELAY = 2000;
 
 	private ARDiscoveryDeviceService mDevice;
 	protected IDeviceController mController;
@@ -111,6 +113,10 @@ public abstract class ControlBaseFragment extends BaseFragment {
 
 	protected int getAlarm() {
 		return mController != null ? mController.getAlarm() : DroneStatus.ALARM_DISCONNECTED;
+	}
+
+	protected boolean isFlying() {
+		return mController != null ? mController.isFlying() : false;
 	}
 
 	protected int getStillCaptureState() {

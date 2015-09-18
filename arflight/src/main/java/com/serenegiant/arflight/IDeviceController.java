@@ -114,6 +114,7 @@ public interface IDeviceController {
 	 */
 	public int getState();
 	public int getAlarm();
+	public boolean isFlying();
 	public boolean needCalibration();
 	public int getStillCaptureState();
 	public int getVideoRecordingState();

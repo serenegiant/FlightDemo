@@ -25,15 +25,16 @@ public abstract class DroneObject extends DynamicGameObject {
 	}
 
 	public void startEngine() {
-		setRotorSpeed(0);
+		setRotorSpeed(RotorObject.DEFAULT_SPEED);
 	}
 
 	public void stopEngine() {
-		setRotorSpeed(mRotorSpeed);
+		setRotorSpeed(0);
 	}
 
 	public void setRotorSpeed(final float speed) {
 		if (mRotorSpeed != speed) {
+			mRotorSpeed = speed;
 			mFrontLeftRotorObj.setSpeed(speed);
 			mFrontRightRotorObj.setSpeed(speed);
 			mRearLeftRotorObj.setSpeed(speed);

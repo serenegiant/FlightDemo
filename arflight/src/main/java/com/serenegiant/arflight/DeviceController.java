@@ -160,6 +160,10 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	public boolean isFlying() {
+		return mStatus.isFlying();
+	}
+
 	@Override
 	public int getAlarm() {
 		return mStatus.getAlarm();

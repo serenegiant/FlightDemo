@@ -6,7 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.gl.AttitudeScreenBase;
@@ -32,7 +32,7 @@ public class CalibrationFragment extends ControlBaseFragment {
 	private static final int STATE_FAILED = 7;
 
 	private IModelView mModelView;
-	private ImageView mCalOpView;
+	private TextView mMessageTextView;
 	private int mState = STATE_STOPPED;
 
 	public CalibrationFragment() {
@@ -40,11 +40,11 @@ public class CalibrationFragment extends ControlBaseFragment {
 		// デフォルトコンストラクタが必要
 	}
 
-	@Override
+/*	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		if (DEBUG) Log.v(TAG, "onAttach:");
-	}
+	} */
 
 /*	@Override
 	public void onDetach() {
@@ -58,16 +58,17 @@ public class CalibrationFragment extends ControlBaseFragment {
 		final View rootView = inflater.inflate(R.layout.fragment_calibration, container, false);
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 		mModelView.setModel(IModelView.MODEL_BEBOP, AttitudeScreenBase.CTRL_CALIBRATION);
-		mCalOpView = (ImageView)rootView.findViewById(R.id.calibration_imageview);
+		mMessageTextView = (TextView)rootView.findViewById(R.id.cal_msg_textview);
+		mMessageTextView.setText(R.string.calibration_title);
 
 		return rootView;
 	}
 
-	@Override
+/*	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
 		super.onDestroy();
-	}
+	} */
 
 	@Override
 	public void onResume() {
@@ -78,6 +79,7 @@ public class CalibrationFragment extends ControlBaseFragment {
 			@Override
 			public void run() {
 				mController.sendCalibration(true);
+				post(mUpdateStateTask, 300);
 			}
 		});
 	}
@@ -88,6 +90,7 @@ public class CalibrationFragment extends ControlBaseFragment {
 		if (mState != STATE_STOPPED) {
 			mController.sendCalibration(false);
 		}
+		remove(mUpdateStateTask);
 		mModelView.onPause();
 		super.onPause();
 	}
@@ -97,6 +100,7 @@ public class CalibrationFragment extends ControlBaseFragment {
 	 */
 	@Override
 	protected void onStartCalibration() {
+		if (DEBUG) Log.v(TAG, "onStartCalibration:");
 		if (mState != STATE_STOPPED) {
 			Log.w(TAG, "onStartCalibration:ステートがおかしい:" + mState);
 		}
@@ -108,11 +112,18 @@ public class CalibrationFragment extends ControlBaseFragment {
 	 */
 	@Override
 	protected void onStopCalibration() {
+		if (DEBUG) Log.v(TAG, "onStopCalibration:");
 		mState = STATE_STOPPED;
+		// FIXME ここで終了のメッセージを表示する
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				popBackStack();
+				mMessageTextView.setText(
+					mController.needCalibration()
+					? R.string.calibration_failed
+					: R.string.calibration_success);
+
+				requestPopBackStack(POP_BACK_STACK_DELAY);
 			}
 		});
 	}
@@ -123,6 +134,7 @@ public class CalibrationFragment extends ControlBaseFragment {
 	 */
 	@Override
 	protected void updateCalibrationAxisChanged(final int axis) {
+		if (DEBUG) Log.v(TAG, "updateCalibrationAxisChanged:axis=" + axis);
 		mState = STATE_AXIS_X + axis;
 		switch (mState) {
 		case STATE_START:
@@ -141,4 +153,31 @@ public class CalibrationFragment extends ControlBaseFragment {
 		}
 	}
 
+	private final Runnable mUpdateStateTask = new Runnable() {
+		private int prevState = -1;
+		@Override
+		public void run() {
+			if (prevState != mState) {
+				final int state = prevState = mState;
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						switch (state) {
+						case STATE_AXIS_X:
+							mMessageTextView.setText(R.string.calibration_axis_x);
+							break;
+						case STATE_AXIS_Y:
+							mMessageTextView.setText(R.string.calibration_axis_y);
+							break;
+						case STATE_AXIS_Z:
+							mMessageTextView.setText(R.string.calibration_axis_z);
+							break;
+						}
+					}
+				});
+			}
+			mModelView.setAxis(mState - STATE_AXIS_X);
+			post(this, 200);
+		}
+	};
 }

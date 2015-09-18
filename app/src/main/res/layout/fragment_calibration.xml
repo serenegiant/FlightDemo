@@ -12,23 +12,27 @@
 		android:layout_centerInParent="true"
 		android:background="@null"/>
 
-	<ImageView
-		android:layout_width="@dimen/stick_frame_width"
-		android:layout_height="@dimen/stick_frame_height"
-		android:id="@+id/calibration_imageview"
-		android:layout_centerVertical="true"
-		android:layout_centerHorizontal="true"
-		android:src="@mipmap/ic_launcher"/>
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/calibration_title"
+		android:id="@+id/textView9"
+		android:layout_alignParentRight="true"
+		android:layout_alignParentEnd="true"
+		android:textSize="@dimen/text_sz_message"
+		android:textColor="@color/BLANCHEDALMOND"
+		android:gravity="center_horizontal"/>
 
 	<TextView
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="@string/calibration_under_construction"
-		android:id="@+id/textView7"
-		android:layout_above="@+id/calibration_imageview"
-		android:layout_centerHorizontal="true"
+		android:text="@string/calibration_axis_x"
+		android:id="@+id/cal_msg_textview"
 		android:textSize="@dimen/text_sz_message"
 		android:textColor="@color/RED"
-		android:gravity="center"/>
+		android:gravity="center_horizontal"
+		android:layout_below="@+id/textView9"
+		android:layout_centerHorizontal="true"
+		android:layout_marginTop="@dimen/half_padding"/>
 
 </RelativeLayout>

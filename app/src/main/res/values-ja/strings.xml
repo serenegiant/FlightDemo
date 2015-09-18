@@ -75,8 +75,12 @@
 	<string name="info_version_hardware">ハードウエアバージョン:</string>
 	<string name="info_version_app">アプリバージョン:</string>
 
-	<string name="calibration_under_construction">この機能は実装されていません。\nお手数をお掛けしますが純正アプリでキャリブレーションをお願いします。</string>
-
+	<string name="calibration_title">磁気センサーのキャリブレーション</string>
+	<string name="calibration_axis_z">機体を水平に回転させてください。\n(アニメーションを参照)</string>
+	<string name="calibration_axis_y">機体を縦に回転させてください。\n(アニメーションを参照)</string>
+	<string name="calibration_axis_x">機体を横に回転させてください。\n(アニメーションを参照)</string>
+	<string name="calibration_success">キャリブレーションが正常終了しました。</string>
+	<string name="calibration_failed">キャリブレーションが失敗しました。</string>
 
 	<string name="media_title_list">内蔵メモリ</string>
 	<string name="media_title_galley">メディア一覧</string>

@@ -1,11 +1,15 @@
 package com.serenegiant.gl;
 
+import android.util.Log;
+
 import com.serenegiant.math.Vector;
 
 
 public class DroneObjectBebopCalibration extends DroneObjectBebop implements ICalibrationModelObject {
+	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final String TAG = DroneObjectBebopCalibration.class.getSimpleName();
 
-	private static final float ROTATION_SPEED = 90.0f;
+	private static final float ROTATION_SPEED = 180.0f;
 	private int mAxis = -1;
 	private volatile int mRequestAxis = -1;
 	private float mDirection = ROTATION_SPEED;
@@ -16,6 +20,7 @@ public class DroneObjectBebopCalibration extends DroneObjectBebop implements ICa
 
 	public DroneObjectBebopCalibration(final float x, final float y, final float z, final float scale) {
 		super(x, y, z, scale);
+		stopEngine();
 	}
 
 	@Override
@@ -29,19 +34,20 @@ public class DroneObjectBebopCalibration extends DroneObjectBebop implements ICa
 		}
 		switch (mAxis) {
 		case 0:	// roll
-			angle.y += deltaTime * mDirection;
+			angle.z -= deltaTime * mDirection;
 			break;
 		case 1:	// pitch
-			angle.x += deltaTime * mDirection;
+			angle.x -= deltaTime * mDirection;
 			break;
 		case 2:	// yaw
-			angle.z += deltaTime * mDirection;
+			angle.y += deltaTime * mDirection;
 			break;
 		}
 	}
 
 	@Override
 	public void setAxis(int axis) {
-		mAxis = axis;
+		if (DEBUG) Log.v(TAG, "setAxis:" + axis);
+		mRequestAxis = axis;
 	}
 }

@@ -16,6 +16,7 @@ public class DroneStatus {
 	public static final int STATE_FLYING_LANDING = 0x0400;	// FlyingState=4
 	public static final int STATE_FLYING_EMERGENCY = 0x0500;// FlyingState=5
 	public static final int STATE_FLYING_ROLLING = 0x0600;	// FlyingState=6
+	public static final int STATE_FLYING_MASK = STATE_FLYING_TAKEOFF | STATE_FLYING_HOVERING | STATE_FLYING_FLYING | STATE_FLYING_LANDING | STATE_FLYING_ROLLING;
 
 	public static final int ALARM_NON = 0;
 	public static final int ALARM_USER_EMERGENCY = 1;
@@ -364,6 +365,11 @@ public class DroneStatus {
 		}
 	}
 
+	public boolean isFlying() {
+		synchronized (mStateSync) {
+			return (mAlarmState == ALARM_NON) && ((mFlyingState & STATE_FLYING_MASK) != 0);
+		}
+	}
 	/** 異常状態をセット */
 	public void setAlarm(final int alarm_state) {
 		synchronized (mStateSync) {

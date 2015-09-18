@@ -260,10 +260,12 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	}
 
 	public void startEngine() {
+		if (DEBUG) Log.v(TAG, "startEngine:");
 		droneObj.startEngine();
 	}
 
 	public void stopEngine() {
+		if (DEBUG) Log.v(TAG, "stopEngine:");
 		droneObj.stopEngine();
 	}
 
@@ -272,6 +274,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	}
 
 	public void setAxis(final int axis) {
+		if (DEBUG) Log.v(TAG, "setAxis:" + axis);
 		if (droneObj instanceof ICalibrationModelObject) {
 			((ICalibrationModelObject) droneObj).setAxis(axis);
 		}

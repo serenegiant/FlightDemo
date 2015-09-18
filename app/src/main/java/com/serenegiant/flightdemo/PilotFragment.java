@@ -202,6 +202,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mActionViews.add(mTopPanel);
 
 		mFlatTrimBtn = (ImageButton) rootView.findViewById(R.id.flat_trim_btn);
+		mFlatTrimBtn.setOnClickListener(mOnClickListener);
 		mFlatTrimBtn.setOnLongClickListener(mOnLongClickListener);
 		mActionViews.add(mFlatTrimBtn);
 
@@ -385,6 +386,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		public void onClick(final View view) {
 			if (DEBUG) Log.v(TAG, "onClick:" + view);
 			switch (view.getId()) {
+			case R.id.flat_trim_btn:
+				setColorFilter((ImageView)view);
+				if ((mController != null) && (mController.getState() == IDeviceController.STATE_STARTED)) {
+					mController.sendFlatTrim();
+				}
+				break;
 			case R.id.load_btn:
 				// 読み込みボタンの処理
 				setColorFilter((ImageView)view);
@@ -559,7 +566,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case R.id.flat_trim_btn:
 				setColorFilter((ImageView)view);
 				if ((mController != null) && (mController.getState() == IDeviceController.STATE_STARTED)) {
-					mController.sendFlatTrim();
+					replace(CalibrationFragment.newInstance(getDevice()));
 					return true;
 				}
 				break;
@@ -835,14 +842,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		startGamePadTask();
 		post(mUpdateStatusTask, 100);
 		updateButtons();
-		// FIXME ここでキャリブレーションが必要かどうかをチェックして必要ならCalibrationFragmentへ遷移させる
-		if (true || controller.needCalibration()) {
+		// キャリブレーションが必要ならCalibrationFragmentへ遷移させる
+		if (controller.needCalibration()) {
 			replace(CalibrationFragment.newInstance(getDevice()));
 		}
 	}
 
-	/** 切断された時に前のフラグメントに戻るまでの遅延時間[ミリ秒] */
-	private static final long POP_BACK_STACK_DELAY = 2000;
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
@@ -1139,8 +1144,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (mController != null) {
 			mController.sendTakeoff();
 			mFlightRecorder.record(FlightRecorder.CMD_TAKEOFF);
-		} else {
-//			mIsFlying = false;
 		}
 	}
 
@@ -1154,7 +1157,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mController.sendLanding();
 			mFlightRecorder.record(FlightRecorder.CMD_LANDING);
 		}
-//		mIsFlying = false;
 	}
 
 	/**
@@ -1408,12 +1410,15 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				switch (cmd) {
 				case IAutoFlight.CMD_EMERGENCY:			// 非常停止
 					mController.sendEmergency();
+					updateButtons();
 					break;
 				case IAutoFlight.CMD_TAKEOFF:			// 離陸
 					mController.sendTakeoff();
+					updateButtons();
 					break;
 				case IAutoFlight.CMD_LANDING:			// 着陸
 					mController.sendLanding();
+					updateButtons();
 					break;
 				case IAutoFlight.CMD_UP_DOWN:			// 上昇:gaz>0, 下降: gaz<0
 					mController.setGaz(values[0]);
@@ -1520,6 +1525,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	/** 定期的にステータスをポーリングして処理するスレッドの実行部 */
 	private final Runnable mUpdateStatusTask = new Runnable() {
 		private final Vector mAttitude = new Vector();
+		private int prevState;
 		@Override
 		public void run() {
 			if ((mController != null) && mController.canGetAttitude()) {
@@ -1538,6 +1544,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 						mCurrentAltitude = altitude;
 						mModelView.setAttitude(mCurrentRoll, mCurrentPitch, yaw, altitude);
 				}
+			}
+			if (prevState != getState()) {
+				prevState = getState();
+				updateButtons();
 			}
 			post(this, 50);	// 50ミリ秒=1秒間に最大で約20回更新
 		}
@@ -1684,17 +1694,20 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 			// 離陸/着陸
 			switch (state & IDeviceController.STATE_MASK_FLYING) {
-			case DroneStatus.STATE_FLYING_LANDED:	// 0x0000;		// FlyingState=0
-			case DroneStatus.STATE_FLYING_LANDING:	// 0x0400;		// FlyingState=4
+			case DroneStatus.STATE_FLYING_LANDED:		// 0x0000;		// FlyingState=0
+				mModelView.stopEngine();
+			case DroneStatus.STATE_FLYING_LANDING:		// 0x0400;		// FlyingState=4
 				mTakeOnOffBtn.setImageResource(R.drawable.takeoff72x72);
 				break;
-			case DroneStatus.STATE_FLYING_TAKEOFF:	// 0x0100;		// FlyingState=1
-			case DroneStatus.STATE_FLYING_HOVERING:	// 0x0200;		// FlyingState=2
-			case DroneStatus.STATE_FLYING_FLYING:	// 0x0300;		// FlyingState=3
-			case DroneStatus.STATE_FLYING_ROLLING:	// 0x0600;		// FlyingState=6
+			case DroneStatus.STATE_FLYING_TAKEOFF:		// 0x0100;		// FlyingState=1
+			case DroneStatus.STATE_FLYING_HOVERING:		// 0x0200;		// FlyingState=2
+			case DroneStatus.STATE_FLYING_FLYING:		// 0x0300;		// FlyingState=3
+			case DroneStatus.STATE_FLYING_ROLLING:		// 0x0600;		// FlyingState=6
 				mTakeOnOffBtn.setImageResource(R.drawable.landing72x72);
+				mModelView.startEngine();
 				break;
 			case DroneStatus.STATE_FLYING_EMERGENCY:	// 0x0500;		// FlyingState=5
+				mModelView.stopEngine();
 				break;
 			}
 

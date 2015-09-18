@@ -70,7 +70,12 @@
 	<string name="info_version_hardware">Hardware version:</string>
 	<string name="info_version_app">App version:</string>
 
-	<string name="calibration_under_construction">Sorry this feature is under construction.\nPlease calibrate your drone with genuine app.</string>
+	<string name="calibration_title">Calibration of magneto sensor</string>
+	<string name="calibration_axis_z">Rotate drone vertically\n(Ref.animation on screen)</string>
+	<string name="calibration_axis_y">Rotate drone back and forth\n(Ref.animation on screen)</string>
+	<string name="calibration_axis_x">Rotate drone right and left\n(Ref.animation on screen)</string>
+	<string name="calibration_success">Calibration successfully finished.</string>
+	<string name="calibration_failed">Calibration failed.</string>
 
 	<string name="media_title_list">Media of internal storage</string>
 	<string name="media_title_galley">Media list</string>
