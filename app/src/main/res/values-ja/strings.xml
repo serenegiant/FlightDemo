@@ -87,6 +87,10 @@
 	<string name="media_empty">メディアファイルがありません</string>
 	<string name="media_free_space">%s 空き</string>
 
+	<string name="script_list">スクリプト一覧</string>
+	<string name="script_error">スクリプトエラー</string>
+	<string name="script_empty">スクリプトが登録されていません</string>
+
 	<!-- サイドメニューの項目 -->
 	<string name="script_circle_xy">circle_xy</string>
 	<string name="script_circle_xz">circle_xz</string>

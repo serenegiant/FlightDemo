@@ -42,7 +42,7 @@ public class ConnectionFragment extends BaseFragment {
 
 	private ListView mDeviceListView;
 	private IModelView mModelView;
-	private ImageButton mGalleryBtn, mDownloadBtn, mPilotBtn;
+	private ImageButton mDownloadBtn, mPilotBtn;
 
 	public ConnectionFragment() {
 		super();
@@ -101,12 +101,14 @@ public class ConnectionFragment extends BaseFragment {
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 //		((View)mModelView).setOnLongClickListener(mOnLongClickListener);	// FIXME テスト用, 長押しでギャラリー表示へ
 
-		mGalleryBtn = (ImageButton)rootView.findViewById(R.id.gallery_button);
-		mGalleryBtn.setOnClickListener(mOnClickListener);
 		mDownloadBtn = (ImageButton)rootView.findViewById(R.id.download_button);
 		mDownloadBtn.setOnClickListener(mOnClickListener);
 		mPilotBtn = (ImageButton)rootView.findViewById(R.id.pilot_button);
 		mPilotBtn.setOnClickListener(mOnClickListener);
+		ImageButton button = (ImageButton)rootView.findViewById(R.id.gallery_button);
+		button.setOnClickListener(mOnClickListener);
+		button = (ImageButton)rootView.findViewById(R.id.script_button);
+		button.setOnClickListener(mOnClickListener);
 	}
 
 	private void updateButtons(final boolean visible) {
@@ -115,17 +117,17 @@ public class ConnectionFragment extends BaseFragment {
 			getActivity().runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					if (!visible) {
-						try {
-							final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
-							adapter.clear();
-						} catch (final Exception e) {
-							Log.w(TAG, e);
-						}
+				if (!visible) {
+					try {
+						final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
+						adapter.clear();
+					} catch (final Exception e) {
+						Log.w(TAG, e);
 					}
-					final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
-					mDownloadBtn.setVisibility(visibility);
-					mPilotBtn.setVisibility(visibility);
+				}
+				final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+				mDownloadBtn.setVisibility(visibility);
+				mPilotBtn.setVisibility(visibility);
 				}
 			});
 		}
@@ -137,30 +139,30 @@ public class ConnectionFragment extends BaseFragment {
 	private ManagerFragment.ManagerCallback mManagerCallback = new ManagerFragment.ManagerCallback() {
 		@Override
 		public void onServicesDevicesListUpdated(List<ARDiscoveryDeviceService> devices) {
-			final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
-			adapter.clear();
-			for (final ARDiscoveryDeviceService service : devices) {
-				Log.d(TAG, "service :  " + service);
-				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
-				switch (product) {
-				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-					adapter.add(service);
-					break;
-				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
-					// FIXME JumpingSumoは未実装
-					break;
-				case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-					adapter.add(service);
-					break;
-				}
-/*				// ブルートゥース接続の時だけ追加する
-				if (service.getDevice() instanceof ARDiscoveryDeviceBLEService) {
-					adapter.add(service.getName());
-				} */
+		final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
+		adapter.clear();
+		for (final ARDiscoveryDeviceService service : devices) {
+			Log.d(TAG, "service :  " + service);
+			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
+			switch (product) {
+			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+				adapter.add(service);
+				break;
+			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+				// FIXME JumpingSumoは未実装
+				break;
+			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+				adapter.add(service);
+				break;
 			}
-			adapter.notifyDataSetChanged();
-			mDeviceListView.setItemChecked(0, true);	// 先頭を選択
-			updateButtons(devices.size() > 0);
+/*			// ブルートゥース接続の時だけ追加する
+			if (service.getDevice() instanceof ARDiscoveryDeviceBLEService) {
+				adapter.add(service.getName());
+			} */
+		}
+		adapter.notifyDataSetChanged();
+		mDeviceListView.setItemChecked(0, true);	// 先頭を選択
+		updateButtons(devices.size() > 0);
 		}
 	};
 
@@ -232,19 +234,22 @@ public class ConnectionFragment extends BaseFragment {
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
 		public void onClick(final View view) {
-			Fragment fragment = null;
-			switch (view.getId()) {
-			case R.id.gallery_button:
-				fragment = GalleyFragment.newInstance();
-				break;
-			case R.id.download_button:
-				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), false);
-				break;
-			case R.id.pilot_button:
-				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), true);
-				break;
-			}
-			replace(fragment);
+		Fragment fragment = null;
+		switch (view.getId()) {
+		case R.id.pilot_button:
+			fragment = getFragment(mDeviceListView.getCheckedItemPosition(), true);
+			break;
+		case R.id.download_button:
+			fragment = getFragment(mDeviceListView.getCheckedItemPosition(), false);
+			break;
+		case R.id.gallery_button:
+			fragment = GalleyFragment.newInstance();
+			break;
+		case R.id.script_button:
+			fragment = ScriptFragment.newInstance();
+			break;
+		}
+		replace(fragment);
 		}
 	};
 
