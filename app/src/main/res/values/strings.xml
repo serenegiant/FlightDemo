@@ -16,6 +16,11 @@
 	<string name="action_move">Move</string>
 	<string name="action_delete_after_fetch">Delete after load</string>
 
+	<string name="select">Select file</string>
+	<string name="not_selected">No file selected!</string>
+	<string name="parent_dir">Up‥</string>
+	<string name="file_empty">No file</string>
+
 	<string name="confirm_fetch">Do you want to transfer selected file(s)?</string>
 	<string name="confirm_fetch_delete">Transfer completed\nDo you want to delete transfered file?</string>
 	<string name="confirm_delete">Do you want to delete selected file(s)?</string>

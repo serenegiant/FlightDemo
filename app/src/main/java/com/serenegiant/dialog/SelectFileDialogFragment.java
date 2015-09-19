@@ -20,6 +20,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -67,7 +68,7 @@ public class SelectFileDialogFragment extends BaseDialogFragment
 	private AlertDialog mDialog;							// ダイアログ
 	private FileInfoArrayAdapter mAdapter;					// ファイル情報配列アダプタ
 	private String mRootDir, mCurrentDir, mExts;
-	private String[] mFilter = null;							// 拡張子選択フィルター文字列
+	private String[] mFilter = null;						// 拡張子選択フィルター文字列
 	private boolean mIsMultiSelect = false;
 	private Button mOkButton;
 	private int mSelectNum = 0;
@@ -340,11 +341,11 @@ public class SelectFileDialogFragment extends BaseDialogFragment
 
 		setFilter(mExts);
 		mSelectNum = 0;	// 選択したファイル数をクリア
-		// リストビュー FIXME リソースからレイアウトを読み込む
-		final ListView listview = new ListView(getActivity());
+		final View rootView = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_fileselect, null, false);
+		final ListView listview = (ListView)rootView.findViewById(R.id.listView);
 		listview.setScrollingCacheEnabled(false);
 		listview.setOnItemClickListener(this);
-		listview.setMinimumHeight(24);
+		listview.setEmptyView(rootView.findViewById(R.id.empty_view));
 
 		mListFileInfo = new ArrayList<FileInfo>();
 		changeDir(new File(mCurrentDir));	// 初期ディレクトリを取得
@@ -357,7 +358,7 @@ public class SelectFileDialogFragment extends BaseDialogFragment
 		builder.setPositiveButton(android.R.string.cancel, null);
 		if (mIsMultiSelect)
 			builder.setNegativeButton(R.string.select, null);
-		builder.setView(listview);
+		builder.setView(rootView);	//		builder.setView(listview);
 		builder.setCancelable(false);
 		mDialog = builder.create();
 

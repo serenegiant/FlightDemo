@@ -20,6 +20,7 @@
 	<string name="select">選択</string>
 	<string name="not_selected">ファイルが選択されていません！</string>
 	<string name="parent_dir">上へ‥</string>
+	<string name="file_empty">ファイルがありません</string>
 
 	<string name="confirm_fetch">選択したファイルを転送してもよろしいですか?</string>
 	<string name="confirm_fetch_delete">転送が完了しました。\n転送したファイルを削除してもよろしいですか?</string>
