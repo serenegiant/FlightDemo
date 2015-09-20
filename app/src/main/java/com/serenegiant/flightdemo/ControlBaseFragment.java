@@ -89,7 +89,10 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	protected Bundle setDevice(final ARDiscoveryDeviceService device) {
 		if (DEBUG) Log.v(TAG, "setDevice:" + device);
 		mDevice = device;
-		final Bundle args = new Bundle();
+		Bundle args = getArguments();
+		if (args == null) {
+			args = new Bundle();
+		}
 		args.putParcelable(EXTRA_DEVICE_SERVICE, device);
 		setArguments(args);
 		return args;

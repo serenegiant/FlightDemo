@@ -14,6 +14,7 @@
       <w>bgen</w>
       <w>dheight</w>
       <w>dwidth</w>
+      <w>extern</w>
       <w>exts</w>
       <w>flattrim</w>
       <w>flightdemo</w>
@@ -37,6 +38,7 @@
       <w>requery</w>
       <w>rssi</w>
       <w>symtab</w>
+      <w>tbytes</w>
       <w>textview</w>
       <w>vheight</w>
       <w>vwidth</w>

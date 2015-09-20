@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
@@ -79,6 +80,8 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 	 */
 	private static final int SCRIM_COLOR = 0x3f000000;
 
+	private static final String KEY_SCRIPTS_FIRST_TIME = "KEY_SCRIPTS_FIRST_TIME";
+
 	// サイドメニュー
 	protected DrawerLayout mDrawerLayout;
 	private SideMenuFrameLayout mSideMenuFrame;
@@ -100,6 +103,15 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 				.add(R.id.container, fragment).commit();
 		}
 		prepareSideMenu();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				final SharedPreferences pref = getPreferences(0);
+				final boolean firstTime = pref.getBoolean(KEY_SCRIPTS_FIRST_TIME, true);
+				ScriptHelper.copyScripts(MainActivity.this, firstTime);
+				pref.edit().putBoolean(KEY_SCRIPTS_FIRST_TIME, false);
+			}
+		}).start();
 	}
 
 	@Override

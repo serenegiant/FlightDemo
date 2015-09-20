@@ -28,6 +28,7 @@ public class BaseFragment extends Fragment {
 	@Override
 	public synchronized void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		loadArguments(savedInstanceState);
 		final HandlerThread thread = new HandlerThread(TAG);
 		thread.start();
 		mHandler = new Handler(thread.getLooper());

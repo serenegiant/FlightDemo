@@ -1,4 +1,5 @@
-// extern sin/cos/tan/asin/acos/atan/atan2/sinh/cosh/tanhsqrt/abs/exp/log/log10/hypot/pow/random/wait
+#define name revolution_xr
+// extern sin/cos/tan/asin/acos/atan/atan2/sinh/cosh/tanh/sqrt/abs/exp/log/log10/hypot/pow/random/wait
 // extern void emergency(void);
 // extern void takeoff(void);
 // extern void landing(void);
