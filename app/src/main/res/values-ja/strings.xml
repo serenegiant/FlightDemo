@@ -91,6 +91,7 @@
 
 	<string name="script_list">スクリプト一覧</string>
 	<string name="script_error">スクリプトエラー</string>
+	<string name="script_error_non">エラーはありません</string>
 	<string name="script_empty">スクリプトが登録されていません</string>
 
 	<!-- サイドメニューの項目 -->

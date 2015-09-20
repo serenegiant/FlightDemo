@@ -37,14 +37,15 @@
    			android:layout_centerHorizontal="true"
    			android:textSize="@dimen/text_sz_list"/>
    	</RelativeLayout>
-<ScrollView
-    android:layout_width="match_parent" android:layout_height="match_parent"
-            android:padding="@dimen/half_padding"
-    android:layout_below="@+id/linearLayout3">
+	<ScrollView
+		android:layout_width="match_parent" android:layout_height="match_parent"
+				android:padding="@dimen/half_padding"
+		android:layout_below="@+id/linearLayout3">
 
-        <TextView
+		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-            android:id="@+id/error_textview"/>
-</ScrollView>
+			android:id="@+id/error_textview"
+			android:textSize="@dimen/text_sz_error"/>
+	</ScrollView>
 </RelativeLayout>

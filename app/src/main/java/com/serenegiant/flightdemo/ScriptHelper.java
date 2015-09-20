@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.LineNumberReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -130,6 +131,11 @@ public class ScriptHelper {
 		"revolution_yr2.script",
 	};
 
+	/**
+	 * アセット内のスクリプトファイルをストレージにコピーする
+	 * @param context
+	 * @param force
+	 */
 	public static void copyScripts(final Context context, final boolean force) {
 		final File root = FileUtils.getCaptureDir(context, "Documents", false);
 		final int n = SCRIPTS.length;
@@ -168,17 +174,31 @@ public class ScriptHelper {
 	private static final String KEY_SCRIPT_NAME = "KEY_SCRIPT_NAME";
 	private static final String KEY_SCRIPT_CRC = "KEY_SCRIPT_CRC";
 
-	public static void loadScripts(final SharedPreferences pref, final List<ScriptRec> scripts) {
+	/**
+	 * プレファレンスに保存されているスクリプト定義を読み込み
+	 * @param pref
+	 * @param scripts
+	 */
+	public static void loadScripts(final SharedPreferences pref, final List<ScriptRec> scripts) throws IOException {
 		final int n = pref.getInt(KEY_SCRIPT_NUM, 0);
 		scripts.clear();
+		final StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < n; i++) {
 			final String path = pref.getString(KEY_SCRIPT_PATH + i, "");
 			final String name = pref.getString(KEY_SCRIPT_NAME + i, "");
 			final int crc = pref.getInt(KEY_SCRIPT_CRC, 0);
-			final ScriptRec script = loadScript(path, crc);
-			if (script != null) {
-				scripts.add(script);
+			try {
+				final ScriptRec script = loadScript(path, crc);
+				if (script != null) {
+					scripts.add(script);
+				}
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+				sb.append(e.getMessage()).append("\n");
 			}
+		}
+		if (sb.length() > 0) {
+			throw new IOException(sb.toString());
 		}
 	}
 
@@ -198,7 +218,7 @@ public class ScriptHelper {
 		}
 	}
 
-	public static final ScriptRec loadScript(final String path, final int crc) {
+	public static final ScriptRec loadScript(final String path, final int crc) throws FileNotFoundException, ParseException {
         if (DEBUG) Log.v(TAG, "loadScript:" + path);
         if (!TextUtils.isEmpty(path)) {
             return loadScript(new File(path), crc);
@@ -206,26 +226,21 @@ public class ScriptHelper {
         return null;
     }
 
-	public static final ScriptRec loadScript(final File file, final int crc) {
+	public static final ScriptRec loadScript(final File file, final int crc) throws FileNotFoundException, ParseException {
         final ScriptRec result = new ScriptRec();
 		if (file.exists() && file.canRead()) {
 			getScriptName(file, result);
-			try {
-				if (crc != result.crc) {	// crcが異なる=ファイルが変更された時
-					final Script script;
-					script = new Script(new BufferedInputStream(new FileInputStream(file)));
-					final ASTParse parse = script.Parse();
-					// FIXME 仮実行
-				}
-				result.checked = true;
-				return result;
-			} catch (final FileNotFoundException e) {
-				Log.w(TAG, e);
-			} catch (final ParseException e) {
-				Log.w(TAG, e);
+			if (crc != result.crc) {	// crcが異なる=ファイルが変更された時
+				final Script script;
+				script = new Script(new BufferedInputStream(new FileInputStream(file)));
+				final ASTParse parse = script.Parse();
+				// FIXME 仮実行
 			}
+			result.checked = true;
+			return result;
+		} else {
+			throw new FileNotFoundException(file.getName() + " not found");
 		}
-        return null;
     }
 
     private static final Pattern NAME_PREFIX = Pattern.compile("^#define\\s+name\\s+(\\S+)");
@@ -273,14 +288,31 @@ public class ScriptHelper {
 	 * @param scrips
 	 * @return
 	 */
-	public static boolean addScripts(final File[] files, final List<ScriptRec> scrips) {
+	public static boolean addScripts(final File[] files, final List<ScriptRec> scrips) throws IOException {
 		boolean result = false;
 		final int n = files != null ? files.length : 0;
-		for (int i = 0; i < n; i++) {
-			final ScriptRec script = loadScript(files[i], 0);
-			if ((script != null) && !script.included(scrips)) {
-				scrips.add(script);
-				result = true;
+		if (n > 0) {
+			String lastError = null;
+			final List<ScriptRec> temp = new ArrayList<ScriptRec>();
+			try {
+				for (int i = 0; i < n; i++) {
+					final ScriptRec script = loadScript(files[i], 0);
+					if ((script != null) && !script.included(scrips) && !script.included(temp)) {
+						temp.add(script);
+						result = true;
+					}
+				}
+			} catch (final FileNotFoundException e) {
+				result = false;
+				lastError = e.getMessage();
+			} catch (final ParseException e) {
+				result = false;
+				lastError = e.getMessage();
+			}
+			if (result) {
+				scrips.addAll(temp);
+			} else if (lastError != null) {
+				throw new IOException(lastError);
 			}
 		}
 		return result;

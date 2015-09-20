@@ -90,6 +90,7 @@
 
 	<string name="script_list">List of script</string>
 	<string name="script_error">Script error</string>
+	<string name="script_error_non">No error</string>
 	<string name="script_empty">No script registered</string>
 
 	<!-- サイドメニューの項目 -->

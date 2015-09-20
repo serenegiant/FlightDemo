@@ -32,4 +32,5 @@
 	<dimen name="progress_sz_freespace">400dp</dimen>
 	<dimen name="progress_height">16dp</dimen>
 	<dimen name="list_min_height">24sp</dimen>
+	<dimen name="text_sz_error">24sp</dimen>
 </resources>

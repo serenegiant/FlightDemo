@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -22,7 +23,10 @@ import com.serenegiant.dialog.OnDialogResultIntListener;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +40,10 @@ public class ScriptFragment extends BaseFragment implements SelectFileDialogFrag
     }
 
 	private final List<ScriptHelper.ScriptRec> mScripts = new ArrayList<ScriptHelper.ScriptRec>();
-    private SharedPreferences mPref;
 	private ScriptHelper.ScriptListAdapter mScriptListAdapter;
+    private SharedPreferences mPref;
+	private ViewPager mViewPager;
+	private String lastError;
 
     public ScriptFragment() {
 		super();
@@ -54,11 +60,16 @@ public class ScriptFragment extends BaseFragment implements SelectFileDialogFrag
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
         final View rootView = inflater.inflate(R.layout.fragment_script, container, false);
-        final ViewPager pager = (ViewPager)rootView.findViewById(R.id.pager);
-        pager.setAdapter(new ScriptPagerAdapter(inflater));
+        mViewPager = (ViewPager)rootView.findViewById(R.id.pager);
+        mViewPager.setAdapter(new ScriptPagerAdapter(inflater));
         // スクリプトの設定を読み込む
-        ScriptHelper.loadScripts(mPref, mScripts);
-        return rootView;
+		try {
+			ScriptHelper.loadScripts(mPref, mScripts);
+		} catch (IOException e) {
+			lastError = e.getMessage();
+			mViewPager.setCurrentItem(1);
+		}
+		return rootView;
     }
 
 	@Override
@@ -74,10 +85,18 @@ public class ScriptFragment extends BaseFragment implements SelectFileDialogFrag
 	@Override
 	public void onFileSelect(final File[] files) {
 		if (DEBUG) Log.v(TAG, "onFileSelect:");
-		final int n = files != null ? files.length : 0;
-		boolean added = ScriptHelper.addScripts(files, mScripts);
 		if (mScriptListView != null) {
 			mScriptListView.clearChoices();
+		}
+		final int n = files != null ? files.length : 0;
+		boolean added = false;
+		try {
+			added = ScriptHelper.addScripts(files, mScripts);
+		} catch (final IOException e) {
+			Log.w(TAG, e);
+			lastError = e.getMessage();
+			// FIXME ここでエラー画面に遷移したい
+			mViewPager.setCurrentItem(1);
 		}
 		if (added && (mScriptListAdapter != null)) {
 			mScriptListAdapter.notifyDataSetChanged();
@@ -114,6 +133,9 @@ public class ScriptFragment extends BaseFragment implements SelectFileDialogFrag
 				for (final ScriptHelper.ScriptRec script: scripts) {
 					mScriptListAdapter.remove(script);
 				}
+			}
+			if (mScriptListView != null) {
+				mScriptListView.clearChoices();
 			}
 			updateScriptList();
 		}
@@ -183,6 +205,11 @@ public class ScriptFragment extends BaseFragment implements SelectFileDialogFrag
 	 */
     private void initScriptError(final View rootView) {
 		mErrorTextView = (TextView)rootView.findViewById(R.id.error_textview);
+		if (TextUtils.isEmpty(lastError)) {
+			mErrorTextView.setText(R.string.script_error_non);
+		} else {
+			mErrorTextView.setText(lastError);
+		}
 		ImageButton button = (ImageButton)rootView.findViewById(R.id.save_btn);
 		button.setOnClickListener(mOnClickListener);
 		button = (ImageButton)rootView.findViewById(R.id.help_btn);
