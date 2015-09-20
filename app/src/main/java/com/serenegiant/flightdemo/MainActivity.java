@@ -103,13 +103,13 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 				.add(R.id.container, fragment).commit();
 		}
 		prepareSideMenu();
+		final SharedPreferences pref = getPreferences(0);
+		final boolean firstTime = pref.getBoolean(KEY_SCRIPTS_FIRST_TIME, true);
+		pref.edit().putBoolean(KEY_SCRIPTS_FIRST_TIME, false);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				final SharedPreferences pref = getPreferences(0);
-				final boolean firstTime = pref.getBoolean(KEY_SCRIPTS_FIRST_TIME, true);
 				ScriptHelper.copyScripts(MainActivity.this, firstTime);
-				pref.edit().putBoolean(KEY_SCRIPTS_FIRST_TIME, false);
 			}
 		}).start();
 	}
