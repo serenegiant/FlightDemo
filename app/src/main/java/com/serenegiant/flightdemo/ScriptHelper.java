@@ -232,7 +232,7 @@ public class ScriptHelper {
 	 * @throws FileNotFoundException
 	 * @throws ParseException
 	 */
-	public static final ScriptRec loadScript(final String path, final int crc) throws FileNotFoundException, ParseException {
+	public static final ScriptRec loadScript(final String path, final int crc) throws IOException, ParseException {
         if (DEBUG) Log.v(TAG, "loadScript:" + path);
         if (!TextUtils.isEmpty(path)) {
             return loadScript(new File(path), crc);
@@ -248,7 +248,7 @@ public class ScriptHelper {
 	 * @throws FileNotFoundException
 	 * @throws ParseException
 	 */
-	public static final ScriptRec loadScript(final File file, final int crc) throws FileNotFoundException, ParseException {
+	public static final ScriptRec loadScript(final File file, final int crc) throws IOException, ParseException {
         final ScriptRec result = new ScriptRec();
 		if (file.exists() && file.canRead()) {
 			getScriptName(file, result);
@@ -274,41 +274,35 @@ public class ScriptHelper {
 	 * @param rec
 	 * @return
 	 */
-	public static final ScriptRec getScriptName(final File file, final ScriptRec rec) {
+	public static final ScriptRec getScriptName(final File file, final ScriptRec rec) throws IOException {
 		final ScriptRec result = rec != null ? rec : new ScriptRec();
 		result.crc = 0;
 		result.path = null;
 		result.name = FileUtils.removeFileExtension(file.getName());
 		final CRC32 crc = new CRC32();
-        try {
-            final LineNumberReader in = new LineNumberReader(new BufferedReader(new FileReader(file)));
-            String line;
-			Matcher matcher = null;
-			boolean found = false;
-            do {
-                line = in.readLine();	// nullが返ってきたらファイルの終端
-                if (line != null) {
-					crc.update(line);	// crc32を計算
-					if (!found) {		// 最初に見つかったのを採用する
-						if (matcher == null) {
-							matcher = NAME_PREFIX.matcher(line);
-						} else {
-							matcher.reset(line);
-						}
-						if (matcher.find()) {
-							result.name = matcher.group(1);
-							found = true;	// 見つかった
-						}
+		final LineNumberReader in = new LineNumberReader(new BufferedReader(new FileReader(file)));
+		String line;
+		Matcher matcher = null;
+		boolean found = false;
+		do {
+			line = in.readLine();	// nullが返ってきたらファイルの終端
+			if (line != null) {
+				crc.update(line);	// crc32を計算
+				if (!found) {		// 最初に見つかったのを採用する
+					if (matcher == null) {
+						matcher = NAME_PREFIX.matcher(line);
+					} else {
+						matcher.reset(line);
 					}
-                }
-            } while (line != null);
-			result.path = file;
-			result.crc = crc.getCrc();
-        } catch (final FileNotFoundException e) {
-            Log.w(TAG, e);
-        } catch (final IOException e) {
-            Log.w(TAG, e);
-        }
+					if (matcher.find()) {
+						result.name = matcher.group(1);
+						found = true;	// 見つかった
+					}
+				}
+			}
+		} while (line != null);
+		result.path = file;
+		result.crc = crc.getCrc();
         return result;
     }
 
