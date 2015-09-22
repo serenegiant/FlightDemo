@@ -51,6 +51,7 @@ import com.serenegiant.gl.IModelView;
 import com.serenegiant.gl.IScreen;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1222,11 +1223,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	}
 
-	private static final int SCRIPT_NUM = 6;
+//	private static final int SCRIPT_NUM = 6;
 	/**
 	 * 左サイドメニューの項目
 	 */
-	private static final int[] SIDE_MENU_ITEMS = {
+/*	private static final int[] SIDE_MENU_ITEMS = {
 		R.string.script_circle_xy,				// スクリプト
 		R.string.script_circle_xz,				// スクリプト
 		R.string.script_revolution_xr,			// スクリプト
@@ -1247,7 +1248,29 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 //		R.string.anim_spiral,
 //		R.string.anim_slalome,
 //		R.string.anim_boost,
-	};
+	}; */
+
+	private final List<ScriptHelper.ScriptRec> mScripts = new ArrayList<ScriptHelper.ScriptRec>();
+
+	private List<String> setupScript() {
+		final List<String> result = new ArrayList<String>();
+
+		final SharedPreferences pref = getActivity().getPreferences(0);
+		try {
+			ScriptHelper.loadScripts(pref, mScripts);
+			final int n = mScripts.size();
+			for (int i = 0; i < n; i++) {
+				result.add(mScripts.get(i).name);
+			}
+/*			for (int i = 0; i < SIDE_MENU_ITEMS.length; i++) {
+				result.add(getString(SIDE_MENU_ITEMS[i]));
+			} */
+
+		} catch (final IOException e) {
+			Log.w(TAG, e);
+		}
+		return result;
+	}
 
 	/**
 	 * スクリプト実行開始
@@ -1257,7 +1280,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
 			mScriptRunning = true;
 			try {
-				switch (index) {
+				final int n = mScripts.size();
+				if ((index >= 0) && (index < n)) {
+					mScriptFlight.prepare(new FileInputStream(mScripts.get(index).path), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
+				} else {
+					throw new IOException("スクリプトファイルが見つからない(範囲外):" + index);
+				}
+/*				switch (index) {
 				case 0:
 					mScriptFlight.prepare(getResources().getAssets().open("circle_xy2.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
 					break;
@@ -1277,8 +1306,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mScriptFlight.prepare(getResources().getAssets().open("revolution_yr2.script"), mMaxControlValue, mScaleX, mScaleY, mScaleZ, mScaleR);
 					break;
 				default:
-					throw new IOException("スクリプトファイルが見つからない(範囲外)");
-				}
+					throw new IOException("スクリプトファイルが見つからない(範囲外):" + index);
+				} */
 			} catch (final IOException e) {
 				mScriptRunning = false;
 				Log.w(TAG, e);
@@ -2087,32 +2116,31 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				final MainActivity activity = (MainActivity) getActivity();
+				final MainActivity activity = (MainActivity)getActivity();
 				if (activity == null || activity.isFinishing()) return;
 
-				if (mSideMenuListView == null) {
-					mSideMenuListView = new SideMenuListView(activity);
-					activity.setSideMenuView(mSideMenuListView);
-					mSideMenuListView.setOnItemClickListener(mOnItemClickListener);
-				}
-				final List<String> labelList = new ArrayList<String>();
-				for (int i = 0; i < SIDE_MENU_ITEMS.length; i++) {
-					labelList.add(getString(SIDE_MENU_ITEMS[i]));
-				}
-				ListAdapter adapter = mSideMenuListView.getAdapter();
-				if (adapter instanceof SideMenuAdapter) {
-					((SideMenuAdapter) adapter).clear();
-					if (labelList.size() > 0) {
-						((SideMenuAdapter) adapter).addAll(labelList);
+				final List<String> labelList = setupScript();
+				if (labelList.size() > 0) {
+					if (mSideMenuListView == null) {
+						mSideMenuListView = new SideMenuListView(activity);
+						activity.setSideMenuView(mSideMenuListView);
+						mSideMenuListView.setOnItemClickListener(mOnItemClickListener);
 					}
-				} else {
-					mSideMenuListView.setAdapter(null);
-					if (labelList.size() > 0) {
-						adapter = new SideMenuAdapter(getActivity(), R.layout.item_sidemenu, labelList);
-						mSideMenuListView.setAdapter(adapter);
+					ListAdapter adapter = mSideMenuListView.getAdapter();
+					if (adapter instanceof SideMenuAdapter) {
+						((SideMenuAdapter)adapter).clear();
+						if (labelList.size() > 0) {
+							((SideMenuAdapter)adapter).addAll(labelList);
+						}
+					} else {
+						mSideMenuListView.setAdapter(null);
+						if (labelList.size() > 0) {
+							adapter = new SideMenuAdapter(getActivity(), R.layout.item_sidemenu, labelList);
+							mSideMenuListView.setAdapter(adapter);
+						}
 					}
+					activity.setSideMenuEnable(labelList.size() > 0);
 				}
-				activity.setSideMenuEnable(labelList.size() > 0);
 			}
 		});
 	}
@@ -2142,11 +2170,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (DEBUG) Log.v(TAG, "onItemClick:" + position);
 			final MainActivity activity = (MainActivity)getActivity();
 			activity.closeSideMenu();
-			if ((position >= 0) && (position < SCRIPT_NUM)) {
+			startScript(position);
+/*			if ((position >= 0) && (position < SCRIPT_NUM)) {
 				startScript(position);
 			} else {
-				startAnimationAction(position - SCRIPT_NUM);
-			}
+				startAnimationAction(position - SCRIPT_NUM);	// これは新minidrone以外だと動かないのでコメントアウト
+			} */
 		}
 	};
 

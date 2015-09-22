@@ -175,7 +175,7 @@ public class ScriptHelper {
 	private static final String KEY_SCRIPT_CRC = "KEY_SCRIPT_CRC";
 
 	/**
-	 * プレファレンスに保存されているスクリプト定義を読み込み
+	 * プレファレンスに保存されているスクリプト定義を読み込む
 	 * @param pref
 	 * @param scripts
 	 */
@@ -202,6 +202,11 @@ public class ScriptHelper {
 		}
 	}
 
+	/**
+	 * 指定したスクリプト定義をプレファレンスに書き出す
+	 * @param pref
+	 * @param scripts
+	 */
 	public static void saveScripts(final SharedPreferences pref, final List<ScriptRec> scripts) {
 		final int n = scripts.size();
 		final SharedPreferences.Editor editor = pref.edit();
@@ -218,6 +223,14 @@ public class ScriptHelper {
 		}
 	}
 
+	/**
+	 * 指定したファイルからスクリプトを読み込み文法チェックして返す
+	 * @param path
+	 * @param crc
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws ParseException
+	 */
 	public static final ScriptRec loadScript(final String path, final int crc) throws FileNotFoundException, ParseException {
         if (DEBUG) Log.v(TAG, "loadScript:" + path);
         if (!TextUtils.isEmpty(path)) {
@@ -226,6 +239,14 @@ public class ScriptHelper {
         return null;
     }
 
+	/**
+	 * 指定したファイルからスクリプトを読み込み文法チェックして返す
+	 * @param file
+	 * @param crc
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws ParseException
+	 */
 	public static final ScriptRec loadScript(final File file, final int crc) throws FileNotFoundException, ParseException {
         final ScriptRec result = new ScriptRec();
 		if (file.exists() && file.canRead()) {
@@ -243,12 +264,20 @@ public class ScriptHelper {
 		}
     }
 
+	/** スクリプトファイル内からスクリプト名定義を探すための正規表現 */
     private static final Pattern NAME_PREFIX = Pattern.compile("^#define\\s+name\\s+(\\S+)");
+
+	/**
+	 * スクリプトファイル内からスクリプト名を取得しcrc32を計算して返す
+	 * @param file
+	 * @param rec
+	 * @return
+	 */
 	public static final ScriptRec getScriptName(final File file, final ScriptRec rec) {
 		final ScriptRec result = rec != null ? rec : new ScriptRec();
 		result.crc = 0;
 		result.path = null;
-		result.name = file.getName();
+		result.name = FileUtils.removeFileExtension(file.getName());
 		final CRC32 crc = new CRC32();
         try {
             final LineNumberReader in = new LineNumberReader(new BufferedReader(new FileReader(file)));
@@ -283,7 +312,7 @@ public class ScriptHelper {
     }
 
 	/**
-	 * 指定したファイルリストからスクリプトを追加する
+	 * 指定したファイル配列からスクリプトを追加する
 	 * @param files
 	 * @param scrips
 	 * @return

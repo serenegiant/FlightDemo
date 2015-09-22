@@ -217,4 +217,44 @@ public class FileUtils {
         return result;
     }
 
+	/**
+	 * 拡張子を取り除いたファイル名を返す
+	 * @param filename
+	 * @return
+	 */
+	public static String removeFileExtension(final String filename) {
+		final int lastDotPos = filename.lastIndexOf('.');
+
+		if (lastDotPos == -1) {
+			return filename;
+		} else if (lastDotPos == 0) {
+			return filename;
+		} else {
+			return filename.substring(0, lastDotPos);
+		}
+	}
+
+	/**
+	 * ファイル名から拡張子を取得して返す
+	 * @param filename
+	 * @return
+	 */
+	public static String getExtension(final String filename) {
+		return getSuffix(filename, ".");
+	}
+	/**
+	 * 指定した文字列の最後から指定したセパレーターを検索してセパレーターよりも後ろの部分を返す。
+	 * @param string
+	 * @return 見つからなければ引数をそのまま帰す
+	 */
+	public static String getSuffix(final String string, final String separator) {
+		if (TextUtils.isEmpty(string)) {
+			return null;
+		}
+		final int point = string.lastIndexOf(separator);
+		if (point != -1) {
+			return string.substring(point + 1);
+		}
+		return string;
+	}
 }

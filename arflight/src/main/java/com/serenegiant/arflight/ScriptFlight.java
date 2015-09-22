@@ -15,12 +15,13 @@ import java.util.List;
 
 public class ScriptFlight implements IAutoFlight {
 	private static final boolean DEBUG = false;				// FIXME 実働時はfalseにすること
-	private static final boolean DEBUG_PRESETFUNC = true;	// FIXME 実働時はfalseにすること
-	private static final String TAG = "ScriptFlight";
+	private static final boolean DEBUG_PRESETFUNC = true;	// プリセット関数のデバッグメッセージ切り替え FIXME 実働時はfalseにすること
+	private static final String TAG = ScriptFlight.class.getSimpleName();
 
 	private final Object mSync = new Object();
 	private final AutoFlightListener mAutoFlightListener;
-	private final Handler mHandler;	// プライベートスレッドでの実行用
+	/** プライベートスレッドでの実行用 */
+	private final Handler mHandler;
 
 	private volatile boolean mIsPlayback;	// 再生中
 	private ASTParse mASTParse;
@@ -32,7 +33,7 @@ public class ScriptFlight implements IAutoFlight {
 			throw new NullPointerException("AutoFlightListenerコールバックリスナーが設定されてない");
 		}
 		mAutoFlightListener = listener;
-		final HandlerThread thread = new HandlerThread("ScriptFlight");
+		final HandlerThread thread = new HandlerThread(TAG);
 		thread.start();
 		mHandler = new Handler(thread.getLooper());
 
