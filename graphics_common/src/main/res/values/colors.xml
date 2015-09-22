@@ -28,6 +28,8 @@
     <color name="LIGHTGOLDENRODYELLOW">#fffafad2</color>
     <color name="TOMATO">#ffff6347</color>
     <color name="GRAY">#ff808080</color>
+    <color name="GRAY_A50">#7f808080</color>
+    <color name="GRAY_A25">#3f808080</color>
     <color name="LIGHTSTEELBLUE">#ffb0c4de</color>
     <color name="DARKSLATEGRAY">#ff2f4f4f</color>
     <color name="LEMONCHIFFON">#fffffacd</color>
@@ -40,6 +42,8 @@
     <color name="SILVER">#ffc0c0c0</color>
     <color name="SLATEGRAY">#ff708090</color>
     <color name="GREEN">#ff008000</color>
+    <color name="GREEN_A50">#7f008000</color>
+    <color name="GREEN_A25">#3f008000</color>
     <color name="BURLYWOOD">#ffdeb887</color>
     <color name="CRIMSON">#ffdc143c</color>
     <color name="LIGHTGRAY">#ffd3d3d3</color>
@@ -66,6 +70,8 @@
     <color name="DARKBLUE">#ff00008b</color>
     <color name="DARKSEAGREEN">#ff8fbc8f</color>
     <color name="ORANGE">#ffffa500</color>
+    <color name="ORANGE_A50">#7fffa500</color>
+    <color name="ORANGE_A25">#3fffa500</color>
     <color name="PINK">#ffffc0cb</color>
     <color name="GHOSTWHITE">#fff8f8ff</color>
     <color name="MEDIUMBLUE">#ff0000cd</color>
@@ -129,6 +135,8 @@
     <color name="PURPLE">#ff800080</color>
     <color name="SEASHELL">#fffff5ee</color>
     <color name="AQUA">#ff00ffff</color>
+    <color name="AQUA_A50">#7f00ffff</color>
+    <color name="AQUA_A25">#3f00ffff</color>
     <color name="OLIVEDRAB">#ff6b8e23</color>
     <color name="INDIANRED">#ffcd5c5c</color>
     <color name="INDIGO">#ff4b0082</color>

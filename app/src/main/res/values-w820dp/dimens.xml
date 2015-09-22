@@ -19,6 +19,7 @@
 	<dimen name="btn_width_takeoff">96dp</dimen>
 	<dimen name="btn_height_takeoff">72dp</dimen>
 	<dimen name="btn_size_action">72dp</dimen>
+	<dimen name="btn_sz_connection">128dp</dimen>
 
 	<dimen name="text_sz_message">42sp</dimen>
 	<dimen name="text_sz_button">28sp</dimen>

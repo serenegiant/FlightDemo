@@ -121,7 +121,7 @@
 					android:layout_width="@dimen/btn_size_action"
 					android:layout_height="@dimen/btn_size_action"
 					android:layout_marginTop="@dimen/quater_padding"
-					android:background="@null"
+					android:background="@drawable/button_frame_green_a50"
 					android:scaleType="fitXY"
 					android:src="@mipmap/ic_flip_front"/>
 
@@ -129,7 +129,7 @@
 					android:id="@+id/flip_back_btn"
 					android:layout_width="@dimen/btn_size_action"
 					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
+					android:background="@drawable/button_frame_green_a50"
 					android:scaleType="fitXY"
 					android:src="@mipmap/ic_flip_back"/>
 
@@ -137,7 +137,7 @@
 					android:id="@+id/flip_right_btn"
 					android:layout_width="@dimen/btn_size_action"
 					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
+					android:background="@drawable/button_frame_green_a50"
 					android:scaleType="fitXY"
 					android:src="@mipmap/ic_flip_right"/>
 
@@ -145,7 +145,7 @@
 					android:id="@+id/flip_left_btn"
 					android:layout_width="@dimen/btn_size_action"
 					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
+					android:background="@drawable/button_frame_green_a50"
 					android:scaleType="fitXY"
 					android:src="@mipmap/ic_flip_left"/>
 
@@ -192,7 +192,7 @@
 					android:id="@+id/still_capture_btn"
 					android:layout_width="@dimen/btn_size_action"
 					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
+					android:background="@drawable/button_frame_green_a25"
 					android:scaleType="fitXY"
 					android:src="@android:drawable/ic_menu_camera"/>
 
@@ -200,7 +200,7 @@
 					android:id="@+id/video_capture_btn"
 					android:layout_width="@dimen/btn_size_action"
 					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
+					android:background="@drawable/button_frame_green_a25"
 					android:scaleType="fitXY"
 					android:src="@android:drawable/presence_video_online"/>
 
@@ -208,7 +208,7 @@
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:layout_marginTop="@dimen/quater_padding"
-					android:background="@null">
+					android:background="@drawable/button_frame_green_a25">
 
 					<ImageButton
 						android:id="@+id/cap_p45_btn"
@@ -231,7 +231,7 @@
 				<FrameLayout
 					android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
-					android:background="@null">
+					android:background="@drawable/button_frame_green_a25">
 
 					<ImageButton
 						android:id="@+id/cap_m45_btn"
