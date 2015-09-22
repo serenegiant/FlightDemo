@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.LineNumberReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -347,4 +348,24 @@ public class ScriptHelper {
 		return result;
 	}
 
+	/**
+	 * ログファイルにメッセージを追加
+	 * @param context
+	 * @param message
+	 */
+	public static void appendLog(final Context context, final String message) {
+		try {
+			final File root = FileUtils.getCaptureDir(context, "Documents", false);
+			final File log = new File(new File(root, "log"), "script" + FileUtils.getDateTimeString() + ".log");
+			log.mkdirs();
+			final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(log, true));
+			writer.write(message);
+			writer.flush();
+			writer.close();
+		} catch (final FileNotFoundException e) {
+			Log.w(TAG, e);
+		} catch (final IOException e) {
+			Log.w(TAG, e);
+		}
+	}
 }

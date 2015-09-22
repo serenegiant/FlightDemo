@@ -1310,6 +1310,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				} */
 			} catch (final IOException e) {
 				mScriptRunning = false;
+				ScriptHelper.appendLog(getActivity(), e.getMessage());
 				Log.w(TAG, e);
 			}
 			updateButtons();
@@ -1544,8 +1545,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			stopPlay();
 			stopScript();
 			stopTouchMove();
-			Log.w(TAG, e);
 			updateButtons();
+			Log.w(TAG, e);
+			ScriptHelper.appendLog(getActivity(), e.getMessage());
 		}
 
 	};

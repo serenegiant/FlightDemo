@@ -129,7 +129,7 @@ public class FileUtils {
      * 現在の日時を表す文字列を取得する
      * @return
      */
-    private static final String getDateTimeString() {
+    public static final String getDateTimeString() {
     	final GregorianCalendar now = new GregorianCalendar();
     	return mDateTimeFormat.format(now.getTime());
     }
