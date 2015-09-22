@@ -27,7 +27,7 @@
 		<RelativeLayout
 			android:id="@+id/top_panel"
 			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
+			android:layout_height="@dimen/top_panel_height"
 			android:gravity="top"
 			android:background="@drawable/gray_gradient">
 
@@ -123,7 +123,7 @@
 					android:layout_marginTop="@dimen/quater_padding"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@drawable/flip_front144x144"/>
+					android:src="@mipmap/ic_flip_front"/>
 
 				<ImageButton
 					android:id="@+id/flip_back_btn"
@@ -131,7 +131,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@drawable/flip_back144x144"/>
+					android:src="@mipmap/ic_flip_back"/>
 
 				<ImageButton
 					android:id="@+id/flip_right_btn"
@@ -139,7 +139,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@drawable/flip_right144x144"/>
+					android:src="@mipmap/ic_flip_right"/>
 
 				<ImageButton
 					android:id="@+id/flip_left_btn"
@@ -147,7 +147,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@drawable/flip_left144x144"/>
+					android:src="@mipmap/ic_flip_left"/>
 
 			</LinearLayout>
 
@@ -216,7 +216,7 @@
 						android:layout_height="@dimen/btn_size_action"
 						android:background="@null"
 						android:scaleType="fitXY"
-						android:src="@drawable/turn_right144x144"/>
+						android:src="@mipmap/ic_turn_right"/>
 
 					<TextView
 						android:layout_width="wrap_content"
@@ -239,7 +239,7 @@
 						android:layout_height="@dimen/btn_size_action"
 						android:background="@null"
 						android:scaleType="fitXY"
-						android:src="@drawable/turn_left144x144"/>
+						android:src="@mipmap/ic_turn_left"/>
 
 					<TextView
 						android:layout_width="wrap_content"
@@ -270,7 +270,7 @@
 				android:layout_centerHorizontal="true"
 				android:background="@null"
 				android:scaleType="fitCenter"
-				android:src="@drawable/takeoff72x72"/>
+				android:src="@mipmap/ic_takeoff"/>
 
 			<ImageButton
 				android:id="@+id/emergency_btn"
@@ -280,7 +280,7 @@
 				android:layout_marginRight="@dimen/quater_padding"
 				android:background="@null"
 				android:scaleType="fitXY"
-				android:src="@drawable/stop72x72"/>
+				android:src="@mipmap/ic_stop"/>
 
 			<TextView
 				android:id="@+id/time_label"
@@ -305,8 +305,7 @@
 					android:layout_height="@dimen/bottom_panel_height"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@drawable/rec"
-					/>
+					android:src="@mipmap/ic_rec" />
 
 				<TextView
 					android:id="@+id/record_label"
@@ -332,7 +331,7 @@
 					android:layout_height="@dimen/bottom_panel_height"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@drawable/map"/>
+					android:src="@mipmap/ic_map"/>
 
 				<TextView
 					android:layout_width="wrap_content"
@@ -358,7 +357,7 @@
 					android:layout_height="@dimen/bottom_panel_height"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@drawable/play"/>
+					android:src="@mipmap/ic_play"/>
 
 				<TextView
 					android:id="@+id/play_label"

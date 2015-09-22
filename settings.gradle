@@ -1,2 +1,2 @@
-include ':app', ':arflight', ':common'
+include ':app', ':arflight', ':common', ':graphics_common', ':icon_buttons', ':animations'
 include ':libraries:ScriptEngine:core'

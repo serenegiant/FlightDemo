@@ -14,8 +14,7 @@
 		android:layout_height="@dimen/stick_size"
 		android:layout_centerHorizontal="true"
 		android:layout_centerVertical="true"
-		android:src="@drawable/stick_top144x144"
-		/>
+		android:src="@mipmap/ic_stick_top" />
 
 	<TextView
 		android:id="@+id/textView8"

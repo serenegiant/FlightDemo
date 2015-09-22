@@ -23,8 +23,6 @@ import com.serenegiant.dialog.OnDialogResultIntListener;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.utils.FileUtils;
 
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

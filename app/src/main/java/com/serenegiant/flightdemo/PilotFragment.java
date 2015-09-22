@@ -1701,13 +1701,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case DroneStatus.STATE_FLYING_LANDED:		// 0x0000;		// FlyingState=0
 				mModelView.stopEngine();
 			case DroneStatus.STATE_FLYING_LANDING:		// 0x0400;		// FlyingState=4
-				mTakeOnOffBtn.setImageResource(R.drawable.takeoff72x72);
+				mTakeOnOffBtn.setImageResource(R.mipmap.ic_takeoff);
 				break;
 			case DroneStatus.STATE_FLYING_TAKEOFF:		// 0x0100;		// FlyingState=1
 			case DroneStatus.STATE_FLYING_HOVERING:		// 0x0200;		// FlyingState=2
 			case DroneStatus.STATE_FLYING_FLYING:		// 0x0300;		// FlyingState=3
 			case DroneStatus.STATE_FLYING_ROLLING:		// 0x0600;		// FlyingState=6
-				mTakeOnOffBtn.setImageResource(R.drawable.landing72x72);
+				mTakeOnOffBtn.setImageResource(R.mipmap.ic_landing);
 				mModelView.startEngine();
 				break;
 			case DroneStatus.STATE_FLYING_EMERGENCY:	// 0x0500;		// FlyingState=5

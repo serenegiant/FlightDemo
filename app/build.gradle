@@ -30,4 +30,7 @@ dependencies {
 	compile 'com.android.support:appcompat-v7:22.2.1'
 	compile project(':arflight')
 	compile project(':common')
+	compile project(':graphics_common')
+	compile project(':icon_buttons')
+	compile project(':animations')
 }

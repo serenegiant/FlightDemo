@@ -51,7 +51,7 @@
             android:layout_weight="1"
             android:background="@null"
             android:scaleType="fitCenter"
-            android:src="@drawable/stick_front144x144"/>
+            android:src="@mipmap/ic_stick_front"/>
 
         <ImageButton
             android:id="@+id/download_button"
