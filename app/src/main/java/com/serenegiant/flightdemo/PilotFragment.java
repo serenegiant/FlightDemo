@@ -1752,9 +1752,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mStillCaptureBtn.setEnabled(still_capture_state == DroneStatus.MEDIA_READY);
 			mStillCaptureBtn.setVisibility(still_capture_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
 
-			mVideoRecordingBtn.setEnabled((video_recording_state == DroneStatus.MEDIA_READY) || (video_recording_state == DroneStatus.MEDIA_BUSY) );
+			mVideoRecordingBtn.setEnabled((video_recording_state == DroneStatus.MEDIA_READY) || (video_recording_state == DroneStatus.MEDIA_BUSY));
 			mStillCaptureBtn.setVisibility(video_recording_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
-			mVideoRecordingBtn.setImageResource(mVideoRecording ? android.R.drawable.presence_video_busy : android.R.drawable.presence_video_online);
+			mVideoRecordingBtn.setColorFilter(mVideoRecording ? 0x7fff0000 : 0);
+//			mVideoRecordingBtn.setImageResource(mVideoRecording ? android.R.drawable.presence_video_busy : android.R.drawable.presence_video_online);
 
 			// 左サイドパネル(とmFlipXXXBtn等)
 			mLeftSidePanel.setEnabled(can_fly);

@@ -3,9 +3,14 @@ package com.serenegiant.flightdemo;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.graphics.SurfaceTexture;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -13,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Checkable;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.VideoView;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -20,7 +26,9 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.ARDeviceServiceAdapter;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.gl.IModelView;
+import com.serenegiant.widget.PlayerTextureView;
 
+import java.io.IOException;
 import java.util.List;
 
 public class ConnectionFragment extends BaseFragment {
@@ -41,8 +49,11 @@ public class ConnectionFragment extends BaseFragment {
 	}
 
 	private ListView mDeviceListView;
-	private IModelView mModelView;
+//	private IModelView mModelView;
+//	private VideoView mVideoView;
+	private PlayerTextureView mVideoView;
 	private ImageButton mDownloadBtn, mPilotBtn;
+	private MediaPlayer mMediaPlayer;
 
 	public ConnectionFragment() {
 		super();
@@ -65,7 +76,16 @@ public class ConnectionFragment extends BaseFragment {
 		manager.startDiscovery();
 		manager.addCallback(mManagerCallback);
 		updateButtons(false);
-		mModelView.onResume();
+//		mModelView.onResume();
+/*		if (mVideoView != null) {
+			mVideoView.resume();
+			if (!mVideoView.isPlaying()) {
+				mVideoView.start();
+			}
+		} */
+		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
+			mMediaPlayer.start();
+		}
 	}
 
 	@Override
@@ -73,13 +93,18 @@ public class ConnectionFragment extends BaseFragment {
 		if (DEBUG) Log.d(TAG, "onPause:");
 
 		updateButtons(false);
-		mModelView.onPause();
+//		mModelView.onPause();
+/*		if (mVideoView != null) {
+			mVideoView.suspend();
+		} */
+		if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+			mMediaPlayer.stop();
+		}
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		if (manager != null) {
 			manager.removeCallback(mManagerCallback);
 			manager.stopDiscovery();
 		}
-
 		super.onPause();
 	}
 
@@ -91,15 +116,23 @@ public class ConnectionFragment extends BaseFragment {
 
 		final ARDeviceServiceAdapter adapter = new ARDeviceServiceAdapter(getActivity(), R.layout.list_item_deviceservice);
 
+		mMediaPlayer = new MediaPlayer();
+		mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
+		mMediaPlayer.setOnCompletionListener(mOnCompletionListener);
+
 		mDeviceListView = (ListView)rootView.findViewById(R.id.list);
 		final View empty_view = rootView.findViewById(R.id.empty_view);
 		mDeviceListView.setEmptyView(empty_view);
 		mDeviceListView.setAdapter(adapter);
 		mDeviceListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-//		mDeviceListView.setOnItemClickListener(mOnItemClickListener);
-//		mDeviceListView.setOnItemLongClickListener(mOnItemLongClickListener);
-		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
-//		((View)mModelView).setOnLongClickListener(mOnLongClickListener);	// FIXME テスト用, 長押しでギャラリー表示へ
+//		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
+/*		mVideoView = (VideoView)rootView.findViewById(R.id.videoView);
+		mVideoView.setOnPreparedListener(mOnPreparedListener);
+		mVideoView.setOnCompletionListener(mOnCompletionListener);
+		mVideoView.setVideoURI(Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.into_the_sky)); */
+		mVideoView = (PlayerTextureView)rootView.findViewById(R.id.videoView);
+		mVideoView.setScaleMode(PlayerTextureView.SCALE_MODE_CROP);
+		mVideoView.setSurfaceTextureListener(mSurfaceTextureListener);
 
 		mDownloadBtn = (ImageButton)rootView.findViewById(R.id.download_button);
 		mDownloadBtn.setOnClickListener(mOnClickListener);
@@ -117,17 +150,17 @@ public class ConnectionFragment extends BaseFragment {
 			getActivity().runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-				if (!visible) {
-					try {
-						final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
-						adapter.clear();
-					} catch (final Exception e) {
-						Log.w(TAG, e);
+					if (!visible) {
+						try {
+							final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+							adapter.clear();
+						} catch (final Exception e) {
+							Log.w(TAG, e);
+						}
 					}
-				}
-				final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
-				mDownloadBtn.setVisibility(visibility);
-				mPilotBtn.setVisibility(visibility);
+					final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+					mDownloadBtn.setVisibility(visibility);
+					mPilotBtn.setVisibility(visibility);
 				}
 			});
 		}
@@ -138,31 +171,31 @@ public class ConnectionFragment extends BaseFragment {
 	 */
 	private ManagerFragment.ManagerCallback mManagerCallback = new ManagerFragment.ManagerCallback() {
 		@Override
-		public void onServicesDevicesListUpdated(List<ARDiscoveryDeviceService> devices) {
-		final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
-		adapter.clear();
-		for (final ARDiscoveryDeviceService service : devices) {
-			Log.d(TAG, "service :  " + service);
-			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
-			switch (product) {
-			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-				adapter.add(service);
-				break;
-			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
-				// FIXME JumpingSumoは未実装
-				break;
-			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-				adapter.add(service);
-				break;
+		public void onServicesDevicesListUpdated(final List<ARDiscoveryDeviceService> devices) {
+			final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
+			adapter.clear();
+			for (final ARDiscoveryDeviceService service : devices) {
+				Log.d(TAG, "service :  " + service);
+				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
+				switch (product) {
+				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+					adapter.add(service);
+					break;
+				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+					// FIXME JumpingSumoは未実装
+					break;
+				case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+					adapter.add(service);
+					break;
+				}
+/*				// ブルートゥース接続の時だけ追加する
+				if (service.getDevice() instanceof ARDiscoveryDeviceBLEService) {
+					adapter.add(service.getName());
+				} */
 			}
-/*			// ブルートゥース接続の時だけ追加する
-			if (service.getDevice() instanceof ARDiscoveryDeviceBLEService) {
-				adapter.add(service.getName());
-			} */
-		}
-		adapter.notifyDataSetChanged();
-		mDeviceListView.setItemChecked(0, true);	// 先頭を選択
-		updateButtons(devices.size() > 0);
+			adapter.notifyDataSetChanged();
+			mDeviceListView.setItemChecked(0, true);	// 先頭を選択
+			updateButtons(devices.size() > 0);
 		}
 	};
 
@@ -175,61 +208,6 @@ public class ConnectionFragment extends BaseFragment {
 			}
 		}
 	}
-
-	/**
-	 * 機体選択リストの項目をタッチした時の処理
-	 */
-/*	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
-		@Override
-		public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-			replace(getFragment(position, true));
-		}
-	}; */
-
-	/**
-	 * 機体選択リストの項目を長押しした時の処理
-	 */
-/*	private final AdapterView.OnItemLongClickListener mOnItemLongClickListener = new AdapterView.OnItemLongClickListener() {
-		@Override
-		public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-
-			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-
-			final String itemValue = ((ArrayAdapter<String>)parent.getAdapter()).getItem(position);
-			final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
-			// 製品名を取得
-			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
-
-			Fragment fragment = null;
-			switch (product) {
-			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-				fragment = MediaFragment.newInstance(service);
-			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
-				//FIXME JumpingSumoは未実装
-				break;
-			}
-			replace(fragment);
-			return false;
-		}
-	}; */
-
-	/**
-	 * 機体の3D表示を長押しした時の処理
-	 */
-/*	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
-		@Override
-		public boolean onLongClick(final View view) {
-			switch (view.getId()) {
-			case R.id.drone_view:
-			{	// FIXME テスト用
-				replace(GalleyFragment.newInstance());
-				return true;
-			}
-			}
-			return false;
-		}
-	}; */
 
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
@@ -277,4 +255,60 @@ public class ConnectionFragment extends BaseFragment {
 		}
 		return fragment;
 	}
+
+	private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
+
+		@Override
+		public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
+			mVideoView.reset();
+			try {
+				mMediaPlayer.setDataSource(getActivity(), Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.into_the_sky));
+				mMediaPlayer.prepareAsync();
+			} catch (final IOException e) {
+				Log.w(TAG, e);
+			}
+		}
+
+		@Override
+		public void onSurfaceTextureSizeChanged(final SurfaceTexture surface, final int width, final int height) {
+			mVideoView.reset();
+		}
+
+		@Override
+		public boolean onSurfaceTextureDestroyed(final SurfaceTexture surface) {
+			if (mMediaPlayer != null) {
+				if (mMediaPlayer.isPlaying()) {
+					mMediaPlayer.stop();
+				}
+				mMediaPlayer.release();
+				mMediaPlayer = null;
+			}
+			return true;
+		}
+
+		@Override
+		public void onSurfaceTextureUpdated(final SurfaceTexture surface) {
+		}
+	};
+
+	private final MediaPlayer.OnPreparedListener mOnPreparedListener = new MediaPlayer.OnPreparedListener() {
+		@Override
+		public void onPrepared(final MediaPlayer mp) {
+			mVideoView.setAspectRatio(mp.getVideoWidth() / (double)mp.getVideoHeight());
+			mp.setSurface(new Surface(mVideoView.getSurfaceTexture()));
+			mp.setLooping(true);
+			mp.start();
+		}
+	};
+
+	private final MediaPlayer.OnCompletionListener mOnCompletionListener = new MediaPlayer.OnCompletionListener() {
+		@Override
+		public void onCompletion(final MediaPlayer mp) {
+			// 再生が終了したら最初に戻って再度再生する
+			// 全体を再生し直すなら#onPreparedでMediaPlayer#setLooping(true);を呼ぶ方が簡単
+//			mVideoView.seekTo(0);
+//			mVideoView.start();
+		}
+	};
+
 }

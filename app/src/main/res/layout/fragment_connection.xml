@@ -8,14 +8,27 @@
     android:foreground="?android:windowContentOverlay"
     tools:context="com.serenegiant.flightdemo.ConnectionFragment">
 
-    <com.serenegiant.gl.AttitudeTextureView
+	<com.serenegiant.widget.PlayerTextureView
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:id="@+id/videoView"
+		android:layout_centerVertical="true"
+		android:layout_centerHorizontal="true"/>-->
+<!--    <VideoView
+   		android:layout_width="match_parent"
+   		android:layout_height="match_parent"
+   		android:id="@+id/videoView"
+   		android:layout_centerVertical="true"
+   		android:layout_centerHorizontal="true"/>-->
+
+<!--    <com.serenegiant.gl.AttitudeTextureView
         android:id="@+id/drone_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true"
         android:layout_gravity="center"
         android:background="@null"
-        android:visibility="visible"/>
+        android:visibility="visible"/>-->
 
     <ListView
         android:id="@+id/list"
@@ -60,7 +73,7 @@
             android:layout_weight="1"
             android:background="@null"
             android:scaleType="fitCenter"
-            android:src="@android:drawable/ic_menu_upload"
+            android:src="@mipmap/ic_cloud_down"
             />
 
         <ImageButton
@@ -70,7 +83,7 @@
             android:layout_weight="1"
             android:background="@null"
             android:scaleType="fitCenter"
-            android:src="@android:drawable/ic_menu_gallery"/>
+            android:src="@mipmap/ic_gallery"/>
 
         <ImageButton
             android:id="@+id/script_button"

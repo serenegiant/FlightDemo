@@ -26,7 +26,7 @@
 		<RelativeLayout
 			android:id="@+id/top_panel"
 			android:layout_width="match_parent"
-			android:layout_height="@dimen/bottom_panel_height"
+			android:layout_height="@dimen/top_panel_height"
 			android:gravity="top"
 			android:background="@drawable/gray_gradient">
 
@@ -56,18 +56,17 @@
 
 			<ImageButton
 				android:id="@+id/flat_trim_btn"
-				android:layout_width="@dimen/bottom_panel_height"
-				android:layout_height="@dimen/bottom_panel_height"
+				android:layout_width="@dimen/top_panel_height"
+				android:layout_height="@dimen/top_panel_height"
 				android:layout_centerInParent="true"
 				android:background="@null"
 				android:scaleType="centerCrop"
-				android:src="@android:drawable/ic_menu_mylocation"/>
+				android:src="@mipmap/ic_trim"/>
 
 			<TextView
 				android:id="@+id/alert_message"
 				android:layout_width="wrap_content"
-				android:layout_height="@dimen/bottom_panel_height"
-				android:layout_below="@+id/imageButton"
+				android:layout_height="@dimen/top_panel_height"
 				android:layout_centerVertical="true"
 				android:layout_toLeftOf="@+id/config_show_btn"
 				android:layout_toRightOf="@+id/flat_trim_btn"
@@ -79,24 +78,15 @@
 				android:visibility="invisible"/>
 
 			<ImageButton
-				android:id="@+id/imageButton"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_alignEnd="@+id/alert_message"
-				android:layout_alignParentTop="true"
-				android:layout_alignRight="@+id/alert_message"
-				android:background="@null"/>
-
-			<ImageButton
 				android:id="@+id/config_show_btn"
-				android:layout_width="@dimen/bottom_panel_height"
-				android:layout_height="@dimen/bottom_panel_height"
+				android:layout_width="@dimen/top_panel_height"
+				android:layout_height="@dimen/top_panel_height"
 				android:layout_alignParentEnd="true"
 				android:layout_alignParentRight="true"
 				android:layout_alignParentTop="true"
 				android:background="@null"
 				android:scaleType="fitXY"
-				android:src="@mipmap/ic_settings_applications_black_48dp"/>
+				android:src="@mipmap/ic_setting"/>
 
 		</RelativeLayout>
 
@@ -123,7 +113,7 @@
 					android:layout_marginTop="@dimen/quater_padding"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_flip_front"/>
+					android:src="@mipmap/ic_s_f"/>
 
 				<ImageButton
 					android:id="@+id/flip_back_btn"
@@ -131,7 +121,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_flip_back"/>
+					android:src="@mipmap/ic_s_b"/>
 
 				<ImageButton
 					android:id="@+id/flip_right_btn"
@@ -139,7 +129,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_flip_right"/>
+					android:src="@mipmap/ic_right_ture"/>
 
 				<ImageButton
 					android:id="@+id/flip_left_btn"
@@ -147,7 +137,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_flip_left"/>
+					android:src="@mipmap/ic_left_ture"/>
 
 			</LinearLayout>
 
@@ -174,7 +164,8 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@android:drawable/ic_menu_camera"/>
+					android:src="@mipmap/ic_camera"
+					android:layout_marginTop="@dimen/quater_padding"/>
 
 				<ImageButton
 					android:id="@+id/video_capture_btn"
@@ -182,7 +173,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@android:drawable/presence_video_online"/>
+					android:src="@mipmap/ic_movie"/>
 
 				<FrameLayout
 					android:layout_width="wrap_content"
@@ -260,7 +251,7 @@
 				android:layout_marginRight="@dimen/quater_padding"
 				android:background="@null"
 				android:scaleType="fitXY"
-				android:src="@mipmap/ic_stop"/>
+				android:src="@mipmap/ic_emergency"/>
 
 			<TextView
 				android:id="@+id/time_label"
@@ -311,7 +302,7 @@
 					android:layout_height="@dimen/bottom_panel_height"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_map"/>
+					android:src="@mipmap/ic_folder"/>
 
 				<TextView
 					android:layout_width="wrap_content"
@@ -364,7 +355,7 @@
 					android:layout_height="@dimen/bottom_panel_height"
 					android:background="@null"
 					android:scaleType="center"
-					android:src="@android:drawable/ic_menu_delete"/>
+					android:src="@mipmap/ic_delete"/>
 
 				<TextView
 					android:id="@+id/clear_label"
@@ -390,7 +381,7 @@
 					android:layout_height="@dimen/bottom_panel_height"
 					android:background="@null"
 					android:scaleType="center"
-					android:src="@android:drawable/ic_menu_send"/>
+					android:src="@mipmap/ic_plane"/>
 
 				<TextView
 					android:id="@+id/move_label"

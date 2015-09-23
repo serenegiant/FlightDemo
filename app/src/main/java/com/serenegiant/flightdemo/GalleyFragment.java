@@ -1,7 +1,6 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
