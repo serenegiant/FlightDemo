@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval"
+    android:useLevel="false" >
+
+    <gradient
+		android:endColor="#00000000"
+		android:centerColor="#af000000"
+		android:startColor="#ff000000"
+		android:gradientRadius="30dp"
+   		android:type="radial" />
+   	<size
+   		android:width="100dp"
+   		android:height="100dp" />
+
+    <stroke
+        android:width="@dimen/button_stroke_width"
+        android:color="@color/TRANSPARENT" />
+
+    <!-- <solid android:color="@color/TRANSPARENT" />　 -->
+<!--    <solid android:color="@color/GRAY_A25" />-->
+
+    <padding
+        android:bottom="@dimen/button_padding"
+        android:left="@dimen/button_padding"
+        android:right="@dimen/button_padding"
+        android:top="@dimen/button_padding" />
+
+    <corners android:radius="@dimen/button_radius" />
+
+</shape>

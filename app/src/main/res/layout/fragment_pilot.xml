@@ -104,24 +104,24 @@
 				android:layout_alignParentLeft="true"
 				android:layout_alignParentStart="true"
 				android:layout_alignParentTop="true"
-				android:orientation="vertical">
+				android:orientation="vertical" >
 
 				<ImageButton
 					android:id="@+id/flip_front_btn"
 					android:layout_width="@dimen/btn_size_action"
 					android:layout_height="@dimen/btn_size_action"
 					android:layout_marginTop="@dimen/quater_padding"
-					android:background="@null"
+					android:background="@drawable/button_frame_gray_circle_a25"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_s_f"/>
+					android:src="@mipmap/ic_s_f_a"/>
 
 				<ImageButton
 					android:id="@+id/flip_back_btn"
 					android:layout_width="@dimen/btn_size_action"
 					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
+					android:background="@drawable/button_frame_gray_circle_a25"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_s_b"/>
+					android:src="@mipmap/ic_s_b_a"/>
 
 				<ImageButton
 					android:id="@+id/flip_right_btn"
@@ -176,15 +176,16 @@
 				android:layout_alignParentLeft="true"
 				android:layout_alignParentStart="true"
 				android:layout_alignParentTop="true"
-				android:orientation="vertical">
+				android:orientation="vertical"
+				android:background="@null">
 
 				<ImageButton
 					android:id="@+id/still_capture_btn"
 					android:layout_width="@dimen/btn_size_action"
 					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
+					android:background="@drawable/button_frame_gray_circle_a25"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_camera"/>
+					android:src="@mipmap/ic_camera_a"/>
 
 				<ImageButton
 					android:id="@+id/video_capture_btn"
