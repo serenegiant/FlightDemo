@@ -24,15 +24,13 @@ package com.serenegiant.widget;
 
 import android.content.Context;
 import android.graphics.Matrix;
-import android.graphics.SurfaceTexture;
 import android.util.AttributeSet;
-import android.view.Surface;
 import android.view.TextureView;
 
 public class PlayerTextureView extends TextureView implements AspectRatioViewInterface {
 
 	public static final int SCALE_MODE_KEEP_ASPECT = 0;	// アスペクト比を保って最大化
-	public static final int SCALE_MODE_STREACH = 1;		// 画面サイズに合わせて拡大縮小
+	public static final int SCALE_MODE_STRETCH = 1;		// 画面サイズに合わせて拡大縮小
 	public static final int SCALE_MODE_CROP = 2;		// アスペクト比を保って短辺がフィットするようにCROP_CENTER
 
 	private double mRequestedAspect = -1.0;
@@ -64,7 +62,7 @@ public class PlayerTextureView extends TextureView implements AspectRatioViewInt
 
 	/**
 	 * 映像の拡大縮小方法をセット
-  	 * SCALE_MODE_KEEP_ASPECT, SCALE_MODE_STREACH, SCALE_MODE_CROP
+  	 * SCALE_MODE_KEEP_ASPECT, SCALE_MODE_STRETCH, SCALE_MODE_CROP
 	 * @param scale_mode
 	 */
 	 public void setScaleMode(final int scale_mode) {
@@ -111,7 +109,7 @@ public class PlayerTextureView extends TextureView implements AspectRatioViewInt
 			// stay size if the difference of calculated aspect ratio is small enough from specific value
 			if (Math.abs(aspectDiff) > 0.01) {
 				if (aspectDiff > 0) {
-					// adjust heght from width
+					// adjust height from width
 					initialHeight = (int) (initialWidth / mRequestedAspect);
 				} else {
 					// adjust width from height
@@ -136,7 +134,7 @@ public class PlayerTextureView extends TextureView implements AspectRatioViewInt
 		mImageMatrix.reset();
 		switch (mScaleMode) {
 		case SCALE_MODE_KEEP_ASPECT:
-		case SCALE_MODE_STREACH:
+		case SCALE_MODE_STRETCH:
 			// 何もしない
 			break;
 		case SCALE_MODE_CROP: // FIXME もう少し式を整理できそう

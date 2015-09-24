@@ -35,12 +35,6 @@ public class ConnectionFragment extends BaseFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConnectionFragment.class.getSimpleName();
 
-	/**
-	 * Use this factory method to create a new instance of
-	 * this fragment using the provided parameters.
-	 *
-	 * @return A new instance of fragment PilotFragment.
-	 */
 	public static ConnectionFragment newInstance() {
 		ConnectionFragment fragment = new ConnectionFragment();
 		final Bundle args = new Bundle();
@@ -50,7 +44,6 @@ public class ConnectionFragment extends BaseFragment {
 
 	private ListView mDeviceListView;
 //	private IModelView mModelView;
-//	private VideoView mVideoView;
 	private PlayerTextureView mVideoView;
 	private ImageButton mDownloadBtn, mPilotBtn;
 	private MediaPlayer mMediaPlayer;
@@ -77,12 +70,6 @@ public class ConnectionFragment extends BaseFragment {
 		manager.addCallback(mManagerCallback);
 		updateButtons(false);
 //		mModelView.onResume();
-/*		if (mVideoView != null) {
-			mVideoView.resume();
-			if (!mVideoView.isPlaying()) {
-				mVideoView.start();
-			}
-		} */
 		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
 			mMediaPlayer.start();
 		}
@@ -94,9 +81,6 @@ public class ConnectionFragment extends BaseFragment {
 
 		updateButtons(false);
 //		mModelView.onPause();
-/*		if (mVideoView != null) {
-			mVideoView.suspend();
-		} */
 		if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
 			mMediaPlayer.stop();
 		}
@@ -106,6 +90,18 @@ public class ConnectionFragment extends BaseFragment {
 			manager.stopDiscovery();
 		}
 		super.onPause();
+	}
+
+	@Override
+	public void onDestroy() {
+		if (mMediaPlayer != null) {
+			if (mMediaPlayer.isPlaying()) {
+				mMediaPlayer.stop();
+			}
+			mMediaPlayer.release();
+			mMediaPlayer = null;
+		}
+		super.onDestroy();
 	}
 
 	/**
@@ -126,10 +122,6 @@ public class ConnectionFragment extends BaseFragment {
 		mDeviceListView.setAdapter(adapter);
 		mDeviceListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 //		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
-/*		mVideoView = (VideoView)rootView.findViewById(R.id.videoView);
-		mVideoView.setOnPreparedListener(mOnPreparedListener);
-		mVideoView.setOnCompletionListener(mOnCompletionListener);
-		mVideoView.setVideoURI(Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.into_the_sky)); */
 		mVideoView = (PlayerTextureView)rootView.findViewById(R.id.videoView);
 		mVideoView.setScaleMode(PlayerTextureView.SCALE_MODE_CROP);
 		mVideoView.setSurfaceTextureListener(mSurfaceTextureListener);
@@ -306,8 +298,8 @@ public class ConnectionFragment extends BaseFragment {
 		public void onCompletion(final MediaPlayer mp) {
 			// 再生が終了したら最初に戻って再度再生する
 			// 全体を再生し直すなら#onPreparedでMediaPlayer#setLooping(true);を呼ぶ方が簡単
-//			mVideoView.seekTo(0);
-//			mVideoView.start();
+//			mp.seekTo(0);
+//			mp.start();
 		}
 	};
 
