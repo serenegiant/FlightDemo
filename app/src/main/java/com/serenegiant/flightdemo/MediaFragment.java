@@ -71,7 +71,8 @@ public class MediaFragment extends ControlBaseFragment
 		if (DEBUG) Log.v(TAG, "onCreateView:");
 		mPagerAdapter = new MediaPagerAdapter(inflater);
 
-		final View rootView = inflater.inflate(R.layout.fragment_media, container, false);
+		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
+		final View rootView = local_inflater.inflate(R.layout.fragment_media, container, false);
 		mViewPager = (ViewPager)rootView.findViewById(R.id.pager);
 		mViewPager.setAdapter(mPagerAdapter);
 		mFreeSpaceFmt = getString(R.string.media_free_space);

@@ -57,7 +57,8 @@ public class ScriptFragment extends BaseFragment implements SelectFileDialogFrag
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
-        final View rootView = inflater.inflate(R.layout.fragment_script, container, false);
+		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
+        final View rootView = local_inflater.inflate(R.layout.fragment_script, container, false);
         mViewPager = (ViewPager)rootView.findViewById(R.id.pager);
         mViewPager.setAdapter(new ScriptPagerAdapter(inflater));
         // スクリプトの設定を読み込む

@@ -44,7 +44,9 @@
 	<string name="config_title_keymap">ゲームパッドキー設定</string>
 	<string name="config_title_autopilot">自動操縦設定</string>
 	<string name="config_title_network">ネットワーク設定</string>
+	<string name="config_title_icon">アイコン設定</string>
 	<string name="config_title_info">ドローン情報</string>
+
 	<string name="config_max_tilt">最大斜度: %5.1f[°]</string>
 	<string name="config_max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>
 	<string name="config_max_altitude">最大高度: %5.1f[m]</string>

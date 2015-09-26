@@ -1,6 +1,7 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -55,7 +56,8 @@ public class CalibrationFragment extends ControlBaseFragment {
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
-		final View rootView = inflater.inflate(R.layout.fragment_calibration, container, false);
+		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
+		final View rootView = local_inflater.inflate(R.layout.fragment_calibration, container, false);
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 		mModelView.setModel(IModelView.MODEL_BEBOP, AttitudeScreenBase.CTRL_CALIBRATION);
 		mMessageTextView = (TextView)rootView.findViewById(R.id.cal_msg_textview);

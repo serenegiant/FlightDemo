@@ -71,9 +71,6 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dependency-cache" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dex" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dex-cache" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/jars" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/design/22.2.1/jars" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.1/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jacoco" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/javaResources" />
@@ -91,14 +88,18 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 22 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="design-22.2.1" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-22.2.1" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-22.2.1" level="project" />
-    <orderEntry type="library" exported="" name="appcompat-v7-22.2.1" level="project" />
+    <orderEntry type="module" module-name="icon_buttons200" exported="" />
     <orderEntry type="module" module-name="arflight" exported="" />
+    <orderEntry type="module" module-name="icon_buttons008" exported="" />
+    <orderEntry type="module" module-name="icon_buttons005" exported="" />
     <orderEntry type="module" module-name="graphics_common" exported="" />
     <orderEntry type="module" module-name="common" exported="" />
+    <orderEntry type="module" module-name="icon_buttons006" exported="" />
+    <orderEntry type="module" module-name="icon_buttons001" exported="" />
     <orderEntry type="module" module-name="animations" exported="" />
     <orderEntry type="module" module-name="icon_buttons" exported="" />
+    <orderEntry type="module" module-name="icon_buttons100" exported="" />
+    <orderEntry type="module" module-name="resource_common" exported="" />
   </component>
 </module>

@@ -3,6 +3,7 @@ package com.serenegiant.flightdemo;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -56,7 +57,8 @@ public class ConnectionFragment extends BaseFragment {
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
-		final View rootView = inflater.inflate(R.layout.fragment_connection, container, false);
+		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
+		final View rootView = local_inflater.inflate(R.layout.fragment_connection, container, false);
 		initView(rootView);
 		return rootView;
 	}
@@ -133,6 +135,8 @@ public class ConnectionFragment extends BaseFragment {
 		ImageButton button = (ImageButton)rootView.findViewById(R.id.gallery_button);
 		button.setOnClickListener(mOnClickListener);
 		button = (ImageButton)rootView.findViewById(R.id.script_button);
+		button.setOnClickListener(mOnClickListener);
+		button = (ImageButton)rootView.findViewById(R.id.config_show_btn);
 		button.setOnClickListener(mOnClickListener);
 	}
 
@@ -218,6 +222,9 @@ public class ConnectionFragment extends BaseFragment {
 		case R.id.script_button:
 			fragment = ScriptFragment.newInstance();
 			break;
+		case R.id.config_show_btn:
+			fragment = ConfigIconFragment.newInstance();
+			break;
 		}
 		replace(fragment);
 		}
@@ -288,6 +295,7 @@ public class ConnectionFragment extends BaseFragment {
 		public void onPrepared(final MediaPlayer mp) {
 			mVideoView.setAspectRatio(mp.getVideoWidth() / (double)mp.getVideoHeight());
 			mp.setSurface(new Surface(mVideoView.getSurfaceTexture()));
+			mp.setVolume(0, 0);
 			mp.setLooping(true);
 			mp.start();
 		}

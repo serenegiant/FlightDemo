@@ -16,9 +16,16 @@
             <option value="$PROJECT_DIR$/common" />
             <option value="$PROJECT_DIR$/graphics_common" />
             <option value="$PROJECT_DIR$/icon_buttons" />
+            <option value="$PROJECT_DIR$/icon_buttons001" />
+            <option value="$PROJECT_DIR$/icon_buttons005" />
+            <option value="$PROJECT_DIR$/icon_buttons006" />
+            <option value="$PROJECT_DIR$/icon_buttons008" />
+            <option value="$PROJECT_DIR$/icon_buttons100" />
+            <option value="$PROJECT_DIR$/icon_buttons200" />
             <option value="$PROJECT_DIR$/libraries" />
             <option value="$PROJECT_DIR$/libraries/ScriptEngine" />
             <option value="$PROJECT_DIR$/libraries/ScriptEngine/core" />
+            <option value="$PROJECT_DIR$/resource_common" />
           </set>
         </option>
       </GradleProjectSettings>

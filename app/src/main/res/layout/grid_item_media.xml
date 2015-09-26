@@ -12,7 +12,7 @@
         android:adjustViewBounds="true"
         android:contentDescription="thumbnail"
         android:scaleType="centerCrop"
-        android:src="@mipmap/ic_launcher" />
+        android:src="?attr/flightdemo_icon_list_thumbnail_media" />
 
     <TextView
         android:id="@id/title"

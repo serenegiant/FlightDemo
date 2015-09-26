@@ -167,7 +167,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mGamepadScaleY = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_Y, 1.0f);
 		mGamepadScaleZ = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_Z, 1.0f);
 		mGamepadScaleR = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_R, 1.0f);
-
 		int layout_id;
 		if (mOperationTouch) {
 			layout_id = R.layout.fragment_pilot_touch;
@@ -187,7 +186,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				layout_id = R.layout.fragment_pilot;
 			}
 		}
-		final ViewGroup rootView = (ViewGroup) inflater.inflate(layout_id, container, false);
+		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
+		final ViewGroup rootView = (ViewGroup) local_inflater.inflate(layout_id, container, false);
 
 //		rootView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
 //		rootView.setOnKeyListener(mOnKeyListener);

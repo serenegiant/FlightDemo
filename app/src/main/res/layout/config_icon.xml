@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent"
+			  android:gravity="center"
+			  android:orientation="horizontal">
+
+	<com.serenegiant.widget.RelativeRadioGroup
+		android:id="@+id/icon_radiogroup"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center"
+		android:transitionGroup="false"
+		android:gravity="center"
+		android:layout_centerInParent="true">
+
+		<RadioButton
+			android:id="@+id/icon_000_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="@dimen/half_padding"
+			android:button="@drawable/icon_thumbnail"
+			android:text="000"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<RadioButton
+			android:id="@+id/icon_001_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="@dimen/half_padding"
+			android:layout_below="@id/icon_000_radiobutton"
+			android:button="@drawable/icon_thumbnail_001"
+			android:text="001"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<RadioButton
+			android:id="@+id/icon_100_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="@dimen/half_padding"
+			android:layout_below="@id/icon_001_radiobutton"
+			android:button="@drawable/icon_thumbnail_100"
+			android:text="100"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<RadioButton
+			android:id="@+id/icon_200_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="@dimen/half_padding"
+			android:layout_below="@id/icon_100_radiobutton"
+			android:button="@drawable/icon_thumbnail_200"
+			android:text="200"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<RadioButton
+			android:id="@+id/icon_002_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="@dimen/half_padding"
+			android:layout_toRightOf="@id/icon_000_radiobutton"
+			android:layout_marginLeft="@dimen/activity_horizontal_margin"
+			android:button="@drawable/icon_thumbnail_005"
+			android:text="005"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<RadioButton
+			android:id="@+id/icon_003_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="@dimen/half_padding"
+			android:layout_toRightOf="@id/icon_001_radiobutton"
+			android:layout_below="@id/icon_002_radiobutton"
+			android:layout_marginLeft="@dimen/activity_horizontal_margin"
+			android:button="@drawable/icon_thumbnail_006"
+			android:text="006"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<RadioButton
+			android:id="@+id/icon_004_radiobutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:layout_marginTop="@dimen/half_padding"
+			android:layout_toRightOf="@id/icon_100_radiobutton"
+			android:layout_below="@id/icon_003_radiobutton"
+			android:layout_marginLeft="@dimen/activity_horizontal_margin"
+			android:button="@drawable/icon_thumbnail_008"
+			android:text="008"
+			android:textSize="@dimen/text_sz_list"/>
+	</com.serenegiant.widget.RelativeRadioGroup>
+
+</LinearLayout>

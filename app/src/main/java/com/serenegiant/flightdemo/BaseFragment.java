@@ -1,11 +1,17 @@
 package com.serenegiant.flightdemo;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import java.util.HashMap;
@@ -254,4 +260,37 @@ public class BaseFragment extends Fragment {
 		}
 	}
 
+	protected LayoutInflater getThemedLayoutInflater(final LayoutInflater inflater) {
+		final Activity context = getActivity();
+		final SharedPreferences pref = context.getPreferences(0);
+		final int layout_style;
+		switch (pref.getInt(ConfigFragment.KEY_ICON_TYPE, 100)) {
+		case 1:
+			layout_style = R.style.AppTheme_001;
+			break;
+		case 2:
+			layout_style = R.style.AppTheme_005;
+			break;
+		case 3:
+			layout_style = R.style.AppTheme_006;
+			break;
+		case 4:
+			layout_style = R.style.AppTheme_008;
+			break;
+		case 100:
+			layout_style = R.style.AppTheme_100;
+			break;
+		case 200:
+			layout_style = R.style.AppTheme_200;
+			break;
+//		case 0:
+		default:
+			layout_style = R.style.AppTheme;
+			break;
+		}
+		// create ContextThemeWrapper from the original Activity Context with the custom theme
+		final Context contextThemeWrapper = new ContextThemeWrapper(context, layout_style);
+		// clone the inflater using the ContextThemeWrapper
+		return inflater.cloneInContext(contextThemeWrapper);
+	}
 }

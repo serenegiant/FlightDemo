@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-	<declare-styleable name="StickView">
-		<attr name="stick_image_layout" format="reference" />
-		<attr name="stick_width" format="dimension" />
-		<attr name="stick_height" format="dimension" />
-		<attr name="disable_color" format="reference|color|integer" />
-	</declare-styleable>
-</resources>

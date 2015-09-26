@@ -18,6 +18,7 @@ import android.widget.TextView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.AttributeFloat;
+import com.serenegiant.widget.RelativeRadioGroup;
 
 public class ConfigFragment extends ControlBaseFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
@@ -37,6 +38,8 @@ public class ConfigFragment extends ControlBaseFragment {
 	public static final String KEY_AUTOPILOT_SCALE_Y = "CONFIG_AUTOPILOT_SCALE_Y";
 	public static final String KEY_AUTOPILOT_SCALE_Z = "CONFIG_AUTOPILOT_SCALE_Z";
 	public static final String KEY_AUTOPILOT_SCALE_R = "CONFIG_AUTOPILOT_SCALE_R";
+	// アイコン
+	public static final String KEY_ICON_TYPE = "ICON_TYPE";
 
 
 	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device) {
@@ -124,7 +127,8 @@ public class ConfigFragment extends ControlBaseFragment {
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
 		mProduct = getProduct();
-		final View rootView = inflater.inflate(R.layout.fragment_config, container, false);
+		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
+		final View rootView = local_inflater.inflate(R.layout.fragment_config, container, false);
 		mPagerAdapter = new ConfigPagerAdapter(inflater);
 		mViewPager = (ViewPager)rootView.findViewById(R.id.pager);
 		mViewPager.setAdapter(mPagerAdapter);
@@ -488,6 +492,40 @@ public class ConfigFragment extends ControlBaseFragment {
 	 */
 	private void initConfigNetwork(final View root) {
 		// FIXME 未実装
+	}
+
+	/**
+	 * アイコン設定画面の準備
+	 * @param root
+	 */
+	private void initConfigIcon(final View root) {
+		if (DEBUG) Log.v(TAG, "initConfigInfo:");
+		final RelativeRadioGroup group = (RelativeRadioGroup)root.findViewById(R.id.icon_radiogroup);
+		switch (mPref.getInt(KEY_ICON_TYPE, 100)) {
+		case 1:		// 001
+			group.check(R.id.icon_001_radiobutton);
+			break;
+		case 2:		// 005
+			group.check(R.id.icon_002_radiobutton);
+			break;
+		case 3:		// 006
+			group.check(R.id.icon_003_radiobutton);
+			break;
+		case 4:		// 008
+			group.check(R.id.icon_004_radiobutton);
+			break;
+		case 100:	// 100
+			group.check(R.id.icon_100_radiobutton);
+			break;
+		case 200:	// 200
+			group.check(R.id.icon_200_radiobutton);
+			break;
+		case 0:
+		default:	// 通常
+			group.check(R.id.icon_000_radiobutton);
+			break;
+		}
+		group.setOnCheckedChangeListener(mOnRelativeRadioButtonCheckedChangeListener);
 	}
 
 	/**
@@ -871,7 +909,9 @@ public class ConfigFragment extends ControlBaseFragment {
 		}
 	};
 
-	private final RadioGroup.OnCheckedChangeListener mOnRadioButtonCheckedChangeListener = new RadioGroup.OnCheckedChangeListener() {
+	private final RadioGroup.OnCheckedChangeListener mOnRadioButtonCheckedChangeListener
+		= new RadioGroup.OnCheckedChangeListener() {
+
 		@Override
 		public void onCheckedChanged(final RadioGroup group, final int checkedId) {
 			switch (checkedId) {
@@ -886,6 +926,37 @@ public class ConfigFragment extends ControlBaseFragment {
 				break;
 			case R.id.operation_mode2_radiobutton:
 				mPref.edit().putInt(KEY_OPERATION_TYPE, 3).apply();
+				break;
+			}
+		}
+	};
+
+	private final RelativeRadioGroup.OnCheckedChangeListener mOnRelativeRadioButtonCheckedChangeListener
+		= new RelativeRadioGroup.OnCheckedChangeListener() {
+
+		@Override
+		public void onCheckedChanged(final RelativeRadioGroup group, final int checkedId) {
+			switch (checkedId) {
+			case R.id.icon_000_radiobutton:
+				mPref.edit().putInt(KEY_ICON_TYPE, 0).apply();
+				break;
+			case R.id.icon_001_radiobutton:
+				mPref.edit().putInt(KEY_ICON_TYPE, 1).apply();
+				break;
+			case R.id.icon_002_radiobutton:
+				mPref.edit().putInt(KEY_ICON_TYPE, 2).apply();
+				break;
+			case R.id.icon_003_radiobutton:
+				mPref.edit().putInt(KEY_ICON_TYPE, 3).apply();
+				break;
+			case R.id.icon_004_radiobutton:
+				mPref.edit().putInt(KEY_ICON_TYPE, 4).apply();
+				break;
+			case R.id.icon_100_radiobutton:
+				mPref.edit().putInt(KEY_ICON_TYPE, 100).apply();
+				break;
+			case R.id.icon_200_radiobutton:
+				mPref.edit().putInt(KEY_ICON_TYPE, 200).apply();
 				break;
 			}
 		}
@@ -910,7 +981,8 @@ public class ConfigFragment extends ControlBaseFragment {
 	private static PagerAdapterConfig[] PAGER_CONFIG_MINIDRONE;
 	private static PagerAdapterConfig[] PAGER_CONFIG_BEBOP;
 	static {
-		PAGER_CONFIG_MINIDRONE = new PagerAdapterConfig[6];
+		// Minidrone(RollingSpider用)
+		PAGER_CONFIG_MINIDRONE = new PagerAdapterConfig[7];
 		PAGER_CONFIG_MINIDRONE[0] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.config_flight, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
@@ -941,13 +1013,20 @@ public class ConfigFragment extends ControlBaseFragment {
 				parent.initConfigAutopilot(view);
 			}
 		});
-		PAGER_CONFIG_MINIDRONE[5] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[5] = new PagerAdapterConfig(R.string.config_title_icon, R.layout.config_icon, new AdapterItemHandler() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.initConfigIcon(view);
+			}
+		});
+		PAGER_CONFIG_MINIDRONE[6] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigInfo(view);
 			}
 		});
-		PAGER_CONFIG_BEBOP = new PagerAdapterConfig[7];
+		// ここからbebop用
+		PAGER_CONFIG_BEBOP = new PagerAdapterConfig[8];
 		PAGER_CONFIG_BEBOP[0] = PAGER_CONFIG_MINIDRONE[0];
 		PAGER_CONFIG_BEBOP[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_bebop, new AdapterItemHandler() {
 			@Override
@@ -965,6 +1044,7 @@ public class ConfigFragment extends ControlBaseFragment {
 			}
 		});
 		PAGER_CONFIG_BEBOP[6] = PAGER_CONFIG_MINIDRONE[5];
+		PAGER_CONFIG_BEBOP[7] = PAGER_CONFIG_MINIDRONE[6];
 	};
 
 	/**

@@ -43,7 +43,9 @@
 	<string name="config_title_keymap">Keymap of gamepad</string>
 	<string name="config_title_autopilot">Autopilot settings</string>
 	<string name="config_title_network">Network settings</string>
+	<string name="config_title_icon">Icon settings</string>
 	<string name="config_title_info">Info</string>
+
 	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>
 	<string name="config_max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
 	<string name="config_max_altitude">Max altitude: %5.1f[m]</string>

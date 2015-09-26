@@ -62,7 +62,7 @@
 				android:layout_centerInParent="true"
 				android:background="@null"
 				android:scaleType="centerCrop"
-				android:src="@mipmap/ic_trim"/>
+				android:src="?attr/flightdemo_icon_trim"/>
 
 			<TextView
 				android:id="@+id/alert_message"
@@ -87,7 +87,7 @@
 				android:layout_alignParentTop="true"
 				android:background="@null"
 				android:scaleType="fitXY"
-				android:src="@mipmap/ic_setting"/>
+				android:src="?attr/flightdemo_icon_settings"/>
 
 		</RelativeLayout>
 
@@ -112,7 +112,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_camera"
+					android:src="?attr/flightdemo_icon_camera"
 					android:layout_marginTop="@dimen/quater_padding"/>
 
 				<ImageButton
@@ -121,7 +121,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_movie"/>
+					android:src="?attr/flightdemo_icon_movie"/>
 
 				<FrameLayout
 					android:layout_width="wrap_content"
@@ -135,7 +135,7 @@
 						android:layout_height="@dimen/btn_size_action"
 						android:background="@null"
 						android:scaleType="fitXY"
-						android:src="@mipmap/ic_turn_right"/>
+						android:src="?attr/flightdemo_icon_turn_right"/>
 
 					<TextView
 						android:layout_width="wrap_content"
@@ -158,7 +158,7 @@
 						android:layout_height="@dimen/btn_size_action"
 						android:background="@null"
 						android:scaleType="fitXY"
-						android:src="@mipmap/ic_turn_left"/>
+						android:src="?attr/flightdemo_icon_turn_left"/>
 
 					<TextView
 						android:layout_width="wrap_content"
@@ -216,7 +216,7 @@
 					android:layout_marginTop="@dimen/quater_padding"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_s_f"/>
+					android:src="?attr/flightdemo_icon_flip_front"/>
 
 				<ImageButton
 					android:id="@+id/flip_back_btn"
@@ -224,7 +224,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_s_b"/>
+					android:src="?attr/flightdemo_icon_flip_back"/>
 
 				<ImageButton
 					android:id="@+id/flip_right_btn"
@@ -232,7 +232,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_right_ture"/>
+					android:src="?attr/flightdemo_icon_flip_right"/>
 
 				<ImageButton
 					android:id="@+id/flip_left_btn"
@@ -240,7 +240,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_left_ture"/>
+					android:src="?attr/flightdemo_icon_flip_left"/>
 
 			</LinearLayout>
 		</LinearLayout>
@@ -259,7 +259,7 @@
 				android:layout_centerHorizontal="true"
 				android:background="@null"
 				android:scaleType="fitCenter"
-				android:src="@mipmap/ic_takeoff"/>
+				android:src="?attr/flightdemo_icon_takeoff"/>
 
 			<ImageButton
 				android:id="@+id/emergency_btn"
@@ -269,7 +269,7 @@
 				android:layout_marginRight="@dimen/quater_padding"
 				android:background="@null"
 				android:scaleType="fitXY"
-				android:src="@mipmap/ic_emergency"/>
+				android:src="?attr/flightdemo_icon_emergency"/>
 
 			<TextView
 				android:id="@+id/time_label"
@@ -294,7 +294,7 @@
 					android:layout_height="@dimen/bottom_panel_height"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_rec" />
+					android:src="?attr/flightdemo_icon_rec" />
 
 				<TextView
 					android:id="@+id/record_label"
@@ -320,7 +320,7 @@
 					android:layout_height="@dimen/bottom_panel_height"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_folder"/>
+					android:src="?attr/flightdemo_icon_folder"/>
 
 				<TextView
 					android:layout_width="wrap_content"
@@ -346,7 +346,7 @@
 					android:layout_height="@dimen/bottom_panel_height"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="@mipmap/ic_play"/>
+					android:src="?attr/flightdemo_icon_play"/>
 
 				<TextView
 					android:id="@+id/play_label"

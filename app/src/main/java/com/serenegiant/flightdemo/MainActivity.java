@@ -1,5 +1,6 @@
 package com.serenegiant.flightdemo;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
@@ -25,7 +26,7 @@ import com.serenegiant.widget.ISideMenuView;
 import com.serenegiant.widget.SideMenuFrameLayout;
 
 
-public class MainActivity extends /*Activity*/ AppCompatActivity {
+public class MainActivity extends Activity /*AppCompatActivity*/ {
 	// ActionBarActivityを継承するとPilotFragmentから戻る際にクラッシュする
 	// Fragmentが切り替わらずに処理中にもかかわらずActivityが破棄されてしまう
 	private static final boolean DEBUG = false;    // FIXME 実働時はfalseにすること
@@ -92,8 +93,8 @@ public class MainActivity extends /*Activity*/ AppCompatActivity {
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		final Toolbar tool_bar = (Toolbar) findViewById(R.id.sample_toolbar);
-		setSupportActionBar(tool_bar);
+/*		final Toolbar tool_bar = (Toolbar) findViewById(R.id.sample_toolbar);
+		setSupportActionBar(tool_bar); */
 
 		NetworkChangedReceiver.enable(getApplicationContext());
 		final ManagerFragment manager = ManagerFragment.getInstance(this);

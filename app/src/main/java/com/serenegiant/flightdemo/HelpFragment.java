@@ -55,7 +55,8 @@ public class HelpFragment extends BaseFragment {
 	@Nullable
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-		final View rootView = inflater.inflate(R.layout.fragment_help, container, false);
+		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
+		final View rootView = local_inflater.inflate(R.layout.fragment_help, container, false);
 		init(rootView);
 		return rootView;
 	}

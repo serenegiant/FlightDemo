@@ -14,20 +14,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.v7.widget.Toolbar
+<!--	<android.support.v7.widget.Toolbar
             android:id="@+id/sample_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:minHeight="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"/>
+            android:background="?attr/colorPrimary"/>-->
 
         <FrameLayout
             android:id="@+id/container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/sample_toolbar"
             android:background="@null">
+        <!--android:layout_below="@+id/sample_toolbar"-->
 
         </FrameLayout>
 

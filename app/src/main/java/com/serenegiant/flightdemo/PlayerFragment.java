@@ -62,7 +62,8 @@ public class PlayerFragment extends BaseFragment {
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		loadArguments(savedInstanceState);
 
-		final View rootView = inflater.inflate(R.layout.fragment_player, container, false);
+		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
+		final View rootView = local_inflater.inflate(R.layout.fragment_player, container, false);
 
 		initView(rootView);
 		return rootView;
