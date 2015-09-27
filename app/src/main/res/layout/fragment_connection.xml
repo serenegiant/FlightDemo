@@ -60,7 +60,7 @@
 
         <ImageButton
             android:id="@+id/pilot_button"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/btn_sz_connection"
             android:layout_height="@dimen/btn_sz_connection"
             android:layout_weight="1"
             android:background="@null"
@@ -69,7 +69,7 @@
 
         <ImageButton
             android:id="@+id/download_button"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/btn_sz_connection"
             android:layout_height="@dimen/btn_sz_connection"
             android:layout_weight="1"
             android:background="@null"
@@ -79,7 +79,7 @@
 
         <ImageButton
             android:id="@+id/gallery_button"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/btn_sz_connection"
             android:layout_height="@dimen/btn_sz_connection"
             android:layout_weight="1"
             android:background="@null"
@@ -88,7 +88,7 @@
 
         <ImageButton
             android:id="@+id/script_button"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/btn_sz_connection"
             android:layout_height="@dimen/btn_sz_connection"
             android:layout_weight="1"
             android:background="@null"
