@@ -26,12 +26,13 @@
 	<dimen name="text_sz_on_image_button">9sp</dimen>
 	<dimen name="text_sz_list">28sp</dimen>
 	<dimen name="text_sz_side_menu_item">16sp</dimen>
+	<dimen name="text_sz_progress">24sp</dimen>
+	<dimen name="text_sz_error">24sp</dimen>
 
 	<dimen name="switch_height">64dp</dimen>
 	<dimen name="thumbnail_margin">16dp</dimen>
 	<dimen name="thumbnail_min_size">48dp</dimen>
 	<dimen name="progress_sz_freespace">400dp</dimen>
-	<dimen name="progress_height">16dp</dimen>
+	<dimen name="progress_height">24dp</dimen>
 	<dimen name="list_min_height">24sp</dimen>
-	<dimen name="text_sz_error">24sp</dimen>
 </resources>

@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.serenegiant.flightdemo.R;
 import com.serenegiant.utils.BuildCheck;
@@ -108,13 +109,17 @@ public class TransferProgressDialogFragment extends BaseDialogFragment {
 	}
 
 	private ProgressBar progressbar1;
+	private TextView progressTv1;
 	private ProgressBar progressbar2;
+	private TextView progressTv2;
 
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		final View rootView = inflater.inflate(R.layout.fragment_transfer_progress, container, false);
 		progressbar1 = (ProgressBar)rootView.findViewById(R.id.progressBar1);
+		progressTv1 = (TextView)rootView.findViewById(R.id.progress_textview1);
 		progressbar2 = (ProgressBar)rootView.findViewById(R.id.progressBar2);
+		progressTv2 = (TextView)rootView.findViewById(R.id.progress_textview2);
 		final Button button = (Button)rootView.findViewById(R.id.cancel_btn);
 		button.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -132,7 +137,23 @@ public class TransferProgressDialogFragment extends BaseDialogFragment {
 		if (progressbar2 != null) {
 			progressbar2.setProgress((int) progress);
 		}
+		final Activity activity = getActivity();
+		if ((activity != null) && !activity.isFinishing()) {
+			activity.runOnUiThread(mProgressUpdateTask);
+		}
 	}
+
+	private final Runnable mProgressUpdateTask = new Runnable() {
+		@Override
+		public void run() {
+			if ((progressbar1 != null) && (progressTv1 != null)) {
+				progressTv1.setText(String.format("%d%%", progressbar1.getProgress()));
+			}
+			if ((progressbar2 != null) && (progressTv2 != null)) {
+				progressTv2.setText(String.format("%d%%", progressbar2.getProgress()));
+			}
+		}
+	};
 
 	@Override
 	public void onCancel(final DialogInterface dialog) {

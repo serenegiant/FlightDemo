@@ -48,6 +48,7 @@
 				android:indeterminate="false"
 				android:max="100"
 				android:progress="45"
+				android:progressDrawable="@drawable/progress_blue"
 				android:layout_marginLeft="@dimen/quater_padding"
 				android:layout_alignParentEnd="true"
 				android:layout_alignParentRight="true"
@@ -64,7 +65,8 @@
 			android:layout_alignLeft="@+id/frees_pace_progress"
 			android:layout_alignStart="@+id/frees_pace_progress"
 			android:gravity="center"
-			android:textSize="@dimen/text_sz_list"/>
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"/>
 
 	</RelativeLayout>
 
