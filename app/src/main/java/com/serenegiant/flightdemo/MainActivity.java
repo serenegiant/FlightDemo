@@ -7,12 +7,11 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -22,14 +21,19 @@ import android.view.View;
 import com.serenegiant.arflight.GamePad;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.net.NetworkChangedReceiver;
+import com.serenegiant.usb.DeviceFilter;
+import com.serenegiant.usb.HIDGamepad;
+import com.serenegiant.usb.USBMonitor;
 import com.serenegiant.widget.ISideMenuView;
 import com.serenegiant.widget.SideMenuFrameLayout;
+
+import java.util.List;
 
 
 public class MainActivity extends Activity /*AppCompatActivity*/ {
 	// ActionBarActivityを継承するとPilotFragmentから戻る際にクラッシュする
 	// Fragmentが切り替わらずに処理中にもかかわらずActivityが破棄されてしまう
-	private static final boolean DEBUG = false;    // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;    // FIXME 実働時はfalseにすること
 	private static String TAG = MainActivity.class.getSimpleName();
 
 	private static boolean isLoaded = false;
@@ -89,6 +93,9 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 	private ActionBarDrawerToggle mDrawerToggle;
 	private final Handler mUiHandler = new Handler();
 
+	private USBMonitor mUSBMonitor;
+	private HIDGamepad mGamepad;
+
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -113,6 +120,11 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 				ScriptHelper.copyScripts(MainActivity.this, firstTime);
 			}
 		}).start();
+		if (mUSBMonitor == null) {
+			mUSBMonitor = new USBMonitor(getApplicationContext(), mOnDeviceConnectListener);
+			final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(this, R.xml.device_filter);
+			mUSBMonitor.setDeviceFilter(filter.get(0));
+		}
 	}
 
 	@Override
@@ -149,6 +161,17 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 		if (mDrawerToggle != null) {
 			mDrawerToggle.syncState();
 		}
+		mUSBMonitor.register();
+	}
+
+	@Override
+	public void onPause() {
+		if (mGamepad != null) {
+			mGamepad.close();
+			mGamepad = null;
+		}
+		mUSBMonitor.unregister();
+		super.onPause();
 	}
 
 	@Override
@@ -360,4 +383,47 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 			mDrawerToggle.syncState();
 		}
 	}
+
+	private final USBMonitor.OnDeviceConnectListener mOnDeviceConnectListener = new USBMonitor.OnDeviceConnectListener() {
+		@Override
+		public void onAttach(final UsbDevice device) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onAttach:");
+			UsbDevice _device = device;
+			if ((_device == null) && (mUSBMonitor.getDeviceCount() > 0)) {
+				_device = mUSBMonitor.getDeviceList().get(0);
+			}
+			mUSBMonitor.requestPermission(_device);
+		}
+
+		@Override
+		public void onConnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock, final boolean createNew) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onConnect:");
+			mGamepad = new HIDGamepad();
+			mGamepad.open(ctrlBlock);
+		}
+
+		@Override
+		public void onDisconnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDisconnect:");
+			if (mGamepad != null) {
+				mGamepad.close();
+				mGamepad = null;
+			}
+		}
+
+		@Override
+		public void onDettach(final UsbDevice device) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDettach:");
+			if (mGamepad != null) {
+				mGamepad.close();
+				mGamepad = null;
+			}
+		}
+
+		@Override
+		public void onCancel() {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onCancel:");
+		}
+	};
+
 }

@@ -9,6 +9,7 @@
       <module fileurl="file://$PROJECT_DIR$/arflight/arflight.iml" filepath="$PROJECT_DIR$/arflight/arflight.iml" />
       <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
       <module fileurl="file://$PROJECT_DIR$/libraries/ScriptEngine/core/core.iml" filepath="$PROJECT_DIR$/libraries/ScriptEngine/core/core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/gamepad/gamepad.iml" filepath="$PROJECT_DIR$/gamepad/gamepad.iml" />
       <module fileurl="file://$PROJECT_DIR$/graphics_common/graphics_common.iml" filepath="$PROJECT_DIR$/graphics_common/graphics_common.iml" />
       <module fileurl="file://$PROJECT_DIR$/icon_buttons/icon_buttons.iml" filepath="$PROJECT_DIR$/icon_buttons/icon_buttons.iml" />
       <module fileurl="file://$PROJECT_DIR$/icon_buttons001/icon_buttons001.iml" filepath="$PROJECT_DIR$/icon_buttons001/icon_buttons001.iml" />
