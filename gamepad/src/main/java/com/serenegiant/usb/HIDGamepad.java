@@ -29,7 +29,14 @@ public class HIDGamepad {
 	}
 
 	public interface HIDGamepadCallback {
-		public void onRawdataChanged(final int n, final byte[] data);
+		/**
+		 * ゲームパッドからのデータ受信時の処理
+		 * @param n
+		 * @param data
+		 * @return true: 処理済み, onEventは呼ばれない, false:onEventの処理を行う
+		 */
+		public boolean onRawdataChanged(final int n, final byte[] data);
+		public void onEvent(final HIDGamepad gamepad, final IGamePad data);
 	}
 
 	private final HIDGamepadCallback mCallback;
@@ -76,12 +83,20 @@ public class HIDGamepad {
 					}
 					if (ep_in != null) {
 						// HID入力インターフェースのエンドポイントが見つかった
+						final int vendor_id = device.getVendorId();
+						final int product_id = device.getProductId();
+						final String serial;
+						if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+							serial = device.getSerialNumber();
+						} else {
+							serial = null;
+						}
 						new Thread(new GamepadInTask(intf, ep_in), "GamepadInTask").start();
 						if (!mIsRunning) {
 							try {
 								mSync.wait();
 								if (mIsRunning) {
-									new Thread(mCallbackTask, "CallbackTask").start();
+									new Thread(new CallbackTask(vendor_id, product_id, serial), "CallbackTask").start();
 								}
 								return;
 							} catch (final InterruptedException e) {
@@ -138,7 +153,12 @@ public class HIDGamepad {
 	/**
 	 * コールバックメソッドをプライベートスレッド上で呼び出すためのRunnable
 	 */
-	private final Runnable mCallbackTask = new Runnable() {
+	private class CallbackTask implements Runnable {
+		private final IGamePad mParser;
+		public CallbackTask(final int vendor_id, final int product_id, final String serial) {
+			mParser = IGamePad.getGamepad(vendor_id, product_id, serial);
+		}
+
 		@Override
 		public void run() {
 			synchronized (mSync) {
@@ -176,7 +196,10 @@ public class HIDGamepad {
 					// 値が変更されていて前回のコールバック呼び出しから２０ミリ秒以上経過していたらコールバックを呼び出す
 					prev_time = System.currentTimeMillis();
 					try {
-						mCallback.onRawdataChanged(n, values);
+						if (!mCallback.onRawdataChanged(n, values)) {
+							mParser.parse(n, values);
+							mCallback.onEvent(HIDGamepad.this, mParser);
+						}
 					} catch (final Exception e) {
 						Log.w(TAG, e);
 					}
@@ -207,6 +230,8 @@ public class HIDGamepad {
 			final int max_packets;
 			final int n;
 			synchronized (mSync) {
+				mValues = null;
+				mIsRunning = false;
 				connection = mCtrlBlock.getUsbDeviceConnection();
 				if (connection != null) {
 					if (DEBUG) Log.v(TAG_THREAD, "claimInterface:");
@@ -216,10 +241,12 @@ public class HIDGamepad {
 					connection.claimInterface(mIntf, true);	// true: 必要ならカーネルドライバをdisconnectさせる
 					intervals = mEp.getInterval();
 					max_packets = mEp.getMaxPacketSize();
-					if (DEBUG)
-						Log.v(TAG_THREAD, "intervals=" + intervals + ", max_packets=" + max_packets);
-					mValues = new byte[max_packets];
-					mIsRunning = true;
+
+					if (DEBUG) Log.v(TAG_THREAD, "intervals=" + intervals + ", max_packets=" + max_packets);
+					if (max_packets > 0) {
+						mValues = new byte[max_packets];
+						mIsRunning = true;
+					}
 				} else {
 					intervals = max_packets = 0;
 				}
@@ -227,34 +254,36 @@ public class HIDGamepad {
 			}
 			if (connection != null) {
 				try {
-					final ByteBuffer buffer = ByteBuffer.allocateDirect(max_packets);
-					buffer.order(ByteOrder.LITTLE_ENDIAN);
-					final UsbRequest request = new UsbRequest();
-					request.initialize(connection, mEp);
-					UsbRequest req;
-					for (; mIsRunning; ) {
-						buffer.clear();
-						request.queue(buffer, max_packets);
-						try {
-							req = connection.requestWait();
-						} catch (final Exception e) {
-							Log.w(TAG, e);
-							req = null;
-						}
-						if (request.equals(req)) {
-//							if (DEBUG) Log.v(TAG_THREAD, "got data:" + buffer);
+					if (mIsRunning) {
+						final ByteBuffer buffer = ByteBuffer.allocateDirect(max_packets);
+						buffer.order(ByteOrder.LITTLE_ENDIAN);
+						final UsbRequest request = new UsbRequest();
+						request.initialize(connection, mEp);
+						UsbRequest req;
+						for (; mIsRunning; ) {
 							buffer.clear();
-							synchronized (mSync) {
-								buffer.get(mValues);
-								mSync.notifyAll();
+							request.queue(buffer, max_packets);
+							try {
+								req = connection.requestWait();
+							} catch (final Exception e) {
+								Log.w(TAG, e);
+								req = null;
+							}
+							if (request.equals(req)) {
+//								if (DEBUG) Log.v(TAG_THREAD, "got data:" + buffer);
+								buffer.clear();
+								synchronized (mSync) {
+									buffer.get(mValues);
+									mSync.notifyAll();
+								}
+							}
+							try {
+								Thread.sleep(intervals);
+							} catch (final InterruptedException e) {
 							}
 						}
-						try {
-							Thread.sleep(intervals);
-						} catch (final InterruptedException e) {
-						}
+						request.close();
 					}
-					request.close();
 				} finally {
 					if (DEBUG) Log.v(TAG_THREAD, "releaseInterface:");
 					connection.releaseInterface(mIntf);

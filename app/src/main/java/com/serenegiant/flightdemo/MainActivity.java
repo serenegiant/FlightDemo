@@ -24,6 +24,7 @@ import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.net.NetworkChangedReceiver;
 import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.usb.HIDGamepad;
+import com.serenegiant.usb.IGamePad;
 import com.serenegiant.usb.USBMonitor;
 import com.serenegiant.widget.ISideMenuView;
 import com.serenegiant.widget.SideMenuFrameLayout;
@@ -470,7 +471,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 		private final StringBuilder sb = new StringBuilder();
 
 		@Override
-		public void onRawdataChanged(final int n, final byte[] data) {
+		public boolean onRawdataChanged(final int n, final byte[] data) {
 			if (mGamepadTv != null) {
 				sb.setLength(0);
 				final int m = n / 8 + 1;
@@ -494,6 +495,12 @@ LOOP:			for (int j = 0; j < m; j++) {
 				});
 //				Log.v(TAG, text);
 			}
+			return false;
+		}
+
+		@Override
+		public void onEvent(final HIDGamepad gamepad, final IGamePad data) {
+			// FIXME データ受信時の処理
 		}
 	};
 }
