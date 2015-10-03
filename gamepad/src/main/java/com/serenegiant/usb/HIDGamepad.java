@@ -6,6 +6,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbRequest;
+import android.os.Build;
 import android.util.Log;
 
 import com.serenegiant.usb.USBMonitor.UsbControlBlock;
@@ -39,66 +40,74 @@ public class HIDGamepad {
 		mCallback = callback;
 	}
 
-	public void open(final UsbControlBlock ctrlBlock) {
+	public void open(final UsbControlBlock ctrlBlock) throws RuntimeException {
 		synchronized (mSync) {
 			mCtrlBlock = ctrlBlock;
-			// FIXME ここでインターフェースとエンドポイントを探す
+			// ここでインターフェースとエンドポイントを探す
 			final UsbDevice device = ctrlBlock.getDevice();
-			if (DEBUG) Log.v(TAG, "num_interface:" + device.getInterfaceCount());
-			if (device.getInterfaceCount() != 1) {	// インターフェースの数は1個だけをサポート
-				Log.e(TAG, "could not find interface");
-			}
-			final UsbInterface intf = device.getInterface(0);
-			final int num_endpoint = intf.getEndpointCount();
-			if (DEBUG) Log.v(TAG, "num_endpoint:" + num_endpoint);
-			if (num_endpoint > 0) {
-				UsbEndpoint ep_in = null;
-				UsbEndpoint ep_out = null;
-				for (int i = 0; i < num_endpoint; i++) {
-					final UsbEndpoint ep = intf.getEndpoint(i);
-					if (DEBUG) Log.v(TAG, "type=" + ep.getType() + ", dir=" + ep.getDirection());
-					if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {	// インタラプト転送
-						switch (ep.getDirection()) {
-						case UsbConstants.USB_DIR_IN:
-							if (ep_in == null) {
-								ep_in = ep;
+			final int num_interface = device.getInterfaceCount();
+			if (DEBUG) Log.v(TAG, "num_interface:" + num_interface);
+			for (int j = 0; j < num_interface; j++) {
+				final UsbInterface intf = device.getInterface(j);
+				final int num_endpoint = intf.getEndpointCount();
+				if (DEBUG) Log.v(TAG, "num_endpoint:" + num_endpoint);
+				if (num_endpoint > 0) {
+					UsbEndpoint ep_in = null;
+					UsbEndpoint ep_out = null;
+					for (int i = 0; i < num_endpoint; i++) {
+						final UsbEndpoint ep = intf.getEndpoint(i);
+						if (DEBUG)
+							Log.v(TAG, "type=" + ep.getType() + ", dir=" + ep.getDirection());
+						if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {    // インタラプト転送
+							switch (ep.getDirection()) {
+							case UsbConstants.USB_DIR_IN:
+								if (ep_in == null) {
+									ep_in = ep;
+								}
+								break;
+							case UsbConstants.USB_DIR_OUT:
+								if (ep_out == null) {
+									ep_out = ep;
+								}
+								break;
 							}
-							break;
-						case UsbConstants.USB_DIR_OUT:
-							if (ep_out == null) {
-								ep_out = ep;
-							}
-							break;
 						}
+						if ((ep_in != null) && (ep_out != null)) break;
 					}
-					if ((ep_in != null) && (ep_out != null)) break;
-				}
-				if (ep_in != null) {
-					new Thread(new GamepadInTask(intf, ep_in), "GamepadInTask").start();
-					synchronized (mSync) {
+					if (ep_in != null) {
+						// HID入力インターフェースのエンドポイントが見つかった
+						new Thread(new GamepadInTask(intf, ep_in), "GamepadInTask").start();
 						if (!mIsRunning) {
 							try {
 								mSync.wait();
 								if (mIsRunning) {
 									new Thread(mCallbackTask, "CallbackTask").start();
 								}
+								return;
 							} catch (final InterruptedException e) {
+								break;
 							}
 						}
+						mIsRunning = false;
+						mSync.notifyAll();
 					}
-				} else {
-					Log.e(TAG, "could not find input endpoint");
-					return;
+					if (ep_out != null) {
+						// HID出力インターフェースのエンドポイントが見つかった
+						// FIXME 出力は未サポートなので何もしない
+					}
 				}
-				// FIXME 出力は未サポート
-			} else {
-				Log.e(TAG, "could not find endpoint");
 			}
+			throw new RuntimeException("could not find endpoint");
 		}
 	}
 
 	public void close() {
 		synchronized (mSync) {
+			if (!mIsRunning) {
+				if (mCtrlBlock != null) {
+					mCtrlBlock.close();
+				}
+			}
 			mIsRunning = false;
 			mCtrlBlock = null;
 			mSync.notifyAll();
@@ -106,9 +115,9 @@ public class HIDGamepad {
 	}
 
 	/**
-	 * destroy UVCCamera object
+	 * release all related resources
 	 */
-	public void destroy() {
+	public void release() {
 		close();
 	}
 
@@ -124,12 +133,11 @@ public class HIDGamepad {
 		return mCtrlBlock;
 	}
 
-	private boolean findHIDInput() {
-		return false;
-	}
-
 	private byte[] mValues;
 
+	/**
+	 * コールバックメソッドをプライベートスレッド上で呼び出すためのRunnable
+	 */
 	private final Runnable mCallbackTask = new Runnable() {
 		@Override
 		public void run() {
@@ -178,6 +186,9 @@ public class HIDGamepad {
 	};
 
 
+	/**
+	 * 非同期でHID入力エンドポイントからデータを読み込んでバッファにセットするためのRunnable
+	 */
 	private class GamepadInTask implements Runnable {
 		private final String TAG_THREAD = GamepadInTask.class.getSimpleName();
 
@@ -199,7 +210,10 @@ public class HIDGamepad {
 				connection = mCtrlBlock.getUsbDeviceConnection();
 				if (connection != null) {
 					if (DEBUG) Log.v(TAG_THREAD, "claimInterface:");
-					connection.claimInterface(mIntf, true);
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+						connection.setInterface(mIntf);
+					}
+					connection.claimInterface(mIntf, true);	// true: 必要ならカーネルドライバをdisconnectさせる
 					intervals = mEp.getInterval();
 					max_packets = mEp.getMaxPacketSize();
 					if (DEBUG)
@@ -212,11 +226,11 @@ public class HIDGamepad {
 				mSync.notifyAll();
 			}
 			if (connection != null) {
-				final ByteBuffer buffer = ByteBuffer.allocateDirect(max_packets);
-				buffer.order(ByteOrder.LITTLE_ENDIAN);
-				final UsbRequest request = new UsbRequest();
-				request.initialize(connection, mEp);
 				try {
+					final ByteBuffer buffer = ByteBuffer.allocateDirect(max_packets);
+					buffer.order(ByteOrder.LITTLE_ENDIAN);
+					final UsbRequest request = new UsbRequest();
+					request.initialize(connection, mEp);
 					UsbRequest req;
 					for (; mIsRunning; ) {
 						buffer.clear();
@@ -244,6 +258,7 @@ public class HIDGamepad {
 				} finally {
 					if (DEBUG) Log.v(TAG_THREAD, "releaseInterface:");
 					connection.releaseInterface(mIntf);
+					connection.close();
 				}
 			}
 		}

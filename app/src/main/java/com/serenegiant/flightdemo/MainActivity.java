@@ -94,6 +94,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 	private ActionBarDrawerToggle mDrawerToggle;
 	private final Handler mUiHandler = new Handler();
 
+	private final Object mUsbSync = new Object();
 	private USBMonitor mUSBMonitor;
 	private HIDGamepad mGamepad;
 	private TextView mGamepadTv;
@@ -125,10 +126,12 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 		// ゲームパッド用のドライバーを使う場合はUsbMonitorを生成する
 		// FIXME 今はテストしやすいようにMainActivity内にあるけど本来はPilotFragment内で処理すべき
 		final boolean use_usb_driver = pref.getBoolean(ConfigFragment.KEY_GAMEPAD_USE_DRIVER, false);
-		if (use_usb_driver && (mUSBMonitor == null)) {
-			mUSBMonitor = new USBMonitor(getApplicationContext(), mOnDeviceConnectListener);
-			final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(this, R.xml.device_filter);
-			mUSBMonitor.setDeviceFilter(filter.get(0));
+		synchronized (mUsbSync) {
+			if (use_usb_driver && (mUSBMonitor == null)) {
+				mUSBMonitor = new USBMonitor(getApplicationContext(), mOnDeviceConnectListener);
+				final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(this, R.xml.device_filter);
+				mUSBMonitor.setDeviceFilter(filter.get(0));
+			}
 		}
 		mGamepadTv = (TextView)findViewById(R.id.debug_gamepad_testview);
 		if (mGamepadTv != null) {
@@ -170,19 +173,20 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 		if (mDrawerToggle != null) {
 			mDrawerToggle.syncState();
 		}
-		if (mUSBMonitor != null) {
-			mUSBMonitor.register();
+		synchronized (mUsbSync) {
+			if (mUSBMonitor != null) {
+				mUSBMonitor.register();
+			}
 		}
 	}
 
 	@Override
 	public void onPause() {
-		if (mGamepad != null) {
-			mGamepad.close();
-			mGamepad = null;
-		}
-		if (mUSBMonitor != null) {
-			mUSBMonitor.unregister();
+		synchronized (mUsbSync) {
+			releaseGamepad();
+			if (mUSBMonitor != null) {
+				mUSBMonitor.unregister();
+			}
 		}
 		super.onPause();
 	}
@@ -401,49 +405,67 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 		@Override
 		public void onAttach(final UsbDevice device) {
 			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onAttach:");
-			if (mUSBMonitor != null) {
-				UsbDevice _device = device;
-				if ((_device == null) && (mUSBMonitor.getDeviceCount() > 0)) {
-					_device = mUSBMonitor.getDeviceList().get(0);
+			synchronized (mUsbSync) {
+				if (mUSBMonitor != null) {
+					UsbDevice _device = device;
+					if ((_device == null) && (mUSBMonitor.getDeviceCount() > 0)) {
+						_device = mUSBMonitor.getDeviceList().get(0);
+					}
+					if (mGamepad == null) {
+						mUSBMonitor.requestPermission(_device);
+					}
 				}
-				mUSBMonitor.requestPermission(_device);
 			}
 		}
 
 		@Override
 		public void onConnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock, final boolean createNew) {
 			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onConnect:");
-			if (mGamepadTv != null) {
-				mGamepadTv.setVisibility(View.VISIBLE);
+			synchronized (mUsbSync) {
+				if (mGamepadTv != null) {
+					mGamepadTv.setVisibility(View.VISIBLE);
+				}
+				if (mGamepad == null) {
+					mGamepad = new HIDGamepad(mHIDGamepadCallback);
+					mGamepad.open(ctrlBlock);
+				}
 			}
-			mGamepad = new HIDGamepad(mHIDGamepadCallback);
-			mGamepad.open(ctrlBlock);
 		}
 
 		@Override
 		public void onDisconnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
 			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDisconnect:");
-			if (mGamepad != null) {
-				mGamepad.close();
-				mGamepad = null;
+			synchronized (mUsbSync) {
+				if (mGamepad != null) {
+					mGamepad.close();
+				}
 			}
 		}
 
 		@Override
 		public void onDettach(final UsbDevice device) {
 			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDettach:");
-			if (mGamepad != null) {
-				mGamepad.close();
-				mGamepad = null;
-			}
+			releaseGamepad();
 		}
 
 		@Override
 		public void onCancel() {
 			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onCancel:");
+			releaseGamepad();
 		}
 	};
 
+	private void releaseGamepad() {
+		synchronized (mUsbSync) {
+			if (mGamepad != null) {
+				mGamepad.release();
+				mGamepad = null;
+			}
+		}
+	}
+	/**
+	 * ゲームパッドの状態をチェックするためコールバック
+	 */
 	private final HIDGamepad.HIDGamepadCallback mHIDGamepadCallback = new HIDGamepad.HIDGamepadCallback() {
 		private final StringBuilder sb = new StringBuilder();
 
