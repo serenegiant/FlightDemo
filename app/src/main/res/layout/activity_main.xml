@@ -52,7 +52,8 @@
             android:layout_alignParentTop="false"
             android:layout_alignParentBottom="false"
             android:layout_centerVertical="true"
-            android:textColor="@color/RED"/>
+            android:textColor="@color/RED"
+            android:visibility="invisible"/>
 
     </RelativeLayout>
 

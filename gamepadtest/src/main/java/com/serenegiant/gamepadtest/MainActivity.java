@@ -1,10 +1,12 @@
 package com.serenegiant.gamepadtest;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -18,7 +20,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Surface;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
+
+import com.serenegiant.usb.DeviceFilter;
+import com.serenegiant.usb.HIDGamepad;
+import com.serenegiant.usb.IGamePad;
+import com.serenegiant.usb.USBMonitor;
 
 import java.util.List;
 
@@ -59,6 +68,11 @@ public class MainActivity extends AppCompatActivity {
 
 	private final Object mSync = new Object();
 	private final SparseArray<TextView> mTextViews = new SparseArray<TextView>();
+
+	private final Object mUsbSync = new Object();
+	private USBMonitor mUSBMonitor;
+	private HIDGamepad mGamepad;
+	private TextView mGamepadTv;
 
 	private final KeyCount[] mKeyCounts = new KeyCount[16];
 
@@ -186,6 +200,9 @@ public class MainActivity extends AppCompatActivity {
 		mSensorGyroTextView = (TextView)findViewById(R.id.sensor_gyro_textview);
 		mSensorGravityTextView = (TextView)findViewById(R.id.sensor_gravity_textview);
 		mSensorOrientationTextView = (TextView)findViewById(R.id.sensor_orientation_textview);
+
+		final CheckBox checkbox = (CheckBox)findViewById(R.id.use_driver_checkbox);
+		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
 	@Override
@@ -193,13 +210,30 @@ public class MainActivity extends AppCompatActivity {
 		super.onResume();
 		startSensor();
 		mUIHandler.post(mKeyUpdateTask);
+		synchronized (mUsbSync) {
+			if (mUSBMonitor != null) {
+				mUSBMonitor.register();
+			}
+		}
 	}
 
 	@Override
 	protected void onPause() {
+		synchronized (mUsbSync) {
+			releaseGamepad();
+			if (mUSBMonitor != null) {
+				mUSBMonitor.unregister();
+			}
+		}
 		stopSensor();
 		mUIHandler.removeCallbacks(mKeyUpdateTask);
 		super.onPause();
+	}
+
+	@Override
+	protected void onDestroy() {
+		releaseUsbDriver();
+		super.onDestroy();
 	}
 
 	private void down(final int keycode) {
@@ -240,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
 					mKeyTextView.setText(getKeyCodeName(keycode));
 				} catch (final Exception e) {
 				}
-				if (DEBUG) Log.v(TAG, "DOWN:ev=" + ev);
+//				if (DEBUG) Log.v(TAG, "DOWN:ev=" + ev);
 				break;
 			case KeyEvent.ACTION_UP:
 				synchronized (mSync) {
@@ -252,10 +286,10 @@ public class MainActivity extends AppCompatActivity {
 					mKeyTextView.setText(getKeyCodeName(keycode));
 				} catch (final Exception e) {
 				}
-				if (DEBUG) Log.v(TAG, "UP:ev=" + ev);
+//				if (DEBUG) Log.v(TAG, "UP:ev=" + ev);
 				break;
 			case KeyEvent.ACTION_MULTIPLE:
-				if (DEBUG) Log.v(TAG, "MULTIPLE:ev=" + ev);
+//				if (DEBUG) Log.v(TAG, "MULTIPLE:ev=" + ev);
 				break;
 		}
 		return super.dispatchKeyEvent(ev);
@@ -629,7 +663,7 @@ public class MainActivity extends AppCompatActivity {
 				}
 				break;
 			default:
-				if (DEBUG) Log.v(TAG, "onSensorChanged:" + String.format("その他%d(%f,%f,%f)", type, values[0], values[1], values[2]));
+//				if (DEBUG) Log.v(TAG, "onSensorChanged:" + String.format("その他%d(%f,%f,%f)", type, values[0], values[1], values[2]));
 				break;
 			}
 		}
@@ -706,4 +740,175 @@ public class MainActivity extends AppCompatActivity {
 		}
 		SensorManager.getOrientation(outR, result);
 	}
+
+
+	private void startUsbDriver() {
+//		final SharedPreferences pref = getPreferences(0);
+//		final boolean use_usb_driver = pref.getBoolean("USE_GAMEPAD_DRIVER", false);
+		synchronized (mUsbSync) {
+			if (true/*use_usb_driver*/ && (mUSBMonitor == null)) {
+				mUSBMonitor = new USBMonitor(getApplicationContext(), mOnDeviceConnectListener);
+				final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(this, R.xml.device_filter);
+				mUSBMonitor.setDeviceFilter(filter.get(0));
+			}
+		}
+		mGamepadTv = (TextView)findViewById(R.id.debug_gamepad_testview);
+		if (mGamepadTv != null) {
+			mGamepadTv.setVisibility(View.INVISIBLE);
+		}
+	}
+
+	private void releaseUsbDriver() {
+		synchronized (mUsbSync) {
+			releaseGamepad();
+			if (mUSBMonitor != null) {
+				mUSBMonitor.unregister();
+				mUSBMonitor.destroy();
+				mUSBMonitor = null;
+			}
+		}
+	}
+
+	private final CompoundButton.OnCheckedChangeListener mOnCheckedChangeListener
+		= new CompoundButton.OnCheckedChangeListener() {
+
+		@Override
+		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+			switch (buttonView.getId()) {
+			case R.id.use_driver_checkbox:
+				if (isChecked) {
+					if (mUSBMonitor == null) {
+						startUsbDriver();
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								synchronized (mUsbSync) {
+									if (mUSBMonitor != null) {
+										mUSBMonitor.register();
+									}
+								}
+							}
+						});
+					}
+				} else {
+					releaseUsbDriver();
+				}
+			}
+		}
+	};
+
+	private final USBMonitor.OnDeviceConnectListener mOnDeviceConnectListener = new USBMonitor.OnDeviceConnectListener() {
+		@Override
+		public void onAttach(final UsbDevice device) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onAttach:");
+			synchronized (mUsbSync) {
+				if (mUSBMonitor != null) {
+					UsbDevice _device = device;
+					if ((_device == null) && (mUSBMonitor.getDeviceCount() > 0)) {
+						_device = mUSBMonitor.getDeviceList().get(0);
+					}
+					if (mGamepad == null) {
+						mUSBMonitor.requestPermission(_device);
+					}
+				}
+			}
+		}
+
+		@Override
+		public void onConnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock, final boolean createNew) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onConnect:");
+			synchronized (mUsbSync) {
+				if (mGamepadTv != null) {
+					mGamepadTv.setVisibility(View.VISIBLE);
+				}
+				if (mGamepad == null) {
+					mGamepad = new HIDGamepad(mHIDGamepadCallback);
+					mGamepad.open(ctrlBlock);
+				}
+			}
+		}
+
+		@Override
+		public void onDisconnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDisconnect:");
+			synchronized (mUsbSync) {
+				if (mGamepad != null) {
+					mGamepad.close();
+				}
+			}
+		}
+
+		@Override
+		public void onDettach(final UsbDevice device) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDettach:");
+			releaseGamepad();
+		}
+
+		@Override
+		public void onCancel() {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onCancel:");
+			releaseGamepad();
+		}
+	};
+
+	private void releaseGamepad() {
+		synchronized (mUsbSync) {
+			if (mGamepad != null) {
+				mGamepad.release();
+				mGamepad = null;
+			}
+		}
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (mGamepadTv != null) {
+					mGamepadTv.setVisibility(View.INVISIBLE);
+				}
+			}
+		});
+	}
+	/**
+	 * ゲームパッドの状態をチェックするためコールバック
+	 */
+	private final HIDGamepad.HIDGamepadCallback mHIDGamepadCallback = new HIDGamepad.HIDGamepadCallback() {
+		private final StringBuilder sb = new StringBuilder();
+
+		@Override
+		public boolean onRawdataChanged(final int n, final byte[] data) {
+			if (mGamepadTv != null) {
+				sb.setLength(0);
+				final int m = n / 8 + 1;
+				int ix = 0;
+LOOP:			for (int j = 0; j < m; j++) {
+					if (ix >= n) break LOOP;
+					if (j != 0) {
+						sb.append("\n");
+					}
+					for (int i = 0; i < 8; i++) {
+						if (ix >= n) break LOOP;
+						sb.append(String.format("%02x:", data[ix++]));
+					}
+				}
+				final String text = sb.toString();
+				mGamepadTv.post(new Runnable() {
+					@Override
+					public void run() {
+						mGamepadTv.setText(text);
+					}
+				});
+//				Log.v(TAG, text);
+			}
+			return false;
+		}
+
+		@Override
+		public void onEvent(final HIDGamepad gamepad, final IGamePad data) {
+			// データ受信時の処理
+			final int[] counts = data.keyCount;
+			for (int i = 0; i < 16; i++) {
+				mKeyCounts[i].downTime = counts[i];
+				mKeyCounts[i].isDown =  counts[i] != 0;
+			}
+		}
+	};
 }
