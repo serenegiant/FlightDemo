@@ -27,6 +27,7 @@ public class ConfigFragment extends ControlBaseFragment {
 	public static final String KEY_OPERATION_TYPE = "OPERATION_TYPE";
 	public static final String KEY_OPERATION_TOUCH = "OPERATION_TOUCH";
 	// ゲームパッド
+	public static final String KEY_GAMEPAD_USE_DRIVER = "CONFIG_GAMEPAD_USE_DRIVER";
 	public static final String KEY_GAMEPAD_SENSITIVITY = "CONFIG_GAMEPAD_SENSITIVITY";
 	public static final String KEY_GAMEPAD_SCALE_X = "CONFIG_GAMEPAD_SCALE_X";
 	public static final String KEY_GAMEPAD_SCALE_Y = "CONFIG_GAMEPAD_SCALE_Y";
@@ -343,6 +344,9 @@ public class ConfigFragment extends ControlBaseFragment {
 	 */
 	private void initConfigGamepad(final View root) {
 		// 最大制御値設定
+		final CheckBox checkbox = (CheckBox)root.findViewById(R.id.usb_driver_checkbox);
+		checkbox.setChecked(mPref.getBoolean(KEY_GAMEPAD_USE_DRIVER, false));
+		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		mGamepadMaxControlValueLabel = (TextView)root.findViewById(R.id.gamepad_sensitivity_textview);
 		SeekBar seekbar = (SeekBar)root.findViewById(R.id.gamepad_sensitivity_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
@@ -917,6 +921,8 @@ public class ConfigFragment extends ControlBaseFragment {
 			case R.id.operation_touch_checkbox:
 				mPref.edit().putBoolean(KEY_OPERATION_TOUCH, isChecked).apply();
 				break;
+			case R.id.usb_driver_checkbox:
+				mPref.edit().putBoolean(KEY_GAMEPAD_USE_DRIVER, isChecked).apply();
 			}
 		}
 	};

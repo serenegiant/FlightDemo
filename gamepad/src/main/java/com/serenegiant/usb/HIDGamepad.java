@@ -12,6 +12,8 @@ import com.serenegiant.usb.USBMonitor.UsbControlBlock;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.zip.CRC32;
 
 public class HIDGamepad {
 	private static final boolean DEBUG = true;	// FIXME 実同時はfalseにすること
@@ -21,7 +23,20 @@ public class HIDGamepad {
 	private UsbControlBlock mCtrlBlock;
 	private volatile boolean mIsRunning;
 
-	public HIDGamepad() {
+	public static class GamepadStatus {
+		public boolean left;
+	}
+
+	public interface HIDGamepadCallback {
+		public void onRawdataChanged(final int n, final byte[] data);
+	}
+
+	private final HIDGamepadCallback mCallback;
+	public HIDGamepad(final HIDGamepadCallback callback) throws NullPointerException {
+		if (callback == null) {
+			throw new NullPointerException("callback should not be a null");
+		}
+		mCallback = callback;
 	}
 
 	public void open(final UsbControlBlock ctrlBlock) {
@@ -60,6 +75,17 @@ public class HIDGamepad {
 				}
 				if (ep_in != null) {
 					new Thread(new GamepadInTask(intf, ep_in), "GamepadInTask").start();
+					synchronized (mSync) {
+						if (!mIsRunning) {
+							try {
+								mSync.wait();
+								if (mIsRunning) {
+									new Thread(mCallbackTask, "CallbackTask").start();
+								}
+							} catch (final InterruptedException e) {
+							}
+						}
+					}
 				} else {
 					Log.e(TAG, "could not find input endpoint");
 					return;
@@ -102,6 +128,56 @@ public class HIDGamepad {
 		return false;
 	}
 
+	private byte[] mValues;
+
+	private final Runnable mCallbackTask = new Runnable() {
+		@Override
+		public void run() {
+			synchronized (mSync) {
+				if (!mIsRunning) {
+					try {
+						mSync.wait();
+					} catch (final InterruptedException e) {
+					}
+				}
+			}
+			int cnt = 0;
+			final int n = mValues != null ? mValues.length : 0;
+			final byte[] values = new byte[n];
+			final byte[] prev = new byte[n];
+			long prev_time = -1;
+			for (; mIsRunning ;) {
+				synchronized (mSync) {
+					try {
+						// ゲームパッドの値更新通知が来るまで待機
+						mSync.wait();
+						// ローカルにコピーする
+						System.arraycopy(mValues, 0, values, 0, n);
+						if (!mIsRunning) break;
+					} catch (final InterruptedException e) {
+						break;
+					}
+				}
+				// 値が変更されているかどうかをチェック
+				boolean b = false;
+				for (int i = 0; i < n; i++) {
+					b |= prev[i] != values[i];
+					prev[i] = values[i];
+				}
+				if (b && (System.currentTimeMillis() - prev_time > 20)) {
+					// 値が変更されていて前回のコールバック呼び出しから２０ミリ秒以上経過していたらコールバックを呼び出す
+					prev_time = System.currentTimeMillis();
+					try {
+						mCallback.onRawdataChanged(n, values);
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	};
+
+
 	private class GamepadInTask implements Runnable {
 		private final String TAG_THREAD = GamepadInTask.class.getSimpleName();
 
@@ -115,37 +191,48 @@ public class HIDGamepad {
 		@Override
 		public void run() {
 			if (DEBUG) Log.v(TAG_THREAD, "#run:");
-			mIsRunning = true;
 			final UsbDeviceConnection connection;
+			final int intervals;
+			final int max_packets;
+			final int n;
 			synchronized (mSync) {
 				connection = mCtrlBlock.getUsbDeviceConnection();
+				if (connection != null) {
+					if (DEBUG) Log.v(TAG_THREAD, "claimInterface:");
+					connection.claimInterface(mIntf, true);
+					intervals = mEp.getInterval();
+					max_packets = mEp.getMaxPacketSize();
+					if (DEBUG)
+						Log.v(TAG_THREAD, "intervals=" + intervals + ", max_packets=" + max_packets);
+					mValues = new byte[max_packets];
+					mIsRunning = true;
+				} else {
+					intervals = max_packets = 0;
+				}
+				mSync.notifyAll();
 			}
 			if (connection != null) {
-				if (DEBUG) Log.v(TAG_THREAD, "claimInterface:");
-				connection.claimInterface(mIntf, true);
+				final ByteBuffer buffer = ByteBuffer.allocateDirect(max_packets);
+				buffer.order(ByteOrder.LITTLE_ENDIAN);
+				final UsbRequest request = new UsbRequest();
+				request.initialize(connection, mEp);
 				try {
-					final int intervals = mEp.getInterval();
-					final int max_packets = mEp.getMaxPacketSize();
-					if (DEBUG) Log.v(TAG_THREAD, "intervals=" + intervals + ", max_packets=" + max_packets);
-					final ByteBuffer buffer = ByteBuffer.allocate(max_packets);
-					final byte[] codes = new byte[max_packets];
-					final UsbRequest request = new UsbRequest();
-					request.initialize(connection, mEp);
-					long v, prev = -1;
-					for ( ; mIsRunning ; ) {
+					UsbRequest req;
+					for (; mIsRunning; ) {
 						buffer.clear();
-						request.queue (buffer, max_packets);
-						if (connection.requestWait() == request) {
+						request.queue(buffer, max_packets);
+						try {
+							req = connection.requestWait();
+						} catch (final Exception e) {
+							Log.w(TAG, e);
+							req = null;
+						}
+						if (request.equals(req)) {
 //							if (DEBUG) Log.v(TAG_THREAD, "got data:" + buffer);
 							buffer.clear();
-							buffer.get(codes);
-							v = 0;
-							for (int i = max_packets - 1; i >= 0; i--) {
-								v = (v << 8) + codes[i];
-							}
-							if (v != prev) {
-								prev = v;
-								if (DEBUG) Log.v(TAG_THREAD, String.format("%016x", v));
+							synchronized (mSync) {
+								buffer.get(mValues);
+								mSync.notifyAll();
 							}
 						}
 						try {
