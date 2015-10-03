@@ -1,7 +1,6 @@
 package com.serenegiant.gamepadtest;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -16,8 +15,6 @@ import android.util.SparseIntArray;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.Surface;
 import android.view.View;
 import android.widget.CheckBox;
@@ -74,55 +71,43 @@ public class MainActivity extends AppCompatActivity {
 	private HIDGamepad mGamepad;
 	private TextView mGamepadTv;
 
-	private final KeyCount[] mKeyCounts = new KeyCount[16];
+	private final KeyCount[] mKeyCounts = new KeyCount[IGamePad.KEY_NUMS];
 
-	private static final int KEY_UNKNOWN		= -1;
-	private static final int KEY_LEFT_CENTER	= 0;
-	private static final int KEY_LEFT_UP		= 1;
-	private static final int KEY_LEFT_RIGHT		= 2;
-	private static final int KEY_LEFT_DOWN		= 3;
-	private static final int KEY_LEFT_LEFT		= 4;
-	private static final int KEY_RIGHT_CENTER	= 5;
-	private static final int KEY_RIGHT_UP		= 6;
-	private static final int KEY_RIGHT_RIGHT	= 7;
-	private static final int KEY_RIGHT_DOWN		= 8;
-	private static final int KEY_RIGHT_LEFT		= 9;
-	private static final int KEY_LEFT_1			= 10;	// 左上前
-	private static final int KEY_LEFT_2			= 11;	// 左上後
-	private static final int KEY_LEFT_3			= 12;	// 中央左
-	private static final int KEY_RIGHT_1		= 13;	// 右上前
-	private static final int KEY_RIGHT_2		= 14;	// 右上後
-	private static final int KEY_RIGHT_3		= 15;	// 中央右
 
 	/** ゲームパッドのハードウエアキーコードからアプリ内キーコードに変換するためのテーブル */
 	private static final SparseIntArray KEY_MAP = new SparseIntArray();
 	static {
 		// 左側アナログスティック/十字キー
-		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_UP, KEY_LEFT_UP);
-		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_RIGHT, KEY_LEFT_RIGHT);
-		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_DOWN, KEY_LEFT_DOWN);
-		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_LEFT, KEY_LEFT_LEFT);
+		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_UP, IGamePad.KEY_LEFT_UP);
+		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_RIGHT, IGamePad.KEY_LEFT_RIGHT);
+		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_DOWN, IGamePad.KEY_LEFT_DOWN);
+		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_LEFT, IGamePad.KEY_LEFT_LEFT);
 		// 右側アナログスティック
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_1, KEY_RIGHT_UP);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_2, KEY_RIGHT_RIGHT);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_3, KEY_RIGHT_DOWN);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_4, KEY_RIGHT_LEFT);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_1, IGamePad.KEY_RIGHT_UP);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_2, IGamePad.KEY_RIGHT_RIGHT);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_3, IGamePad.KEY_RIGHT_DOWN);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_4, IGamePad.KEY_RIGHT_LEFT);
 		// 左上
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_5, KEY_LEFT_1);		// 左上手前
-//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_L1, KEY_LEFT_1);	// 左上手前
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_7, KEY_LEFT_2);		// 左上奥
-//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_L2, KEY_LEFT_2);	// 左上手前
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_5, IGamePad.KEY_LEFT_1);	// 左上手前
+//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_L1, IGamePad.KEY_LEFT_1);	// 左上手前
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_7, IGamePad.KEY_LEFT_2);	// 左上奥
+//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_L2, IGamePad.KEY_LEFT_2);	// 左上手前
 		// 右上
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_6, KEY_RIGHT_1);	// 右上手前
-//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_R1, KEY_RIGHT_1);	// 右上手前
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_8, KEY_RIGHT_2);	// 右上奥
-//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_R2, KEY_RIGHT_2);	// 右上手前
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_6, IGamePad.KEY_RIGHT_1);	// 右上手前
+//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_R1, IGamePad.KEY_RIGHT_1);	// 右上手前
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_8, IGamePad.KEY_RIGHT_2);	// 右上奥
+//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_R2, IGamePad.KEY_RIGHT_2);	// 右上手前
 		// スティック中央
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_9, KEY_LEFT_CENTER);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_10, KEY_RIGHT_CENTER);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_9, IGamePad.KEY_LEFT_CENTER);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_10, IGamePad.KEY_RIGHT_CENTER);
 		// 中央
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_11, KEY_LEFT_3);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_12, KEY_RIGHT_3);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_11, IGamePad.KEY_CENTER_LEFT);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_12, IGamePad.KEY_CENTER_RIGHT);
+		// A-D
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_13, IGamePad.KEY_RIGHT_A);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_14, IGamePad.KEY_RIGHT_B);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_15, IGamePad.KEY_RIGHT_C);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_16, IGamePad.KEY_RIGHT_D);
 	}
 
 	private TextView mKeyTextView;
@@ -188,6 +173,15 @@ public class MainActivity extends AppCompatActivity {
 		mTextViews.append(KeyEvent.KEYCODE_BUTTON_11, tv);
 		tv = (TextView) findViewById(R.id.btn12_textview);
 		mTextViews.append(KeyEvent.KEYCODE_BUTTON_12, tv);
+		// A-D
+		tv = (TextView) findViewById(R.id.btnA_textview);
+		mTextViews.append(KeyEvent.KEYCODE_BUTTON_13, tv);
+		tv = (TextView) findViewById(R.id.btnB_textview);
+		mTextViews.append(KeyEvent.KEYCODE_BUTTON_14, tv);
+		tv = (TextView) findViewById(R.id.btnC_textview);
+		mTextViews.append(KeyEvent.KEYCODE_BUTTON_15, tv);
+		tv = (TextView) findViewById(R.id.btnD_textview);
+		mTextViews.append(KeyEvent.KEYCODE_BUTTON_16, tv);
 
 		final int n = KEY_MAP.size();
 		for (int i = 0; i < n; i++) {
@@ -237,8 +231,8 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void down(final int keycode) {
-		final int app_key = KEY_MAP.get(keycode, KEY_UNKNOWN);
-		if (app_key != KEY_UNKNOWN) {
+		final int app_key = KEY_MAP.get(keycode, IGamePad.KEY_UNKNOWN);
+		if (app_key != IGamePad.KEY_UNKNOWN) {
 			KeyCount keycount = mKeyCounts[app_key];
 			if (keycount == null) {
 				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
@@ -248,8 +242,8 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void up(final int keycode) {
-		final int app_key = KEY_MAP.get(keycode, KEY_UNKNOWN);
-		if (app_key != KEY_UNKNOWN) {
+		final int app_key = KEY_MAP.get(keycode, IGamePad.KEY_UNKNOWN);
+		if (app_key != IGamePad.KEY_UNKNOWN) {
 			KeyCount keycount = mKeyCounts[app_key];
 			if (keycount == null) {
 				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
@@ -905,10 +899,12 @@ LOOP:			for (int j = 0; j < m; j++) {
 		public void onEvent(final HIDGamepad gamepad, final IGamePad data) {
 			// データ受信時の処理
 			final int[] counts = data.keyCount;
-			for (int i = 0; i < 16; i++) {
-				mKeyCounts[i].downTime = counts[i];
+			final long current = System.currentTimeMillis();
+			for (int i = 0; i < IGamePad.KEY_NUMS; i++) {
+				mKeyCounts[i].downTime = current - counts[i];
 				mKeyCounts[i].isDown =  counts[i] != 0;
 			}
+//			Log.v(TAG, String.format("left(%d,%d)", data.analogLeftX, data.analogLeftY));
 		}
 	};
 }

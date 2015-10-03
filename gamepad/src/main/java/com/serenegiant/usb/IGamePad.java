@@ -22,8 +22,12 @@ public abstract class IGamePad {
 	public static final int KEY_RIGHT_1 = 13;    	// 右上前
 	public static final int KEY_RIGHT_2 = 14;   	// 右上後
 	public static final int KEY_CENTER_RIGHT = 15;	// 中央右
+	public static final int KEY_RIGHT_A = 16;	// アナログモードの時の右キーパッド上
+	public static final int KEY_RIGHT_B = 17;	// アナログモードの時の右キーパッド右
+	public static final int KEY_RIGHT_C = 18;	// アナログモードの時の右キーパッド下
+	public static final int KEY_RIGHT_D = 19;	// アナログモードの時の右キーパッド左
 
-	public static final int KEY_NUMS = 16;
+	public static final int KEY_NUMS = 20;
 
 	// DPADのキーマスクビット
 	protected static final int DPAD_UP = 0x01;
@@ -49,18 +53,20 @@ public abstract class IGamePad {
 		0x00,					//15=0x0f:何も押していない
 	};
 
-	public int analogLeftX, analogLeftY;
-	public int analogRightX, analogRightY;
-	public int[] keyCount = new int[KEY_NUMS];
+	public int analogLeftX;
+	public int analogLeftY;
+	public int analogRightX;
+	public int analogRightY;
+	public volatile int[] keyCount = new int[KEY_NUMS];
 
 	protected abstract void parse(final int n, final byte[] data);
 
 	protected static IGamePad getGamepad(final int vendor_id, final int product_id, final String serial) {
 		switch (vendor_id) {
-		case 1137:
+		case 4607:
 		{
 			switch (product_id) {
-			case 809:
+			case 13105:
 				return new JCU2912();
 			}
 			break;

@@ -386,6 +386,80 @@
 				android:layout_toRightOf="@+id/textView11"
 				android:text="12"
 				android:textSize="24sp"/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="[A]"
+				android:id="@+id/textView13"
+				android:layout_alignTop="@+id/textView3"
+				android:layout_alignRight="@+id/textView10"
+				android:layout_alignEnd="@+id/textView10"
+				android:textSize="24sp"/>
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="[B]"
+				android:id="@+id/textView14"
+				android:layout_below="@+id/textView13"
+				android:layout_alignRight="@+id/textView10"
+				android:layout_alignEnd="@+id/textView10"
+				android:textSize="24sp"/>
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="[C]"
+				android:id="@+id/textView15"
+				android:layout_below="@+id/textView14"
+				android:layout_alignRight="@+id/textView10"
+				android:layout_alignEnd="@+id/textView10"
+				android:textSize="24sp"/>
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="[D]"
+				android:id="@+id/textView16"
+				android:layout_below="@+id/textView15"
+				android:layout_alignRight="@+id/textView10"
+				android:layout_alignEnd="@+id/textView10"
+				android:textSize="24sp"/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="A"
+				android:id="@+id/btnA_textview"
+				android:layout_above="@+id/btn1_textview"
+				android:layout_toLeftOf="@+id/textView13"
+				android:layout_toStartOf="@+id/textView13"
+				android:textSize="24sp"/>
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="B"
+				android:id="@+id/btnB_textview"
+				android:layout_below="@+id/btnA_textview"
+				android:layout_toLeftOf="@+id/textView14"
+				android:layout_toStartOf="@+id/textView14"
+				android:textSize="24sp"/>
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="C"
+				android:id="@+id/btnC_textview"
+				android:layout_below="@+id/btnB_textview"
+				android:layout_toLeftOf="@+id/textView15"
+				android:layout_toStartOf="@+id/textView15"
+				android:textSize="24sp"/>
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="D"
+				android:id="@+id/btnD_textview"
+				android:layout_below="@+id/btnC_textview"
+				android:layout_toLeftOf="@+id/textView16"
+				android:layout_toStartOf="@+id/textView16"
+				android:textSize="24sp"/>
 		</RelativeLayout>
 	</LinearLayout>
 </RelativeLayout>
