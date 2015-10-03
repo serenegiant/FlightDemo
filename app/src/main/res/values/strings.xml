@@ -60,7 +60,9 @@
 	<string name="config_scale_r">R scale: %5.2f</string>
 	<string name="config_control_max">Max control value: %5.1f</string>
 	<string name="config_control_max_gamepad">Max control value: %5.2f</string>
+
 	<string name="config_gamepad_sensitivity">Sensitivity</string>
+	<string name="config_gamepad_use_driver">Use USB driver</string>
 
 	<string name="config_operation_normal">Normal operation screen</string>
 	<string name="config_operation_reverse">Reverse pad</string>

@@ -100,11 +100,12 @@
 			<LinearLayout
 				android:id="@+id/left_side_panel"
 				android:layout_width="wrap_content"
-				android:layout_height="match_parent"
+				android:layout_height="wrap_content"
 				android:layout_alignParentLeft="true"
 				android:layout_alignParentStart="true"
 				android:layout_alignParentTop="true"
-				android:orientation="vertical" >
+				android:orientation="vertical"
+				android:layout_gravity="center_vertical">
 
 				<ImageButton
 					android:id="@+id/flip_front_btn"
@@ -137,7 +138,7 @@
 					android:layout_height="@dimen/btn_size_action"
 					android:background="@null"
 					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_flip_back"/>
+					android:src="?attr/flightdemo_icon_flip_left"/>
 
 			</LinearLayout>
 
@@ -172,12 +173,13 @@
 			<LinearLayout
 				android:id="@+id/right_side_panel"
 				android:layout_width="wrap_content"
-				android:layout_height="match_parent"
+				android:layout_height="wrap_content"
 				android:layout_alignParentLeft="true"
 				android:layout_alignParentStart="true"
 				android:layout_alignParentTop="true"
 				android:orientation="vertical"
-				android:background="@null">
+				android:background="@null"
+				android:layout_gravity="center_vertical">
 
 				<ImageButton
 					android:id="@+id/still_capture_btn"
@@ -195,52 +197,21 @@
 					android:scaleType="fitXY"
 					android:src="?attr/flightdemo_icon_movie"/>
 
-				<FrameLayout
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_marginTop="@dimen/quater_padding"
-					android:background="@null">
+				<ImageButton
+					android:id="@+id/cap_p45_btn"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="?attr/flightdemo_icon_turn_right"/>
 
-					<ImageButton
-						android:id="@+id/cap_p45_btn"
-						android:layout_width="@dimen/btn_size_action"
-						android:layout_height="@dimen/btn_size_action"
-						android:background="@null"
-						android:scaleType="fitXY"
-						android:src="?attr/flightdemo_icon_turn_right"/>
-
-					<TextView
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:layout_gravity="center"
-						android:gravity="center"
-						android:text="+45"
-						android:textSize="@dimen/text_sz_button"
-						android:textColor="@color/DARKVIOLET"/>
-				</FrameLayout>
-
-				<FrameLayout
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:background="@null">
-
-					<ImageButton
-						android:id="@+id/cap_m45_btn"
-						android:layout_width="@dimen/btn_size_action"
-						android:layout_height="@dimen/btn_size_action"
-						android:background="@null"
-						android:scaleType="fitXY"
-						android:src="?attr/flightdemo_icon_turn_left"/>
-
-					<TextView
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:layout_gravity="center"
-						android:gravity="center"
-						android:text="-45"
-						android:textSize="@dimen/text_sz_button"
-						android:textColor="@color/DARKVIOLET"/>
-				</FrameLayout>
+				<ImageButton
+					android:id="@+id/cap_m45_btn"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="?attr/flightdemo_icon_turn_left"/>
 
 			</LinearLayout>
 
@@ -256,8 +227,8 @@
 
 			<ImageButton
 				android:id="@+id/take_onoff_btn"
-				android:layout_width="@dimen/btn_width_takeoff"
-				android:layout_height="@dimen/btn_height_takeoff"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
 				android:layout_centerHorizontal="true"
 				android:background="@null"
 				android:scaleType="fitCenter"
@@ -287,7 +258,7 @@
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_alignParentLeft="true"
-				android:layout_marginLeft="120dp"
+				android:layout_marginLeft="@dimen/margin_record_frame_left"
 				android:background="@null">
 
 				<ImageButton

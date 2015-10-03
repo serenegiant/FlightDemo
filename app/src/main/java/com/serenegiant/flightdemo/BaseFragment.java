@@ -264,17 +264,29 @@ public class BaseFragment extends Fragment {
 		final Activity context = getActivity();
 		final SharedPreferences pref = context.getPreferences(0);
 		final int layout_style;
-		switch (pref.getInt(ConfigFragment.KEY_ICON_TYPE, 100)) {
+		switch (pref.getInt(ConfigFragment.KEY_ICON_TYPE, 0)) {
 		case 1:
 			layout_style = R.style.AppTheme_001;
 			break;
 		case 2:
-			layout_style = R.style.AppTheme_005;
+			layout_style = R.style.AppTheme_002;
 			break;
 		case 3:
-			layout_style = R.style.AppTheme_006;
+			layout_style = R.style.AppTheme_003;
 			break;
 		case 4:
+			layout_style = R.style.AppTheme_004;
+			break;
+		case 5:
+			layout_style = R.style.AppTheme_005;
+			break;
+		case 6:
+			layout_style = R.style.AppTheme_006;
+			break;
+		case 7:
+			layout_style = R.style.AppTheme_007;
+			break;
+		case 8:
 			layout_style = R.style.AppTheme_008;
 			break;
 		case 100:

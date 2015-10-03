@@ -14,7 +14,7 @@
 		<item name="flightdemo_icon_folder">@mipmap/ic_folder_001</item>
 		<item name="flightdemo_icon_gallery">@mipmap/ic_gallery_001</item>
 		<item name="flightdemo_icon_gps">@mipmap/ic_gps_001</item>
-		<!--<item name="flightdemo_icon_landing">@mipmap/ic_landing</item>-->
+		<item name="flightdemo_icon_landing">@mipmap/ic_landing_001</item>
 		<item name="flightdemo_icon_list2">@mipmap/ic_gallery_001</item>
 		<!--<item name="flightdemo_icon_list_thumbnail_device">@mipmap/ic_launcher</item>-->
 		<!--<item name="flightdemo_icon_list_thumbnail_media">@mipmap/ic_launcher</item>-->
@@ -29,13 +29,13 @@
 		<item name="flightdemo_icon_flip_front">@mipmap/ic_flip_front_001</item>
 		<item name="flightdemo_icon_flip_right">@mipmap/ic_flip_right_001</item>
 		<item name="flightdemo_icon_flip_left">@mipmap/ic_flip_left_001</item>
-		<!--<item name="flightdemo_icon_takeoff">@mipmap/ic_takeoff</item>-->
-		<!--<item name="flightdemo_icon_script_edit">@android:drawable/ic_menu_edit</item>-->
-		<!--<item name="flightdemo_icon_stick_front">@mipmap/ic_stick_front</item>-->
-		<!--<item name="flightdemo_icon_stick_top">@mipmap/ic_stick_top</item>-->
+		<item name="flightdemo_icon_takeoff">@mipmap/ic_takeoff_001</item>-->
+		<item name="flightdemo_icon_script_edit">@mipmap/ic_script_edit_001</item>
+		<item name="flightdemo_icon_stick_front">@mipmap/ic_stick_front_001</item>
+		<item name="flightdemo_icon_stick_top">@mipmap/ic_stick_top_001</item>
 		<item name="flightdemo_icon_trim">@mipmap/ic_trim_001</item>
-		<!--<item name="flightdemo_icon_turn_right">@mipmap/ic_turn_right</item>-->
-		<!--<item name="flightdemo_icon_turn_left">@mipmap/ic_turn_left</item>-->
+		<item name="flightdemo_icon_turn_right">@mipmap/ic_turn_right45_001</item>
+		<item name="flightdemo_icon_turn_left">@mipmap/ic_turn_left45_001</item>
 
 	</style>
 

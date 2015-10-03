@@ -89,6 +89,7 @@
     <orderEntry type="jdk" jdkName="Android API 22 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="support-annotations-22.2.1" level="project" />
+    <orderEntry type="module" module-name="icon_buttons007" exported="" />
     <orderEntry type="module" module-name="icon_buttons008" exported="" />
     <orderEntry type="module" module-name="common" exported="" />
     <orderEntry type="module" module-name="graphics_common" exported="" />
@@ -99,8 +100,11 @@
     <orderEntry type="module" module-name="icon_buttons200" exported="" />
     <orderEntry type="module" module-name="arflight" exported="" />
     <orderEntry type="module" module-name="gamepad" exported="" />
+    <orderEntry type="module" module-name="icon_buttons002" exported="" />
     <orderEntry type="module" module-name="icon_buttons001" exported="" />
     <orderEntry type="module" module-name="animations" exported="" />
+    <orderEntry type="module" module-name="icon_buttons004" exported="" />
+    <orderEntry type="module" module-name="icon_buttons003" exported="" />
     <orderEntry type="module" module-name="icon_buttons100" exported="" />
   </component>
 </module>

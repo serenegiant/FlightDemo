@@ -47,7 +47,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:gravity="center_vertical|left"
-			android:textSize="@dimen/text_sz_list"
+			android:textSize="@dimen/text_sz_list_device"
             android:text="title"/>
 
 <!--

@@ -86,6 +86,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 	private static final int SCRIM_COLOR = 0x3f000000;
 
 	private static final String KEY_SCRIPTS_FIRST_TIME = "KEY_SCRIPTS_FIRST_TIME";
+	private static final String KEY_USB_GAMEPAD_DRIVER = "KEY_USB_GAMEPAD_DRIVER";
 
 	// サイドメニュー
 	protected DrawerLayout mDrawerLayout;
@@ -120,7 +121,8 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 				ScriptHelper.copyScripts(MainActivity.this, firstTime);
 			}
 		}).start();
-		if (mUSBMonitor == null) {
+		final boolean use_usb_driver = pref.getBoolean(KEY_USB_GAMEPAD_DRIVER, false);
+		if (use_usb_driver && (mUSBMonitor == null)) {
 			mUSBMonitor = new USBMonitor(getApplicationContext(), mOnDeviceConnectListener);
 			final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(this, R.xml.device_filter);
 			mUSBMonitor.setDeviceFilter(filter.get(0));
@@ -161,7 +163,9 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 		if (mDrawerToggle != null) {
 			mDrawerToggle.syncState();
 		}
-		mUSBMonitor.register();
+		if (mUSBMonitor != null) {
+			mUSBMonitor.register();
+		}
 	}
 
 	@Override
@@ -170,7 +174,9 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 			mGamepad.close();
 			mGamepad = null;
 		}
-		mUSBMonitor.unregister();
+		if (mUSBMonitor != null) {
+			mUSBMonitor.unregister();
+		}
 		super.onPause();
 	}
 
@@ -388,11 +394,13 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 		@Override
 		public void onAttach(final UsbDevice device) {
 			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onAttach:");
-			UsbDevice _device = device;
-			if ((_device == null) && (mUSBMonitor.getDeviceCount() > 0)) {
-				_device = mUSBMonitor.getDeviceList().get(0);
+			if (mUSBMonitor != null) {
+				UsbDevice _device = device;
+				if ((_device == null) && (mUSBMonitor.getDeviceCount() > 0)) {
+					_device = mUSBMonitor.getDeviceList().get(0);
+				}
+				mUSBMonitor.requestPermission(_device);
 			}
-			mUSBMonitor.requestPermission(_device);
 		}
 
 		@Override
