@@ -5,11 +5,29 @@ import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.view.KeyEvent;
 
+import static com.serenegiant.gamepad.GamePadConst.*;
+
 public class KeyGamePad extends IGamePad {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "KeyGamePad";
 
-	private static final class KeyCount {
+	private static final Object sSync = new Object();
+	private static KeyGamePad sKeyGamePad;
+
+	/**
+	 * シングルトンアクセスするためのインスタンス取得メソッド
+	 * @return
+	 */
+	public static KeyGamePad getInstance() {
+		synchronized (sSync) {
+			if (sKeyGamePad == null) {
+				sKeyGamePad = new KeyGamePad();
+			}
+			return sKeyGamePad;
+		}
+	}
+
+	private final class KeyCount {
 		private final int keycode;
 		private boolean isDown;
 		private long downTime;
@@ -40,12 +58,21 @@ public class KeyGamePad extends IGamePad {
 			return isDown;
 		}
 
-		public long count() {
-			return isDown ? System.currentTimeMillis() - downTime : 0;
+		public int count() {
+			return isDown ? (int)(System.currentTimeMillis() - downTime) : 0;
 		}
 	}
 
-	public static boolean processKeyEvent(final KeyEvent event) {
+	private KeyGamePad() {
+		// 直接の生成を禁止するためコンストラクタはprivateにする
+	}
+
+	/**
+	 * ActivityのdispatchKeyEventで取得したKeyEventからGamePad用キーを取得・処理する
+	 * @param event
+	 * @return
+	 */
+	public boolean processKeyEvent(final KeyEvent event) {
 //		if (DEBUG) Log.v(TAG, "processKeyEvent:" + event);
 		boolean handled = false;
 		final int keyCode = event.getKeyCode();
@@ -71,22 +98,12 @@ public class KeyGamePad extends IGamePad {
 		return handled;
 	}
 
-	public static long[] downTimes() {
-		updateState(mIsDowns, mDownTimes, false);
-		return mDownTimes;
-	}
-
-	public static boolean[] isDowns() {
-		updateState(mIsDowns, mDownTimes, false);
-		return mIsDowns;
-	}
-
 	/**
-	 * キーの押し下げ状態と押し下げしている時間[ミリ秒]
+	 * キーの押し下げ状態と押し下げしている時間[ミリ秒]を取得
 	 * @param downs KEY_NUMS個以上確保しておくこと
 	 * @param down_Times KEY_NUMS個以上確保しておくこと
 	 */
-	public static final void updateState(final boolean[] downs, final long[] down_Times, final boolean force) {
+	public void updateState(final boolean[] downs, final int[] down_Times, final boolean force) {
 		synchronized (mKeySync) {
 			if (mModified || force) {
 				int ix = 0;
@@ -105,13 +122,9 @@ public class KeyGamePad extends IGamePad {
 		}
 	}
 
-	private static final Object mKeySync = new Object();
-	private static final KeyCount[] mKeyCounts = new KeyCount[KEY_NUMS];
+	protected final KeyCount[] mKeyCounts = new KeyCount[KEY_NUMS];
 	/** ハードウエアキーコード対押し下げ時間 */
-	private static final SparseArray<Long> mHardwareKeys = new SparseArray<Long>();
-	private static final long[] mDownTimes = new long[KEY_NUMS];
-	private static final boolean[] mIsDowns = new boolean[KEY_NUMS];
-	private static boolean mModified = true;
+	protected final SparseArray<Long> mHardwareKeys = new SparseArray<Long>();
 
 	/** ゲームパッドのハードウエアキーコードからアプリ内キーコードに変換するためのテーブル */
 	private static final SparseIntArray KEY_MAP = new SparseIntArray();
@@ -149,7 +162,7 @@ public class KeyGamePad extends IGamePad {
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_16, KEY_RIGHT_D);
 	}
 
-	private static final boolean down(final int keycode) {
+	private final boolean down(final int keycode) {
 		// 指定されたハードウエアキーの押し下げ時間を追加する
 		long down_time = System.currentTimeMillis();
 		mHardwareKeys.put(keycode, down_time);
@@ -174,11 +187,11 @@ public class KeyGamePad extends IGamePad {
 		return app_key != KEY_UNKNOWN;
 	}
 
-	private static final boolean up(final int keycode) {
+	private final boolean up(final int keycode) {
 		// 指定されたハードウエアキーの押し下げ時間を削除する
 		mHardwareKeys.remove(keycode);
-		final int app_key = KEY_MAP.get(keycode, IGamePad.KEY_UNKNOWN);
-		if (app_key != IGamePad.KEY_UNKNOWN) {
+		final int app_key = KEY_MAP.get(keycode, KEY_UNKNOWN);
+		if (app_key != KEY_UNKNOWN) {
 			// 同じapp_keyに対応するハードウエアキーを探す
 			final int n = KEY_MAP.size();
 			for (int i = 0; i < n; i++) {
@@ -198,7 +211,7 @@ public class KeyGamePad extends IGamePad {
 		return app_key != KEY_UNKNOWN;
 	}
 
-	private static final void dumpKeyState() {
+	private final void dumpKeyState() {
 		final StringBuilder sb = new StringBuilder();
 		for (final KeyCount keycount: mKeyCounts) {
 			if (keycount != null) {

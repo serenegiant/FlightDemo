@@ -31,6 +31,7 @@ import com.serenegiant.arflight.DeviceControllerBebop;
 import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
+import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.IDeviceController;
@@ -1803,8 +1804,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	private static final long YAW_LIMIT = 200;
-	private boolean[] downs = new boolean[KeyGamePad.KEY_NUMS];
-	private long[] down_times = new long[KeyGamePad.KEY_NUMS];
+	private final KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
+	private final boolean[] downs = new boolean[GamePadConst.KEY_NUMS];
+	private final int[] down_times = new int[GamePadConst.KEY_NUMS];
 	boolean moved;
 	/** ゲームパッド読み取りスレッドの実行部 */
 	private final Runnable mGamePadTask = new Runnable() {
@@ -1814,11 +1816,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (handler == null) return;	// 既に終了指示が出てる
 
 			handler.removeCallbacks(this);
-			KeyGamePad.updateState(downs, down_times, true);
+			mKeyGamePad.updateState(downs, down_times, true);
 
 			// 左右の上端ボタン(手前側)を同時押しすると非常停止
-			if (((downs[KeyGamePad.KEY_RIGHT_RIGHT] || downs[KeyGamePad.KEY_RIGHT_1]))
-				&& (downs[KeyGamePad.KEY_RIGHT_LEFT] || downs[KeyGamePad.KEY_LEFT_1]) ) {
+			if (((downs[GamePadConst.KEY_RIGHT_RIGHT] || downs[GamePadConst.KEY_RIGHT_1]))
+				&& (downs[GamePadConst.KEY_RIGHT_LEFT] || downs[GamePadConst.KEY_LEFT_1]) ) {
 				emergencyStop();
 				handler.postDelayed(this, 50);
 				return;
@@ -1827,7 +1829,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			// 飛行していない時にL2/R2同時押しするとフラットトリム実行
 			if ((getState() == IDeviceController.STATE_STARTED)
 				&& (getAlarm() == DroneStatus.ALARM_NON)
-				&& downs[KeyGamePad.KEY_LEFT_2] && downs[KeyGamePad.KEY_RIGHT_2]) {
+				&& downs[GamePadConst.KEY_LEFT_2] && downs[GamePadConst.KEY_RIGHT_2]) {
 
 				mController.sendFlatTrim();
 				handler.postDelayed(this, 50);
@@ -1835,20 +1837,20 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			}
 
 			// R2押しながら左スティックでフリップ
-			if (downs[KeyGamePad.KEY_RIGHT_2]) {
-				if (downs[KeyGamePad.KEY_LEFT_LEFT]) {
+			if (downs[GamePadConst.KEY_RIGHT_2]) {
+				if (downs[GamePadConst.KEY_LEFT_LEFT]) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_LEFT);
 					handler.postDelayed(this, 50);
 					return;
-				} if (downs[KeyGamePad.KEY_LEFT_RIGHT]) {
+				} if (downs[GamePadConst.KEY_LEFT_RIGHT]) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_RIGHT);
 					handler.postDelayed(this, 50);
 					return;
-				} if (downs[KeyGamePad.KEY_LEFT_UP]) {
+				} if (downs[GamePadConst.KEY_LEFT_UP]) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_FRONT);
 					handler.postDelayed(this, 50);
 					return;
-				} if (downs[KeyGamePad.KEY_LEFT_DOWN]) {
+				} if (downs[GamePadConst.KEY_LEFT_DOWN]) {
 					mController.sendAnimationsFlip(IDeviceController.FLIP_BACK);
 					handler.postDelayed(this, 50);
 					return;
@@ -1856,13 +1858,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			}
 
 			// 中央の右側ボタン[12]=着陸
-			if (downs[KeyGamePad.KEY_CENTER_RIGHT]) {
+			if (downs[GamePadConst.KEY_CENTER_RIGHT]) {
 				landing();
 				handler.postDelayed(this, 50);
 				return;
 			}
 			// 中央の左側ボタン[11]=離陸
-			if (downs[KeyGamePad.KEY_CENTER_LEFT]) {
+			if (downs[GamePadConst.KEY_CENTER_LEFT]) {
 				takeOff();
 				handler.postDelayed(this, 50);
 				return;
@@ -1935,38 +1937,38 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	/** 通常操作モードでのゲームパッド入力処理 */
 	private void gamepad_normal() {
 		// 右側十字キーまたは右側アナログスティックの左右=左右移動
-		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[KeyGamePad.KEY_RIGHT_RIGHT]
-			? down_times[KeyGamePad.KEY_RIGHT_RIGHT]
-			: (downs[KeyGamePad.KEY_RIGHT_LEFT]
-				? -down_times[KeyGamePad.KEY_RIGHT_LEFT]
+		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[GamePadConst.KEY_RIGHT_RIGHT]
+			? down_times[GamePadConst.KEY_RIGHT_RIGHT]
+			: (downs[GamePadConst.KEY_RIGHT_LEFT]
+				? -down_times[GamePadConst.KEY_RIGHT_LEFT]
 				: 0)
 		);
 		// 右側十字キーまたは右側アナログスティックの上下=前後移動
-		final float pitch = mGamepadSensitivity * mGamepadScaleY * (downs[KeyGamePad.KEY_RIGHT_UP]
-			? down_times[KeyGamePad.KEY_RIGHT_UP]
-			: (downs[KeyGamePad.KEY_RIGHT_DOWN]
-				? -down_times[KeyGamePad.KEY_RIGHT_DOWN]
+		final float pitch = mGamepadSensitivity * mGamepadScaleY * (downs[GamePadConst.KEY_RIGHT_UP]
+			? down_times[GamePadConst.KEY_RIGHT_UP]
+			: (downs[GamePadConst.KEY_RIGHT_DOWN]
+				? -down_times[GamePadConst.KEY_RIGHT_DOWN]
 				: 0)
 		);
 		// 左側アナログスティックの上下=上昇下降
-		final float gaz = mGamepadSensitivity * mGamepadScaleZ * (downs[KeyGamePad.KEY_LEFT_UP]
-			? down_times[KeyGamePad.KEY_LEFT_UP]
-			: (downs[KeyGamePad.KEY_LEFT_DOWN]
-				? -down_times[KeyGamePad.KEY_LEFT_DOWN]
+		final float gaz = mGamepadSensitivity * mGamepadScaleZ * (downs[GamePadConst.KEY_LEFT_UP]
+			? down_times[GamePadConst.KEY_LEFT_UP]
+			: (downs[GamePadConst.KEY_LEFT_DOWN]
+				? -down_times[GamePadConst.KEY_LEFT_DOWN]
 				: 0)
 		);
 		// 左側アナログスティックの左右または上端ボタン(手前側)=左右回転
-		final float yaw = mGamepadSensitivity * (downs[KeyGamePad.KEY_LEFT_RIGHT] && (down_times[KeyGamePad.KEY_LEFT_RIGHT] > YAW_LIMIT)
-			? down_times[KeyGamePad.KEY_LEFT_RIGHT] - YAW_LIMIT
+		final float yaw = mGamepadSensitivity * (downs[GamePadConst.KEY_LEFT_RIGHT] && (down_times[GamePadConst.KEY_LEFT_RIGHT] > YAW_LIMIT)
+			? down_times[GamePadConst.KEY_LEFT_RIGHT] - YAW_LIMIT
 			: (
-				downs[KeyGamePad.KEY_RIGHT_1]
-				? down_times[KeyGamePad.KEY_RIGHT_1]
+				downs[GamePadConst.KEY_RIGHT_1]
+				? down_times[GamePadConst.KEY_RIGHT_1]
 				: (
-					downs[KeyGamePad.KEY_LEFT_LEFT] && (down_times[KeyGamePad.KEY_LEFT_LEFT] > YAW_LIMIT)
-					? -down_times[KeyGamePad.KEY_LEFT_LEFT] + YAW_LIMIT
+					downs[GamePadConst.KEY_LEFT_LEFT] && (down_times[GamePadConst.KEY_LEFT_LEFT] > YAW_LIMIT)
+					? -down_times[GamePadConst.KEY_LEFT_LEFT] + YAW_LIMIT
 					: (
-						downs[KeyGamePad.KEY_LEFT_1]
-						? -down_times[KeyGamePad.KEY_LEFT_1]
+						downs[GamePadConst.KEY_LEFT_1]
+						? -down_times[GamePadConst.KEY_LEFT_1]
 						: 0
 					)
 				)
@@ -1978,38 +1980,38 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	/** 左右反転操作モードでのゲームパッド入力処理 */
 	private void gamepad_reverse() {
 		// 左側十字キーまたは左側アナログスティックの左右=左右移動
-		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[KeyGamePad.KEY_LEFT_RIGHT]
-			? down_times[KeyGamePad.KEY_LEFT_RIGHT]
-			: (downs[KeyGamePad.KEY_LEFT_LEFT]
-				? -down_times[KeyGamePad.KEY_LEFT_LEFT]
+		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[GamePadConst.KEY_LEFT_RIGHT]
+			? down_times[GamePadConst.KEY_LEFT_RIGHT]
+			: (downs[GamePadConst.KEY_LEFT_LEFT]
+				? -down_times[GamePadConst.KEY_LEFT_LEFT]
 				: 0)
 		);
 		// 左側十字キーまたは左側アナログスティックの上下=前後移動
-		final float pitch = mGamepadSensitivity * mGamepadScaleY * (downs[KeyGamePad.KEY_LEFT_UP]
-			? down_times[KeyGamePad.KEY_LEFT_UP]
-			: (downs[KeyGamePad.KEY_LEFT_DOWN]
-				? -down_times[KeyGamePad.KEY_LEFT_DOWN]
+		final float pitch = mGamepadSensitivity * mGamepadScaleY * (downs[GamePadConst.KEY_LEFT_UP]
+			? down_times[GamePadConst.KEY_LEFT_UP]
+			: (downs[GamePadConst.KEY_LEFT_DOWN]
+				? -down_times[GamePadConst.KEY_LEFT_DOWN]
 				: 0)
 		);
 		// 右側アナログスティックの上下=上昇下降
-		final float gaz = mGamepadSensitivity * mGamepadScaleZ * (downs[KeyGamePad.KEY_RIGHT_UP]
-			? down_times[KeyGamePad.KEY_RIGHT_UP]
-			: (downs[KeyGamePad.KEY_RIGHT_DOWN]
-				? -down_times[KeyGamePad.KEY_RIGHT_DOWN]
+		final float gaz = mGamepadSensitivity * mGamepadScaleZ * (downs[GamePadConst.KEY_RIGHT_UP]
+			? down_times[GamePadConst.KEY_RIGHT_UP]
+			: (downs[GamePadConst.KEY_RIGHT_DOWN]
+				? -down_times[GamePadConst.KEY_RIGHT_DOWN]
 				: 0)
 		);
 		// 右側アナログスティックの左右または上端ボタン(手前側)=左右回転
-		final float yaw = mGamepadSensitivity * (downs[KeyGamePad.KEY_RIGHT_RIGHT] && (down_times[KeyGamePad.KEY_RIGHT_RIGHT] > YAW_LIMIT)
-			? down_times[KeyGamePad.KEY_RIGHT_RIGHT] - YAW_LIMIT
+		final float yaw = mGamepadSensitivity * (downs[GamePadConst.KEY_RIGHT_RIGHT] && (down_times[GamePadConst.KEY_RIGHT_RIGHT] > YAW_LIMIT)
+			? down_times[GamePadConst.KEY_RIGHT_RIGHT] - YAW_LIMIT
 			: (
-				downs[KeyGamePad.KEY_RIGHT_1]
-				? down_times[KeyGamePad.KEY_RIGHT_1]
+				downs[GamePadConst.KEY_RIGHT_1]
+				? down_times[GamePadConst.KEY_RIGHT_1]
 				: (
-					downs[KeyGamePad.KEY_RIGHT_LEFT] && (down_times[KeyGamePad.KEY_RIGHT_LEFT] > YAW_LIMIT)
-					? -down_times[KeyGamePad.KEY_RIGHT_LEFT] + YAW_LIMIT
+					downs[GamePadConst.KEY_RIGHT_LEFT] && (down_times[GamePadConst.KEY_RIGHT_LEFT] > YAW_LIMIT)
+					? -down_times[GamePadConst.KEY_RIGHT_LEFT] + YAW_LIMIT
 					: (
-						downs[KeyGamePad.KEY_LEFT_1]
-						? -down_times[KeyGamePad.KEY_LEFT_1]
+						downs[GamePadConst.KEY_LEFT_1]
+						? -down_times[GamePadConst.KEY_LEFT_1]
 						: 0
 					)
 				)
@@ -2025,38 +2027,38 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		// 左スティック: 左右=左右回転, 上下=前後移動
 
 		// 右側アナログスティックの左右または上端ボタン(手前側)=左右移動
-		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[KeyGamePad.KEY_RIGHT_RIGHT]
-			? down_times[KeyGamePad.KEY_RIGHT_RIGHT]
-			: (downs[KeyGamePad.KEY_RIGHT_LEFT]
-				? -down_times[KeyGamePad.KEY_RIGHT_LEFT]
+		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[GamePadConst.KEY_RIGHT_RIGHT]
+			? down_times[GamePadConst.KEY_RIGHT_RIGHT]
+			: (downs[GamePadConst.KEY_RIGHT_LEFT]
+				? -down_times[GamePadConst.KEY_RIGHT_LEFT]
 				: 0)
 		);
 		// 左側十字キーまたは左側アナログスティックの上下=前後移動
-		final float pitch = mGamepadSensitivity * mGamepadScaleY * (downs[KeyGamePad.KEY_LEFT_UP]
-			? down_times[KeyGamePad.KEY_LEFT_UP]
-			: (downs[KeyGamePad.KEY_LEFT_DOWN]
-				? -down_times[KeyGamePad.KEY_LEFT_DOWN]
+		final float pitch = mGamepadSensitivity * mGamepadScaleY * (downs[GamePadConst.KEY_LEFT_UP]
+			? down_times[GamePadConst.KEY_LEFT_UP]
+			: (downs[GamePadConst.KEY_LEFT_DOWN]
+				? -down_times[GamePadConst.KEY_LEFT_DOWN]
 				: 0)
 		);
 		// 右側アナログスティックの上下=上昇下降
-		final float gaz = mGamepadSensitivity * mGamepadScaleZ * (downs[KeyGamePad.KEY_RIGHT_UP]
-			? down_times[KeyGamePad.KEY_RIGHT_UP]
-			: (downs[KeyGamePad.KEY_RIGHT_DOWN]
-				? -down_times[KeyGamePad.KEY_RIGHT_DOWN]
+		final float gaz = mGamepadSensitivity * mGamepadScaleZ * (downs[GamePadConst.KEY_RIGHT_UP]
+			? down_times[GamePadConst.KEY_RIGHT_UP]
+			: (downs[GamePadConst.KEY_RIGHT_DOWN]
+				? -down_times[GamePadConst.KEY_RIGHT_DOWN]
 				: 0)
 		);
 		// 左側十字キーまたは左側アナログスティックの左右=左右回転
-		final float yaw = mGamepadSensitivity * (downs[KeyGamePad.KEY_LEFT_RIGHT] && (down_times[KeyGamePad.KEY_LEFT_RIGHT] > YAW_LIMIT)
-			? down_times[KeyGamePad.KEY_LEFT_RIGHT] - YAW_LIMIT
+		final float yaw = mGamepadSensitivity * (downs[GamePadConst.KEY_LEFT_RIGHT] && (down_times[GamePadConst.KEY_LEFT_RIGHT] > YAW_LIMIT)
+			? down_times[GamePadConst.KEY_LEFT_RIGHT] - YAW_LIMIT
 			: (
-				downs[KeyGamePad.KEY_RIGHT_1]
-				? down_times[KeyGamePad.KEY_RIGHT_1]
+				downs[GamePadConst.KEY_RIGHT_1]
+				? down_times[GamePadConst.KEY_RIGHT_1]
 				: (
-					downs[KeyGamePad.KEY_LEFT_LEFT] && (down_times[KeyGamePad.KEY_LEFT_LEFT] > YAW_LIMIT)
-					? -down_times[KeyGamePad.KEY_LEFT_LEFT] + YAW_LIMIT
+					downs[GamePadConst.KEY_LEFT_LEFT] && (down_times[GamePadConst.KEY_LEFT_LEFT] > YAW_LIMIT)
+					? -down_times[GamePadConst.KEY_LEFT_LEFT] + YAW_LIMIT
 					: (
-						downs[KeyGamePad.KEY_LEFT_1]
-						? -down_times[KeyGamePad.KEY_LEFT_1]
+						downs[GamePadConst.KEY_LEFT_1]
+						? -down_times[GamePadConst.KEY_LEFT_1]
 						: 0
 					)
 				)
@@ -2072,38 +2074,38 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		// 左スティック: 左右=左右回転, 上下=上昇下降
 
 		// 右側アナログスティックの左右または上端ボタン(手前側)=左右移動
-		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[KeyGamePad.KEY_RIGHT_RIGHT]
-			? down_times[KeyGamePad.KEY_RIGHT_RIGHT]
-			: (downs[KeyGamePad.KEY_RIGHT_LEFT]
-				? -down_times[KeyGamePad.KEY_RIGHT_LEFT]
+		final float roll = mGamepadSensitivity * mGamepadScaleX * (downs[GamePadConst.KEY_RIGHT_RIGHT]
+			? down_times[GamePadConst.KEY_RIGHT_RIGHT]
+			: (downs[GamePadConst.KEY_RIGHT_LEFT]
+				? -down_times[GamePadConst.KEY_RIGHT_LEFT]
 				: 0)
 		);
 		// 左側十字キーまたは左側アナログスティックの上下=上昇下降
-		final float gaz = mGamepadSensitivity * mGamepadScaleY * (downs[KeyGamePad.KEY_LEFT_UP]
-			? down_times[KeyGamePad.KEY_LEFT_UP]
-			: (downs[KeyGamePad.KEY_LEFT_DOWN]
-				? -down_times[KeyGamePad.KEY_LEFT_DOWN]
+		final float gaz = mGamepadSensitivity * mGamepadScaleY * (downs[GamePadConst.KEY_LEFT_UP]
+			? down_times[GamePadConst.KEY_LEFT_UP]
+			: (downs[GamePadConst.KEY_LEFT_DOWN]
+				? -down_times[GamePadConst.KEY_LEFT_DOWN]
 				: 0)
 		);
 		// 右側アナログスティックの上下=前後移動
-		final float pitch = mGamepadSensitivity * mGamepadScaleZ * (downs[KeyGamePad.KEY_RIGHT_UP]
-			? down_times[KeyGamePad.KEY_RIGHT_UP]
-			: (downs[KeyGamePad.KEY_RIGHT_DOWN]
-				? -down_times[KeyGamePad.KEY_RIGHT_DOWN]
+		final float pitch = mGamepadSensitivity * mGamepadScaleZ * (downs[GamePadConst.KEY_RIGHT_UP]
+			? down_times[GamePadConst.KEY_RIGHT_UP]
+			: (downs[GamePadConst.KEY_RIGHT_DOWN]
+				? -down_times[GamePadConst.KEY_RIGHT_DOWN]
 				: 0)
 		);
 		// 左側十字キーまたは左側アナログスティックの左右=左右回転
-		final float yaw = mGamepadSensitivity * (downs[KeyGamePad.KEY_LEFT_RIGHT] && (down_times[KeyGamePad.KEY_LEFT_RIGHT] > YAW_LIMIT)
-			? down_times[KeyGamePad.KEY_LEFT_RIGHT] - YAW_LIMIT
+		final float yaw = mGamepadSensitivity * (downs[GamePadConst.KEY_LEFT_RIGHT] && (down_times[GamePadConst.KEY_LEFT_RIGHT] > YAW_LIMIT)
+			? down_times[GamePadConst.KEY_LEFT_RIGHT] - YAW_LIMIT
 			: (
-				downs[KeyGamePad.KEY_RIGHT_1]
-				? down_times[KeyGamePad.KEY_RIGHT_1]
+				downs[GamePadConst.KEY_RIGHT_1]
+				? down_times[GamePadConst.KEY_RIGHT_1]
 				: (
-					downs[KeyGamePad.KEY_LEFT_LEFT] && (down_times[KeyGamePad.KEY_LEFT_LEFT] > YAW_LIMIT)
-					? -down_times[KeyGamePad.KEY_LEFT_LEFT] + YAW_LIMIT
+					downs[GamePadConst.KEY_LEFT_LEFT] && (down_times[GamePadConst.KEY_LEFT_LEFT] > YAW_LIMIT)
+					? -down_times[GamePadConst.KEY_LEFT_LEFT] + YAW_LIMIT
 					: (
-						downs[KeyGamePad.KEY_LEFT_1]
-						? -down_times[KeyGamePad.KEY_LEFT_1]
+						downs[GamePadConst.KEY_LEFT_1]
+						? -down_times[GamePadConst.KEY_LEFT_1]
 						: 0
 					)
 				)

@@ -22,10 +22,6 @@ public class HIDGamepadDriver {
 	private UsbControlBlock mCtrlBlock;
 	private volatile boolean mIsRunning;
 
-	public static class GamepadStatus {
-		public boolean left;
-	}
-
 	public interface HIDGamepadCallback {
 		/**
 		 * ゲームパッドからのデータ受信時の処理
@@ -169,9 +165,9 @@ public class HIDGamepadDriver {
 					try {
 						// ゲームパッドの値更新通知が来るまで待機
 						mSync.wait();
+						if (!mIsRunning) break;
 						// ローカルにコピーする
 						System.arraycopy(mValues, 0, values, 0, n);
-						if (!mIsRunning) break;
 					} catch (final InterruptedException e) {
 						break;
 					}
@@ -246,7 +242,7 @@ public class HIDGamepadDriver {
 				try {
 					if (mIsRunning) {
 						final ByteBuffer buffer = ByteBuffer.allocateDirect(max_packets);
-						buffer.order(ByteOrder.LITTLE_ENDIAN);
+//						buffer.order(ByteOrder.LITTLE_ENDIAN);	// バイトアクセスしかしないから不要
 						final UsbRequest request = new UsbRequest();
 						request.initialize(connection, mEp);
 						UsbRequest req;

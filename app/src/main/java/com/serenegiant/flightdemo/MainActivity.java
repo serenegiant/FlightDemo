@@ -86,6 +86,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 	private SideMenuFrameLayout mSideMenuFrame;
 	private ActionBarDrawerToggle mDrawerToggle;
 	private final Handler mUiHandler = new Handler();
+	private final KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
 
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
@@ -164,7 +165,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 
 	@Override
 	public boolean dispatchKeyEvent(final KeyEvent event) {
-		if (!isFinishing() && KeyGamePad.processKeyEvent(event)) return true;
+		if (!isFinishing() && mKeyGamePad.processKeyEvent(event)) return true;
 		return super.dispatchKeyEvent(event);
 	}
 

@@ -6,8 +6,9 @@ import com.serenegiant.gamepad.modules.DualShock3;
 import com.serenegiant.gamepad.modules.DualShock4;
 import com.serenegiant.gamepad.modules.GeneralGamepad;
 import com.serenegiant.gamepad.modules.JCU2912;
+import static com.serenegiant.gamepad.GamePadConst.*;
 
-public abstract class HIDGamePad extends IGamePad {
+public abstract class HIDGamePad {
 
 	// DPADのキーマスクビット
 	protected static final int DPAD_UP = 0x01;
@@ -40,7 +41,7 @@ public abstract class HIDGamePad extends IGamePad {
 	public volatile int[] keyCount = new int[KEY_NUMS];
 
 	protected final UsbDevice mDevice;
-	public HIDGamePad(final UsbDevice device) {
+	protected HIDGamePad(final UsbDevice device) {
 		mDevice = device;
 	}
 

@@ -1,27 +1,28 @@
 package com.serenegiant.gamepad;
 
-public abstract class IGamePad {
-	public static final int KEY_UNKNOWN = -1;
-	public static final int KEY_LEFT_CENTER = 0;
-	public static final int KEY_LEFT_UP = 1;
-	public static final int KEY_LEFT_RIGHT = 2;
-	public static final int KEY_LEFT_DOWN = 3;
-	public static final int KEY_LEFT_LEFT = 4;
-	public static final int KEY_RIGHT_CENTER = 5;
-	public static final int KEY_RIGHT_UP = 6;
-	public static final int KEY_RIGHT_RIGHT = 7;
-	public static final int KEY_RIGHT_DOWN = 8;
-	public static final int KEY_RIGHT_LEFT = 9;
-	public static final int KEY_LEFT_1 = 10;    	// 左上前
-	public static final int KEY_LEFT_2 = 11;    	// 左上後
-	public static final int KEY_CENTER_LEFT = 12;   // 中央左
-	public static final int KEY_RIGHT_1 = 13;    	// 右上前
-	public static final int KEY_RIGHT_2 = 14;   	// 右上後
-	public static final int KEY_CENTER_RIGHT = 15;	// 中央右
-	public static final int KEY_RIGHT_A = 16;		// アナログモードの時の右キーパッド上
-	public static final int KEY_RIGHT_B = 17;		// アナログモードの時の右キーパッド右
-	public static final int KEY_RIGHT_C = 18;		// アナログモードの時の右キーパッド下
-	public static final int KEY_RIGHT_D = 19;		// アナログモードの時の右キーパッド左
+import static com.serenegiant.gamepad.GamePadConst.*;
 
-	public static final int KEY_NUMS = 20;
+public abstract class IGamePad {
+	protected final Object mKeySync = new Object();
+	protected final int[] mDownTimes = new int[KEY_NUMS];
+	protected final boolean[] mIsDowns = new boolean[KEY_NUMS];
+	protected boolean mModified = true;
+
+	public int[] downTimes() {
+		updateState(mIsDowns, mDownTimes, false);
+		return mDownTimes;
+	}
+
+	public boolean[] isDowns() {
+		updateState(mIsDowns, mDownTimes, false);
+		return mIsDowns;
+	}
+
+	/**
+	 * キーの押し下げ状態と押し下げしている時間[ミリ秒]を取得
+	 * @param downs KEY_NUMS個以上確保しておくこと
+	 * @param down_Times KEY_NUMS個以上確保しておくこと
+	 */
+	public abstract void updateState(final boolean[] downs, final int[] down_Times, final boolean force);
+
 }
