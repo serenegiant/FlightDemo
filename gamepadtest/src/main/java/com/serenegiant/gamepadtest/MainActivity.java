@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.IGamePad;
+import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.gamepad.HIDGamepadDriver;
 import com.serenegiant.gamepad.HIDGamePad;
@@ -35,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
 	private static final boolean DEBUG = true;
 	private static final String TAG = "MainActivity";
 
-	private static final class KeyCount {
+/*	private static final class KeyCount {
 		private int keycode;
 		private boolean isDown;
 		private long downTime;
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 		public long count() {
 			return isDown ? System.currentTimeMillis() - downTime : 0;
 		}
-	}
+	} */
 
 	private final Object mSync = new Object();
 	private final SparseArray<TextView> mTextViews = new SparseArray<TextView>();
@@ -74,12 +75,12 @@ public class MainActivity extends AppCompatActivity {
 	private HIDGamepadDriver mGamepad;
 	private TextView mGamepadTv;
 
-	private final KeyCount[] mKeyCounts = new KeyCount[GamePadConst.KEY_NUMS];
-	/** ハードウエアキーコード対押し下げ時間 */
-	private final SparseArray<Long> mHardwareKeys = new SparseArray<Long>();
+//	private final KeyCount[] mKeyCounts = new KeyCount[GamePadConst.KEY_NUMS];
+//	/** ハードウエアキーコード対押し下げ時間 */
+//	private final SparseArray<Long> mHardwareKeys = new SparseArray<Long>();
 
 	/** ゲームパッドのハードウエアキーコードからアプリ内キーコードに変換するためのテーブル */
-	private static final SparseIntArray KEY_MAP = new SparseIntArray();
+/*	private static final SparseIntArray KEY_MAP = new SparseIntArray();
 	static {
 		// 左側アナログスティック/十字キー
 		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_UP, GamePadConst.KEY_LEFT_UP);
@@ -112,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_14, GamePadConst.KEY_RIGHT_B);
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_15, GamePadConst.KEY_RIGHT_C);
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_16, GamePadConst.KEY_RIGHT_D);
-	}
+	} */
 
 	private TextView mKeyTextView;
 	private TextView mSensorAccelTextView;
@@ -122,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
 	private TextView mSensorOrientationTextView;
 
 	private static final String ACTION_USB_DEVICE_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED";
+	private KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
 
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
@@ -157,61 +159,61 @@ public class MainActivity extends AppCompatActivity {
 		TextView tv = (TextView) findViewById(R.id.left_center_textview);
 //		mTextViews.append(KeyEvent.KEYCODE_DPAD_CENTER, tv);
 		tv = (TextView) findViewById(R.id.left_textview);
-		mTextViews.append(KeyEvent.KEYCODE_DPAD_LEFT, tv);
+		mTextViews.append(GamePadConst.KEY_LEFT_LEFT/*KeyEvent.KEYCODE_DPAD_LEFT*/, tv);
 		tv = (TextView) findViewById(R.id.right_textview);
-		mTextViews.append(KeyEvent.KEYCODE_DPAD_RIGHT, tv);
+		mTextViews.append(GamePadConst.KEY_LEFT_RIGHT/*KeyEvent.KEYCODE_DPAD_RIGHT*/, tv);
 		tv = (TextView) findViewById(R.id.up_textview);
-		mTextViews.append(KeyEvent.KEYCODE_DPAD_UP, tv);
+		mTextViews.append(GamePadConst.KEY_LEFT_UP/*KeyEvent.KEYCODE_DPAD_UP*/, tv);
 		tv = (TextView) findViewById(R.id.down_textview);
-		mTextViews.append(KeyEvent.KEYCODE_DPAD_DOWN, tv);
+		mTextViews.append(GamePadConst.KEY_LEFT_DOWN/*KeyEvent.KEYCODE_DPAD_DOWN*/, tv);
 		// 右側
 		tv = (TextView) findViewById(R.id.btn1_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_1, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_UP/*KeyEvent.KEYCODE_BUTTON_1*/, tv);
 		tv = (TextView) findViewById(R.id.btn2_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_2, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_RIGHT/*KeyEvent.KEYCODE_BUTTON_2*/, tv);
 		tv = (TextView) findViewById(R.id.btn3_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_3, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_DOWN/*KeyEvent.KEYCODE_BUTTON_3*/, tv);
 		tv = (TextView) findViewById(R.id.btn4_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_4, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_LEFT/*KeyEvent.KEYCODE_BUTTON_4*/, tv);
 		// 左上
 		tv = (TextView) findViewById(R.id.btn5_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_5, tv);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_L1, tv);
+//		mTextViews.append(GamePadConst.KEY_LEFT_1/*KeyEvent.KEYCODE_BUTTON_5*/, tv);
+		mTextViews.append(GamePadConst.KEY_LEFT_1/*KeyEvent.KEYCODE_BUTTON_L1*/, tv);
 		tv = (TextView) findViewById(R.id.btn7_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_7, tv);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_L2, tv);
+//		mTextViews.append(GamePadConst.KEY_LEFT_2/*KeyEvent.KEYCODE_BUTTON_7*/, tv);
+		mTextViews.append(GamePadConst.KEY_LEFT_2/*KeyEvent.KEYCODE_BUTTON_L2*/, tv);
 		// 右上
 		tv = (TextView) findViewById(R.id.btn6_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_6, tv);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_R1, tv);
+//		mTextViews.append(GamePadConst.KEY_RIGHT_1/*KeyEvent.KEYCODE_BUTTON_6*/, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_1/*KeyEvent.KEYCODE_BUTTON_R1*/, tv);
 		tv = (TextView) findViewById(R.id.btn8_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_8, tv);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_R2, tv);
+//		mTextViews.append(GamePadConst.KEY_RIGHT_2/*KeyEvent.KEYCODE_BUTTON_8*/, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_2/*KeyEvent.KEYCODE_BUTTON_R2*/, tv);
 		// スティック中央
 		tv = (TextView) findViewById(R.id.left_center_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_9, tv);
+		mTextViews.append(GamePadConst.KEY_LEFT_CENTER/*KeyEvent.KEYCODE_BUTTON_9*/, tv);
 		tv = (TextView) findViewById(R.id.right_center_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_10, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_CENTER/*KeyEvent.KEYCODE_BUTTON_10*/, tv);
 		// 中央
 		tv = (TextView) findViewById(R.id.btn11_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_11, tv);
+		mTextViews.append(GamePadConst.KEY_CENTER_LEFT/*KeyEvent.KEYCODE_BUTTON_11*/, tv);
 		tv = (TextView) findViewById(R.id.btn12_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_12, tv);
+		mTextViews.append(GamePadConst.KEY_CENTER_RIGHT/*KeyEvent.KEYCODE_BUTTON_12*/, tv);
 		// A-D
 		tv = (TextView) findViewById(R.id.btnA_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_13, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_A/*KeyEvent.KEYCODE_BUTTON_13*/, tv);
 		tv = (TextView) findViewById(R.id.btnB_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_14, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_B/*KeyEvent.KEYCODE_BUTTON_14*/, tv);
 		tv = (TextView) findViewById(R.id.btnC_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_15, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_C/*KeyEvent.KEYCODE_BUTTON_15*/, tv);
 		tv = (TextView) findViewById(R.id.btnD_textview);
-		mTextViews.append(KeyEvent.KEYCODE_BUTTON_16, tv);
+		mTextViews.append(GamePadConst.KEY_RIGHT_D/*KeyEvent.KEYCODE_BUTTON_16*/, tv);
 
-		final int n = KEY_MAP.size();
+/*		final int n = KEY_MAP.size();
 		for (int i = 0; i < n; i++) {
 			final int keycode = KEY_MAP.keyAt(i);
 			up(keycode);
-		}
+		} */
 
 		mSensorAccelTextView = (TextView)findViewById(R.id.sensor_accel_textview);
 		mSensorMagnetTextView = (TextView)findViewById(R.id.sensor_magnet_textview);
@@ -257,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
 		super.onDestroy();
 	}
 
-	private void down(final int keycode) {
+/*	private void down(final int keycode) {
 		// 指定されたハードウエアキーの押し下げ時間を追加する
 		long down_time = System.currentTimeMillis();
 		mHardwareKeys.put(keycode, down_time);
@@ -279,9 +281,9 @@ public class MainActivity extends AppCompatActivity {
 			}
 			keycount.down(down_time);
 		}
-	}
+	} */
 
-	private void up(final int keycode) {
+/*	private void up(final int keycode) {
 		// 指定されたハードウエアキーの押し下げ時間を削除する
 		mHardwareKeys.remove(keycode);
 		final int app_key = KEY_MAP.get(keycode, GamePadConst.KEY_UNKNOWN);
@@ -302,18 +304,20 @@ public class MainActivity extends AppCompatActivity {
 			}
 			keycount.up();
 		}
-	}
+	} */
 
 	private int key_cnt = 0;
 	@Override
-	public boolean dispatchKeyEvent(final KeyEvent ev) {
-		final int keycode = ev.getKeyCode();
-		final int count = ev.getRepeatCount();
-		switch (ev.getAction()) {
+	public boolean dispatchKeyEvent(final KeyEvent event) {
+		if (!isFinishing() && mKeyGamePad.processKeyEvent(event)) return true;
+
+		final int keycode = event.getKeyCode();
+		final int count = event.getRepeatCount();
+		switch (event.getAction()) {
 			case KeyEvent.ACTION_DOWN:
-				synchronized (mSync) {
+/*				synchronized (mSync) {
 					down(keycode);
-				}
+				} */
 				// キーコード表示
 				if (keycode != KeyEvent.KEYCODE_DPAD_CENTER)
 				try {
@@ -323,9 +327,9 @@ public class MainActivity extends AppCompatActivity {
 //				if (DEBUG) Log.v(TAG, "DOWN:ev=" + ev);
 				break;
 			case KeyEvent.ACTION_UP:
-				synchronized (mSync) {
+/*				synchronized (mSync) {
 					up(keycode);
-				}
+				} */
 				// キーコード表示
 				if (keycode != KeyEvent.KEYCODE_DPAD_CENTER)
 				try {
@@ -338,15 +342,27 @@ public class MainActivity extends AppCompatActivity {
 //				if (DEBUG) Log.v(TAG, "MULTIPLE:ev=" + ev);
 				break;
 		}
-		return super.dispatchKeyEvent(ev);
+		return super.dispatchKeyEvent(event);
 	}
+
+	private final boolean[] mDowns = new boolean[GamePadConst.KEY_NUMS];
+	private final long[] mCounts = new long[GamePadConst.KEY_NUMS];
 
 	private final Runnable mKeyUpdateTask = new Runnable() {
 		@Override
 		public void run() {
 			mUIHandler.removeCallbacks(this);
 			synchronized (mSync) {
-				final int n = mKeyCounts.length;
+				final long current = System.currentTimeMillis();
+//				mKeyGamePad.updateState(mDowns, mCounts, false);
+				final int n = GamePadConst.KEY_NUMS;
+				for (int i = 0; i < n; i++) {
+					final TextView tv = mTextViews.get(i);
+					if (tv != null) {
+						tv.setText(mDowns[i] ? String.format("%d", current - mCounts[i]) : "0");
+					}
+				}
+/*				final int n = mKeyCounts.length;
 				for (int i = 0; i < n; i++) {
 					final KeyCount keycount = mKeyCounts[i];
 					if (keycount != null) {
@@ -355,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
 							tv.setText(String.format("%d", keycount.count()));
 						}
 					}
-				}
+				} */
 			}
 			mUIHandler.postDelayed(this, 50);
 		}
@@ -912,10 +928,13 @@ public class MainActivity extends AppCompatActivity {
 			}
 		});
 	}
+
 	/**
 	 * ゲームパッドの状態をチェックするためコールバック
 	 */
-	private final HIDGamepadDriver.HIDGamepadCallback mHIDGamepadCallback = new HIDGamepadDriver.HIDGamepadCallback() {
+	private final HIDGamepadDriver.HIDGamepadCallback mHIDGamepadCallback
+		= new HIDGamepadDriver.HIDGamepadCallback() {
+
 		private final StringBuilder sb = new StringBuilder();
 
 		@Override
@@ -952,8 +971,8 @@ LOOP:			for (int j = 0; j < m; j++) {
 			final int[] counts = data.keyCount;
 			final long current = System.currentTimeMillis();
 			for (int i = 0; i < GamePadConst.KEY_NUMS; i++) {
-				mKeyCounts[i].downTime = current - counts[i];
-				mKeyCounts[i].isDown =  counts[i] != 0;
+				mDowns[i] = counts[i] != 0;
+				mCounts[i] = current - counts[i];
 			}
 //			Log.v(TAG, String.format("left(%d,%d)", data.analogLeftX, data.analogLeftY));
 		}

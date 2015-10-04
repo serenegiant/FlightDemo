@@ -1,6 +1,5 @@
 package com.serenegiant.gamepad;
 
-import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.view.KeyEvent;
@@ -27,7 +26,7 @@ public class KeyGamePad extends IGamePad {
 		}
 	}
 
-	private final class KeyCount {
+/*	private final class KeyCount {
 		private final int keycode;
 		private boolean isDown;
 		private long downTime;
@@ -61,7 +60,7 @@ public class KeyGamePad extends IGamePad {
 		public int count() {
 			return isDown ? (int)(System.currentTimeMillis() - downTime) : 0;
 		}
-	}
+	} */
 
 	private KeyGamePad() {
 		// 直接の生成を禁止するためコンストラクタはprivateにする
@@ -103,10 +102,14 @@ public class KeyGamePad extends IGamePad {
 	 * @param downs KEY_NUMS個以上確保しておくこと
 	 * @param down_Times KEY_NUMS個以上確保しておくこと
 	 */
-	public void updateState(final boolean[] downs, final int[] down_Times, final boolean force) {
+	public void updateState(final boolean[] downs, final long[] down_Times, final boolean force) {
 		synchronized (mKeySync) {
 			if (mModified || force) {
-				int ix = 0;
+				for (int i = 0; i < KEY_NUMS; i++) {
+					down_Times[i] = mKeyDownTimes[i];
+					downs[i] = down_Times[i] > 0;
+				}
+/*				int ix = 0;
 				for (final KeyCount keycount: mKeyCounts) {
 					if (keycount != null) {
 						downs[ix] = keycount.isDown;
@@ -116,15 +119,17 @@ public class KeyGamePad extends IGamePad {
 						down_Times[ix] = 0;
 					}
 					ix++;
-				}
+				} */
 				mModified = false;
 			}
 		}
 	}
 
-	protected final KeyCount[] mKeyCounts = new KeyCount[KEY_NUMS];
+//	protected final KeyCount[] mKeyCounts = new KeyCount[KEY_NUMS];
 	/** ハードウエアキーコード対押し下げ時間 */
 	protected final SparseArray<Long> mHardwareKeys = new SparseArray<Long>();
+	/** キーが押された時刻(System#currentTimeMillis) */
+	protected final long[] mKeyDownTimes = new long[KEY_NUMS];
 
 	/** ゲームパッドのハードウエアキーコードからアプリ内キーコードに変換するためのテーブル */
 	private static final SparseIntArray KEY_MAP = new SparseIntArray();
@@ -178,11 +183,12 @@ public class KeyGamePad extends IGamePad {
 					down_time = Math.min(down_time, mHardwareKeys.get(_keycode));
 				}
 			}
-			KeyCount keycount = mKeyCounts[app_key];
+			mKeyDownTimes[app_key] = down_time;
+/*			KeyCount keycount = mKeyCounts[app_key];
 			if (keycount == null) {
 				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
 			}
-			keycount.down(down_time);
+			keycount.down(down_time); */
 		}
 		return app_key != KEY_UNKNOWN;
 	}
@@ -202,16 +208,17 @@ public class KeyGamePad extends IGamePad {
 					return true;
 				}
 			}
-			KeyCount keycount = mKeyCounts[app_key];
+			mKeyDownTimes[app_key] = 0;
+/*			KeyCount keycount = mKeyCounts[app_key];
 			if (keycount == null) {
 				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
 			}
-			keycount.up();
+			keycount.up(); */
 		}
 		return app_key != KEY_UNKNOWN;
 	}
 
-	private final void dumpKeyState() {
+/*	private final void dumpKeyState() {
 		final StringBuilder sb = new StringBuilder();
 		for (final KeyCount keycount: mKeyCounts) {
 			if (keycount != null) {
@@ -219,5 +226,5 @@ public class KeyGamePad extends IGamePad {
 			}
 		}
 		Log.i(TAG, "dumpKeyState:" + sb.toString());
-	}
+	} */
 }

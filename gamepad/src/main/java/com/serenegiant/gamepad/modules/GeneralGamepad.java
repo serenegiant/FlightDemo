@@ -15,9 +15,9 @@ public class GeneralGamepad extends HIDGamePad {
 	protected void parse(final int n, final byte[] data) {
 		if (n < 6) return;
 		analogLeftX =(data[0] & 0xff) - 0x7f;
-		if (Math.abs(analogLeftX) <= 2) analogLeftX = 0;	// オフセットがアナログモードは0x80, デジタルモードは0x7fなので少し丸める
+		if (Math.abs(analogLeftX) <= 3) analogLeftX = 0;	// オフセットがアナログモードは0x80, デジタルモードは0x7fなので少し丸める
 		analogLeftY = (data[1] & 0xff) - 0x7f;
-		if (Math.abs(analogLeftY) <= 2) analogLeftY = 0;	// オフセットがアナログモードは0x80, デジタルモードは0x7fなので少し丸める
+		if (Math.abs(analogLeftY) <= 3) analogLeftY = 0;	// オフセットがアナログモードは0x80, デジタルモードは0x7fなので少し丸める
 		//
 		keyCount[KEY_RIGHT_LEFT] = (data[5] & 0x10) != 0 ? keyCount[KEY_RIGHT_LEFT] + 1 : 0;
 		keyCount[KEY_RIGHT_UP] = (data[5] & 0x20) != 0 ? keyCount[KEY_RIGHT_UP] + 1 : 0;

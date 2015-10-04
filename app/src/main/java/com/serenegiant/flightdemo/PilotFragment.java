@@ -1806,7 +1806,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private static final long YAW_LIMIT = 200;
 	private final KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
 	private final boolean[] downs = new boolean[GamePadConst.KEY_NUMS];
-	private final int[] down_times = new int[GamePadConst.KEY_NUMS];
+	private final long[] down_times = new long[GamePadConst.KEY_NUMS];
 	boolean moved;
 	/** ゲームパッド読み取りスレッドの実行部 */
 	private final Runnable mGamePadTask = new Runnable() {
