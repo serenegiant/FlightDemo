@@ -14,9 +14,9 @@ import com.serenegiant.usb.USBMonitor.UsbControlBlock;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class HIDGamepad {
+public class HIDGamepadDriver {
 	private static final boolean DEBUG = true;	// FIXME 実同時はfalseにすること
-	private static final String TAG = HIDGamepad.class.getSimpleName();
+	private static final String TAG = HIDGamepadDriver.class.getSimpleName();
 
 	private final Object mSync = new Object();
 	private UsbControlBlock mCtrlBlock;
@@ -34,11 +34,11 @@ public class HIDGamepad {
 		 * @return true: 処理済み, onEventは呼ばれない, false:onEventの処理を行う
 		 */
 		public boolean onRawdataChanged(final int n, final byte[] data);
-		public void onEvent(final HIDGamepad gamepad, final IGamePad data);
+		public void onEvent(final HIDGamepadDriver gamepad, final HIDGamePad data);
 	}
 
 	private final HIDGamepadCallback mCallback;
-	public HIDGamepad(final HIDGamepadCallback callback) throws NullPointerException {
+	public HIDGamepadDriver(final HIDGamepadCallback callback) throws NullPointerException {
 		if (callback == null) {
 			throw new NullPointerException("callback should not be a null");
 		}
@@ -144,9 +144,9 @@ public class HIDGamepad {
 	 * コールバックメソッドをプライベートスレッド上で呼び出すためのRunnable
 	 */
 	private class CallbackTask implements Runnable {
-		private final IGamePad mParser;
+		private final HIDGamePad mParser;
 		public CallbackTask(final UsbDevice device) {
-			mParser = IGamePad.getGamepad(device);
+			mParser = HIDGamePad.getGamepad(device);
 		}
 
 		@Override
@@ -188,7 +188,7 @@ public class HIDGamepad {
 					try {
 						if (!mCallback.onRawdataChanged(n, values)) {
 							mParser.parse(n, values);
-							mCallback.onEvent(HIDGamepad.this, mParser);
+							mCallback.onEvent(HIDGamepadDriver.this, mParser);
 						}
 					} catch (final Exception e) {
 						Log.w(TAG, e);

@@ -2,9 +2,9 @@ package com.serenegiant.gamepad.modules;
 
 import android.hardware.usb.UsbDevice;
 
-import com.serenegiant.gamepad.IGamePad;
+import com.serenegiant.gamepad.HIDGamePad;
 
-public class DualShock4 extends IGamePad {
+public class DualShock4 extends HIDGamePad {
 
 	public DualShock4(final UsbDevice device) {
 		super(device);

@@ -1,12 +1,13 @@
 package com.serenegiant.gamepad;
 
 import android.util.Log;
+import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.view.KeyEvent;
 
-public class GamePad {
+public class KeyGamePad extends IGamePad {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static final String TAG = "GamePad";
+	private static final String TAG = "KeyGamePad";
 
 	private static final class KeyCount {
 		private final int keycode;
@@ -43,24 +44,6 @@ public class GamePad {
 			return isDown ? System.currentTimeMillis() - downTime : 0;
 		}
 	}
-
-	public static final int KEY_UNKNOWN			= -1;
-	public static final int KEY_LEFT_CENTER		= 0;
-	public static final int KEY_LEFT_UP			= 1;
-	public static final int KEY_LEFT_RIGHT		= 2;
-	public static final int KEY_LEFT_DOWN		= 3;
-	public static final int KEY_LEFT_LEFT		= 4;
-	public static final int KEY_RIGHT_CENTER	= 5;
-	public static final int KEY_RIGHT_UP		= 6;
-	public static final int KEY_RIGHT_RIGHT		= 7;
-	public static final int KEY_RIGHT_DOWN		= 8;
-	public static final int KEY_RIGHT_LEFT		= 9;
-	public static final int KEY_LEFT_1			= 10;	// 左上前
-	public static final int KEY_LEFT_2			= 11;	// 左上後
-	public static final int KEY_CENTER_LEFT 	= 12;	// 中央左
-	public static final int KEY_RIGHT_1			= 13;	// 右上前
-	public static final int KEY_RIGHT_2			= 14;	// 右上後
-	public static final int KEY_CENTER_RIGHT 	= 15;	// 中央右
 
 	public static boolean processKeyEvent(final KeyEvent event) {
 //		if (DEBUG) Log.v(TAG, "processKeyEvent:" + event);
@@ -122,9 +105,10 @@ public class GamePad {
 		}
 	}
 
-	public static final int KEY_NUMS = 16;
 	private static final Object mKeySync = new Object();
 	private static final KeyCount[] mKeyCounts = new KeyCount[KEY_NUMS];
+	/** ハードウエアキーコード対押し下げ時間 */
+	private static final SparseArray<Long> mHardwareKeys = new SparseArray<Long>();
 	private static final long[] mDownTimes = new long[KEY_NUMS];
 	private static final boolean[] mIsDowns = new boolean[KEY_NUMS];
 	private static boolean mModified = true;
@@ -158,23 +142,53 @@ public class GamePad {
 		// 中央
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_11, KEY_CENTER_LEFT);
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_12, KEY_CENTER_RIGHT);
+		// A-D
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_13, KEY_RIGHT_A);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_14, KEY_RIGHT_B);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_15, KEY_RIGHT_C);
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_16, KEY_RIGHT_D);
 	}
 
 	private static final boolean down(final int keycode) {
+		// 指定されたハードウエアキーの押し下げ時間を追加する
+		long down_time = System.currentTimeMillis();
+		mHardwareKeys.put(keycode, down_time);
 		final int app_key = KEY_MAP.get(keycode, KEY_UNKNOWN);
 		if (app_key != KEY_UNKNOWN) {
+			// 同じapp_keyに対応するハードウエアキーを探す
+			final int n = KEY_MAP.size();
+			for (int i = 0; i < n; i++) {
+				final int _keycode = KEY_MAP.keyAt(i);
+				final int _app_key = KEY_MAP.valueAt(i);
+				if ((app_key == _app_key) && (mHardwareKeys.get(_keycode) != null)) {
+					// 一番小さい値=最初に押された時刻[ミリ秒]
+					down_time = Math.min(down_time, mHardwareKeys.get(_keycode));
+				}
+			}
 			KeyCount keycount = mKeyCounts[app_key];
 			if (keycount == null) {
 				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
 			}
-			keycount.down(System.currentTimeMillis());
+			keycount.down(down_time);
 		}
 		return app_key != KEY_UNKNOWN;
 	}
 
 	private static final boolean up(final int keycode) {
-		final int app_key = KEY_MAP.get(keycode, KEY_UNKNOWN);
-		if (app_key != KEY_UNKNOWN) {
+		// 指定されたハードウエアキーの押し下げ時間を削除する
+		mHardwareKeys.remove(keycode);
+		final int app_key = KEY_MAP.get(keycode, IGamePad.KEY_UNKNOWN);
+		if (app_key != IGamePad.KEY_UNKNOWN) {
+			// 同じapp_keyに対応するハードウエアキーを探す
+			final int n = KEY_MAP.size();
+			for (int i = 0; i < n; i++) {
+				final int _keycode = KEY_MAP.keyAt(i);
+				final int _app_key = KEY_MAP.valueAt(i);
+				if ((app_key == _app_key) && (mHardwareKeys.get(_keycode) != null)) {
+					// 同じapp_keyに対応するハードウエアキーがまだ押されている時
+					return true;
+				}
+			}
 			KeyCount keycount = mKeyCounts[app_key];
 			if (keycount == null) {
 				mKeyCounts[app_key] = keycount = new KeyCount(keycode);

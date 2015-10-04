@@ -2,9 +2,9 @@ package com.serenegiant.gamepad.modules;
 
 import android.hardware.usb.UsbDevice;
 
-import com.serenegiant.gamepad.IGamePad;
+import com.serenegiant.gamepad.HIDGamePad;
 
-public class GeneralGamepad extends IGamePad {
+public class GeneralGamepad extends HIDGamePad {
 
 	public GeneralGamepad(final UsbDevice device) {
 		super(device);

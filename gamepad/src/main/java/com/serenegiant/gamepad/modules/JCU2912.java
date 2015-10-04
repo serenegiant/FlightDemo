@@ -2,9 +2,9 @@ package com.serenegiant.gamepad.modules;
 
 import android.hardware.usb.UsbDevice;
 
-import com.serenegiant.gamepad.IGamePad;
+import com.serenegiant.gamepad.HIDGamePad;
 
-public class JCU2912 extends IGamePad {
+public class JCU2912 extends HIDGamePad {
 
 	public JCU2912(final UsbDevice device) {
 		super(device);

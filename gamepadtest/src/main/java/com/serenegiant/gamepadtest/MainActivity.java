@@ -22,9 +22,10 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import com.serenegiant.usb.DeviceFilter;
-import com.serenegiant.gamepad.HIDGamepad;
 import com.serenegiant.gamepad.IGamePad;
+import com.serenegiant.usb.DeviceFilter;
+import com.serenegiant.gamepad.HIDGamepadDriver;
+import com.serenegiant.gamepad.HIDGamePad;
 import com.serenegiant.usb.USBMonitor;
 
 import java.util.List;
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
 	private final Object mUsbSync = new Object();
 	private USBMonitor mUSBMonitor;
-	private HIDGamepad mGamepad;
+	private HIDGamepadDriver mGamepad;
 	private TextView mGamepadTv;
 
 	private final KeyCount[] mKeyCounts = new KeyCount[IGamePad.KEY_NUMS];
@@ -865,7 +866,7 @@ public class MainActivity extends AppCompatActivity {
 					mGamepadTv.setVisibility(View.VISIBLE);
 				}
 				if (mGamepad == null) {
-					mGamepad = new HIDGamepad(mHIDGamepadCallback);
+					mGamepad = new HIDGamepadDriver(mHIDGamepadCallback);
 					mGamepad.open(ctrlBlock);
 				}
 			}
@@ -913,7 +914,7 @@ public class MainActivity extends AppCompatActivity {
 	/**
 	 * ゲームパッドの状態をチェックするためコールバック
 	 */
-	private final HIDGamepad.HIDGamepadCallback mHIDGamepadCallback = new HIDGamepad.HIDGamepadCallback() {
+	private final HIDGamepadDriver.HIDGamepadCallback mHIDGamepadCallback = new HIDGamepadDriver.HIDGamepadCallback() {
 		private final StringBuilder sb = new StringBuilder();
 
 		@Override
@@ -945,11 +946,11 @@ LOOP:			for (int j = 0; j < m; j++) {
 		}
 
 		@Override
-		public void onEvent(final HIDGamepad gamepad, final IGamePad data) {
+		public void onEvent(final HIDGamepadDriver gamepad, final HIDGamePad data) {
 			// データ受信時の処理
 			final int[] counts = data.keyCount;
 			final long current = System.currentTimeMillis();
-			for (int i = 0; i < IGamePad.KEY_NUMS; i++) {
+			for (int i = 0; i < HIDGamePad.KEY_NUMS; i++) {
 				mKeyCounts[i].downTime = current - counts[i];
 				mKeyCounts[i].isDown =  counts[i] != 0;
 			}

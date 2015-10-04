@@ -17,7 +17,7 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.serenegiant.gamepad.GamePad;
+import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.net.NetworkChangedReceiver;
 import com.serenegiant.widget.ISideMenuView;
@@ -164,7 +164,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 
 	@Override
 	public boolean dispatchKeyEvent(final KeyEvent event) {
-		if (!isFinishing() && GamePad.processKeyEvent(event)) return true;
+		if (!isFinishing() && KeyGamePad.processKeyEvent(event)) return true;
 		return super.dispatchKeyEvent(event);
 	}
 
