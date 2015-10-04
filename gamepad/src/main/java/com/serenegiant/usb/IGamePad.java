@@ -1,6 +1,9 @@
 package com.serenegiant.usb;
 
+import android.hardware.usb.UsbDevice;
+
 import com.serenegiant.usb.gamepadmodules.DualShock3;
+import com.serenegiant.usb.gamepadmodules.DualShock4;
 import com.serenegiant.usb.gamepadmodules.GeneralGamepad;
 import com.serenegiant.usb.gamepadmodules.JCU2912;
 
@@ -59,28 +62,38 @@ public abstract class IGamePad {
 	public int analogRightY;
 	public volatile int[] keyCount = new int[KEY_NUMS];
 
+	protected final UsbDevice mDevice;
+	public IGamePad(final UsbDevice device) {
+		mDevice = device;
+	}
+
 	protected abstract void parse(final int n, final byte[] data);
 
-	protected static IGamePad getGamepad(final int vendor_id, final int product_id, final String serial) {
+	protected static IGamePad getGamepad(final UsbDevice device) {
+		final int vendor_id = device.getVendorId();
+		final int product_id = device.getProductId();
+		final String serial;
 		switch (vendor_id) {
-		case 4607:
+		case 4607:	// ELECOM
 		{
 			switch (product_id) {
 			case 13105:
-				return new JCU2912();
+				return new JCU2912(device);
 			}
 			break;
 		}
-		case 1356:
+		case 1356:	// SONY
 		{
 			switch (product_id) {
 			case 616:
-				return new DualShock3();
+				return new DualShock3(device);
+			case 1476:
+				return new DualShock4(device);
 			}
 			break;
 		}
 		}
-		return new GeneralGamepad();
+		return new GeneralGamepad(device);
 	}
 
 }

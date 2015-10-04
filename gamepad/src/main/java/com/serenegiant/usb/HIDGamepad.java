@@ -83,20 +83,12 @@ public class HIDGamepad {
 					}
 					if (ep_in != null) {
 						// HID入力インターフェースのエンドポイントが見つかった
-						final int vendor_id = device.getVendorId();
-						final int product_id = device.getProductId();
-						final String serial;
-						if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-							serial = device.getSerialNumber();
-						} else {
-							serial = null;
-						}
 						new Thread(new GamepadInTask(intf, ep_in), "GamepadInTask").start();
 						if (!mIsRunning) {
 							try {
 								mSync.wait();
 								if (mIsRunning) {
-									new Thread(new CallbackTask(vendor_id, product_id, serial), "CallbackTask").start();
+									new Thread(new CallbackTask(device), "CallbackTask").start();
 								}
 								return;
 							} catch (final InterruptedException e) {
@@ -155,8 +147,8 @@ public class HIDGamepad {
 	 */
 	private class CallbackTask implements Runnable {
 		private final IGamePad mParser;
-		public CallbackTask(final int vendor_id, final int product_id, final String serial) {
-			mParser = IGamePad.getGamepad(vendor_id, product_id, serial);
+		public CallbackTask(final UsbDevice device) {
+			mParser = IGamePad.getGamepad(device);
 		}
 
 		@Override

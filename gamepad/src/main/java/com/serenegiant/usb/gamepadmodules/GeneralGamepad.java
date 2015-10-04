@@ -1,11 +1,13 @@
 package com.serenegiant.usb.gamepadmodules;
 
+import android.hardware.usb.UsbDevice;
+
 import com.serenegiant.usb.IGamePad;
 
 public class GeneralGamepad extends IGamePad {
 
-	public GeneralGamepad() {
-		super();
+	public GeneralGamepad(final UsbDevice device) {
+		super(device);
 	}
 
 	@Override

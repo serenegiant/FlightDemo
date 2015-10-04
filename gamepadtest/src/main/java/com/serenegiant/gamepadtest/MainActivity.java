@@ -1,6 +1,7 @@
 package com.serenegiant.gamepadtest;
 
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -12,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
+import android.util.SparseLongArray;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -26,7 +28,9 @@ import com.serenegiant.usb.HIDGamepad;
 import com.serenegiant.usb.IGamePad;
 import com.serenegiant.usb.USBMonitor;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 	private static final boolean DEBUG = true;
@@ -72,7 +76,8 @@ public class MainActivity extends AppCompatActivity {
 	private TextView mGamepadTv;
 
 	private final KeyCount[] mKeyCounts = new KeyCount[IGamePad.KEY_NUMS];
-
+	/** ハードウエアキーコード対押し下げ時間 */
+	private final SparseArray<Long> mHardwareKeys = new SparseArray<Long>();
 
 	/** ゲームパッドのハードウエアキーコードからアプリ内キーコードに変換するためのテーブル */
 	private static final SparseIntArray KEY_MAP = new SparseIntArray();
@@ -89,14 +94,14 @@ public class MainActivity extends AppCompatActivity {
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_4, IGamePad.KEY_RIGHT_LEFT);
 		// 左上
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_5, IGamePad.KEY_LEFT_1);	// 左上手前
-//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_L1, IGamePad.KEY_LEFT_1);	// 左上手前
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_L1, IGamePad.KEY_LEFT_1);	// 左上手前
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_7, IGamePad.KEY_LEFT_2);	// 左上奥
-//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_L2, IGamePad.KEY_LEFT_2);	// 左上手前
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_L2, IGamePad.KEY_LEFT_2);	// 左上手前
 		// 右上
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_6, IGamePad.KEY_RIGHT_1);	// 右上手前
-//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_R1, IGamePad.KEY_RIGHT_1);	// 右上手前
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_R1, IGamePad.KEY_RIGHT_1);	// 右上手前
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_8, IGamePad.KEY_RIGHT_2);	// 右上奥
-//		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_R2, IGamePad.KEY_RIGHT_2);	// 右上手前
+		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_R2, IGamePad.KEY_RIGHT_2);	// 右上手前
 		// スティック中央
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_9, IGamePad.KEY_LEFT_CENTER);
 		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_10, IGamePad.KEY_RIGHT_CENTER);
@@ -117,10 +122,26 @@ public class MainActivity extends AppCompatActivity {
 	private TextView mSensorGravityTextView;
 	private TextView mSensorOrientationTextView;
 
+	private static final String ACTION_USB_DEVICE_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED";
+
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		boolean auto_start = false;
+		final Intent intent = getIntent();
+		if (intent != null) {
+			if (ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
+				// USB機器接続時にAndroidのシステムから自動起動された時
+				final int flags = intent.getFlags();
+				auto_start = true;
+				if ((flags & 0x03000000) != 0) {
+					// USBのパーミッション要求ダイアログで選択して起動された時はflagsが0x13000000
+					// パーミッション要求ダイアログなしに自動でパーミッション取得して起動された時はflagsが0x10000000で呼ばれる
+				}
+			}
+		}
 
 		final View frame = findViewById(R.id.layout_frame);
 		frame.setOnKeyListener(new View.OnKeyListener() {
@@ -156,13 +177,17 @@ public class MainActivity extends AppCompatActivity {
 		// 左上
 		tv = (TextView) findViewById(R.id.btn5_textview);
 		mTextViews.append(KeyEvent.KEYCODE_BUTTON_5, tv);
+		mTextViews.append(KeyEvent.KEYCODE_BUTTON_L1, tv);
 		tv = (TextView) findViewById(R.id.btn7_textview);
 		mTextViews.append(KeyEvent.KEYCODE_BUTTON_7, tv);
+		mTextViews.append(KeyEvent.KEYCODE_BUTTON_L2, tv);
 		// 右上
 		tv = (TextView) findViewById(R.id.btn6_textview);
 		mTextViews.append(KeyEvent.KEYCODE_BUTTON_6, tv);
+		mTextViews.append(KeyEvent.KEYCODE_BUTTON_R1, tv);
 		tv = (TextView) findViewById(R.id.btn8_textview);
 		mTextViews.append(KeyEvent.KEYCODE_BUTTON_8, tv);
+		mTextViews.append(KeyEvent.KEYCODE_BUTTON_R2, tv);
 		// スティック中央
 		tv = (TextView) findViewById(R.id.left_center_textview);
 		mTextViews.append(KeyEvent.KEYCODE_BUTTON_9, tv);
@@ -197,6 +222,9 @@ public class MainActivity extends AppCompatActivity {
 
 		final CheckBox checkbox = (CheckBox)findViewById(R.id.use_driver_checkbox);
 		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		if (auto_start) {
+			checkbox.setChecked(true);
+		}
 	}
 
 	@Override
@@ -231,19 +259,44 @@ public class MainActivity extends AppCompatActivity {
 	}
 
 	private void down(final int keycode) {
+		// 指定されたハードウエアキーの押し下げ時間を追加する
+		long down_time = System.currentTimeMillis();
+		mHardwareKeys.put(keycode, down_time);
 		final int app_key = KEY_MAP.get(keycode, IGamePad.KEY_UNKNOWN);
 		if (app_key != IGamePad.KEY_UNKNOWN) {
+			// 同じapp_keyに対応するハードウエアキーを探す
+			final int n = KEY_MAP.size();
+			for (int i = 0; i < n; i++) {
+				final int _keycode = KEY_MAP.keyAt(i);
+				final int _app_key = KEY_MAP.valueAt(i);
+				if ((app_key == _app_key) && (mHardwareKeys.get(_keycode) != null)) {
+					// 一番小さい値=最初に押された時刻[ミリ秒]
+					down_time = Math.min(down_time, mHardwareKeys.get(_keycode));
+				}
+			}
 			KeyCount keycount = mKeyCounts[app_key];
 			if (keycount == null) {
 				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
 			}
-			keycount.down(System.currentTimeMillis());
+			keycount.down(down_time);
 		}
 	}
 
 	private void up(final int keycode) {
+		// 指定されたハードウエアキーの押し下げ時間を削除する
+		mHardwareKeys.remove(keycode);
 		final int app_key = KEY_MAP.get(keycode, IGamePad.KEY_UNKNOWN);
 		if (app_key != IGamePad.KEY_UNKNOWN) {
+			// 同じapp_keyに対応するハードウエアキーを探す
+			final int n = KEY_MAP.size();
+			for (int i = 0; i < n; i++) {
+				final int _keycode = KEY_MAP.keyAt(i);
+				final int _app_key = KEY_MAP.valueAt(i);
+				if ((app_key == _app_key) && (mHardwareKeys.get(_keycode) != null)) {
+					// 同じapp_keyに対応するハードウエアキーがまだ押されている時
+					return;
+				}
+			}
 			KeyCount keycount = mKeyCounts[app_key];
 			if (keycount == null) {
 				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
@@ -737,12 +790,11 @@ public class MainActivity extends AppCompatActivity {
 
 
 	private void startUsbDriver() {
-//		final SharedPreferences pref = getPreferences(0);
-//		final boolean use_usb_driver = pref.getBoolean("USE_GAMEPAD_DRIVER", false);
 		synchronized (mUsbSync) {
-			if (true/*use_usb_driver*/ && (mUSBMonitor == null)) {
+			if (mUSBMonitor == null) {
 				mUSBMonitor = new USBMonitor(getApplicationContext(), mOnDeviceConnectListener);
-				final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(this, R.xml.device_filter);
+				// こっちはHIDすべてを選択可能
+				final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(this, R.xml.device_filter_hid_all);
 				mUSBMonitor.setDeviceFilter(filter.get(0));
 			}
 		}

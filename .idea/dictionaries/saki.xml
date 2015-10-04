@@ -9,12 +9,14 @@
       <w>ardiscovery</w>
       <w>arnetwork</w>
       <w>arnetworkal</w>
+      <w>arraycopy</w>
       <w>arsal</w>
       <w>arstream</w>
       <w>beebap</w>
       <w>bgen</w>
       <w>dheight</w>
       <w>dwidth</w>
+      <w>elecom</w>
       <w>extern</w>
       <w>exts</w>
       <w>flattrim</w>
@@ -32,6 +34,7 @@
       <w>matrixf</w>
       <w>minidrone</w>
       <w>minusminus</w>
+      <w>msec</w>
       <w>mult</w>
       <w>nums</w>
       <w>onoff</w>
