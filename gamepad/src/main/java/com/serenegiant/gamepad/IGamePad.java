@@ -1,11 +1,11 @@
-package com.serenegiant.usb;
+package com.serenegiant.gamepad;
 
 import android.hardware.usb.UsbDevice;
 
-import com.serenegiant.usb.gamepadmodules.DualShock3;
-import com.serenegiant.usb.gamepadmodules.DualShock4;
-import com.serenegiant.usb.gamepadmodules.GeneralGamepad;
-import com.serenegiant.usb.gamepadmodules.JCU2912;
+import com.serenegiant.gamepad.modules.DualShock3;
+import com.serenegiant.gamepad.modules.DualShock4;
+import com.serenegiant.gamepad.modules.GeneralGamepad;
+import com.serenegiant.gamepad.modules.JCU2912;
 
 public abstract class IGamePad {
 	public static final int KEY_UNKNOWN = -1;

@@ -1,4 +1,4 @@
-package com.serenegiant.arflight;
+package com.serenegiant.gamepad;
 
 import android.util.Log;
 import android.util.SparseIntArray;

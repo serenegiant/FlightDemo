@@ -1,8 +1,8 @@
-package com.serenegiant.usb.gamepadmodules;
+package com.serenegiant.gamepad.modules;
 
 import android.hardware.usb.UsbDevice;
 
-import com.serenegiant.usb.IGamePad;
+import com.serenegiant.gamepad.IGamePad;
 
 public class DualShock3 extends IGamePad {
 

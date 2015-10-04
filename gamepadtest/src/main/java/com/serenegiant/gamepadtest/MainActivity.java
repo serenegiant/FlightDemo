@@ -13,7 +13,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
-import android.util.SparseLongArray;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -24,13 +23,11 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.serenegiant.usb.DeviceFilter;
-import com.serenegiant.usb.HIDGamepad;
-import com.serenegiant.usb.IGamePad;
+import com.serenegiant.gamepad.HIDGamepad;
+import com.serenegiant.gamepad.IGamePad;
 import com.serenegiant.usb.USBMonitor;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 	private static final boolean DEBUG = true;

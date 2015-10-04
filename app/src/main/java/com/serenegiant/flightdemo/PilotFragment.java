@@ -31,7 +31,7 @@ import com.serenegiant.arflight.DeviceControllerBebop;
 import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
-import com.serenegiant.arflight.GamePad;
+import com.serenegiant.gamepad.GamePad;
 import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IVideoStreamController;
@@ -54,9 +54,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class PilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること

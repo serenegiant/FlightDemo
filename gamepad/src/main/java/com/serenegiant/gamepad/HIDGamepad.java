@@ -1,4 +1,4 @@
-package com.serenegiant.usb;
+package com.serenegiant.gamepad;
 
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
@@ -11,10 +11,8 @@ import android.util.Log;
 
 import com.serenegiant.usb.USBMonitor.UsbControlBlock;
 
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.zip.CRC32;
 
 public class HIDGamepad {
 	private static final boolean DEBUG = true;	// FIXME 実同時はfalseにすること
