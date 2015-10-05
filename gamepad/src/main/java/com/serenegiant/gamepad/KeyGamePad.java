@@ -7,8 +7,8 @@ import android.view.KeyEvent;
 import static com.serenegiant.gamepad.GamePadConst.*;
 
 public class KeyGamePad extends IGamePad {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static final String TAG = "KeyGamePad";
+//	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+//	private static final String TAG = "KeyGamePad";
 
 	private static final Object sSync = new Object();
 	private static KeyGamePad sKeyGamePad;
@@ -26,6 +26,9 @@ public class KeyGamePad extends IGamePad {
 		}
 	}
 
+	protected final Object mSync = new Object();
+	protected boolean mModified = true;
+
 	private KeyGamePad() {
 		// 直接の生成を禁止するためコンストラクタはprivateにする
 	}
@@ -41,12 +44,12 @@ public class KeyGamePad extends IGamePad {
 		final int count = event.getRepeatCount();
 		switch (event.getAction()) {
 		case KeyEvent.ACTION_DOWN:
-			synchronized (mKeySync) {
+			synchronized (mSync) {
 				handled = down(keyCode);
 			}
 			break;
 		case KeyEvent.ACTION_UP:
-			synchronized (mKeySync) {
+			synchronized (mSync) {
 				handled = up(keyCode);
 			}
 			break;
@@ -59,25 +62,32 @@ public class KeyGamePad extends IGamePad {
 	/**
 	 * キーの押し下げ状態と押し下げしている時間[ミリ秒]を取得
 	 * @param downs KEY_NUMS個以上確保しておくこと
-	 * @param down_Times KEY_NUMS個以上確保しておくこと
+	 * @param down_times KEY_NUMS個以上確保しておくこと
 	 */
-	public void updateState(final boolean[] downs, final long[] down_Times, final boolean force) {
-		synchronized (mKeySync) {
+	public void updateState(final boolean[] downs, final long[] down_times, final boolean force) {
+		synchronized (mSync) {
 			if (mModified || force) {
+				final long current = System.currentTimeMillis();
 				for (int i = 0; i < KEY_NUMS; i++) {
-					down_Times[i] = mKeyDownTimes[i];
-					downs[i] = down_Times[i] > 0;
+					downs[i] = false;
+					down_times[i] = current;
+				}
+				final int n = mHardwareKeys.size();
+				for (int i = 0; i < n; i++) {
+					final int key = mHardwareKeys.keyAt(i);
+					final int app_key = KEY_MAP.get(key, KEY_UNKNOWN);
+					if ((app_key != KEY_UNKNOWN) && (mHardwareKeys.valueAt(i) != null)) {
+						downs[app_key] = true;
+						down_times[app_key] = Math.min(down_times[app_key], mHardwareKeys.valueAt(i));
+					}
 				}
 				mModified = false;
 			}
 		}
 	}
 
-//	protected final KeyCount[] mKeyCounts = new KeyCount[KEY_NUMS];
 	/** ハードウエアキーコード対押し下げ時間 */
 	protected final SparseArray<Long> mHardwareKeys = new SparseArray<Long>();
-	/** キーが押された時刻(System#currentTimeMillis) */
-	protected final long[] mKeyDownTimes = new long[KEY_NUMS];
 
 	/** ゲームパッドのハードウエアキーコードからアプリ内キーコードに変換するためのテーブル */
 	private static final SparseIntArray KEY_MAP = new SparseIntArray();
@@ -117,49 +127,16 @@ public class KeyGamePad extends IGamePad {
 
 	private final boolean down(final int keycode) {
 		// 指定されたハードウエアキーの押し下げ時間を追加する
-		long down_time = System.currentTimeMillis();
-		mHardwareKeys.put(keycode, down_time);
+		mHardwareKeys.put(keycode, System.currentTimeMillis());
 		final int app_key = KEY_MAP.get(keycode, KEY_UNKNOWN);
-		if (app_key != KEY_UNKNOWN) {
-			// 同じapp_keyに対応するハードウエアキーを探す
-			final int n = KEY_MAP.size();
-			for (int i = 0; i < n; i++) {
-				final int _keycode = KEY_MAP.keyAt(i);
-				final int _app_key = KEY_MAP.valueAt(i);
-				if ((app_key == _app_key) && (mHardwareKeys.get(_keycode) != null)) {
-					// 一番小さい値=最初に押された時刻[ミリ秒]
-					down_time = Math.min(down_time, mHardwareKeys.get(_keycode));
-				}
-			}
-			if (mKeyDownTimes[app_key] != down_time) {
-				mKeyDownTimes[app_key] = down_time;
-				mModified = true;
-			}
-		}
-		return app_key != KEY_UNKNOWN;
+		return mModified |= (app_key != KEY_UNKNOWN);
 	}
 
 	private final boolean up(final int keycode) {
 		// 指定されたハードウエアキーの押し下げ時間を削除する
+		mHardwareKeys.put(keycode, 0L);
 		mHardwareKeys.remove(keycode);
 		final int app_key = KEY_MAP.get(keycode, KEY_UNKNOWN);
-		if (app_key != KEY_UNKNOWN) {
-			long down_time = 0;
-			// 同じapp_keyに対応するハードウエアキーを探す
-			final int n = KEY_MAP.size();
-			for (int i = 0; i < n; i++) {
-				final int _keycode = KEY_MAP.keyAt(i);
-				final int _app_key = KEY_MAP.valueAt(i);
-				if ((app_key == _app_key) && (mHardwareKeys.get(_keycode) != null)) {
-					// 一番小さい値=最初に押された時刻[ミリ秒]
-					down_time = Math.min(down_time, mHardwareKeys.get(_keycode));
-				}
-			}
-			if (mKeyDownTimes[app_key] != down_time) {
-				mKeyDownTimes[app_key] = down_time;
-				mModified = true;
-			}
-		}
-		return app_key != KEY_UNKNOWN;
+		return mModified |= (app_key != KEY_UNKNOWN);
 	}
 }

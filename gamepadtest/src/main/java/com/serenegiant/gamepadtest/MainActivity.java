@@ -22,10 +22,9 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.serenegiant.gamepad.GamePadConst;
+import com.serenegiant.gamepad.HIDGamepad;
 import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.usb.DeviceFilter;
-import com.serenegiant.gamepad.HIDGamepadDriver;
-import com.serenegiant.gamepad.HIDGamePad;
 import com.serenegiant.usb.USBMonitor;
 
 import java.util.List;
@@ -39,18 +38,16 @@ public class MainActivity extends AppCompatActivity {
 
 	private final Object mUsbSync = new Object();
 	private USBMonitor mUSBMonitor;
-	private HIDGamepadDriver mGamepad;
-	private TextView mGamepadTv;
+	private HIDGamepad mHIDGamepad;
+	private KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
 
+	private TextView mGamepadTv;
 	private TextView mKeyTextView;
 	private TextView mSensorAccelTextView;
 	private TextView mSensorMagnetTextView;
 	private TextView mSensorGyroTextView;
 	private TextView mSensorGravityTextView;
 	private TextView mSensorOrientationTextView;
-
-	private static final String ACTION_USB_DEVICE_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED";
-	private KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
 
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
@@ -60,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 		boolean auto_start = false;
 		final Intent intent = getIntent();
 		if (intent != null) {
-			if (ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
+			if (USBMonitor.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
 				// USB機器接続時にAndroidのシステムから自動起動された時
 				final int flags = intent.getFlags();
 				auto_start = true;
@@ -183,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
 	private int key_cnt = 0;
 	@Override
 	public boolean dispatchKeyEvent(final KeyEvent event) {
+//		if (DEBUG) Log.v(TAG, "dispatchKeyEvent:" + event);
 		mKeyGamePad.processKeyEvent(event);
 
 		final int keycode = event.getKeyCode();
@@ -219,7 +217,9 @@ public class MainActivity extends AppCompatActivity {
 			mUIHandler.removeCallbacks(this);
 			synchronized (mSync) {
 				final long current = System.currentTimeMillis();
-				if (mUSBMonitor == null) {
+				if ((mUSBMonitor != null) && (mHIDGamepad != null)) {
+					mHIDGamepad.updateState(mDowns, mCounts, false);
+				} else {
 					mKeyGamePad.updateState(mDowns, mCounts, false);
 				}
 				final int n = GamePadConst.KEY_NUMS;
@@ -665,7 +665,7 @@ public class MainActivity extends AppCompatActivity {
 		synchronized (mUsbSync) {
 			if (mUSBMonitor == null) {
 				mUSBMonitor = new USBMonitor(getApplicationContext(), mOnDeviceConnectListener);
-				// こっちはHIDすべてを選択可能
+				// こっちのデバイスフィルター定義はHIDすべてを選択可能
 				final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(this, R.xml.device_filter_hid_all);
 				mUSBMonitor.setDeviceFilter(filter.get(0));
 			}
@@ -725,7 +725,7 @@ public class MainActivity extends AppCompatActivity {
 					if ((_device == null) && (mUSBMonitor.getDeviceCount() > 0)) {
 						_device = mUSBMonitor.getDeviceList().get(0);
 					}
-					if (mGamepad == null) {
+					if (mHIDGamepad == null) {
 						mUSBMonitor.requestPermission(_device);
 					}
 				}
@@ -739,9 +739,9 @@ public class MainActivity extends AppCompatActivity {
 				if (mGamepadTv != null) {
 					mGamepadTv.setVisibility(View.VISIBLE);
 				}
-				if (mGamepad == null) {
-					mGamepad = new HIDGamepadDriver(mHIDGamepadCallback);
-					mGamepad.open(ctrlBlock);
+				if (mHIDGamepad == null) {
+					mHIDGamepad = new HIDGamepad(/*mHIDGamepadCallback*/);
+					mHIDGamepad.open(ctrlBlock);
 				}
 			}
 		}
@@ -749,31 +749,30 @@ public class MainActivity extends AppCompatActivity {
 		@Override
 		public void onDisconnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
 			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDisconnect:");
-			synchronized (mUsbSync) {
-				if (mGamepad != null) {
-					mGamepad.close();
-				}
-			}
+			releaseGamepad();
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDisconnect:finished");
 		}
 
 		@Override
 		public void onDettach(final UsbDevice device) {
 			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDettach:");
 			releaseGamepad();
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDettach:finished");
 		}
 
 		@Override
 		public void onCancel() {
 			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onCancel:");
 			releaseGamepad();
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onCancel:finished");
 		}
 	};
 
 	private void releaseGamepad() {
 		synchronized (mUsbSync) {
-			if (mGamepad != null) {
-				mGamepad.release();
-				mGamepad = null;
+			if (mHIDGamepad != null) {
+				mHIDGamepad.release();
+				mHIDGamepad = null;
 			}
 		}
 		runOnUiThread(new Runnable() {
@@ -789,8 +788,8 @@ public class MainActivity extends AppCompatActivity {
 	/**
 	 * ゲームパッドの状態をチェックするためコールバック
 	 */
-	private final HIDGamepadDriver.HIDGamepadCallback mHIDGamepadCallback
-		= new HIDGamepadDriver.HIDGamepadCallback() {
+/*	private final HIDGamepad.HIDGamepadCallback mHIDGamepadCallback
+		= new HIDGamepad.HIDGamepadCallback() {
 
 		private final StringBuilder sb = new StringBuilder();
 
@@ -823,7 +822,7 @@ LOOP:			for (int j = 0; j < m; j++) {
 		}
 
 		@Override
-		public void onEvent(final HIDGamepadDriver gamepad, final HIDGamePad data) {
+		public void onEvent(final HIDGamepad gamepad, final HIDParser data) {
 			// データ受信時の処理
 			final int[] counts = data.keyCount;
 			final long current = System.currentTimeMillis();
@@ -833,5 +832,5 @@ LOOP:			for (int j = 0; j < m; j++) {
 			}
 //			Log.v(TAG, String.format("left(%d,%d)", data.analogLeftX, data.analogLeftY));
 		}
-	};
+	}; */
 }

@@ -12,33 +12,36 @@ import android.util.Log;
 import com.serenegiant.usb.USBMonitor.UsbControlBlock;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
-public class HIDGamepadDriver {
+public class HIDGamepad extends IGamePad {
 	private static final boolean DEBUG = true;	// FIXME 実同時はfalseにすること
-	private static final String TAG = HIDGamepadDriver.class.getSimpleName();
+	private static final String TAG = HIDGamepad.class.getSimpleName();
 
 	private final Object mSync = new Object();
 	private UsbControlBlock mCtrlBlock;
 	private volatile boolean mIsRunning;
+	private boolean mModified;
 
-	public interface HIDGamepadCallback {
-		/**
-		 * ゲームパッドからのデータ受信時の処理
-		 * @param n
-		 * @param data
-		 * @return true: 処理済み, onEventは呼ばれない, false:onEventの処理を行う
-		 */
-		public boolean onRawdataChanged(final int n, final byte[] data);
-		public void onEvent(final HIDGamepadDriver gamepad, final HIDGamePad data);
-	}
+//	public interface HIDGamepadCallback {
+//		/**
+//		 * ゲームパッドからのデータ受信時の処理
+//		 * @param n
+//		 * @param data
+//		 * @return true: 処理済み, onEventは呼ばれない, false:onEventの処理を行う
+//		 */
+//		public boolean onRawdataChanged(final int n, final byte[] data);
+//		public void onEvent(final HIDGamepad gamepad, final HIDParser data);
+//	}
 
-	private final HIDGamepadCallback mCallback;
-	public HIDGamepadDriver(final HIDGamepadCallback callback) throws NullPointerException {
-		if (callback == null) {
-			throw new NullPointerException("callback should not be a null");
-		}
-		mCallback = callback;
+//	private final HIDGamepadCallback mCallback;
+
+	private HIDParser mParser;
+
+	public HIDGamepad(/*final HIDGamepadCallback callback*/) throws NullPointerException {
+//		if (callback == null) {
+//			throw new NullPointerException("callback should not be a null");
+//		}
+//		mCallback = callback;
 	}
 
 	public void open(final UsbControlBlock ctrlBlock) throws RuntimeException {
@@ -81,14 +84,16 @@ public class HIDGamepadDriver {
 						if (!mIsRunning) {
 							try {
 								mSync.wait();
-								if (mIsRunning) {
-									new Thread(new CallbackTask(device), "CallbackTask").start();
-								}
+//								if (mIsRunning) {
+//									new Thread(new CallbackTask(device), "CallbackTask").start();
+//								}
+								mParser = HIDParser.getGamepad(device);
 								return;
 							} catch (final InterruptedException e) {
 								break;
 							}
 						}
+						mParser = null;
 						mIsRunning = false;
 						mSync.notifyAll();
 					}
@@ -105,15 +110,8 @@ public class HIDGamepadDriver {
 	public void close() {
 		synchronized (mSync) {
 			mIsRunning = false;
-			mSync.notifyAll();
-			if (mCtrlBlock != null) {
-				try {
-					mSync.wait(200);
-				} catch (InterruptedException e) {
-				}
-				mCtrlBlock.close();
-			}
 			mCtrlBlock = null;
+			mSync.notifyAll();
 		}
 	}
 
@@ -136,15 +134,31 @@ public class HIDGamepadDriver {
 		return mCtrlBlock;
 	}
 
+	@Override
+	public void updateState(final boolean[] downs, final long[] down_Times, final boolean force) {
+		if ((mValues != null) && (force || mModified)) {
+			final int n = mValues != null ? mValues.length : 0;
+			synchronized (mSync) {
+				mParser.parse(n, mValues);
+			}
+			final int[] counts = mParser.keyCount;
+			final long current = System.currentTimeMillis();
+			for (int i = 0; i < GamePadConst.KEY_NUMS; i++) {
+				downs[i] = counts[i] != 0;
+				down_Times[i] = current - counts[i];
+			}
+		}
+	}
+
 	private byte[] mValues;
 
 	/**
 	 * コールバックメソッドをプライベートスレッド上で呼び出すためのRunnable
 	 */
-	private class CallbackTask implements Runnable {
-		private final HIDGamePad mParser;
+/*	private class CallbackTask implements Runnable {
+		private final HIDParser mParser;
 		public CallbackTask(final UsbDevice device) {
-			mParser = HIDGamePad.getGamepad(device);
+			mParser = HIDParser.getGamepad(device);
 		}
 
 		@Override
@@ -186,7 +200,7 @@ public class HIDGamepadDriver {
 						try {
 							if (!mCallback.onRawdataChanged(n, values)) {
 								mParser.parse(n, values);
-								mCallback.onEvent(HIDGamepadDriver.this, mParser);
+								mCallback.onEvent(HIDGamepad.this, mParser);
 							}
 						} catch (final Exception e) {
 							Log.w(TAG, e);
@@ -195,7 +209,7 @@ public class HIDGamepadDriver {
 				}
 			}
 		}
-	};
+	}; */
 
 
 	/**
@@ -226,9 +240,9 @@ public class HIDGamepadDriver {
 				connection = mUsbControlBlock != null ? mUsbControlBlock.getUsbDeviceConnection() : null;
 				if (connection != null) {
 					if (DEBUG) Log.v(TAG_THREAD, "claimInterface:");
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-						connection.setInterface(mIntf);
-					}
+//					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//						connection.setInterface(mIntf);
+//					}
 					connection.claimInterface(mIntf, true);	// true: 必要ならカーネルドライバをdisconnectさせる
 					intervals = mEp.getInterval();
 					max_packets = mEp.getMaxPacketSize();
@@ -265,6 +279,7 @@ public class HIDGamepadDriver {
 								buffer.clear();
 								synchronized (mSync) {
 									buffer.get(mValues);
+									mModified |= true;
 									mSync.notifyAll();
 								}
 							}
@@ -278,10 +293,14 @@ public class HIDGamepadDriver {
 				}
 			} finally {
 				if (DEBUG) Log.v(TAG_THREAD, "releaseInterface:");
+				connection.releaseInterface(mIntf);
+				connection.close();
 				if (mUsbControlBlock != null) {
 					mUsbControlBlock.close();
 				}
 			}
+			mValues = null;
+			mIsRunning = false;
 		}
 	};
 

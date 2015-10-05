@@ -2,10 +2,10 @@ package com.serenegiant.gamepad.modules;
 
 import android.hardware.usb.UsbDevice;
 
-import com.serenegiant.gamepad.HIDGamePad;
+import com.serenegiant.gamepad.HIDParser;
 import static com.serenegiant.gamepad.GamePadConst.*;
 
-public class DualShock3 extends HIDGamePad {
+public class DualShock3 extends HIDParser {
 
 	public DualShock3(final UsbDevice device) {
 		super(device);

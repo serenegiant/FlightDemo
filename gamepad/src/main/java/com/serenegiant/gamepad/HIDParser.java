@@ -8,7 +8,7 @@ import com.serenegiant.gamepad.modules.GeneralGamepad;
 import com.serenegiant.gamepad.modules.JCU2912;
 import static com.serenegiant.gamepad.GamePadConst.*;
 
-public abstract class HIDGamePad {
+public abstract class HIDParser {
 
 	// DPADのキーマスクビット
 	protected static final int DPAD_UP = 0x01;
@@ -41,13 +41,13 @@ public abstract class HIDGamePad {
 	public volatile int[] keyCount = new int[KEY_NUMS];
 
 	protected final UsbDevice mDevice;
-	protected HIDGamePad(final UsbDevice device) {
+	protected HIDParser(final UsbDevice device) {
 		mDevice = device;
 	}
 
 	protected abstract void parse(final int n, final byte[] data);
 
-	protected static HIDGamePad getGamepad(final UsbDevice device) {
+	protected static HIDParser getGamepad(final UsbDevice device) {
 		final int vendor_id = device.getVendorId();
 		final int product_id = device.getProductId();
 		final String serial;
