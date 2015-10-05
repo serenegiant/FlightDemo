@@ -34,37 +34,6 @@ public class MainActivity extends AppCompatActivity {
 	private static final boolean DEBUG = true;
 	private static final String TAG = "MainActivity";
 
-/*	private static final class KeyCount {
-		private int keycode;
-		private boolean isDown;
-		private long downTime;
-
-		public KeyCount(final int _keycode) {
-			keycode = _keycode;
-			isDown = false;
-			downTime = 0;
-		}
-
-		public void up() {
-			isDown = false;
-			downTime = 0;
-		}
-
-		public void down(final long down_time) {
-			if (!isDown) {
-				isDown = true;
-				downTime = down_time;
-			}
-		}
-		public boolean down() {
-			return isDown;
-		}
-
-		public long count() {
-			return isDown ? System.currentTimeMillis() - downTime : 0;
-		}
-	} */
-
 	private final Object mSync = new Object();
 	private final SparseArray<TextView> mTextViews = new SparseArray<TextView>();
 
@@ -72,46 +41,6 @@ public class MainActivity extends AppCompatActivity {
 	private USBMonitor mUSBMonitor;
 	private HIDGamepadDriver mGamepad;
 	private TextView mGamepadTv;
-
-//	private final KeyCount[] mKeyCounts = new KeyCount[GamePadConst.KEY_NUMS];
-//	/** ハードウエアキーコード対押し下げ時間 */
-//	private final SparseArray<Long> mHardwareKeys = new SparseArray<Long>();
-
-	/** ゲームパッドのハードウエアキーコードからアプリ内キーコードに変換するためのテーブル */
-/*	private static final SparseIntArray KEY_MAP = new SparseIntArray();
-	static {
-		// 左側アナログスティック/十字キー
-		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_UP, GamePadConst.KEY_LEFT_UP);
-		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_RIGHT, GamePadConst.KEY_LEFT_RIGHT);
-		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_DOWN, GamePadConst.KEY_LEFT_DOWN);
-		KEY_MAP.put(KeyEvent.KEYCODE_DPAD_LEFT, GamePadConst.KEY_LEFT_LEFT);
-		// 右側アナログスティック
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_1, GamePadConst.KEY_RIGHT_UP);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_2, GamePadConst.KEY_RIGHT_RIGHT);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_3, GamePadConst.KEY_RIGHT_DOWN);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_4, GamePadConst.KEY_RIGHT_LEFT);
-		// 左上
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_5, GamePadConst.KEY_LEFT_1);	// 左上手前
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_L1, GamePadConst.KEY_LEFT_1);	// 左上手前
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_7, GamePadConst.KEY_LEFT_2);	// 左上奥
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_L2, GamePadConst.KEY_LEFT_2);	// 左上手前
-		// 右上
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_6, GamePadConst.KEY_RIGHT_1);	// 右上手前
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_R1, GamePadConst.KEY_RIGHT_1);	// 右上手前
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_8, GamePadConst.KEY_RIGHT_2);	// 右上奥
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_R2, GamePadConst.KEY_RIGHT_2);	// 右上手前
-		// スティック中央
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_9, GamePadConst.KEY_LEFT_CENTER);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_10, GamePadConst.KEY_RIGHT_CENTER);
-		// 中央
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_11, GamePadConst.KEY_CENTER_LEFT);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_12, GamePadConst.KEY_CENTER_RIGHT);
-		// A-D
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_13, GamePadConst.KEY_RIGHT_A);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_14, GamePadConst.KEY_RIGHT_B);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_15, GamePadConst.KEY_RIGHT_C);
-		KEY_MAP.put(KeyEvent.KEYCODE_BUTTON_16, GamePadConst.KEY_RIGHT_D);
-	} */
 
 	private TextView mKeyTextView;
 	private TextView mSensorAccelTextView;
@@ -207,12 +136,6 @@ public class MainActivity extends AppCompatActivity {
 		tv = (TextView) findViewById(R.id.btnD_textview);
 		mTextViews.append(GamePadConst.KEY_RIGHT_D/*KeyEvent.KEYCODE_BUTTON_16*/, tv);
 
-/*		final int n = KEY_MAP.size();
-		for (int i = 0; i < n; i++) {
-			final int keycode = KEY_MAP.keyAt(i);
-			up(keycode);
-		} */
-
 		mSensorAccelTextView = (TextView)findViewById(R.id.sensor_accel_textview);
 		mSensorMagnetTextView = (TextView)findViewById(R.id.sensor_magnet_textview);
 		mSensorGyroTextView = (TextView)findViewById(R.id.sensor_gyro_textview);
@@ -257,88 +180,31 @@ public class MainActivity extends AppCompatActivity {
 		super.onDestroy();
 	}
 
-/*	private void down(final int keycode) {
-		// 指定されたハードウエアキーの押し下げ時間を追加する
-		long down_time = System.currentTimeMillis();
-		mHardwareKeys.put(keycode, down_time);
-		final int app_key = KEY_MAP.get(keycode, GamePadConst.KEY_UNKNOWN);
-		if (app_key != GamePadConst.KEY_UNKNOWN) {
-			// 同じapp_keyに対応するハードウエアキーを探す
-			final int n = KEY_MAP.size();
-			for (int i = 0; i < n; i++) {
-				final int _keycode = KEY_MAP.keyAt(i);
-				final int _app_key = KEY_MAP.valueAt(i);
-				if ((app_key == _app_key) && (mHardwareKeys.get(_keycode) != null)) {
-					// 一番小さい値=最初に押された時刻[ミリ秒]
-					down_time = Math.min(down_time, mHardwareKeys.get(_keycode));
-				}
-			}
-			KeyCount keycount = mKeyCounts[app_key];
-			if (keycount == null) {
-				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
-			}
-			keycount.down(down_time);
-		}
-	} */
-
-/*	private void up(final int keycode) {
-		// 指定されたハードウエアキーの押し下げ時間を削除する
-		mHardwareKeys.remove(keycode);
-		final int app_key = KEY_MAP.get(keycode, GamePadConst.KEY_UNKNOWN);
-		if (app_key != GamePadConst.KEY_UNKNOWN) {
-			// 同じapp_keyに対応するハードウエアキーを探す
-			final int n = KEY_MAP.size();
-			for (int i = 0; i < n; i++) {
-				final int _keycode = KEY_MAP.keyAt(i);
-				final int _app_key = KEY_MAP.valueAt(i);
-				if ((app_key == _app_key) && (mHardwareKeys.get(_keycode) != null)) {
-					// 同じapp_keyに対応するハードウエアキーがまだ押されている時
-					return;
-				}
-			}
-			KeyCount keycount = mKeyCounts[app_key];
-			if (keycount == null) {
-				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
-			}
-			keycount.up();
-		}
-	} */
-
 	private int key_cnt = 0;
 	@Override
 	public boolean dispatchKeyEvent(final KeyEvent event) {
-//		if (DEBUG) Log.v(TAG, "dispatchKeyEvent:" + event);
 		mKeyGamePad.processKeyEvent(event);
 
 		final int keycode = event.getKeyCode();
 		final int count = event.getRepeatCount();
 		switch (event.getAction()) {
 			case KeyEvent.ACTION_DOWN:
-/*				synchronized (mSync) {
-					down(keycode);
-				} */
 				// キーコード表示
 				if (keycode != KeyEvent.KEYCODE_DPAD_CENTER)
 				try {
 					mKeyTextView.setText(getKeyCodeName(keycode));
 				} catch (final Exception e) {
 				}
-//				if (DEBUG) Log.v(TAG, "DOWN:ev=" + ev);
 				break;
 			case KeyEvent.ACTION_UP:
-/*				synchronized (mSync) {
-					up(keycode);
-				} */
 				// キーコード表示
 				if (keycode != KeyEvent.KEYCODE_DPAD_CENTER)
 				try {
 					mKeyTextView.setText(getKeyCodeName(keycode));
 				} catch (final Exception e) {
 				}
-//				if (DEBUG) Log.v(TAG, "UP:ev=" + ev);
 				break;
 			case KeyEvent.ACTION_MULTIPLE:
-//				if (DEBUG) Log.v(TAG, "MULTIPLE:ev=" + ev);
 				break;
 		}
 		return super.dispatchKeyEvent(event);
@@ -363,16 +229,6 @@ public class MainActivity extends AppCompatActivity {
 						tv.setText(mDowns[i] ? String.format("%d", current - mCounts[i]) : "0");
 					}
 				}
-/*				final int n = mKeyCounts.length;
-				for (int i = 0; i < n; i++) {
-					final KeyCount keycount = mKeyCounts[i];
-					if (keycount != null) {
-						final TextView tv = mTextViews.get(keycount.keycode);
-						if (tv != null) {
-							tv.setText(String.format("%d", keycount.count()));
-						}
-					}
-				} */
 			}
 			mUIHandler.postDelayed(this, 50);
 		}

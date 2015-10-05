@@ -104,14 +104,16 @@ public class HIDGamepadDriver {
 
 	public void close() {
 		synchronized (mSync) {
-			if (!mIsRunning) {
-				if (mCtrlBlock != null) {
-					mCtrlBlock.close();
-				}
-			}
 			mIsRunning = false;
-			mCtrlBlock = null;
 			mSync.notifyAll();
+			if (mCtrlBlock != null) {
+				try {
+					mSync.wait(200);
+				} catch (InterruptedException e) {
+				}
+				mCtrlBlock.close();
+			}
+			mCtrlBlock = null;
 		}
 	}
 
@@ -155,39 +157,40 @@ public class HIDGamepadDriver {
 					}
 				}
 			}
-			int cnt = 0;
 			final int n = mValues != null ? mValues.length : 0;
-			final byte[] values = new byte[n];
-			final byte[] prev = new byte[n];
-			long prev_time = -1;
-			for (; mIsRunning ;) {
-				synchronized (mSync) {
-					try {
-						// ゲームパッドの値更新通知が来るまで待機
-						mSync.wait();
-						if (!mIsRunning) break;
-						// ローカルにコピーする
-						System.arraycopy(mValues, 0, values, 0, n);
-					} catch (final InterruptedException e) {
-						break;
-					}
-				}
-				// 値が変更されているかどうかをチェック
-				boolean b = false;
-				for (int i = 0; i < n; i++) {
-					b |= prev[i] != values[i];
-					prev[i] = values[i];
-				}
-				if (b && (System.currentTimeMillis() - prev_time > 20)) {
-					// 値が変更されていて前回のコールバック呼び出しから２０ミリ秒以上経過していたらコールバックを呼び出す
-					prev_time = System.currentTimeMillis();
-					try {
-						if (!mCallback.onRawdataChanged(n, values)) {
-							mParser.parse(n, values);
-							mCallback.onEvent(HIDGamepadDriver.this, mParser);
+			if (n > 0) {
+				final byte[] values = new byte[n];
+				final byte[] prev = new byte[n];
+				long prev_time = -1;
+				for ( ; mIsRunning; ) {
+					synchronized (mSync) {
+						try {
+							// ゲームパッドの値更新通知が来るまで待機
+							mSync.wait();
+							if (!mIsRunning) break;
+							// ローカルにコピーする
+							System.arraycopy(mValues, 0, values, 0, n);
+						} catch (final InterruptedException e) {
+							break;
 						}
-					} catch (final Exception e) {
-						Log.w(TAG, e);
+					}
+					// 値が変更されているかどうかをチェック
+					boolean b = false;
+					for (int i = 0; i < n; i++) {
+						b |= prev[i] != values[i];
+						prev[i] = values[i];
+					}
+					if (b && (System.currentTimeMillis() - prev_time > 20)) {
+						// 値が変更されていて前回のコールバック呼び出しから２０ミリ秒以上経過していたらコールバックを呼び出す
+						prev_time = System.currentTimeMillis();
+						try {
+							if (!mCallback.onRawdataChanged(n, values)) {
+								mParser.parse(n, values);
+								mCallback.onEvent(HIDGamepadDriver.this, mParser);
+							}
+						} catch (final Exception e) {
+							Log.w(TAG, e);
+						}
 					}
 				}
 			}
@@ -201,9 +204,11 @@ public class HIDGamepadDriver {
 	private class GamepadInTask implements Runnable {
 		private final String TAG_THREAD = GamepadInTask.class.getSimpleName();
 
+		private final UsbControlBlock mUsbControlBlock;
 		private final UsbInterface mIntf;
 		private final UsbEndpoint mEp;
 		public GamepadInTask(final UsbInterface intf, final UsbEndpoint ep) {
+			mUsbControlBlock = mCtrlBlock;
 			mIntf = intf;
 			mEp = ep;
 		}
@@ -218,7 +223,7 @@ public class HIDGamepadDriver {
 			synchronized (mSync) {
 				mValues = null;
 				mIsRunning = false;
-				connection = mCtrlBlock.getUsbDeviceConnection();
+				connection = mUsbControlBlock != null ? mUsbControlBlock.getUsbDeviceConnection() : null;
 				if (connection != null) {
 					if (DEBUG) Log.v(TAG_THREAD, "claimInterface:");
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -238,8 +243,8 @@ public class HIDGamepadDriver {
 				}
 				mSync.notifyAll();
 			}
-			if (connection != null) {
-				try {
+			try {
+				if ((connection != null) && (max_packets > 0)) {
 					if (mIsRunning) {
 						final ByteBuffer buffer = ByteBuffer.allocateDirect(max_packets);
 //						buffer.order(ByteOrder.LITTLE_ENDIAN);	// バイトアクセスしかしないから不要
@@ -270,10 +275,11 @@ public class HIDGamepadDriver {
 						}
 						request.close();
 					}
-				} finally {
-					if (DEBUG) Log.v(TAG_THREAD, "releaseInterface:");
-					connection.releaseInterface(mIntf);
-					connection.close();
+				}
+			} finally {
+				if (DEBUG) Log.v(TAG_THREAD, "releaseInterface:");
+				if (mUsbControlBlock != null) {
+					mUsbControlBlock.close();
 				}
 			}
 		}

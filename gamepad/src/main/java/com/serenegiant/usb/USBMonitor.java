@@ -483,7 +483,6 @@ public final class USBMonitor {
 
 		/**
 		 * close specified interface. USB device itself still keep open.
-		 * @param interfaceIndex
 		 */
 		public synchronized void close() {
 			if (DEBUG) Log.i(TAG, "UsbControlBlock#close:");

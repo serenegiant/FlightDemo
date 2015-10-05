@@ -26,42 +26,6 @@ public class KeyGamePad extends IGamePad {
 		}
 	}
 
-/*	private final class KeyCount {
-		private final int keycode;
-		private boolean isDown;
-		private long downTime;
-
-		public KeyCount(final int _keycode) {
-			keycode = _keycode;
-			isDown = false;
-			downTime = 0;
-			mModified = true;
-		}
-
-		public void up() {
-			if (isDown) {
-				mModified = true;
-			}
-			isDown = false;
-			downTime = 0;
-		}
-
-		public void down(final long down_time) {
-			if (!isDown) {
-				isDown = true;
-				downTime = down_time;
-				mModified = true;
-			}
-		}
-		public boolean down() {
-			return isDown;
-		}
-
-		public int count() {
-			return isDown ? (int)(System.currentTimeMillis() - downTime) : 0;
-		}
-	} */
-
 	private KeyGamePad() {
 		// 直接の生成を禁止するためコンストラクタはprivateにする
 	}
@@ -72,7 +36,6 @@ public class KeyGamePad extends IGamePad {
 	 * @return
 	 */
 	public boolean processKeyEvent(final KeyEvent event) {
-//		if (DEBUG) Log.v(TAG, "processKeyEvent:" + event);
 		boolean handled = false;
 		final int keyCode = event.getKeyCode();
 		final int count = event.getRepeatCount();
@@ -80,18 +43,14 @@ public class KeyGamePad extends IGamePad {
 		case KeyEvent.ACTION_DOWN:
 			synchronized (mKeySync) {
 				handled = down(keyCode);
-//				dumpKeyState();
 			}
-//			if (DEBUG) Log.v(TAG, "DOWN:ev=" + event);
 			break;
 		case KeyEvent.ACTION_UP:
 			synchronized (mKeySync) {
 				handled = up(keyCode);
 			}
-//			if (DEBUG) Log.v(TAG, "UP:ev=" + event);
 			break;
 		case KeyEvent.ACTION_MULTIPLE:
-//			if (DEBUG) Log.v(TAG, "MULTIPLE:ev=" + event);
 			break;
 		}
 		return handled;
@@ -109,17 +68,6 @@ public class KeyGamePad extends IGamePad {
 					down_Times[i] = mKeyDownTimes[i];
 					downs[i] = down_Times[i] > 0;
 				}
-/*				int ix = 0;
-				for (final KeyCount keycount: mKeyCounts) {
-					if (keycount != null) {
-						downs[ix] = keycount.isDown;
-						down_Times[ix] = keycount.count();
-					} else {
-						downs[ix] = false;
-						down_Times[ix] = 0;
-					}
-					ix++;
-				} */
 				mModified = false;
 			}
 		}
@@ -187,11 +135,6 @@ public class KeyGamePad extends IGamePad {
 				mKeyDownTimes[app_key] = down_time;
 				mModified = true;
 			}
-/*			KeyCount keycount = mKeyCounts[app_key];
-			if (keycount == null) {
-				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
-			}
-			keycount.down(down_time); */
 		}
 		return app_key != KEY_UNKNOWN;
 	}
@@ -216,22 +159,7 @@ public class KeyGamePad extends IGamePad {
 				mKeyDownTimes[app_key] = down_time;
 				mModified = true;
 			}
-/*			KeyCount keycount = mKeyCounts[app_key];
-			if (keycount == null) {
-				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
-			}
-			keycount.up(); */
 		}
 		return app_key != KEY_UNKNOWN;
 	}
-
-/*	private final void dumpKeyState() {
-		final StringBuilder sb = new StringBuilder();
-		for (final KeyCount keycount: mKeyCounts) {
-			if (keycount != null) {
-				sb.append("keycode=").append(keycount.keycode).append(",").append("count=").append(keycount.count()).append("\n");
-			}
-		}
-		Log.i(TAG, "dumpKeyState:" + sb.toString());
-	} */
 }
