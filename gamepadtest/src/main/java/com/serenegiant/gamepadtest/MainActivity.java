@@ -12,7 +12,6 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
-import android.util.SparseIntArray;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -23,7 +22,6 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.serenegiant.gamepad.GamePadConst;
-import com.serenegiant.gamepad.IGamePad;
 import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.gamepad.HIDGamepadDriver;
@@ -309,7 +307,8 @@ public class MainActivity extends AppCompatActivity {
 	private int key_cnt = 0;
 	@Override
 	public boolean dispatchKeyEvent(final KeyEvent event) {
-		if (!isFinishing() && mKeyGamePad.processKeyEvent(event)) return true;
+//		if (DEBUG) Log.v(TAG, "dispatchKeyEvent:" + event);
+		mKeyGamePad.processKeyEvent(event);
 
 		final int keycode = event.getKeyCode();
 		final int count = event.getRepeatCount();
@@ -354,7 +353,9 @@ public class MainActivity extends AppCompatActivity {
 			mUIHandler.removeCallbacks(this);
 			synchronized (mSync) {
 				final long current = System.currentTimeMillis();
-//				mKeyGamePad.updateState(mDowns, mCounts, false);
+				if (mUSBMonitor == null) {
+					mKeyGamePad.updateState(mDowns, mCounts, false);
+				}
 				final int n = GamePadConst.KEY_NUMS;
 				for (int i = 0; i < n; i++) {
 					final TextView tv = mTextViews.get(i);

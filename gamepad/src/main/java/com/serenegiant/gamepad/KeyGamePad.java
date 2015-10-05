@@ -183,7 +183,10 @@ public class KeyGamePad extends IGamePad {
 					down_time = Math.min(down_time, mHardwareKeys.get(_keycode));
 				}
 			}
-			mKeyDownTimes[app_key] = down_time;
+			if (mKeyDownTimes[app_key] != down_time) {
+				mKeyDownTimes[app_key] = down_time;
+				mModified = true;
+			}
 /*			KeyCount keycount = mKeyCounts[app_key];
 			if (keycount == null) {
 				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
@@ -198,17 +201,21 @@ public class KeyGamePad extends IGamePad {
 		mHardwareKeys.remove(keycode);
 		final int app_key = KEY_MAP.get(keycode, KEY_UNKNOWN);
 		if (app_key != KEY_UNKNOWN) {
+			long down_time = 0;
 			// 同じapp_keyに対応するハードウエアキーを探す
 			final int n = KEY_MAP.size();
 			for (int i = 0; i < n; i++) {
 				final int _keycode = KEY_MAP.keyAt(i);
 				final int _app_key = KEY_MAP.valueAt(i);
 				if ((app_key == _app_key) && (mHardwareKeys.get(_keycode) != null)) {
-					// 同じapp_keyに対応するハードウエアキーがまだ押されている時
-					return true;
+					// 一番小さい値=最初に押された時刻[ミリ秒]
+					down_time = Math.min(down_time, mHardwareKeys.get(_keycode));
 				}
 			}
-			mKeyDownTimes[app_key] = 0;
+			if (mKeyDownTimes[app_key] != down_time) {
+				mKeyDownTimes[app_key] = down_time;
+				mModified = true;
+			}
 /*			KeyCount keycount = mKeyCounts[app_key];
 			if (keycount == null) {
 				mKeyCounts[app_key] = keycount = new KeyCount(keycode);
