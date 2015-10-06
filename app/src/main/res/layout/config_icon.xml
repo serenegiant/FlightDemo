@@ -80,38 +80,6 @@
 			android:text="006"
 			android:textSize="@dimen/text_sz_list"/>
 
-		<RadioButton
-			android:id="@+id/icon_006_radiobutton"
-			android:layout_width="@dimen/radiobutton_width_icon_list"
-			android:layout_height="@dimen/radiobutton_height_icon_list"
-			android:layout_gravity="center_horizontal"
-			android:layout_marginTop="@dimen/half_padding"
-			android:layout_toRightOf="@id/icon_003_radiobutton"
-			android:button="@drawable/icon_thumbnail_006"
-			android:text="006"
-			android:textSize="@dimen/text_sz_list"/>
-		<RadioButton
-			android:id="@+id/icon_007_radiobutton"
-			android:layout_width="@dimen/radiobutton_width_icon_list"
-			android:layout_height="@dimen/radiobutton_height_icon_list"
-			android:layout_gravity="center_horizontal"
-			android:layout_marginTop="@dimen/half_padding"
-			android:layout_toRightOf="@id/icon_004_radiobutton"
-			android:layout_below="@id/icon_006_radiobutton"
-			android:button="@drawable/icon_thumbnail_007"
-			android:text="007"
-			android:textSize="@dimen/text_sz_list"/>
-		<RadioButton
-			android:id="@+id/icon_008_radiobutton"
-			android:layout_width="@dimen/radiobutton_width_icon_list"
-			android:layout_height="@dimen/radiobutton_height_icon_list"
-			android:layout_gravity="center_horizontal"
-			android:layout_marginTop="@dimen/half_padding"
-			android:layout_toRightOf="@id/icon_005_radiobutton"
-			android:layout_below="@id/icon_007_radiobutton"
-			android:button="@drawable/icon_thumbnail_100"
-			android:text="008"
-			android:textSize="@dimen/text_sz_list"/>
 	</com.serenegiant.widget.RelativeRadioGroup>
 
 </LinearLayout>

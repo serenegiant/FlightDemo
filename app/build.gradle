@@ -38,9 +38,4 @@ dependencies {
 	compile project(':icon_buttons003')
 	compile project(':icon_buttons004')
 	compile project(':icon_buttons005')
-	compile project(':icon_buttons006')
-	compile project(':icon_buttons007')
-	compile project(':icon_buttons008')
-	compile project(':icon_buttons100')
-	compile project(':icon_buttons200')
 }

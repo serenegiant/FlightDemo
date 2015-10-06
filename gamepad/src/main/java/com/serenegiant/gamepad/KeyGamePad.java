@@ -64,6 +64,7 @@ public class KeyGamePad extends IGamePad {
 	 * @param downs KEY_NUMS個以上確保しておくこと
 	 * @param down_times KEY_NUMS個以上確保しておくこと
 	 */
+	@Override
 	public void updateState(final boolean[] downs, final long[] down_times, final boolean force) {
 		synchronized (mSync) {
 			if (mModified || force) {
@@ -129,7 +130,8 @@ public class KeyGamePad extends IGamePad {
 		// 指定されたハードウエアキーの押し下げ時間を追加する
 		mHardwareKeys.put(keycode, System.currentTimeMillis());
 		final int app_key = KEY_MAP.get(keycode, KEY_UNKNOWN);
-		return mModified |= (app_key != KEY_UNKNOWN);
+		mModified |= (app_key != KEY_UNKNOWN);
+		return app_key != KEY_UNKNOWN;
 	}
 
 	private final boolean up(final int keycode) {
@@ -137,6 +139,7 @@ public class KeyGamePad extends IGamePad {
 		mHardwareKeys.put(keycode, 0L);
 		mHardwareKeys.remove(keycode);
 		final int app_key = KEY_MAP.get(keycode, KEY_UNKNOWN);
-		return mModified |= (app_key != KEY_UNKNOWN);
+		mModified |= (app_key != KEY_UNKNOWN);
+		return app_key != KEY_UNKNOWN;
 	}
 }

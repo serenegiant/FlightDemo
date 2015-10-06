@@ -15,7 +15,7 @@
 			android:adjustViewBounds="true"
 			android:background="@null"
 			android:scaleType="fitCenter"
-			android:src="@android:drawable/ic_menu_more"
+			android:src="@mipmap/ic_dropdown"
 			android:layout_alignParentLeft="true"/>
 
 		<ImageButton
@@ -39,7 +39,7 @@
 			android:adjustViewBounds="true"
 			android:background="@null"
 			android:scaleType="fitCenter"
-			android:src="@android:drawable/ic_menu_help"
+			android:src="@mipmap/ic_question"
 			android:layout_alignParentRight="true"/>
 
 		<TextView

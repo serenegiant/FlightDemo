@@ -36,7 +36,7 @@
 		<item name="flightdemo_icon_trim">@mipmap/ic_trim_002</item>
 		<item name="flightdemo_icon_turn_right">@mipmap/ic_turn_right45_002</item>
 		<item name="flightdemo_icon_turn_left">@mipmap/ic_turn_left45_002</item>
-
+		<item name="flightdemo_icon_dropdown">@mipmap/ic_dropdown_002</item>
 	</style>
 
 </resources>

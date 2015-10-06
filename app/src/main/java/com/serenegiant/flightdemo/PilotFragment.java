@@ -1,12 +1,15 @@
 package com.serenegiant.flightdemo;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -32,6 +35,7 @@ import com.serenegiant.arflight.DeviceControllerMiniDrone;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.gamepad.GamePadConst;
+import com.serenegiant.gamepad.HIDGamepad;
 import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.IDeviceController;
@@ -41,6 +45,8 @@ import com.serenegiant.arflight.TouchFlight;
 import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.math.Vector;
+import com.serenegiant.usb.DeviceFilter;
+import com.serenegiant.usb.USBMonitor;
 import com.serenegiant.utils.FileUtils;
 import com.serenegiant.widget.SideMenuListView;
 import com.serenegiant.widget.StickView;
@@ -69,7 +75,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		fragment.setDevice(device);
 		return fragment;
 	}
-
 
 	private ViewGroup mControllerView;		// 操作パネル全体
 	// 上パネル
@@ -329,6 +334,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 		mModelView.setModel(model, ctrl);
+
+		final boolean use_gamepad_driver = pref.getBoolean(ConfigFragment.KEY_GAMEPAD_USE_DRIVER, false);
+		if (use_gamepad_driver) {
+			startUsbDriver();
+		}
 		return rootView;
 	}
 
@@ -352,11 +362,22 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mModelView.hasGuard(mController.hasGuard());
 		}
 		mModelView.onResume();
+		synchronized (mUsbSync) {
+			if (mUSBMonitor != null) {
+				mUSBMonitor.register();
+			}
+		}
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
+		synchronized (mUsbSync) {
+			releaseGamepad();
+			if (mUSBMonitor != null) {
+				mUSBMonitor.unregister();
+			}
+		}
 		mModelView.onPause();
 		if (mController != null) {
 			mController.sendVideoRecording(false);
@@ -1780,6 +1801,91 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	};
 
+	private void startUsbDriver() {
+		synchronized (mUsbSync) {
+			if (mUSBMonitor == null) {
+				final Activity activity = getActivity();
+				final Context context = (activity != null && !activity.isFinishing()) ? activity.getApplicationContext() : null;
+				if (context != null) {
+					mUSBMonitor = new USBMonitor(context, mOnDeviceConnectListener);
+					// こっちのデバイスフィルター定義はHIDすべてを選択可能
+					final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(context, R.xml.device_filter_hid_all);
+					mUSBMonitor.setDeviceFilter(filter.get(0));
+				}
+			}
+		}
+	}
+
+	private void releaseUsbDriver() {
+		synchronized (mUsbSync) {
+			releaseGamepad();
+			if (mUSBMonitor != null) {
+				mUSBMonitor.unregister();
+				mUSBMonitor.destroy();
+				mUSBMonitor = null;
+			}
+		}
+	}
+
+	private void releaseGamepad() {
+		synchronized (mUsbSync) {
+			if (mHIDGamepad != null) {
+				mHIDGamepad.release();
+				mHIDGamepad = null;
+			}
+		}
+	}
+
+	private final USBMonitor.OnDeviceConnectListener mOnDeviceConnectListener = new USBMonitor.OnDeviceConnectListener() {
+		@Override
+		public void onAttach(final UsbDevice device) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onAttach:");
+			synchronized (mUsbSync) {
+				if (mUSBMonitor != null) {
+					UsbDevice _device = device;
+					if ((_device == null) && (mUSBMonitor.getDeviceCount() > 0)) {
+						_device = mUSBMonitor.getDeviceList().get(0);
+					}
+					if (mHIDGamepad == null) {
+						mUSBMonitor.requestPermission(_device);
+					}
+				}
+			}
+		}
+
+		@Override
+		public void onConnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock, final boolean createNew) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onConnect:");
+			synchronized (mUsbSync) {
+				if (mHIDGamepad == null) {
+					mHIDGamepad = new HIDGamepad(/*mHIDGamepadCallback*/);
+					mHIDGamepad.open(ctrlBlock);
+				}
+			}
+		}
+
+		@Override
+		public void onDisconnect(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDisconnect:");
+			releaseGamepad();
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDisconnect:finished");
+		}
+
+		@Override
+		public void onDettach(final UsbDevice device) {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDettach:");
+			releaseGamepad();
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onDettach:finished");
+		}
+
+		@Override
+		public void onCancel() {
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onCancel:");
+			releaseGamepad();
+			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onCancel:finished");
+		}
+	};
+
 	/** ゲームパッド読み取りスレッド操作用Handler */
 	private Handler mGamePadHandler;
 	/** ゲームパッド読み取りスレッド開始 */
@@ -1804,6 +1910,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	private static final long YAW_LIMIT = 200;
+	private final Object mUsbSync = new Object();
+	private USBMonitor mUSBMonitor;
+	private HIDGamepad mHIDGamepad;
 	private final KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
 	private final boolean[] downs = new boolean[GamePadConst.KEY_NUMS];
 	private final long[] down_times = new long[GamePadConst.KEY_NUMS];
@@ -1816,7 +1925,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (handler == null) return;	// 既に終了指示が出てる
 
 			handler.removeCallbacks(this);
-			mKeyGamePad.updateState(downs, down_times, true);
+			if ((mUSBMonitor != null) && (mHIDGamepad != null)) {
+				mHIDGamepad.updateState(downs, down_times, false);
+			} else {
+				mKeyGamePad.updateState(downs, down_times, false);
+			}
 
 			// 左右の上端ボタン(手前側)を同時押しすると非常停止
 			if (((downs[GamePadConst.KEY_RIGHT_RIGHT] || downs[GamePadConst.KEY_RIGHT_1]))
