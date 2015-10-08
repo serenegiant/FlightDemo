@@ -271,15 +271,6 @@ public class BaseFragment extends Fragment {
 		case 2:
 			layout_style = R.style.AppTheme_002;
 			break;
-		case 3:
-			layout_style = R.style.AppTheme_003;
-			break;
-		case 4:
-			layout_style = R.style.AppTheme_004;
-			break;
-		case 5:
-			layout_style = R.style.AppTheme_005;
-			break;
 //		case 0:
 		default:
 			layout_style = R.style.AppTheme;

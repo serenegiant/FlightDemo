@@ -295,7 +295,7 @@ public class ConnectionFragment extends BaseFragment {
 		public void onPrepared(final MediaPlayer mp) {
 			mVideoView.setAspectRatio(mp.getVideoWidth() / (double)mp.getVideoHeight());
 			mp.setSurface(new Surface(mVideoView.getSurfaceTexture()));
-			mp.setVolume(0, 0);
+			mp.setVolume(0.5f, 0.5f);
 			mp.setLooping(true);
 			mp.start();
 		}

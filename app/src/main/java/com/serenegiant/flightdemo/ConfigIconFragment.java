@@ -45,16 +45,7 @@ public class ConfigIconFragment extends BaseFragment {
 		case 2:		// 002
 			group.check(R.id.icon_002_radiobutton);
 			break;
-		case 3:		// 003
-			group.check(R.id.icon_003_radiobutton);
-			break;
-		case 4:		// 004
-			group.check(R.id.icon_004_radiobutton);
-			break;
-		case 5:		// 005
-			group.check(R.id.icon_005_radiobutton);
-			break;
-		case 0:
+//		case 0:
 		default:	// 通常
 			group.check(R.id.icon_000_radiobutton);
 			break;
@@ -77,15 +68,6 @@ public class ConfigIconFragment extends BaseFragment {
 				break;
 			case R.id.icon_002_radiobutton:
 				mPref.edit().putInt(ConfigFragment.KEY_ICON_TYPE, 2).apply();
-				break;
-			case R.id.icon_003_radiobutton:
-				mPref.edit().putInt(ConfigFragment.KEY_ICON_TYPE, 3).apply();
-				break;
-			case R.id.icon_004_radiobutton:
-				mPref.edit().putInt(ConfigFragment.KEY_ICON_TYPE, 4).apply();
-				break;
-			case R.id.icon_005_radiobutton:
-				mPref.edit().putInt(ConfigFragment.KEY_ICON_TYPE, 5).apply();
 				break;
 			}
 		}
