@@ -19,6 +19,7 @@
 			android:layout_gravity="center_horizontal"
 			android:layout_marginTop="@dimen/half_padding"
 			android:text="@string/config_operation_normal"
+			android:textColor="@color/WHITE"
 			android:textSize="@dimen/text_sz_list"/>
 
 		<RadioButton
@@ -28,6 +29,7 @@
 			android:layout_gravity="center_horizontal"
 			android:layout_marginTop="@dimen/half_padding"
 			android:text="@string/config_operation_reverse"
+			android:textColor="@color/WHITE"
 			android:textSize="@dimen/text_sz_list"/>
 
 		<RadioButton
@@ -37,6 +39,7 @@
 			android:layout_gravity="center_horizontal"
 			android:layout_marginTop="@dimen/half_padding"
 			android:text="@string/config_operation_mode1"
+			android:textColor="@color/WHITE"
 			android:textSize="@dimen/text_sz_list"/>
 
 		<RadioButton
@@ -46,6 +49,7 @@
 			android:layout_gravity="center_horizontal"
 			android:layout_marginTop="@dimen/half_padding"
 			android:text="@string/config_operation_mode2"
+			android:textColor="@color/WHITE"
 			android:textSize="@dimen/text_sz_list"/>
 
 	</RadioGroup>
@@ -59,6 +63,7 @@
 		android:layout_gravity="center_horizontal"
 		android:layout_marginTop="@dimen/half_padding"
 		android:text="@string/config_operation_touch"
+		android:textColor="@color/WHITE"
 		android:textSize="@dimen/text_sz_list"/>
 
 </LinearLayout>

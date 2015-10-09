@@ -17,6 +17,7 @@
 			android:id="@+id/left1_button"
 			android:textSize="@dimen/text_sz_list"
 			android:textAlignment="center"
+			android:textColor="@color/WHITE"
 			android:gravity="center"/>
 
 		<TextView
@@ -27,6 +28,7 @@
 			android:textSize="@dimen/text_sz_list"
 			android:paddingBottom="@dimen/list_padding"
 			android:textAlignment="center"
+			android:textColor="@color/WHITE"
 			android:gravity="center"/>
 
 		<TextView
@@ -36,6 +38,7 @@
 			android:id="@+id/textView13"
 			android:textSize="@dimen/text_sz_list"
 			android:textAlignment="center"
+			android:textColor="@color/WHITE"
 			android:gravity="center"/>
 
 		<TextView
@@ -46,6 +49,7 @@
 			android:textSize="@dimen/text_sz_list"
 			android:paddingBottom="@dimen/list_padding"
 			android:textAlignment="center"
+			android:textColor="@color/WHITE"
 			android:gravity="center"/>
 
 		<TextView
@@ -55,6 +59,7 @@
 			android:id="@+id/textView2"
 			android:textSize="@dimen/text_sz_list"
 			android:textAlignment="center"
+			android:textColor="@color/WHITE"
 			android:gravity="center"/>
 
 		<TextView
@@ -65,6 +70,7 @@
 			android:textSize="@dimen/text_sz_list"
 			android:paddingBottom="@dimen/list_padding"
 			android:textAlignment="center"
+			android:textColor="@color/WHITE"
 			android:gravity="center"/>
 
 		<TextView
@@ -74,6 +80,7 @@
 			android:id="@+id/textView3"
 			android:textSize="@dimen/text_sz_list"
 			android:textAlignment="center"
+			android:textColor="@color/WHITE"
 			android:gravity="center"/>
 
 		<TextView
@@ -84,6 +91,7 @@
 			android:textSize="@dimen/text_sz_list"
 			android:paddingBottom="@dimen/list_padding"
 			android:textAlignment="center"
+			android:textColor="@color/WHITE"
 			android:gravity="center"/>
 	</LinearLayout>
 

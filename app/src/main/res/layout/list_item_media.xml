@@ -47,6 +47,7 @@
 			android:layout_height="wrap_content"
 			android:gravity="left"
 			android:textSize="@dimen/text_sz_side_menu_item"
+            android:textColor="@color/WHITE"
             android:text="title"/>
 
         <TextView
@@ -55,6 +56,7 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:textSize="@dimen/text_sz_side_menu_item"
+            android:textColor="@color/WHITE"
             android:text="datetime"/>
         <TextView
             android:id="@+id/size"
@@ -62,6 +64,7 @@
             android:layout_height="wrap_content"
             android:gravity="left"
             android:textSize="@dimen/text_sz_side_menu_item"
+            android:textColor="@color/WHITE"
             android:text="datetime"/>
     </LinearLayout>
 

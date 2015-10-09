@@ -19,6 +19,7 @@
 			android:text="@string/config_gamepad_use_driver"
 			android:id="@+id/usb_driver_checkbox"
 			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
 			/>
 
 		<TextView
@@ -26,6 +27,7 @@
 			android:layout_height="wrap_content"
 			android:text="@string/config_gamepad_sensitivity"
 			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
 			android:id="@+id/gamepad_sensitivity_textview"/>
 
 		<SeekBar
@@ -40,6 +42,7 @@
 			android:layout_height="wrap_content"
 			android:text="@string/config_scale_x"
 			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
 			android:id="@+id/gamepad_scale_x_textview"/>
 
 		<SeekBar
@@ -54,6 +57,7 @@
 			android:layout_height="wrap_content"
 			android:text="@string/config_scale_y"
 			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
 			android:id="@+id/gamepad_scale_y_textview"/>
 
 		<SeekBar
@@ -67,6 +71,7 @@
 			android:layout_height="wrap_content"
 			android:text="@string/config_scale_z"
 			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
 			android:id="@+id/gamepad_scale_z_textview"/>
 
 		<SeekBar
@@ -80,6 +85,7 @@
 			android:layout_height="wrap_content"
 			android:text="@string/config_scale_r"
 			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
 			android:id="@+id/gamepad_scale_r_textview"/>
 
 		<SeekBar

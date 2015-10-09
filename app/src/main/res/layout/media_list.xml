@@ -12,15 +12,17 @@
 		android:layout_alignParentTop="true"
 		android:padding="@dimen/quater_padding">
 
-		<Button
+		<ImageButton
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/action_clear"
 			android:id="@+id/delete_btn"
 			android:layout_alignParentLeft="true"
-			android:gravity="center"/>
+			android:gravity="center"
+			android:background="@null"
+			android:src="@mipmap/ic_delete"/>
 
-		<Button
+		<ImageButton
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:text="@string/action_load"
@@ -28,7 +30,8 @@
 				android:layout_toRightOf="@+id/delete_btn"
 				android:gravity="center"
 				android:layout_marginLeft="@dimen/half_padding"
-			/>
+				android:src="@mipmap/ic_cloud_down"
+				android:background="@null"/>
 
 		<CheckBox
 			android:layout_width="wrap_content"
@@ -38,7 +41,8 @@
 			android:layout_centerVertical="true"
 			android:layout_toRightOf="@+id/fetch_btn"
 			android:layout_toEndOf="@+id/fetch_btn"
-			android:layout_marginLeft="@dimen/half_padding"/>
+			android:layout_marginLeft="@dimen/half_padding"
+			android:textColor="@color/WHITE"/>
 
 		<ProgressBar
 				style="@android:style/Widget.ProgressBar.Horizontal"
@@ -86,6 +90,7 @@
 		android:text="@string/media_empty"
 		android:textAlignment="center"
 		android:textSize="@dimen/text_sz_list"
-		android:layout_centerInParent="true"/>
+		android:layout_centerInParent="true"
+		android:textColor="@color/WHITE"/>
 
 </RelativeLayout>

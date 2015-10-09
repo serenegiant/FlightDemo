@@ -9,6 +9,7 @@
 		android:layout_height="wrap_content"
 		android:text="@string/config_max_altitude"
 		android:id="@+id/max_altitude_textview"
+		android:textColor="@color/WHITE"
 		android:textSize="@dimen/text_sz_list"/>
 
 	<SeekBar
@@ -23,6 +24,7 @@
 		android:layout_height="wrap_content"
 		android:text="@string/config_max_tilt"
 		android:id="@+id/max_tilt_textview"
+		android:textColor="@color/WHITE"
 		android:textSize="@dimen/text_sz_list"/>
 
 	<SeekBar
@@ -37,6 +39,7 @@
 		android:layout_height="wrap_content"
 		android:text="@string/config_max_vertical_speed"
 		android:id="@+id/max_vertical_speed_textview"
+		android:textColor="@color/WHITE"
 		android:textSize="@dimen/text_sz_list"/>
 
 	<SeekBar
@@ -50,6 +53,7 @@
 		android:layout_height="wrap_content"
 		android:text="@string/config_max_rotating_speed"
 		android:id="@+id/max_rotation_speed_textview"
+		android:textColor="@color/WHITE"
 		android:textSize="@dimen/text_sz_list"/>
 
 	<SeekBar

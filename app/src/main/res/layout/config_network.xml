@@ -15,6 +15,7 @@
 			android:layout_height="wrap_content"
 			android:text="@string/config_network_mode"
 			android:id="@+id/textView"
+			android:textColor="@color/WHITE"
 			android:textSize="@dimen/text_sz_list"/>
 
 		<RadioGroup
@@ -30,6 +31,7 @@
 				android:layout_gravity="center_horizontal"
 				android:layout_marginTop="@dimen/half_padding"
 				android:text="@string/config_network_outdoor"
+				android:textColor="@color/WHITE"
 				android:textSize="@dimen/text_sz_list"/>
 
 			<RadioButton
@@ -39,6 +41,7 @@
 				android:layout_gravity="center_horizontal"
 				android:layout_marginTop="@dimen/half_padding"
 				android:text="@string/config_network_indoor"
+				android:textColor="@color/WHITE"
 				android:textSize="@dimen/text_sz_list"/>
 		</RadioGroup>
 	</LinearLayout>

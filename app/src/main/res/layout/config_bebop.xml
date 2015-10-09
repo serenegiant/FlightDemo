@@ -19,6 +19,7 @@
 			android:gravity="left"
 			android:text="@string/config_has_hull"
 			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
 			/>
 
 	</LinearLayout>

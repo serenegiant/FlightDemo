@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -371,8 +372,8 @@ public class MediaFragment extends ControlBaseFragment
 
 	private ARMediaObjectListAdapter mARMediaObjectListAdapter;	// 取得したメディアファイルの一覧アクセス用Adapter
 	private ListView mMediaListView;
-	private Button mDeleteBtn;
-	private Button mFetchBtn;
+	private ImageButton mDeleteBtn;
+	private ImageButton mFetchBtn;
 	private CheckBox mDeleteAfterFetchCheckBox;
 	private ProgressBar mFreeSpaceProgressbar;
 	private TextView mFreeSpaceText;
@@ -398,9 +399,9 @@ public class MediaFragment extends ControlBaseFragment
 		}
 		mFreeSpaceProgressbar = (ProgressBar)rootView.findViewById(R.id.frees_pace_progress);
 		mFreeSpaceText = (TextView)rootView.findViewById(R.id.free_space_textview);
-		mDeleteBtn = (Button)rootView.findViewById(R.id.delete_btn);
+		mDeleteBtn = (ImageButton)rootView.findViewById(R.id.delete_btn);
 		mDeleteBtn.setOnClickListener(mOnClickListener);
-		mFetchBtn = (Button)rootView.findViewById(R.id.fetch_btn);
+		mFetchBtn = (ImageButton)rootView.findViewById(R.id.fetch_btn);
 		mFetchBtn.setOnClickListener(mOnClickListener);
 		mDeleteAfterFetchCheckBox = (CheckBox)rootView.findViewById(R.id.delete_after_fetch_checkbox);
 		updateMediaList();

@@ -22,6 +22,7 @@
 			android:layout_marginTop="@dimen/half_padding"
 			android:button="@drawable/icon_thumbnail"
 			android:text="000"
+			android:textColor="@color/WHITE"
 			android:textSize="@dimen/text_sz_list"/>
 
 		<RadioButton
@@ -33,6 +34,7 @@
 			android:layout_below="@id/icon_000_radiobutton"
 			android:button="@drawable/icon_thumbnail_001"
 			android:text="001"
+			android:textColor="@color/WHITE"
 			android:textSize="@dimen/text_sz_list"/>
 
 		<RadioButton
@@ -44,6 +46,7 @@
 			android:layout_below="@id/icon_001_radiobutton"
 			android:button="@drawable/icon_thumbnail_002"
 			android:text="002"
+			android:textColor="@color/WHITE"
 			android:textSize="@dimen/text_sz_list"/>
 
 	</com.serenegiant.widget.RelativeRadioGroup>

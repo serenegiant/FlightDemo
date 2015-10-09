@@ -29,7 +29,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="@dimen/top_panel_height"
 			android:gravity="top"
-			android:background="@drawable/gray_gradient">
+			android:background="@drawable/top_frame">
 
 			<TextView
 				android:id="@+id/stick_left_button"
@@ -220,7 +220,6 @@
 			android:id="@+id/bottom_panel"
 			android:layout_width="match_parent"
 			android:layout_height="@dimen/bottom_panel_height"
-			android:background="@drawable/green_gradient"
 			android:gravity="bottom">
 
 			<ImageButton
@@ -249,7 +248,8 @@
 				android:layout_alignParentLeft="true"
 				android:layout_centerVertical="true"
 				android:text="###:##"
-				android:textSize="@dimen/text_sz_button"/>
+				android:textSize="@dimen/text_sz_button"
+				android:textColor="@color/WHITE"/>
 
 			<FrameLayout
 				android:id="@+id/record_btn_frame"

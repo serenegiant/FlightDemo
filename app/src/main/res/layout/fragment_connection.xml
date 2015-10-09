@@ -48,7 +48,8 @@
         android:gravity="center"
         android:text="@string/detecting"
         android:textAlignment="center"
-        android:textSize="@dimen/text_sz_list"/>
+        android:textSize="@dimen/text_sz_list"
+        android:textColor="@color/WHITE"/>
 
     <LinearLayout
         android:id="@+id/linearLayout2"
