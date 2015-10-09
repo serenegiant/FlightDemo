@@ -2,4 +2,6 @@
 <resources>
 	<!-- Interface class: USB HID -->
 	<usb-device class="3" subclass="0" protocol="0" />
+	<!-- LOGICOOL F310 -->
+	<usb-device class="255" subclass="255" protocol="255" vendor-id="1133" product-id="49693" />
 </resources>

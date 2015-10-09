@@ -7,4 +7,6 @@
 	<usb-device class="3" subclass="0" protocol="0" vendor-id="1356" product-id="616" />
 	<!-- SONY DualShock4 -->
 	<usb-device class="3" subclass="0" protocol="0" vendor-id="1356" product-id="1476" />
+	<!-- LOGICOOL F310 -->
+	<usb-device class="255" subclass="255" protocol="255" vendor-id="1133" product-id="49693" />
 </resources>

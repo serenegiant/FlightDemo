@@ -1809,8 +1809,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (context != null) {
 					mUSBMonitor = new USBMonitor(context, mOnDeviceConnectListener);
 					// こっちのデバイスフィルター定義はHIDすべてを選択可能
-					final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(context, R.xml.device_filter_hid_all);
-					mUSBMonitor.setDeviceFilter(filter.get(0));
+					final List<DeviceFilter> filters = DeviceFilter.getDeviceFilters(context, R.xml.device_filter_hid_all);
+					mUSBMonitor.setDeviceFilter(filters);
 				}
 			}
 		}

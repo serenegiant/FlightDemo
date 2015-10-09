@@ -23,6 +23,7 @@ import android.widget.TextView;
 
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.HIDGamepad;
+import com.serenegiant.gamepad.HIDParser;
 import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.usb.USBMonitor;
@@ -31,6 +32,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 	private static final boolean DEBUG = true;
+	private static final boolean USE_RAW_CALLBACK = false;	// true: ゲームパッドの生データのコールバックをするとき
 	private static final String TAG = "MainActivity";
 
 	private final Object mSync = new Object();
@@ -666,8 +668,8 @@ public class MainActivity extends AppCompatActivity {
 			if (mUSBMonitor == null) {
 				mUSBMonitor = new USBMonitor(getApplicationContext(), mOnDeviceConnectListener);
 				// こっちのデバイスフィルター定義はHIDすべてを選択可能
-				final List<DeviceFilter> filter = DeviceFilter.getDeviceFilters(this, R.xml.device_filter_hid_all);
-				mUSBMonitor.setDeviceFilter(filter.get(0));
+				final List<DeviceFilter> filters = DeviceFilter.getDeviceFilters(this, R.xml.device_filter_hid_all);
+				mUSBMonitor.setDeviceFilter(filters);
 			}
 		}
 		mGamepadTv = (TextView)findViewById(R.id.debug_gamepad_testview);
@@ -740,7 +742,7 @@ public class MainActivity extends AppCompatActivity {
 					mGamepadTv.setVisibility(View.VISIBLE);
 				}
 				if (mHIDGamepad == null) {
-					mHIDGamepad = new HIDGamepad(/*mHIDGamepadCallback*/);
+					mHIDGamepad = new HIDGamepad(USE_RAW_CALLBACK ?  mHIDGamepadCallback : null);
 					mHIDGamepad.open(ctrlBlock);
 				}
 			}
@@ -788,7 +790,7 @@ public class MainActivity extends AppCompatActivity {
 	/**
 	 * ゲームパッドの状態をチェックするためコールバック
 	 */
-/*	private final HIDGamepad.HIDGamepadCallback mHIDGamepadCallback
+	private final HIDGamepad.HIDGamepadCallback mHIDGamepadCallback
 		= new HIDGamepad.HIDGamepadCallback() {
 
 		private final StringBuilder sb = new StringBuilder();
@@ -824,13 +826,13 @@ LOOP:			for (int j = 0; j < m; j++) {
 		@Override
 		public void onEvent(final HIDGamepad gamepad, final HIDParser data) {
 			// データ受信時の処理
-			final int[] counts = data.keyCount;
+/*			final int[] counts = data.keyCount;
 			final long current = System.currentTimeMillis();
 			for (int i = 0; i < GamePadConst.KEY_NUMS; i++) {
 				mDowns[i] = counts[i] != 0;
 				mCounts[i] = current - counts[i];
-			}
+			} */
 //			Log.v(TAG, String.format("left(%d,%d)", data.analogLeftX, data.analogLeftY));
 		}
-	}; */
+	};
 }

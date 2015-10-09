@@ -22,26 +22,27 @@ public class HIDGamepad extends IGamePad {
 	private volatile boolean mIsRunning;
 	private boolean mModified;
 
-//	public interface HIDGamepadCallback {
-//		/**
-//		 * ゲームパッドからのデータ受信時の処理
-//		 * @param n
-//		 * @param data
-//		 * @return true: 処理済み, onEventは呼ばれない, false:onEventの処理を行う
-//		 */
-//		public boolean onRawdataChanged(final int n, final byte[] data);
-//		public void onEvent(final HIDGamepad gamepad, final HIDParser data);
-//	}
+	public interface HIDGamepadCallback {
+		/**
+		 * ゲームパッドからのデータ受信時の処理
+		 * @param n
+		 * @param data
+		 * @return true: 処理済み, onEventは呼ばれない, false:onEventの処理を行う
+		 */
+		public boolean onRawdataChanged(final int n, final byte[] data);
+		public void onEvent(final HIDGamepad gamepad, final HIDParser data);
+	}
 
-//	private final HIDGamepadCallback mCallback;
+	private final HIDGamepadCallback mCallback;
 
 	private HIDParser mParser;
 
-	public HIDGamepad(/*final HIDGamepadCallback callback*/) throws NullPointerException {
-//		if (callback == null) {
-//			throw new NullPointerException("callback should not be a null");
-//		}
-//		mCallback = callback;
+	public HIDGamepad() {
+		mCallback = null;
+	}
+
+	public HIDGamepad(final HIDGamepadCallback callback) {
+		mCallback = callback;
 	}
 
 	public void open(final UsbControlBlock ctrlBlock) throws RuntimeException {
@@ -84,9 +85,9 @@ public class HIDGamepad extends IGamePad {
 						if (!mIsRunning) {
 							try {
 								mSync.wait();
-//								if (mIsRunning) {
-//									new Thread(new CallbackTask(device), "CallbackTask").start();
-//								}
+								if (mIsRunning && (mCallback != null)) {
+									new Thread(new CallbackTask(device), "CallbackTask").start();
+								}
 								mParser = HIDParser.getGamepad(device);
 								return;
 							} catch (final InterruptedException e) {
@@ -155,7 +156,7 @@ public class HIDGamepad extends IGamePad {
 	/**
 	 * コールバックメソッドをプライベートスレッド上で呼び出すためのRunnable
 	 */
-/*	private class CallbackTask implements Runnable {
+	private class CallbackTask implements Runnable {
 		private final HIDParser mParser;
 		public CallbackTask(final UsbDevice device) {
 			mParser = HIDParser.getGamepad(device);
@@ -209,7 +210,7 @@ public class HIDGamepad extends IGamePad {
 				}
 			}
 		}
-	}; */
+	};
 
 
 	/**
