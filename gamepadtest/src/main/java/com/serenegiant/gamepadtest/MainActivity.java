@@ -27,6 +27,7 @@ import com.serenegiant.gamepad.HIDParser;
 import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.usb.USBMonitor;
+import com.serenegiant.widget.DirectionView;
 
 import java.util.List;
 
@@ -50,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
 	private TextView mSensorGyroTextView;
 	private TextView mSensorGravityTextView;
 	private TextView mSensorOrientationTextView;
+
+	private DirectionView mLeftStickView;
+	private DirectionView mRightStickView;
 
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
@@ -141,6 +145,9 @@ public class MainActivity extends AppCompatActivity {
 		mSensorGravityTextView = (TextView)findViewById(R.id.sensor_gravity_textview);
 		mSensorOrientationTextView = (TextView)findViewById(R.id.sensor_orientation_textview);
 
+		mLeftStickView = (DirectionView)findViewById(R.id.left_stick_view);
+		mRightStickView = (DirectionView)findViewById(R.id.right_stick_view);
+
 		final CheckBox checkbox = (CheckBox)findViewById(R.id.use_driver_checkbox);
 		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		if (auto_start) {
@@ -212,6 +219,7 @@ public class MainActivity extends AppCompatActivity {
 
 	private final boolean[] mDowns = new boolean[GamePadConst.KEY_NUMS];
 	private final long[] mCounts = new long[GamePadConst.KEY_NUMS];
+	private final int[] mAnalogSticks = new int[4];
 
 	private final Runnable mKeyUpdateTask = new Runnable() {
 		@Override
@@ -220,9 +228,9 @@ public class MainActivity extends AppCompatActivity {
 			synchronized (mSync) {
 				final long current = System.currentTimeMillis();
 				if ((mUSBMonitor != null) && (mHIDGamepad != null)) {
-					mHIDGamepad.updateState(mDowns, mCounts, false);
+					mHIDGamepad.updateState(mDowns, mCounts, mAnalogSticks, false);
 				} else {
-					mKeyGamePad.updateState(mDowns, mCounts, false);
+					mKeyGamePad.updateState(mDowns, mCounts, mAnalogSticks, false);
 				}
 				final int n = GamePadConst.KEY_NUMS;
 				for (int i = 0; i < n; i++) {
@@ -232,6 +240,8 @@ public class MainActivity extends AppCompatActivity {
 					}
 				}
 			}
+			mLeftStickView.setDirection(mAnalogSticks[0], mAnalogSticks[1]);
+			mRightStickView.setDirection(mAnalogSticks[2], mAnalogSticks[3]);
 			mUIHandler.postDelayed(this, 50);
 		}
 	};

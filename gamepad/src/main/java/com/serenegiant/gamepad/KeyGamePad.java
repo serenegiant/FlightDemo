@@ -65,7 +65,7 @@ public class KeyGamePad extends IGamePad {
 	 * @param down_times KEY_NUMS個以上確保しておくこと
 	 */
 	@Override
-	public void updateState(final boolean[] downs, final long[] down_times, final boolean force) {
+	public void updateState(final boolean[] downs, final long[] down_times, final int[] analog_sticks, final boolean force) {
 		synchronized (mSync) {
 			if (mModified || force) {
 				final long current = System.currentTimeMillis();
@@ -82,6 +82,13 @@ public class KeyGamePad extends IGamePad {
 						down_times[app_key] = Math.min(down_times[app_key], mHardwareKeys.valueAt(i));
 					}
 				}
+				// 左アナログスティック値をシミュレート
+				analog_sticks[0] = mAnalogSticks[0] = downs[KEY_LEFT_LEFT] ? -0x7f : (downs[KEY_LEFT_RIGHT] ? 0x7f : 0);
+				analog_sticks[1] = mAnalogSticks[1] = downs[KEY_LEFT_UP] ? -0x7f : (downs[KEY_LEFT_DOWN] ? 0x7f : 0);
+				// 右アナログスティック値をシミュレート
+				analog_sticks[2] = mAnalogSticks[2] = downs[KEY_RIGHT_LEFT] ? -0x7f : (downs[KEY_RIGHT_RIGHT] ? 0x7f : 0);
+				analog_sticks[3] = mAnalogSticks[3] = downs[KEY_RIGHT_UP] ? -0x7f : (downs[KEY_RIGHT_DOWN] ? 0x7f : 0);
+				System.arraycopy(mAnalogSticks, 0, analog_sticks, 0, 4);
 				mModified = false;
 			}
 		}
@@ -89,6 +96,7 @@ public class KeyGamePad extends IGamePad {
 
 	/** ハードウエアキーコード対押し下げ時間 */
 	protected final SparseArray<Long> mHardwareKeys = new SparseArray<Long>();
+	protected final int[] mAnalogSticks = new int[4];
 
 	/** ゲームパッドのハードウエアキーコードからアプリ内キーコードに変換するためのテーブル */
 	private static final SparseIntArray KEY_MAP = new SparseIntArray();

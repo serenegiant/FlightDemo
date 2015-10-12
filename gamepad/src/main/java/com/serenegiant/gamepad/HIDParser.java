@@ -43,10 +43,12 @@ public abstract class HIDParser {
 		0x00,					//15=0x0f:何も押していない
 	};
 
-	public int analogLeftX;
-	public int analogLeftY;
-	public int analogRightX;
-	public int analogRightY;
+	/** 0:左x(左端-0x7f,右端+0x7f), 1:左y(上端-0x7f,下端+0x7f), 2:右x(左端-0x7f,右端+0x7f), 3:右y(上端-0x7f,下端+0x7f) */
+	public final int[] analogSticks = new int[4];
+//	public int analogLeftX;
+//	public int analogLeftY;
+//	public int analogRightX;
+//	public int analogRightY;
 	public volatile int[] keyCount = new int[KEY_NUMS];
 
 	protected final UsbDevice mDevice;
@@ -116,7 +118,7 @@ public abstract class HIDParser {
 		{
 			switch (product_id) {
 			case 13105:
-				return new JCU2912(device);
+//				return new JCU2912(device);
 			}
 			break;
 		}

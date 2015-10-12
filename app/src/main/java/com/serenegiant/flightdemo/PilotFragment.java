@@ -1916,6 +1916,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
 	private final boolean[] downs = new boolean[GamePadConst.KEY_NUMS];
 	private final long[] down_times = new long[GamePadConst.KEY_NUMS];
+	private final int[] analogSticks = new int[4];
 	boolean moved;
 	/** ゲームパッド読み取りスレッドの実行部 */
 	private final Runnable mGamePadTask = new Runnable() {
@@ -1926,9 +1927,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 			handler.removeCallbacks(this);
 			if ((mUSBMonitor != null) && (mHIDGamepad != null)) {
-				mHIDGamepad.updateState(downs, down_times, false);
+				mHIDGamepad.updateState(downs, down_times, analogSticks, false);
 			} else {
-				mKeyGamePad.updateState(downs, down_times, false);
+				mKeyGamePad.updateState(downs, down_times, analogSticks, false);
 			}
 
 			// 左右の上端ボタン(手前側)を同時押しすると非常停止
