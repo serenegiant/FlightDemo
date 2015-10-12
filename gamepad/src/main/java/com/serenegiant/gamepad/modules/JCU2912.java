@@ -11,7 +11,7 @@ public class JCU2912 extends HIDParser {
 		super(device);
 	}
 
-	private static final int EPS = 10;
+	private static final int EPS = 8;
 	@Override
 	protected void parse(final int n, final byte[] data) {
 		if (n < 8) return;

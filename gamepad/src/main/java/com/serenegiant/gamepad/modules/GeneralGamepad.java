@@ -11,7 +11,7 @@ public class GeneralGamepad extends HIDParser {
 		super(device);
 	}
 
-	private static final int EPS = 10;
+	private static final int EPS = 8;
 	@Override
 	protected void parse(final int n, final byte[] data) {
 		if (n < 6) return;

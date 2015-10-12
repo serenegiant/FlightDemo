@@ -118,7 +118,7 @@ public abstract class HIDParser {
 		{
 			switch (product_id) {
 			case 13105:
-//				return new JCU2912(device);
+				return new JCU2912(device);
 			}
 			break;
 		}
