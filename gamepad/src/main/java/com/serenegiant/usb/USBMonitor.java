@@ -543,6 +543,24 @@ public final class USBMonitor {
 			}
 		}
 
+		@Override
+		public boolean equals(final Object other) {
+			final UsbDevice device = mWeakDevice.get();
+			if (other instanceof UsbControlBlock) {
+				if ((device == null) || (other == null)) {
+					return device == (other != null ? ((UsbControlBlock)other).getDevice() : null);
+				} else {
+					return device.equals(((UsbControlBlock)other).getDevice());
+				}
+			} else if (other instanceof UsbDevice) {
+				if (device == null) {
+					if (other == null) return true;
+				} else {
+					return device.equals(other);
+				}
+			}
+			return super.equals(other);
+		}
 /*		@Override
 		protected void finalize() throws Throwable {
 			close();
