@@ -15,6 +15,7 @@ import android.util.SparseArray;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.widget.CheckBox;
@@ -24,6 +25,7 @@ import android.widget.TextView;
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.HIDGamepad;
 import com.serenegiant.gamepad.HIDParser;
+import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.usb.USBMonitor;
@@ -43,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
 	private USBMonitor mUSBMonitor;
 	private HIDGamepad mHIDGamepad;
 	private KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
+	private Joystick mJoystick;
 
 	private TextView mGamepadTv;
 	private TextView mKeyTextView;
@@ -59,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		mJoystick = new Joystick(getApplicationContext());
 
 		boolean auto_start = false;
 		final Intent intent = getIntent();
@@ -158,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		mJoystick.release();
 		startSensor();
 		mUIHandler.post(mKeyUpdateTask);
 		synchronized (mUsbSync) {
@@ -177,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
 		}
 		stopSensor();
 		mUIHandler.removeCallbacks(mKeyUpdateTask);
+		mJoystick.unregister();
 		super.onPause();
 	}
 
@@ -190,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	public boolean dispatchKeyEvent(final KeyEvent event) {
 //		if (DEBUG) Log.v(TAG, "dispatchKeyEvent:" + event);
+		mJoystick.dispatchKeyEvent(event);
 		mKeyGamePad.processKeyEvent(event);
 
 		final int keycode = event.getKeyCode();
@@ -215,6 +223,12 @@ public class MainActivity extends AppCompatActivity {
 				break;
 		}
 		return super.dispatchKeyEvent(event);
+	}
+
+	@Override
+	public boolean dispatchGenericMotionEvent(final MotionEvent event) {
+		mJoystick.dispatchGenericMotionEvent(event);
+		return super.dispatchGenericMotionEvent(event);
 	}
 
 	private final boolean[] mDowns = new boolean[GamePadConst.KEY_NUMS];
