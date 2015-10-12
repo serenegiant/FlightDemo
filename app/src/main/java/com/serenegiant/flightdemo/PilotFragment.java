@@ -3,7 +3,6 @@ package com.serenegiant.flightdemo;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -145,6 +144,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
+		stopDeviceController(false);
+		releaseUsbDriver();
+		mFlightRecorder.release();
+		mScriptFlight.release();
 		final MainActivity activity = (MainActivity) getActivity();
 		activity.setSideMenuEnable(false);
 		activity.removeSideMenuView(mSideMenuListView);
@@ -342,14 +345,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		return rootView;
 	}
 
-	@Override
+/*	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
-		stopDeviceController(false);
-		mFlightRecorder.release();
-		mScriptFlight.release();
 		super.onDestroy();
-	}
+	} */
 
 	@Override
 	public void onResume() {
@@ -1808,7 +1808,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				final Context context = (activity != null && !activity.isFinishing()) ? activity.getApplicationContext() : null;
 				if (context != null) {
 					mUSBMonitor = new USBMonitor(context, mOnDeviceConnectListener);
-					// こっちのデバイスフィルター定義はHIDすべてを選択可能
+					// こっちのデバイスフィルター定義はHIDと対応するゲームパッドのすべてを選択可能
 					final List<DeviceFilter> filters = DeviceFilter.getDeviceFilters(context, R.xml.device_filter_hid_all);
 					mUSBMonitor.setDeviceFilter(filters);
 				}
