@@ -15,8 +15,10 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 
+import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.net.NetworkChangedReceiver;
@@ -86,7 +88,8 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 	private SideMenuFrameLayout mSideMenuFrame;
 	private ActionBarDrawerToggle mDrawerToggle;
 	private final Handler mUiHandler = new Handler();
-	private final KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
+//	private final KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
+	/*package*/Joystick mJoystick;
 
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
@@ -112,10 +115,12 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 				ScriptHelper.copyScripts(MainActivity.this, firstTime);
 			}
 		}).start();
+		mJoystick = new Joystick(getApplicationContext());
 	}
 
 	@Override
 	protected void onDestroy() {
+		releaseJoystick();
 		hideProgress();
 		NetworkChangedReceiver.disable(getApplicationContext());
 		super.onDestroy();
@@ -145,6 +150,9 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 	@Override
 	public void onResume() {
 		super.onResume();
+		if (mJoystick != null) {
+			mJoystick.register();
+		}
 		if (mDrawerToggle != null) {
 			mDrawerToggle.syncState();
 		}
@@ -152,6 +160,9 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 
 	@Override
 	public void onPause() {
+		if (mJoystick != null) {
+			mJoystick.unregister();
+		}
 		super.onPause();
 	}
 
@@ -165,8 +176,21 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 
 	@Override
 	public boolean dispatchKeyEvent(final KeyEvent event) {
-		if (!isFinishing() && mKeyGamePad.processKeyEvent(event)) return true;
+//		if (!isFinishing() && mKeyGamePad.processKeyEvent(event)) return true;
+		if (mJoystick != null) {
+			if (mJoystick.dispatchKeyEvent(event)) {
+				return true;
+			}
+		}
 		return super.dispatchKeyEvent(event);
+	}
+
+	@Override
+	public boolean dispatchGenericMotionEvent(final MotionEvent event) {
+		if (mJoystick != null) {
+			mJoystick.dispatchGenericMotionEvent(event);
+		}
+		return super.dispatchGenericMotionEvent(event);
 	}
 
 	private ProgressDialog mProgress;
@@ -362,6 +386,13 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 				openSideMenu();
 			}
 			mDrawerToggle.syncState();
+		}
+	}
+
+	private void releaseJoystick() {
+		if (mJoystick != null) {
+			mJoystick.release();
+			mJoystick = null;
 		}
 	}
 

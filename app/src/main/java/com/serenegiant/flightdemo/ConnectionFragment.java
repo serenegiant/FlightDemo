@@ -261,9 +261,11 @@ public class ConnectionFragment extends BaseFragment {
 		public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
 			mVideoView.reset();
 			try {
-				mMediaPlayer.setDataSource(getActivity(), Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.into_the_sky));
-				mMediaPlayer.prepareAsync();
-			} catch (final IOException e) {
+				if (mMediaPlayer != null) {
+					mMediaPlayer.setDataSource(getActivity(), Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.into_the_sky));
+					mMediaPlayer.prepareAsync();
+				};
+			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
 		}

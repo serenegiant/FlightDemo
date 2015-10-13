@@ -52,6 +52,8 @@ public class Joystick extends IGamePad {
 		if (DEBUG) Log.v(TAG, "unregister:");
 		mInputManager.unregisterInputDeviceListener(mInputDeviceListener);
 		registered = false;
+		mParser = null;
+		mInputDeviceStates.clear();
 	}
 
 	public void release() {

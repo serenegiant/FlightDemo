@@ -35,6 +35,7 @@ import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.HIDGamepad;
+import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.IDeviceController;
@@ -135,15 +136,16 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mTouchFlight = new TouchFlight(mAutoFlightListener);
 	}
 
-/*	@Override
+	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		if (DEBUG) Log.v(TAG, "onAttach:");
-	} */
+	}
 
 	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
+		mJoystick = null;
 		stopDeviceController(false);
 		releaseUsbDriver();
 		mFlightRecorder.release();
@@ -355,6 +357,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
+		final Activity activity = getActivity();
+		if (activity instanceof MainActivity) {
+			mJoystick = ((MainActivity)activity).mJoystick;
+		}
 		mControllerView.setKeepScreenOn(true);
 		startDeviceController();
 		startSensor();
@@ -372,6 +378,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
+		mJoystick = null;
 		synchronized (mUsbSync) {
 			releaseGamepad();
 			if (mUSBMonitor != null) {
@@ -1913,7 +1920,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final Object mUsbSync = new Object();
 	private USBMonitor mUSBMonitor;
 	private HIDGamepad mHIDGamepad;
-	private final KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
+//	private final KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
+	private Joystick mJoystick;
 	private final boolean[] downs = new boolean[GamePadConst.KEY_NUMS];
 	private final long[] down_times = new long[GamePadConst.KEY_NUMS];
 	private final int[] analogSticks = new int[4];
@@ -1928,8 +1936,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			handler.removeCallbacks(this);
 			if ((mUSBMonitor != null) && (mHIDGamepad != null)) {
 				mHIDGamepad.updateState(downs, down_times, analogSticks, false);
+			} else if (mJoystick != null) {
+				mJoystick.updateState(downs, down_times, analogSticks, false);
 			} else {
-				mKeyGamePad.updateState(downs, down_times, analogSticks, false);
+//				mKeyGamePad.updateState(downs, down_times, analogSticks, false);
 			}
 
 			// 左右の上端ボタン(手前側)を同時押しすると非常停止
