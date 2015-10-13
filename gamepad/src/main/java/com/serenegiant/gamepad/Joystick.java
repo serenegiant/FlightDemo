@@ -96,21 +96,26 @@ public class Joystick extends IGamePad {
       return (event != null) && ((event.getSource() & source) == source);
   	}
 
+	private static final int EPS = 2;
 	@Override
 	public void updateState(final boolean[] downs, final long[] down_times, final int[] analog_sticks, final boolean force) {
 		if (mInputDeviceStates.size() > 0) {
-			// 最初の1個目を使う
 			if (mParser == null) {
 				final int n = mInputDeviceStates.size();
 				for (int i = 0; i < n; i++) {
 					final JoystickParser joystick = mInputDeviceStates.valueAt(i);
 					if ((joystick != null) && joystick.isJoystick()) {
+						// 最初に見つかったジョイスティックを使う
 						mParser = joystick;
 					}
 				}
 			}
 			if (mParser != null) {
-				System.arraycopy(mParser.analogSticks, 0, analog_sticks, 0, 4);
+//				System.arraycopy(mParser.analogSticks, 0, analog_sticks, 0, 4);
+				final int[] analogs = mParser.analogSticks;
+				for (int i = 0; i < 4; i++) {
+					analog_sticks[i] = Math.abs(analogs[i]) > EPS ? analogs[i] : 0;
+				}
 				final int[] counts = mParser.keyCount;
 				final long current = System.currentTimeMillis();
 				for (int i = 0; i < GamePadConst.KEY_NUMS; i++) {
