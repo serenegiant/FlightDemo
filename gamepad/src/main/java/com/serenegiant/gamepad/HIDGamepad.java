@@ -136,7 +136,7 @@ public class HIDGamepad extends IGamePad {
 	}
 
 	@Override
-	public void updateState(final boolean[] downs, final long[] down_Times, final int[] analog_sticks, final boolean force) {
+	public void updateState(final boolean[] downs, final long[] down_times, final int[] analog_sticks, final boolean force) {
 		if ((mValues != null) && (force || mModified)) {
 			final int n = mValues != null ? mValues.length : 0;
 			synchronized (mSync) {
@@ -147,7 +147,7 @@ public class HIDGamepad extends IGamePad {
 			final long current = System.currentTimeMillis();
 			for (int i = 0; i < GamePadConst.KEY_NUMS; i++) {
 				downs[i] = counts[i] != 0;
-				down_Times[i] = current - counts[i];
+				down_times[i] = current - counts[i];
 			}
 		}
 	}

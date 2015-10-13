@@ -20,6 +20,7 @@ import android.view.Surface;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.serenegiant.gamepad.GamePadConst;
@@ -58,12 +59,12 @@ public class MainActivity extends AppCompatActivity {
 	private DirectionView mLeftStickView;
 	private DirectionView mRightStickView;
 
+	private RadioGroup mDriverTypesRadioGroup;
+
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-
-		mJoystick = new Joystick(getApplicationContext());
 
 		boolean auto_start = false;
 		final Intent intent = getIntent();
@@ -153,17 +154,20 @@ public class MainActivity extends AppCompatActivity {
 		mLeftStickView = (DirectionView)findViewById(R.id.left_stick_view);
 		mRightStickView = (DirectionView)findViewById(R.id.right_stick_view);
 
-		final CheckBox checkbox = (CheckBox)findViewById(R.id.use_driver_checkbox);
-		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		mDriverTypesRadioGroup = (RadioGroup)findViewById(R.id.driver_types_radiogroup);
+		mDriverTypesRadioGroup.setOnCheckedChangeListener(mOnCheckedChangeListener);
+//		final CheckBox checkbox = (CheckBox)findViewById(R.id.use_driver_checkbox);
+//		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		if (auto_start) {
-			checkbox.setChecked(true);
+//			checkbox.setChecked(true);
+			mDriverTypesRadioGroup.check(R.id.use_usb_driver_radiobtn);
 		}
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		mJoystick.release();
+		releaseJoystick();
 		startSensor();
 		mUIHandler.post(mKeyUpdateTask);
 		synchronized (mUsbSync) {
@@ -183,7 +187,9 @@ public class MainActivity extends AppCompatActivity {
 		}
 		stopSensor();
 		mUIHandler.removeCallbacks(mKeyUpdateTask);
-		mJoystick.unregister();
+		if (mJoystick != null) {
+			mJoystick.unregister();
+		}
 		super.onPause();
 	}
 
@@ -197,7 +203,11 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	public boolean dispatchKeyEvent(final KeyEvent event) {
 //		if (DEBUG) Log.v(TAG, "dispatchKeyEvent:" + event);
-		mJoystick.dispatchKeyEvent(event);
+		if (mJoystick != null) {
+			if (mJoystick.dispatchKeyEvent(event)) {
+				return true;
+			}
+		}
 		mKeyGamePad.processKeyEvent(event);
 
 		final int keycode = event.getKeyCode();
@@ -227,7 +237,9 @@ public class MainActivity extends AppCompatActivity {
 
 	@Override
 	public boolean dispatchGenericMotionEvent(final MotionEvent event) {
-		mJoystick.dispatchGenericMotionEvent(event);
+		if (mJoystick != null) {
+			mJoystick.dispatchGenericMotionEvent(event);
+		}
 		return super.dispatchGenericMotionEvent(event);
 	}
 
@@ -243,6 +255,8 @@ public class MainActivity extends AppCompatActivity {
 				final long current = System.currentTimeMillis();
 				if ((mUSBMonitor != null) && (mHIDGamepad != null)) {
 					mHIDGamepad.updateState(mDowns, mCounts, mAnalogSticks, false);
+				} else if (mJoystick != null) {
+					mJoystick.updateState(mDowns, mCounts, mAnalogSticks, false);
 				} else {
 					mKeyGamePad.updateState(mDowns, mCounts, mAnalogSticks, false);
 				}
@@ -713,7 +727,42 @@ public class MainActivity extends AppCompatActivity {
 		}
 	}
 
-	private final CompoundButton.OnCheckedChangeListener mOnCheckedChangeListener
+	private final RadioGroup.OnCheckedChangeListener mOnCheckedChangeListener
+		= new RadioGroup.OnCheckedChangeListener() {
+
+		@Override
+		public void onCheckedChanged(final RadioGroup group, final int checkedId) {
+			switch (checkedId) {
+			case R.id.use_default_radiobtn:
+				releaseUsbDriver();
+				releaseJoystick();
+				break;
+			case R.id.use_input_manager_radiobtn:
+				releaseUsbDriver();
+				releaseJoystick();
+				mJoystick = new Joystick(getApplicationContext());
+				mJoystick.register();
+				break;
+			case R.id.use_usb_driver_radiobtn:
+				releaseJoystick();
+				if (mUSBMonitor == null) {
+					startUsbDriver();
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							synchronized (mUsbSync) {
+								if (mUSBMonitor != null) {
+									mUSBMonitor.register();
+								}
+							}
+						}
+					});
+				}
+				break;
+			}
+		}
+	};
+/*	private final CompoundButton.OnCheckedChangeListener mOnCheckedChangeListener
 		= new CompoundButton.OnCheckedChangeListener() {
 
 		@Override
@@ -739,7 +788,7 @@ public class MainActivity extends AppCompatActivity {
 				}
 			}
 		}
-	};
+	}; */
 
 	private final USBMonitor.OnDeviceConnectListener mOnDeviceConnectListener = new USBMonitor.OnDeviceConnectListener() {
 		@Override
@@ -793,6 +842,13 @@ public class MainActivity extends AppCompatActivity {
 			if (DEBUG) Log.v(TAG, "OnDeviceConnectListener#onCancel:finished");
 		}
 	};
+
+	private void releaseJoystick() {
+		if (mJoystick != null) {
+			mJoystick.release();
+			mJoystick = null;
+		}
+	}
 
 	private void releaseGamepad() {
 		synchronized (mUsbSync) {

@@ -9,17 +9,36 @@
 	android:paddingTop="@dimen/activity_vertical_margin"
 	tools:context=".MainActivity">
 
-	<CheckBox
-		android:id="@+id/use_driver_checkbox"
+	<RadioGroup
+		android:id="@+id/driver_types_radiogroup"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:focusable="false"
-		android:text="USBドライバーを使う"
-		android:textSize="24sp"
 		android:layout_centerHorizontal="true"
-		android:layout_marginTop="50dp"
-		android:visibility="visible"/>
+		android:layout_marginTop="50dp" >
 
+		<RadioButton
+			android:id="@+id/use_default_radiobtn"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="デフォルト"
+			android:textSize="24sp"/>
+
+		<RadioButton
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="InputManagerを使う"
+			android:id="@+id/use_input_manager_radiobtn"
+			android:layout_marginTop="16dp"
+			android:textSize="24sp"/>
+
+		<RadioButton
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="USBドライバーを使う"
+			android:id="@+id/use_usb_driver_radiobtn"
+			android:layout_marginTop="16dp"
+			android:textSize="24sp"/>
+	</RadioGroup>
 	<LinearLayout
 		android:id="@+id/layout_frame"
 		android:layout_width="match_parent"
@@ -477,5 +496,6 @@
 				android:textSize="24sp"/>
 
 		</RelativeLayout>
+
 	</LinearLayout>
 </RelativeLayout>

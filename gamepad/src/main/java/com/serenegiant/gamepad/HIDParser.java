@@ -45,10 +45,6 @@ public abstract class HIDParser {
 
 	/** 0:左x(左端-0x7f,右端+0x7f), 1:左y(上端-0x7f,下端+0x7f), 2:右x(左端-0x7f,右端+0x7f), 3:右y(上端-0x7f,下端+0x7f) */
 	public final int[] analogSticks = new int[4];
-//	public int analogLeftX;
-//	public int analogLeftY;
-//	public int analogRightX;
-//	public int analogRightY;
 	public volatile int[] keyCount = new int[KEY_NUMS];
 
 	protected final UsbDevice mDevice;
