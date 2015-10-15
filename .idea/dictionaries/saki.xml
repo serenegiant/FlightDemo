@@ -16,6 +16,7 @@
       <w>bgen</w>
       <w>dheight</w>
       <w>disp</w>
+      <w>dualshock</w>
       <w>dwidth</w>
       <w>elecom</w>
       <w>extern</w>
@@ -28,6 +29,7 @@
       <w>ichimatsu</w>
       <w>intf</w>
       <w>iobuffer</w>
+      <w>isoch</w>
       <w>jjtc</w>
       <w>jjtn</w>
       <w>jjtree</w>
@@ -49,14 +51,19 @@
       <w>radiobutton</w>
       <w>radiogroup</w>
       <w>rawdata</w>
+      <w>recip</w>
       <w>recv</w>
       <w>requery</w>
+      <w>rpipe</w>
       <w>rssi</w>
+      <w>sixaxis</w>
       <w>symtab</w>
+      <w>synch</w>
       <w>tbytes</w>
       <w>textview</w>
       <w>vheight</w>
       <w>vwidth</w>
+      <w>wusb</w>
     </words>
   </dictionary>
 </component>

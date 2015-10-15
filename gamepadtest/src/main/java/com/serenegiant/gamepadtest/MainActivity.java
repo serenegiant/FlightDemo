@@ -18,8 +18,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -814,6 +812,10 @@ public class MainActivity extends AppCompatActivity {
 				if (mGamepadTv != null) {
 					mGamepadTv.setVisibility(View.VISIBLE);
 				}
+/*				if (Dualshock3Pairing.isDualshock3(device)) {
+					final Dualshock3Pairing pairing = new Dualshock3Pairing(ctrlBlock);
+					pairing.requestPairing(MainActivity.this);
+				} */
 				if (mHIDGamepad == null) {
 					mHIDGamepad = new HIDGamepad(USE_RAW_CALLBACK ?  mHIDGamepadCallback : null);
 					mHIDGamepad.open(ctrlBlock);

@@ -14,6 +14,7 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/arflight" />
             <option value="$PROJECT_DIR$/common" />
+            <option value="$PROJECT_DIR$/dualshock" />
             <option value="$PROJECT_DIR$/gamepad" />
             <option value="$PROJECT_DIR$/gamepadtest" />
             <option value="$PROJECT_DIR$/graphics_common" />

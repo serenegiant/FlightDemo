@@ -1,2 +1,2 @@
-include ':app', ':arflight', ':common', ':graphics_common', ':icon_buttons', ':animations', ':icon_buttons001', ':resource_common', ':gamepad', ':icon_buttons002', ':gamepadtest'
+include ':app', ':arflight', ':common', ':graphics_common', ':icon_buttons', ':animations', ':icon_buttons001', ':resource_common', ':gamepad', ':icon_buttons002', ':gamepadtest', ':dualshock'
 include ':libraries:ScriptEngine:core'
