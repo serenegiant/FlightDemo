@@ -17,4 +17,17 @@
 #}
 
 -dontwarn javax.jmdns.test.*
--dontwarn org.apache.sanselan.*
+-dontwarn java.awt.*
+-dontwarn org.apache.sanselan.**
+
+-keep class * extends android.os.IInterface
+-keep class * extends android.os.Binder
+-keep class com.parrot.arsdk.**
+
+-keepclassmembers class com.parrot.arsdk.** {
+	*;
+}
+
+-keepclasseswithmembernames class * {
+	native <methods>;
+}

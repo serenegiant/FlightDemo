@@ -10,7 +10,20 @@ android {
 		versionCode 5
 		versionName '0.40'
 	}
+	signingConfigs {
+		releaseKey {
+			storeFile file('/Users/saki/projects/_misc/keystone_wheel.jks')
+			storePassword 'Wvgdz108oZMzQUOLUCR6hZsD8igoWas'
+			keyAlias 'flightdemo-key'
+			keyPassword 'rQ8a6j8b40VWsLAYNFHSpK6FTdwwElP'
+		}
+	}
 	buildTypes {
+		debug {
+			debuggable true
+			applicationIdSuffix = '.debug'  // パッケージ名の末尾に .debug をつける
+			versionNameSuffix = 'a'
+		}
 		release {
 			minifyEnabled true
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -21,6 +34,9 @@ android {
 		targetCompatibility JavaVersion.VERSION_1_7
 	}
 	productFlavors {
+		product {
+			signingConfig signingConfigs.releaseKey
+		}
 	}
 }
 
