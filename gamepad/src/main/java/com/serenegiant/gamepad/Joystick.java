@@ -11,9 +11,6 @@ import android.view.InputEvent;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
-/**
- * Created by saki on 15/10/13.
- */
 public class Joystick extends IGamePad {
 	private static final boolean DEBUG = true; // FIXME 実同時はfalseにすること
 	private static final String TAG = Joystick.class.getSimpleName();
@@ -25,7 +22,15 @@ public class Joystick extends IGamePad {
 	private boolean registered;
 	private JoystickParser mParser;
 
-	public Joystick(final Context context) {
+	private static Joystick sJoystick;
+	public static Joystick getInstance(final Context context) {
+		if (sJoystick == null) {
+			sJoystick = new Joystick(context.getApplicationContext());
+		}
+		return sJoystick;
+	}
+
+	private Joystick(final Context context) {
 		mInputManager = (InputManager)context.getSystemService(Context.INPUT_SERVICE);
 		HandlerThread thread = new HandlerThread(TAG);
 		thread.start();
@@ -59,6 +64,7 @@ public class Joystick extends IGamePad {
 	public void release() {
 		if (DEBUG) Log.v(TAG, "release:");
 		unregister();
+		sJoystick = null;
 	}
 
 	public boolean dispatchKeyEvent(final KeyEvent event) {

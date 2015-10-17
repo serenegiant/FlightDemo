@@ -115,7 +115,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 				ScriptHelper.copyScripts(MainActivity.this, firstTime);
 			}
 		}).start();
-		mJoystick = new Joystick(getApplicationContext());
+		mJoystick = Joystick.getInstance(this);
 	}
 
 	@Override
