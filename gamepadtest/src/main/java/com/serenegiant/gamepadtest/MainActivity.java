@@ -738,7 +738,7 @@ public class MainActivity extends AppCompatActivity {
 			case R.id.use_input_manager_radiobtn:
 				releaseUsbDriver();
 				releaseJoystick();
-				mJoystick = new Joystick(getApplicationContext());
+				mJoystick = Joystick.getInstance(getApplicationContext());
 				mJoystick.register();
 				break;
 			case R.id.use_usb_driver_radiobtn:

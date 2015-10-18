@@ -106,7 +106,7 @@
 		android:background="@null"
 		android:src="@drawable/circle_red_selector"/>
 
-	<com.serenegiant.gamepaddiag.GamepadView
+	<com.serenegiant.gamepaddiag.ImageViewWithCallback
 		android:id="@+id/gamepad_view"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"

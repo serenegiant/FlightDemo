@@ -12,6 +12,7 @@
       <w>arraycopy</w>
       <w>arsal</w>
       <w>arstream</w>
+      <w>attribs</w>
       <w>beebap</w>
       <w>bgen</w>
       <w>dheight</w>
@@ -24,6 +25,7 @@
       <w>flattrim</w>
       <w>flightdemo</w>
       <w>gamepad</w>
+      <w>gamepadview</w>
       <w>hasht</w>
       <w>hashtable</w>
       <w>ichimatsu</w>

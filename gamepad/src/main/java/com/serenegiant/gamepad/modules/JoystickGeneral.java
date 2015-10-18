@@ -9,12 +9,9 @@ import com.serenegiant.gamepad.JoystickParser;
 
 import static com.serenegiant.gamepad.GamePadConst.*;
 
-/**
- * Created by saki on 15/10/13.
- */
 public class JoystickGeneral extends JoystickParser {
-	private static final boolean DEBUG = true; // FIXME 実同時はfalseにすること
-	private static final String TAG = JoystickGeneral.class.getSimpleName();
+//	private static final boolean DEBUG = false; // FIXME 実同時はfalseにすること
+//	private static final String TAG = JoystickGeneral.class.getSimpleName();
 
 	public JoystickGeneral(InputDevice device) {
 		super(device);

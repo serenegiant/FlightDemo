@@ -14,12 +14,9 @@ import java.util.List;
 
 import static com.serenegiant.gamepad.GamePadConst.*;
 
-/**
- * Created by saki on 15/10/13.
- */
 public abstract class JoystickParser {
-	private static final boolean DEBUG = true; // FIXME 実同時はfalseにすること
-	private static final String TAG = JoystickParser.class.getSimpleName();
+//	private static final boolean DEBUG = false; // FIXME 実同時はfalseにすること
+//	private static final String TAG = JoystickParser.class.getSimpleName();
 
 	@SuppressLint("NewApi")
 	public static JoystickParser getJoystick(final InputDevice device) {
@@ -59,7 +56,7 @@ public abstract class JoystickParser {
 //				mAxes[i++] = range.getAxis();
 			}
 		}
-		if (DEBUG) Log.v(TAG, "numAxes=" + numAxes + ",sz=" + mAxes.size());
+//		if (DEBUG) Log.v(TAG, "numAxes=" + numAxes + ",sz=" + mAxes.size());
 	}
 
 	public static boolean isFromSource(final InputDevice.MotionRange range, final int source) {

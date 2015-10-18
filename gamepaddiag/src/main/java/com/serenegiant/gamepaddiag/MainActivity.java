@@ -22,7 +22,8 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		mJoystick = Joystick.getInstance(this);
 		if (savedInstanceState == null) {
-			final Fragment fragment = new MainFragment();
+//			final Fragment fragment = new MainFragment();
+			final Fragment fragment = new MainFragment2();
 			getFragmentManager().beginTransaction()
 				.add(R.id.container, fragment).commit();
 		}

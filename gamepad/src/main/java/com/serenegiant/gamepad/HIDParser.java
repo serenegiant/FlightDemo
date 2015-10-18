@@ -16,8 +16,8 @@ import com.serenegiant.gamepad.modules.XInputGeneral;
 import static com.serenegiant.gamepad.GamePadConst.*;
 
 public abstract class HIDParser {
-	private static final boolean DEBUG = true; // 実同時はfalseにすること
-	private static final String TAG = HIDParser.class.getSimpleName();
+//	private static final boolean DEBUG = false; // 実同時はfalseにすること
+//	private static final String TAG = HIDParser.class.getSimpleName();
 
 	// DPADのキーマスクビット
 	protected static final int DPAD_UP = 0x01;
@@ -66,18 +66,17 @@ public abstract class HIDParser {
 		int cs_sub_class = 0;
 		int cs_protocol = 0;
 		final int num_interface = device.getInterfaceCount();
-		if (DEBUG) Log.v(TAG, "num_interface:" + num_interface);
+//		if (DEBUG) Log.v(TAG, "num_interface:" + num_interface);
 		for (int j = 0; j < num_interface; j++) {
 			final UsbInterface intf = device.getInterface(j);
 			final int num_endpoint = intf.getEndpointCount();
-			if (DEBUG) Log.v(TAG, "num_endpoint:" + num_endpoint);
+//			if (DEBUG) Log.v(TAG, "num_endpoint:" + num_endpoint);
 			if (num_endpoint > 0) {
 				UsbEndpoint ep_in = null;
 				UsbEndpoint ep_out = null;
 				for (int i = 0; i < num_endpoint; i++) {
 					final UsbEndpoint ep = intf.getEndpoint(i);
-					if (DEBUG)
-						Log.v(TAG, "type=" + ep.getType() + ", dir=" + ep.getDirection());
+//					if (DEBUG) Log.v(TAG, "type=" + ep.getType() + ", dir=" + ep.getDirection());
 					if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {    // インタラプト転送
 						switch (ep.getDirection()) {
 						case UsbConstants.USB_DIR_IN:
@@ -108,7 +107,7 @@ public abstract class HIDParser {
 			}
 		}
 
-		if (DEBUG) Log.v(TAG, String.format("vendor_id=%d, product_id=%d", vendor_id, product_id));
+//		if (DEBUG) Log.v(TAG, String.format("vendor_id=%d, product_id=%d", vendor_id, product_id));
 		switch (vendor_id) {
 		case 4607:	// ELECOM
 		{

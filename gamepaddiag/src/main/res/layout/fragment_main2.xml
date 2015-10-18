@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+
+	<com.serenegiant.gamepaddiag.GamepadView
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:id="@+id/view"
+		app:gamepadview_gamepad_drawable="@drawable/gamepad"
+		app:gamepadview_keypad_drawable="@drawable/circle_red_selector"
+		android:layout_gravity="center"/>
+</FrameLayout>

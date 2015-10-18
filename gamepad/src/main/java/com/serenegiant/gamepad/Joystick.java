@@ -12,7 +12,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 public class Joystick extends IGamePad {
-	private static final boolean DEBUG = true; // FIXME 実同時はfalseにすること
+//	private static final boolean DEBUG = false; // FIXME 実同時はfalseにすること
 	private static final String TAG = Joystick.class.getSimpleName();
 
 	private final Object mSync = new Object();
@@ -38,7 +38,7 @@ public class Joystick extends IGamePad {
 	}
 
 	public void register() {
-		if (DEBUG) Log.v(TAG, "register:");
+//		if (DEBUG) Log.v(TAG, "register:");
 		if (!registered) {
 			registered = true;
 			// Register an input device listener to watch when input devices are
@@ -54,7 +54,7 @@ public class Joystick extends IGamePad {
 	}
 
 	public void unregister() {
-		if (DEBUG) Log.v(TAG, "unregister:");
+//		if (DEBUG) Log.v(TAG, "unregister:");
 		mInputManager.unregisterInputDeviceListener(mInputDeviceListener);
 		registered = false;
 		mParser = null;
@@ -62,7 +62,7 @@ public class Joystick extends IGamePad {
 	}
 
 	public void release() {
-		if (DEBUG) Log.v(TAG, "release:");
+//		if (DEBUG) Log.v(TAG, "release:");
 		unregister();
 		sJoystick = null;
 	}
@@ -143,7 +143,7 @@ public class Joystick extends IGamePad {
 			}
 			joystick = JoystickParser.getJoystick(device);
 			mInputDeviceStates.put(deviceId, joystick);
-			if (DEBUG) Log.v(TAG, "Device enumerated: " + joystick.getDevice());
+//			if (DEBUG) Log.v(TAG, "Device enumerated: " + joystick.getDevice());
 		}
 		return joystick;
 	}
@@ -154,14 +154,14 @@ public class Joystick extends IGamePad {
 		@Override
 		public void onInputDeviceAdded(final int deviceId) {
 			final JoystickParser joystick = getJoystick(deviceId);
-			if (DEBUG) Log.i(TAG, "Device added: " + joystick.getDevice());
+//			if (DEBUG) Log.i(TAG, "Device added: " + joystick.getDevice());
 		}
 
 		@Override
 		public void onInputDeviceRemoved(final int deviceId) {
 			final JoystickParser state = mInputDeviceStates.get(deviceId);
 			if (state != null) {
-				if (DEBUG) Log.i(TAG, "Device removed: " + state.getDevice());
+//				if (DEBUG) Log.i(TAG, "Device removed: " + state.getDevice());
 				mInputDeviceStates.remove(deviceId);
 				mParser = null;
 			}
@@ -173,7 +173,7 @@ public class Joystick extends IGamePad {
 			if (state != null) {
 				mInputDeviceStates.remove(deviceId);
 				state = getJoystick(deviceId);
-				if (DEBUG) Log.i(TAG, "Device changed: " + state.getDevice());
+//				if (DEBUG) Log.i(TAG, "Device changed: " + state.getDevice());
 				mParser = null;
 			}
 		}

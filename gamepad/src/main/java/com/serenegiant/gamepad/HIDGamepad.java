@@ -14,7 +14,7 @@ import com.serenegiant.usb.USBMonitor.UsbControlBlock;
 import java.nio.ByteBuffer;
 
 public class HIDGamepad extends IGamePad {
-	private static final boolean DEBUG = true;	// FIXME 実同時はfalseにすること
+//	private static final boolean DEBUG = false;	// FIXME 実同時はfalseにすること
 	private static final String TAG = HIDGamepad.class.getSimpleName();
 
 	private final Object mSync = new Object();
@@ -51,18 +51,17 @@ public class HIDGamepad extends IGamePad {
 			// ここでインターフェースとエンドポイントを探す
 			final UsbDevice device = ctrlBlock.getDevice();
 			final int num_interface = device.getInterfaceCount();
-			if (DEBUG) Log.v(TAG, "num_interface:" + num_interface);
+//			if (DEBUG) Log.v(TAG, "num_interface:" + num_interface);
 			for (int j = 0; j < num_interface; j++) {
 				final UsbInterface intf = device.getInterface(j);
 				final int num_endpoint = intf.getEndpointCount();
-				if (DEBUG) Log.v(TAG, "num_endpoint:" + num_endpoint);
+//				if (DEBUG) Log.v(TAG, "num_endpoint:" + num_endpoint);
 				if (num_endpoint > 0) {
 					UsbEndpoint ep_in = null;
 					UsbEndpoint ep_out = null;
 					for (int i = 0; i < num_endpoint; i++) {
 						final UsbEndpoint ep = intf.getEndpoint(i);
-						if (DEBUG)
-							Log.v(TAG, "type=" + ep.getType() + ", dir=" + ep.getDirection());
+//						if (DEBUG) Log.v(TAG, "type=" + ep.getType() + ", dir=" + ep.getDirection());
 						if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {    // インタラプト転送
 							switch (ep.getDirection()) {
 							case UsbConstants.USB_DIR_IN:
@@ -231,7 +230,7 @@ public class HIDGamepad extends IGamePad {
 
 		@Override
 		public void run() {
-			if (DEBUG) Log.v(TAG_THREAD, "#run:");
+//			if (DEBUG) Log.v(TAG_THREAD, "#run:");
 			final UsbDeviceConnection connection;
 			final int intervals;
 			final int max_packets;
@@ -241,7 +240,7 @@ public class HIDGamepad extends IGamePad {
 				mIsRunning = false;
 				connection = mUsbControlBlock != null ? mUsbControlBlock.getUsbDeviceConnection() : null;
 				if (connection != null) {
-					if (DEBUG) Log.v(TAG_THREAD, "claimInterface:");
+//					if (DEBUG) Log.v(TAG_THREAD, "claimInterface:");
 //					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //						connection.setInterface(mIntf);
 //					}
@@ -249,7 +248,7 @@ public class HIDGamepad extends IGamePad {
 					intervals = mEp.getInterval();
 					max_packets = mEp.getMaxPacketSize();
 
-					if (DEBUG) Log.v(TAG_THREAD, "intervals=" + intervals + ", max_packets=" + max_packets);
+//					if (DEBUG) Log.v(TAG_THREAD, "intervals=" + intervals + ", max_packets=" + max_packets);
 					if (max_packets > 0) {
 						mValues = new byte[max_packets];
 						mIsRunning = true;
@@ -294,7 +293,7 @@ public class HIDGamepad extends IGamePad {
 					}
 				}
 			} finally {
-				if (DEBUG) Log.v(TAG_THREAD, "releaseInterface:");
+//				if (DEBUG) Log.v(TAG_THREAD, "releaseInterface:");
 				connection.releaseInterface(mIntf);
 				connection.close();
 				if (mUsbControlBlock != null) {
