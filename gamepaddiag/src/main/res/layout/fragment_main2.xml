@@ -7,7 +7,7 @@
 	<com.serenegiant.gamepaddiag.GamepadView
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		android:id="@+id/view"
+		android:id="@+id/gamepad_view"
 		app:gamepadview_gamepad_drawable="@drawable/gamepad"
 		app:gamepadview_keypad_drawable="@drawable/circle_red_selector"
 		android:layout_gravity="center"/>

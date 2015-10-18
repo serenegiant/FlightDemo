@@ -15,57 +15,46 @@ import android.widget.ImageView;
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.widget.CheckableImageButton;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainFragment extends BaseFragment {
 	private static final boolean DEBUG = true;
 	private static final String TAG = MainFragment.class.getSimpleName();
 
-	protected static class KeyPosition {
-		public int center_x;
-		public int center_y;
-		public int width;
-		public int height;
-
-		public KeyPosition(final int center_x, final int center_y, final int width, final int height) {
-			this.center_x = center_x;
-			this.center_y = center_y;
-			this.width = width;
-			this.height = height;
-		}
-	}
-
 	protected final float IMAGE_WIDTH = 548;
 	protected final float IMAGE_HEIGHT = 340;
-	protected static SparseArray<KeyPosition> sPositions = new SparseArray<KeyPosition>();
-	static {
-		sPositions.put(GamePadConst.KEY_LEFT_CENTER, new KeyPosition(193, 207, 64, 64));
-		sPositions.put(GamePadConst.KEY_LEFT_UP, new KeyPosition(140, 93, 37, 37));
-		sPositions.put(GamePadConst.KEY_LEFT_RIGHT, new KeyPosition(168, 122, 37, 37));
-		sPositions.put(GamePadConst.KEY_LEFT_DOWN, new KeyPosition(140, 150, 37, 37));
-		sPositions.put(GamePadConst.KEY_LEFT_LEFT, new KeyPosition(112, 122, 37, 37));
-		//
-		sPositions.put(GamePadConst.KEY_RIGHT_CENTER, new KeyPosition(360, 207, 64, 64));
-		sPositions.put(GamePadConst.KEY_RIGHT_UP, new KeyPosition(421, 89, 37, 37));
-		sPositions.put(GamePadConst.KEY_RIGHT_RIGHT, new KeyPosition(455, 122, 37, 37));
-		sPositions.put(GamePadConst.KEY_RIGHT_DOWN, new KeyPosition(421, 157, 37, 37));
-		sPositions.put(GamePadConst.KEY_RIGHT_LEFT, new KeyPosition(386, 122, 37, 37));
-		//
-		sPositions.put(GamePadConst.KEY_LEFT_1, new KeyPosition(126, 53, 75, 75));			// 左上前
-		sPositions.put(GamePadConst.KEY_LEFT_2, new KeyPosition(116, 50, 112, 112));			// 左上後
-		//
-		sPositions.put(GamePadConst.KEY_CENTER_LEFT, new KeyPosition(222, 119, 32, 32));		// 中央左
-		//
-		sPositions.put(GamePadConst.KEY_RIGHT_1, new KeyPosition(418, 53, 75, 75));			// 右上前
-		sPositions.put(GamePadConst.KEY_RIGHT_2, new KeyPosition(407, 50, 112, 112));		// 右上後
-		//
-		sPositions.put(GamePadConst.KEY_CENTER_RIGHT, new KeyPosition(335, 119, 32, 32));	// 中央右
-		//
-		sPositions.put(GamePadConst.KEY_RIGHT_A, new KeyPosition(414, 88, 37, 37));			// アナログモードの時の右キーパッド上
-		sPositions.put(GamePadConst.KEY_RIGHT_B, new KeyPosition(449, 123, 37, 37));			// アナログモードの時の右キーパッド右
-		sPositions.put(GamePadConst.KEY_RIGHT_C, new KeyPosition(414, 156, 37, 37));			// アナログモードの時の右キーパッド下
-		sPositions.put(GamePadConst.KEY_RIGHT_D, new KeyPosition(380, 123, 37, 37));			// アナログモードの時の右キーパッド左
-	}
 
 	private SparseArray<CheckableImageButton> mButtons = new SparseArray<CheckableImageButton>();
+	protected static List<KeyPosition> sPositions = new ArrayList<KeyPosition>();
+	static {
+		sPositions.add(new KeyPosition(GamePadConst.KEY_LEFT_CENTER, 193, 207, 64, 64));
+		sPositions.add(new KeyPosition(GamePadConst.KEY_LEFT_UP, 140, 93, 37, 37));
+		sPositions.add(new KeyPosition(GamePadConst.KEY_LEFT_RIGHT, 168, 122, 37, 37));
+		sPositions.add(new KeyPosition(GamePadConst.KEY_LEFT_DOWN, 140, 150, 37, 37));
+		sPositions.add(new KeyPosition(GamePadConst.KEY_LEFT_LEFT, 112, 122, 37, 37));
+		//
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_CENTER, 360, 207, 64, 64));
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_UP, 421, 89, 37, 37));
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_RIGHT, 455, 122, 37, 37));
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_DOWN, 421, 157, 37, 37));
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_LEFT, 386, 122, 37, 37));
+		//
+		sPositions.add(new KeyPosition(GamePadConst.KEY_LEFT_1, 126, 53, 75, 75));			// 左上前
+		sPositions.add(new KeyPosition(GamePadConst.KEY_LEFT_2, 116, 50, 112, 112));		// 左上後
+		//
+		sPositions.add(new KeyPosition(GamePadConst.KEY_CENTER_LEFT, 222, 119, 32, 32));	// 中央左
+		//
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_1, 418, 53, 75, 75));			// 右上前
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_2, 407, 50, 112, 112));		// 右上後
+		//
+		sPositions.add(new KeyPosition(GamePadConst.KEY_CENTER_RIGHT, 335, 119, 32, 32));	// 中央右
+		//
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_A, 414, 88, 37, 37));			// アナログモードの時の右キーパッド上
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_B, 449, 123, 37, 37));		// アナログモードの時の右キーパッド右
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_C, 414, 156, 37, 37));		// アナログモードの時の右キーパッド下
+		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_D, 380, 123, 37, 37));		// アナログモードの時の右キーパッド左
+	}
 
 	public MainFragment() {
 		super();

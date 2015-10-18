@@ -7,20 +7,35 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.ArraySet;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.SparseArray;
+import android.util.SparseIntArray;
+import android.util.StateSet;
 import android.view.View;
+
+import com.serenegiant.gamepad.GamePadConst;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class GamepadView extends View {
 	private static final boolean DEBUG = true;	// FIXME 実同時はfalseにすること
 	private static final String TAG = GamepadView.class.getSimpleName();
 
+	private final Object mSync = new Object();
+	private final List<KeyPosition> mKeyPositions = new ArrayList<KeyPosition>();
+	private final SparseIntArray mKeyStates = new SparseIntArray();
 	private Drawable mGamepadDrawable;
 	private Drawable mKeypadDrawable;
 	private int mImageWidth, mImageHeight;
 	private float mScale;
 	private float mCenterViewX, mCenterViewY;
 	private float mCenterImageX, mCenterImageY;
+	private float mOffsetX, mOffsetY;
 
 	public GamepadView(final Context context) {
 		this(context, null, 0);
@@ -73,6 +88,8 @@ public class GamepadView extends View {
 			// クロップセンターにするなら大きい方を選択する
 //			final float scale = Math.max(scale_x, scale_y);	// SCALE_MODE_CROP
 			final float scale = Math.min(scale_x, scale_y);	// SCALE_MODE_KEEP_ASPECT
+			final float offset_x = (view_width / scale - mImageWidth) / 2.0f;
+			final float offset_y = (view_height / scale - mImageHeight) / 2.0f;
 
 			if (DEBUG) Log.v(TAG, String.format("view(%d,%d),size(%d,%d),scale(%f,%f,%f)",
 				view_width, view_height, mImageWidth, mImageHeight, scale_x, scale_y, scale));
@@ -82,12 +99,59 @@ public class GamepadView extends View {
 			mCenterViewY = view_height / 2.0f;
 			mCenterImageX = mImageWidth / 2.0f;
 			mCenterImageY = mImageHeight / 2.0f;
+			mOffsetX = offset_x;
+			mOffsetY = offset_y;
 		}
 	}
 
+	private static final int[] CHECKED_STATE_SET = { android.R.attr.state_checked, android.R.attr.state_enabled };
+
+	private final SparseIntArray mWorkState = new SparseIntArray();
+	private boolean[] mDowns = new boolean[GamePadConst.KEY_NUMS];
+	private boolean[] mDownsCopy = new boolean[GamePadConst.KEY_NUMS];
 	@Override
 	protected void onDraw(final Canvas canvas) {
-		// FIXME キーパッドの描画処理
+		if (mKeypadDrawable != null) {
+//			if (DEBUG) Log.v(TAG, "onDraw:");
+			final int n = GamePadConst.KEY_NUMS;
+			synchronized (mSync) {
+				System.arraycopy(mDowns, 0, mDownsCopy, 0, GamePadConst.KEY_NUMS);
+			}
+			// キーパッドの描画処理
+			mWorkState.clear();
+			final int[] state = getDrawableState();
+			int k = state != null ? state.length : 0;
+//			if (DEBUG) Log.v(TAG, "onDraw:getDrawableState:k=" + k);
+			for (int i = 0; i < k; i++) {
+				mWorkState.put(state[i], state[i]);
+			}
+			mWorkState.delete(android.R.attr.state_checked);
+			k = mWorkState.size();
+			final int[] base_state = new int[k + 2];
+			for (int i = 0; i < k; i++) {
+				base_state[i] = mWorkState.indexOfKey(i);
+			}
+			base_state[k - 2] = android.R.attr.state_enabled;
+			final int m = mKeyPositions.size();
+			for (int i = 0; i < m; i++) {
+				final KeyPosition pos = mKeyPositions.get(i);
+				if (pos != null) {
+					final int key = pos.key;
+					final int saveCount = canvas.save(Canvas.MATRIX_SAVE_FLAG);
+					try {
+						canvas.scale(mScale, mScale);
+						canvas.translate(pos.center_x + mOffsetX - pos.width / 2.0f, pos.center_y + mOffsetY - pos.height / 2.0f);
+						mKeypadDrawable.setBounds(0, 0, pos.width, pos.height);
+						base_state[k-1] = mDownsCopy[key] ? android.R.attr.state_checked : 0;
+						mKeypadDrawable.setState(mDownsCopy[key] ? CHECKED_STATE_SET : null);
+						mKeypadDrawable.draw(canvas);
+					} finally {
+						canvas.restoreToCount(saveCount);
+					}
+				}
+			}
+		}
+		// ゲームパッド画像の表示
 		final int saveCount = canvas.save(Canvas.MATRIX_SAVE_FLAG);
 		try {
 			// Canvas#setMatrixはうまく働かない
@@ -101,5 +165,37 @@ public class GamepadView extends View {
 		} finally {
 			canvas.restoreToCount(saveCount);
 		}
+	}
+
+	public void setKeys(final List<KeyPosition> positions) {
+		if (DEBUG) Log.v(TAG, "setKeys:");
+		synchronized (mSync) {
+			mKeyPositions.clear();
+			final int n = positions != null ? positions.size() : 0;
+			for (int i = 0; i < n; i++) {
+				mKeyPositions.add(positions.get(i));
+			}
+		}
+	}
+
+	public void setKeyState(final boolean[] downs) {
+//		if (DEBUG) Log.v(TAG, "setKeyState:");
+		boolean modified = false;
+		synchronized (mSync) {
+			final int n = GamePadConst.KEY_NUMS;
+			for (int i = 0; i < n; i++) {
+				if (mDowns[i] != downs[i]) {
+					mDowns[i] = downs[i];
+					modified = true;
+				}
+			}
+		}
+		if (modified) {
+			update();
+		}
+	}
+
+	private void update() {
+		postInvalidate();
 	}
 }
