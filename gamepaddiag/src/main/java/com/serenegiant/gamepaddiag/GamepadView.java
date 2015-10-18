@@ -9,7 +9,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.View;
 
@@ -19,8 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GamepadView extends View {
-	private static final boolean DEBUG = true;	// FIXME 実同時はfalseにすること
-	private static final String TAG = GamepadView.class.getSimpleName();
+//	private static final boolean DEBUG = false;	// FIXME 実同時はfalseにすること
+//	private static final String TAG = GamepadView.class.getSimpleName();
 
 	private final Object mSync = new Object();
 	private final List<KeyPosition> mKeyPositions = new ArrayList<KeyPosition>();
@@ -63,10 +62,10 @@ public class GamepadView extends View {
 		}
 		final Rect bounds = new Rect();
 		bounds.set(mGamepadDrawable.getBounds());
-		if (DEBUG) Log.v(TAG, String.format("ImageSize(%d,%d),bounds=", mImageWidth, mImageHeight) + bounds);
+//		if (DEBUG) Log.v(TAG, String.format("ImageSize(%d,%d),bounds=", mImageWidth, mImageHeight) + bounds);
 		mGamepadDrawable.setBounds(0, 0, mImageWidth, mImageHeight);
 		bounds.set(mGamepadDrawable.getBounds());
-		if (DEBUG) Log.v(TAG, String.format("ImageSize(%d,%d),bounds=", mImageWidth, mImageHeight) + bounds);
+//		if (DEBUG) Log.v(TAG, String.format("ImageSize(%d,%d),bounds=", mImageWidth, mImageHeight) + bounds);
 	}
 
 	@Override
@@ -91,8 +90,8 @@ public class GamepadView extends View {
 			final float offset_x = (view_width / scale - mImageWidth) / 2.0f;
 			final float offset_y = (view_height / scale - mImageHeight) / 2.0f;
 
-			if (DEBUG) Log.v(TAG, String.format("view(%d,%d),size(%d,%d),scale(%f,%f,%f)",
-				view_width, view_height, mImageWidth, mImageHeight, scale_x, scale_y, scale));
+//			if (DEBUG) Log.v(TAG, String.format("view(%d,%d),size(%d,%d),scale(%f,%f,%f)",
+//				view_width, view_height, mImageWidth, mImageHeight, scale_x, scale_y, scale));
 
 			mScale = scale;
 			mCenterViewX = view_width / 2.0f;
@@ -190,7 +189,7 @@ public class GamepadView extends View {
 	}
 
 	public void setKeys(final List<KeyPosition> positions) {
-		if (DEBUG) Log.v(TAG, "setKeys:");
+//		if (DEBUG) Log.v(TAG, "setKeys:");
 		synchronized (mSync) {
 			mKeyPositions.clear();
 			final int n = positions != null ? positions.size() : 0;

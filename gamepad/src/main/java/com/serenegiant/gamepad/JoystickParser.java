@@ -46,17 +46,14 @@ public abstract class JoystickParser {
 				numAxes++;
 			}
 		}
-//		mAxes = new int[numAxes];
 		mAxisValues = new float[numAxes];
 		int i = 0;
 		for (final InputDevice.MotionRange range : ranges) {
 			if (isFromSource(range, InputDevice.SOURCE_CLASS_JOYSTICK)) {
 				mAxes.put(range.getAxis(), i);
 				i++;
-//				mAxes[i++] = range.getAxis();
 			}
 		}
-//		if (DEBUG) Log.v(TAG, "numAxes=" + numAxes + ",sz=" + mAxes.size());
 	}
 
 	public static boolean isFromSource(final InputDevice.MotionRange range, final int source) {
@@ -67,13 +64,15 @@ public abstract class JoystickParser {
 		return mDevice;
 	}
 
+	public String getName() {
+		return mDevice != null ? mDevice.getName() : null;
+	}
+
 	public int getAxisCount() {
-//		return mAxes.length;
 		return mAxes.size();
 	}
 
 	public int getAxis(final int axisIndex) {
-//		return mAxes[axisIndex];
 		return mAxes.keyAt(axisIndex);
 	}
 
@@ -99,7 +98,6 @@ public abstract class JoystickParser {
 
 	public boolean onKeyDown(final KeyEvent event) {
 		final int keyCode = event.getKeyCode();
-//		if (isGameKey(keyCode)) {
 		if (isJoystick()) {
 			if (event.getRepeatCount() == 0) {
 				mKeys.put(keyCode, 255);
@@ -114,15 +112,8 @@ public abstract class JoystickParser {
 
 	public boolean onKeyUp(final KeyEvent event) {
 		final int keyCode = event.getKeyCode();
-//		if (isGameKey(keyCode)) {
 		if (isJoystick()) {
 			mKeys.delete(keyCode);
-/*			int index = mKeys.indexOfKey(keyCode);
-			if (index >= 0) {
-				final String symbolicName = KeyEvent.keyCodeToString(keyCode);
-				mKeys.put(keyCode, 0);
-				Log.i(TAG, mDevice.getName() + " - Key Up: " + symbolicName);
-			} */
 			update();
 			return true;
 		}
@@ -137,11 +128,6 @@ public abstract class JoystickParser {
 			mAxisValues[i] = value;
 		}
 		update();
-/*		for (int i = mAxes.length - 1; i >= 0; i--) {
-			final int axis = mAxes[i];
-			final float value = event.getAxisValue(axis);
-			mAxisValues[i] = value;
-		} */
 		return true;
 	}
 

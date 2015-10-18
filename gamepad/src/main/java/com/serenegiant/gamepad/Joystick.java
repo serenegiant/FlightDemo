@@ -67,6 +67,10 @@ public class Joystick extends IGamePad {
 		sJoystick = null;
 	}
 
+	public String getName() {
+		return mParser != null ? mParser.getName() : null;
+	}
+
 	public boolean dispatchKeyEvent(final KeyEvent event) {
 //		if (DEBUG) Log.v(TAG, "dispatchKeyEvent:" + event);
 		boolean result = false;

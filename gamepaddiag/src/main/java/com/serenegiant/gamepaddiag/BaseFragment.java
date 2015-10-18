@@ -1,30 +1,35 @@
 package com.serenegiant.gamepaddiag;
 
-import android.app.Fragment;
+import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.Joystick;
 
 public abstract class BaseFragment extends Fragment {
-	private static final boolean DEBUG = true;
-	private static final String TAG = BaseFragment.class.getSimpleName();
+//	private static final boolean DEBUG = false;	// FIXME 実同時はfalseにすること
+//	private static final String TAG = BaseFragment.class.getSimpleName();
 
-	private final Handler mUIHandler = new Handler(Looper.getMainLooper());
+	protected final Handler mUIHandler = new Handler(Looper.getMainLooper());
 	private Joystick mJoystick;
+	protected TextView mNameTv;
 
 	public BaseFragment() {
 		super();
 		// デフォルトコンストラクタが必要
 	}
 
-//	@SuppressWarnings("deprecation")
-//	@Override
-//	public void onAttach(final Activity activity) {
-//		super.onAttach(activity);
-//	}
+	@SuppressWarnings("deprecation")
+	@Override
+	public void onAttach(final Activity activity) {
+		super.onAttach(activity);
+		mJoystick = Joystick.getInstance(getActivity());
+	}
 
 //	@Override
 //	public void onCreate(final Bundle savedInstanceState) {
@@ -34,13 +39,15 @@ public abstract class BaseFragment extends Fragment {
 	@Override
 	public void onResume() {
 		super.onResume();
-		if (DEBUG) Log.v(TAG, "onResume:");
-		mJoystick = Joystick.getInstance(getActivity());
+//		if (DEBUG) Log.v(TAG, "onResume:");
 		mUIHandler.post(mKeyUpdateTask);
+		mUIHandler.postDelayed(mUpdateNameTask, 500);
 	}
 
 	@Override
 	public void onPause() {
+//		if (DEBUG) Log.v(TAG, "onPause:");
+		mUIHandler.removeCallbacks(mUpdateNameTask);
 		mUIHandler.removeCallbacks(mKeyUpdateTask);
 		mJoystick = null;
 		super.onPause();
@@ -75,4 +82,22 @@ public abstract class BaseFragment extends Fragment {
 		}
 	};
 
+	private final Runnable mUpdateNameTask = new Runnable() {
+		@Override
+		public void run() {
+			mUIHandler.removeCallbacks(this);
+			if (mNameTv != null) {
+				final String name = getGamepadName();
+				if (!TextUtils.isEmpty(name)) {
+					mNameTv.setText(name);
+				} else {
+					mUIHandler.postDelayed(this, 1000);
+				}
+			}
+		}
+	};
+
+	public String getGamepadName() {
+		return mJoystick != null ? mJoystick.getName() : null;
+	}
 }
