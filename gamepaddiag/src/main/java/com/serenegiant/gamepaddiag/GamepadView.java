@@ -4,23 +4,19 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.ArraySet;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.SparseArray;
 import android.util.SparseIntArray;
-import android.util.StateSet;
 import android.view.View;
 
 import com.serenegiant.gamepad.GamePadConst;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class GamepadView extends View {
 	private static final boolean DEBUG = true;	// FIXME 実同時はfalseにすること
@@ -36,6 +32,10 @@ public class GamepadView extends View {
 	private float mCenterViewX, mCenterViewY;
 	private float mCenterImageX, mCenterImageY;
 	private float mOffsetX, mOffsetY;
+
+	private final int[] mStickPos = new int[6];
+	private final float[] mStickVals = new float[4];
+	private float mStickScaleLeft, mStickScaleRight;
 
 	public GamepadView(final Context context) {
 		this(context, null, 0);
@@ -101,14 +101,20 @@ public class GamepadView extends View {
 			mCenterImageY = mImageHeight / 2.0f;
 			mOffsetX = offset_x;
 			mOffsetY = offset_y;
+
+			mStickScaleLeft = mStickPos[2] * mScale / 256.f;
+			mStickScaleRight = mStickPos[5] * mScale / 256.f;
 		}
 	}
 
 	private static final int[] CHECKED_STATE_SET = { android.R.attr.state_checked, android.R.attr.state_enabled };
 
+	private final Paint mPaint = new Paint();
 	private final SparseIntArray mWorkState = new SparseIntArray();
 	private boolean[] mDowns = new boolean[GamePadConst.KEY_NUMS];
 	private boolean[] mDownsCopy = new boolean[GamePadConst.KEY_NUMS];
+	private final int[] mAnalogs = new int[4];
+
 	@Override
 	protected void onDraw(final Canvas canvas) {
 		if (mKeypadDrawable != null) {
@@ -152,7 +158,7 @@ public class GamepadView extends View {
 			}
 		}
 		// ゲームパッド画像の表示
-		final int saveCount = canvas.save(Canvas.MATRIX_SAVE_FLAG);
+		int saveCount = canvas.save(Canvas.MATRIX_SAVE_FLAG);
 		try {
 			// Canvas#setMatrixはうまく働かない
 			// 元のイメージの中心点を原点に移動→拡大縮小→Viewの中心座標まで原点を移動
@@ -162,6 +168,22 @@ public class GamepadView extends View {
 			if (mGamepadDrawable != null) {
 				mGamepadDrawable.draw(canvas);
 			}
+		} finally {
+			canvas.restoreToCount(saveCount);
+		}
+		// アナログスティックの表示
+		drawStickOne(canvas, mStickPos[0], mStickPos[1], mStickVals[0], mStickVals[1]);
+		drawStickOne(canvas, mStickPos[3], mStickPos[4], mStickVals[2], mStickVals[3]);
+	}
+
+	private void drawStickOne(final Canvas canvas, final float cx, final float cy, final float vx, final float vy) {
+		final int saveCount = canvas.save(Canvas.MATRIX_SAVE_FLAG);
+		try {
+			canvas.scale(mScale, mScale);
+			canvas.translate(mOffsetX, mOffsetY);
+			mPaint.setColor(0xffff0000);	// 赤
+			mPaint.setStrokeWidth(5.0f);
+			canvas.drawLine(cx, cy, vx, vy, mPaint);
 		} finally {
 			canvas.restoreToCount(saveCount);
 		}
@@ -178,7 +200,17 @@ public class GamepadView extends View {
 		}
 	}
 
-	public void setKeyState(final boolean[] downs) {
+	public void setSticks(final int[] xyr) {
+		synchronized (mSync) {
+			System.arraycopy(xyr, 0, mStickPos, 0, 6);
+			mStickVals[0] = mStickPos[0];
+			mStickVals[1] = mStickPos[1];
+			mStickVals[2] = mStickPos[3];
+			mStickVals[3] = mStickPos[4];
+		}
+	}
+
+	public void setKeyState(final boolean[] downs, final int[] analogs) {
 //		if (DEBUG) Log.v(TAG, "setKeyState:");
 		boolean modified = false;
 		synchronized (mSync) {
@@ -189,13 +221,32 @@ public class GamepadView extends View {
 					modified = true;
 				}
 			}
+			// 左アナログスティック
+			if (mAnalogs[0] != analogs[0]) {
+				mStickVals[0] = analogs[0] * mStickScaleLeft + mStickPos[0];
+				mAnalogs[0] = analogs[0];
+				modified = true;
+			}
+			if (mAnalogs[1] != analogs[1]) {
+				mStickVals[1] = analogs[1] * mStickScaleLeft + mStickPos[1];
+				mAnalogs[1] = analogs[1];
+				modified = true;
+			}
+			// 右アナログスティック
+			if (mAnalogs[2] != analogs[2]) {
+				mStickVals[2] = analogs[2] * mStickScaleRight + mStickPos[3];
+				mAnalogs[2] = analogs[2];
+				modified = true;
+			}
+			if (mAnalogs[3] != analogs[3]) {
+				mStickVals[3] = analogs[3] * mStickScaleRight + mStickPos[4];
+				mAnalogs[3] = analogs[3];
+				modified = true;
+			}
 		}
 		if (modified) {
-			update();
+			postInvalidate();
 		}
 	}
 
-	private void update() {
-		postInvalidate();
-	}
 }

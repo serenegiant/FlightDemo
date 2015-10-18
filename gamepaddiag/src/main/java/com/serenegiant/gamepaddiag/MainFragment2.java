@@ -41,6 +41,11 @@ public class MainFragment2 extends BaseFragment {
 //		sPositions.add(new KeyPosition(GamePadConst.KEY_RIGHT_D, 380, 123, 37, 37));		// アナログモードの時の右キーパッド左
 	}
 
+	private static final int[] sStickPos = new int[] {
+		191, 206, 25,	// 左アナログスティック
+		359, 206, 25,	// 右アナログスティック
+	};
+
 	private GamepadView mGamepadView;
 
 	public MainFragment2() {
@@ -57,11 +62,12 @@ public class MainFragment2 extends BaseFragment {
 
 	@Override
 	protected void updateButtons(final boolean[] downs, final long[] counts, final int[] analog_sticks) {
-		mGamepadView.setKeyState(downs);
+		mGamepadView.setKeyState(downs, analog_sticks);
 	}
 
 	private void initView(final View rootView) {
 		mGamepadView = (GamepadView)rootView.findViewById(R.id.gamepad_view);
 		mGamepadView.setKeys(sPositions);
+		mGamepadView.setSticks(sStickPos);
 	}
 }
