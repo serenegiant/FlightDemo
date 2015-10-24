@@ -1,13 +1,26 @@
 package com.serenegiant.gamepad;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.hardware.usb.UsbConstants;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbEndpoint;
+import android.hardware.usb.UsbInterface;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import com.serenegiant.gamepad.modules.DualShock3;
+import com.serenegiant.gamepad.modules.DualShock4;
+import com.serenegiant.gamepad.modules.GeneralGamepad;
+import com.serenegiant.gamepad.modules.JCU2912;
+import com.serenegiant.gamepad.modules.JoystickBSGP1204;
 import com.serenegiant.gamepad.modules.JoystickGeneral;
+import com.serenegiant.gamepad.modules.JoystickJCU3312s;
+import com.serenegiant.gamepad.modules.XInputF310rGamepad;
+import com.serenegiant.gamepad.modules.XInputGeneral;
 import com.serenegiant.utils.BuildCheck;
 
 import java.util.List;
@@ -16,14 +29,102 @@ import static com.serenegiant.gamepad.GamePadConst.*;
 
 public abstract class JoystickParser {
 //	private static final boolean DEBUG = false; // FIXME 実同時はfalseにすること
-//	private static final String TAG = JoystickParser.class.getSimpleName();
+	private static final String TAG = JoystickParser.class.getSimpleName();
 
-	@SuppressLint("NewApi")
-	public static JoystickParser getJoystick(final InputDevice device) {
-		final int vid = BuildCheck.isKitKat() ? device.getVendorId() : 0;
-		final int pid = BuildCheck.isKitKat() ? device.getProductId() : 0;
-		JoystickParser result = new JoystickGeneral(device);
-		return result;
+	public static JoystickParser getJoystick(final InputDevice device, final int vid, final int pid, final UsbDevice usb_device) {
+
+		final int vendor_id = vid != 0 ? vid : (usb_device != null ? usb_device.getVendorId() : 0);
+		final int product_id = pid != 0 ? pid : (usb_device != null ? usb_device.getProductId() : 0);
+		final int clazz = usb_device != null ? usb_device.getDeviceClass() : 0;
+		final int sub_class = usb_device != null ? usb_device.getDeviceSubclass() : 0;
+
+		int cs_class = 0;
+		int cs_sub_class = 0;
+		int cs_protocol = 0;
+		if (usb_device != null) {
+			final int num_interface = usb_device.getInterfaceCount();
+			//		if (DEBUG) Log.v(TAG, "num_interface:" + num_interface);
+			for (int j = 0; j < num_interface; j++) {
+				final UsbInterface intf = usb_device.getInterface(j);
+				final int num_endpoint = intf.getEndpointCount();
+				//			if (DEBUG) Log.v(TAG, "num_endpoint:" + num_endpoint);
+				if (num_endpoint > 0) {
+					UsbEndpoint ep_in = null;
+					for (int i = 0; i < num_endpoint; i++) {
+						final UsbEndpoint ep = intf.getEndpoint(i);
+						//					if (DEBUG) Log.v(TAG, "type=" + ep.getType() + ", dir=" + ep.getDirection());
+						if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {    // インタラプト転送
+							if (ep.getDirection() == UsbConstants.USB_DIR_IN) {
+								if (ep_in == null) {
+									ep_in = ep;
+								}
+								break;
+							}
+						}
+						if (ep_in != null) break;
+					}
+					if (ep_in != null) {
+						// 入力インターフェースのエンドポイントが見つかった
+						cs_class = intf.getInterfaceClass();
+						cs_sub_class = intf.getInterfaceSubclass();
+						cs_protocol = intf.getInterfaceProtocol();
+						break;
+					}
+				}
+			}
+		}
+
+		switch (vid) {
+		case 4607:	// ELECOM
+		{
+			switch (pid) {
+			case 13105:
+				return new JoystickGeneral(device);
+			}
+			break;
+		}
+		case 1464: // ELECOM
+		{
+			switch (pid) {
+			case 4100:
+				return new JoystickJCU3312s(device);
+			}
+			break;
+		}
+		case 1356:	// SONY
+		{
+			switch (pid) {
+			case 616:
+				return new JoystickGeneral(device);
+			case 1476:
+				return new JoystickGeneral(device);
+			}
+			break;
+		}
+		case 1133:	// Logicool/Logitech
+		{
+			switch (pid) {
+			case 49693:
+				return new JoystickGeneral(device);
+			}
+			break;
+		}
+		case 7640:	// iBuffalo
+		{
+			switch (pid) {
+			case 15:
+				return new JoystickBSGP1204(device);
+			}
+			break;
+		}
+		}
+		if ((clazz == 0xff) && (sub_class == 0xff) && (product_id == 0xff)	// vendor specific
+			&& (cs_class == 0xff) && (cs_sub_class == 0x5d) && (cs_protocol == 0x01)) {
+			// たぶんx-input
+			return new JoystickGeneral(device);
+		}
+		// フォールバック
+		return new JoystickGeneral(device);
 	}
 
 	protected final InputDevice mDevice;
@@ -101,8 +202,8 @@ public abstract class JoystickParser {
 		if (isJoystick()) {
 			if (event.getRepeatCount() == 0) {
 				mKeys.put(keyCode, 255);
-//				final String symbolicName = KeyEvent.keyCodeToString(keyCode);
-//				Log.i(TAG, mDevice.getName() + " - Key Down: " + symbolicName);
+				final String symbolicName = KeyEvent.keyCodeToString(keyCode);
+				Log.i(TAG, mDevice.getName() + " - Key Down: " + symbolicName);
 			}
 			update();
 			return true;

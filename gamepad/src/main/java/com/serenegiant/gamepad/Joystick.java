@@ -1,7 +1,10 @@
 package com.serenegiant.gamepad;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.hardware.input.InputManager;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -11,14 +14,20 @@ import android.view.InputEvent;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import com.serenegiant.utils.BuildCheck;
+
+import java.util.Map;
+import java.util.Set;
+
 public class Joystick extends IGamePad {
-//	private static final boolean DEBUG = false; // FIXME 実同時はfalseにすること
+	private static final boolean DEBUG = true; // FIXME 実同時はfalseにすること
 	private static final String TAG = Joystick.class.getSimpleName();
 
 	private final Object mSync = new Object();
 	private final InputManager mInputManager;
 	private final SparseArray<JoystickParser> mInputDeviceStates = new SparseArray<JoystickParser>();;
 	private final Handler mHandler;
+	private final UsbManager mUsbManager;
 	private boolean registered;
 	private JoystickParser mParser;
 
@@ -32,6 +41,7 @@ public class Joystick extends IGamePad {
 
 	private Joystick(final Context context) {
 		mInputManager = (InputManager)context.getSystemService(Context.INPUT_SERVICE);
+		mUsbManager = (UsbManager)context.getSystemService(Context.USB_SERVICE);
 		HandlerThread thread = new HandlerThread(TAG);
 		thread.start();
 		mHandler = new Handler(thread.getLooper());
@@ -138,6 +148,31 @@ public class Joystick extends IGamePad {
 		}
 	}
 
+	private UsbDevice findUsbDevice(final int vid, final int pid) {
+		if (DEBUG) Log.v(TAG, "findUsbDevice:vid=" + vid + ", pid=" + pid);
+		UsbDevice result = null;
+		if (mUsbManager != null) {
+			final Map<String, UsbDevice> devices = mUsbManager.getDeviceList();
+			for (UsbDevice device: devices.values()) {
+				if ((device.getVendorId() == vid) && (device.getProductId() == pid)) {
+					result = device;
+					break;
+				}
+			}
+			if ((result == null) && (devices.size() > 1)) {
+				// vid,pidが一致するのが見つからないけど1台以上選択されてれば先頭を選択する
+				// kitkat未満だとInputDeviceからvid/pidを取得できないので上のループでは選択できないからフォールバック処理
+				try {
+					result = devices.values().iterator().next();
+				} catch (final Exception e) {
+					// ignore
+				}
+			}
+		}
+		return result;
+	}
+
+	@SuppressLint("NewApi")
 	private JoystickParser getJoystick(final int deviceId) {
 		JoystickParser joystick = mInputDeviceStates.get(deviceId);
 		if (joystick == null) {
@@ -145,7 +180,10 @@ public class Joystick extends IGamePad {
 			if (device == null) {
 				return null;
 			}
-			joystick = JoystickParser.getJoystick(device);
+			final int vid = BuildCheck.isKitKat() ? device.getVendorId() : 0;
+			final int pid = BuildCheck.isKitKat() ? device.getProductId() : 0;
+			final UsbDevice usb_device = findUsbDevice(vid, pid);
+			joystick = JoystickParser.getJoystick(device, vid, pid, usb_device);
 			mInputDeviceStates.put(deviceId, joystick);
 //			if (DEBUG) Log.v(TAG, "Device enumerated: " + joystick.getDevice());
 		}
