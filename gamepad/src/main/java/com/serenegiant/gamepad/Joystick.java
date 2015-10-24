@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class Joystick extends IGamePad {
-	private static final boolean DEBUG = true; // FIXME 実同時はfalseにすること
+//	private static final boolean DEBUG = false; // FIXME 実同時はfalseにすること
 	private static final String TAG = Joystick.class.getSimpleName();
 
 	private final Object mSync = new Object();
@@ -86,6 +86,9 @@ public class Joystick extends IGamePad {
 		boolean result = false;
 		final JoystickParser joystick = getJoystick(event.getDeviceId());
 		if ((joystick != null) && joystick.isJoystick()) {
+//			if (joystick != mParser) {
+//				// XXX 変更通知する?
+//			}
 			synchronized (mSync) {
 				switch (event.getAction()) {
 				case KeyEvent.ACTION_DOWN:
@@ -107,6 +110,9 @@ public class Joystick extends IGamePad {
 		if (event.getAction() == MotionEvent.ACTION_MOVE) {
 			final JoystickParser joystick = getJoystick(event.getDeviceId());
 			if ((joystick != null) && joystick.isJoystick()) {
+//				if (joystick != mParser) {
+//					// XXX 変更通知する?
+//				}
 				synchronized (mSync) {
 					joystick.onJoystickMotion(event);
 				}
@@ -149,7 +155,7 @@ public class Joystick extends IGamePad {
 	}
 
 	private UsbDevice findUsbDevice(final int vid, final int pid) {
-		if (DEBUG) Log.v(TAG, "findUsbDevice:vid=" + vid + ", pid=" + pid);
+//		if (DEBUG) Log.v(TAG, "findUsbDevice:vid=" + vid + ", pid=" + pid);
 		UsbDevice result = null;
 		if (mUsbManager != null) {
 			final Map<String, UsbDevice> devices = mUsbManager.getDeviceList();

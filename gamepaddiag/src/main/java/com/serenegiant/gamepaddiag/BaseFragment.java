@@ -41,7 +41,7 @@ public abstract class BaseFragment extends Fragment {
 		super.onResume();
 //		if (DEBUG) Log.v(TAG, "onResume:");
 		mUIHandler.post(mKeyUpdateTask);
-		mUIHandler.postDelayed(mUpdateNameTask, 500);
+		mUIHandler.postDelayed(mUpdateNameTask, 0);
 	}
 
 	@Override
@@ -88,11 +88,8 @@ public abstract class BaseFragment extends Fragment {
 			mUIHandler.removeCallbacks(this);
 			if (mNameTv != null) {
 				final String name = getGamepadName();
-				if (!TextUtils.isEmpty(name)) {
-					mNameTv.setText(name);
-				} else {
-					mUIHandler.postDelayed(this, 1000);
-				}
+				mNameTv.setText(name);
+				mUIHandler.postDelayed(this, 1000);
 			}
 		}
 	};

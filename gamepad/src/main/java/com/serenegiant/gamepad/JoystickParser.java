@@ -29,7 +29,7 @@ import static com.serenegiant.gamepad.GamePadConst.*;
 
 public abstract class JoystickParser {
 //	private static final boolean DEBUG = false; // FIXME 実同時はfalseにすること
-	private static final String TAG = JoystickParser.class.getSimpleName();
+//	private static final String TAG = JoystickParser.class.getSimpleName();
 
 	public static JoystickParser getJoystick(final InputDevice device, final int vid, final int pid, final UsbDevice usb_device) {
 
@@ -202,8 +202,8 @@ public abstract class JoystickParser {
 		if (isJoystick()) {
 			if (event.getRepeatCount() == 0) {
 				mKeys.put(keyCode, 255);
-				final String symbolicName = KeyEvent.keyCodeToString(keyCode);
-				Log.i(TAG, mDevice.getName() + " - Key Down: " + symbolicName);
+//				final String symbolicName = KeyEvent.keyCodeToString(keyCode);
+//				if (DEBUG) Log.i(TAG, mDevice.getName() + " - Key Down: " + symbolicName);
 			}
 			update();
 			return true;

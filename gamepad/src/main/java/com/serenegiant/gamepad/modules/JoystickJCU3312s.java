@@ -29,12 +29,12 @@ import static com.serenegiant.gamepad.GamePadConst.KEY_RIGHT_RIGHT;
 import static com.serenegiant.gamepad.GamePadConst.KEY_RIGHT_UP;
 
 public class JoystickJCU3312s extends JoystickParser {
-	private static final boolean DEBUG = true; // FIXME 実同時はfalseにすること
-	private static final String TAG = JoystickJCU3312s.class.getSimpleName();
+//	private static final boolean DEBUG = false; // FIXME 実同時はfalseにすること
+//	private static final String TAG = JoystickJCU3312s.class.getSimpleName();
 
 	public JoystickJCU3312s(InputDevice device) {
 		super(device);
-		if (DEBUG) Log.v(TAG, "コンストラクタ");
+//		if (DEBUG) Log.v(TAG, "コンストラクタ");
 	}
 
 	@Override
