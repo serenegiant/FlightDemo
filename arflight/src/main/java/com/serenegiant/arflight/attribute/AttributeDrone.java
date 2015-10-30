@@ -1,6 +1,6 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.attribute;
 
-public class DroneInfo {
+public class AttributeDrone {
 	private String mProductName;
 	public void setProductName(final String name) {
 		mProductName = name;

@@ -85,6 +85,12 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateMaxVertica
 import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateOutdoorChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.serenegiant.arflight.attribute.AttributeDrone;
+import com.serenegiant.arflight.attribute.AttributeFloat;
+import com.serenegiant.arflight.attribute.AttributeGPS;
+import com.serenegiant.arflight.attribute.AttributeMotor;
+import com.serenegiant.arflight.attribute.AttributePosition;
+import com.serenegiant.arflight.configs.ARNetworkConfigARDrone3;
 
 public class DeviceControllerBebop extends DeviceController implements IVideoStreamController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
@@ -99,7 +105,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 	public DeviceControllerBebop(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigARDrone3());
-		mInfo = new DroneInfo();
+		mInfo = new AttributeDrone();
 		mSettings = new DroneSettings();
 		mStatus = new DroneStatus(4);
 

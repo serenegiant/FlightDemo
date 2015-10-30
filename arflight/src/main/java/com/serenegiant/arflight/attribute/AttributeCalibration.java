@@ -1,4 +1,4 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.attribute;
 
 public class AttributeCalibration {
 	private final Object mSync = new Object();

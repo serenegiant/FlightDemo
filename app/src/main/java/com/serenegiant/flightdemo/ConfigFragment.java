@@ -17,7 +17,7 @@ import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.arflight.AttributeFloat;
+import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.widget.RelativeRadioGroup;
 
 public class ConfigFragment extends ControlBaseFragment {

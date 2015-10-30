@@ -1,5 +1,9 @@
 package com.serenegiant.arflight;
 
+import com.serenegiant.arflight.attribute.AttributeCamera;
+import com.serenegiant.arflight.attribute.AttributeFloat;
+import com.serenegiant.arflight.attribute.AttributeTimeLapse;
+
 public class DroneSettings {
 	protected String mCountryCode;
 	public void setCountryCode(final String code) {

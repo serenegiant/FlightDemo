@@ -1,4 +1,4 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.attribute;
 
 public class AttributeFlightDuration {
 	private int mFlightCounts;			// 飛行回数

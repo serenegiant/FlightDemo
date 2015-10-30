@@ -1,4 +1,4 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.attribute;
 
 public class AttributePosition {
 	public static final double INVALID_VALUE = 500.0;

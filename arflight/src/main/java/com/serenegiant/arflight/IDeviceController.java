@@ -1,6 +1,9 @@
 package com.serenegiant.arflight;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.serenegiant.arflight.attribute.AttributeFloat;
+import com.serenegiant.arflight.attribute.AttributeMotor;
+import com.serenegiant.arflight.configs.ARNetworkConfig;
 import com.serenegiant.math.Vector;
 
 import java.sql.Date;

@@ -28,7 +28,7 @@
     OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
 */
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.configs;
 
 import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
 import com.parrot.arsdk.arstream.ARStreamReader;

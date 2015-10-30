@@ -31,6 +31,10 @@ import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateMaxVertic
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.serenegiant.arflight.attribute.AttributeDrone;
+import com.serenegiant.arflight.attribute.AttributeIMU;
+import com.serenegiant.arflight.attribute.AttributeMotor;
+import com.serenegiant.arflight.configs.ARNetworkConfigMiniDrone;
 
 public class DeviceControllerMiniDrone extends DeviceController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
@@ -39,7 +43,7 @@ public class DeviceControllerMiniDrone extends DeviceController {
 
 	public DeviceControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigMiniDrone());
-		mInfo = new DroneInfo();
+		mInfo = new AttributeDrone();
 		mSettings = new DroneSettings();
 		mStatus = new DroneStatus(4);
 	}

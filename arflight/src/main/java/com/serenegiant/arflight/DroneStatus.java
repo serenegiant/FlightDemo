@@ -1,12 +1,13 @@
 package com.serenegiant.arflight;
 
 import android.util.SparseArray;
-import android.util.SparseIntArray;
 
+import com.serenegiant.arflight.attribute.AttributeCalibration;
+import com.serenegiant.arflight.attribute.AttributeFlightDuration;
+import com.serenegiant.arflight.attribute.AttributeMassStorage;
+import com.serenegiant.arflight.attribute.AttributeMotor;
+import com.serenegiant.arflight.attribute.AttributePosition;
 import com.serenegiant.math.Vector;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class DroneStatus {
 	public static final int STATE_FLYING_LANDED = 0x0000;	// FlyingState=0

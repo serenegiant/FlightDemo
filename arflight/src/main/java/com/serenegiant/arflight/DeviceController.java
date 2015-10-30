@@ -65,6 +65,10 @@ import com.parrot.arsdk.arnetwork.ARNetworkManager;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_ERROR_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.parrot.arsdk.arsal.ARNativeData;
+import com.serenegiant.arflight.attribute.AttributeDrone;
+import com.serenegiant.arflight.attribute.AttributeFloat;
+import com.serenegiant.arflight.attribute.AttributeMotor;
+import com.serenegiant.arflight.configs.ARNetworkConfig;
 import com.serenegiant.math.Vector;
 
 import org.json.JSONException;
@@ -120,7 +124,7 @@ public abstract class DeviceController implements IDeviceController {
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 	private final List<DeviceControllerListener> mListeners = new ArrayList<DeviceControllerListener>();
 
-	protected DroneInfo mInfo;
+	protected AttributeDrone mInfo;
 	protected DroneSettings mSettings;
 	protected DroneStatus mStatus;
 

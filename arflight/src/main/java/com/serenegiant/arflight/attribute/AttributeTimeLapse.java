@@ -1,17 +1,20 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.attribute;
 
-/**
- * 浮動小数点の設定
- */
-public class AttributeFloat {
+public class AttributeTimeLapse {
+	private boolean mEnabled;
 	private float mCurrent;
 	private float mMin;
 	private float mMax;
 
-	public synchronized void set(final float current, final float min, final float max) {
+	public synchronized void set(final boolean enabled, final float current, final float min, final float max) {
+		mEnabled = enabled;
 		mCurrent = current;
 		mMin = min;
 		mMax = max;
+	}
+
+	public synchronized boolean enabled() {
+		return mEnabled;
 	}
 
 	public synchronized void current(final float current) {
@@ -32,6 +35,6 @@ public class AttributeFloat {
 
 	@Override
 	public String toString() {
-		return String.format("AttributeFloat{%f/%f/%f)}", mMin, mCurrent, mMax);
+		return String.format("AttributeTimeLapse{%f/%f/%f)}", mMin, mCurrent, mMax);
 	}
 }
