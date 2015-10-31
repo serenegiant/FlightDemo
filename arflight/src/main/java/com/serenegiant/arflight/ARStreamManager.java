@@ -17,6 +17,7 @@ public class ARStreamManager {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = "ARStreamManager";
 
+	/** フレームプール初期化時のフレーム数(未使用) */
 	private static final int FRAME_POOL_SZ = 40;
 
 	private final Object mPoolSync = new Object();
@@ -29,6 +30,7 @@ public class ARStreamManager {
 	private final int mMaxFragmentSize;
 	private final int mMaxAckIntervals;
 
+	/** 実行中フラグ */
 	private volatile boolean mIsRunning;
 	private ARStreamReader mARStreamReader;
 	private Thread mDataThread;
@@ -44,6 +46,9 @@ public class ARStreamManager {
 		mMaxAckIntervals = max_ack_intervals;
 	}
 
+	/**
+	 * 機体からの映像取得用オブジェクト・スレッドを生成＆開始する
+	 */
 	public void start() {
 		if (DEBUG) Log.v(TAG, "start:" + mIsRunning);
 		if (!mIsRunning) {
@@ -56,6 +61,9 @@ public class ARStreamManager {
 		}
 	}
 
+	/**
+	 * 機体からの映像取得用オブジェクト・スレッドを破棄する
+	 */
 	public void stop() {
 		if (DEBUG) Log.v(TAG, "stop:" + mIsRunning);
 		if (mIsRunning) {
@@ -86,7 +94,11 @@ public class ARStreamManager {
 		if (DEBUG) Log.v(TAG, "stop:終了");
 	}
 
+	/**
+	 * 関連するリソースを破棄する。
+	 */
 	public void release() {
+		stop();
 		synchronized (mPoolSync) {
 			for (final ARFrame frame: mFramePool) {
 				if (frame != null) {
@@ -110,11 +122,12 @@ public class ARStreamManager {
 	 * @param receive_timeout_ms
 	 * @return
 	 */
-	public ARFrame getFrameWithTimeout(final long receive_timeout_ms) {
+	public ARFrame getFrame(final long receive_timeout_ms) {
 		ARFrame result = null;
 		try {
 			result = mFrameQueue.poll(receive_timeout_ms, TimeUnit.MILLISECONDS);
 		} catch (final InterruptedException e) {
+			// ignore
 		}
 		return result;
 	}
@@ -125,12 +138,11 @@ public class ARStreamManager {
 	 * @return
 	 */
 	public ARFrame getFrame() {
-		ARFrame result = mFrameQueue.poll();
-		return result;
+		return mFrameQueue.poll();
 	}
 
 	/**
-	 * 空きフレームを取得する, なければ新規生成する
+	 * プールから空きフレームを取得する, なければ新規生成する
 	 * @return
 	 */
 	private ARFrame obtainFrame() {
@@ -139,11 +151,16 @@ public class ARStreamManager {
 			result = mFramePool.size() > 0 ? mFramePool.get(0) : null;
 		}
 		if (result == null) {
+			// FIXME 最大フレーム数を制限した方がいいかも
 			result = new ARFrame();
 		}
 		return result;
 	}
 
+	/**
+	 * フレームをプールに返却する
+	 * @param frame
+	 */
 	public void recycle(final ARFrame frame) {
 		if (frame != null) {
 			synchronized (mPoolSync) {
@@ -152,6 +169,7 @@ public class ARStreamManager {
 		}
 	}
 
+	/** ARStreamReaderListenerからのコールバックリスナー */
 	private final ARStreamReaderListener mARStreamReaderListener = new ARStreamReaderListener() {
 		@Override
 		public ARNativeData didUpdateFrameStatus(

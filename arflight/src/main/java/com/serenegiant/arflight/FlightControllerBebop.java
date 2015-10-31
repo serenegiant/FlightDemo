@@ -2123,7 +2123,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 				streamManager.start();
 				try {
 					for (; mIsRunning && mEnabled ;) {
-						final ARFrame frame = streamManager.getFrameWithTimeout(VIDEO_RECEIVE_TIMEOUT_MS);
+						final ARFrame frame = streamManager.getFrame(VIDEO_RECEIVE_TIMEOUT_MS);
 						if (frame != null) {
 							try {
 								synchronized (mStreamSync) {
@@ -2166,8 +2166,8 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 
 		@Override
 		public void onLoop() {
-			final ARFrame frame = streamManager.getFrameWithTimeout(VIDEO_RECEIVE_TIMEOUT_MS);
-//			Log.w(TAG, "getFrameWithTimeout:" + frame);
+			final ARFrame frame = streamManager.getFrame(VIDEO_RECEIVE_TIMEOUT_MS);
+//			Log.w(TAG, "getFrame:" + frame);
 			if (frame != null) {
 				try {
 //					if (DEBUG) Log.v(TAG, "video stream frame:" + frame);

@@ -53,6 +53,9 @@ public class VideoStream implements IVideoStream {
 		}
 	}
 
+	/**
+	 * 関連するリソースをすべて破棄する
+	 */
 	public void release() {
 		if (DEBUG) Log.v(TAG, "release");
 		synchronized (mSync) {
@@ -62,11 +65,20 @@ public class VideoStream implements IVideoStream {
 		mRendererTask.release();
 	}
 
+	/**
+	 * 映像書き込み用Surfaceを追加する
+	 * @param id
+	 * @param surface
+	 */
 	public void addSurface(final int id, final Surface surface) {
 		if (DEBUG) Log.v(TAG, "addSurface");
 		mRendererTask.addSurface(id, surface);
 	}
 
+	/**
+	 * 映像書き込み用Surfaceを取り除く
+	 * @param id
+	 */
 	public void removeSurface(final int id) {
 		if (DEBUG) Log.v(TAG, "removeSurface");
 		mRendererTask.removeSurface(id);
@@ -74,18 +86,24 @@ public class VideoStream implements IVideoStream {
 
 	@Override
 	public void onReceiveFrame(final ARFrame frame) {
+		// 映像フレームデータを受信した時の処理
+		// デコーダーへキューイングする
 		mDecodeTask.queueFrame(frame);
 	}
 
 	@Override
 	public void onFrameTimeout() {
+		// 一定時間内に映像フレームデータを受信できなかった時の処理
+		// 今のところLogCatにメッセージを出すだけで特に何もしない
 		Log.w(TAG, "onFrameTimeout");
 	}
 
+	/** 受信したh.264映像をデコードして描画タスクにキューイングするタスク */
 	private final class DecodeTask implements Runnable {
 		private MediaCodec mediaCodec;
+		/** デコーダーが初期化出来たかどうか */
 		private volatile boolean isCodecConfigured;
-		private ByteBuffer csdBuffer;
+		/** IFrame待機中フラグ */
 		private boolean waitForIFrame = true;
 		private ByteBuffer [] inputBuffers;
 
@@ -99,9 +117,9 @@ public class VideoStream implements IVideoStream {
 //				+ ",waitForIFrame=" + waitForIFrame + ",isIFrame=" + (frame != null ? frame.isIFrame() : false));
 			if ((mediaCodec != null)) {
 				if (!isCodecConfigured && frame.isIFrame()) {
-					csdBuffer = getCSD(frame);
+					final ByteBuffer csdBuffer = getCSD(frame);
 					if (csdBuffer != null) {
-						configureMediaCodec(mRendererTask.getSurface());
+						configureMediaCodec(csdBuffer, mRendererTask.getSurface());
 					} else {
 						Log.w(TAG, "CSDを取得できなかった");
 					}
@@ -151,11 +169,13 @@ public class VideoStream implements IVideoStream {
 		@Override
 		public void run() {
 			if (DEBUG) Log.v(TAG, "DecodeTask#run");
+			// デコーダーを初期化
 			initMediaCodec();
 			synchronized (mSync) {
 				isDecoderRunning = true;
 				mSync.notifyAll();
 			}
+			// デコーダーの初期化完了待ちループ
 			for ( ; isDecoderRunning && !isCodecConfigured ; ) {
 				try {
 					Thread.sleep(VIDEO_OUTPUT_TIMEOUT_US / 1000);
@@ -164,15 +184,18 @@ public class VideoStream implements IVideoStream {
 				}
 			}
 			if (DEBUG) Log.v(TAG, "DecodeTask#run:isRendererRunning=" + isRendererRunning + ",isCodecConfigured=" + isCodecConfigured);
-			if (isCodecConfigured) {
+			if (isDecoderRunning && isCodecConfigured) {
+				// 正常に初期化出来た時
 				final MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 				int outIndex;
 				for ( ; isDecoderRunning; ) {
+					// MediaCodecでデコードした映像フレームを取り出してSurfaceへ反映させるためのループ
 					try {
 						outIndex = mediaCodec.dequeueOutputBuffer(info, VIDEO_OUTPUT_TIMEOUT_US);
 //						if (DEBUG) Log.v(TAG, "releaseOutputBuffer:" + outIndex);
 						// XXX 時間調整っていらんのかな?
 						if (outIndex >= 0) {
+							// これを呼び出すとSurfaceへの書き込み要求が発行される
 							mediaCodec.releaseOutputBuffer(outIndex, true);
 						}
 					} catch (final IllegalStateException e) {
@@ -184,10 +207,14 @@ public class VideoStream implements IVideoStream {
 				isDecoderRunning = false;
 				mSync.notifyAll();
 			}
+			// デコーダーを破棄
 			releaseMediaCodec();
 			if (DEBUG) Log.v(TAG, "DecodeTask#run:終了");
 		}
 
+		/**
+		 * デコーダー用のMediaCodecを生成
+		 */
 		private void initMediaCodec() {
 			try {
 				mediaCodec = MediaCodec.createDecoderByType(VIDEO_MIME_TYPE);
@@ -196,7 +223,12 @@ public class VideoStream implements IVideoStream {
 			}
 		}
 
-		private void configureMediaCodec(final Surface surface) {
+		/**
+		 * デコーダー用のMediaCodecを初期化
+		 * @param csdBuffer
+		 * @param surface
+		 */
+		private void configureMediaCodec(final ByteBuffer csdBuffer, final Surface surface) {
 			final MediaFormat format = MediaFormat.createVideoFormat(VIDEO_MIME_TYPE, VIDEO_WIDTH, VIDEO_HEIGHT);
 			format.setByteBuffer("csd-0", csdBuffer);
 
@@ -207,6 +239,9 @@ public class VideoStream implements IVideoStream {
 			isCodecConfigured = true;
 		}
 
+		/**
+		 * デコーダーを破棄
+		 */
 		private void releaseMediaCodec() {
 			if ((mediaCodec != null) && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)) {
 				try {
@@ -268,6 +303,8 @@ public class VideoStream implements IVideoStream {
 	private static final int REQUEST_UPDATE_SIZE = 2;
 	private static final int REQUEST_ADD_SURFACE = 3;
 	private static final int REQUEST_REMOVE_SURFACE = 4;
+
+	/** デコードした映像をOpenGL|ESでSurface全面に表示するためのタスク */
 	private static final class RendererTask extends EglTask {
 		private static final class RendererSurfaceRec {
 			private Object mSurface;
