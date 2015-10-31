@@ -9,8 +9,9 @@ import android.widget.Toast;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.arflight.DeviceControllerListener;
+import com.serenegiant.arflight.FlightControllerListener;
 import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ManagerFragment;
@@ -73,7 +74,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
 		if (mController != null) {
-			mController.addListener(mDeviceControllerListener);
+			mController.addListener(mFlightControllerListener);
 		}
 	}
 
@@ -81,7 +82,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	public synchronized void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		if (mController != null) {
-			mController.removeListener(mDeviceControllerListener);
+			mController.removeListener(mFlightControllerListener);
 		}
 		super.onPause();
 	}
@@ -107,7 +108,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	}
 
 	protected boolean isConnected() {
-		return mController != null ? mController.isConnected() : false;
+		return mController != null && mController.isConnected();
 	}
 
 	protected int getState() {
@@ -119,7 +120,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	}
 
 	protected boolean isFlying() {
-		return mController != null ? mController.isFlying() : false;
+		return mController != null && mController.isFlying();
 	}
 
 	protected int getStillCaptureState() {
@@ -296,7 +297,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	 * 接続された
 	 * @param controller
 	 */
-	protected void onConnect(final IFlightController controller) {
+	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onConnect:");
 	}
 
@@ -304,7 +305,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	 * 切断された
 	 * @param controller
 	 */
-	protected void onDisconnect(final IFlightController controller) {
+	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onDisconnect:");
 		stopDeviceController(true);
 	}
@@ -316,16 +317,16 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	protected void onAlarmStateChangedUpdate(int alert_state) {
 	}
 
-	private final DeviceControllerListener mDeviceControllerListener
-		= new DeviceControllerListener() {
+	private final FlightControllerListener mFlightControllerListener
+		= new FlightControllerListener() {
 		@Override
-		public void onConnect(final IFlightController controller) {
+		public void onConnect(final IDeviceController controller) {
 			ControlBaseFragment.this.onConnect(controller);
 		}
 
 		@Override
-		public void onDisconnect(final IFlightController controller) {
-			if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onDisconnect");
+		public void onDisconnect(final IDeviceController controller) {
+			if (DEBUG) Log.v(TAG, "mFlightControllerListener#onDisconnect");
 			ControlBaseFragment.this.onDisconnect(controller);
 		}
 
@@ -341,7 +342,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 
 		@Override
 		public void onAlarmStateChangedUpdate(int alarm_state) {
-			if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onAlarmStateChangedUpdate:state=" + alarm_state);
+			if (DEBUG) Log.v(TAG, "mFlightControllerListener#onAlarmStateChangedUpdate:state=" + alarm_state);
 			updateAlarmState(alarm_state);
 		}
 

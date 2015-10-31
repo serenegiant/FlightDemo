@@ -1,6 +1,6 @@
 package com.serenegiant.arflight;
 
-public interface DeviceControllerListener extends DeviceConnectionListener {
+public interface FlightControllerListener extends DeviceConnectionListener {
 	/**
 	 * 電池残量が変化した時のコールバック
 	 * @param percent

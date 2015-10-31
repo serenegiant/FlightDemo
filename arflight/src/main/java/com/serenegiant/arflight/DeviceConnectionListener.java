@@ -5,9 +5,9 @@ public interface DeviceConnectionListener {
 	 * 接続した時のコールバック
 	 * @param controller
 	 */
-	public void onConnect(final IFlightController controller);
+	public void onConnect(final IDeviceController controller);
 	/**
 	 * 切断された時のコールバック
 	 */
-	public void onDisconnect(final IFlightController controller);
+	public void onDisconnect(final IDeviceController controller);
 }

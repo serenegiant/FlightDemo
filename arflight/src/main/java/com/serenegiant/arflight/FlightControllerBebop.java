@@ -85,7 +85,7 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateMaxVertica
 import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateOutdoorChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
-import com.serenegiant.arflight.attribute.AttributeDrone;
+import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.arflight.attribute.AttributeGPS;
 import com.serenegiant.arflight.attribute.AttributeMotor;
@@ -105,7 +105,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 
 	public FlightControllerBebop(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigARDrone3());
-		mInfo = new AttributeDrone();
+		mInfo = new AttributeDevice();
 		mSettings = new DroneSettings();
 		mStatus = new DroneStatus(4);
 

@@ -31,7 +31,7 @@ import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateMaxVertic
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
-import com.serenegiant.arflight.attribute.AttributeDrone;
+import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.attribute.AttributeIMU;
 import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.configs.ARNetworkConfigMiniDrone;
@@ -43,7 +43,7 @@ public class FlightControllerMiniDrone extends FlightController {
 
 	public FlightControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigMiniDrone());
-		mInfo = new AttributeDrone();
+		mInfo = new AttributeDevice();
 		mSettings = new DroneSettings();
 		mStatus = new DroneStatus(4);
 	}

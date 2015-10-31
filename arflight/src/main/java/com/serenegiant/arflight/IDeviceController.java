@@ -84,6 +84,10 @@ public interface IDeviceController {
 	 * 接続処理を中断
 	 */
 	public void cancelStart();
+
+	/**
+	 * 切断処理
+	 */
 	public void stop();
 
 	/**
