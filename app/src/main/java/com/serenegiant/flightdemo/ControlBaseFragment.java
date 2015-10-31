@@ -11,7 +11,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.DeviceControllerListener;
 import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ManagerFragment;
 
@@ -24,7 +24,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	protected static final long POP_BACK_STACK_DELAY = 2000;
 
 	private ARDiscoveryDeviceService mDevice;
-	protected IDeviceController mController;
+	protected IFlightController mController;
 
 	public ControlBaseFragment() {
 		super();
@@ -111,7 +111,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	}
 
 	protected int getState() {
-		return mController != null ? mController.getState() : IDeviceController.STATE_STOPPED;
+		return mController != null ? mController.getState() : IFlightController.STATE_STOPPED;
 	}
 
 	protected int getAlarm() {
@@ -138,8 +138,8 @@ public abstract class ControlBaseFragment extends BaseFragment {
 		}
 		if (mController != null) {
 			final int state = getState();
-			if ((state != IDeviceController.STATE_STARTED)
-				&& (state != IDeviceController.STATE_STARTING)) {
+			if ((state != IFlightController.STATE_STARTED)
+				&& (state != IFlightController.STATE_STARTING)) {
 				if (DEBUG) Log.v(TAG, "未接続");
 				updateBattery();
 
@@ -185,10 +185,10 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	protected synchronized void stopDeviceController(final boolean disconnected) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
 		final int state = getState();
-		final IDeviceController controller = mController;
+		final IFlightController controller = mController;
 		mController = null;
-		if ((state == IDeviceController.STATE_STARTED)
-			|| (state == IDeviceController.STATE_STARTING)) {
+		if ((state == IFlightController.STATE_STARTED)
+			|| (state == IFlightController.STATE_STARTING)) {
 
 			final MainActivity activity = (MainActivity)getActivity();
 			if (activity != null) {
@@ -296,7 +296,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	 * 接続された
 	 * @param controller
 	 */
-	protected void onConnect(final IDeviceController controller) {
+	protected void onConnect(final IFlightController controller) {
 		if (DEBUG) Log.v(TAG, "onConnect:");
 	}
 
@@ -304,7 +304,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	 * 切断された
 	 * @param controller
 	 */
-	protected void onDisconnect(final IDeviceController controller) {
+	protected void onDisconnect(final IFlightController controller) {
 		if (DEBUG) Log.v(TAG, "onDisconnect:");
 		stopDeviceController(true);
 	}
@@ -319,12 +319,12 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	private final DeviceControllerListener mDeviceControllerListener
 		= new DeviceControllerListener() {
 		@Override
-		public void onConnect(final IDeviceController controller) {
+		public void onConnect(final IFlightController controller) {
 			ControlBaseFragment.this.onConnect(controller);
 		}
 
 		@Override
-		public void onDisconnect(final IDeviceController controller) {
+		public void onDisconnect(final IFlightController controller) {
 			if (DEBUG) Log.v(TAG, "mDeviceControllerListener#onDisconnect");
 			ControlBaseFragment.this.onDisconnect(controller);
 		}
@@ -399,7 +399,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 		@Override
 		public void onCancel(final DialogInterface dialog) {
 			if (DEBUG) Log.w(TAG, "ユーザーキャンセル");
-			if (getState() == IDeviceController.STATE_STARTING) {
+			if (getState() == IFlightController.STATE_STARTING) {
 				mController.cancelStart();
 			}
 		}

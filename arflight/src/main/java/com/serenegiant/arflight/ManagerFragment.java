@@ -88,8 +88,8 @@ public class ManagerFragment extends Fragment {
 	 * @param index
 	 * @return indexに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public static IDeviceController getController(final Activity activity, final int index) {
-		IDeviceController result = null;
+	public static IFlightController getController(final Activity activity, final int index) {
+		IFlightController result = null;
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null)
 			result = fragment.getController(index);
@@ -102,8 +102,8 @@ public class ManagerFragment extends Fragment {
 	 * @param name
 	 * @return nameに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public static IDeviceController getController(final Activity activity, final String name) {
-		IDeviceController result = null;
+	public static IFlightController getController(final Activity activity, final String name) {
+		IFlightController result = null;
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null)
 			result = fragment.getController(name);
@@ -116,8 +116,8 @@ public class ManagerFragment extends Fragment {
 	 * @param device
 	 * @return
 	 */
-	public static IDeviceController getController(final Activity activity, final ARDiscoveryDeviceService device) {
-		IDeviceController result = null;
+	public static IFlightController getController(final Activity activity, final ARDiscoveryDeviceService device) {
+		IFlightController result = null;
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null)
 			result = fragment.getController(device);
@@ -125,12 +125,12 @@ public class ManagerFragment extends Fragment {
 	}
 
 	/**
-	 * 指定したIDeviceControllerを取り除く(IDeviceController#releaseとかは呼ばない)
+	 * 指定したIDeviceControllerを取り除く(IFlightController#releaseとかは呼ばない)
 	 * @param activity
 	 * @param controller
 	 */
-	public static void releaseController(final Activity activity, final IDeviceController controller) {
-		IDeviceController result = null;
+	public static void releaseController(final Activity activity, final IFlightController controller) {
+		IFlightController result = null;
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null)
 			fragment.releaseController(controller);
@@ -149,7 +149,7 @@ public class ManagerFragment extends Fragment {
 	private final Object mDeviceSync = new Object();
 	private final List<ARDiscoveryDeviceService> mDevices = new ArrayList<ARDiscoveryDeviceService>();
 	private final Object mControllerSync = new Object();
-	private final Map<String, IDeviceController> mControllers = new HashMap<String, IDeviceController>();
+	private final Map<String, IFlightController> mControllers = new HashMap<String, IFlightController>();
 
 	private final List<ManagerCallback> mCallbacks = new ArrayList<ManagerCallback>();
 
@@ -239,8 +239,8 @@ public class ManagerFragment extends Fragment {
 	 * @param name
 	 * @return nameに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public IDeviceController getController(final String name) {
-		IDeviceController result;
+	public IFlightController getController(final String name) {
+		IFlightController result;
 		synchronized (mControllerSync) {
 			result = mControllers.get(name);
 		}
@@ -258,8 +258,8 @@ public class ManagerFragment extends Fragment {
 	 * @param index
 	 * @return indexに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public IDeviceController getController(final int index) {
-		IDeviceController result = null;
+	public IFlightController getController(final int index) {
+		IFlightController result = null;
 		final ARDiscoveryDeviceService device = getDevice(index);
 		if (device != null) {
 			synchronized (mControllerSync) {
@@ -277,8 +277,8 @@ public class ManagerFragment extends Fragment {
 	 * @param device
 	 * @return
 	 */
-	public IDeviceController getController(final ARDiscoveryDeviceService device) {
-		IDeviceController result = null;
+	public IFlightController getController(final ARDiscoveryDeviceService device) {
+		IFlightController result = null;
 		if (device != null) {
 			synchronized (mControllerSync) {
 				result = mControllers.get(device.getName());
@@ -331,18 +331,26 @@ public class ManagerFragment extends Fragment {
 	 * @param device
 	 * @return
 	 */
-	public IDeviceController createController(final ARDiscoveryDeviceService device) {
-		IDeviceController result = null;
+	public IFlightController createController(final ARDiscoveryDeviceService device) {
+		IFlightController result = null;
 		if (device != null) {
 			if (DEBUG) Log.v(TAG, "getProductID=" + device.getProductID());
 			switch (ARDiscoveryService.getProductFromProductID(device.getProductID())) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-				result = new DeviceControllerBebop(getActivity(), device);
+				result = new FlightControllerBebop(getActivity(), device);
 				break;
+			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+				break;
+			case ARDISCOVERY_PRODUCT_NSNETSERVICE:
 			case ARDISCOVERY_PRODUCT_JS:		// FIXME JumpingSumoは未対応
+			case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
+			case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
 				break;
 			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-				result = new DeviceControllerMiniDrone(getActivity(), device);
+			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
+				result = new FlightControllerMiniDrone(getActivity(), device);
 				break;
 			}
 			if (result != null) {
@@ -358,7 +366,7 @@ public class ManagerFragment extends Fragment {
 	 * 指定したIDeviceControllerをHashMapから取り除く
 	 * @param controller
 	 */
-	public void releaseController(final IDeviceController controller) {
+	public void releaseController(final IFlightController controller) {
 		synchronized (mControllerSync) {
 			if (mControllers.containsValue(controller)) {
 				mControllers.remove(controller.getName());
@@ -501,7 +509,7 @@ public class ManagerFragment extends Fragment {
 		}
 	}
 
-	protected void stopController(final IDeviceController controller) {
+	protected void stopController(final IFlightController controller) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
 		if (controller.isStarted()) {
 			runOnUiThread(new Runnable() {
@@ -535,11 +543,11 @@ public class ManagerFragment extends Fragment {
 	private final DeviceConnectionListener mConnectionListener
 		= new DeviceConnectionListener() {
 		@Override
-		public void onConnect(final IDeviceController controller) {
+		public void onConnect(final IFlightController controller) {
 		}
 
 		@Override
-		public void onDisconnect(final IDeviceController controller) {
+		public void onDisconnect(final IFlightController controller) {
 			if (DEBUG) Log.v(TAG, "onDisconnect:");
 			stopController(controller);
 		}

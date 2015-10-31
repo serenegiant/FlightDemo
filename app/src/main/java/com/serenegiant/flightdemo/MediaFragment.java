@@ -12,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -22,7 +21,7 @@ import android.widget.TextView;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.armedia.ARMediaObject;
 import com.serenegiant.arflight.FTPController;
-import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.dialog.ConfirmDialog;
 import com.serenegiant.dialog.OnDialogResultIntListener;
 import com.serenegiant.dialog.TransferProgressDialogFragment;
@@ -105,7 +104,7 @@ public class MediaFragment extends ControlBaseFragment
 	} */
 
 	@Override
-	protected void onConnect(final IDeviceController controller) {
+	protected void onConnect(final IFlightController controller) {
 		if (DEBUG) Log.v(TAG, "#onConnect");
 		super.onConnect(controller);
 		mFTPController = FTPController.newInstance(getActivity().getApplicationContext(), mController);
@@ -132,7 +131,7 @@ public class MediaFragment extends ControlBaseFragment
 	/** 切断された時に前のフラグメントに戻るまでの遅延時間[ミリ秒] */
 	private static final long POP_BACK_STACK_DELAY = 2000;
 	@Override
-	protected void onDisconnect(final IDeviceController controller) {
+	protected void onDisconnect(final IFlightController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
 		requestPopBackStack(POP_BACK_STACK_DELAY);
 		super.onDisconnect(controller);

@@ -81,9 +81,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
-public abstract class DeviceController implements IDeviceController {
+public abstract class FlightController implements IFlightController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static String TAG = "DeviceController";
+	private static String TAG = "FlightController";
 
 	private static final int DEFAULT_VIDEO_FRAGMENT_SIZE = 1000;
 	private static final int DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER = 128;
@@ -128,7 +128,7 @@ public abstract class DeviceController implements IDeviceController {
 	protected DroneSettings mSettings;
 	protected DroneStatus mStatus;
 
-	public DeviceController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
+	public FlightController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		mContext = context;
 		mDeviceService = service;
 		mNetConfig = net_config;
@@ -2298,7 +2298,7 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onDisconnect(final ARNetworkALManager arNetworkALManager) {
 			if (DEBUG) Log.d(TAG, "onDisconnect ...");
-			DeviceController.this.stop();
+			FlightController.this.stop();
 			mStatus.setAlarm(DroneStatus.ALARM_DISCONNECTED);
 			callOnAlarmStateChangedUpdate(DroneStatus.ALARM_DISCONNECTED);
 			callOnDisconnect();
@@ -2504,12 +2504,12 @@ public abstract class DeviceController implements IDeviceController {
 		private ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM mTimeoutPolicy;
 		private NetworkNotificationListener mNotificationListener;
 		private NetworkNotificationData mNotificationData;
-		private IDeviceController mDeviceController;
+		private IFlightController mDeviceController;
 
 		public ARNetworkSendInfo(final ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy,
 			final NetworkNotificationListener notificationListener,
 			final NetworkNotificationData notificationData,
-			final IDeviceController deviceController) {
+			final IFlightController deviceController) {
 
 			mTimeoutPolicy = timeoutPolicy;
 			mNotificationListener = notificationListener;
@@ -2529,7 +2529,7 @@ public abstract class DeviceController implements IDeviceController {
 			return mNotificationData;
 		}
 
-		public IDeviceController getDeviceController() {
+		public IFlightController getDeviceController() {
 			return mDeviceController;
 		}
 
@@ -2545,7 +2545,7 @@ public abstract class DeviceController implements IDeviceController {
 			mNotificationData = notificationData;
 		}
 
-		public void setDeviceController(final IDeviceController deviceController) {
+		public void setDeviceController(final IFlightController deviceController) {
 			mDeviceController = deviceController;
 		}
 

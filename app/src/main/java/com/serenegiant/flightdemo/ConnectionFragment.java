@@ -178,10 +178,18 @@ public class ConnectionFragment extends BaseFragment {
 					adapter.add(service);
 					break;
 				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+				case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
+				case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
 					// FIXME JumpingSumoは未実装
 					break;
 				case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+				case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+				case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+	//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 					adapter.add(service);
+					break;
+				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+				case ARDISCOVERY_PRODUCT_NSNETSERVICE:
 					break;
 				}
 /*				// ブルートゥース接続の時だけ追加する
@@ -247,7 +255,10 @@ public class ConnectionFragment extends BaseFragment {
 			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
 				//FIXME JumpingSumoは未実装
 				break;
-			case ARDISCOVERY_PRODUCT_MINIDRONE:    // RollingSpider
+			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 				fragment = isPiloting ? PilotFragment.newInstance(service) : MediaFragment.newInstance(service);
 				break;
 			}

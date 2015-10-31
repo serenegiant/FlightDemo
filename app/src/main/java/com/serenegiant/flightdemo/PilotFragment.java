@@ -28,14 +28,14 @@ import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.AutoFlightListener;
-import com.serenegiant.arflight.DeviceControllerBebop;
-import com.serenegiant.arflight.DeviceControllerMiniDrone;
+import com.serenegiant.arflight.FlightControllerBebop;
+import com.serenegiant.arflight.FlightControllerMiniDrone;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
+import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.arflight.IAutoFlight;
-import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.arflight.TouchFlight;
@@ -322,10 +322,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		// 機体モデル表示
 		final int model;
 		final int ctrl;
-		if (mController instanceof DeviceControllerMiniDrone) {
+		if (mController instanceof FlightControllerMiniDrone) {
 			model = IModelView.MODEL_MINIDRONE;
 			ctrl = AttitudeScreenBase.CTRL_PILOT;
-		} else if (mController instanceof DeviceControllerBebop) {
+		} else if (mController instanceof FlightControllerBebop) {
 			model = IModelView.MODEL_BEBOP;
 			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
 		} else {
@@ -414,7 +414,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			switch (view.getId()) {
 			case R.id.flat_trim_btn:
 				setColorFilter((ImageView)view);
-				if ((mController != null) && (mController.getState() == IDeviceController.STATE_STARTED)) {
+				if ((mController != null) && (mController.getState() == IFlightController.STATE_STARTED)) {
 					mController.sendFlatTrim();
 				}
 				break;
@@ -446,7 +446,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				// 設定パネル表示処理
 				setColorFilter((ImageView)view);
 				if (isConnected()) {
-					if ((mController.getState() & IDeviceController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
+					if ((mController.getState() & IFlightController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
 						replace(ConfigFragment.newInstance(getDevice()));
 					} else {
 						landing();
@@ -480,7 +480,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
 				setColorFilter((ImageView)view);
-				final boolean isFlying = (getState() &  IDeviceController.STATE_MASK_FLYING) != 0;
+				final boolean isFlying = (getState() &  IFlightController.STATE_MASK_FLYING) != 0;
 				if (!isFlying) {
 					takeOff();
 				} else {
@@ -491,29 +491,29 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case R.id.flip_front_btn:
 				setColorFilter((ImageView) view);
 				if (mController != null) {
-					mController.sendAnimationsFlip(IDeviceController.FLIP_FRONT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_FRONT);
+					mController.sendAnimationsFlip(IFlightController.FLIP_FRONT);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_FRONT);
 				}
 				break;
 			case R.id.flip_back_btn:
 				setColorFilter((ImageView)view);
 				if (mController != null) {
-					mController.sendAnimationsFlip(IDeviceController.FLIP_BACK);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_BACK);
+					mController.sendAnimationsFlip(IFlightController.FLIP_BACK);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_BACK);
 				}
 				break;
 			case R.id.flip_right_btn:
 				setColorFilter((ImageView)view);
 				if (mController != null) {
-					mController.sendAnimationsFlip(IDeviceController.FLIP_RIGHT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_RIGHT);
+					mController.sendAnimationsFlip(IFlightController.FLIP_RIGHT);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_RIGHT);
 				}
 				break;
 			case R.id.flip_left_btn:
 				setColorFilter((ImageView)view);
 				if (mController != null) {
-					mController.sendAnimationsFlip(IDeviceController.FLIP_LEFT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IDeviceController.FLIP_LEFT);
+					mController.sendAnimationsFlip(IFlightController.FLIP_LEFT);
+					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_LEFT);
 				}
 				break;
 			case R.id.still_capture_btn:
@@ -591,7 +591,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				return true;
 			case R.id.flat_trim_btn:
 				setColorFilter((ImageView)view);
-				if ((mController != null) && (mController.getState() == IDeviceController.STATE_STARTED)) {
+				if ((mController != null) && (mController.getState() == IFlightController.STATE_STARTED)) {
 					replace(CalibrationFragment.newInstance(getDevice()));
 					return true;
 				}
@@ -854,7 +854,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	@Override
-	protected void onConnect(final IDeviceController controller) {
+	protected void onConnect(final IFlightController controller) {
 		if (DEBUG) Log.v(TAG, "onConnect:");
 		super.onConnect(controller);
 		mVideoRecording = false;
@@ -876,7 +876,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	@Override
-	protected void onDisconnect(final IDeviceController controller) {
+	protected void onDisconnect(final IFlightController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
 		mVideoRecording = false;
 		stopRecord();
@@ -1034,7 +1034,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mMagnetValues[i] = mGravityValues[i] = mAzimuthValues[i] = 0;
 //			mAccelValues[i] = mGyroValues[i] = 0;
 		}
-		if (mController instanceof DeviceControllerMiniDrone) return;
+		if (mController instanceof FlightControllerMiniDrone) return;
 		final Display display = getActivity().getWindowManager().getDefaultDisplay();
 		mRotation = display.getRotation();
 		// 重力センサーがあればそれを使う。なければ加速度センサーで代用する
@@ -1715,7 +1715,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final boolean can_record = is_connected && !is_playing && !mScriptRunning;
 			final boolean can_load = is_connected && !is_playing && !is_recording && !mTouchMoveRunning;
 			final boolean can_fly = can_record && (alarm_state == DroneStatus.ALARM_NON);
-			final boolean can_flattrim = can_fly && (state == IDeviceController.STATE_STARTED);
+			final boolean can_flattrim = can_fly && (state == IFlightController.STATE_STARTED);
 			final boolean can_config = can_flattrim;
 			final boolean can_clear = is_connected && !is_recording && !is_playing && !mScriptRunning && !mTouchMoveRunning && mTouchFlight.isPrepared();
 			final boolean can_move = is_connected && !is_recording && !is_playing && !mScriptRunning && (mTouchFlight.isPrepared() || mTouchFlight.isPlaying()) && (alarm_state == DroneStatus.ALARM_NON);
@@ -1750,7 +1750,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			}
 
 			// 離陸/着陸
-			switch (state & IDeviceController.STATE_MASK_FLYING) {
+			switch (state & IFlightController.STATE_MASK_FLYING) {
 			case DroneStatus.STATE_FLYING_LANDED:		// 0x0000;		// FlyingState=0
 				mModelView.stopEngine();
 			case DroneStatus.STATE_FLYING_LANDING:		// 0x0400;		// FlyingState=4
@@ -1949,7 +1949,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			}
 
 			// 飛行していない時にL2/R2同時押しするとフラットトリム実行
-			if ((getState() == IDeviceController.STATE_STARTED)
+			if ((getState() == IFlightController.STATE_STARTED)
 				&& (getAlarm() == DroneStatus.ALARM_NON)
 				&& downs[GamePadConst.KEY_LEFT_2] && downs[GamePadConst.KEY_RIGHT_2]) {
 
@@ -1961,19 +1961,19 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			// R2押しながら左スティックでフリップ
 			if (downs[GamePadConst.KEY_RIGHT_2]) {
 				if (downs[GamePadConst.KEY_LEFT_LEFT]) {
-					mController.sendAnimationsFlip(IDeviceController.FLIP_LEFT);
+					mController.sendAnimationsFlip(IFlightController.FLIP_LEFT);
 					handler.postDelayed(this, 50);
 					return;
 				} if (downs[GamePadConst.KEY_LEFT_RIGHT]) {
-					mController.sendAnimationsFlip(IDeviceController.FLIP_RIGHT);
+					mController.sendAnimationsFlip(IFlightController.FLIP_RIGHT);
 					handler.postDelayed(this, 50);
 					return;
 				} if (downs[GamePadConst.KEY_LEFT_UP]) {
-					mController.sendAnimationsFlip(IDeviceController.FLIP_FRONT);
+					mController.sendAnimationsFlip(IFlightController.FLIP_FRONT);
 					handler.postDelayed(this, 50);
 					return;
 				} if (downs[GamePadConst.KEY_LEFT_DOWN]) {
-					mController.sendAnimationsFlip(IDeviceController.FLIP_BACK);
+					mController.sendAnimationsFlip(IFlightController.FLIP_BACK);
 					handler.postDelayed(this, 50);
 					return;
 				}

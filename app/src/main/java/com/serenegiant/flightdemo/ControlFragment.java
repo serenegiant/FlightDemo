@@ -1,20 +1,8 @@
 package com.serenegiant.flightdemo;
 
-import android.app.Activity;
-import android.app.Fragment;
-import android.content.DialogInterface;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.arflight.DeviceControllerListener;
-import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.IDeviceController;
-import com.serenegiant.arflight.IVideoStreamController;
+import com.serenegiant.arflight.IFlightController;
 
 public abstract class ControlFragment extends ControlBaseFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
@@ -88,14 +76,14 @@ public abstract class ControlFragment extends ControlBaseFragment {
 	}
 
 	@Override
-	protected void onConnect(final IDeviceController controller) {
+	protected void onConnect(final IFlightController controller) {
 		super.onConnect(controller);
 		stopMove();
 		startVideoStreaming();
 	}
 
 	@Override
-	protected void onDisconnect(final IDeviceController controller) {
+	protected void onDisconnect(final IFlightController controller) {
 		if (DEBUG) Log.v(TAG, "onDisconnect:");
 		stopMove();
 		stopVideoStreaming();

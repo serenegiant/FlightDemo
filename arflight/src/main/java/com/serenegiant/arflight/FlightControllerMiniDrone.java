@@ -36,12 +36,12 @@ import com.serenegiant.arflight.attribute.AttributeIMU;
 import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.configs.ARNetworkConfigMiniDrone;
 
-public class DeviceControllerMiniDrone extends DeviceController {
+public class FlightControllerMiniDrone extends FlightController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
-	private static String TAG = "DeviceControllerMiniDrone";
+	private static String TAG = "FlightControllerMiniDrone";
 
 
-	public DeviceControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service) {
+	public FlightControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigMiniDrone());
 		mInfo = new AttributeDrone();
 		mSettings = new DroneSettings();

@@ -70,7 +70,7 @@ public abstract class FTPController {
 	}
 
 	protected final WeakReference<Context>mWeakContext;
-	protected final WeakReference<IDeviceController>mWeakController;
+	protected final WeakReference<IFlightController>mWeakController;
 	protected final FTPHandler mFTPHandler;
 	protected final String mExternalDirectory;
 	protected String mRemotePath;
@@ -85,10 +85,10 @@ public abstract class FTPController {
 	private final Object mCallbackSync = new Object();
 	private FTPControllerCallback mCallback;
 
-	public static FTPController newInstance(final Context context, final IDeviceController controller) {
-		if (controller instanceof DeviceControllerBebop) {
+	public static FTPController newInstance(final Context context, final IFlightController controller) {
+		if (controller instanceof FlightControllerBebop) {
 			return new FTPControllerWiFi(context, controller);
-		} else if (controller instanceof DeviceControllerMiniDrone) {
+		} else if (controller instanceof FlightControllerMiniDrone) {
 			return new FTPControllerBLE(context, controller);
 		}
 		controller.sendVideoRecording(false);
@@ -104,9 +104,9 @@ public abstract class FTPController {
 	 * コンストラクタ
 	 * @param context
 	 */
-	protected FTPController(final Context context, final IDeviceController controller) {
+	protected FTPController(final Context context, final IFlightController controller) {
 		mWeakContext = new WeakReference<Context>(context);
-		mWeakController = new WeakReference<IDeviceController>(controller);
+		mWeakController = new WeakReference<IFlightController>(controller);
 		HandlerThread thread = new HandlerThread("FTPThread");
 		thread.start();
 		mFTPHandler = new FTPHandler(thread.getLooper());
@@ -256,7 +256,7 @@ public abstract class FTPController {
 	 * FTP接続を初期化
 	 * @param controller
 	 */
-	protected abstract void handleInit(final IDeviceController controller);
+	protected abstract void handleInit(final IFlightController controller);
 
 	protected void handleConnect() {
 		if (DEBUG) Log.v(TAG, String.format("handleConnect:mExternalDirectory=%s,mRemotePath=%s", mExternalDirectory, mRemotePath));
@@ -662,13 +662,13 @@ public abstract class FTPController {
 			switch (msg.what) {
 			case REQ_INIT:
 				try {
-					handleInit((IDeviceController) msg.obj);
+					handleInit((IFlightController) msg.obj);
 				} catch (final Exception e) {
 					callOnError(-1, e);
 				}
 				break;
 			case REQ_CONNECT:
-				final IDeviceController controller = mWeakController.get();
+				final IFlightController controller = mWeakController.get();
 				mRemotePath = String.format("%s_%03d", controller.getMassStorageName(), controller.getMassStorageId());
 				handleConnect();
 				updateMedia(-1);
@@ -712,13 +712,13 @@ public abstract class FTPController {
 	 * WiFi接続用のFTP処理クラス
 	 */
 	public static class FTPControllerWiFi extends FTPController {
-		public FTPControllerWiFi(final Context context, final IDeviceController controller) {
+		public FTPControllerWiFi(final Context context, final IFlightController controller) {
 			super(context, controller);
 			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_INIT, controller));
 		}
 
 		@Override
-		protected void handleInit(final IDeviceController controller) {
+		protected void handleInit(final IFlightController controller) {
 			final Object device = controller.getDeviceService().getDevice();
 			final String hostAddr;
 			if (device instanceof ARDiscoveryDeviceNetService) {
@@ -756,13 +756,13 @@ public abstract class FTPController {
 	 * Bluetooth接続用のFTP処理クラス
 	 */
 	public static class FTPControllerBLE extends FTPController {
-		public FTPControllerBLE(final Context context, final IDeviceController controller) {
+		public FTPControllerBLE(final Context context, final IFlightController controller) {
 			super(context, controller);
 			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_INIT, controller));
 		}
 
 		@Override
-		protected void handleInit(final IDeviceController controller) {
+		protected void handleInit(final IFlightController controller) {
 			final Context context = mWeakContext.get();
 			final Object device = controller.getDeviceService().getDevice();
 			if (!(device instanceof ARDiscoveryDeviceBLEService)) {

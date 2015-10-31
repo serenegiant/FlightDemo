@@ -92,9 +92,9 @@ import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.attribute.AttributePosition;
 import com.serenegiant.arflight.configs.ARNetworkConfigARDrone3;
 
-public class DeviceControllerBebop extends DeviceController implements IVideoStreamController {
+public class FlightControllerBebop extends FlightController implements IVideoStreamController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
-	private static String TAG = "DeviceControllerBebop";
+	private static String TAG = "FlightControllerBebop";
 
 	private static final int VIDEO_RECEIVE_TIMEOUT_MS = 500;
 
@@ -103,7 +103,7 @@ public class DeviceControllerBebop extends DeviceController implements IVideoStr
 
 	private VideoThread mVideoThread;
 
-	public DeviceControllerBebop(final Context context, final ARDiscoveryDeviceService service) {
+	public FlightControllerBebop(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigARDrone3());
 		mInfo = new AttributeDrone();
 		mSettings = new DroneSettings();

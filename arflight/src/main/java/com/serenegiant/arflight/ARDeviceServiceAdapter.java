@@ -59,7 +59,10 @@ public class ARDeviceServiceAdapter extends ArrayAdapter<ARDiscoveryDeviceServic
 			case ARDISCOVERY_PRODUCT_ARDRONE:
 //				holder.thumbnail.setImageResource(R.drawable.ic_ardrone);
 				break;
-			case ARDISCOVERY_PRODUCT_MINIDRONE:
+			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 //				holder.thumbnail.setImageResource(R.drawable.ic_minidrone);
 				break;
 			}
