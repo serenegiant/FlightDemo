@@ -34,8 +34,7 @@ import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_FRAME_TYPE_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 
-public final class ARNetworkConfigJumpingSumo extends ARNetworkConfig
-{
+public final class ARNetworkConfigJumpingSumo extends ARNetworkConfig {
     private static final String TAG = ARNetworkConfigJumpingSumo.class.getSimpleName();
     
     public ARNetworkConfigJumpingSumo() {

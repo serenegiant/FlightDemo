@@ -34,8 +34,7 @@ import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_FRAME_TYPE_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 
-public final class ARNetworkConfigMiniDrone extends ARNetworkConfig
-{
+public final class ARNetworkConfigMiniDrone extends ARNetworkConfig {
     private static final String TAG = ARNetworkConfigMiniDrone.class.getSimpleName();
     
     public ARNetworkConfigMiniDrone() {
