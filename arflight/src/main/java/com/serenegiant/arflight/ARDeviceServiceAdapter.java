@@ -62,6 +62,8 @@ public class ARDeviceServiceAdapter extends ArrayAdapter<ARDiscoveryDeviceServic
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 //				holder.thumbnail.setImageResource(R.drawable.ic_minidrone);
 				break;
+			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+				break;
 			}
 		}
 		return rootView;

@@ -284,7 +284,7 @@ public abstract class DeviceController implements IDeviceController {
 	private String discoveryIp;
 	private int discoveryPort;
 
-	protected void prepare_nextwork() {
+	protected void prepare_network() {
 	}
 
 	protected boolean startNetwork() {
@@ -310,7 +310,7 @@ public abstract class DeviceController implements IDeviceController {
 				failed = true;
 			}
 
-			prepare_nextwork();
+			prepare_network();
 			final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(discoveryIp, c2dPort, d2cPort, 1);
 
 			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
@@ -324,7 +324,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (DEBUG) Log.v(TAG, "Bluetooth接続開始");
 			final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) device;
 
-			prepare_nextwork();
+			prepare_network();
 			final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(
 				mContext, bleDevice.getBluetoothDevice(), 1, mNetConfig.getBLENotificationIDs()/*bleNotificationIDs*/);
 

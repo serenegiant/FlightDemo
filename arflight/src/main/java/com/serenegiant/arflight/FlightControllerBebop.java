@@ -2065,8 +2065,8 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 		sendVideoEnable(enable);
 	}
 
-	protected void prepare_nextwork() {
-		if (DEBUG) Log.v(TAG, "prepare_nextwork:");
+	protected void prepare_network() {
+		if (DEBUG) Log.v(TAG, "prepare_network:");
 		// TODO :  if ardiscoveryConnect ok
 		mNetConfig.addStreamReaderIOBuffer(videoFragmentSize, videoFragmentMaximumNumber);
 
@@ -2143,54 +2143,6 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 			}
 		}
 	}
-
-	/**
-	 * ビデオストリーミングデータを受信するためのスレッド
-	 */
-/*	private class VideoThread extends LooperThread {
-		private final ARStreamManager streamManager;
-
-		public VideoThread () {
-			streamManager = new ARStreamManager (mARNetManager,
-				mNetConfig.getVideoDataIOBuffer(), mNetConfig.getVideoAckIOBuffer(),
-				videoFragmentSize, videoMaxAckInterval);
-		}
-
-		@Override
-		public void onStart() {
-			super.onStart();
-			if (DEBUG) Log.v(TAG, "VideoThread#onStart");
-			streamManager.start();
-
-		}
-
-		@Override
-		public void onLoop() {
-			final ARFrame frame = streamManager.getFrame(VIDEO_RECEIVE_TIMEOUT_MS);
-//			Log.w(TAG, "getFrame:" + frame);
-			if (frame != null) {
-				try {
-//					if (DEBUG) Log.v(TAG, "video stream frame:" + frame);
-					synchronized (mStreamSync) {
-						if (mVideoStreamListener != null) {
-							mVideoStreamListener.onReceiveFrame(frame);
-						}
-					}
-				} finally {
-					streamManager.recycle(frame);
-				}
-			}
-		}
-
-		@Override
-		public void onStop() {
-			if (DEBUG) Log.v(TAG, "VideoThread#onStop");
-			streamManager.stop();
-			streamManager.release();
-			if (DEBUG) Log.v(TAG, "VideoThread#onStop:終了");
-			super.onStop();
-		}
-	} */
 
 	/**
 	 * ビデオストリーミングデータ受信スレッドを開始
