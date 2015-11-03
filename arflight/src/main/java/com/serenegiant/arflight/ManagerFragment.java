@@ -366,7 +366,7 @@ public class ManagerFragment extends Fragment {
 	 * 指定したIDeviceControllerをHashMapから取り除く
 	 * @param controller
 	 */
-	public void releaseController(final IFlightController controller) {
+	public void releaseController(final IDeviceController controller) {
 		synchronized (mControllerSync) {
 			if (mControllers.containsValue(controller)) {
 				mControllers.remove(controller.getName());
@@ -509,7 +509,7 @@ public class ManagerFragment extends Fragment {
 		}
 	}
 
-	protected void stopController(final IFlightController controller) {
+	protected void stopController(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
 		if (controller.isStarted()) {
 			runOnUiThread(new Runnable() {
@@ -543,11 +543,11 @@ public class ManagerFragment extends Fragment {
 	private final DeviceConnectionListener mConnectionListener
 		= new DeviceConnectionListener() {
 		@Override
-		public void onConnect(final IFlightController controller) {
+		public void onConnect(final IDeviceController controller) {
 		}
 
 		@Override
-		public void onDisconnect(final IFlightController controller) {
+		public void onDisconnect(final IDeviceController controller) {
 			if (DEBUG) Log.v(TAG, "onDisconnect:");
 			stopController(controller);
 		}

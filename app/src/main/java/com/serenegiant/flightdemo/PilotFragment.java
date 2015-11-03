@@ -32,6 +32,7 @@ import com.serenegiant.arflight.FlightControllerBebop;
 import com.serenegiant.arflight.FlightControllerMiniDrone;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
+import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.Joystick;
@@ -854,7 +855,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	@Override
-	protected void onConnect(final IFlightController controller) {
+	protected void onConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onConnect:");
 		super.onConnect(controller);
 		mVideoRecording = false;
@@ -864,19 +865,19 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				mVideoRecordingBtn.setVisibility(controller instanceof IVideoStreamController ? View.VISIBLE : View.INVISIBLE);
 			}
 		});
-		mModelView.hasGuard(controller.hasGuard());
+		mModelView.hasGuard((controller instanceof IFlightController) && ((IFlightController)controller).hasGuard());
 		setSideMenu();
 		startGamePadTask();
 		post(mUpdateStatusTask, 100);
 		updateButtons();
 		// キャリブレーションが必要ならCalibrationFragmentへ遷移させる
-		if (controller.needCalibration()) {
+		if ((controller instanceof IFlightController) && ((IFlightController)controller).needCalibration()) {
 			replace(CalibrationFragment.newInstance(getDevice()));
 		}
 	}
 
 	@Override
-	protected void onDisconnect(final IFlightController controller) {
+	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");
 		mVideoRecording = false;
 		stopRecord();

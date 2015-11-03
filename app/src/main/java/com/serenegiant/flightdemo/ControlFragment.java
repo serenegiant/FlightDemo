@@ -2,6 +2,7 @@ package com.serenegiant.flightdemo;
 
 import android.util.Log;
 
+import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 
 public abstract class ControlFragment extends ControlBaseFragment {
@@ -76,14 +77,14 @@ public abstract class ControlFragment extends ControlBaseFragment {
 	}
 
 	@Override
-	protected void onConnect(final IFlightController controller) {
+	protected void onConnect(final IDeviceController controller) {
 		super.onConnect(controller);
 		stopMove();
 		startVideoStreaming();
 	}
 
 	@Override
-	protected void onDisconnect(final IFlightController controller) {
+	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onDisconnect:");
 		stopMove();
 		stopVideoStreaming();
