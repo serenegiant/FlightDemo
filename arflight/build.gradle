@@ -23,4 +23,5 @@ dependencies {
 	compile 'com.android.support:appcompat-v7:22.2.1'
 	compile project(':common')
 	compile project(':libraries:ScriptEngine:core')
+	compile 'com.parrot:arsdk:3.8'
 }
