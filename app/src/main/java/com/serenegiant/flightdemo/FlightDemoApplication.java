@@ -1,7 +1,6 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Application;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.serenegiant.gl.FileIO;
 import com.serenegiant.gl.IModelViewApplication;
