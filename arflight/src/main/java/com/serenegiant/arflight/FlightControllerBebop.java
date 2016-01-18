@@ -96,8 +96,6 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "FlightControllerBebop";
 
-	private static final int VIDEO_RECEIVE_TIMEOUT_MS = 500;
-
 	private final Object mStreamSync = new Object();
 	private IVideoStream mVideoStreamListener;
 

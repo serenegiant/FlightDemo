@@ -53,7 +53,8 @@ public class ARDeviceServiceAdapter extends ArrayAdapter<ARDiscoveryDeviceServic
 			// FIXME 機体アイコンの更新処理。今はアプリのアイコンと同じまま
 			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
 			switch (product) {
-			case ARDISCOVERY_PRODUCT_ARDRONE:
+			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 //				holder.thumbnail.setImageResource(R.drawable.ic_ardrone);
 				break;
 			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
@@ -62,7 +63,7 @@ public class ARDeviceServiceAdapter extends ArrayAdapter<ARDiscoveryDeviceServic
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 //				holder.thumbnail.setImageResource(R.drawable.ic_minidrone);
 				break;
-			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
 				break;
 			}
 		}

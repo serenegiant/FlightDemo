@@ -1039,8 +1039,11 @@ public class ConfigFragment extends ControlBaseFragment {
 			super();
 			mInflater = inflater;
 			switch(mProduct) {
-			case ARDISCOVERY_PRODUCT_ARDRONE:
+			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 				mConfigs = PAGER_CONFIG_BEBOP;
+				break;
+			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+				mConfigs = PAGER_CONFIG_BEBOP;	// とりあえず今は同じ
 				break;
 			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
@@ -1048,7 +1051,9 @@ public class ConfigFragment extends ControlBaseFragment {
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 				mConfigs = PAGER_CONFIG_MINIDRONE;
 				break;
-			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
+				mConfigs = null;
+				break;
 			case ARDISCOVERY_PRODUCT_NSNETSERVICE:
 			case ARDISCOVERY_PRODUCT_JS:		// FIXME JumpingSumoは未対応
 			case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:

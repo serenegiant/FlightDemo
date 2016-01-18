@@ -103,12 +103,17 @@ public class ARMediaObjectListAdapter extends ArrayAdapter<ARMediaObject> {
         boolean isPlayable;
     }
 
-	public static String getSizeString(final float size) {
+	/**
+	 * メモリサイズ表示用の文字列を取得する
+	 * @param size_bytes
+	 * @return
+	 */
+	public static String getSizeString(final float size_bytes) {
 		final String result;
-		if (size > 1024 * 1024 * 0.5f) {
-			result = String.format("%5.1fMB", size / 1024 / 1024);
+		if (size_bytes > 1024 * 1024 * 0.5f) {
+			result = String.format("%5.1fMB", size_bytes / 1024 / 1024);
 		} else {
-			result = String.format("%5.1fkB", size / 1024);
+			result = String.format("%5.1fkB", size_bytes / 1024);
 		}
 		return result;
 	}

@@ -175,6 +175,7 @@ public class ConnectionFragment extends BaseFragment {
 				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
 				switch (product) {
 				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+				case ARDISCOVERY_PRODUCT_BEBOP_2:	// bebop2
 					adapter.add(service);
 					break;
 				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
@@ -188,7 +189,9 @@ public class ConnectionFragment extends BaseFragment {
 	//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 					adapter.add(service);
 					break;
-				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
+					adapter.add(service);
+					break;
 				case ARDISCOVERY_PRODUCT_NSNETSERVICE:
 					break;
 				}
@@ -249,7 +252,8 @@ public class ConnectionFragment extends BaseFragment {
 			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
 
 			switch (product) {
-			case ARDISCOVERY_PRODUCT_ARDRONE:    // Bebop
+			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 				fragment = isPiloting ? PilotFragment.newInstance(service) : MediaFragment.newInstance(service);
 				break;
 			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo

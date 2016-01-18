@@ -8,7 +8,7 @@ import com.parrot.arsdk.arstream.ARStreamReader;
 /**
  * Created by saki on 15/10/31.
  */
-public abstract class ARNetworkConfigSkyController extends ARNetworkConfig {
+public class ARNetworkConfigSkyController extends ARNetworkConfig {
 	private static final String TAG = ARNetworkConfigSkyController.class.getSimpleName();
 
 	public ARNetworkConfigSkyController() {

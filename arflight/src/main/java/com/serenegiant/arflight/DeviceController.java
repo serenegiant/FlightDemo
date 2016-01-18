@@ -61,6 +61,9 @@ public abstract class DeviceController implements IDeviceController {
 	protected ARNetworkALManager mARManager;
 	protected ARNetworkManager mARNetManager;
 	protected boolean mMediaOpened;
+	private int videoFragmentSize;
+	private int videoFragmentMaximumNumber;
+	private int videoMaxAckInterval;
 
 	private final Semaphore disconnectSent = new Semaphore(0);
 	private volatile boolean mRequestCancel;
@@ -400,53 +403,33 @@ public abstract class DeviceController implements IDeviceController {
 		// 製品の種類を取得
 		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceService.getProductID());
 
-		if (!ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_SKYCONTROLLER.equals(product)) {
-			discoveryData = new ARDiscoveryConnection() {
-				@Override
-				public String onSendJson () {
-                    /* send a json with the Device to controller port */
-					final JSONObject jsonObject = new JSONObject();
-					try {
-						jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY, d2cPort);
-					} catch (final JSONException e) {
-						Log.w(TAG, e);
-					}
-					try {
-						Log.i(TAG, "android.os.Build.MODEL: "+android.os.Build.MODEL);
-						jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY, android.os.Build.MODEL);
-					} catch (final JSONException e) {
-						Log.w(TAG, e);
-					}
-					try {
-						Log.i(TAG, "android.os.Build.DEVICE: "+android.os.Build.DEVICE);
-						jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY, android.os.Build.DEVICE);
-					} catch (final JSONException e) {
-						Log.w(TAG, e);
-					}
+		discoveryData = new ARDiscoveryConnection() {
+			@Override
+			public String onSendJson () {
+                /* send a json with the Device to controller port */
+				final JSONObject jsonObject = DeviceController.this.onSendJson(new JSONObject());
+				return jsonObject.toString();
+			}
 
-					return jsonObject.toString();
-				}
-
-				@Override
-				public ARDISCOVERY_ERROR_ENUM onReceiveJson (final String dataRx, final String ip) {
-                    /* Receive a json with the controller to Device port */
-					ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
-					try {
-                        /* Convert String to json */
-						final JSONObject jsonObject = new JSONObject(dataRx);
-						if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY)) {
-							c2dPort = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY);
-						}
-						DeviceController.this.onReceiveJson(jsonObject, dataRx, ip);
-                        /* Else: leave it to the default value. */
-					} catch (final JSONException e) {
-						Log.w(TAG, e);
-						error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_ERROR;
+			@Override
+			public ARDISCOVERY_ERROR_ENUM onReceiveJson (final String dataRx, final String ip) {
+				/* Receive a json with the controller to Device port */
+				ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
+				try {
+					/* Convert String to json */
+					final JSONObject jsonObject = new JSONObject(dataRx);
+					if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY)) {
+						c2dPort = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY);
 					}
-					return error;
+					DeviceController.this.onReceiveJson(jsonObject, dataRx, ip);
+					/* Else: leave it to the default value. */
+				} catch (final JSONException e) {
+					Log.w(TAG, e);
+					error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_ERROR;
 				}
-			};
-		}
+				return error;
+			}
+		};
 
 		if (ok) {
 			// 接続監視スレッドを生成＆実行開始
@@ -468,6 +451,27 @@ public abstract class DeviceController implements IDeviceController {
 		}
 
 		return ok && (error == ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK);
+	}
+
+	protected JSONObject onSendJson(final JSONObject jsonObject) {
+		try {
+			jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY, d2cPort);
+		} catch (final JSONException e) {
+			Log.w(TAG, e);
+		}
+		try {
+			Log.i(TAG, "android.os.Build.MODEL: "+android.os.Build.MODEL);
+			jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY, android.os.Build.MODEL);
+		} catch (final JSONException e) {
+			Log.w(TAG, e);
+		}
+		try {
+			Log.i(TAG, "android.os.Build.DEVICE: "+android.os.Build.DEVICE);
+			jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY, android.os.Build.DEVICE);
+		} catch (final JSONException e) {
+			Log.w(TAG, e);
+		}
+		return jsonObject;
 	}
 
 	protected void onReceiveJson(final JSONObject jsonObject, final String dataRx, final String ip) throws JSONException {
@@ -918,7 +922,7 @@ public abstract class DeviceController implements IDeviceController {
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			   /* Send data with ARNetwork */
 			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-	/*			final ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId(), cmd, null, true);
+/*			final ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId(), cmd, null, true);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				Log.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());

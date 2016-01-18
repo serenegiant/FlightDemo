@@ -339,7 +339,11 @@ public class ManagerFragment extends Fragment {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 				result = new FlightControllerBebop(getActivity(), device);
 				break;
-			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+				result = new FlightControllerBebop(getActivity(), device);
+				break;
+			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
+				result = new SkyController(getActivity(), device);
 				break;
 			case ARDISCOVERY_PRODUCT_NSNETSERVICE:
 			case ARDISCOVERY_PRODUCT_JS:		// FIXME JumpingSumoは未対応

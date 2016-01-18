@@ -122,7 +122,7 @@ public class MediaFragment extends ControlBaseFragment
 					mFreeSpaceProgressbar.setProgress((int)(used_size / (float)size * 100f));
 				}
 				if (mFreeSpaceText != null) {
-					final String free_space = ARMediaObjectListAdapter.getSizeString(!full ? (size - used_size) * 1024 * 1024 : 0);
+					final String free_space = ARMediaObjectListAdapter.getSizeString(!full ? (size - used_size) * 1024f * 1024f : 0);
 					mFreeSpaceText.setText(String.format(mFreeSpaceFmt, free_space));
 				}
 			}
