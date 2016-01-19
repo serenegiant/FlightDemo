@@ -17,6 +17,7 @@ import com.serenegiant.gamepad.modules.DualShock4;
 import com.serenegiant.gamepad.modules.GeneralGamepad;
 import com.serenegiant.gamepad.modules.JCU2912;
 import com.serenegiant.gamepad.modules.JoystickBSGP1204;
+import com.serenegiant.gamepad.modules.JoystickDualShock4;
 import com.serenegiant.gamepad.modules.JoystickGeneral;
 import com.serenegiant.gamepad.modules.JoystickJCU3312s;
 import com.serenegiant.gamepad.modules.XInputF310rGamepad;
@@ -43,16 +44,16 @@ public abstract class JoystickParser {
 		int cs_protocol = 0;
 		if (usb_device != null) {
 			final int num_interface = usb_device.getInterfaceCount();
-			//		if (DEBUG) Log.v(TAG, "num_interface:" + num_interface);
+//			if (DEBUG) Log.v(TAG, "num_interface:" + num_interface);
 			for (int j = 0; j < num_interface; j++) {
 				final UsbInterface intf = usb_device.getInterface(j);
 				final int num_endpoint = intf.getEndpointCount();
-				//			if (DEBUG) Log.v(TAG, "num_endpoint:" + num_endpoint);
+//				if (DEBUG) Log.v(TAG, "num_endpoint:" + num_endpoint);
 				if (num_endpoint > 0) {
 					UsbEndpoint ep_in = null;
 					for (int i = 0; i < num_endpoint; i++) {
 						final UsbEndpoint ep = intf.getEndpoint(i);
-						//					if (DEBUG) Log.v(TAG, "type=" + ep.getType() + ", dir=" + ep.getDirection());
+//						if (DEBUG) Log.v(TAG, "type=" + ep.getType() + ", dir=" + ep.getDirection());
 						if (ep.getType() == UsbConstants.USB_ENDPOINT_XFER_INT) {    // インタラプト転送
 							if (ep.getDirection() == UsbConstants.USB_DIR_IN) {
 								if (ep_in == null) {
@@ -73,11 +74,11 @@ public abstract class JoystickParser {
 				}
 			}
 		}
-
-		switch (vid) {
+//		if (DEBUG) Log.v(TAG, String.format("getJoystick:vid=%d/%d,pid=%d/%d", vid, vendor_id, pid, product_id));
+		switch (vendor_id) {
 		case 4607:	// ELECOM
 		{
-			switch (pid) {
+			switch (product_id) {
 			case 13105:
 				return new JoystickGeneral(device);
 			}
@@ -85,7 +86,7 @@ public abstract class JoystickParser {
 		}
 		case 1464: // ELECOM
 		{
-			switch (pid) {
+			switch (product_id) {
 			case 4100:
 				return new JoystickJCU3312s(device);
 			}
@@ -93,17 +94,17 @@ public abstract class JoystickParser {
 		}
 		case 1356:	// SONY
 		{
-			switch (pid) {
+			switch (product_id) {
 			case 616:
 				return new JoystickGeneral(device);
 			case 1476:
-				return new JoystickGeneral(device);
+				return new JoystickDualShock4(device);
 			}
 			break;
 		}
 		case 1133:	// Logicool/Logitech
 		{
-			switch (pid) {
+			switch (product_id) {
 			case 49693:
 				return new JoystickGeneral(device);
 			}
@@ -111,7 +112,7 @@ public abstract class JoystickParser {
 		}
 		case 7640:	// iBuffalo
 		{
-			switch (pid) {
+			switch (product_id) {
 			case 15:
 				return new JoystickBSGP1204(device);
 			}
@@ -202,7 +203,7 @@ public abstract class JoystickParser {
 		if (isJoystick()) {
 			if (event.getRepeatCount() == 0) {
 				mKeys.put(keyCode, 255);
-//				final String symbolicName = KeyEvent.keyCodeToString(keyCode);
+				final String symbolicName = KeyEvent.keyCodeToString(keyCode);
 //				if (DEBUG) Log.i(TAG, mDevice.getName() + " - Key Down: " + symbolicName);
 			}
 			update();
@@ -228,8 +229,26 @@ public abstract class JoystickParser {
 			final float value = event.getAxisValue(mAxes.keyAt(i));
 			mAxisValues[i] = value;
 		}
+//		if (DEBUG) dumpAxisValues();
 		update();
 		return true;
+	}
+
+	private int cnt;
+	protected void dumpAxisValues() {
+		final StringBuilder sb = new StringBuilder();
+		final int n = mAxes.size();
+		if ((++cnt % 10) == 0) {
+			for (int i = 0; i < n; i++) {
+				sb.append(String.format("%12s", MotionEvent.axisToString(mAxes.keyAt(i))));
+			}
+//			Log.v(TAG, sb.toString());
+		}
+		sb.setLength(0);
+		for (int i = 0; i < n; i++) {
+			sb.append(String.format("%12f", mAxisValues[i]));
+		}
+//		Log.v(TAG, sb.toString());
 	}
 
 	protected abstract void update();
