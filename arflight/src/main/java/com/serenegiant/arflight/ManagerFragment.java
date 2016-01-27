@@ -340,7 +340,7 @@ public class ManagerFragment extends Fragment {
 				result = new FlightControllerBebop(getActivity(), device);
 				break;
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				result = new FlightControllerBebop(getActivity(), device);
+				result = new FlightControllerBebop2(getActivity(), device);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
 				result = new SkyController(getActivity(), device);

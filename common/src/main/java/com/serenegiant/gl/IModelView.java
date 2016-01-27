@@ -6,7 +6,8 @@ public interface IModelView {
 	public static final int MODEL_BEBOP = 0;
 	public static final int MODEL_MINIDRONE = 1;
 	public static final int MODEL_JUMPINGSUMO = 2;
-	public static final int MODEL_NUM = 3;
+	public static final int MODEL_BEBOP2 = 3;
+	public static final int MODEL_NUM = 4;
 
 	public void setModel(final int model, final int type);
 	public void hasGuard(final boolean hasGuard);

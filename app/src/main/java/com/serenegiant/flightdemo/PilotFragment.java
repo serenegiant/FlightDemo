@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.AutoFlightListener;
 import com.serenegiant.arflight.FlightControllerBebop;
+import com.serenegiant.arflight.FlightControllerBebop2;
 import com.serenegiant.arflight.FlightControllerMiniDrone;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
@@ -326,6 +327,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (mController instanceof FlightControllerMiniDrone) {
 			model = IModelView.MODEL_MINIDRONE;
 			ctrl = AttitudeScreenBase.CTRL_PILOT;
+		} else if (mController instanceof FlightControllerBebop2) {
+			model = IModelView.MODEL_BEBOP2;
+			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
 		} else if (mController instanceof FlightControllerBebop) {
 			model = IModelView.MODEL_BEBOP;
 			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
