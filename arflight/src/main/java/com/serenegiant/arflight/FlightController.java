@@ -51,7 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class FlightController extends DeviceController implements IFlightController {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = FlightController.class.getSimpleName();
 
 	private static final int DEFAULT_VIDEO_FRAGMENT_SIZE = 1000;

@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class FTPController {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "FTPController:";
 
 	public interface FTPControllerCallback {
@@ -86,9 +86,9 @@ public abstract class FTPController {
 	private FTPControllerCallback mCallback;
 
 	public static FTPController newInstance(final Context context, final IFlightController controller) {
-		if (controller instanceof FlightControllerBebop) {
+		if (controller instanceof IWiFiController) {
 			return new FTPControllerWiFi(context, controller);
-		} else if (controller instanceof FlightControllerMiniDrone) {
+		} else if (controller instanceof IBLEController) {
 			return new FTPControllerBLE(context, controller);
 		}
 		controller.sendVideoRecording(false);

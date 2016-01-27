@@ -4,7 +4,7 @@ import android.graphics.SurfaceTexture;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class AttitudeScreenBebop extends AttitudeScreenBase {
+public class AttitudeScreenBebop extends AttitudeScreenBase implements IVideoScreen {
 	private static final String TAG = "AttitudeScreenBebop";
 
 	private DynamicTexture mVideoFrameTexture;
@@ -103,10 +103,13 @@ public class AttitudeScreenBebop extends AttitudeScreenBase {
 	}
 
 	private volatile boolean mVideoEnabled;
+
+	@Override
 	public void setEnableVideo(final boolean enable) {
 		mVideoEnabled = enable;
 	}
 
+	@Override
 	public SurfaceTexture getVideoTexture() {
 		return mVideoFrameTexture != null ? mVideoFrameTexture.getSurfaceTexture() : null;
 	}

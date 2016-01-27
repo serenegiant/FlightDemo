@@ -35,7 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ScriptHelper {
-	private static final boolean DEBUG = true;  // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;  // FIXME 実働時はfalseにすること
 	private static final String TAG = ScriptHelper.class.getSimpleName();
 
 	public static class ScriptRec {

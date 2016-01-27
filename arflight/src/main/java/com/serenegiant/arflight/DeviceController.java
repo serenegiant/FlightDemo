@@ -51,7 +51,7 @@ import java.util.concurrent.Semaphore;
  * Created by saki on 15/10/31.
  */
 public abstract class DeviceController implements IDeviceController {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = DeviceController.class.getSimpleName();
 
 	protected final Context mContext;

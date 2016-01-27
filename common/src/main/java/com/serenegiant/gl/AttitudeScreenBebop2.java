@@ -1,11 +1,13 @@
 package com.serenegiant.gl;
 
 import android.graphics.SurfaceTexture;
+import android.util.Log;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class AttitudeScreenBebop2 extends AttitudeScreenBase {
-	private static final String TAG = "AttitudeScreenBebop";
+public class AttitudeScreenBebop2 extends AttitudeScreenBase implements IVideoScreen {
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final String TAG = "AttitudeScreenBebop2";
 
 	private DynamicTexture mVideoFrameTexture;
 
@@ -103,11 +105,16 @@ public class AttitudeScreenBebop2 extends AttitudeScreenBase {
 	}
 
 	private volatile boolean mVideoEnabled;
+
+	@Override
 	public void setEnableVideo(final boolean enable) {
+		if (DEBUG) Log.v(TAG, "setEnableVideo:" + enable);
 		mVideoEnabled = enable;
 	}
 
+	@Override
 	public SurfaceTexture getVideoTexture() {
+		if (DEBUG) Log.v(TAG, "getVideoTexture:" + mVideoFrameTexture);
 		return mVideoFrameTexture != null ? mVideoFrameTexture.getSurfaceTexture() : null;
 	}
 

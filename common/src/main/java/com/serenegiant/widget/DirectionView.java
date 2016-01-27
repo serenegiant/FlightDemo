@@ -10,7 +10,7 @@ import android.util.Log;
 import android.view.View;
 
 public class DirectionView extends View {
-	private static final boolean DEBUG = true;	// FIXME 実同時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実同時はfalseにすること
 	private static final String TAG = DirectionView.class.getSimpleName();
 
 	public DirectionView(final Context context) {

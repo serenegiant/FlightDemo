@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ARNetworkConfig {
-	private static final String TAG = "NetworkConfig";
+	private static final String TAG = ARNetworkConfig.class.getSimpleName();
 
 	protected long pcmdLoopIntervalsMs = 50;
 	protected int iobufferC2dNak = -1;

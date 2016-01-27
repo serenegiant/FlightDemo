@@ -19,7 +19,7 @@ import com.serenegiant.flightdemo.R;
 import com.serenegiant.utils.BuildCheck;
 
 public class TransferProgressDialogFragment extends BaseDialogFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "TransferProgressDialogFragment";
 
 	public interface TransferProgressDialogListener {

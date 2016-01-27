@@ -6,7 +6,7 @@ import com.serenegiant.math.Vector;
 
 
 public class DroneObjectBebopCalibration extends DroneObjectBebop implements ICalibrationModelObject {
-	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = DroneObjectBebopCalibration.class.getSimpleName();
 
 	private static final float ROTATION_SPEED = 180.0f;

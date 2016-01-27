@@ -36,6 +36,9 @@ public class AttitudeView extends GLModelView {
 		case MODEL_JUMPINGSUMO:
 			result = new AttitudeScreenMinidrone(this, mCtrlType);
 			break;
+		case MODEL_BEBOP2:
+			result = new AttitudeScreenBebop2(this, mCtrlType);
+			break;
 		case MODEL_BEBOP:
 		default:
 			result = new AttitudeScreenBebop(this, mCtrlType);

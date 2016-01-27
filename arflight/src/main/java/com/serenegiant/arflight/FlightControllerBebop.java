@@ -92,7 +92,7 @@ import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.attribute.AttributePosition;
 import com.serenegiant.arflight.configs.ARNetworkConfigARDrone3;
 
-public class FlightControllerBebop extends FlightController implements IVideoStreamController {
+public class FlightControllerBebop extends FlightController implements IVideoStreamController, IWiFiController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "FlightControllerBebop";
 

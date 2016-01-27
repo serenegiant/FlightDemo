@@ -5,8 +5,8 @@ import android.os.HandlerThread;
 import android.util.Log;
 
 public class TouchFlight implements IAutoFlight {
-	private static final boolean DEBUG = true;				// FIXME 実働時はfalseにすること
-	private static final String TAG = "TouchFlight";
+	private static final boolean DEBUG = false;				// FIXME 実働時はfalseにすること
+	private static final String TAG = TouchFlight.class.getSimpleName();
 
 	private static final int VERTIAL_WIDTH = 500;		// 仮想的な操作画面の幅
 	private static final long CMD_DELAY_TIME_MS = 5;	// コマンド遅延時間=5ミリ秒

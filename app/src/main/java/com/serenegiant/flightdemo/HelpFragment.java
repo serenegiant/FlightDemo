@@ -15,7 +15,7 @@ import android.webkit.WebViewClient;
 import java.util.Locale;
 
 public class HelpFragment extends BaseFragment {
-	private static final boolean DEBUG = true;  // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;  // FIXME 実働時はfalseにすること
 	private static final String TAG = HelpFragment.class.getSimpleName();
 
 	public static final int SCRIPT_HELP_SCRIPTS = 0;

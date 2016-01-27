@@ -42,7 +42,6 @@ public class ConfigFragment extends ControlBaseFragment {
 	// アイコン
 	public static final String KEY_ICON_TYPE = "ICON_TYPE";
 
-
 	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device) {
 		final ConfigFragment fragment = new ConfigFragment();
 		fragment.setDevice(device);
@@ -262,10 +261,10 @@ public class ConfigFragment extends ControlBaseFragment {
 	}
 
 	/**
-	 * ARドローン設定画面の準備
+	 * Bebop設定画面の準備
 	 * @param root
 	 */
-	private void initConfigARdrone1(final View root) {
+	private void initConfigBebop(final View root) {
 		if (DEBUG) Log.v(TAG, "initConfigMinidrone1:");
 		// 自動カットアウトモード
 		CheckBox checkbox = (CheckBox)root.findViewById(R.id.cutout_checkbox);
@@ -962,6 +961,7 @@ public class ConfigFragment extends ControlBaseFragment {
 
 	private static PagerAdapterConfig[] PAGER_CONFIG_MINIDRONE;
 	private static PagerAdapterConfig[] PAGER_CONFIG_BEBOP;
+	private static PagerAdapterConfig[] PAGER_CONFIG_BEBOP2;
 	static {
 		// Minidrone(RollingSpider用)
 		PAGER_CONFIG_MINIDRONE = new PagerAdapterConfig[7];
@@ -1007,13 +1007,13 @@ public class ConfigFragment extends ControlBaseFragment {
 				parent.initConfigInfo(view);
 			}
 		});
-		// ここからbebop用
+// ここからbebop用
 		PAGER_CONFIG_BEBOP = new PagerAdapterConfig[8];
 		PAGER_CONFIG_BEBOP[0] = PAGER_CONFIG_MINIDRONE[0];
 		PAGER_CONFIG_BEBOP[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_bebop, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigARdrone1(view);
+				parent.initConfigBebop(view);
 			}
 		});
 		PAGER_CONFIG_BEBOP[2] = PAGER_CONFIG_MINIDRONE[2];
@@ -1027,6 +1027,20 @@ public class ConfigFragment extends ControlBaseFragment {
 		});
 		PAGER_CONFIG_BEBOP[6] = PAGER_CONFIG_MINIDRONE[5];
 		PAGER_CONFIG_BEBOP[7] = PAGER_CONFIG_MINIDRONE[6];
+// ここからbebop2用
+		PAGER_CONFIG_BEBOP2 = new PagerAdapterConfig[7];
+		PAGER_CONFIG_BEBOP2[0] = PAGER_CONFIG_MINIDRONE[0];
+		PAGER_CONFIG_BEBOP2[1] = PAGER_CONFIG_MINIDRONE[2];
+		PAGER_CONFIG_BEBOP2[2] = PAGER_CONFIG_MINIDRONE[3];
+		PAGER_CONFIG_BEBOP2[3] = PAGER_CONFIG_MINIDRONE[4];
+		PAGER_CONFIG_BEBOP2[4] = new PagerAdapterConfig(R.string.config_title_network, R.layout.config_network, new AdapterItemHandler() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.initConfigNetwork(view);
+			}
+		});
+		PAGER_CONFIG_BEBOP2[5] = PAGER_CONFIG_MINIDRONE[5];
+		PAGER_CONFIG_BEBOP2[6] = PAGER_CONFIG_MINIDRONE[6];
 	};
 
 	/**
@@ -1043,7 +1057,7 @@ public class ConfigFragment extends ControlBaseFragment {
 				mConfigs = PAGER_CONFIG_BEBOP;
 				break;
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				mConfigs = PAGER_CONFIG_BEBOP;	// とりあえず今は同じ
+				mConfigs = PAGER_CONFIG_BEBOP2;
 				break;
 			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:

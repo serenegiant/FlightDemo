@@ -13,7 +13,9 @@ import java.sql.Date;
 /**
  * Created by saki on 15/10/31.
  */
-public class SkyController extends FlightController implements IVideoStreamController {
+public class SkyController extends FlightController implements IVideoStreamController, IWiFiController {
+	private static final boolean DEBUG = false;				// FIXME 実働時はfalseにすること
+	private static final String TAG = SkyController.class.getSimpleName();
 
 	public SkyController(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigSkyController());

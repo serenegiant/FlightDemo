@@ -36,7 +36,7 @@ import com.serenegiant.arflight.attribute.AttributeIMU;
 import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.configs.ARNetworkConfigMiniDrone;
 
-public class FlightControllerMiniDrone extends FlightController {
+public class FlightControllerMiniDrone extends FlightController implements IBLEController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "FlightControllerMiniDrone";
 

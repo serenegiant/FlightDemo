@@ -12,7 +12,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 
 public class CheckableImageButton extends ImageButton implements Checkable {
-	private static final boolean DEBUG = true; // 実同時はfalseにすること
+	private static final boolean DEBUG = false; // 実同時はfalseにすること
 	private static final String TAG = CheckableImageButton.class.getSimpleName();
 
 	private boolean mIsChecked;

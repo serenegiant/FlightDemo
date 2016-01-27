@@ -43,6 +43,7 @@ import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.arflight.TouchFlight;
 import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.dialog.SelectFileDialogFragment;
+import com.serenegiant.gl.IVideoScreen;
 import com.serenegiant.math.Vector;
 import com.serenegiant.utils.FileUtils;
 import com.serenegiant.widget.SideMenuListView;
@@ -800,14 +801,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					if (mVideoStream == null) return;
 					final IScreen screen = mModelView.getCurrentScreen();
 					if (DEBUG) Log.v(TAG, "startVideoStreaming:screen=" + screen);
-					if (screen instanceof AttitudeScreenBebop) {
+					if (screen instanceof IVideoScreen) {
 						try {
-							final SurfaceTexture surface = ((AttitudeScreenBebop) screen).getVideoTexture();
+							final SurfaceTexture surface = ((IVideoScreen) screen).getVideoTexture();
 							if ((surface != null) && (mSurfaceId == 0)) {
 								final Surface _surface = new Surface(surface);
 								mSurfaceId = _surface.hashCode();
 								mVideoStream.addSurface(mSurfaceId, _surface);
-								((AttitudeScreenBebop) screen).setEnableVideo(true);
+								((IVideoScreen) screen).setEnableVideo(true);
 							}
 						} catch (final Exception e) {
 							Log.w(TAG, e);
@@ -836,8 +837,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (DEBUG) Log.v(TAG, "stopVideoStreaming:");
 		super.stopVideoStreaming();
 		final IScreen screen = mModelView.getCurrentScreen();
-		if (screen instanceof AttitudeScreenBebop) {
-			((AttitudeScreenBebop) screen).setEnableVideo(false);
+		if (screen instanceof IVideoScreen) {
+			((IVideoScreen) screen).setEnableVideo(false);
 		}
 /*		runOnUiThread(new Runnable() {
 			@Override
