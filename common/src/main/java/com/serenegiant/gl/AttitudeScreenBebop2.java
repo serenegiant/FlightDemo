@@ -80,16 +80,31 @@ public class AttitudeScreenBebop2 extends AttitudeScreenBase implements IVideoSc
 		}
 		// 3Dモデルの読み込み
 		final FileIO io = mModelView.getFileIO();
-		final StaticTexture droneTexture = new StaticTexture(mModelView, "model/bebop_drone2_body_tex.png");
+		StaticTexture droneTexture = null;
+		try {
+			droneTexture = new StaticTexture(mModelView, "bebop_drone2_body_tex.png");
+		} catch (final Exception e) {
+			droneTexture = new StaticTexture(mModelView, "model/bebop_drone2_body_tex.png");
+		}
 		droneModel = loadModel(io, "model/bebop_drone2_body.obj");
 		droneModel.setTexture(droneTexture);
-		// ガード(ハル) FIXME これはないのでとりあえずBebopのを読んでおく
-		final StaticTexture guardTexture = new StaticTexture(mModelView, "model/bebop_drone_bumper_tex2.png");
-		guardModel = loadModel(io, "model/bebop_drone_bumper.obj");
-		guardModel.setTexture(guardTexture);
+//		// ガード(ハル) Bebop2は無し
+//		StaticTexture guardTexture = null;
+//		try {
+//			guardTexture = new StaticTexture(mModelView, "bebop_drone_bumper_tex.png");
+//		} catch (final Exception e) {
+//			guardTexture = new StaticTexture(mModelView, "model/bebop_drone_bumper_tex2.png");
+//		}
+//		guardModel = loadModel(io, "model/bebop_drone_bumper.obj");
+//		guardModel.setTexture(guardTexture);
 
 		// 左前ローター
-		final StaticTexture frontTexture = new StaticTexture(mModelView, "model/bebop_drone2_rotor_front_tex.png");
+		StaticTexture frontTexture = null;
+		try {
+			frontTexture = new StaticTexture(mModelView, "bebop_drone2_rotor_front_tex.png");
+		} catch (final Exception e) {
+			frontTexture = new StaticTexture(mModelView, "model/bebop_drone2_rotor_front_tex.png");
+		}
 		frontLeftRotorModel = loadModel(io, "model/bebop_drone2_rotor_ccw.obj");
 		frontLeftRotorModel.setTexture(frontTexture);
 		// 右前ローター

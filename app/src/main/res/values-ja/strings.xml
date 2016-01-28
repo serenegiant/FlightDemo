@@ -45,6 +45,7 @@
 	<string name="config_title_autopilot">自動操縦設定</string>
 	<string name="config_title_network">ネットワーク設定</string>
 	<string name="config_title_icon">アイコン設定</string>
+	<string name="config_title_color">機体色設定</string>
 	<string name="config_title_info">ドローン情報</string>
 
 	<string name="config_max_tilt">最大斜度: %5.1f[°]</string>

@@ -132,7 +132,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 		// バックスタックの処理が正常にできない事に対するworkaround
 		final FragmentManager fm = getFragmentManager();
 		if (fm.getBackStackEntryCount() > 0) {
-			Log.i(TAG, "#onBackPressed:popBackStack");
+			if (DEBUG) Log.i(TAG, "#onBackPressed:popBackStack");
 			fm.popBackStack();
 		} else {
 			super.onBackPressed();

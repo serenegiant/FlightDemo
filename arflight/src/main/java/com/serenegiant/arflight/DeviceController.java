@@ -186,7 +186,7 @@ public abstract class DeviceController implements IDeviceController {
 			} else if (device instanceof ARDiscoveryDeviceBLEService) {
 				mARManager.cancelBLENetwork();
 			} else {
-				Log.e(TAG, "Unknown network media type.");
+				Log.w(TAG, "Unknown network media type.");
 			}
 			cmdGetAllSettingsSent.release();
 			cmdGetAllStatesSent.release();
@@ -319,7 +319,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
 				mMediaOpened = true;
 			} else {
-				Log.e(TAG, "error occurred: " + netALError.toString());
+				Log.w(TAG, "error occurred: " + netALError.toString());
 				failed = true;
 			}
 		} else if (device instanceof ARDiscoveryDeviceBLEService) {
@@ -335,7 +335,7 @@ public abstract class DeviceController implements IDeviceController {
 				mMediaOpened = true;
 				pingDelay = -1; /* Disable ping for BLE networks */
 			} else {
-				Log.e(TAG, "error occurred: " + netALError.toString());
+				Log.w(TAG, "error occurred: " + netALError.toString());
 				failed = true;
 			}
 		} else {
@@ -460,13 +460,13 @@ public abstract class DeviceController implements IDeviceController {
 			Log.w(TAG, e);
 		}
 		try {
-			Log.i(TAG, "android.os.Build.MODEL: "+android.os.Build.MODEL);
+			if (DEBUG) Log.v(TAG, "android.os.Build.MODEL: "+android.os.Build.MODEL);
 			jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY, android.os.Build.MODEL);
 		} catch (final JSONException e) {
 			Log.w(TAG, e);
 		}
 		try {
-			Log.i(TAG, "android.os.Build.DEVICE: "+android.os.Build.DEVICE);
+			if (DEBUG) Log.v(TAG, "android.os.Build.DEVICE: "+android.os.Build.DEVICE);
 			jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY, android.os.Build.DEVICE);
 		} catch (final JSONException e) {
 			Log.w(TAG, e);

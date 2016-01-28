@@ -2,8 +2,6 @@ package com.serenegiant.flightdemo;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.FragmentTransaction;
-import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -14,22 +12,17 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Checkable;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.VideoView;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.ARDeviceServiceAdapter;
 import com.serenegiant.arflight.ManagerFragment;
-import com.serenegiant.gl.IModelView;
 import com.serenegiant.widget.PlayerTextureView;
 
-import java.io.IOException;
 import java.util.List;
 
 public class ConnectionFragment extends BaseFragment {
@@ -171,7 +164,7 @@ public class ConnectionFragment extends BaseFragment {
 			final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
 			adapter.clear();
 			for (final ARDiscoveryDeviceService service : devices) {
-				Log.d(TAG, "service :  " + service);
+				if (DEBUG) Log.d(TAG, "service :  " + service);
 				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
 				switch (product) {
 				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
@@ -234,7 +227,7 @@ public class ConnectionFragment extends BaseFragment {
 			fragment = ScriptFragment.newInstance();
 			break;
 		case R.id.config_show_btn:
-			fragment = ConfigIconFragment.newInstance();
+			fragment = ConfigAppFragment.newInstance();
 			break;
 		}
 		replace(fragment);

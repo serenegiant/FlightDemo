@@ -3,24 +3,26 @@ package com.serenegiant.flightdemo;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RadioGroup;
 
+import com.serenegiant.widget.ColorPickerView;
 import com.serenegiant.widget.RelativeRadioGroup;
 
 
-public class ConfigIconFragment extends BaseFragment {
+public class ConfigAppFragment extends BaseFragment {
 
-	public static ConfigIconFragment newInstance() {
-		final ConfigIconFragment fragment = new ConfigIconFragment();
+	public static ConfigAppFragment newInstance() {
+		final ConfigAppFragment fragment = new ConfigAppFragment();
 		return fragment;
 	}
 
 	private SharedPreferences mPref;
+	private int mColor;
 
-	public ConfigIconFragment() {
+	public ConfigAppFragment() {
 		super();
 		// デフォルトコンストラクタが必要
 	}
@@ -35,7 +37,7 @@ public class ConfigIconFragment extends BaseFragment {
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
-     	final View rootView = local_inflater.inflate(R.layout.fragment_config_icon, container, false);
+     	final View rootView = local_inflater.inflate(R.layout.fragment_config_app, container, false);
 		final RelativeRadioGroup group = (RelativeRadioGroup)rootView.findViewById(R.id.icon_radiogroup);
 
 		switch (mPref.getInt(ConfigFragment.KEY_ICON_TYPE, 100)) {
@@ -51,6 +53,12 @@ public class ConfigIconFragment extends BaseFragment {
 			break;
 		}
 		group.setOnCheckedChangeListener(mOnRadioButtonCheckedChangeListener);
+// 機体色設定
+		mColor = mPref.getInt(ConfigFragment.KEY_COLOR, getResources().getColor(R.color.RED));
+		final ColorPickerView picker = (ColorPickerView)rootView.findViewById(R.id.color_picker);
+		picker.setColor(mColor);
+		picker.showAlpha(false);
+		picker.setColorPickerListener(mColorPickerListener);
 		return rootView;
 	}
 
@@ -69,6 +77,18 @@ public class ConfigIconFragment extends BaseFragment {
 			case R.id.icon_002_radiobutton:
 				mPref.edit().putInt(ConfigFragment.KEY_ICON_TYPE, 2).apply();
 				break;
+			}
+		}
+	};
+
+	private final ColorPickerView.ColorPickerListener mColorPickerListener
+		= new ColorPickerView.ColorPickerListener() {
+		@Override
+		public void onColorChanged(final ColorPickerView view, final int color) {
+			if (mColor != color) {
+				mColor = color;
+				mPref.edit().putInt(ConfigFragment.KEY_COLOR, color).apply();
+				TextureHelper.clearTexture(getActivity());
 			}
 		}
 	};

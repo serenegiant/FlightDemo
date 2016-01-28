@@ -338,6 +338,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			model = IModelView.MODEL_BEBOP;
 			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
 		}
+		final int color = pref.getInt(ConfigFragment.KEY_COLOR, getResources().getColor(R.color.RED));
+		TextureHelper.genTexture(getActivity(), model, color);
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 		mModelView.setModel(model, ctrl);
 

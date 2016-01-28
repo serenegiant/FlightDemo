@@ -44,6 +44,7 @@
 	<string name="config_title_autopilot">Autopilot settings</string>
 	<string name="config_title_network">Network settings</string>
 	<string name="config_title_icon">Icon settings</string>
+	<string name="config_title_color">Drone color</string>
 	<string name="config_title_info">Info</string>
 
 	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>

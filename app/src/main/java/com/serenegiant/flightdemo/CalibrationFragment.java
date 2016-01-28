@@ -1,5 +1,6 @@
 package com.serenegiant.flightdemo;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -56,14 +57,17 @@ public class CalibrationFragment extends ControlBaseFragment {
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
-		final ARDISCOVERY_PRODUCT_ENUM product = getProduct();
+		final int model = getProduct() == ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BEBOP_2
+						? IModelView.MODEL_BEBOP2 :	IModelView.MODEL_BEBOP;
+		final SharedPreferences pref = getActivity().getPreferences(0);
+		final int color = pref.getInt(ConfigFragment.KEY_COLOR, getResources().getColor(R.color.RED));
+		TextureHelper.genTexture(getActivity(), model, color);
+
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
 		final View rootView = local_inflater.inflate(R.layout.fragment_calibration, container, false);
+
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
-		mModelView.setModel(
-			product == ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BEBOP_2
-				? IModelView.MODEL_BEBOP2 :	IModelView.MODEL_BEBOP,
-			AttitudeScreenBase.CTRL_CALIBRATION);
+		mModelView.setModel(model, AttitudeScreenBase.CTRL_CALIBRATION);
 		mMessageTextView = (TextView)rootView.findViewById(R.id.cal_msg_textview);
 		mMessageTextView.setText(R.string.calibration_title);
 

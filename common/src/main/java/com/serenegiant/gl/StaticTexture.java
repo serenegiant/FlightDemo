@@ -80,8 +80,8 @@ public class StaticTexture extends Texture {
 	}
 	
 	protected void load() {
-		if (!internal_load(LOAD_ASSET)) {
-			if (!internal_load(LOAD_FILE)) {
+		if (!internal_load(LOAD_FILE)) {
+			if (!internal_load(LOAD_ASSET)) {
 				if (!internal_load(LOAD_EXTFILE)) {
 					throw new RuntimeException("couldn't load texture '" + mFileName + "'");
 				}

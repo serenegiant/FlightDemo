@@ -1,8 +1,18 @@
 package com.serenegiant.gl;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class AttitudeView extends GLModelView {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
@@ -23,6 +33,7 @@ public class AttitudeView extends GLModelView {
 
 	@Override
 	public void setModel(final int model, final int type) {
+		if (DEBUG) Log.v(TAG, String.format("setModel:model=%d, type=%d", model, type));
 		mModel = model % MODEL_NUM;
 		mCtrlType = type % AttitudeScreenBase.CTRL_NUM;
 	}
@@ -98,4 +109,5 @@ public class AttitudeView extends GLModelView {
 			((AttitudeScreenBase) mScreen).setAxis(axis);
 		}
 	}
+
 }

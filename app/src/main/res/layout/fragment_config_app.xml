@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="horizontal"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:padding="@dimen/padding"
+	android:background="@drawable/blue_gradient">
+
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginRight="@dimen/double_padding"
+		>
+
+		<TextView
+			android:id="@+id/textView10"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:text="@string/config_title_icon"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"/>
+
+		<com.serenegiant.widget.RelativeRadioGroup
+			android:id="@+id/icon_radiogroup"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:gravity="center">
+
+			<RadioButton
+				android:id="@+id/icon_000_radiobutton"
+				android:layout_width="@dimen/radiobutton_width_icon_list"
+				android:layout_height="@dimen/radiobutton_height_icon_list"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="@dimen/half_padding"
+				android:button="@drawable/icon_thumbnail"
+				android:text="000"
+				android:textSize="@dimen/text_sz_list"
+				android:textColor="@color/WHITE"/>
+
+			<RadioButton
+				android:id="@+id/icon_001_radiobutton"
+				android:layout_width="@dimen/radiobutton_width_icon_list"
+				android:layout_height="@dimen/radiobutton_height_icon_list"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="@dimen/half_padding"
+				android:layout_below="@id/icon_000_radiobutton"
+				android:button="@drawable/icon_thumbnail_001"
+				android:text="001"
+				android:textSize="@dimen/text_sz_list"
+				android:textColor="@color/WHITE"/>
+
+			<RadioButton
+				android:id="@+id/icon_002_radiobutton"
+				android:layout_width="@dimen/radiobutton_width_icon_list"
+				android:layout_height="@dimen/radiobutton_height_icon_list"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="@dimen/half_padding"
+				android:layout_below="@id/icon_001_radiobutton"
+				android:button="@drawable/icon_thumbnail_002"
+				android:text="002"
+				android:textSize="@dimen/text_sz_list"
+				android:textColor="@color/WHITE"/>
+
+		</com.serenegiant.widget.RelativeRadioGroup>
+	</LinearLayout>
+
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		>
+
+		<TextView
+			android:id="@+id/textView11"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:text="@string/config_title_color"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"/>
+
+		<com.serenegiant.widget.ColorPickerView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/color_picker"/>
+
+	</LinearLayout>
+</LinearLayout>

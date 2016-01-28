@@ -18,6 +18,7 @@ import android.widget.TextView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.attribute.AttributeFloat;
+import com.serenegiant.widget.ColorPickerView;
 import com.serenegiant.widget.RelativeRadioGroup;
 
 public class ConfigFragment extends ControlBaseFragment {
@@ -41,6 +42,8 @@ public class ConfigFragment extends ControlBaseFragment {
 	public static final String KEY_AUTOPILOT_SCALE_R = "CONFIG_AUTOPILOT_SCALE_R";
 	// アイコン
 	public static final String KEY_ICON_TYPE = "ICON_TYPE";
+	// 機体色
+	public static final String KEY_COLOR = "CONFIG_COLOR_COLOR";
 
 	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device) {
 		final ConfigFragment fragment = new ConfigFragment();
@@ -519,6 +522,19 @@ public class ConfigFragment extends ControlBaseFragment {
 		group.setOnCheckedChangeListener(mOnRelativeRadioButtonCheckedChangeListener);
 	}
 
+	private int mColor;
+	/**
+	 * 機体色選択画面の準備
+	 * @param root
+	 */
+	private void initConfigColor(final View root) {
+		mColor = mPref.getInt(KEY_COLOR, getResources().getColor(R.color.RED));
+		final ColorPickerView picker = (ColorPickerView)root.findViewById(R.id.color_picker);
+		picker.setColor(mColor);
+		picker.showAlpha(false);
+		picker.setColorPickerListener(mColorPickerListener);
+	}
+
 	/**
 	 * ドローン情報画面の準備
 	 * @param root
@@ -943,6 +959,19 @@ public class ConfigFragment extends ControlBaseFragment {
 		}
 	};
 
+	private final ColorPickerView.ColorPickerListener mColorPickerListener
+		= new ColorPickerView.ColorPickerListener() {
+		@Override
+		public void onColorChanged(final ColorPickerView view, final int color) {
+			if (mColor != color) {
+				if (DEBUG) Log.v(TAG, "onColorChanged:color=" + color);
+				mColor = color;
+				mPref.edit().putInt(KEY_COLOR, color).apply();
+				TextureHelper.clearTexture(getActivity());
+			}
+		}
+	};
+
 	private static interface AdapterItemHandler {
 		public void initialize(final ConfigFragment parent, final View view);
 	}
@@ -964,7 +993,7 @@ public class ConfigFragment extends ControlBaseFragment {
 	private static PagerAdapterConfig[] PAGER_CONFIG_BEBOP2;
 	static {
 		// Minidrone(RollingSpider用)
-		PAGER_CONFIG_MINIDRONE = new PagerAdapterConfig[7];
+		PAGER_CONFIG_MINIDRONE = new PagerAdapterConfig[8];
 		PAGER_CONFIG_MINIDRONE[0] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.config_flight, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
@@ -1001,14 +1030,20 @@ public class ConfigFragment extends ControlBaseFragment {
 				parent.initConfigIcon(view);
 			}
 		});
-		PAGER_CONFIG_MINIDRONE[6] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[6] = new PagerAdapterConfig(R.string.config_title_color, R.layout.config_color, new AdapterItemHandler() {
+			@Override
+			public void initialize(final ConfigFragment parent, final View view) {
+				parent.initConfigColor(view);
+			}
+		});
+		PAGER_CONFIG_MINIDRONE[7] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new AdapterItemHandler() {
 			@Override
 			public void initialize(final ConfigFragment parent, final View view) {
 				parent.initConfigInfo(view);
 			}
 		});
 // ここからbebop用
-		PAGER_CONFIG_BEBOP = new PagerAdapterConfig[8];
+		PAGER_CONFIG_BEBOP = new PagerAdapterConfig[9];
 		PAGER_CONFIG_BEBOP[0] = PAGER_CONFIG_MINIDRONE[0];
 		PAGER_CONFIG_BEBOP[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_bebop, new AdapterItemHandler() {
 			@Override
@@ -1027,8 +1062,9 @@ public class ConfigFragment extends ControlBaseFragment {
 		});
 		PAGER_CONFIG_BEBOP[6] = PAGER_CONFIG_MINIDRONE[5];
 		PAGER_CONFIG_BEBOP[7] = PAGER_CONFIG_MINIDRONE[6];
+		PAGER_CONFIG_BEBOP[8] = PAGER_CONFIG_MINIDRONE[7];
 // ここからbebop2用
-		PAGER_CONFIG_BEBOP2 = new PagerAdapterConfig[7];
+		PAGER_CONFIG_BEBOP2 = new PagerAdapterConfig[8];
 		PAGER_CONFIG_BEBOP2[0] = PAGER_CONFIG_MINIDRONE[0];
 		PAGER_CONFIG_BEBOP2[1] = PAGER_CONFIG_MINIDRONE[2];
 		PAGER_CONFIG_BEBOP2[2] = PAGER_CONFIG_MINIDRONE[3];
@@ -1041,6 +1077,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		});
 		PAGER_CONFIG_BEBOP2[5] = PAGER_CONFIG_MINIDRONE[5];
 		PAGER_CONFIG_BEBOP2[6] = PAGER_CONFIG_MINIDRONE[6];
+		PAGER_CONFIG_BEBOP2[7] = PAGER_CONFIG_MINIDRONE[7];
 	};
 
 	/**

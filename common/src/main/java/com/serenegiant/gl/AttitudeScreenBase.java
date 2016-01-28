@@ -369,9 +369,10 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		final String path = file_name.replace("/", "$");
 		final GLLoadableModel model = new GLLoadableModel(glGraphics);
 		try {
+			// プライベートストレージからキャッシュしてあるモデルデータの読み込みを試みる
 			model.setVertex(Vertex.load(glGraphics, io.readFile(path)));
 		} catch (final Exception e) {
-			Log.w(TAG, e);
+			// キャッチュからの読み込みができなかったのでassetsから読み込む
 			model.loadModel(mModelView, file_name);
 			try {
 				model.getVertex().save(io.writeFile(path));
