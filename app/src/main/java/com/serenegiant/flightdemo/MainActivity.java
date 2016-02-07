@@ -19,7 +19,6 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.serenegiant.gamepad.Joystick;
-import com.serenegiant.gamepad.KeyGamePad;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.net.NetworkChangedReceiver;
 import com.serenegiant.widget.ISideMenuView;

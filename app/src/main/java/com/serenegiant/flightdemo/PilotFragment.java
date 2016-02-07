@@ -15,6 +15,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -33,6 +34,7 @@ import com.serenegiant.arflight.FlightControllerBebop2;
 import com.serenegiant.arflight.FlightControllerMiniDrone;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
+import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.gamepad.GamePadConst;
@@ -53,6 +55,7 @@ import com.serenegiant.widget.TouchPilotView;
 import com.serenegiant.gl.AttitudeScreenBase;
 import com.serenegiant.gl.IModelView;
 import com.serenegiant.gl.IScreen;
+import com.serenegiant.widget.TouchableLinearLayout;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -61,7 +64,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = PilotFragment.class.getSimpleName();
 
 	static {
@@ -73,7 +76,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		return fragment;
 	}
 
-	private ViewGroup mControllerView;		// 操作パネル全体
+	private ViewGroup mControllerFrame;			// 操作パネル全体
+	private TouchableLinearLayout mPilotFrame;	// 操縦パネル
 	// 上パネル
 	private View mTopPanel;
 	private TextView mBatteryLabel;			// バッテリー残量表示
@@ -199,9 +203,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 //		rootView.setOnKeyListener(mOnKeyListener);
 //		rootView.setFocusable(true);
 
-		mControllerView = (ViewGroup) rootView.findViewById(R.id.controller_frame);
-//		mControllerView.setFocusable(true);
-//		mControllerView.requestFocus();
+		mControllerFrame = (ViewGroup) rootView.findViewById(R.id.controller_frame);
+//		mControllerFrame.setFocusable(true);
+//		mControllerFrame.requestFocus();
+
+		mPilotFrame = (TouchableLinearLayout)rootView.findViewById(R.id.pilot_frame);
+		mPilotFrame.setOnTouchableListener(mOnTouchableListener);
 
 		mActionViews.clear();
 		// 上パネル
@@ -337,6 +344,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			model = IModelView.MODEL_BEBOP;
 			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
 		}
+		if (mController instanceof ICameraController) {
+			((ICameraController)mController).sendCameraOrientation(0, 0);
+		}
 		final int color = pref.getInt(ConfigFragment.KEY_COLOR, getResources().getColor(R.color.RED));
 		TextureHelper.genTexture(getActivity(), model, color);
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
@@ -363,7 +373,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (activity instanceof MainActivity) {
 			mJoystick = ((MainActivity)activity).mJoystick;
 		}
-		mControllerView.setKeepScreenOn(true);
+		mControllerFrame.setKeepScreenOn(true);
 		startDeviceController();
 		startSensor();
 		if ((mFlightController != null) && isConnected()) {
@@ -388,8 +398,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 //			}
 //		}
 		mModelView.onPause();
-		if (mController instanceof IVideoStreamController) {
-			((IVideoStreamController)mController).sendVideoRecording(false);
+		if (mController instanceof ICameraController) {
+			((ICameraController)mController).sendVideoRecording(false);
 		}
 		stopVideoStreaming();
 		stopRecord();
@@ -400,7 +410,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		removeSideMenu();
 		remove(mGamePadTask);
 		remove(mUpdateStatusTask);
-		mControllerView.setKeepScreenOn(false);
+		mControllerFrame.setKeepScreenOn(false);
 		super.onPause();
 	}
 
@@ -413,6 +423,159 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			updateButtons();
 		}
 	}
+
+	private final TouchableLinearLayout.OnTouchableListener mOnTouchableListener
+		= new TouchableLinearLayout.OnTouchableListener() {
+
+		/** minimum distance between touch positions*/
+		private static final float MIN_DISTANCE = 15.f;
+		private static final float MIN_DISTANCE_SQUARE = MIN_DISTANCE * MIN_DISTANCE;
+		/** コマンドを送る最小間隔[ミリ秒]  */
+		private static final long MIN_CMD_INTERVALS_MS = 50;	// 50ミリ秒
+		/** pan/tiltをリセットするための長押し時間 */
+		private static final long RESET_DURATION_MS = 2000;	// 2秒
+
+		private boolean inited;
+		/** マルチタッチ開始時のタッチポインタのインデックス */
+		private int mPrimaryId, mSecondaryId;
+		/** マルチタッチ開始時のタッチ位置 */
+		private float mPrimaryX, mPrimaryY, mSecondX, mSecondY;
+		/** マルチタッチ開始時のタッチ中点 */
+		private float mPivotX, mPivotY;
+		/** マルチタッチ開始時のタッチ距離 */
+		private float mTouchDistance;
+
+		private float mPanLen, mTiltLen;
+		private long prevTime;
+
+		@Override
+		public boolean onInterceptTouchEvent(final MotionEvent event) {
+			final boolean intercept = (mController instanceof ICameraController) && (event.getPointerCount() > 1);	// マルチタッチした時は横取りする
+			if (intercept) {
+				// マルチタッチ開始時のタッチ位置等を保存
+				initTouch(event);
+			}
+			return intercept;
+		}
+
+		@Override
+		public boolean onTouchEvent(final MotionEvent event) {
+			final int action = event.getActionMasked();
+			final int n = event.getPointerCount();
+			switch (action) {
+			case MotionEvent.ACTION_DOWN:
+				if (DEBUG) Log.v(TAG, "ACTION_DOWN:");
+				// シングルタッチ
+				return n > 1;	// 多分ここにはこない
+			case MotionEvent.ACTION_POINTER_DOWN:
+				if (DEBUG) Log.v(TAG, "ACTION_POINTER_DOWN:");
+				return true;
+			case MotionEvent.ACTION_MOVE:
+//				if (DEBUG) Log.v(TAG, "ACTION_MOVE:");
+				if ((n > 1) && (System.currentTimeMillis() - prevTime > MIN_CMD_INTERVALS_MS) && checkTouchMoved(event)) {
+					prevTime = System.currentTimeMillis();
+					remove(mResetRunnable);
+					if (!inited) {
+						initTouch(event);
+					}
+					// 現在のタッチ座標
+					final float x0 = event.getX(0);
+					final float y0 = event.getY(0);
+					final float x1 = event.getX(1);
+					final float y1 = event.getY(1);
+					// 現在の中点座標
+					final float cx = (x0 + x1) / 2.0f;
+					final float cy = (y0 + y1) / 2.0f;
+					// 最初のタッチ中点との距離を計算
+					final float dx = (mPivotX - cx) * mPanLen;
+					final float dy = (cy - mPivotY) * mTiltLen;
+					final int pan = dx < -100 ? -100 : (dx > 100 ? 100 : (int)dx);
+					final int tilt = dy < -100 ? -100 : (dy > 100 ? 100 : (int)dy);
+//					if (DEBUG) Log.v(TAG, String.format("ACTION_MOVE:dx=%5.2f,dy=%5.2f,pan=%d,tilt=%d", dx, dy, pan, tilt));
+					if (mController instanceof ICameraController) {
+						((ICameraController)mController).sendCameraOrientation(tilt, pan);
+					}
+				}
+				return true;
+			case MotionEvent.ACTION_CANCEL:
+				if (DEBUG) Log.v(TAG, "ACTION_CANCEL:");
+				break;
+			case MotionEvent.ACTION_UP:
+				if (DEBUG) Log.v(TAG, "ACTION_UP:");
+				break;
+			case MotionEvent.ACTION_POINTER_UP:
+				if (DEBUG) Log.v(TAG, "ACTION_POINTER_UP:");
+				break;
+			}
+			if (n == 0) {
+				inited = false;
+				remove(mResetRunnable);
+			}
+			return false;
+		}
+
+		/** Pan/TiltをリセットするためのRunnable */
+		private Runnable mResetRunnable = new Runnable() {
+			@Override
+			public void run() {
+				inited = false;
+				if (mController instanceof ICameraController) {
+					((ICameraController)mController).sendCameraOrientation(0, 0);
+				}
+			}
+		};
+
+		private void initTouch(final MotionEvent event) {
+			// primary touch
+			mPrimaryId = event.getPointerId(0);
+			mPrimaryX = event.getX(0);
+			mPrimaryY = event.getY(0);
+			// secondary touch
+			mSecondaryId = event.getPointerId(1);
+			mSecondX = event.getX(1);
+			mSecondY = event.getY(1);
+			// calculate the distance between first and second touch
+			final float dx = mSecondX - mPrimaryX;
+			final float dy = mSecondY - mPrimaryY;
+			mTouchDistance = (float)Math.hypot(dx, dy);
+			// set pivot position to the middle coordinate
+			mPivotX = (mPrimaryX + mSecondX) / 2.0f;
+			mPivotY = (mPrimaryY + mSecondY) / 2.0f;
+			prevTime = System.currentTimeMillis() - MIN_CMD_INTERVALS_MS;
+			mPanLen = 80.0f / mPilotFrame.getWidth();
+			mTiltLen = 80.0f / mPilotFrame.getHeight();
+			inited = true;
+			remove(mResetRunnable);
+			post(mResetRunnable, RESET_DURATION_MS);
+		}
+
+		/** タッチ位置を動かしたかどうかを取得 */
+		private final boolean checkTouchMoved(final MotionEvent event) {
+			final int ix0 = event.findPointerIndex(mPrimaryId);
+			final int ix1 = event.findPointerIndex(mSecondaryId);
+			if (ix0 >= 0) {
+				// check primary touch
+				float x = event.getX(ix0) - mPrimaryX;
+				float y = event.getY(ix0) - mPrimaryY;
+				if (x * x + y * y < MIN_DISTANCE_SQUARE) {
+					// primary touch is at the almost same position
+					if (ix1 >= 0) {
+						// check secondary touch
+						x = event.getX(ix1) - mSecondX;
+						y = event.getY(ix1) - mSecondY;
+						if (x * x + y * y < MIN_DISTANCE_SQUARE) {
+							// secondary touch is also at the almost same position.
+							return false;
+						}
+					} else {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+
+	};
 
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
@@ -533,9 +696,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				break;
 			case R.id.video_capture_btn:
 				setColorFilter((ImageView)view);
-				if (mController instanceof IVideoStreamController) {
+				if (mController instanceof ICameraController) {
 					mVideoRecording = !mVideoRecording;
-					((IVideoStreamController)mController).sendVideoRecording(mVideoRecording);
+					((ICameraController)mController).sendVideoRecording(mVideoRecording);
 				}
 				break;
 			case R.id.cap_p45_btn:

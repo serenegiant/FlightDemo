@@ -92,7 +92,7 @@ import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.attribute.AttributePosition;
 import com.serenegiant.arflight.configs.ARNetworkConfigARDrone3;
 
-public class FlightControllerBebop extends FlightController implements IVideoStreamController, IWiFiController {
+public class FlightControllerBebop extends FlightController implements ICameraController, IWiFiController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "FlightControllerBebop";
 
@@ -110,12 +110,6 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 		mSettings.setCutOffMode(true);
 	}
 
-	@Override
-	public void setVideoStream(final IVideoStream video_stream) {
-		synchronized (mStreamSync) {
-			mVideoStreamListener = video_stream;
-		}
-	}
 //================================================================================
 // 機体からの状態・データコールバック関係
 //================================================================================
@@ -1509,11 +1503,15 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 //********************************************************************************
 // 映像関係
 //********************************************************************************
+//--------------------------------------------------------------------------------
+// ICameraControllerのメソッド
+//--------------------------------------------------------------------------------
 	/**
 	 * 静止画撮影時の映像フォーマットを設定
 	 * @param pictureFormat 0: Take raw image, 1: Take a 4:3 jpeg photo, 2: Take a 16:9 snapshot from camera
 	 * @return
 	 */
+	@Override
 	public boolean sendPictureFormat(final int pictureFormat) {
 
 		final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM type
@@ -1544,11 +1542,12 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 	 * @param pan Pan camera consign for the drone (in degree)
 	 * @return
 	 */
+	@Override
 	public boolean sendCameraOrientation(final int tilt, final int pan) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3CameraOrientation((byte) tilt, (byte) pan);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3CameraOrientation((byte)tilt, (byte)pan);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1573,6 +1572,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 	 * 4: フラシュ撮影用 White balance for a flash<br>
 	 * @return
 	 */
+	@Override
 	public boolean sendAutoWhiteBalance(final int auto_white_balance) {
 
 		boolean sentStatus = true;
@@ -1606,6 +1606,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 	 * @param exposure Exposure value (bounds given by ExpositionChanged arg min and max, by default [-3:3])
 	 * @return
 	 */
+	@Override
 	public boolean sendExposure(final float exposure) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -1629,6 +1630,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 	 * @param saturation Saturation value (bounds given by SaturationChanged arg min and max, by default [-100:100])
 	 * @return
 	 */
+	@Override
 	public boolean sendSaturation(final float saturation) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -1653,11 +1655,12 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 	 * @param interval 撮影間隔[秒]
 	 * @return
 	 */
+	@Override
 	public boolean sendTimelapseSelection(final boolean enabled, final float interval) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PictureSettingsTimelapseSelection((byte) (enabled ? 1 : 0), interval);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PictureSettingsTimelapseSelection((byte)(enabled ? 1 : 0), interval);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1677,11 +1680,12 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 	 * @param mass_storage_id
 	 * @return
 	 */
+	@Override
 	public boolean sendVideoAutoRecord(final boolean enabled, final int mass_storage_id) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PictureSettingsVideoAutorecordSelection((byte) (enabled ? 1 : 0), (byte) mass_storage_id);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PictureSettingsVideoAutorecordSelection((byte)(enabled ? 1 : 0), (byte)mass_storage_id);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1696,49 +1700,16 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 	}
 
 	/**
-	 * ビデオストリーミング設定
-	 * @param _enabled true: ビデオストリーミング開始, false:ビデオストリーミング停止
-	 * @return
-	 */
-	public boolean sendVideoEnable(final boolean _enabled) {
-		boolean sentStatus = true;
-
-		boolean enabled = _enabled;
-		if (mVideoThread != null) {
-			mVideoThread.enabled(enabled);
-		} else {
-			enabled = false;
-		}
-
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaStreamingVideoEnable((byte) (enabled ? 1 : 0));
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "Failed to send Exposure command.");
-		}
-		if (mVideoThread != null) {
-			mVideoThread.enabled(enabled && sentStatus);
-		}
-
-		return sentStatus;
-	}
-
-	/**
 	 * 映像のブレ補正設定
 	 * @param enabled
 	 * @return
 	 */
+	@Override
 	public boolean sendWobbleCancellation(final boolean enabled) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugVideoEnableWobbleCancellation((byte) (enabled ? 1 : 0));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugVideoEnableWobbleCancellation((byte)(enabled ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1758,6 +1729,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 	 * @param gyrosDelay_s Shift by x seconds t gyros (wobble cancellation
 	 * @return
 	 */
+	@Override
 	public boolean sendVideoSyncAnglesGyros(final float anglesDelay_s, final float gyrosDelay_s) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -1787,7 +1759,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaRecordPicture((byte) mass_storage_id);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaRecordPicture((byte)mass_storage_id);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1839,7 +1811,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 		final ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM record
 			= ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM.getFromValue(start ? 1 : 0);
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaRecordVideo(record, (byte) mass_storage_id);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaRecordVideo(record, (byte)mass_storage_id);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1875,6 +1847,61 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send Video recording command.");
+		}
+
+		return sentStatus;
+	}
+
+//--------------------------------------------------------------------------------
+// IVideoStreamControllerのメソッド
+//--------------------------------------------------------------------------------
+	@Override
+	public void setVideoStream(final IVideoStream video_stream) {
+		synchronized (mStreamSync) {
+			mVideoStreamListener = video_stream;
+		}
+	}
+
+	@Override
+	public boolean isVideoStreamingEnabled() {
+		return mSettings.mCamera.isVideoStreamingEnabled();
+	}
+
+	@Override
+	public void enableVideoStreaming(boolean enable) {
+		sendVideoStreamingEnable(enable);
+	}
+
+	/**
+	 * ビデオストリーミング設定
+	 * @param _enabled true: ビデオストリーミング開始, false:ビデオストリーミング停止
+	 * @return
+	 */
+	@Override
+	public boolean sendVideoStreamingEnable(final boolean _enabled) {
+		boolean sentStatus = true;
+
+		boolean enabled = _enabled;
+		if (mVideoThread != null) {
+			mVideoThread.enabled(enabled);
+		} else {
+			enabled = false;
+		}
+
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaStreamingVideoEnable((byte)(enabled ? 1 : 0));
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send Exposure command.");
+		}
+		if (mVideoThread != null) {
+			mVideoThread.enabled(enabled && sentStatus);
 		}
 
 		return sentStatus;
@@ -1939,7 +1966,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingNavigateHome((byte) (start ? 1 : 0));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingNavigateHome((byte)(start ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1962,7 +1989,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugBatteryDebugSettingsUseDrone2Battery((byte) (use_drone2Battery ? 1 : 0));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugBatteryDebugSettingsUseDrone2Battery((byte)(use_drone2Battery ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -2052,16 +2079,6 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 			}
 		}
 		return sentStatus;
-	}
-
-	@Override
-	public boolean isVideoStreamingEnabled() {
-		return mSettings.mCamera.isVideoStreamingEnabled();
-	}
-
-	@Override
-	public void enableVideoStreaming(boolean enable) {
-		sendVideoEnable(enable);
 	}
 
 	protected void prepare_network() {

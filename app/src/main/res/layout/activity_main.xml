@@ -43,19 +43,7 @@
 
         </FrameLayout>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="00:00:00:00:00:00:00:00:"
-            android:id="@+id/debug_gamepad_testview"
-            android:textSize="36sp"
-            android:layout_alignParentTop="false"
-            android:layout_alignParentBottom="false"
-            android:layout_centerVertical="true"
-            android:textColor="@color/RED"
-            android:visibility="invisible"/>
-
-    </RelativeLayout>
+	</RelativeLayout>
 
     <!-- サイドメニュー部 -->
     <com.serenegiant.widget.SideMenuFrameLayout

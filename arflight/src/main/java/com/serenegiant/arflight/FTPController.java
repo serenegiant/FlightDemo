@@ -93,8 +93,10 @@ public abstract class FTPController {
 				return new FTPControllerBLE(context, (IFlightController)controller);
 			}
 			if (controller instanceof IVideoStreamController) {
-				((IVideoStreamController)controller).sendVideoRecording(false);
 				((IVideoStreamController)controller).enableVideoStreaming(false);
+			}
+			if (controller instanceof ICameraController) {
+				((ICameraController)controller).sendVideoRecording(false);
 			}
 		}
 		return null;

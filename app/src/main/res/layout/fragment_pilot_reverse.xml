@@ -91,10 +91,11 @@
 
 		</RelativeLayout>
 
-		<LinearLayout
+		<com.serenegiant.widget.TouchableLinearLayout
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			android:layout_weight="10"
+			android:id="@+id/pilot_frame"
 			android:orientation="horizontal">
 
 			<LinearLayout
@@ -214,7 +215,7 @@
 					android:src="?attr/flightdemo_icon_flip_left"/>
 
 			</LinearLayout>
-		</LinearLayout>
+		</com.serenegiant.widget.TouchableLinearLayout>
 
 		<RelativeLayout
 			android:id="@+id/bottom_panel"
