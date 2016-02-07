@@ -256,20 +256,6 @@ public interface IFlightController extends IDeviceController {
 	public boolean sendTakePicture();
 
 	/**
-	 * 録画開始停止指示
-	 * @param start true: 録画開始, false: 録画終了
-	 * @param mass_storage_id
-	 * @return
-	 */
-	public boolean sendVideoRecording(final boolean start, final int mass_storage_id);
-	/**
-	 * 録画開始停止指示
-	 * @param start true: 録画開始, false: 録画終了
-	 * @return
-	 */
-	public boolean sendVideoRecording(final boolean start);
-
-	/**
 	 * LEDの明るさをセット
 	 * @param left [0,255], 範囲外は256の剰余を適用
 	 * @param right [0,255], 範囲外は256の剰余を適用

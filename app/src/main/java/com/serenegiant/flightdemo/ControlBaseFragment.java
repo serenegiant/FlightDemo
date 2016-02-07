@@ -2,7 +2,6 @@ package com.serenegiant.flightdemo;
 
 import android.app.Activity;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -26,7 +25,8 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	protected static final long POP_BACK_STACK_DELAY = 2000;
 
 	private ARDiscoveryDeviceService mDevice;
-	protected IFlightController mController;
+	protected IDeviceController mController;
+	protected IFlightController mFlightController;
 
 	public ControlBaseFragment() {
 		super();
@@ -54,6 +54,9 @@ public abstract class ControlBaseFragment extends BaseFragment {
 		if (savedInstanceState != null) {
 			mDevice = savedInstanceState.getParcelable(EXTRA_DEVICE_SERVICE);
 			mController = ManagerFragment.getController(getActivity(), mDevice);
+			if (mController instanceof IFlightController) {
+				mFlightController = (IFlightController)mController;
+			}
 		}
 		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState + ",mController=" + mController);
 	}
@@ -117,19 +120,19 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	}
 
 	protected int getAlarm() {
-		return mController != null ? mController.getAlarm() : DroneStatus.ALARM_DISCONNECTED;
+		return mController instanceof IFlightController ? ((IFlightController)mController).getAlarm() : DroneStatus.ALARM_DISCONNECTED;
 	}
 
 	protected boolean isFlying() {
-		return mController != null && mController.isFlying();
+		return mController instanceof IFlightController && ((IFlightController)mController).isFlying();
 	}
 
 	protected int getStillCaptureState() {
-		return mController != null ? mController.getStillCaptureState() : DroneStatus.MEDIA_UNAVAILABLE;
+		return mController instanceof IFlightController ? ((IFlightController)mController).getStillCaptureState() : DroneStatus.MEDIA_UNAVAILABLE;
 	}
 
 	protected int getVideoRecordingState() {
-		return mController != null ? mController.getVideoRecordingState() : DroneStatus.MEDIA_UNAVAILABLE;
+		return mController instanceof IFlightController ? ((IFlightController)mController).getVideoRecordingState() : DroneStatus.MEDIA_UNAVAILABLE;
 	}
 
 	protected synchronized boolean startDeviceController() {
@@ -137,6 +140,9 @@ public abstract class ControlBaseFragment extends BaseFragment {
 		boolean result = false;
 		if (mController == null) {
 			mController = ManagerFragment.getController(getActivity(), mDevice);
+			if (mController instanceof IFlightController) {
+				mFlightController = (IFlightController)mController;
+			}
 		}
 		if (mController != null) {
 			final int state = getState();
@@ -187,8 +193,9 @@ public abstract class ControlBaseFragment extends BaseFragment {
 	protected synchronized void stopDeviceController(final boolean disconnected) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
 		final int state = getState();
-		final IFlightController controller = mController;
+		final IDeviceController controller = mController;
 		mController = null;
+		mFlightController = null;
 		if ((state == IFlightController.STATE_STARTED)
 			|| (state == IFlightController.STATE_STARTING)) {
 

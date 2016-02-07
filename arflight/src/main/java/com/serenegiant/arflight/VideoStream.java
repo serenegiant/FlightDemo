@@ -271,12 +271,12 @@ public class VideoStream implements IVideoStream {
 							0 == data[searchIndex+2] &&
 							1 == data[searchIndex+3])
 					{
-						break;  // PPS header found
+						break;  // SPS header found
 					}
 				}
 				spsSize = searchIndex;
 
-				// Search start at index 4 to avoid finding the PSS "00 00 00 01" tag
+				// Search start at index 4 to avoid finding the PPS "00 00 00 01" tag
 				for (searchIndex = spsSize+4; searchIndex <= frame.getDataSize() - 4; searchIndex ++) {
 					if (0 == data[searchIndex  ] &&
 							0 == data[searchIndex+1] &&

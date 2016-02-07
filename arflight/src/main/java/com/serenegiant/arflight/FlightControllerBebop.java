@@ -766,6 +766,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 
 	/**
 	 * GPS固定設定?を受信した時
+	 * GPSで自機位置を確認できたかどうかかも
 	 */
 	private final ARCommandARDrone3GPSSettingsStateGPSFixStateChangedListener
 		mGPSSettingsStateGPSFixStateChangedListener
@@ -775,7 +776,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 		 */
 		@Override
 		public void onARDrone3GPSSettingsStateGPSFixStateChangedUpdate(final byte fixed) {
-			// FIXME
+			mGPS.setFixed(fixed != 0);
 		}
 	};
 
@@ -1127,7 +1128,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 		public void onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate(final byte nbSatellite) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate:nbSatellite=" + nbSatellite);
-			// FIXME 未実装
+			mGPS.numGpsSatellite = nbSatellite;
 		}
 	};
 
@@ -1536,7 +1537,7 @@ public class FlightControllerBebop extends FlightController implements IVideoStr
 	}
 
 	/**
-	 * カメラの方向を設定<br>
+	 * カメラの方向を設定, コールバックの返り値から推測すると設定可能なのは[-100;100]<br>
 	 * Tilt and pan value is saturated by the drone.<br>
 	 * Saturation value is sent by the drone through CameraSettingsChanged command.
 	 * @param tilt Tilt camera consign for the drone (in degree).

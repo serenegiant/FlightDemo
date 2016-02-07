@@ -125,11 +125,11 @@ public abstract class FlightController extends DeviceController implements IFlig
 		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY)) {
 			videoFragmentSize = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY);
 		}
-                    /* Else: leave it to the default value. */
+        /* Else: leave it to the default value. */
 		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY)) {
 			videoFragmentMaximumNumber = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY);
 		}
-                    /* Else: leave it to the default value. */
+		/* Else: leave it to the default value. */
 		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY)) {
 			videoMaxAckInterval = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY);
 		}
@@ -205,11 +205,11 @@ public abstract class FlightController extends DeviceController implements IFlig
 		if (DEBUG) Log.v(TAG, "stopFlightCMDThread:終了");
 	}
 
-	/** ストリーミングデータ受信スレッドを開始(このクラス内では何もしないので必要ならばoverrideすること) */
+	/** 映像ストリーミングデータ受信スレッドを開始(このクラス内では何もしないので必要ならばoverrideすること) */
 	protected void startVideoThread() {
 	}
 
-	/** ストリーミングデータ受信スレッドを終了(このクラス内では何もしないので必要ならばoverrideすること) */
+	/** 映像ストリーミングデータ受信スレッドを終了(このクラス内では何もしないので必要ならばoverrideすること) */
 	protected void stopVideoThread() {
 	}
 

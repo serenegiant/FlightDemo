@@ -88,8 +88,8 @@ public class ManagerFragment extends Fragment {
 	 * @param index
 	 * @return indexに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public static IFlightController getController(final Activity activity, final int index) {
-		IFlightController result = null;
+	public static IDeviceController getController(final Activity activity, final int index) {
+		IDeviceController result = null;
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null)
 			result = fragment.getController(index);
@@ -102,8 +102,8 @@ public class ManagerFragment extends Fragment {
 	 * @param name
 	 * @return nameに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public static IFlightController getController(final Activity activity, final String name) {
-		IFlightController result = null;
+	public static IDeviceController getController(final Activity activity, final String name) {
+		IDeviceController result = null;
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null)
 			result = fragment.getController(name);
@@ -116,8 +116,8 @@ public class ManagerFragment extends Fragment {
 	 * @param device
 	 * @return
 	 */
-	public static IFlightController getController(final Activity activity, final ARDiscoveryDeviceService device) {
-		IFlightController result = null;
+	public static IDeviceController getController(final Activity activity, final ARDiscoveryDeviceService device) {
+		IDeviceController result = null;
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null)
 			result = fragment.getController(device);
@@ -129,8 +129,7 @@ public class ManagerFragment extends Fragment {
 	 * @param activity
 	 * @param controller
 	 */
-	public static void releaseController(final Activity activity, final IFlightController controller) {
-		IFlightController result = null;
+	public static void releaseController(final Activity activity, final IDeviceController controller) {
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null)
 			fragment.releaseController(controller);
@@ -149,7 +148,7 @@ public class ManagerFragment extends Fragment {
 	private final Object mDeviceSync = new Object();
 	private final List<ARDiscoveryDeviceService> mDevices = new ArrayList<ARDiscoveryDeviceService>();
 	private final Object mControllerSync = new Object();
-	private final Map<String, IFlightController> mControllers = new HashMap<String, IFlightController>();
+	private final Map<String, IDeviceController> mControllers = new HashMap<String, IDeviceController>();
 
 	private final List<ManagerCallback> mCallbacks = new ArrayList<ManagerCallback>();
 
@@ -239,8 +238,8 @@ public class ManagerFragment extends Fragment {
 	 * @param name
 	 * @return nameに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public IFlightController getController(final String name) {
-		IFlightController result;
+	public IDeviceController getController(final String name) {
+		IDeviceController result;
 		synchronized (mControllerSync) {
 			result = mControllers.get(name);
 		}
@@ -258,8 +257,8 @@ public class ManagerFragment extends Fragment {
 	 * @param index
 	 * @return indexに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public IFlightController getController(final int index) {
-		IFlightController result = null;
+	public IDeviceController getController(final int index) {
+		IDeviceController result = null;
 		final ARDiscoveryDeviceService device = getDevice(index);
 		if (device != null) {
 			synchronized (mControllerSync) {
@@ -277,8 +276,8 @@ public class ManagerFragment extends Fragment {
 	 * @param device
 	 * @return
 	 */
-	public IFlightController getController(final ARDiscoveryDeviceService device) {
-		IFlightController result = null;
+	public IDeviceController getController(final ARDiscoveryDeviceService device) {
+		IDeviceController result = null;
 		if (device != null) {
 			synchronized (mControllerSync) {
 				result = mControllers.get(device.getName());
@@ -331,8 +330,8 @@ public class ManagerFragment extends Fragment {
 	 * @param device
 	 * @return
 	 */
-	public IFlightController createController(final ARDiscoveryDeviceService device) {
-		IFlightController result = null;
+	public IDeviceController createController(final ARDiscoveryDeviceService device) {
+		IDeviceController result = null;
 		if (device != null) {
 			if (DEBUG) Log.v(TAG, "getProductID=" + device.getProductID());
 			switch (ARDiscoveryService.getProductFromProductID(device.getProductID())) {

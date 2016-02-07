@@ -57,6 +57,7 @@ public abstract class DeviceController implements IDeviceController {
 	protected final Context mContext;
 	protected final ARNetworkConfig mNetConfig;
 	private final ARDiscoveryDeviceService mDeviceService;
+	private final SkyController mSkyController;
 
 	protected ARNetworkALManager mARManager;
 	protected ARNetworkManager mARNetManager;
@@ -85,26 +86,39 @@ public abstract class DeviceController implements IDeviceController {
 	public DeviceController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		mContext = context;
 		mDeviceService = service;
+		mSkyController = null;
 		mNetConfig = net_config;
+	}
+
+	public DeviceController(final Context context, final SkyController skyController) {
+		mContext = context;
+		mDeviceService = null;
+		mSkyController = skyController;
+		mNetConfig = skyController.mNetConfig;
 	}
 
 	@Override
 	public String getName() {
-		return mDeviceService != null ? mDeviceService.getName() : null;
+		final ARDiscoveryDeviceService device_service = getDeviceService();
+		return device_service != null ? device_service.getName() : null;
 	}
 
 	@Override
 	public String getProductName() {
-		return mDeviceService != null ? ARDiscoveryService.getProductName(ARDiscoveryService.getProductFromProductID(mDeviceService.getProductID())) : null;
+		final ARDiscoveryDeviceService device_service = getDeviceService();
+		return device_service != null ? ARDiscoveryService.getProductName(ARDiscoveryService.getProductFromProductID(device_service.getProductID())) : null;
 	}
 
 	public int getProductId() {
-		return mDeviceService != null ? mDeviceService.getProductID() : 0;
+		final ARDiscoveryDeviceService device_service = getDeviceService();
+		return device_service != null ? device_service.getProductID() : 0;
 	}
 
 	@Override
 	public ARDiscoveryDeviceService getDeviceService() {
-		return mDeviceService;
+		// これだとSkyController経由で繋いでる時はSkyControllerのARDiscoveryDeviceServiceが返ってきてしまう
+		// SkyController経由で接続しているARDiscoveryDeviceServiceを返せた方がいいのかも
+		return mDeviceService != null ? mDeviceService : mSkyController.getDeviceService();
 	}
 
 	@Override
@@ -178,7 +192,8 @@ public abstract class DeviceController implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "cancelStart:");
 		if (!mRequestCancel) {
 			mRequestCancel = true;
-			final Object device = mDeviceService.getDevice();
+			final ARDiscoveryDeviceService device_service = getDeviceService();
+			final Object device = device_service.getDevice();
 			if (device instanceof ARDiscoveryDeviceNetService) {
 				if (discoveryData != null) {
 					discoveryData.ControllerConnectionAbort();
@@ -295,62 +310,70 @@ public abstract class DeviceController implements IDeviceController {
 		boolean failed = false;
 		int pingDelay = 0; /* 0 means default, -1 means no ping */
 
-        /* Create the looper ARNetworkALManager */
-		mARManager = new ARNetworkALManager();
+		// FIXME SkyControllerへブリッジさせる時の処理を追加する
+		// SkyControllerからmARManagerとmARNetManagerをコピーすればいいんかな?
 
+		if (mDeviceService != null) {
+			/* Create the looper ARNetworkALManager */
+			mARManager = new ARNetworkALManager();
 
-		final Object device = mDeviceService.getDevice();
-		if (DEBUG) Log.v(TAG, "device=" + device);
-		if (device instanceof ARDiscoveryDeviceNetService) {
-			// Wifiの時
-			if (DEBUG) Log.v(TAG, "Wifi接続開始");
-			final ARDiscoveryDeviceNetService netDevice = (ARDiscoveryDeviceNetService)device;
-			discoveryIp = netDevice.getIp();
-			discoveryPort = netDevice.getPort();
+			final ARDiscoveryDeviceService device_service = getDeviceService();
+			final Object device = device_service.getDevice();
+			if (DEBUG) Log.v(TAG, "device=" + device);
+			if (device instanceof ARDiscoveryDeviceNetService) {
+				// Wifiの時
+				if (DEBUG) Log.v(TAG, "Wifi接続開始");
+				final ARDiscoveryDeviceNetService netDevice = (ARDiscoveryDeviceNetService)device;
+				discoveryIp = netDevice.getIp();
+				discoveryPort = netDevice.getPort();
 
-            /*  */
-			if (!ardiscoveryConnect()) {
-				failed = true;
-			}
+				/*  */
+				if (!ardiscoveryConnect()) {
+					failed = true;
+				}
 
-			prepare_network();
-			final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(discoveryIp, c2dPort, d2cPort, 1);
+				prepare_network();
+				final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(discoveryIp, c2dPort, d2cPort, 1);
 
-			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
-				mMediaOpened = true;
+				if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
+					mMediaOpened = true;
+				} else {
+					Log.w(TAG, "error occurred: " + netALError.toString());
+					failed = true;
+				}
+			} else if (device instanceof ARDiscoveryDeviceBLEService) {
+				// Bluetoothの時
+				if (DEBUG) Log.v(TAG, "Bluetooth接続開始");
+				final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) device;
+
+				prepare_network();
+				final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(
+					mContext, bleDevice.getBluetoothDevice(), 1, mNetConfig.getBLENotificationIDs()/*bleNotificationIDs*/);
+
+				if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
+					mMediaOpened = true;
+					pingDelay = -1; /* Disable ping for BLE networks */
+				} else {
+					Log.w(TAG, "error occurred: " + netALError.toString());
+					failed = true;
+				}
 			} else {
-				Log.w(TAG, "error occurred: " + netALError.toString());
+				Log.w(TAG, "unknown AR discovery device service");
 				failed = true;
 			}
-		} else if (device instanceof ARDiscoveryDeviceBLEService) {
-			// Bluetoothの時
-			if (DEBUG) Log.v(TAG, "Bluetooth接続開始");
-			final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) device;
-
-			prepare_network();
-			final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(
-				mContext, bleDevice.getBluetoothDevice(), 1, mNetConfig.getBLENotificationIDs()/*bleNotificationIDs*/);
-
-			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
-				mMediaOpened = true;
-				pingDelay = -1; /* Disable ping for BLE networks */
-			} else {
-				Log.w(TAG, "error occurred: " + netALError.toString());
-				failed = true;
+			if (!failed) {
+				// ARNetworkManagerを生成
+				if (DEBUG) Log.v(TAG, "ARNetworkManagerを生成");
+				mARNetManager = new ARNetworkManagerExtend(mARManager,
+					mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
+				if (mARNetManager.isCorrectlyInitialized() == false) {
+					Log.e(TAG, "new ARNetworkManager failed");
+					failed = true;
+				}
 			}
-		} else {
-			Log.w(TAG, "unknown AR discovery device service");
-			failed = true;
-		}
-		if (!failed) {
-			// ARNetworkManagerを生成
-			if (DEBUG) Log.v(TAG, "ARNetworkManagerを生成");
-			mARNetManager = new ARNetworkManagerExtend(mARManager,
-				mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
-			if (mARNetManager.isCorrectlyInitialized() == false) {
-				Log.e(TAG, "new ARNetworkManager failed");
-				failed = true;
-			}
+		} else if (mSkyController != null) {
+			mARManager = mSkyController.mARManager;
+			mARNetManager = mSkyController.mARNetManager;
 		}
 		if (DEBUG) Log.v(TAG, "startNetwork:finished:failed=" + failed);
 		return failed;
@@ -359,32 +382,40 @@ public abstract class DeviceController implements IDeviceController {
 	/** 機体との接続を終了 */
 	private void stopNetwork() {
 		if (DEBUG) Log.v(TAG, "stopNetwork:");
-		if (mARNetManager != null) {
-			mARNetManager.stop();
+		// FIXME SkyControllerへブリッジさせる時の処理を追加する
 
-			try {
-				if (txThread != null) {
-					txThread.join();
+		if (mDeviceService != null) {
+			if (mARNetManager != null) {
+				mARNetManager.stop();
+
+				try {
+					if (txThread != null) {
+						txThread.join();
+					}
+					if (rxThread != null) {
+						rxThread.join();
+					}
+				} catch (final InterruptedException e) {
+					Log.w(TAG, e);
 				}
-				if (rxThread != null) {
-					rxThread.join();
-				}
-			} catch (final InterruptedException e) {
-				Log.w(TAG, e);
+
+				mARNetManager.dispose();
 			}
 
-			mARNetManager.dispose();
-		}
+			final ARDiscoveryDeviceService device_service = getDeviceService();
+			if ((mARManager != null) && (mMediaOpened)) {
+				if (device_service.getDevice() instanceof ARDiscoveryDeviceNetService) {
+					mARManager.closeWifiNetwork();
+				} else if (device_service.getDevice() instanceof ARDiscoveryDeviceBLEService) {
+					mARManager.closeBLENetwork(mContext);
+				}
 
-		if ((mARManager != null) && (mMediaOpened)) {
-			if (mDeviceService.getDevice() instanceof ARDiscoveryDeviceNetService) {
-				mARManager.closeWifiNetwork();
-			} else if (mDeviceService.getDevice() instanceof ARDiscoveryDeviceBLEService) {
-				mARManager.closeBLENetwork(mContext);
+				mMediaOpened = false;
+				mARManager.dispose();
 			}
-
-			mMediaOpened = false;
-			mARManager.dispose();
+		} else if (mSkyController != null) {
+			mARNetManager = null;
+			mARManager = null;
 		}
 		if (DEBUG) Log.v(TAG, "stopNetwork:終了");
 	}
@@ -401,7 +432,8 @@ public abstract class DeviceController implements IDeviceController {
 		d2cPort = mNetConfig.getInboundPort();
 
 		// 製品の種類を取得
-		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceService.getProductID());
+		final ARDiscoveryDeviceService device_service = getDeviceService();
+		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device_service.getProductID());
 
 		discoveryData = new ARDiscoveryConnection() {
 			@Override
@@ -920,14 +952,6 @@ public abstract class DeviceController implements IDeviceController {
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonCurrentTime(formattedTime.format(currentDate));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			   /* Send data with ARNetwork */
-			// The command emergency should be sent to its own buffer acknowledged  ; here iobufferC2dAck
-/*			final ARNETWORK_ERROR_ENUM netError = mARNetManager.sendData(mNetConfig.getC2dAckId(), cmd, null, true);
-
-			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
-				Log.e(TAG, "mARNetManager.sendData() failed. " + netError.toString());
-				sentStatus = false;
-			} */
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
 
@@ -1080,7 +1104,9 @@ public abstract class DeviceController implements IDeviceController {
 					}
 				}
                 /* Apply sending policy. */
-				retVal = sendInfo.getTimeoutPolicy();
+				if (sendInfo != null) {
+					retVal = sendInfo.getTimeoutPolicy();
+				}
 
 				break;
 

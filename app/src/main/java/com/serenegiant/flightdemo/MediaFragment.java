@@ -144,7 +144,7 @@ public class MediaFragment extends ControlBaseFragment
 	private final Runnable mConnectCheckTask = new Runnable() {
 		@Override
 		public void run() {
-			final String mass_storage_name = mController.getMassStorageName();
+			final String mass_storage_name = mFlightController.getMassStorageName();
 			if (TextUtils.isEmpty(mass_storage_name)) {
 				post(this, 1000);	// まだ準備出来てないので1秒後に再実行
 			} else {

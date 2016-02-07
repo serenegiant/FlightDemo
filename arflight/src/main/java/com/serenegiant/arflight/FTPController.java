@@ -85,15 +85,17 @@ public abstract class FTPController {
 	private final Object mCallbackSync = new Object();
 	private FTPControllerCallback mCallback;
 
-	public static FTPController newInstance(final Context context, final IFlightController controller) {
-		if (controller instanceof IWiFiController) {
-			return new FTPControllerWiFi(context, controller);
-		} else if (controller instanceof IBLEController) {
-			return new FTPControllerBLE(context, controller);
-		}
-		controller.sendVideoRecording(false);
-		if (controller instanceof IVideoStreamController) {
-			((IVideoStreamController)controller).enableVideoStreaming(false);
+	public static FTPController newInstance(final Context context, final IDeviceController controller) {
+		if (controller instanceof IFlightController) {
+			if (controller instanceof IWiFiController) {
+				return new FTPControllerWiFi(context, (IFlightController)controller);
+			} else if (controller instanceof IBLEController) {
+				return new FTPControllerBLE(context, (IFlightController)controller);
+			}
+			if (controller instanceof IVideoStreamController) {
+				((IVideoStreamController)controller).sendVideoRecording(false);
+				((IVideoStreamController)controller).enableVideoStreaming(false);
+			}
 		}
 		return null;
 	}

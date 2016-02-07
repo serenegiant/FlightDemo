@@ -1,5 +1,6 @@
 package com.serenegiant.flightdemo;
 
+import android.os.Bundle;
 import android.util.Log;
 
 import com.serenegiant.arflight.IDeviceController;
@@ -61,8 +62,8 @@ public abstract class ControlFragment extends ControlBaseFragment {
 	 */
 	protected void stopMove() {
 		if (DEBUG) Log.v(TAG, "stopMove:");
-		if (mController != null) {
-			mController.setMove(0, 0, 0, 0, 0);
+		if (mController instanceof IFlightController) {
+			((IFlightController)mController).setMove(0, 0, 0, 0, 0);
 		}
 	}
 
@@ -71,8 +72,8 @@ public abstract class ControlFragment extends ControlBaseFragment {
 	 */
 	protected void emergencyStop() {
 		stopMove();
-		if (mController != null) {
-			mController.sendEmergency();
+		if (mController instanceof IFlightController) {
+			((IFlightController)mController).sendEmergency();
 		}
 	}
 

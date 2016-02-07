@@ -841,27 +841,6 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	}
 
 	/**
-	 * 録画開始停止指示
-	 * @param start true: 録画開始, false: 録画終了
-	 * @param mass_storage_id
-	 * @return MiniDroneでは録画をサポートしていないので常にfalseを返す
-	 */
-	@Override
-	public boolean sendVideoRecording(final boolean start, final int mass_storage_id) {
-		return false;
-	}
-
-	/**
-	 * 録画開始停止指示
-	 * @param start true: 録画開始, false: 録画終了
-	 * @return MiniDroneでは録画をサポートしていないので常にfalseを返す
-	 */
-	@Override
-	public boolean sendVideoRecording(final boolean start) {
-		return false;
-	}
-
-	/**
 	 * 指定した方向にフリップ実行
 	 * @param direction = FLIP_FRONT,FLIP_BACK,FLIP_RIGHT,FLIP_LEFT
 	 * @return

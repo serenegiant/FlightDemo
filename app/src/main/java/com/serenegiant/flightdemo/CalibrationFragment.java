@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
+import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.gl.AttitudeScreenBase;
 import com.serenegiant.gl.IModelView;
 
@@ -85,20 +86,22 @@ public class CalibrationFragment extends ControlBaseFragment {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
 		mModelView.onResume();
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				mController.sendCalibration(true);
-				post(mUpdateStateTask, 300);
-			}
-		});
+		if (mController instanceof IFlightController) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					((IFlightController)mController).sendCalibration(true);
+					post(mUpdateStateTask, 300);
+				}
+			});
+		}
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
-		if (mState != STATE_STOPPED) {
-			mController.sendCalibration(false);
+		if ((mState != STATE_STOPPED) && (mController instanceof IFlightController)) {
+			((IFlightController)mController).sendCalibration(false);
 		}
 		remove(mUpdateStateTask);
 		mModelView.onPause();
@@ -129,7 +132,7 @@ public class CalibrationFragment extends ControlBaseFragment {
 			@Override
 			public void run() {
 				mMessageTextView.setText(
-					mController.needCalibration()
+					mController instanceof IFlightController && ((IFlightController)mController).needCalibration()
 					? R.string.calibration_failed
 					: R.string.calibration_success);
 

@@ -172,7 +172,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		SeekBar seekbar = (SeekBar)root.findViewById(R.id.max_altitude_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mMaxAltitude = mController.getMaxAltitude();
+		mMaxAltitude = mFlightController.getMaxAltitude();
 		try {
 			seekbar.setProgress((int) ((mMaxAltitude.current() - mMaxAltitude.min()) / (mMaxAltitude.max() - mMaxAltitude.min()) * 1000));
 		} catch (final Exception e) {
@@ -186,7 +186,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		seekbar = (SeekBar)root.findViewById(R.id.max_tilt_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mMaxTilt = mController.getMaxTilt();
+		mMaxTilt = mFlightController.getMaxTilt();
 		try {
 			seekbar.setProgress((int) ((mMaxTilt.current() - mMaxTilt.min()) / (mMaxTilt.max() - mMaxTilt.min()) * 1000));
 		} catch (final Exception e) {
@@ -199,7 +199,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		seekbar = (SeekBar)root.findViewById(R.id.max_vertical_speed_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mMaxVerticalSpeed = mController.getMaxVerticalSpeed();
+		mMaxVerticalSpeed = mFlightController.getMaxVerticalSpeed();
 		try {
 			seekbar.setProgress((int) ((mMaxVerticalSpeed.current() - mMaxVerticalSpeed.min()) / (mMaxVerticalSpeed.max() - mMaxVerticalSpeed.min()) * 1000));
 		} catch (final Exception e) {
@@ -212,7 +212,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		seekbar = (SeekBar)root.findViewById(R.id.max_rotation_speed_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mMaxRotationSpeed = mController.getMaxRotationSpeed();
+		mMaxRotationSpeed = mFlightController.getMaxRotationSpeed();
 		try {
 			seekbar.setProgress((int) ((mMaxRotationSpeed.current() - mMaxRotationSpeed.min()) / (mMaxRotationSpeed.max() - mMaxRotationSpeed.min()) * 1000));
 		} catch (final Exception e) {
@@ -233,7 +233,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(mController.isCutoffMode());
+				checkbox.setChecked(mFlightController.isCutoffMode());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
@@ -244,7 +244,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(mController.hasGuard());
+				checkbox.setChecked(mFlightController.hasGuard());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
@@ -255,7 +255,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(mController.isAutoTakeOffModeEnabled());
+				checkbox.setChecked(mFlightController.isAutoTakeOffModeEnabled());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
@@ -274,7 +274,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(mController.isCutoffMode());
+				checkbox.setChecked(mFlightController.isCutoffMode());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
@@ -285,7 +285,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(mController.hasGuard());
+				checkbox.setChecked(mFlightController.hasGuard());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
@@ -296,7 +296,7 @@ public class ConfigFragment extends ControlBaseFragment {
 		if (checkbox != null) {
 			try {
 				checkbox.setOnCheckedChangeListener(null);
-				checkbox.setChecked(mController.isAutoTakeOffModeEnabled());
+				checkbox.setChecked(mFlightController.isAutoTakeOffModeEnabled());
 				checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
@@ -789,25 +789,25 @@ public class ConfigFragment extends ControlBaseFragment {
 			case R.id.max_altitude_seekbar:
 				final float altitude = (int)(seekBar.getProgress() / 100f * (mMaxAltitude.max() - mMaxAltitude.min())) / 10f + mMaxAltitude.min();
 				if (altitude != mMaxAltitude.current()) {
-					mController.sendMaxAltitude(altitude);
+					mFlightController.sendMaxAltitude(altitude);
 				}
 				break;
 			case R.id.max_tilt_seekbar:
 				final float tilt = (int)(seekBar.getProgress() / 100f * (mMaxTilt.max() - mMaxTilt.min())) / 10f + mMaxTilt.min();
 				if (tilt != mMaxTilt.current()) {
-					mController.sendMaxTilt(tilt);
+					mFlightController.sendMaxTilt(tilt);
 				}
 				break;
 			case R.id.max_vertical_speed_seekbar:
 				final float vertical = (int)(seekBar.getProgress() / 100f * (mMaxVerticalSpeed.max() - mMaxVerticalSpeed.min())) / 10f + mMaxVerticalSpeed.min();
 				if (vertical != mMaxVerticalSpeed.current()) {
-					mController.sendMaxVerticalSpeed(vertical);
+					mFlightController.sendMaxVerticalSpeed(vertical);
 				}
 				break;
 			case R.id.max_rotation_speed_seekbar:
 				final float rotation = (int)(seekBar.getProgress() / 1000f * (mMaxRotationSpeed.max() - mMaxRotationSpeed.min())) + mMaxRotationSpeed.min();
 				if (rotation != mMaxRotationSpeed.current()) {
-					mController.sendMaxRotationSpeed(rotation);
+					mFlightController.sendMaxRotationSpeed(rotation);
 				}
 				break;
 			// 自動操縦
@@ -895,18 +895,18 @@ public class ConfigFragment extends ControlBaseFragment {
 		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
 			switch (buttonView.getId()) {
 			case R.id.cutout_checkbox:
-				if (mController.isCutoffMode() != isChecked) {
-					mController.sendCutOutMode(isChecked);
+				if (mFlightController.isCutoffMode() != isChecked) {
+					mFlightController.sendCutOutMode(isChecked);
 				}
 				break;
 			case R.id.wheel_checkbox:
-				if (mController.hasGuard() != isChecked) {
-					mController.sendHasGuard(isChecked);
+				if (mFlightController.hasGuard() != isChecked) {
+					mFlightController.sendHasGuard(isChecked);
 				}
 				break;
 			case R.id.auto_takeoff_checkbox:
-				if (mController.isAutoTakeOffModeEnabled() != isChecked) {
-					mController.sendAutoTakeOffMode(isChecked);
+				if (mFlightController.isAutoTakeOffModeEnabled() != isChecked) {
+					mFlightController.sendAutoTakeOffMode(isChecked);
 				}
 				break;
 			case R.id.operation_touch_checkbox:
@@ -1103,6 +1103,7 @@ public class ConfigFragment extends ControlBaseFragment {
 				mConfigs = PAGER_CONFIG_MINIDRONE;
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
+				// FIXME SkyController用の設定画面を追加する?
 				mConfigs = null;
 				break;
 			case ARDISCOVERY_PRODUCT_NSNETSERVICE:
