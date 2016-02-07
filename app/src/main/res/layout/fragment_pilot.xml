@@ -14,7 +14,14 @@
 		android:id="@+id/drone_view"
 		android:layout_gravity="center"
 		android:visibility="visible"
-		android:layout_centerInParent="true"
+		android:background="@null"/>
+
+	<com.serenegiant.widget.OrientationView
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:id="@+id/camera_view"
+		android:layout_gravity="center"
+		android:visibility="visible"
 		android:background="@null"/>
 
 	<LinearLayout

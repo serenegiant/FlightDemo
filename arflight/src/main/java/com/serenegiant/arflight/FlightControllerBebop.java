@@ -92,6 +92,9 @@ import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.attribute.AttributePosition;
 import com.serenegiant.arflight.configs.ARNetworkConfigARDrone3;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class FlightControllerBebop extends FlightController implements ICameraController, IWiFiController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "FlightControllerBebop";
@@ -339,7 +342,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			= new ARCommandARDrone3NetworkStateWifiScanListChangedListener() {
 		/**
 		 * @param ssid SSID of the AP
-		 * @param rssi RSSI of the AP in dbm (negative value)
+		 * @param rssi RSSI of the AP in dbm (negative value) 受信信号強度
 		 * @param band The band : 2.4 GHz or 5 GHz
 		 * @param channel Channel of the AP
 		 */
@@ -348,7 +351,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			final String ssid, final short rssi,
 			final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_BAND_ENUM band,
 			final byte channel) {
-			// FIXME 未実装
+			onWifiScanListChangedUpdate(ssid, rssi, band, channel);
 		}
 	};
 
@@ -360,7 +363,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			= new ARCommandARDrone3NetworkStateAllWifiScanChangedListener() {
 		@Override
 		public void onARDrone3NetworkStateAllWifiScanChangedUpdate() {
-			// FIXME 未実装
+			onAllWifiScanChangedUpdate();
 		}
 	};
 
@@ -380,7 +383,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFIAUTHCHANNELLISTCHANGED_BAND_ENUM band,
 			final byte channel,
 			final byte in_or_out) {
-			// FIXME 未実装
+			onWifiAuthChannelListChangedUpdate(band, channel, in_or_out);
 		}
 	};
 
@@ -392,7 +395,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			= new ARCommandARDrone3NetworkStateAllWifiAuthChannelChangedListener() {
 		@Override
 		public void onARDrone3NetworkStateAllWifiAuthChannelChangedUpdate() {
-			// FIXME 未実装
+			onAllWifiAuthChannelChangedUpdate();
 		}
 	};
 
@@ -412,7 +415,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM type,
 			final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM band,
 			final byte channel) {
-			// FIXME 未実装
+			onWifiSelectionChangedUpdate(type, band, channel);
 		}
 	};
 
@@ -1089,6 +1092,13 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			final byte tilt, final byte pan) {
 
 			mSettings.mCamera.pantilt(pan, tilt);
+			if (mCameraControllerListener != null) {
+				try {
+					mCameraControllerListener.onCameraOrientationChanged(pan, tilt);
+				} catch (final Exception e) {
+					// ignore
+				}
+			}
 		}
 	};
 
@@ -1355,7 +1365,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingSettingsAbsolutControl((byte) (enable ? 1 : 0));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingSettingsAbsolutControl((byte)(enable ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1426,7 +1436,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3SpeedSettingsHullProtection((byte) (has_guard ? 1 : 0));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3SpeedSettingsHullProtection((byte)(has_guard ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1444,6 +1454,69 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 //********************************************************************************
 // WiFi関係
 //********************************************************************************
+	/** WiFiの状態 */
+	private final Map<String, WiFiStatus> mWifiStatus = new HashMap<String, WiFiStatus>();
+
+	/**
+	 * WiFiスキャンリストが変更された時
+	 * @param ssid SSID of the AP
+	 * @param rssi RSSI of the AP in dbm (negative value) 受信信号強度
+	 * @param band The band : 2.4 GHz or 5 GHz
+	 * @param channel Channel of the AP
+	 */
+	protected void onWifiScanListChangedUpdate(
+		final String ssid, final short rssi,
+		final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_BAND_ENUM band,
+		final byte channel) {
+		Log.d(TAG, String.format("ssid=%s,rssi=%d,band=%s,channel=%d", ssid, rssi, band.toString(), channel));
+		final String key = band.toString() + Byte.toString(channel);
+		WiFiStatus status = mWifiStatus.get(key);
+		if (status == null) {
+			status = new WiFiStatus(-66);
+		}
+		status.ssid = ssid;
+		status.rssi = rssi;
+		status.band = band.getValue();
+		status.channel = channel;
+	}
+
+	/**
+	 * WiFiスキャンが変化した時
+	 */
+	protected void onAllWifiScanChangedUpdate() {
+	}
+
+	/**
+	 * WiFiチャンネルリストが変化した時
+	 * @param band The band of this channel : 2.4 GHz or 5 GHz
+	 * @param channel The authorized channel.
+	 * @param in_or_out Bit 0 is 1 if channel is authorized outside (0 otherwise) ; Bit 1 is 1 if channel is authorized inside (0 otherwise)
+	 */
+	protected void onWifiAuthChannelListChangedUpdate(
+		final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFIAUTHCHANNELLISTCHANGED_BAND_ENUM band,
+		final byte channel,
+		final byte in_or_out) {
+		Log.d(TAG, String.format("band=%s, channel=%d, in_or_out=%d", band.toString(), channel, in_or_out));
+		final String key = band.toString() + Byte.toString(channel);
+	}
+
+	/**
+	 * WiFiチャネルの状態が変化した時
+	 */
+	protected void onAllWifiAuthChannelChangedUpdate() {
+	}
+
+	/**
+	 * WiFiの選択状態が変化した時
+	 * @param type The type of wifi selection settings
+	 * @param band The actual  wifi band state
+	 * @param channel The channel (depends of the band)
+	 */
+	protected void onWifiSelectionChangedUpdate(
+		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM type,
+		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM band,
+		final byte channel) {
+	}
 
 	/**
 	 * 室外モードか室内モードかを設定
@@ -1506,6 +1579,12 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 //--------------------------------------------------------------------------------
 // ICameraControllerのメソッド
 //--------------------------------------------------------------------------------
+	private CameraControllerListener mCameraControllerListener;
+	@Override
+	public synchronized void setCameraControllerListener(final CameraControllerListener listener) {
+		mCameraControllerListener = listener;
+	}
+
 	/**
 	 * 静止画撮影時の映像フォーマットを設定
 	 * @param pictureFormat 0: Take raw image, 1: Take a 4:3 jpeg photo, 2: Take a 16:9 snapshot from camera
@@ -1746,6 +1825,16 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		}
 
 		return sentStatus;
+	}
+
+	@Override
+	public int getPan() {
+		return (int)mSettings.currentCameraPan();
+	}
+
+	@Override
+	public int getTilt() {
+		return (int)mSettings.currentCameraTilt();
 	}
 
 	/**

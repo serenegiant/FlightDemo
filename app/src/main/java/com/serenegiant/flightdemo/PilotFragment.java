@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.AutoFlightListener;
+import com.serenegiant.arflight.CameraControllerListener;
 import com.serenegiant.arflight.FlightControllerBebop;
 import com.serenegiant.arflight.FlightControllerBebop2;
 import com.serenegiant.arflight.FlightControllerMiniDrone;
@@ -48,6 +49,7 @@ import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.gl.IVideoScreen;
 import com.serenegiant.math.Vector;
 import com.serenegiant.utils.FileUtils;
+import com.serenegiant.widget.OrientationView;
 import com.serenegiant.widget.SideMenuListView;
 import com.serenegiant.widget.StickView;
 import com.serenegiant.widget.StickView.OnStickMoveListener;
@@ -64,7 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+//	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = PilotFragment.class.getSimpleName();
 
 	static {
@@ -78,6 +80,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	private ViewGroup mControllerFrame;			// 操作パネル全体
 	private TouchableLinearLayout mPilotFrame;	// 操縦パネル
+	private OrientationView mCameraView;
+
 	// 上パネル
 	private View mTopPanel;
 	private TextView mBatteryLabel;			// バッテリー残量表示
@@ -137,15 +141,15 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mTouchFlight = new TouchFlight(mAutoFlightListener);
 	}
 
-	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		if (DEBUG) Log.v(TAG, "onAttach:");
-	}
+//	@Override
+//	public void onAttach(Activity activity) {
+//		super.onAttach(activity);
+//		if (DEBUG) Log.v(TAG, "onAttach:");
+//	}
 
 	@Override
 	public void onDetach() {
-		if (DEBUG) Log.v(TAG, "onDetach:");
+//		if (DEBUG) Log.v(TAG, "onDetach:");
 		mJoystick = null;
 		stopDeviceController(false);
 //		releaseUsbDriver();
@@ -163,7 +167,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private float mGamepadScaleX, mGamepadScaleY, mGamepadScaleZ, mGamepadScaleR;
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-		if (DEBUG) Log.v(TAG, "onCreateView:");
+//		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final SharedPreferences pref = getActivity().getPreferences(0);
 		mOperationTouch = pref.getBoolean(ConfigFragment.KEY_OPERATION_TOUCH, false);
 		mOperationType = pref.getInt(ConfigFragment.KEY_OPERATION_TYPE, 0);
@@ -209,6 +213,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		mPilotFrame = (TouchableLinearLayout)rootView.findViewById(R.id.pilot_frame);
 		mPilotFrame.setOnTouchableListener(mOnTouchableListener);
+
+		mCameraView = (OrientationView)rootView.findViewById(R.id.camera_view);
+		if (mCameraView != null) {
+			mCameraView.setPanTilt(0, 0);
+		}
 
 		mActionViews.clear();
 		// 上パネル
@@ -345,6 +354,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
 		}
 		if (mController instanceof ICameraController) {
+			((ICameraController)mController).setCameraControllerListener(mCameraControllerListener);
 			((ICameraController)mController).sendCameraOrientation(0, 0);
 		}
 		final int color = pref.getInt(ConfigFragment.KEY_COLOR, getResources().getColor(R.color.RED));
@@ -368,7 +378,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	@Override
 	public void onResume() {
 		super.onResume();
-		if (DEBUG) Log.v(TAG, "onResume:");
+//		if (DEBUG) Log.v(TAG, "onResume:");
 		final Activity activity = getActivity();
 		if (activity instanceof MainActivity) {
 			mJoystick = ((MainActivity)activity).mJoystick;
@@ -389,7 +399,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	@Override
 	public void onPause() {
-		if (DEBUG) Log.v(TAG, "onPause:");
+//		if (DEBUG) Log.v(TAG, "onPause:");
 		mJoystick = null;
 //		synchronized (mUsbSync) {
 //			releaseGamepad();
@@ -416,7 +426,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	@Override
 	public void onFileSelect(File[] files) {
-		if (DEBUG) Log.v(TAG, "onFileSelect:");
+//		if (DEBUG) Log.v(TAG, "onFileSelect:");
 		if ((files != null) && (files.length > 0)
 			&& !mFlightRecorder.isPlaying() && !mFlightRecorder.isRecording() ) {
 			mFlightRecorder.load(files[0]);
@@ -446,6 +456,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		private float mTouchDistance;
 
 		private float mPanLen, mTiltLen;
+		private int mPan, mTilt;
 		private long prevTime;
 
 		@Override
@@ -464,11 +475,11 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final int n = event.getPointerCount();
 			switch (action) {
 			case MotionEvent.ACTION_DOWN:
-				if (DEBUG) Log.v(TAG, "ACTION_DOWN:");
+//				if (DEBUG) Log.v(TAG, "ACTION_DOWN:");
 				// シングルタッチ
 				return n > 1;	// 多分ここにはこない
 			case MotionEvent.ACTION_POINTER_DOWN:
-				if (DEBUG) Log.v(TAG, "ACTION_POINTER_DOWN:");
+//				if (DEBUG) Log.v(TAG, "ACTION_POINTER_DOWN:");
 				return true;
 			case MotionEvent.ACTION_MOVE:
 //				if (DEBUG) Log.v(TAG, "ACTION_MOVE:");
@@ -487,8 +498,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					final float cx = (x0 + x1) / 2.0f;
 					final float cy = (y0 + y1) / 2.0f;
 					// 最初のタッチ中点との距離を計算
-					final float dx = (mPivotX - cx) * mPanLen;
-					final float dy = (cy - mPivotY) * mTiltLen;
+					final float dx = (mPivotX - cx) * mPanLen + mPan;
+					final float dy = (cy - mPivotY) * mTiltLen + mTilt;
 					final int pan = dx < -100 ? -100 : (dx > 100 ? 100 : (int)dx);
 					final int tilt = dy < -100 ? -100 : (dy > 100 ? 100 : (int)dy);
 //					if (DEBUG) Log.v(TAG, String.format("ACTION_MOVE:dx=%5.2f,dy=%5.2f,pan=%d,tilt=%d", dx, dy, pan, tilt));
@@ -498,13 +509,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				}
 				return true;
 			case MotionEvent.ACTION_CANCEL:
-				if (DEBUG) Log.v(TAG, "ACTION_CANCEL:");
-				break;
 			case MotionEvent.ACTION_UP:
-				if (DEBUG) Log.v(TAG, "ACTION_UP:");
-				break;
 			case MotionEvent.ACTION_POINTER_UP:
-				if (DEBUG) Log.v(TAG, "ACTION_POINTER_UP:");
 				break;
 			}
 			if (n == 0) {
@@ -521,6 +527,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				inited = false;
 				if (mController instanceof ICameraController) {
 					((ICameraController)mController).sendCameraOrientation(0, 0);
+					if (mCameraView != null) {
+						mCameraView.setPanTilt(0, 0);
+					}
 				}
 			}
 		};
@@ -544,6 +553,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			prevTime = System.currentTimeMillis() - MIN_CMD_INTERVALS_MS;
 			mPanLen = 80.0f / mPilotFrame.getWidth();
 			mTiltLen = 80.0f / mPilotFrame.getHeight();
+			if (mController instanceof ICameraController) {
+				mPan = ((ICameraController)mController).getPan();
+				mTilt = ((ICameraController)mController).getTilt();
+			}
 			inited = true;
 			remove(mResetRunnable);
 			post(mResetRunnable, RESET_DURATION_MS);
@@ -577,10 +590,19 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	};
 
+	private final CameraControllerListener mCameraControllerListener = new CameraControllerListener() {
+		@Override
+		public void onCameraOrientationChanged(final int pan, final int tilt) {
+			if (mCameraView != null) {
+				mCameraView.setPanTilt(-pan, tilt);
+			}
+		}
+	};
+
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
 		public void onClick(final View view) {
-			if (DEBUG) Log.v(TAG, "onClick:" + view);
+//			if (DEBUG) Log.v(TAG, "onClick:" + view);
 			switch (view.getId()) {
 			case R.id.flat_trim_btn:
 				setColorFilter((ImageView)view);
@@ -750,7 +772,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
 		@Override
 		public boolean onLongClick(View view) {
-			if (DEBUG) Log.v(TAG, "onLongClick:" + view);
+//			if (DEBUG) Log.v(TAG, "onLongClick:" + view);
 			switch (view.getId()) {
 			case R.id.record_btn:
 				if (!mFlightRecorder.isRecording()) {
@@ -812,7 +834,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setMove(_mx, -_my);
 					mFlightRecorder.record(FlightRecorder.CMD_MOVE2, _mx, -_my);
-					if (DEBUG) Log.v(TAG, String.format("stick_normal:LR%d,FB%d", _mx, -_my));
+//					if (DEBUG) Log.v(TAG, String.format("stick_normal:LR%d,FB%d", _mx, -_my));
 				}
 			}
 			break;
@@ -825,7 +847,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setYaw(mx);
 					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
-					if (DEBUG) Log.v(TAG, String.format("stick_normal:T%d", _mx));
+//					if (DEBUG) Log.v(TAG, String.format("stick_normal:T%d", _mx));
 				}
 			}
 			if (_my != mPrevLeftMY) {	// 上昇下降
@@ -833,7 +855,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setGaz(-_my);
 					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
-					if (DEBUG) Log.v(TAG, String.format("stick_normal:UD%d", -_my));
+//					if (DEBUG) Log.v(TAG, String.format("stick_normal:UD%d", -_my));
 				}
 			}
 			break;
@@ -852,7 +874,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setGaz(-_my);
 					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
-					if (DEBUG) Log.v(TAG, String.format("stick_mode1:UD%d", -_my));
+//					if (DEBUG) Log.v(TAG, String.format("stick_mode1:UD%d", -_my));
 				}
 			}
 			int mx = _mx;
@@ -862,7 +884,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setRoll(mx, true);
 					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, mx);
-					if (DEBUG) Log.v(TAG, String.format("stick_mode1:LR%d", mx));
+//					if (DEBUG) Log.v(TAG, String.format("stick_mode1:LR%d", mx));
 				}
 			}
 			break;
@@ -873,7 +895,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setYaw(_mx);
 					mFlightRecorder.record(FlightRecorder.CMD_TURN, _mx);
-					if (DEBUG) Log.v(TAG, String.format("stick_mode1:T%d", _mx));
+//					if (DEBUG) Log.v(TAG, String.format("stick_mode1:T%d", _mx));
 				}
 			}
 			if (_my != mPrevLeftMY) {	// 前後移動
@@ -881,7 +903,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setPitch(-_my, true);
 					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -_my);
-					if (DEBUG) Log.v(TAG, String.format("stick_mode1:FB%d", -_my));
+//					if (DEBUG) Log.v(TAG, String.format("stick_mode1:FB%d", -_my));
 				}
 			}
 			break;
@@ -900,7 +922,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setPitch(-_my, true);
 					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -_my);
-					if (DEBUG) Log.v(TAG, String.format("stick_mode2:FB%d", -_my));
+//					if (DEBUG) Log.v(TAG, String.format("stick_mode2:FB%d", -_my));
 				}
 			}
 			if (_mx != mPrevRightMX) {	// 左右移動
@@ -908,7 +930,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setRoll(_mx, true);
 					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, _mx);
-					if (DEBUG) Log.v(TAG, String.format("stick_mode2:LR%d", _mx));
+//					if (DEBUG) Log.v(TAG, String.format("stick_mode2:LR%d", _mx));
 				}
 			}
 			break;
@@ -921,7 +943,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setYaw(mx);
 					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
-					if (DEBUG) Log.v(TAG, String.format("stick_mode2:T%d", _mx));
+//					if (DEBUG) Log.v(TAG, String.format("stick_mode2:T%d", _mx));
 				}
 			}
 			if (_my != mPrevLeftMY) {	// 上昇下降
@@ -929,7 +951,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (mFlightController != null) {
 					mFlightController.setGaz(-_my);
 					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
-					if (DEBUG) Log.v(TAG, String.format("stick_mode2:UD%d", -_my));
+//					if (DEBUG) Log.v(TAG, String.format("stick_mode2:UD%d", -_my));
 				}
 			}
 			break;
@@ -945,7 +967,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			final float min_z, final float max_z,
 			final int num_points, final float[] points) {
 
-			if (DEBUG) Log.v(TAG, "onDrawFinish:" + num_points);
+//			if (DEBUG) Log.v(TAG, "onDrawFinish:" + num_points);
 			mTouchFlight.prepare(view.getWidth(), view.getHeight(), min_x, max_x, min_y, max_y, min_z, max_z, num_points, points);
 			updateButtons();
 		}
@@ -953,7 +975,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	@Override
 	protected void startVideoStreaming() {
-		if (DEBUG) Log.v(TAG, "startVideoStreaming:");
+//		if (DEBUG) Log.v(TAG, "startVideoStreaming:");
 		if (mController instanceof IVideoStreamController) {
 			if (mVideoStream == null) {
 				mVideoStream = new VideoStream();
@@ -964,7 +986,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				public void run() {
 					if (mVideoStream == null) return;
 					final IScreen screen = mModelView.getCurrentScreen();
-					if (DEBUG) Log.v(TAG, "startVideoStreaming:screen=" + screen);
+//					if (DEBUG) Log.v(TAG, "startVideoStreaming:screen=" + screen);
 					if (screen instanceof IVideoScreen) {
 						try {
 							final SurfaceTexture surface = ((IVideoScreen) screen).getVideoTexture();
@@ -998,7 +1020,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	@Override
 	protected void stopVideoStreaming() {
-		if (DEBUG) Log.v(TAG, "stopVideoStreaming:");
+//		if (DEBUG) Log.v(TAG, "stopVideoStreaming:");
 		super.stopVideoStreaming();
 		final IScreen screen = mModelView.getCurrentScreen();
 		if (screen instanceof IVideoScreen) {
@@ -1025,7 +1047,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	@Override
 	protected void onConnect(final IDeviceController controller) {
-		if (DEBUG) Log.v(TAG, "onConnect:");
+//		if (DEBUG) Log.v(TAG, "onConnect:");
 		super.onConnect(controller);
 		mVideoRecording = false;
 		runOnUiThread(new Runnable() {
@@ -1047,7 +1069,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
-		if (DEBUG) Log.v(TAG, "#onDisconnect");
+//		if (DEBUG) Log.v(TAG, "#onDisconnect");
 		mVideoRecording = false;
 		stopRecord();
 		stopPlay();
@@ -1158,7 +1180,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	@Override
 	protected void stopMove() {
-		if (DEBUG) Log.v(TAG, "stopMove:");
+//		if (DEBUG) Log.v(TAG, "stopMove:");
 		super.stopMove();
 		if (mFlightController != null) {
 			mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, 0);
@@ -1317,7 +1339,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 //				}
 //				break;
 			default:
-				if (DEBUG) Log.v(TAG, "onSensorChanged:" + String.format("その他%d(%f,%f,%f)", type, values[0], values[1], values[2]));
+//				if (DEBUG) Log.v(TAG, "onSensorChanged:" + String.format("その他%d(%f,%f,%f)", type, values[0], values[1], values[2]));
 				break;
 			}
 		}
@@ -1361,7 +1383,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * @param needClear 既存の記録を破棄してから記録開始するかどうか
 	 */
 	private void startRecord(final boolean needClear) {
-		if (DEBUG) Log.v(TAG, "startRecord:");
+//		if (DEBUG) Log.v(TAG, "startRecord:");
 		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
 			if (needClear) {
 				mFlightRecorder.clear();
@@ -1376,7 +1398,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * 記録終了
 	 */
 	private void stopRecord() {
-		if (DEBUG) Log.v(TAG, "stopRecord:");
+//		if (DEBUG) Log.v(TAG, "stopRecord:");
 		if (mFlightRecorder.isRecording()) {
 			mFlightRecorder.stop();
 			// ファイルへ保存
@@ -1393,7 +1415,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * 再生開始
 	 */
 	private void startPlay() {
-		if (DEBUG) Log.v(TAG, "startPlay:");
+//		if (DEBUG) Log.v(TAG, "startPlay:");
 		if (!mScriptRunning && !mTouchMoveRunning && mFlightRecorder.isPrepared()) {
 			try {
 				mFlightRecorder.prepare();
@@ -1408,7 +1430,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * 再生終了
 	 */
 	private void stopPlay() {
-		if (DEBUG) Log.v(TAG, "stopPlay:");
+//		if (DEBUG) Log.v(TAG, "stopPlay:");
 		if (mFlightRecorder.isPlaying()) {
 			mFlightRecorder.stop();
 			updateButtons();
@@ -1468,7 +1490,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * スクリプト実行開始
 	 */
 	private void startScript(final int index) {
-		if (DEBUG) Log.v(TAG, "startScript:");
+//		if (DEBUG) Log.v(TAG, "startScript:");
 		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isRecording() && !mFlightRecorder.isPlaying()) {
 			mScriptRunning = true;
 			try {
@@ -1513,7 +1535,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * スクリプト実行終了
  	 */
 	private void stopScript() {
-		if (DEBUG) Log.v(TAG, "stopScript:");
+//		if (DEBUG) Log.v(TAG, "stopScript:");
 		mScriptRunning = false;
 		if (mScriptFlight.isPlaying()) {
 			mScriptFlight.stop();
@@ -1525,7 +1547,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * タッチ描画での操縦開始
 	 */
 	private void startTouchMove() {
-		if (DEBUG) Log.v(TAG, "startTouchMove:");
+//		if (DEBUG) Log.v(TAG, "startTouchMove:");
 		if (!mScriptRunning && !mTouchMoveRunning && !mFlightRecorder.isPlaying()) {
 			mTouchMoveRunning = true;
 			try {
@@ -1542,7 +1564,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 * タッチ描画での操縦終了
 	 */
 	private void stopTouchMove() {
-		if (DEBUG) Log.v(TAG, "stopTouchMove:");
+//		if (DEBUG) Log.v(TAG, "stopTouchMove:");
 		mTouchMoveRunning = false;
 		if (mTouchFlight.isPlaying()) {
 			mTouchFlight.stop();
@@ -1597,7 +1619,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public void onPrepared() {
-			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onPrepared:");
+//			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onPrepared:");
 			if (mScriptRunning) {
 				// スクリプト操縦
 				if (mScriptFlight.isPrepared()) {
@@ -1623,14 +1645,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public void onStart() {
-			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStart:");
+//			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStart:");
 			updateTime(0);
 			updateButtons();
 		}
 
 		@Override
 		public boolean onStep(final int cmd, final int[] values, final long t) {
-			if (DEBUG) Log.v(TAG, String.format("mAutoFlightListener#onStep:cmd=%d,t=%d,v=[%s]" , cmd, t, asString(values)));
+//			if (DEBUG) Log.v(TAG, String.format("mAutoFlightListener#onStep:cmd=%d,t=%d,v=[%s]" , cmd, t, asString(values)));
 			updateTime(t);
 			if (mFlightController != null) {
 				switch (cmd) {
@@ -1723,7 +1745,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public void onStop() {
-			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStop:");
+//			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStop:");
 			stopPlay();
 			stopScript();
 			stopTouchMove();
@@ -1755,22 +1777,28 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		private int prevState;
 		@Override
 		public void run() {
-			if ((mFlightController != null) && mFlightController.canGetAttitude()) {
-				mAttitude.set(mFlightController.getAttitude());
-				mAttitude.toDegree();	// ラジアンを度に変換
-				final float altitude = mFlightController.getAltitude();
-				float yaw = mAzimuthValues[0] - mAttitude.z();
-				if ((mCurrentRoll != mAttitude.x())
-					|| (mCurrentPitch != mAttitude.y())
-					|| (mCurrentYaw != yaw)
-					|| (mCurrentAltitude != altitude)) {
+			if (mFlightController != null) {
+				if (mFlightController.canGetAttitude()) {
+					// 機体姿勢を取得できる時
+					mAttitude.set(mFlightController.getAttitude());
+					mAttitude.toDegree();	// ラジアンを度に変換
+					final float altitude = mFlightController.getAltitude();
+					float yaw = mAzimuthValues[0] - mAttitude.z();
+					if ((mCurrentRoll != mAttitude.x())
+						|| (mCurrentPitch != mAttitude.y())
+						|| (mCurrentYaw != yaw)
+						|| (mCurrentAltitude != altitude)) {
 
-						mCurrentRoll = mAttitude.x();
-						mCurrentPitch = mAttitude.y();
-						mCurrentYaw = yaw;
-						mCurrentAltitude = altitude;
-						mModelView.setAttitude(mCurrentRoll, mCurrentPitch, yaw, altitude);
+							mCurrentRoll = mAttitude.x();
+							mCurrentPitch = mAttitude.y();
+							mCurrentYaw = yaw;
+							mCurrentAltitude = altitude;
+							mModelView.setAttitude(mCurrentRoll, mCurrentPitch, yaw, altitude);
+					}
 				}
+			}
+			if (mController instanceof ICameraController) {
+				// FIXME カメラの方向を更新する
 			}
 			if (prevState != getState()) {
 				prevState = getState();
@@ -1785,7 +1813,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		@Override
 		public void run() {
 			final int alarm = getAlarm();
-			if (DEBUG) Log.w(TAG, "mUpdateAlarmMessageTask:alarm=" + alarm);
+//			if (DEBUG) Log.w(TAG, "mUpdateAlarmMessageTask:alarm=" + alarm);
 			switch (alarm) {
 			case DroneStatus.ALARM_NON:					// No alert
 				break;
@@ -2093,111 +2121,143 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	boolean moved;
 	/** ゲームパッド読み取りスレッドの実行部 */
 	private final Runnable mGamePadTask = new Runnable() {
+		private int mCurrentPan = Integer.MAX_VALUE, mCurrentTilt = Integer.MAX_VALUE;
+
 		@Override
 		public void run() {
 			final Handler handler = mGamePadHandler;
 			if (handler == null) return;	// 既に終了指示が出てる
 
+			long interval = 50;
 			handler.removeCallbacks(this);
-			if (mJoystick != null) {
-				mJoystick.updateState(downs, down_times, analogSticks, false);
-			}
-/*			if ((mUSBMonitor != null) && (mHIDGamepad != null)) {
-				mHIDGamepad.updateState(downs, down_times, analogSticks, false);
-			} else if (mJoystick != null) {
-				mJoystick.updateState(downs, down_times, analogSticks, false);
-			} else {
-//				mKeyGamePad.updateState(downs, down_times, analogSticks, false);
-			} */
+			try {
+				if (mJoystick != null) {
+					mJoystick.updateState(downs, down_times, analogSticks, false);
+				}
+/*				if ((mUSBMonitor != null) && (mHIDGamepad != null)) {
+					mHIDGamepad.updateState(downs, down_times, analogSticks, false);
+				} else if (mJoystick != null) {
+					mJoystick.updateState(downs, down_times, analogSticks, false);
+				} else {
+//					mKeyGamePad.updateState(downs, down_times, analogSticks, false);
+				} */
 
-			// 左右の上端ボタン(手前側)を同時押しすると非常停止
-			if (((downs[GamePadConst.KEY_RIGHT_RIGHT] || downs[GamePadConst.KEY_RIGHT_1]))
-				&& (downs[GamePadConst.KEY_RIGHT_LEFT] || downs[GamePadConst.KEY_LEFT_1]) ) {
-				emergencyStop();
-				handler.postDelayed(this, 50);
-				return;
-			}
-
-			// 飛行していない時にL2/R2同時押しするとフラットトリム実行
-			if ((getState() == IFlightController.STATE_STARTED)
-				&& (getAlarm() == DroneStatus.ALARM_NON)
-				&& downs[GamePadConst.KEY_LEFT_2] && downs[GamePadConst.KEY_RIGHT_2]) {
-
-				mFlightController.sendFlatTrim();
-				handler.postDelayed(this, 50);
-				return;
-			}
-
-			// R2押しながら左スティックでフリップ
-			if (downs[GamePadConst.KEY_RIGHT_2]) {
-				if (downs[GamePadConst.KEY_LEFT_LEFT]) {
-					mFlightController.sendAnimationsFlip(IFlightController.FLIP_LEFT);
-					handler.postDelayed(this, 50);
-					return;
-				} if (downs[GamePadConst.KEY_LEFT_RIGHT]) {
-					mFlightController.sendAnimationsFlip(IFlightController.FLIP_RIGHT);
-					handler.postDelayed(this, 50);
-					return;
-				} if (downs[GamePadConst.KEY_LEFT_UP]) {
-					mFlightController.sendAnimationsFlip(IFlightController.FLIP_FRONT);
-					handler.postDelayed(this, 50);
-					return;
-				} if (downs[GamePadConst.KEY_LEFT_DOWN]) {
-					mFlightController.sendAnimationsFlip(IFlightController.FLIP_BACK);
-					handler.postDelayed(this, 50);
+				// 左右の上端ボタン(手前側)を同時押しすると非常停止
+				if (((downs[GamePadConst.KEY_RIGHT_RIGHT] || downs[GamePadConst.KEY_RIGHT_1]))
+					&& (downs[GamePadConst.KEY_RIGHT_LEFT] || downs[GamePadConst.KEY_LEFT_1]) ) {
+					emergencyStop();
 					return;
 				}
-			}
 
-			// 中央の右側ボタン[12]=着陸
-			if (downs[GamePadConst.KEY_CENTER_RIGHT]) {
-				landing();
-				handler.postDelayed(this, 50);
-				return;
-			}
-			// 中央の左側ボタン[11]=離陸
-			if (downs[GamePadConst.KEY_CENTER_LEFT]) {
-				takeOff();
-				handler.postDelayed(this, 50);
-				return;
-			}
-			// ここまでは共通操作の処理
+				// 飛行していない時にL2/R2同時押しするとフラットトリム実行
+				if ((getState() == IFlightController.STATE_STARTED)
+					&& (getAlarm() == DroneStatus.ALARM_NON)
+					&& downs[GamePadConst.KEY_LEFT_2] && downs[GamePadConst.KEY_RIGHT_2]) {
 
-			// 操作モード毎の処理
-			switch (mOperationType) {
-			case 0:	// 通常
-				gamepad_normal();
-				break;
-			case 1:	// 左右反転
-				gamepad_reverse();
-				break;
-			case 2:	// mode1
-				gamepad_mode1();
-				break;
-			case 3:	// mode2
-				gamepad_mode2();
-				break;
-			default:
-				gamepad_normal();
-				break;
+					mFlightController.sendFlatTrim();
+					return;
+				}
+
+				// L2押しながら左アナログスティックでカメラのpan/tilt
+				if (downs[GamePadConst.KEY_LEFT_2] && (mController instanceof ICameraController)) {
+					if (mCurrentPan > 100) {
+						mCurrentPan = ((ICameraController)mController).getPan();
+						mCurrentTilt = ((ICameraController)mController).getTilt();
+					}
+					final int pan = mCurrentPan;
+					final int tilt = mCurrentTilt;
+					// 左アナログスティックの左右=左右移動
+					int p = pan + (int)(analogSticks[0] / 51.2f);
+					if (p < -100) {
+						p = -100;
+					} else if (p > 100) {
+						p = 100;
+					}
+					// 左アナログスティックの上下=前後移動
+					int t = tilt + (int)(analogSticks[1] / 51.2f);
+					if (t < -100) {
+						t = -100;
+					} else if (t > 100) {
+						t = 100;
+					}
+//					if (DEBUG) Log.d(TAG, String.format("(%d,%d),pan=%d/%d,tilt=%d/%d", analogSticks[0], analogSticks[1], pan, p, tilt, t));
+					if ((p != pan) || (t != tilt)) {
+						((ICameraController)mController).sendCameraOrientation(t, p);
+						mCurrentPan = p;
+						mCurrentTilt = t;
+						return;
+					}
+					interval = 20;
+				} else {
+					mCurrentPan = mCurrentTilt = Integer.MAX_VALUE;
+				}
+
+				// R2押しながら左スティックでフリップ
+				if (downs[GamePadConst.KEY_RIGHT_2]) {
+					if (downs[GamePadConst.KEY_LEFT_LEFT]) {
+						mFlightController.sendAnimationsFlip(IFlightController.FLIP_LEFT);
+						return;
+					} if (downs[GamePadConst.KEY_LEFT_RIGHT]) {
+						mFlightController.sendAnimationsFlip(IFlightController.FLIP_RIGHT);
+						return;
+					} if (downs[GamePadConst.KEY_LEFT_UP]) {
+						mFlightController.sendAnimationsFlip(IFlightController.FLIP_FRONT);
+						return;
+					} if (downs[GamePadConst.KEY_LEFT_DOWN]) {
+						mFlightController.sendAnimationsFlip(IFlightController.FLIP_BACK);
+						return;
+					}
+				}
+
+				// 中央の右側ボタン[12]=着陸
+				if (downs[GamePadConst.KEY_CENTER_RIGHT]) {
+					landing();
+					return;
+				}
+				// 中央の左側ボタン[11]=離陸
+				if (downs[GamePadConst.KEY_CENTER_LEFT]) {
+					takeOff();
+					return;
+				}
+				// ここまでは共通操作の処理
+
+				// 操作モード毎の処理
+				switch (mOperationType) {
+				case 0:	// 通常
+					gamepad_normal();
+					break;
+				case 1:	// 左右反転
+					gamepad_reverse();
+					break;
+				case 2:	// mode1
+					gamepad_mode1();
+					break;
+				case 3:	// mode2
+					gamepad_mode2();
+					break;
+				default:
+					gamepad_normal();
+					break;
+				}
+	//			KeyGamePad.KEY_LEFT_CENTER:		// = 0;
+	//			KeyGamePad.KEY_LEFT_UP:			// = 1;
+	//			KeyGamePad.KEY_LEFT_RIGHT:		// = 2;
+	//			KeyGamePad.KEY_LEFT_DOWN:		// = 3;
+	//			KeyGamePad.KEY_LEFT_LEFT:		// = 4;
+	//			KeyGamePad.KEY_RIGHT_CENTER:	// = 5;
+	//			KeyGamePad.KEY_RIGHT_UP:		// = 6;
+	//			KeyGamePad.KEY_RIGHT_RIGHT:		// = 7;
+	//			KeyGamePad.KEY_RIGHT_DOWN:		// = 8;
+	//			KeyGamePad.KEY_RIGHT_LEFT:		// = 9;
+	//			KeyGamePad.KEY_LEFT_1:			// = 10;	// 左上前
+	//			KeyGamePad.KEY_LEFT_2:			// = 11;	// 左上後
+	//			KeyGamePad.KEY_CENTER_LEFT:		// = 12;	// 中央左
+	//			KeyGamePad.KEY_RIGHT_1:			// = 13;	// 右上前
+	//			KeyGamePad.KEY_RIGHT_2:			// = 14;	// 右上後
+	//			KeyGamePad.KEY_CENTER_RIGHT:	// = 15;	// 中央右
+			} finally {
+				handler.postDelayed(this, interval);
 			}
-//			KeyGamePad.KEY_LEFT_CENTER:		// = 0;
-//			KeyGamePad.KEY_LEFT_UP:			// = 1;
-//			KeyGamePad.KEY_LEFT_RIGHT:		// = 2;
-//			KeyGamePad.KEY_LEFT_DOWN:		// = 3;
-//			KeyGamePad.KEY_LEFT_LEFT:		// = 4;
-//			KeyGamePad.KEY_RIGHT_CENTER:	// = 5;
-//			KeyGamePad.KEY_RIGHT_UP:		// = 6;
-//			KeyGamePad.KEY_RIGHT_RIGHT:		// = 7;
-//			KeyGamePad.KEY_RIGHT_DOWN:		// = 8;
-//			KeyGamePad.KEY_RIGHT_LEFT:		// = 9;
-//			KeyGamePad.KEY_LEFT_1:			// = 10;	// 左上前
-//			KeyGamePad.KEY_LEFT_2:			// = 11;	// 左上後
-//			KeyGamePad.KEY_CENTER_LEFT:		// = 12;	// 中央左
-//			KeyGamePad.KEY_RIGHT_1:			// = 13;	// 右上前
-//			KeyGamePad.KEY_RIGHT_2:			// = 14;	// 右上後
-//			KeyGamePad.KEY_CENTER_RIGHT:	// = 15;	// 中央右
-			handler.postDelayed(this, 50);
 		}
 	};
 
@@ -2210,7 +2270,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void gamepad_move(final float roll, final float pitch, final float gaz, final float yaw) {
 		if ((roll != 0) || (pitch != 0) || (gaz != 0) || (yaw != 0)) {
-			if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", roll, pitch, gaz, yaw));
+//			if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", roll, pitch, gaz, yaw));
 			if (mFlightController != null) {
 				moved = true;
 				mFlightController.setMove((int) roll, (int) pitch, (int) gaz, (int) yaw);
@@ -2274,7 +2334,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		final float pitch = -analogSticks[3] * mGamepadSensitivity * mGamepadScaleY;
 		// 左アナログスティックの上下=上昇下降
 		final float gaz = -analogSticks[1] * mGamepadSensitivity * mGamepadScaleZ;
-		// 左アナログスティックの左右または上端ボタン(手前)=左右回転
+		// 左アナログスティックの左右または上端ボタン(手前,R1/L1)=左右回転
 		final float yaw = mGamepadSensitivity * (
 			downs[GamePadConst.KEY_RIGHT_1]
 			? down_times[GamePadConst.KEY_RIGHT_1]
@@ -2334,7 +2394,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		final float pitch = -analogSticks[1] * mGamepadSensitivity * mGamepadScaleY;
 		// 右アナログスティックの上下=上昇下降
 		final float gaz = -analogSticks[3] * mGamepadSensitivity * mGamepadScaleZ;
-		// 右アナログスティックの左右または上端ボタン(手前)=左右回転
+		// 右アナログスティックの左右または上端ボタン(手前,R1/L1)=左右回転
 		final float yaw = mGamepadSensitivity * (
 			downs[GamePadConst.KEY_RIGHT_1]
 			? down_times[GamePadConst.KEY_RIGHT_1]
@@ -2397,7 +2457,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		final float pitch = -analogSticks[1] * mGamepadSensitivity * mGamepadScaleY;
 		// 右アナログスティックの上下=上昇下降
 		final float gaz = -analogSticks[3] * mGamepadSensitivity * mGamepadScaleZ;
-		// 左アナログスティックの左右または上端ボタン(手前)=左右回転
+		// 左アナログスティックの左右または上端ボタン(手前,R1/L1)=左右回転
 		final float yaw = mGamepadSensitivity * (
 			downs[GamePadConst.KEY_RIGHT_1]
 			? down_times[GamePadConst.KEY_RIGHT_1]
@@ -2460,7 +2520,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		final float gaz = -analogSticks[1] * mGamepadSensitivity * mGamepadScaleZ;
 		// 右アナログスティックの上下=前後移動
 		final float pitch = -analogSticks[3] * mGamepadSensitivity * mGamepadScaleY;
-		// 左アナログスティックの左右または上端ボタン(手前)=左右回転
+		// 左アナログスティックの左右または上端ボタン(手前,R1/L1)=左右回転
 		final float yaw = mGamepadSensitivity * (
 			downs[GamePadConst.KEY_RIGHT_1]
 			? down_times[GamePadConst.KEY_RIGHT_1]
@@ -2473,7 +2533,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	private void setSideMenu() {
-		if (DEBUG) Log.v(TAG, "setSideMenu:");
+//		if (DEBUG) Log.v(TAG, "setSideMenu:");
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -2507,7 +2567,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	private void removeSideMenu() {
-		if (DEBUG) Log.v(TAG, "removeSideMenu:");
+//		if (DEBUG) Log.v(TAG, "removeSideMenu:");
 		if (mSideMenuListView != null) {
 			final SideMenuListView v = mSideMenuListView;
 			mSideMenuListView = null;
@@ -2528,7 +2588,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
 		@Override
 		public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-			if (DEBUG) Log.v(TAG, "onItemClick:" + position);
+//			if (DEBUG) Log.v(TAG, "onItemClick:" + position);
 			final MainActivity activity = (MainActivity)getActivity();
 			activity.closeSideMenu();
 			startScript(position);
@@ -2544,7 +2604,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
 		@Override
 		public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-			if (DEBUG) Log.v(TAG, "onSurfaceTextureAvailable:");
+//			if (DEBUG) Log.v(TAG, "onSurfaceTextureAvailable:");
 			if ((mVideoStream != null) && (mSurfaceId == 0)) {
 				final Surface _surface = new Surface(surface);
 				mSurfaceId = _surface.hashCode();
@@ -2554,12 +2614,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		@Override
 		public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-			if (DEBUG) Log.v(TAG, "onSurfaceTextureSizeChanged:");
+//			if (DEBUG) Log.v(TAG, "onSurfaceTextureSizeChanged:");
 		}
 
 		@Override
 		public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-			if (DEBUG) Log.v(TAG, "onSurfaceTextureDestroyed:");
+//			if (DEBUG) Log.v(TAG, "onSurfaceTextureDestroyed:");
 			if (mVideoStream != null) {
 				mVideoStream.removeSurface(mSurfaceId);
 			}

@@ -4,6 +4,9 @@ package com.serenegiant.arflight;
  * Created by saki on 16/02/07.
  */
 public interface ICameraController extends IVideoStreamController {
+
+	public void setCameraControllerListener(final CameraControllerListener listener);
+
 	/**
 	 * 静止画撮影時の映像フォーマットを設定
 	 * @param pictureFormat 0: Take raw image, 1: Take a 4:3 jpeg photo, 2: Take a 16:9 snapshot from camera
@@ -93,4 +96,8 @@ public interface ICameraController extends IVideoStreamController {
 	 * @return
 	 */
 	public boolean sendVideoSyncAnglesGyros(final float anglesDelay_s, final float gyrosDelay_s);
+
+	public int getPan();
+	public int getTilt();
+
 }
