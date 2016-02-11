@@ -247,7 +247,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		@Override
 		public void onARDrone3PilotingStateFlyingStateChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
-			mStatus.setFlyingState(state.getValue());
+			((DroneStatus)mStatus).setFlyingState(state.getValue());
 			callOnFlyingStateChangedUpdate(getState());
 		}
 	};
@@ -436,7 +436,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			final byte motor, final String type, final String software, final String hardware) {
 			try {
 				final int ix = (motor - 1) % getMotorNums();
-				final AttributeMotor _motor = mStatus.getMotor(ix);
+				final AttributeMotor _motor = ((DroneStatus)mStatus).getMotor(ix);
 				if (_motor != null) {
 					_motor.set(type, software, hardware);
 				} else {
@@ -616,7 +616,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			final float speedX, final float speedY, final float speedZ) {
 
 //			if (DEBUG) Log.v(TAG, String.format("SpeedChangedUpdate(%f,%f,%f)", speedX, speedY, speedZ));
-			mStatus.setSpeed(speedY, speedX, -speedZ);
+			((DroneStatus)mStatus).setSpeed(speedY, speedX, -speedZ);
 		}
 	};
 
@@ -635,7 +635,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		public void onARDrone3SettingsStateMotorFlightsStatusChangedUpdate(
 			final short nbFlights, final short lastFlightDuration, final int totalFlightDuration) {
 
-			mStatus.setFlightDuration(nbFlights, lastFlightDuration, totalFlightDuration);
+			((DroneStatus)mStatus).setFlightDuration(nbFlights, lastFlightDuration, totalFlightDuration);
 		}
 	};
 
@@ -689,7 +689,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		public void onARDrone3PilotingStateAttitudeChangedUpdate(
 			final float roll, final float pitch, final float yaw) {
 
-			mStatus.setAttitude(roll, pitch, yaw);
+			((DroneStatus)mStatus).setAttitude(roll, pitch, yaw);
 		}
 	};
 

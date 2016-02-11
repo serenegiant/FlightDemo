@@ -47,11 +47,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
-/**
- * Created by saki on 15/10/31.
- */
 public abstract class DeviceController implements IDeviceController {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = DeviceController.class.getSimpleName();
 
 	protected final Context mContext;
@@ -68,10 +65,10 @@ public abstract class DeviceController implements IDeviceController {
 
 	private final Semaphore disconnectSent = new Semaphore(0);
 	private volatile boolean mRequestCancel;
-	private final Semaphore cmdGetAllSettingsSent = new Semaphore(0);
-	private boolean isWaitingAllSettings;
-	private final Semaphore cmdGetAllStatesSent = new Semaphore(0);
-	private boolean isWaitingAllStates;
+	protected final Semaphore cmdGetAllSettingsSent = new Semaphore(0);
+	protected boolean isWaitingAllSettings;
+	protected final Semaphore cmdGetAllStatesSent = new Semaphore(0);
+	protected boolean isWaitingAllStates;
 
 	protected final Object mStateSync = new Object();
 	private int mState = STATE_STOPPED;
@@ -82,6 +79,7 @@ public abstract class DeviceController implements IDeviceController {
 	private final List<ReaderThread> mReaderThreads = new ArrayList<ReaderThread>();
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 	protected AttributeDevice mInfo;
+	protected CommonStatus mStatus;
 
 	public DeviceController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		mContext = context;

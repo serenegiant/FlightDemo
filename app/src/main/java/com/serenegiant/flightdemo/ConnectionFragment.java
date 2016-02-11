@@ -266,6 +266,9 @@ public class ConnectionFragment extends BaseFragment {
 		return fragment;
 	}
 
+//********************************************************************************
+// 背景動画再生関連
+//********************************************************************************
 	private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
 
 		@Override

@@ -17,7 +17,7 @@ import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ManagerFragment;
 
 public abstract class ControlBaseFragment extends BaseFragment {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = "ControlFragment";
 
 	protected static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";
@@ -159,6 +159,7 @@ public abstract class ControlBaseFragment extends BaseFragment {
 				new Thread(new Runnable() {
 					@Override
 					public void run() {
+						if (DEBUG) Log.v(TAG, "接続開始");
 						final boolean failed = mController.start();
 						if (activity != null) {
 							activity.hideProgress();
@@ -207,11 +208,13 @@ public abstract class ControlBaseFragment extends BaseFragment {
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
+					if (DEBUG) Log.v(TAG, "接続終了中");
 					controller.stop();
 					if (activity != null) {
 						ManagerFragment.releaseController(activity, controller);
 						activity.hideProgress();
 					}
+					if (DEBUG) Log.v(TAG, "接続終了");
 				}
 			}).start();
 		}

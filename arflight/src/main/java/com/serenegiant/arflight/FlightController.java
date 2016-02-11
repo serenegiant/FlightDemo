@@ -70,7 +70,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 	private final List<FlightControllerListener> mListeners = new ArrayList<FlightControllerListener>();
 
 	protected DroneSettings mSettings;
-	protected DroneStatus mStatus;
 
 	public FlightController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		super(context, service, net_config);
@@ -138,12 +137,12 @@ public abstract class FlightController extends DeviceController implements IFlig
 	@Override
 	public int getState() {
 		synchronized (mStateSync) {
-			return super.getState() + (mStatus.getFlyingState() << 8);
+			return super.getState() + (((DroneStatus)mStatus).getFlyingState() << 8);
 		}
 	}
 
 	public boolean isFlying() {
-		return mStatus.isFlying();
+		return ((DroneStatus)mStatus).isFlying();
 	}
 
 	@Override
@@ -153,22 +152,22 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 	@Override
 	public int getStillCaptureState() {
-		return mStatus.getStillCaptureState();
+		return ((DroneStatus)mStatus).getStillCaptureState();
 	}
 
 	@Override
 	public int getVideoRecordingState() {
-		return mStatus.getVideoRecordingState();
+		return ((DroneStatus)mStatus).getVideoRecordingState();
 	}
 
 	@Override
 	public int getMassStorageId() {
-		return mStatus.massStorageId();
+		return ((DroneStatus)mStatus).massStorageId();
 	}
 
 	@Override
 	public String getMassStorageName() {
-		return mStatus.massStorageName();
+		return ((DroneStatus)mStatus).massStorageName();
 	}
 
 	@Override
@@ -324,7 +323,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 			final byte mass_storage_id, final String name) {
 
 			if (DEBUG) Log.v(TAG, String.format("onCommonCommonStateMassStorageStateListChangedUpdate:mass_storage_id=%d,name=%s", mass_storage_id, name));
-			mStatus.setMassStorage(mass_storage_id, name);
+			((DroneStatus)mStatus).setMassStorage(mass_storage_id, name);
 		}
 	};
 
@@ -681,7 +680,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 				mListeners.add((FlightControllerListener) listener);
 				callOnUpdateBattery(getBattery());
 				callOnAlarmStateChangedUpdate(mStatus.getAlarm());
-				callOnFlyingStateChangedUpdate(mStatus.getFlyingState());
+				callOnFlyingStateChangedUpdate(((DroneStatus)mStatus).getFlyingState());
 			}
 		}
 	}
@@ -831,7 +830,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 * @param state
 	 */
 	protected void callOnStillCaptureStateChanged(final int state) {
-		final boolean changed = mStatus.setStillCaptureState(state);
+		final boolean changed = ((DroneStatus)mStatus).setStillCaptureState(state);
 		if (changed) {
 			synchronized (mListeners) {
 				for (final FlightControllerListener listener : mListeners) {
@@ -852,7 +851,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 * @param state
 	 */
 	protected void callOnVideoRecordingStateChanged(final int state) {
-		final boolean changed = mStatus.setVideoRecordingState(state);
+		final boolean changed = ((DroneStatus)mStatus).setVideoRecordingState(state);
 		if (changed) {
 			synchronized (mListeners) {
 				for (final FlightControllerListener listener : mListeners) {
@@ -878,7 +877,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 * @param internal
 	 */
 	protected void callOnUpdateStorageState(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal) {
-		final boolean changed = mStatus.setMassStorageInfo(mass_storage_id, size, used_size, plugged, full, internal);
+		final boolean changed = ((DroneStatus)mStatus).setMassStorageInfo(mass_storage_id, size, used_size, plugged, full, internal);
 		if (changed) {
 			synchronized (mListeners) {
 				for (final FlightControllerListener listener : mListeners) {
@@ -1148,7 +1147,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 	@Override
 	public Vector getAttitude(){
-		return mStatus.attitude();
+		return ((DroneStatus)mStatus).attitude();
 	}
 
 	public float getAltitude() {
@@ -1180,7 +1179,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 	@Override
 	public AttributeMotor getMotor(final int index) {
-		return mStatus.getMotor(index);
+		return ((DroneStatus)mStatus).getMotor(index);
 	}
 
 	/**

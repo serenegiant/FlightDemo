@@ -3,6 +3,7 @@ package com.serenegiant.arflight;
 import android.content.Context;
 import android.util.Log;
 
+import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_BAND_ENUM;
@@ -84,16 +85,10 @@ import com.parrot.arsdk.arcommands.ARCommandSkyControllerWifiStateWifiListListen
 import com.parrot.arsdk.arcommands.ARCommandSkyControllerWifiStateWifiSignalChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandSkyControllerWifiWifiAuthChannelListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 import com.serenegiant.arflight.attribute.AttributeDevice;
-import com.serenegiant.arflight.configs.ARNetworkConfig;
-import com.serenegiant.arflight.configs.ARNetworkConfigARDrone3;
 import com.serenegiant.arflight.configs.ARNetworkConfigSkyController;
 
-import java.sql.Date;
-
-/**
- * Created by saki on 15/10/31.
- */
 public class SkyController extends DeviceController implements IBridgeController, IWiFiController {
 	private static final boolean DEBUG = true;				// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyController.class.getSimpleName();
@@ -101,6 +96,7 @@ public class SkyController extends DeviceController implements IBridgeController
 	public SkyController(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigSkyController());
 		mInfo = new AttributeDevice();
+		mStatus = new CommonStatus();
 	}
 
 //================================================================================
@@ -441,6 +437,7 @@ public class SkyController extends DeviceController implements IBridgeController
 		}
 	};
 
+	/** スカイコントローラーからすべての設定を受信した時のコールバックリスナー */
 	private final ARCommandSkyControllerSettingsStateAllSettingsChangedListener
 		mARCommandSkyControllerSettingsStateAllSettingsChangedListener
 			= new ARCommandSkyControllerSettingsStateAllSettingsChangedListener() {
@@ -448,6 +445,9 @@ public class SkyController extends DeviceController implements IBridgeController
 		public void onSkyControllerSettingsStateAllSettingsChangedUpdate() {
 
 			if (DEBUG) Log.v(TAG, "onAllSettingsChangedUpdate:");
+			if (isWaitingAllSettings) {
+				cmdGetAllSettingsSent.release();
+			}
 		}
 	};
 
@@ -461,24 +461,35 @@ public class SkyController extends DeviceController implements IBridgeController
 		}
 	};
 
+	/** スカイコントローラーのシリアル番号受信時のコールバックリスナー */
 	private final ARCommandSkyControllerSettingsStateProductSerialChangedListener
 		mARCommandSkyControllerSettingsStateProductSerialChangedListener
 			= new ARCommandSkyControllerSettingsStateProductSerialChangedListener() {
+		/**
+		 * @param serialNumber
+		 */
 		@Override
 		public void onSkyControllerSettingsStateProductSerialChangedUpdate(final String serialNumber) {
 
-			if (DEBUG) Log.v(TAG, "onProductSerialChangedUpdate:serialNumber=" + serialNumber);
+//			if (DEBUG) Log.v(TAG, "onProductSerialChangedUpdate:serialNumber=" + serialNumber);
+			mInfo.setSerialHigh(serialNumber);
 		}
 	};
 
+	/** スカイコントローラーの種類情報受信時のコールバックリスナー */
 	private final ARCommandSkyControllerSettingsStateProductVariantChangedListener
 		mARCommandSkyControllerSettingsStateProductVariantChangedListener
 			= new ARCommandSkyControllerSettingsStateProductVariantChangedListener() {
+		/**
+		 * @param variant Bebop世代かBebop2世代か
+		 */
 		@Override
 		public void onSkyControllerSettingsStateProductVariantChangedUpdate(
 			final ARCOMMANDS_SKYCONTROLLER_SETTINGSSTATE_PRODUCTVARIANTCHANGED_VARIANT_ENUM variant) {
 
-			if (DEBUG) Log.v(TAG, "onProductVariantChangedUpdate:variant=" + variant);
+//			if (DEBUG) Log.v(TAG, "onProductVariantChangedUpdate:variant=" + variant);
+			mInfo.setSerialLow(":" + variant.toString());
+
 		}
 	};
 
@@ -489,9 +500,13 @@ public class SkyController extends DeviceController implements IBridgeController
 		public void onSkyControllerCommonAllStatesUpdate() {
 
 			if (DEBUG) Log.v(TAG, "onAllStatesUpdate:");
+			if (isWaitingAllStates) {
+				cmdGetAllStatesSent.release();
+			}
 		}
 	};
 
+	/** スカイコントローラーから全てのステータスを受信した時のコールバックリスナー */
 	private final ARCommandSkyControllerCommonStateAllStatesChangedListener
 		mARCommandSkyControllerCommonStateAllStatesChangedListener
 			= new ARCommandSkyControllerCommonStateAllStatesChangedListener() {
@@ -499,6 +514,9 @@ public class SkyController extends DeviceController implements IBridgeController
 		public void onSkyControllerCommonStateAllStatesChangedUpdate() {
 
 			if (DEBUG) Log.v(TAG, "onAllStatesChangedUpdate:");
+			if (isWaitingAllStates) {
+				cmdGetAllStatesSent.release();
+			}
 		}
 	};
 
@@ -531,8 +549,8 @@ public class SkyController extends DeviceController implements IBridgeController
 		public void onSkyControllerSkyControllerStateGpsPositionChangedUpdate(
 			final double latitude, final double longitude, final double altitude, final float heading) {
 
-			if (DEBUG) Log.v (TAG, String.format("onGpsPositionChangedUpdate:latitude=%f, longitude=%f, altitude=%f, heading=%f",
-				latitude, longitude, altitude, heading));
+//			if (DEBUG) Log.v (TAG, String.format("onGpsPositionChangedUpdate:latitude=%f, longitude=%f, altitude=%f, heading=%f",
+//				latitude, longitude, altitude, heading));
 		}
 	};
 
@@ -971,4 +989,119 @@ public class SkyController extends DeviceController implements IBridgeController
 			if (DEBUG) Log.v(TAG, "onDebugDebugTest1Update:t1Args=" + t1Args);
 		}
 	};
+
+//********************************************************************************
+// データ送受信関係
+//********************************************************************************
+	/** DeviceControllerのメソッドを上書き */
+	@Override
+	public boolean sendAllSettings() {
+		if (DEBUG) Log.v(TAG, "sendAllSettings:");
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setSkyControllerSettingsAllSettings();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send AllSettings command.");
+		}
+
+		return sentStatus;
+	}
+
+	/** DeviceControllerのメソッドを上書き */
+	@Override
+	public boolean sendAllStates() {
+		if (DEBUG) Log.v(TAG, "sendAllStates:");
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setSkyControllerCommonAllStates();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+
+
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send CommonAllStates command.");
+		}
+
+		return sentStatus;
+	}
+
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiStateWifiList(String bssid, String ssid, byte secured, byte saved, int rssi, int frequency)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiStateConnexionChanged(String ssid, ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_ENUM status)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiStateWifiAuthChannelListChanged(ARCOMMANDS_SKYCONTROLLER_WIFISTATE_WIFIAUTHCHANNELLISTCHANGED_BAND_ENUM band, byte channel, byte in_or_out)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiStateAllWifiAuthChannelChanged()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiStateWifiSignalChanged(byte level)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiRequestWifiList()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiRequestCurrentWifi()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiConnectToWifi(String bssid, String ssid, String passphrase)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiForgetWifi(String ssid)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiWifiAuthChannel()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceRequestDeviceList()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceRequestCurrentDevice()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceConnectToDevice(String deviceName)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceStateDeviceList(String name)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceStateConnexionChanged(ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_ENUM status, String deviceName, short deviceProductID)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerSettingsReset()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerSettingsStateAllSettingsChanged()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerSettingsStateResetChanged()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerSettingsStateProductSerialChanged(String serialNumber)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerSettingsStateProductVariantChanged(ARCOMMANDS_SKYCONTROLLER_SETTINGSSTATE_PRODUCTVARIANTCHANGED_VARIANT_ENUM variant)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCommonStateAllStatesChanged()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerSkyControllerStateBatteryChanged(byte percent)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerSkyControllerStateGpsFixChanged(byte fixed)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerSkyControllerStateGpsPositionChanged(double latitude, double longitude, double altitude, float heading)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAccessPointSettingsAccessPointSSID(String ssid)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAccessPointSettingsAccessPointChannel(byte channel)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAccessPointSettingsWifiSelection(ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_TYPE_ENUM type, ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_BAND_ENUM band, byte channel)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAccessPointSettingsStateAccessPointSSIDChanged(String ssid)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAccessPointSettingsStateAccessPointChannelChanged(byte channel)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAccessPointSettingsStateWifiSelectionChanged(ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM type, ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM band, byte channel)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCameraResetOrientation()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerGamepadInfosGetGamepadControls()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerGamepadInfosStateGamepadControl(ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM type, int id, String name)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerGamepadInfosStateAllGamepadControlsSent()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerButtonMappingsGetCurrentButtonMappings()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerButtonMappingsGetAvailableButtonMappings()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerButtonMappingsSetButtonMapping(int key_id, String mapping_uid)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerButtonMappingsDefaultButtonMapping()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerButtonMappingsStateCurrentButtonMappings(int key_id, String mapping_uid)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerButtonMappingsStateAllCurrentButtonMappingsSent()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerButtonMappingsStateAvailableButtonMappings(String mapping_uid, String name)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerButtonMappingsStateAllAvailableButtonsMappingsSent()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisMappingsGetCurrentAxisMappings()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisMappingsGetAvailableAxisMappings()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisMappingsSetAxisMapping(int axis_id, String mapping_uid)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisMappingsDefaultAxisMapping()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisMappingsStateCurrentAxisMappings(int axis_id, String mapping_uid)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisMappingsStateAllCurrentAxisMappingsSent()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisMappingsStateAvailableAxisMappings(String mapping_uid, String name)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisMappingsStateAllAvailableAxisMappingsSent()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersGetCurrentAxisFilters()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersGetPresetAxisFilters()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersSetAxisFilter(int axis_id, String filter_uid_or_builder)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersDefaultAxisFilters()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersStateCurrentAxisFilters(int axis_id, String filter_uid_or_builder)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersStateAllCurrentFiltersSent()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersStatePresetAxisFilters(String filter_uid, String name)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersStateAllPresetFiltersSent()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCoPilotingSetPilotingSource(ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM source)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCoPilotingStatePilotingSource(ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUM source)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCalibrationEnableMagnetoCalibrationQualityUpdates(byte enable)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCalibrationStateMagnetoCalibrationState(ARCOMMANDS_SKYCONTROLLER_CALIBRATIONSTATE_MAGNETOCALIBRATIONSTATE_STATUS_ENUM status, byte X_Quality, byte Y_Quality, byte Z_Quality)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCalibrationStateMagnetoCalibrationQualityUpdatesState(byte enabled)
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerButtonEventsSettings()
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDebugDebugTest1(byte t1Args)
+
 }

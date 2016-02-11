@@ -9,7 +9,7 @@ import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.attribute.AttributePosition;
 import com.serenegiant.math.Vector;
 
-public class DroneStatus {
+public class DroneStatus extends CommonStatus {
 	public static final int STATE_FLYING_LANDED = 0x0000;	// FlyingState=0
 	public static final int STATE_FLYING_TAKEOFF = 0x0100;	// FlyingState=1
 	public static final int STATE_FLYING_HOVERING = 0x0200;	// FlyingState=2
@@ -18,14 +18,6 @@ public class DroneStatus {
 	public static final int STATE_FLYING_EMERGENCY = 0x0500;// FlyingState=5
 	public static final int STATE_FLYING_ROLLING = 0x0600;	// FlyingState=6
 	public static final int STATE_FLYING_MASK = STATE_FLYING_TAKEOFF | STATE_FLYING_HOVERING | STATE_FLYING_FLYING | STATE_FLYING_LANDING | STATE_FLYING_ROLLING;
-
-	public static final int ALARM_NON = 0;
-	public static final int ALARM_USER_EMERGENCY = 1;
-	public static final int ALARM_CUTOUT = 2;
-	public static final int ALARM_BATTERY_CRITICAL = 3;
-	public static final int ALARM_BATTERY = 4;
-	public static final int ALARM_TOO_MUCH_ANGLE = 5;
-	public static final int ALARM_DISCONNECTED = 100;		// 切断, これはアプリ内のみで有効
 
 	/** 動画/静止画撮影不可 */
 	public static final int MEDIA_UNAVAILABLE = -1;
@@ -38,12 +30,7 @@ public class DroneStatus {
 //	MEDIA_READY => MEDIA_BUSY => MEDIA_SUCCESS => MEDIA_READY
 //	MEDIA_READY => MEDIA_BUSY => MEDIA_ERROR => MEDIA_READY
 
-	private final Object mStateSync = new Object();
-	private final Object mSync = new Object();
-
 	private int mFlyingState = 0;
-	private int mAlarmState = ALARM_NON;
-	private int mBatteryState = -1;
 	private final AttributeMotor[] mMotors;
 	private int mStillCaptureState = MEDIA_UNAVAILABLE;
 	private int mVideoRecordingState = MEDIA_UNAVAILABLE;
@@ -66,112 +53,6 @@ public class DroneStatus {
 				return mMotors[index];
 			}
 			return null;
-		}
-	}
-
-	private AttributePosition mPosition = new AttributePosition();
-
-	/**
-	 * 座標をセット
-	 * @param latitude
-	 * @param longitude
-	 * @param altitude
-	 */
-	public void setPosition(final double latitude, final double longitude, final double altitude) {
-		synchronized (mSync) {
-			mPosition.set(latitude, longitude, altitude);
-		}
-	}
-
-	/** 経度をセット */
-	public void latitude(final double latitude) {
-		synchronized (mSync) {
-			mPosition.latitude(latitude);
-		}
-	}
-	/** 緯度を取得[度] */
-	public double latitude() {
-		synchronized (mSync) {
-			return mPosition.latitude();
-		}
-	}
-
-	/** 経度をセット */
-	public void longitude(final double longitude) {
-		synchronized (mSync) {
-			mPosition.longitude(longitude);
-		}
-	}
-	/** 経度を取得[度] */
-	public double longitude() {
-		synchronized (mSync) {
-			return mPosition.longitude();
-		}
-	}
-
-	/** 高度[m]を設定  */
-	public void altitude(final double altitude) {
-		synchronized (mSync) {
-			mPosition.altitude(altitude);
-		}
-	}
-	/** 高度[m]を取得 */
-	public double altitude() {
-		synchronized (mSync) {
-			return mPosition.altitude();
-		}
-	}
-
-	private AttributePosition mHomePosition = new AttributePosition();
-
-	/**
-	 * 座標をセット
-	 * @param latitude
-	 * @param longitude
-	 * @param altitude
-	 */
-	public void setHome(final double latitude, final double longitude, final double altitude) {
-		synchronized (mSync) {
-			mPosition.set(latitude, longitude, altitude);
-		}
-	}
-
-	/** 経度をセット */
-	public void homeLatitude(final double latitude) {
-		synchronized (mSync) {
-			mPosition.latitude(latitude);
-		}
-	}
-	/** 緯度を取得[度] */
-	public double homeLatitude() {
-		synchronized (mSync) {
-			return mPosition.latitude();
-		}
-	}
-
-	/** 経度をセット */
-	public void homeLongitude(final double longitude) {
-		synchronized (mSync) {
-			mPosition.longitude(longitude);
-		}
-	}
-	/** 経度を取得[度] */
-	public double homeLongitude() {
-		synchronized (mSync) {
-			return mPosition.longitude();
-		}
-	}
-
-	/** 高度[m]を設定  */
-	public void homeAltitude(final double altitude) {
-		synchronized (mSync) {
-			mPosition.altitude(altitude);
-		}
-	}
-	/** 高度[m]を取得 */
-	public double homeAltitude() {
-		synchronized (mSync) {
-			return mPosition.altitude();
 		}
 	}
 
@@ -371,42 +252,6 @@ public class DroneStatus {
 			return (mAlarmState == ALARM_NON) && ((mFlyingState & STATE_FLYING_MASK) != 0);
 		}
 	}
-	/** 異常状態をセット */
-	public void setAlarm(final int alarm_state) {
-		synchronized (mStateSync) {
-			if (mAlarmState != alarm_state) {
-				mAlarmState = alarm_state;
-			}
-		}
-	}
-
-	/** 異常状態を取得 */
-	public int getAlarm() {
-		synchronized (mStateSync) {
-			return mAlarmState;
-		}
-	}
-
-	/** バッテリー残量をセット */
-	public void setBattery(final int battery_state) {
-		synchronized (mStateSync) {
-			mBatteryState = battery_state;
-		}
-	}
-
-	/** バッテリー残量を取得 */
-	public int getBattery() {
-		synchronized (mStateSync) {
-			return mBatteryState;
-		}
-	}
-
-	/** 機体と接続しているかどうかを取得 */
-	public boolean isConnected() {
-		synchronized (mStateSync) {
-			return (mAlarmState != ALARM_DISCONNECTED);
-		}
-	}
 
 	/** 静止画撮影ステータス */
 	public boolean setStillCaptureState(final int state) {
@@ -454,20 +299,4 @@ public class DroneStatus {
 		}
 	}
 
-	private AttributeCalibration mAttributeCalibration = new AttributeCalibration();
-
-	/** 機体のキャリブレーション状態を設定 */
-	public void updateCalibrationState(final boolean x, final boolean y, final boolean z, final boolean failed) {
-		mAttributeCalibration.update(x, y, z, failed);
-	}
-
-	/** 機体のキャリブレーションが必要かどうかを設定 */
-	public void needCalibration(final boolean need_calibration) {
-		mAttributeCalibration.needCalibration(need_calibration);
-	}
-
-	/** 機体のキャリブレーションが必要かどうかを取得 */
-	public boolean needCalibration() {
-		return mAttributeCalibration.needCalibration();
-	}
 }

@@ -120,7 +120,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 		public void onMiniDronePilotingStateFlyingStateChangedUpdate(
 			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateFlyingStateChangedUpdate:");
-			mStatus.setFlyingState(state.getValue());
+			((DroneStatus)mStatus).setFlyingState(state.getValue());
 			callOnFlyingStateChangedUpdate(getState());
 		}
 	};
@@ -342,7 +342,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 			if (DEBUG) Log.v(TAG, "onMiniDroneSettingsStateProductMotorsVersionChangedUpdate:");
 			try {
 				final int ix = (motor - 1) % getMotorNums();
-				final AttributeMotor _motor = mStatus.getMotor(ix);
+				final AttributeMotor _motor = ((DroneStatus)mStatus).getMotor(ix);
 				if (_motor != null) {
 					_motor.set(type, software, hardware);
 				} else {
@@ -789,7 +789,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 		final float pitch = mAttitudePCMD.flag == 0 ? 0 : -tilt_rate * mAttitudePCMD.pitch / 100f * TO_RADIAN;
 		final float rot_rate = mSettings.maxRotationSpeed().current() / 5;	// 回転速度
 		final float yaw = rot_rate * mAttitudePCMD.yaw / 100 * TO_RADIAN;
-		mStatus.setAttitude(roll, pitch, yaw);
+		((DroneStatus)mStatus).setAttitude(roll, pitch, yaw);
 		// FIXME yaw軸は機体の向きを変えるだけじゃなくて実際に回転の計算をした方がいいかも
 	}
 
