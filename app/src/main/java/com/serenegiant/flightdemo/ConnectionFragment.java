@@ -212,25 +212,25 @@ public class ConnectionFragment extends BaseFragment {
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
 		public void onClick(final View view) {
-		Fragment fragment = null;
-		switch (view.getId()) {
-		case R.id.pilot_button:
-			fragment = getFragment(mDeviceListView.getCheckedItemPosition(), true);
-			break;
-		case R.id.download_button:
-			fragment = getFragment(mDeviceListView.getCheckedItemPosition(), false);
-			break;
-		case R.id.gallery_button:
-			fragment = GalleyFragment.newInstance();
-			break;
-		case R.id.script_button:
-			fragment = ScriptFragment.newInstance();
-			break;
-		case R.id.config_show_btn:
-			fragment = ConfigAppFragment.newInstance();
-			break;
-		}
-		replace(fragment);
+			Fragment fragment = null;
+			switch (view.getId()) {
+			case R.id.pilot_button:
+				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), true);
+				break;
+			case R.id.download_button:
+				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), false);
+				break;
+			case R.id.gallery_button:
+				fragment = GalleyFragment.newInstance();
+				break;
+			case R.id.script_button:
+				fragment = ScriptFragment.newInstance();
+				break;
+			case R.id.config_show_btn:
+				fragment = ConfigAppFragment.newInstance();
+				break;
+			}
+			replace(fragment);
 		}
 	};
 
@@ -238,16 +238,16 @@ public class ConnectionFragment extends BaseFragment {
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
 		final String itemValue = adapter.getItemName(position);
-		final ARDiscoveryDeviceService service = manager.getDevice(itemValue);
+		final ARDiscoveryDeviceService device = manager.getDevice(itemValue);
 		Fragment fragment = null;
-		if (service != null) {
+		if (device != null) {
 			// 製品名を取得
-			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
+			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
 
 			switch (product) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				fragment = isPiloting ? PilotFragment.newInstance(service) : MediaFragment.newInstance(service);
+				fragment = isPiloting ? PilotFragment.newInstance(device) : MediaFragment.newInstance(device);
 				break;
 			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
 				//FIXME JumpingSumoは未実装
@@ -256,7 +256,10 @@ public class ConnectionFragment extends BaseFragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
-				fragment = isPiloting ? PilotFragment.newInstance(service) : MediaFragment.newInstance(service);
+				fragment = isPiloting ? PilotFragment.newInstance(device) : MediaFragment.newInstance(device);
+				break;
+			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
+				fragment = BridgeFragment.newInstance(device);
 				break;
 			}
 		}
