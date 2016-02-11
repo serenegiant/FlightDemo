@@ -20,7 +20,10 @@ import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.ARDeviceServiceAdapter;
+import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.ManagerFragment;
+import com.serenegiant.arflight.SkyController;
+import com.serenegiant.arflight.SkyControllerListener;
 import com.serenegiant.widget.PlayerTextureView;
 
 import java.util.List;
@@ -29,7 +32,7 @@ import java.util.List;
  * スカイコントローラーに接続してスカイコントローラーが
  * 検出している機体の一覧取得＆選択を行うためのFragment
  */
-public class BridgeFragment extends ControlBaseFragment {
+public class BridgeFragment extends BaseControllerFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = BridgeFragment.class.getSimpleName();
 
@@ -40,7 +43,6 @@ public class BridgeFragment extends ControlBaseFragment {
 	}
 
 	private ListView mDeviceListView;
-	//	private IModelView mModelView;
 	private PlayerTextureView mVideoView;
 	private ImageButton mDownloadBtn, mPilotBtn;
 	private MediaPlayer mMediaPlayer;
@@ -65,7 +67,7 @@ public class BridgeFragment extends ControlBaseFragment {
 
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-	//		if (DEBUG) Log.v(TAG, "onCreateView:");
+//		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
 		final View rootView = local_inflater.inflate(R.layout.fragment_bridge, container, false);
 		initView(rootView);
@@ -80,6 +82,9 @@ public class BridgeFragment extends ControlBaseFragment {
 		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
 			mMediaPlayer.start();
 		}
+		if (mController instanceof SkyController) {
+			mController.addListener(mSkyControllerListener);
+		}
 		startDeviceController();
 	}
 
@@ -91,6 +96,7 @@ public class BridgeFragment extends ControlBaseFragment {
 		if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
 			mMediaPlayer.stop();
 		}
+		mController.removeListener(mSkyControllerListener);
 		super.onPause();
 	}
 
@@ -123,7 +129,6 @@ public class BridgeFragment extends ControlBaseFragment {
 		mDeviceListView.setEmptyView(empty_view);
 		mDeviceListView.setAdapter(adapter);
 		mDeviceListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-	//		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 		mVideoView = (PlayerTextureView)rootView.findViewById(R.id.videoView);
 		mVideoView.setScaleMode(PlayerTextureView.SCALE_MODE_CROP);
 		mVideoView.setSurfaceTextureListener(mSurfaceTextureListener);
@@ -162,6 +167,31 @@ public class BridgeFragment extends ControlBaseFragment {
 		}
 	}
 
+	private final SkyControllerListener mSkyControllerListener = new SkyControllerListener() {
+		@Override
+		public void onConnect(final IDeviceController controller) {
+			if (DEBUG) Log.v(TAG, "onConnect:controller=" + controller);
+//			((SkyController)controller).setCoPilotingSource(1);
+//			((SkyController)controller).requestCurrentWiFi();
+			((SkyController)controller).requestCurrentDevice();
+		}
+
+		@Override
+		public void onDisconnect(final IDeviceController controller) {
+			if (DEBUG) Log.v(TAG, "onDisconnect:controller=" + controller);
+		}
+
+		@Override
+		public void onUpdateBattery(final IDeviceController controller, final int percent) {
+			if (DEBUG) Log.v(TAG, "onUpdateBattery:controller=" + controller + ", percent=" + percent);
+		}
+
+		@Override
+		public void onAlarmStateChangedUpdate(final IDeviceController controller, final int alarm_state) {
+			if (DEBUG) Log.v(TAG, "onAlarmStateChangedUpdate:controller=" + controller + ", alarm_state=" + alarm_state);
+		}
+	};
+
 	/**
 	 * 検出したデバイスのリストが更新された時のコールバック FIXME これはConnectionFragmentのままなので無効
 	 */
@@ -195,10 +225,6 @@ public class BridgeFragment extends ControlBaseFragment {
 				case ARDISCOVERY_PRODUCT_NSNETSERVICE:
 					break;
 				}
-	/*				// ブルートゥース接続の時だけ追加する
-				if (service.getDevice() instanceof ARDiscoveryDeviceBLEService) {
-					adapter.add(service.getName());
-				} */
 			}
 			adapter.notifyDataSetChanged();
 			mDeviceListView.setItemChecked(0, true);	// 先頭を選択
@@ -258,12 +284,6 @@ public class BridgeFragment extends ControlBaseFragment {
 				break;
 			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
 				//FIXME JumpingSumoは未実装
-				break;
-			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
-			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
-	//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
-				fragment = isPiloting ? PilotFragment.newInstance(device) : MediaFragment.newInstance(device);
 				break;
 			}
 		}

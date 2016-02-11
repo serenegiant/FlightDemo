@@ -70,7 +70,7 @@
 			android:layout_above="@+id/up_textview"
 			android:layout_centerHorizontal="true"
 			android:textSize="24sp"
-			android:id="@+id/stick_forward_button"/>
+			android:id="@+id/keymap_stick_forward_button"/>
 
 		<Button
 			android:layout_width="wrap_content"
@@ -79,7 +79,7 @@
 			android:layout_below="@+id/down_textview"
 			android:layout_centerHorizontal="true"
 			android:textSize="24sp"
-			android:id="@+id/stick_back_button"/>
+			android:id="@+id/keymap_stick_back_button"/>
 
 		<Button
 			android:layout_width="wrap_content"
@@ -88,14 +88,14 @@
 			android:layout_centerVertical="true"
 			android:layout_toLeftOf="@+id/left_textview"
 			android:layout_toStartOf="@+id/left_textview"
-			android:id="@+id/stick_left_button"
+			android:id="@+id/keymap_stick_left_button"
 			android:textSize="24sp"/>
 
 		<Button
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/stick_text_right"
-			android:id="@+id/stick_right_button"
+			android:id="@+id/keymap_stick_right_button"
 			android:layout_centerVertical="true"
 			android:layout_toRightOf="@+id/right_textview"
 			android:layout_toEndOf="@+id/right_textview"
@@ -117,16 +117,16 @@
 			android:layout_alignParentTop="true"
 			android:layout_alignParentLeft="true"
 			android:layout_alignParentStart="false"
-			android:id="@+id/left2_button"
+			android:id="@+id/keymap_left2_button"
 			android:textSize="24sp"/>
 
 		<Button
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/stick_text_turn_left"
-			android:layout_below="@+id/left2_button"
+			android:layout_below="@+id/keymap_left2_button"
 			android:layout_alignParentLeft="true"
-			android:id="@+id/left1_button"
+			android:id="@+id/keymap_left1_button"
 			android:textSize="24sp"/>
 
 		<TextView
@@ -134,10 +134,10 @@
 			android:layout_height="wrap_content"
 			android:text="[5]"
 			android:id="@+id/btn5_textview"
-			android:layout_toRightOf="@+id/left1_button"
+			android:layout_toRightOf="@+id/keymap_left1_button"
 			android:textSize="24sp"
 			android:gravity="left"
-			android:layout_alignTop="@+id/left1_button"/>
+			android:layout_alignTop="@+id/keymap_left1_button"/>
 
 		<TextView
 			android:layout_width="wrap_content"
@@ -146,14 +146,14 @@
 			android:id="@+id/btn7_textview"
 			android:layout_alignParentTop="true"
 			android:textSize="24sp"
-			android:layout_toRightOf="@+id/left2_button"
-			android:layout_below="@+id/left2_button"/>
+			android:layout_toRightOf="@+id/keymap_left2_button"
+			android:layout_below="@+id/keymap_left2_button"/>
 
 		<Button
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/action_takeoff"
-			android:id="@+id/takeoff_button"
+			android:id="@+id/keymap_takeoff_button"
 			android:layout_alignParentTop="true"
 			android:layout_alignParentRight="true"
 			android:layout_alignParentEnd="true"
@@ -165,9 +165,9 @@
 			android:layout_height="wrap_content"
 			android:text="11"
 			android:id="@+id/btn11_textview"
-			android:layout_alignBottom="@+id/takeoff_button"
-			android:layout_toLeftOf="@+id/takeoff_button"
-			android:layout_toStartOf="@+id/takeoff_button"
+			android:layout_alignBottom="@+id/keymap_takeoff_button"
+			android:layout_toLeftOf="@+id/keymap_takeoff_button"
+			android:layout_toStartOf="@+id/keymap_takeoff_button"
 			android:textSize="24sp"/>
 	</RelativeLayout>
 
@@ -228,7 +228,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/stick_text_up"
-			android:id="@+id/up_button"
+			android:id="@+id/keymap_up_button"
 			android:layout_above="@+id/btn1_textview"
 			android:layout_centerHorizontal="true"
 			android:textSize="24sp"/>
@@ -237,7 +237,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/stick_text_down"
-			android:id="@+id/down_button"
+			android:id="@+id/keymap_down_button"
 			android:layout_below="@+id/btn3_textview"
 			android:layout_centerHorizontal="true"
 			android:textSize="24sp"/>
@@ -246,7 +246,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/stick_text_turn_right"
-			android:id="@+id/turn_right_button"
+			android:id="@+id/keymap_turn_right_button"
 			android:layout_centerVertical="true"
 			android:layout_toRightOf="@+id/btn2_textview"
 			android:layout_toEndOf="@+id/btn2_textview"
@@ -258,7 +258,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/stick_text_turn_left"
-			android:id="@+id/turn_left_button"
+			android:id="@+id/keymap_turn_left_button"
 			android:layout_centerVertical="true"
 			android:layout_toLeftOf="@+id/btn4_textview"
 			android:layout_toStartOf="@+id/btn4_textview"
@@ -270,7 +270,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="[8]"
-			android:id="@+id/right2_button"
+			android:id="@+id/keymap_right2_button"
 			android:layout_alignParentTop="true"
 			android:layout_alignParentRight="true"
 			android:textSize="24sp"/>
@@ -279,8 +279,8 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/stick_text_turn_right"
-			android:id="@+id/right1_button"
-			android:layout_below="@+id/right2_button"
+			android:id="@+id/keymap_right1_button"
+			android:layout_below="@+id/keymap_right2_button"
 			android:layout_alignParentRight="true"
 			android:textSize="24sp"/>
 
@@ -289,18 +289,18 @@
 			android:layout_height="wrap_content"
 			android:text="8"
 			android:id="@+id/btn8_textview"
-			android:layout_toLeftOf="@+id/right2_button"
-			android:layout_toStartOf="@+id/right2_button"
+			android:layout_toLeftOf="@+id/keymap_right2_button"
+			android:layout_toStartOf="@+id/keymap_right2_button"
 			android:textSize="24sp"
-			android:layout_alignTop="@+id/right1_button"/>
+			android:layout_alignTop="@+id/keymap_right1_button"/>
 
 		<TextView
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="[6]"
 			android:id="@+id/btn6_textview"
-			android:layout_toLeftOf="@+id/right1_button"
-			android:layout_toStartOf="@+id/right1_button"
+			android:layout_toLeftOf="@+id/keymap_right1_button"
+			android:layout_toStartOf="@+id/keymap_right1_button"
 			android:textSize="24sp"
 			android:gravity="right"/>
 
@@ -308,7 +308,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/action_landing"
-			android:id="@+id/landing_button"
+			android:id="@+id/keymap_landing_button"
 			android:layout_above="@+id/btn6_textview"
 			android:layout_alignParentLeft="true"
 			android:layout_alignParentStart="true"
@@ -320,9 +320,9 @@
 			android:layout_height="wrap_content"
 			android:text="12"
 			android:id="@+id/btn12_textview"
-			android:layout_alignBottom="@+id/landing_button"
-			android:layout_toRightOf="@+id/landing_button"
-			android:layout_toEndOf="@+id/landing_button"
+			android:layout_alignBottom="@+id/keymap_landing_button"
+			android:layout_toRightOf="@+id/keymap_landing_button"
+			android:layout_toEndOf="@+id/keymap_landing_button"
 			android:textSize="24sp"/>
 	</RelativeLayout>
 </LinearLayout>

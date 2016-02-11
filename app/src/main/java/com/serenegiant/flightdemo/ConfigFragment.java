@@ -21,7 +21,7 @@ import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.widget.ColorPickerView;
 import com.serenegiant.widget.RelativeRadioGroup;
 
-public class ConfigFragment extends ControlBaseFragment {
+public class ConfigFragment extends BaseFlightControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
@@ -789,25 +789,25 @@ public class ConfigFragment extends ControlBaseFragment {
 			case R.id.max_altitude_seekbar:
 				final float altitude = (int)(seekBar.getProgress() / 100f * (mMaxAltitude.max() - mMaxAltitude.min())) / 10f + mMaxAltitude.min();
 				if (altitude != mMaxAltitude.current()) {
-					mFlightController.sendMaxAltitude(altitude);
+					mFlightController.setMaxAltitude(altitude);
 				}
 				break;
 			case R.id.max_tilt_seekbar:
 				final float tilt = (int)(seekBar.getProgress() / 100f * (mMaxTilt.max() - mMaxTilt.min())) / 10f + mMaxTilt.min();
 				if (tilt != mMaxTilt.current()) {
-					mFlightController.sendMaxTilt(tilt);
+					mFlightController.setMaxTilt(tilt);
 				}
 				break;
 			case R.id.max_vertical_speed_seekbar:
 				final float vertical = (int)(seekBar.getProgress() / 100f * (mMaxVerticalSpeed.max() - mMaxVerticalSpeed.min())) / 10f + mMaxVerticalSpeed.min();
 				if (vertical != mMaxVerticalSpeed.current()) {
-					mFlightController.sendMaxVerticalSpeed(vertical);
+					mFlightController.setMaxVerticalSpeed(vertical);
 				}
 				break;
 			case R.id.max_rotation_speed_seekbar:
 				final float rotation = (int)(seekBar.getProgress() / 1000f * (mMaxRotationSpeed.max() - mMaxRotationSpeed.min())) + mMaxRotationSpeed.min();
 				if (rotation != mMaxRotationSpeed.current()) {
-					mFlightController.sendMaxRotationSpeed(rotation);
+					mFlightController.setMaxRotationSpeed(rotation);
 				}
 				break;
 			// 自動操縦
@@ -901,7 +901,7 @@ public class ConfigFragment extends ControlBaseFragment {
 				break;
 			case R.id.wheel_checkbox:
 				if (mFlightController.hasGuard() != isChecked) {
-					mFlightController.sendHasGuard(isChecked);
+					mFlightController.setHasGuard(isChecked);
 				}
 				break;
 			case R.id.auto_takeoff_checkbox:

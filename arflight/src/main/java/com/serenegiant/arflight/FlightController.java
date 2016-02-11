@@ -87,25 +87,11 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 	@Override
 	protected void internal_stop() {
-		sendLanding();
+		requestLanding();
 		// 操縦コマンド送信スレッドを終了(終了するまで戻らない)
 		stopFlightCMDThread();
 		// ビデオストリーミングスレッドを終了(終了するまで戻らない)
 		stopVideoThread();
-	}
-
-	@Override
-	protected void setAlarm(final int alarm) {
-		mStatus.setAlarm(alarm);
-	}
-
-	@Override
-	public int getBattery() {
-		return mStatus.getBattery();
-	}
-
-	protected void setBattery(final int percent) {
-		mStatus.setBattery(percent);
 	}
 
 	@Override
@@ -143,11 +129,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 	public boolean isFlying() {
 		return ((DroneStatus)mStatus).isFlying();
-	}
-
-	@Override
-	public int getAlarm() {
-		return mStatus.getAlarm();
 	}
 
 	@Override
@@ -678,8 +659,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 		if (listener instanceof FlightControllerListener) {
 			synchronized (mListeners) {
 				mListeners.add((FlightControllerListener) listener);
-				callOnUpdateBattery(getBattery());
-				callOnAlarmStateChangedUpdate(mStatus.getAlarm());
 				callOnFlyingStateChangedUpdate(((DroneStatus)mStatus).getFlyingState());
 			}
 		}
@@ -692,30 +671,11 @@ public abstract class FlightController extends DeviceController implements IFlig
 	@Override
 	public void removeListener(final DeviceConnectionListener listener) {
 		synchronized (mListeners) {
-			mListeners.remove(listener);
 			if (listener instanceof FlightControllerListener) {
-				mListeners.remove((FlightControllerListener) listener);
+				mListeners.remove((FlightControllerListener)listener);
 			}
 		}
-	}
-
-	/**
-	 * バッテリー残量変更コールバックを呼び出す
-	 */
-	@Override
-	protected void callOnUpdateBattery(final int percent) {
-		super.callOnUpdateBattery(percent);
-		synchronized (mListeners) {
-			for (final FlightControllerListener listener: mListeners) {
-				if (listener != null) {
-					try {
-						listener.onUpdateBattery(percent);
-					} catch (final Exception e) {
-						if (DEBUG) Log.w(TAG, e);
-					}
-				}
-			}
-		}
+		super.removeListener(listener);
 	}
 
 	/**
@@ -728,24 +688,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 				if (listener != null) {
 					try {
 						listener.onFlyingStateChangedUpdate(state);
-					} catch (final Exception e) {
-						if (DEBUG) Log.w(TAG, e);
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * 異常状態変更コールバックを呼び出す
-	 * @param state
-	 */
-	protected void callOnAlarmStateChangedUpdate(final int state) {
-		synchronized (mListeners) {
-			for (final FlightControllerListener listener: mListeners) {
-				if (listener != null) {
-					try {
-						listener.onAlarmStateChangedUpdate(state);
 					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
@@ -934,7 +876,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 * @param start true:開始, false:キャンセル
 	 * @return
 	 */
-	public boolean sendCalibration(final boolean start) {
+	public boolean startCalibration(final boolean start) {
 
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
@@ -946,7 +888,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 		}
 
 		if (!sentStatus) {
-			Log.e(TAG, "sendCalibration　Failed");
+			Log.e(TAG, "startCalibration　Failed");
 		}
 
 		return sentStatus;
@@ -1189,7 +1131,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 * @return
 	 */
 	@Override
-	public boolean sendHeadlightsIntensity(final int left, final int right) {
+	public boolean setHeadlightsIntensity(final int left, final int right) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonHeadlightsIntensity((byte)(left % 256), (byte)(right % 256));
@@ -1213,7 +1155,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 * @return
 	 */
 	@Override
-	public boolean sendStartAnimation(final int animation) {
+	public boolean startAnimation(final int animation) {
 		// FIXME 実行開始したアニメーション動作を保持してコールバック&stopAnimationActionで更新するようにした方がいいのかも
 
 //		ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_HEADLIGHTS_FLASH(0, "Flash headlights."),
@@ -1255,7 +1197,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 * @return
 	 */
 	@Override
-	public boolean sendStopAnimation(final int animation) {
+	public boolean stopAnimation(final int animation) {
 //		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_HEADLIGHTS_FLASH(0, "Flash headlights."),
 //		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_HEADLIGHTS_BLINK(1, "Blink headlights."),
 //		ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_HEADLIGHTS_OSCILLATION(2, "Oscillating headlights."),
@@ -1294,7 +1236,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 * @return
 	 */
 	@Override
-	public boolean sendStopAllAnimation() {
+	public boolean stopAllAnimation() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonAnimationsStopAllAnimations();

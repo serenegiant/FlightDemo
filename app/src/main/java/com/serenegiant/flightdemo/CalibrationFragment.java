@@ -10,12 +10,11 @@ import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.gl.AttitudeScreenBase;
 import com.serenegiant.gl.IModelView;
 
-public class CalibrationFragment extends ControlBaseFragment {
+public class CalibrationFragment extends BaseFlightControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = CalibrationFragment.class.getSimpleName();
 
@@ -90,7 +89,7 @@ public class CalibrationFragment extends ControlBaseFragment {
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					((IFlightController)mController).sendCalibration(true);
+					((IFlightController)mController).startCalibration(true);
 					post(mUpdateStateTask, 300);
 				}
 			});
@@ -101,7 +100,7 @@ public class CalibrationFragment extends ControlBaseFragment {
 	public void onPause() {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		if ((mState != STATE_STOPPED) && (mController instanceof IFlightController)) {
-			((IFlightController)mController).sendCalibration(false);
+			((IFlightController)mController).startCalibration(false);
 		}
 		remove(mUpdateStateTask);
 		mModelView.onPause();

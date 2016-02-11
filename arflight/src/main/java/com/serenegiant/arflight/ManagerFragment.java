@@ -554,6 +554,14 @@ public class ManagerFragment extends Fragment {
 			if (DEBUG) Log.v(TAG, "onDisconnect:");
 			stopController(controller);
 		}
+
+		@Override
+		public void onUpdateBattery(final IDeviceController controller, final int percent) {
+		}
+
+		@Override
+		public void onAlarmStateChangedUpdate(final IDeviceController controller, final int alarm_state) {
+		}
 	};
 
 	private final NetworkChangedReceiver.OnNetworkChangedListener mOnNetworkChangedListener

@@ -54,6 +54,7 @@ public interface IDeviceController {
 
 	public ARNetworkConfig getNetConfig();
 
+	public int getAlarm();
 	/**
 	 * バッテリーの残量を取得
 	 * @return バッテリー残量[%]
@@ -120,11 +121,11 @@ public interface IDeviceController {
 	 * 全ての設定要求?
 	 * @return
 	 */
-	public boolean sendAllSettings();
+	public boolean requestAllSettings();
 
 	/**
 	 * すべての状態を要求?
 	 * @return
 	 */
-	public boolean sendAllStates();
+	public boolean requestAllStates();
 }

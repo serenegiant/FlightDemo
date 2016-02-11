@@ -1,12 +1,11 @@
 package com.serenegiant.flightdemo;
 
-import android.os.Bundle;
 import android.util.Log;
 
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 
-public abstract class ControlFragment extends ControlBaseFragment {
+public abstract class ControlFragment extends BaseFlightControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = "ControlFragment";
 
@@ -73,7 +72,7 @@ public abstract class ControlFragment extends ControlBaseFragment {
 	protected void emergencyStop() {
 		stopMove();
 		if (mController instanceof IFlightController) {
-			((IFlightController)mController).sendEmergency();
+			((IFlightController)mController).requestEmergencyStop();
 		}
 	}
 

@@ -165,6 +165,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private double mScaleX, mScaleY, mScaleZ, mScaleR;
 	private float mGamepadSensitivity = 1.0f;
 	private float mGamepadScaleX, mGamepadScaleY, mGamepadScaleZ, mGamepadScaleR;
+
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
@@ -239,6 +240,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 		mTakeOnOffBtn = (ImageButton) rootView.findViewById(R.id.take_onoff_btn);
 		mTakeOnOffBtn.setOnClickListener(mOnClickListener);
+		mTakeOnOffBtn.setOnLongClickListener(mOnLongClickListener);
 		mActionViews.add(mTakeOnOffBtn);
 
 		mRecordBtn = (ImageButton) rootView.findViewById(R.id.record_btn);
@@ -369,12 +371,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		return rootView;
 	}
 
-/*	@Override
-	public void onDestroy() {
-		if (DEBUG) Log.v(TAG, "onDestroy:");
-		super.onDestroy();
-	} */
-
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -423,6 +419,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mControllerFrame.setKeepScreenOn(false);
 		super.onPause();
 	}
+
+//	@Override
+//	public void onDestroy() {
+//		if (DEBUG) Log.v(TAG, "onDestroy:");
+//		super.onDestroy();
+//	}
 
 	@Override
 	public void onFileSelect(File[] files) {
@@ -605,9 +607,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 //			if (DEBUG) Log.v(TAG, "onClick:" + view);
 			switch (view.getId()) {
 			case R.id.flat_trim_btn:
+				// フラットトリム
 				setColorFilter((ImageView)view);
 				if ((mFlightController != null) && (getState() == IFlightController.STATE_STARTED)) {
-					mFlightController.sendFlatTrim();
+					mFlightController.requestFlatTrim();
 				}
 				break;
 			case R.id.load_btn:
@@ -674,7 +677,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				setColorFilter((ImageView)view);
 //				final boolean isFlying = (getState() &  IFlightController.STATE_MASK_FLYING) != 0;
 				if (!isFlying()) {
-					takeOff();
+//					takeOff();
+					Toast.makeText(getActivity(), R.string.notify_takeoff, Toast.LENGTH_SHORT).show();
 				} else {
 					landing();
 				}
@@ -683,28 +687,28 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case R.id.flip_front_btn:
 				setColorFilter((ImageView) view);
 				if (mFlightController != null) {
-					mFlightController.sendAnimationsFlip(IFlightController.FLIP_FRONT);
+					mFlightController.requestAnimationsFlip(IFlightController.FLIP_FRONT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_FRONT);
 				}
 				break;
 			case R.id.flip_back_btn:
 				setColorFilter((ImageView)view);
 				if (mFlightController != null) {
-					mFlightController.sendAnimationsFlip(IFlightController.FLIP_BACK);
+					mFlightController.requestAnimationsFlip(IFlightController.FLIP_BACK);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_BACK);
 				}
 				break;
 			case R.id.flip_right_btn:
 				setColorFilter((ImageView)view);
 				if (mFlightController != null) {
-					mFlightController.sendAnimationsFlip(IFlightController.FLIP_RIGHT);
+					mFlightController.requestAnimationsFlip(IFlightController.FLIP_RIGHT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_RIGHT);
 				}
 				break;
 			case R.id.flip_left_btn:
 				setColorFilter((ImageView)view);
 				if (mFlightController != null) {
-					mFlightController.sendAnimationsFlip(IFlightController.FLIP_LEFT);
+					mFlightController.requestAnimationsFlip(IFlightController.FLIP_LEFT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_LEFT);
 				}
 				break;
@@ -712,7 +716,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				if (getStillCaptureState() == DroneStatus.MEDIA_READY) {
 					setColorFilter((ImageView) view);
 					if (mFlightController != null) {
-						mFlightController.sendTakePicture();
+						mFlightController.requestTakePicture();
 					}
 				}
 				break;
@@ -726,14 +730,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case R.id.cap_p45_btn:
 				setColorFilter((ImageView)view);
 				if (mFlightController != null) {
-					mFlightController.sendAnimationsCap(45);
+					mFlightController.requestAnimationsCap(45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, 45);
 				}
 				break;
 			case R.id.cap_m45_btn:
 				setColorFilter((ImageView)view);
 				if (mFlightController != null) {
-					mFlightController.sendAnimationsCap(-45);
+					mFlightController.requestAnimationsCap(-45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -45);
 				}
 				break;
@@ -788,6 +792,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					return true;
 				}
 				break;
+			case R.id.take_onoff_btn:
+				// 離陸/着陸ボタンを長押しした時の処理
+				setColorFilter((ImageView)view);
+				if (!isFlying()) {
+					takeOff();
+				} else {
+					landing();
+				}
 			}
 			return false;
 		}
@@ -1361,7 +1373,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private void takeOff() {
 		// 離陸指示
 		if (mFlightController != null) {
-			mFlightController.sendTakeoff();
+			mFlightController.requestTakeoff();
 			mFlightRecorder.record(FlightRecorder.CMD_TAKEOFF);
 		}
 	}
@@ -1373,7 +1385,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		// 着陸指示
 		stopMove();
 		if (mFlightController != null) {
-			mFlightController.sendLanding();
+			mFlightController.requestLanding();
 			mFlightRecorder.record(FlightRecorder.CMD_LANDING);
 		}
 	}
@@ -1578,7 +1590,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void startAnimationAction(final int anim) {
 		if (!mFlightRecorder.isPlaying()) {
-			mFlightController.sendStartAnimation(anim);
+			mFlightController.startAnimation(anim);
 			updateButtons();
 		}
 	}
@@ -1589,7 +1601,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void stopAnimationAction(final int anim) {
 		if (mFlightController != null) {
-			mFlightController.sendStopAnimation(anim);
+			mFlightController.stopAnimation(anim);
 		}
 	}
 
@@ -1598,7 +1610,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	 */
 	private void stopAnimationActionAll() {
 		if (mFlightController != null) {
-			mFlightController.sendStopAllAnimation();
+			mFlightController.stopAllAnimation();
 		}
 		updateButtons();
 	}
@@ -1657,15 +1669,15 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (mFlightController != null) {
 				switch (cmd) {
 				case IAutoFlight.CMD_EMERGENCY:			// 非常停止
-					mFlightController.sendEmergency();
+					mFlightController.requestEmergencyStop();
 					updateButtons();
 					break;
 				case IAutoFlight.CMD_TAKEOFF:			// 離陸
-					mFlightController.sendTakeoff();
+					mFlightController.requestTakeoff();
 					updateButtons();
 					break;
 				case IAutoFlight.CMD_LANDING:			// 着陸
-					mFlightController.sendLanding();
+					mFlightController.requestLanding();
 					updateButtons();
 					break;
 				case IAutoFlight.CMD_UP_DOWN:			// 上昇:gaz>0, 下降: gaz<0
@@ -1697,10 +1709,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					mFlightController.setMove(values[0], values[1]);
 					break;
 				case IAutoFlight.CMD_FLIP:				// フリップ
-					mFlightController.sendAnimationsFlip(values[0]);
+					mFlightController.requestAnimationsFlip(values[0]);
 					break;
 				case IAutoFlight.CMD_CAP:				// キャップ(指定角度水平回転)
-					mFlightController.sendAnimationsCap(values[0]);
+					mFlightController.requestAnimationsCap(values[0]);
 					break;
 				}
 				if (mTouchMoveRunning && mFlightRecorder.isRecording()) {
@@ -2154,7 +2166,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					&& (getAlarm() == DroneStatus.ALARM_NON)
 					&& downs[GamePadConst.KEY_LEFT_2] && downs[GamePadConst.KEY_RIGHT_2]) {
 
-					mFlightController.sendFlatTrim();
+					mFlightController.requestFlatTrim();
 					return;
 				}
 
@@ -2195,16 +2207,16 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				// R2押しながら左スティックでフリップ
 				if (downs[GamePadConst.KEY_RIGHT_2]) {
 					if (downs[GamePadConst.KEY_LEFT_LEFT]) {
-						mFlightController.sendAnimationsFlip(IFlightController.FLIP_LEFT);
+						mFlightController.requestAnimationsFlip(IFlightController.FLIP_LEFT);
 						return;
 					} if (downs[GamePadConst.KEY_LEFT_RIGHT]) {
-						mFlightController.sendAnimationsFlip(IFlightController.FLIP_RIGHT);
+						mFlightController.requestAnimationsFlip(IFlightController.FLIP_RIGHT);
 						return;
 					} if (downs[GamePadConst.KEY_LEFT_UP]) {
-						mFlightController.sendAnimationsFlip(IFlightController.FLIP_FRONT);
+						mFlightController.requestAnimationsFlip(IFlightController.FLIP_FRONT);
 						return;
 					} if (downs[GamePadConst.KEY_LEFT_DOWN]) {
-						mFlightController.sendAnimationsFlip(IFlightController.FLIP_BACK);
+						mFlightController.requestAnimationsFlip(IFlightController.FLIP_BACK);
 						return;
 					}
 				}

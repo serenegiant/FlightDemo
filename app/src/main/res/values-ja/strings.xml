@@ -28,6 +28,8 @@
 	<string name="confirm_delete_after_fetch">選択したファイルを転送後に削除しますか?</string>
 	<string name="confirm_remove_script">選択したスクリプトをリストから取り除いてよろしいですか?</string>
 
+	<string name="notify_takeoff">長押しすると離陸します</string>
+
 	<string name="stick_text_up">上</string>
 	<string name="stick_text_turn_right">右\n回転</string>
 	<string name="stick_text_turn_left">左\n回転</string>

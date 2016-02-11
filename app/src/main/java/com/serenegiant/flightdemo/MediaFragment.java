@@ -22,7 +22,6 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.armedia.ARMediaObject;
 import com.serenegiant.arflight.FTPController;
 import com.serenegiant.arflight.IDeviceController;
-import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.dialog.ConfirmDialog;
 import com.serenegiant.dialog.OnDialogResultIntListener;
 import com.serenegiant.dialog.TransferProgressDialogFragment;
@@ -31,7 +30,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MediaFragment extends ControlBaseFragment
+public class MediaFragment extends BaseFlightControllerFragment
 	implements TransferProgressDialogFragment.TransferProgressDialogListener, OnDialogResultIntListener {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = MediaFragment.class.getSimpleName();

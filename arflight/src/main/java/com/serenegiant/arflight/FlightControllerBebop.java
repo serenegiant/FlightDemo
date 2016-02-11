@@ -1173,7 +1173,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendEmergency() {
+	public boolean requestEmergencyStop() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1196,7 +1196,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendFlatTrim() {
+	public boolean requestFlatTrim() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1219,7 +1219,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendTakeoff() {
+	public boolean requestTakeoff() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1242,7 +1242,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendLanding() {
+	public boolean requestLanding() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1266,7 +1266,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendMaxAltitude(final float altitude) {
+	public boolean setMaxAltitude(final float altitude) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1290,7 +1290,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendMaxTilt(final float tilt) {
+	public boolean setMaxTilt(final float tilt) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1314,7 +1314,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendMaxVerticalSpeed(final float speed) {
+	public boolean setMaxVerticalSpeed(final float speed) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1338,7 +1338,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendMaxRotationSpeed(final float speed) {
+	public boolean setMaxRotationSpeed(final float speed) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1432,7 +1432,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @param has_guard
 	 * @return
 	 */
-	public boolean sendHasGuard(final boolean has_guard) {
+	public boolean setHasGuard(final boolean has_guard) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1843,7 +1843,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendTakePicture(final int mass_storage_id) {
+	public boolean requestTakePicture(final int mass_storage_id) {
 		boolean sentStatus = true;
 
 		final ARCommand cmd = new ARCommand();
@@ -1866,7 +1866,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * 静止画撮影要求
 	 * @return
 	 */
-	public boolean sendTakePicture() {
+	public boolean requestTakePicture() {
 		boolean sentStatus = true;
 
 		final ARCommand cmd = new ARCommand();
@@ -2098,7 +2098,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendAnimationsFlip(final int direction) {
+	public boolean requestAnimationsFlip(final int direction) {
 
 		ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_ENUM _dir;
 		switch (direction) {
@@ -2140,7 +2140,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendAnimationsCap(final int degree) {
+	public boolean requestAnimationsCap(final int degree) {
 
 		final byte d = (byte)(degree > 180 ? 180 : (degree < -180 ? -180 : degree));
 		boolean sentStatus = true;
@@ -2153,7 +2153,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 				try {
 					if (current != rotation_speed.max()) {
 						// 最大回転速度に変更する
-						sendMaxRotationSpeed(rotation_speed.max());
+						setMaxRotationSpeed(rotation_speed.max());
 						Thread.sleep(5);
 					}
 					final long t = (long) Math.abs(degree / rotation_speed.max() * 1000);    // 回転時間[ミリ秒]を計算
@@ -2164,7 +2164,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 				setYaw(0);
 			} finally {
 				// 元の回転速度設定に戻す
-				sendMaxRotationSpeed(current);
+				setMaxRotationSpeed(current);
 			}
 		}
 		return sentStatus;

@@ -131,6 +131,23 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	}
 
+	protected void setAlarm(final int alarm) {
+		mStatus.setAlarm(alarm);
+	}
+
+	public int getAlarm() {
+		return mStatus.getAlarm();
+	}
+
+	@Override
+	public int getBattery() {
+		return mStatus.getBattery();
+	}
+
+	protected void setBattery(final int percent) {
+		mStatus.setBattery(percent);
+	}
+
 	/**
 	 * 接続開始。子クラスで追加処理が必要であれば#internal_startをOverrideすること
 	 * @return
@@ -170,13 +187,6 @@ public abstract class DeviceController implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "start:finished");
 
 		return failed;
-	}
-
-	protected void setAlarm(final int alarm) {
-	}
-
-	protected int getAlarm() {
-		return DroneStatus.ALARM_DISCONNECTED;
 	}
 
 	protected void internal_start() {
@@ -263,10 +273,10 @@ public abstract class DeviceController implements IDeviceController {
 		sendTime(currentDate);
 		isWaitingAllSettings = true;
 		try {
-			if (DEBUG) Log.v(TAG, "onStarted:sendAllSettings");
-			if (sendAllSettings()) {
+			if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings");
+			if (requestAllSettings()) {
 				try {
-					if (DEBUG) Log.v(TAG, "onStarted:sendAllSettings:wait");
+					if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings:wait");
 					//successful = cmdGetAllSettingsSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
 					cmdGetAllSettingsSent.acquire();
 				} catch (final InterruptedException e) {
@@ -274,15 +284,15 @@ public abstract class DeviceController implements IDeviceController {
 				}
 			}
 		} finally {
-			if (DEBUG) Log.v(TAG, "onStarted:sendAllSettings:finished");
+			if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings:finished");
 			isWaitingAllSettings = false;
 		}
 		isWaitingAllStates = true;
 		try {
-			if (DEBUG) Log.v(TAG, "onStarted:sendAllStates");
-			if (sendAllStates()) {
+			if (DEBUG) Log.v(TAG, "onStarted:requestAllStates");
+			if (requestAllStates()) {
 				try {
-					if (DEBUG) Log.v(TAG, "onStarted:sendAllStates:wait");
+					if (DEBUG) Log.v(TAG, "onStarted:requestAllStates:wait");
 					//successful = cmdGetAllStatesSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
 					cmdGetAllStatesSent.acquire();
 				} catch (final InterruptedException e) {
@@ -290,7 +300,7 @@ public abstract class DeviceController implements IDeviceController {
 				}
 			}
 		} finally {
-			if (DEBUG) Log.v(TAG, "onStarted:sendAllStates:finished");
+			if (DEBUG) Log.v(TAG, "onStarted:requestAllStates:finished");
 			isWaitingAllStates = false;
 		}
 		callOnConnect();
@@ -550,6 +560,8 @@ public abstract class DeviceController implements IDeviceController {
 	public void addListener(final DeviceConnectionListener listener) {
 		synchronized (mConnectionListeners) {
 			mConnectionListeners.add(listener);
+			callOnUpdateBattery(getBattery());
+			callOnAlarmStateChangedUpdate(mStatus.getAlarm());
 		}
 	}
 
@@ -603,12 +615,34 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param state
 	 */
 	protected void callOnAlarmStateChangedUpdate(final int state) {
+		synchronized (mConnectionListeners) {
+			for (final DeviceConnectionListener listener: mConnectionListeners) {
+				if (listener != null) {
+					try {
+						listener.onAlarmStateChangedUpdate(this, state);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
 	}
 
 	/**
 	 * バッテリー残量変更コールバックを呼び出す
 	 */
 	protected void callOnUpdateBattery(final int percent) {
+		synchronized (mConnectionListeners) {
+			for (final DeviceConnectionListener listener: mConnectionListeners) {
+				if (listener != null) {
+					try {
+						listener.onUpdateBattery(this, percent);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
 	}
 
 //================================================================================
@@ -824,9 +858,6 @@ public abstract class DeviceController implements IDeviceController {
 		}
 	};
 
-	protected void setBattery(final int percent) {
-	}
-
 	/**
 	 * バッテリーの残量が変化した時
 	 */
@@ -878,7 +909,7 @@ public abstract class DeviceController implements IDeviceController {
 // データ送受信関係
 //********************************************************************************
 	@Override
-	public boolean sendAllSettings() {
+	public boolean requestAllSettings() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -898,7 +929,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	@Override
-	public boolean sendAllStates() {
+	public boolean requestAllStates() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 

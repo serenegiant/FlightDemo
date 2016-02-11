@@ -89,9 +89,14 @@ import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.configs.ARNetworkConfigSkyController;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SkyController extends DeviceController implements IBridgeController, IWiFiController {
 	private static final boolean DEBUG = true;				// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyController.class.getSimpleName();
+
+	private final List<SkyControllerListener> mListeners = new ArrayList<SkyControllerListener>();
 
 	public SkyController(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigSkyController());
@@ -100,8 +105,41 @@ public class SkyController extends DeviceController implements IBridgeController
 	}
 
 //================================================================================
-// ARSDK3からのコールバックリスナー関係
+// コールバック関係
 //================================================================================
+	/**
+	 * コールバックリスナーを設定
+	 * @param listener
+	 */
+	@Override
+	public void addListener(final DeviceConnectionListener listener) {
+		super.addListener(listener);
+		if (listener instanceof SkyControllerListener) {
+			synchronized (mListeners) {
+				mListeners.add((SkyControllerListener)listener);
+			}
+		}
+	}
+
+	/**
+	 * 指定したコールバックリスナーを取り除く
+	 * @param listener
+	 */
+	@Override
+	public void removeListener(final DeviceConnectionListener listener) {
+		if (listener instanceof SkyControllerListener) {
+			synchronized (mListeners) {
+				mListeners.remove((SkyControllerListener)listener);
+			}
+		}
+		super.removeListener(listener);
+	}
+
+// FIXME スカイコントローラー専用のコールバックは未実装
+
+//********************************************************************************
+// ARSDK3からのコールバックリスナー関係
+//********************************************************************************
 	/**
 	 * コールバックを登録
 	 */
@@ -252,14 +290,22 @@ public class SkyController extends DeviceController implements IBridgeController
 
 //================================================================================
 //================================================================================
-	@Override
-	public int getBattery() {
-		return 0;
-	}
-
+	/**
+	 * スカイコントローラーが検出したアクセスポイント一覧を取得した時のコールバックリスナー
+	 * 検出しているアクセスポイント1つ毎に1回呼び出される
+	 * requestWifiListに対する応答, 自動的には来ない
+	 * */
 	private ARCommandSkyControllerWifiStateWifiListListener
 		mARCommandSkyControllerWifiStateWifiListListener
 			= new ARCommandSkyControllerWifiStateWifiListListener() {
+		/**
+		 * @param bssid
+		 * @param ssid
+		 * @param secured
+		 * @param saved
+		 * @param rssi
+		 * @param frequency
+		 */
 		@Override
 		public void onSkyControllerWifiStateWifiListUpdate(
 			final String bssid, final String ssid, final byte secured, final byte saved, final int rssi, final int frequency) {
@@ -269,18 +315,69 @@ public class SkyController extends DeviceController implements IBridgeController
 		}
 	};
 
+	/**
+	 * スカイコントローラーとWiFiアクセスポイント間の接続状態が変化した時のコールバックリスナー
+	 * リスナーを登録しておけば要求しなくても自動的に来る
+	 * requestCurrentWiFiを呼んでも来る
+	 * 何故か1回の接続で3回来るのと切断された時には来ないみたい
+	 * XXX これは普通は使わんで良さそう
+	 */
 	private final ARCommandSkyControllerWifiStateConnexionChangedListener
 		mARCommandSkyControllerWifiStateConnexionChangedListener
 			= new ARCommandSkyControllerWifiStateConnexionChangedListener() {
+		/**
+		 * @param ssid 通常は機体名と一緒, Bebop2-K007717とか, ssidを変更できるのかどうかは未確認
+		 * @param status 0:Connected, 1:Error, 2:Disconnected
+		 */
 		@Override
 		public void onSkyControllerWifiStateConnexionChangedUpdate(
 			final String ssid,
 			final ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_ENUM status) {
 
-			if (DEBUG) Log.v(TAG, "onConnexionChangedUpdate:ssid=" + ssid + ", status=" + status);
+			if (DEBUG) Log.v(TAG, "onWiFiConnexionChangedUpdate:ssid=" + ssid + ", status=" + status);
+			switch (status) {
+			case ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_CONNECTED:		// 0
+			case ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_ERROR:			// 1:
+			case ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_DISCONNECTED:	// 2
+				break;
+			}
 		}
 	};
 
+	/**
+	 * スカイコントローラーと機体の接続状態が変化した時のコールバックリスナー
+	 * リスナーを登録しておけば要求しなくても自動的に来る
+	 * requestCurrentWiFiを呼んでも来る
+	 * ARCommandSkyControllerWifiStateConnexionChangedListenerのコールバックメソッドよりも後に来る
+	 * TODO 複数の機体を同時に検出した時はどうなるんやろ?
+	 */
+	private final ARCommandSkyControllerDeviceStateConnexionChangedListener
+		mARCommandSkyControllerDeviceStateConnexionChangedListener
+			= new ARCommandSkyControllerDeviceStateConnexionChangedListener() {
+		/**
+		 * @param status 機体との接続状態
+		 * @param deviceName 機体名, Bebop2-K007717とか, 接続してなければ空文字列
+		 * @param deviceProductID 接続している機体のプロダクトID, 接続していなければ0
+		 */
+		@Override
+		public void onSkyControllerDeviceStateConnexionChangedUpdate(
+			final ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_ENUM status,
+			final String deviceName, final short deviceProductID) {
+
+			if (DEBUG) Log.v(TAG, "onDeviceConnexionChangedUpdate:status=" + status + ", deviceName=" + deviceName + ", deviceProductID=" + deviceProductID);
+			switch (status) {
+			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_NOTCONNECTED:		// 0
+			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_CONNECTING:		// 1
+			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_CONNECTED:		// 2
+			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_DISCONNECTING:	// 3
+				break;
+			}
+		}
+	};
+
+	/**
+	 * 自動では来ない
+	 */
 	private final ARCommandSkyControllerWifiStateWifiAuthChannelListChangedListener
 		mARCommandSkyControllerWifiStateWifiAuthChannelListChangedListener
 			= new ARCommandSkyControllerWifiStateWifiAuthChannelListChangedListener() {
@@ -402,18 +499,6 @@ public class SkyController extends DeviceController implements IBridgeController
 		public void onSkyControllerDeviceStateDeviceListUpdate(final String name) {
 
 			if (DEBUG) Log.v(TAG, "onDeviceListUpdate:deviceName=" + name);
-		}
-	};
-
-	private final ARCommandSkyControllerDeviceStateConnexionChangedListener
-		mARCommandSkyControllerDeviceStateConnexionChangedListener
-			= new ARCommandSkyControllerDeviceStateConnexionChangedListener() {
-		@Override
-		public void onSkyControllerDeviceStateConnexionChangedUpdate(
-			final ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_ENUM status,
-			final String deviceName, final short deviceProductID) {
-
-			if (DEBUG) Log.v(TAG, "onConnexionChangedUpdate:status=" + status + ", deviceName=" + deviceName + ", deviceProductID=" + deviceProductID);
 		}
 	};
 
@@ -914,6 +999,17 @@ public class SkyController extends DeviceController implements IBridgeController
 		}
 	};
 
+	/**
+	 * 操縦に使用する入力方法をセットした時のコールバックリスナー
+	 * setCoPilotingSourceでsetSkyControllerCoPilotingSetPilotingSourceを呼ぶ時の引数が
+	 * このコールバックメソッドの引数(ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM)だけど
+	 * setCoPilotingSourceを呼んだ時にはこのコールバックではなく
+	 * ARCommandSkyControllerCoPilotingStatePilotingSourceListenerが呼ばれる(1つ下のコールバック)。
+	 * このコールバックメソッドの引数と同じ型のARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUMを使って
+	 * 呼び出すsetSkyControllerCoPilotingSetPilotingSource = setCoPilotingSourceを呼び出しても
+	 * このコールバックは呼び出されない。
+	 * なんでやねん
+	 */
 	private final ARCommandSkyControllerCoPilotingSetPilotingSourceListener
 		mARCommandSkyControllerCoPilotingSetPilotingSourceListener
 			= new ARCommandSkyControllerCoPilotingSetPilotingSourceListener() {
@@ -922,9 +1018,26 @@ public class SkyController extends DeviceController implements IBridgeController
 			final ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM source) {
 
 			if (DEBUG) Log.v(TAG, "onSetPilotingSourceUpdate:source=" + source);
+			switch (source) {
+			case ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_SKYCONTROLLER:	// 0
+				// スカイコントローラーで操縦する時
+				break;
+			case ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_CONTROLLER:		// 1
+				// タブレットまたはスマホで操縦する時
+				break;
+			}
 		}
 	};
 
+	/**
+	 * 操縦に使用する入力方法が変化した時のコールバックリスナー
+	 * setCoPilotingSourceで値をセットすると呼ばれる。
+	 * 一方setCoPilotingStateCoPilotingSourceでsetSkyControllerCoPilotingStatePilotingSourceを呼ぶ時の引数は
+	 * このコールバックメソッドの引数と同じARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUMだけど
+	 * どちらのコールバックメソッドも呼び出されない
+	 * なんでやねん。
+	 * requestAllStatesを呼んでも来る
+	 */
 	private final ARCommandSkyControllerCoPilotingStatePilotingSourceListener
 		mARCommandSkyControllerCoPilotingStatePilotingSourceListener
 			= new ARCommandSkyControllerCoPilotingStatePilotingSourceListener() {
@@ -932,7 +1045,15 @@ public class SkyController extends DeviceController implements IBridgeController
 		public void onSkyControllerCoPilotingStatePilotingSourceUpdate(
 			final ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUM source) {
 
-			if (DEBUG) Log.v(TAG, "onPilotingSourceUpdate:source=" + source);
+			if (DEBUG) Log.v(TAG, "onCoPilotingSourceUpdate:source=" + source);
+			switch (source) {
+			case ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_SKYCONTROLLER:
+				// スカイコントローラーで操縦する時
+				break;
+			case ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_CONTROLLER:
+				// タブレットまたはスマホで操縦する時
+				break;
+			}
 		}
 	};
 
@@ -995,8 +1116,8 @@ public class SkyController extends DeviceController implements IBridgeController
 //********************************************************************************
 	/** DeviceControllerのメソッドを上書き */
 	@Override
-	public boolean sendAllSettings() {
-		if (DEBUG) Log.v(TAG, "sendAllSettings:");
+	public boolean requestAllSettings() {
+		if (DEBUG) Log.v(TAG, "requestAllSettings:");
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1017,8 +1138,8 @@ public class SkyController extends DeviceController implements IBridgeController
 
 	/** DeviceControllerのメソッドを上書き */
 	@Override
-	public boolean sendAllStates() {
-		if (DEBUG) Log.v(TAG, "sendAllStates:");
+	public boolean requestAllStates() {
+		if (DEBUG) Log.v(TAG, "requestAllStates:");
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1026,7 +1147,6 @@ public class SkyController extends DeviceController implements IBridgeController
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-
 
 			cmd.dispose();
 		}
@@ -1038,18 +1158,144 @@ public class SkyController extends DeviceController implements IBridgeController
 		return sentStatus;
 	}
 
+	/**
+	 * スカイコントローラーが検出しているWiFiアクセスポイント一覧を要求
+	 * 周囲に存在するWiFiの状態を確認するぐらいにしか役に立たない
+	 */
+	public boolean requestWifiList() {
+		if (DEBUG) Log.v(TAG, "requestWifiList:");
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setSkyControllerWifiRequestWifiList();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send CommonAllStates command.");
+		}
+
+		return sentStatus;
+	}
+// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceRequestDeviceList()
+
+	/**
+	 * スカイコントローラーが現在接続しているWiFiネットワークとの接続状態を
+	 * これを呼ぶとARCommandSkyControllerWifiStateConnexionChangedListenerと
+	 * ARCommandSkyControllerDeviceStateConnexionChangedListenerのコールバックメソッドが呼び出される
+	 */
+	public boolean requestCurrentWiFi() {
+		if (DEBUG) Log.v(TAG, "requestCurrentWiFi:");
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setSkyControllerWifiRequestCurrentWifi();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send requestCurrentWiFi command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * スカイコントローラーが現在接続している機体との接続状態を要求する
+	 * これを呼ぶとARCommandSkyControllerDeviceStateConnexionChangedListenerのコールバックメソッドが呼び出される
+	 * (ARCommandSkyControllerWifiStateConnexionChangedListenerは来ない)
+	 */
+	public boolean requestCurrentDevice() {
+		if (DEBUG) Log.v(TAG, "requestCurrentDevice:");
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setSkyControllerDeviceRequestCurrentDevice();
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send requestCurrentWiFi command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 操縦に使用する入力方法を選択, FIXME 下との違いがわからない
+	 * これで値をセットしてもどのコールバックも呼び出されない。間違えて残っているだけでこっちは無効なのかも
+	 * @param _source 0: スカイコントローラーを使用する, 1: タブレット/スマホを使用する
+	 */
+	public boolean setCoPilotingStateCoPilotingSource(final int _source) {
+		if (DEBUG) Log.v(TAG, "setStateCoPilotingSource:");
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUM source
+			= ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUM.getFromValue(_source % 2);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setSkyControllerCoPilotingStatePilotingSource(source);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send setCoPilotingStateCoPilotingSource command.");
+		}
+
+		return sentStatus;
+	}
+
+	/**
+	 * 操縦に使用する入力方法を選択, FIXME 上との違いがわからない
+	 * ARCommandSkyControllerCoPilotingStatePilotingSourceListenerのコールバックメソッドが呼ばれる。なんでやねん
+	 * @param _source 0: スカイコントローラーを使用する, 1: タブレット/スマホを使用する
+	 */
+	public boolean setCoPilotingSource(final int _source) {
+		if (DEBUG) Log.v(TAG, "setCoPilotingSource:");
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM source
+			= ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM.getFromValue(_source % 2);
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setSkyControllerCoPilotingSetPilotingSource(source);
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send setCoPilotingSource command.");
+		}
+
+		return sentStatus;
+	}
+
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiStateWifiList(String bssid, String ssid, byte secured, byte saved, int rssi, int frequency)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiStateConnexionChanged(String ssid, ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_ENUM status)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiStateWifiAuthChannelListChanged(ARCOMMANDS_SKYCONTROLLER_WIFISTATE_WIFIAUTHCHANNELLISTCHANGED_BAND_ENUM band, byte channel, byte in_or_out)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiStateAllWifiAuthChannelChanged()
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiStateWifiSignalChanged(byte level)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiRequestWifiList()
-// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiRequestCurrentWifi()
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiConnectToWifi(String bssid, String ssid, String passphrase)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiForgetWifi(String ssid)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerWifiWifiAuthChannel()
-// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceRequestDeviceList()
-// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceRequestCurrentDevice()
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceConnectToDevice(String deviceName)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceStateDeviceList(String name)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerDeviceStateConnexionChanged(ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_ENUM status, String deviceName, short deviceProductID)
@@ -1096,8 +1342,6 @@ public class SkyController extends DeviceController implements IBridgeController
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersStateAllCurrentFiltersSent()
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersStatePresetAxisFilters(String filter_uid, String name)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersStateAllPresetFiltersSent()
-// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCoPilotingSetPilotingSource(ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM source)
-// public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCoPilotingStatePilotingSource(ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUM source)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCalibrationEnableMagnetoCalibrationQualityUpdates(byte enable)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCalibrationStateMagnetoCalibrationState(ARCOMMANDS_SKYCONTROLLER_CALIBRATIONSTATE_MAGNETOCALIBRATIONSTATE_STATUS_ENUM status, byte X_Quality, byte Y_Quality, byte Z_Quality)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCalibrationStateMagnetoCalibrationQualityUpdatesState(byte enabled)

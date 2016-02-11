@@ -443,7 +443,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendEmergency() {
+	public boolean requestEmergencyStop() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -466,7 +466,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendFlatTrim() {
+	public boolean requestFlatTrim() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -489,7 +489,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendTakeoff() {
+	public boolean requestTakeoff() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -512,7 +512,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendLanding() {
+	public boolean requestLanding() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -536,7 +536,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendMaxAltitude(final float altitude) {
+	public boolean setMaxAltitude(final float altitude) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -560,7 +560,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendMaxTilt(final float tilt) {
+	public boolean setMaxTilt(final float tilt) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -584,7 +584,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendMaxVerticalSpeed(final float speed) {
+	public boolean setMaxVerticalSpeed(final float speed) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -608,7 +608,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendMaxRotationSpeed(final float speed) {
+	public boolean setMaxRotationSpeed(final float speed) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -688,7 +688,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	}
 
 	@Override
-	public boolean sendHasGuard(final boolean has_wheel) {
+	public boolean setHasGuard(final boolean has_wheel) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -706,7 +706,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 		return sentStatus;
 	}
 
-	public boolean sendCalibration(final boolean start) {
+	public boolean startCalibration(final boolean start) {
 		// Minidroneではとりあえずキャリブレーションを無効にしておく
 		return false;
 	}
@@ -799,7 +799,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendTakePicture(final int mass_storage_id) {
+	public boolean requestTakePicture(final int mass_storage_id) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -822,7 +822,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendTakePicture() {
+	public boolean requestTakePicture() {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -846,7 +846,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendAnimationsFlip(final int direction) {
+	public boolean requestAnimationsFlip(final int direction) {
 
 		ARCOMMANDS_MINIDRONE_ANIMATIONS_FLIP_DIRECTION_ENUM _dir;
 		switch (direction) {
@@ -888,7 +888,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 	 * @return
 	 */
 	@Override
-	public boolean sendAnimationsCap(final int degree) {
+	public boolean requestAnimationsCap(final int degree) {
 
 		final byte d = (byte)(degree > 180 ? 180 : (degree < -180 ? -180 : degree));
 		boolean sentStatus = true;

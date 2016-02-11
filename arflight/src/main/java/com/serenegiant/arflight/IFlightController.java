@@ -58,39 +58,39 @@ public interface IFlightController extends IDeviceController {
 	 * 離陸指示
 	 * @return
 	 */
-	public boolean sendTakeoff();
+	public boolean requestTakeoff();
 
 	/**
 	 * 着陸指示
 	 * @return
 	 */
-	public boolean sendLanding();
+	public boolean requestLanding();
 
 	/**
 	 * 非常停止指示
 	 * @return
 	 */
-	public boolean sendEmergency();
+	public boolean requestEmergencyStop();
 
 	/**
 	 * フラットトリム実行(姿勢センサー調整)
 	 * @return
 	 */
-	public boolean sendFlatTrim();
+	public boolean requestFlatTrim();
 
 	/**
 	 * キャリブレーションを実行(磁気センサー調整)
 	 * @param start true: 開始要求, false: 停止要求
 	 * @return
 	 */
-	public boolean sendCalibration(final boolean start);
+	public boolean startCalibration(final boolean start);
 
 	/**
 	 * 最大高度を設定
 	 * @param altitude [m]
 	 * @return
 	 */
-	public boolean sendMaxAltitude(final float altitude);
+	public boolean setMaxAltitude(final float altitude);
 	public AttributeFloat getMaxAltitude();
 
 	/**
@@ -98,7 +98,7 @@ public interface IFlightController extends IDeviceController {
 	 * @param tilt
 	 * @return
 	 */
-	public boolean sendMaxTilt(final float tilt);
+	public boolean setMaxTilt(final float tilt);
 	public AttributeFloat getMaxTilt();
 
 	/**
@@ -106,7 +106,7 @@ public interface IFlightController extends IDeviceController {
 	 * @param speed m/s
 	 * @return
 	 */
-	public boolean sendMaxVerticalSpeed(final float speed);
+	public boolean setMaxVerticalSpeed(final float speed);
 	public AttributeFloat getMaxVerticalSpeed();
 
 	/**
@@ -114,7 +114,7 @@ public interface IFlightController extends IDeviceController {
 	 * @param speed [度/秒]
 	 * @return
 	 */
-	public boolean sendMaxRotationSpeed(final float speed);
+	public boolean setMaxRotationSpeed(final float speed);
 	public AttributeFloat getMaxRotationSpeed();
 
 	/**
@@ -148,7 +148,7 @@ public interface IFlightController extends IDeviceController {
 	public boolean sendAutoTakeOffMode(final boolean enable);
 
 	public boolean hasGuard();
-	public boolean sendHasGuard(final boolean has_guard);
+	public boolean setHasGuard(final boolean has_guard);
 	/**
 	 * roll/pitch変更時が移動なのか機体姿勢変更なのかを指示
 	 * @param flag 1:移動, 0:機体姿勢変更
@@ -232,7 +232,7 @@ public interface IFlightController extends IDeviceController {
 	 * @param direction = FLIP_FRONT,FLIP_BACK,FLIP_RIGHT,FLIP_LEFT
 	 * @return
 	 */
-	public boolean sendAnimationsFlip(final int direction);
+	public boolean requestAnimationsFlip(final int direction);
 
 	/**
 	 * 自動で指定した角度回転させる
@@ -241,19 +241,19 @@ public interface IFlightController extends IDeviceController {
 	 * @param degree -180〜180度
 	 * @return
 	 */
-	public boolean sendAnimationsCap(final int degree);
+	public boolean requestAnimationsCap(final int degree);
 
 	/**
 	 * 静止画撮影要求
 	 * @param mass_storage_id
 	 * @return
 	 */
-	public boolean sendTakePicture(final int mass_storage_id);
+	public boolean requestTakePicture(final int mass_storage_id);
 	/**
 	 * 静止画撮影要求
 	 * @return
 	 */
-	public boolean sendTakePicture();
+	public boolean requestTakePicture();
 
 	/**
 	 * LEDの明るさをセット
@@ -261,23 +261,23 @@ public interface IFlightController extends IDeviceController {
 	 * @param right [0,255], 範囲外は256の剰余を適用
 	 * @return
 	 */
-	public boolean sendHeadlightsIntensity(final int left, final int right);
+	public boolean setHeadlightsIntensity(final int left, final int right);
 	/**
 	 * 指定したアニメーション動作を開始。全部動くんかな?
 	 * 共通のコマンドやけどJumpingSumoでしか動かないような予感。
 	 * @param animation [0,12], ANIM_XXX定数
 	 * @return
 	 */
-	public boolean sendStartAnimation(final int animation);
+	public boolean startAnimation(final int animation);
 	/**
 	 * 指定したアニメーション動作を停止。全部動くんかな?
 	 * @param animation [0,12], ANIM_XXX定数
 	 * @return
 	 */
-	public boolean sendStopAnimation(final int animation);
+	public boolean stopAnimation(final int animation);
 	/**
 	 * 実行中のアニメーション動作を全て停止させる
 	 * @return
 	 */
-	public boolean sendStopAllAnimation();
+	public boolean stopAllAnimation();
 }
