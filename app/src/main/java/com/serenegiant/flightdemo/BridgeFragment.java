@@ -173,7 +173,16 @@ public class BridgeFragment extends BaseControllerFragment {
 			if (DEBUG) Log.v(TAG, "onConnect:controller=" + controller);
 //			((SkyController)controller).setCoPilotingSource(1);
 //			((SkyController)controller).requestCurrentWiFi();
-			((SkyController)controller).requestCurrentDevice();
+			((SkyController)controller).requestDeviceList();
+//			((SkyController)controller).requestCurrentDevice();
+//			((SkyController)controller).setSkyControllerSSID("SkyController_8376");
+//			((SkyController)controller).resetSettings();
+//			((SkyController)controller).resetCameraOrientation();
+//			((SkyController)controller).requestPresetAxisFilters();
+//			((SkyController)controller).requestAvailableAxisMappings();
+//			((SkyController)controller).resetAxisMapping();
+//			((SkyController)controller).requestGamepadControls();
+			((SkyController)controller).requestButtonEventsSettings();
 		}
 
 		@Override

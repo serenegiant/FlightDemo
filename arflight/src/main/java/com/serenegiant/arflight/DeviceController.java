@@ -64,9 +64,18 @@ public abstract class DeviceController implements IDeviceController {
 	private int videoMaxAckInterval;
 
 	private final Semaphore disconnectSent = new Semaphore(0);
-	private volatile boolean mRequestCancel;
+	protected volatile boolean mRequestCancel;
+	/**
+	 * 全ての設定取得待ちのためのセマフォ
+	 * 初期値は0なのでonCommonSettingsStateAllSettingsChangedUpdateかcancelStart内でreleaseするまでは先に進まない
+	 */
 	protected final Semaphore cmdGetAllSettingsSent = new Semaphore(0);
 	protected boolean isWaitingAllSettings;
+
+	/**
+	 * 全てのステータス取得待ちのためのセマフォ
+	 * 初期値が0なのでonCommonCommonStateAllStatesChangedUpdateかcancelStart内でreleaseするまでは先に進まない
+	 */
 	protected final Semaphore cmdGetAllStatesSent = new Semaphore(0);
 	protected boolean isWaitingAllStates;
 
@@ -189,17 +198,20 @@ public abstract class DeviceController implements IDeviceController {
 		return failed;
 	}
 
+	/** 接続開始時の追加処理 */
 	protected void internal_start() {
 	}
 
 	/**
 	 * 接続処理を中断
+	 * 子クラスで追加処理が必要であればinternal_cancel_startをOverrideすること
 	 */
 	@Override
-	public void cancelStart() {
+	public final void cancelStart() {
 		if (DEBUG) Log.v(TAG, "cancelStart:");
 		if (!mRequestCancel) {
 			mRequestCancel = true;
+			internal_cancel_start();
 			final ARDiscoveryDeviceService device_service = getDeviceService();
 			final Object device = device_service.getDevice();
 			if (device instanceof ARDiscoveryDeviceNetService) {
@@ -216,6 +228,10 @@ public abstract class DeviceController implements IDeviceController {
 			//TODO see : reset the semaphores or use signals
 		}
 		if (DEBUG) Log.v(TAG, "cancelStart:finished");
+	}
+
+	/** 接続中断の追加処理 */
+	protected void internal_cancel_start() {
 	}
 
 	/**
@@ -245,6 +261,7 @@ public abstract class DeviceController implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "stop:終了");
 	}
 
+	/** 切断の追加処理 */
 	protected void internal_stop() {
 	}
 
@@ -318,10 +335,8 @@ public abstract class DeviceController implements IDeviceController {
 		boolean failed = false;
 		int pingDelay = 0; /* 0 means default, -1 means no ping */
 
-		// FIXME SkyControllerへブリッジさせる時の処理を追加する
-		// SkyControllerからmARManagerとmARNetManagerをコピーすればいいんかな?
-
 		if (mDeviceService != null) {
+			// スマホ/タブレットから直接機体に接続した時
 			/* Create the looper ARNetworkALManager */
 			mARManager = new ARNetworkALManager();
 
@@ -380,6 +395,8 @@ public abstract class DeviceController implements IDeviceController {
 				}
 			}
 		} else if (mSkyController != null) {
+			// FIXME スカイコントローラー経由でブリッジ接続した時
+			// SkyControllerからmARManagerとmARNetManagerをコピーすればいいんかな?
 			mARManager = mSkyController.mARManager;
 			mARNetManager = mSkyController.mARNetManager;
 		}
@@ -390,9 +407,9 @@ public abstract class DeviceController implements IDeviceController {
 	/** 機体との接続を終了 */
 	private void stopNetwork() {
 		if (DEBUG) Log.v(TAG, "stopNetwork:");
-		// FIXME SkyControllerへブリッジさせる時の処理を追加する
 
 		if (mDeviceService != null) {
+			// タブレット/スマホから直接機体に接続している時
 			if (mARNetManager != null) {
 				mARNetManager.stop();
 
@@ -422,6 +439,7 @@ public abstract class DeviceController implements IDeviceController {
 				mARManager.dispose();
 			}
 		} else if (mSkyController != null) {
+			// FIXME スカイコントローラー経由でブリッジ接続している時
 			mARNetManager = null;
 			mARManager = null;
 		}
