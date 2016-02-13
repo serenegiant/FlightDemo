@@ -2,6 +2,10 @@ package com.serenegiant.flightdemo;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -19,14 +23,16 @@ import android.widget.ListView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.arflight.ARDeviceServiceAdapter;
+import com.serenegiant.arflight.ARDeviceInfoAdapter;
+import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.arflight.SkyController;
 import com.serenegiant.arflight.SkyControllerListener;
 import com.serenegiant.widget.PlayerTextureView;
 
-import java.util.List;
+
+import static com.serenegiant.arflight.ARFlightConst.*;
 
 /**
  * スカイコントローラーに接続してスカイコントローラーが
@@ -52,15 +58,18 @@ public class BridgeFragment extends BaseControllerFragment {
 		// デフォルトコンストラクタが必要
 	}
 
-//	@Override
-//	public void onAttach(Activity activity) {
-//		super.onAttach(activity);
-//		if (DEBUG) Log.v(TAG, "onAttach:");
-//	}
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		if (DEBUG) Log.v(TAG, "onAttach:");
+		final IntentFilter filter = new IntentFilter(ARFLIGHT_ACTION_DEVICE_LIST_CHANGED);
+		mLocalBroadcastManager.registerReceiver(mBroadcastReceiver, filter);
+	}
 
 	@Override
 	public void onDetach() {
 //		if (DEBUG) Log.v(TAG, "onDetach:");
+		mLocalBroadcastManager.unregisterReceiver(mBroadcastReceiver);
 		stopDeviceController(false);
 		super.onDetach();
 	}
@@ -118,7 +127,7 @@ public class BridgeFragment extends BaseControllerFragment {
 	 */
 	private void initView(final View rootView) {
 
-		final ARDeviceServiceAdapter adapter = new ARDeviceServiceAdapter(getActivity(), R.layout.list_item_deviceservice);
+		final ARDeviceInfoAdapter adapter = new ARDeviceInfoAdapter(getActivity(), R.layout.list_item_deviceservice);
 
 		mMediaPlayer = new MediaPlayer();
 		mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
@@ -153,7 +162,7 @@ public class BridgeFragment extends BaseControllerFragment {
 				public void run() {
 					if (!visible) {
 						try {
-							final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+							final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
 							adapter.clear();
 						} catch (final Exception e) {
 							Log.w(TAG, e);
@@ -171,18 +180,38 @@ public class BridgeFragment extends BaseControllerFragment {
 		@Override
 		public void onConnect(final IDeviceController controller) {
 			if (DEBUG) Log.v(TAG, "onConnect:controller=" + controller);
-//			((SkyController)controller).setCoPilotingSource(1);
-//			((SkyController)controller).requestCurrentWiFi();
-			((SkyController)controller).requestDeviceList();
-//			((SkyController)controller).requestCurrentDevice();
-//			((SkyController)controller).setSkyControllerSSID("SkyController_8376");
-//			((SkyController)controller).resetSettings();
-//			((SkyController)controller).resetCameraOrientation();
-//			((SkyController)controller).requestPresetAxisFilters();
-//			((SkyController)controller).requestAvailableAxisMappings();
-//			((SkyController)controller).resetAxisMapping();
-//			((SkyController)controller).requestGamepadControls();
-			((SkyController)controller).requestButtonEventsSettings();
+			final SkyController bridge = (SkyController)controller;
+			post(new Runnable() {
+				@Override
+				public void run() {
+//					bridge.setCoPilotingSource(1);
+//					bridge.requestWifiList();
+//					bridge.requestCurrentWiFi();
+//					bridge.requestDeviceList();
+//					bridge.requestCurrentDevice();
+//					bridge.setSkyControllerSSID("SkyController_8376");
+//					bridge.resetSettings();
+//					bridge.resetCameraOrientation();
+//					bridge.requestPresetAxisFilters();
+//					bridge.requestAvailableAxisMappings();
+//					bridge.resetAxisMapping();
+//					bridge.requestGamepadControls();
+//					bridge.requestButtonEventsSettings();
+				}
+			}, 0);
+			post(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						final DeviceInfo info = bridge.connectDeviceInfo();
+						if (bridge.isConnected() && (info != null)) {
+							// 既に接続されていたら操縦画面へ
+							replace(PilotFragment.newInstance(controller.getDeviceService(), info));
+						}
+					} catch (final Exception e) {
+					}
+				}
+			} , 1000);
 		}
 
 		@Override
@@ -201,45 +230,55 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 	};
 
-	/**
-	 * 検出したデバイスのリストが更新された時のコールバック FIXME これはConnectionFragmentのままなので無効
-	 */
-	private ManagerFragment.ManagerCallback mManagerCallback = new ManagerFragment.ManagerCallback() {
+	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 		@Override
-		public void onServicesDevicesListUpdated(final List<ARDiscoveryDeviceService> devices) {
-			final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
-			adapter.clear();
-			for (final ARDiscoveryDeviceService service : devices) {
-				if (DEBUG) Log.d(TAG, "service :  " + service);
-				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
-				switch (product) {
-				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-				case ARDISCOVERY_PRODUCT_BEBOP_2:	// bebop2
-					adapter.add(service);
-					break;
-				case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
-				case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
-				case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
-					// FIXME JumpingSumoは未実装
-					break;
-				case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-				case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
-				case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
-	//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
-					adapter.add(service);
-					break;
-				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
-					adapter.add(service);
-					break;
-				case ARDISCOVERY_PRODUCT_NSNETSERVICE:
-					break;
-				}
+		public void onReceive(final Context context, final Intent intent) {
+		final String action = intent.getAction();
+			if (ARFLIGHT_ACTION_DEVICE_LIST_CHANGED.equals(action)) {
+				final DeviceInfo[] info_array
+					= intent.hasExtra(ARFLIGHT_EXTRA_DEVICE_LIST)
+					? (DeviceInfo[])intent.getParcelableArrayExtra(ARFLIGHT_EXTRA_DEVICE_LIST)
+					: null;
+				updateDeviceList(info_array);
 			}
-			adapter.notifyDataSetChanged();
-			mDeviceListView.setItemChecked(0, true);	// 先頭を選択
-			updateButtons(devices.size() > 0);
 		}
 	};
+
+	private void updateDeviceList(final DeviceInfo[] info_array) {
+		if (DEBUG) Log.v(TAG, "updateDeviceList:" + info_array);
+		final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter) mDeviceListView.getAdapter();
+		adapter.clear();
+		final int n = info_array != null ? info_array.length : 0;
+		for (int i = 0; i < n; i++) {
+			final DeviceInfo info = info_array[i];
+			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(info.productId());
+			switch (product) {
+			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+			case ARDISCOVERY_PRODUCT_BEBOP_2:	// bebop2
+				adapter.add(info);
+				break;
+//			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
+//			case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
+//			case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
+//				// FIXME JumpingSumoは未実装
+//				break;
+//			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
+//				adapter.add(info);
+//				break;
+//			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
+//				adapter.add(info);
+//				break;
+//			case ARDISCOVERY_PRODUCT_NSNETSERVICE:
+//				break;
+			}
+		}
+		adapter.notifyDataSetChanged();
+		mDeviceListView.setItemChecked(0, true);	// 先頭を選択
+		updateButtons(n > 0);
+	}
 
 	private void clearCheck(final ViewGroup parent) {
 		final int n = parent.getChildCount();
@@ -278,23 +317,17 @@ public class BridgeFragment extends BaseControllerFragment {
 
 	private Fragment getFragment(final int position, final boolean isPiloting) {
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-		final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+		final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
 		final String itemValue = adapter.getItemName(position);
-		final ARDiscoveryDeviceService device = manager.getDevice(itemValue);
+		final DeviceInfo info = adapter.getItem(position);
 		Fragment fragment = null;
-		if (device != null) {
-			// 製品名を取得
-			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
-
-			switch (product) {
-			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				fragment = isPiloting ? PilotFragment.newInstance(device) : MediaFragment.newInstance(device);
-				break;
-			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
-				//FIXME JumpingSumoは未実装
-				break;
-			}
+		// 製品名を取得
+		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(info.productId());
+		switch (product) {
+		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+		case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+			fragment = isPiloting ? PilotFragment.newInstance(mController.getDeviceService(), info) : MediaFragment.newInstance(mController.getDeviceService(), info);
+			break;
 		}
 		return fragment;
 	}

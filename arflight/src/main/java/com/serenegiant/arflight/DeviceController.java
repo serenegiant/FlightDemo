@@ -1,6 +1,7 @@
 package com.serenegiant.arflight;
 
 import android.content.Context;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.parrot.arsdk.arcommands.ARCOMMANDS_DECODER_ERROR_ENUM;
@@ -40,6 +41,7 @@ import com.serenegiant.arflight.configs.ARNetworkConfig;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,17 +53,19 @@ public abstract class DeviceController implements IDeviceController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = DeviceController.class.getSimpleName();
 
-	protected final Context mContext;
+	private final WeakReference<Context> mWeakContext;
+	protected LocalBroadcastManager mLocalBroadcastManager;
 	protected final ARNetworkConfig mNetConfig;
 	private final ARDiscoveryDeviceService mDeviceService;
-	private final SkyController mSkyController;
+	private final IBridgeController mBridge;
 
 	protected ARNetworkALManager mARManager;
 	protected ARNetworkManager mARNetManager;
 	protected boolean mMediaOpened;
-	private int videoFragmentSize;
-	private int videoFragmentMaximumNumber;
-	private int videoMaxAckInterval;
+
+	protected int videoFragmentSize = IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_SIZE;
+	protected int videoFragmentMaximumNumber = IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER;
+	protected int videoMaxAckInterval;
 
 	private final Semaphore disconnectSent = new Semaphore(0);
 	protected volatile boolean mRequestCancel;
@@ -91,17 +95,29 @@ public abstract class DeviceController implements IDeviceController {
 	protected CommonStatus mStatus;
 
 	public DeviceController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
-		mContext = context;
+		mWeakContext = new WeakReference<Context>(context);
+		mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
 		mDeviceService = service;
-		mSkyController = null;
+		mBridge = null;
 		mNetConfig = net_config;
 	}
 
-	public DeviceController(final Context context, final SkyController skyController) {
-		mContext = context;
+	public DeviceController(final Context context, final IBridgeController bridge) {
+		mWeakContext = new WeakReference<Context>(context);
+		mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
 		mDeviceService = null;
-		mSkyController = skyController;
-		mNetConfig = skyController.mNetConfig;
+		mBridge = bridge;
+		mNetConfig = bridge.getNetConfig();
+	}
+
+	@Override
+	public void release() {
+		stop();
+		mLocalBroadcastManager = null;
+	}
+
+	public Context getContext() {
+		return mWeakContext.get();
 	}
 
 	@Override
@@ -125,12 +141,26 @@ public abstract class DeviceController implements IDeviceController {
 	public ARDiscoveryDeviceService getDeviceService() {
 		// これだとSkyController経由で繋いでる時はSkyControllerのARDiscoveryDeviceServiceが返ってきてしまう
 		// SkyController経由で接続しているARDiscoveryDeviceServiceを返せた方がいいのかも
-		return mDeviceService != null ? mDeviceService : mSkyController.getDeviceService();
+		return mDeviceService != null ? mDeviceService : mBridge.getDeviceService();
+	}
+
+	@Override
+	public ARNetworkALManager getALManager() {
+		return mARManager;
+	}
+
+	@Override
+	public ARNetworkManager getNetManager() {
+		return mARNetManager;
 	}
 
 	@Override
 	public ARNetworkConfig getNetConfig() {
 		return mNetConfig;
+	}
+
+	protected IBridgeController getBridge() {
+		return mBridge;
 	}
 
 	@Override
@@ -242,10 +272,11 @@ public abstract class DeviceController implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "stop:");
 
 		synchronized (mStateSync) {
-			if (mState != STATE_STARTED) return;
+			if ((mState == STATE_STOPPED) || (mState != STATE_STARTED)) return;
 			mState = STATE_STOPPING;
 		}
 
+		onStop();
 		internal_stop();
 		// 機体データ受信スレッドを終了(終了するまで戻らない)
 		stopReaderThreads();
@@ -259,6 +290,9 @@ public abstract class DeviceController implements IDeviceController {
 			mState = STATE_STOPPED;
 		}
 		if (DEBUG) Log.v(TAG, "stop:終了");
+	}
+
+	protected void onStop() {
 	}
 
 	/** 切断の追加処理 */
@@ -371,7 +405,7 @@ public abstract class DeviceController implements IDeviceController {
 
 				prepare_network();
 				final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(
-					mContext, bleDevice.getBluetoothDevice(), 1, mNetConfig.getBLENotificationIDs()/*bleNotificationIDs*/);
+					getContext(), bleDevice.getBluetoothDevice(), 1, mNetConfig.getBLENotificationIDs()/*bleNotificationIDs*/);
 
 				if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
 					mMediaOpened = true;
@@ -394,11 +428,11 @@ public abstract class DeviceController implements IDeviceController {
 					failed = true;
 				}
 			}
-		} else if (mSkyController != null) {
+		} else if (mBridge != null) {
 			// FIXME スカイコントローラー経由でブリッジ接続した時
 			// SkyControllerからmARManagerとmARNetManagerをコピーすればいいんかな?
-			mARManager = mSkyController.mARManager;
-			mARNetManager = mSkyController.mARNetManager;
+			mARManager = mBridge.getALManager();
+			mARNetManager = mBridge.getNetManager();
 		}
 		if (DEBUG) Log.v(TAG, "startNetwork:finished:failed=" + failed);
 		return failed;
@@ -432,13 +466,13 @@ public abstract class DeviceController implements IDeviceController {
 				if (device_service.getDevice() instanceof ARDiscoveryDeviceNetService) {
 					mARManager.closeWifiNetwork();
 				} else if (device_service.getDevice() instanceof ARDiscoveryDeviceBLEService) {
-					mARManager.closeBLENetwork(mContext);
+					mARManager.closeBLENetwork(getContext());
 				}
 
 				mMediaOpened = false;
 				mARManager.dispose();
 			}
-		} else if (mSkyController != null) {
+		} else if (mBridge != null) {
 			// FIXME スカイコントローラー経由でブリッジ接続している時
 			mARNetManager = null;
 			mARManager = null;
@@ -533,6 +567,17 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	protected void onReceiveJson(final JSONObject jsonObject, final String dataRx, final String ip) throws JSONException {
+		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY)) {
+			videoFragmentSize = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY);
+		}
+        /* Else: leave it to the default value. */
+		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY)) {
+			videoFragmentMaximumNumber = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY);
+		}
+		/* Else: leave it to the default value. */
+		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY)) {
+			videoMaxAckInterval = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY);
+		}
 	}
 
 	/** 機体からのデータ受信用スレッドを生成＆開始 */

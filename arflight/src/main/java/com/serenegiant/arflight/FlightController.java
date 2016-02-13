@@ -54,13 +54,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = FlightController.class.getSimpleName();
 
-	private static final int DEFAULT_VIDEO_FRAGMENT_SIZE = 1000;
-	private static final int DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER = 128;
-
-	protected int videoFragmentSize = DEFAULT_VIDEO_FRAGMENT_SIZE;
-	protected int videoFragmentMaximumNumber = DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER;
-	protected int videoMaxAckInterval;
-
 	private LooperThread mFlightCMDThread;
 
 
@@ -73,6 +66,10 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 	public FlightController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		super(context, service, net_config);
+	}
+
+	public FlightController(final Context context, final IBridgeController bridge) {
+		super(context, bridge);
 	}
 
 	@Override
@@ -103,21 +100,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 	protected void setAutomaticCountry(final boolean auto) {
 		super.setAutomaticCountry(auto);
 		mSettings.setAutomaticCountry(auto);
-	}
-
-	@Override
-	protected void onReceiveJson(final JSONObject jsonObject, final String dataRx, final String ip) throws JSONException {
-		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY)) {
-			videoFragmentSize = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY);
-		}
-        /* Else: leave it to the default value. */
-		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY)) {
-			videoFragmentMaximumNumber = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY);
-		}
-		/* Else: leave it to the default value. */
-		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY)) {
-			videoMaxAckInterval = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY);
-		}
 	}
 
 	@Override

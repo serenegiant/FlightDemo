@@ -1,6 +1,8 @@
 package com.serenegiant.arflight;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.parrot.arsdk.arnetwork.ARNetworkManager;
+import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
 import java.sql.Date;
@@ -13,6 +15,8 @@ public interface IDeviceController {
 	public static final int STATE_STARTING = 0x0001;
 	public static final int STATE_STARTED = 0x0002;
 	public static final int STATE_STOPPING = 0x0003;
+
+	public void release();
 
 	/**
 	 * 機体名を取得, ローリングスパイダーだとrs_xxxxxって奴
@@ -53,6 +57,8 @@ public interface IDeviceController {
 	public ARDiscoveryDeviceService getDeviceService();
 
 	public ARNetworkConfig getNetConfig();
+	public ARNetworkALManager getALManager();
+	public ARNetworkManager getNetManager();
 
 	public int getAlarm();
 	/**

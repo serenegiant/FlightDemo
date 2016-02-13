@@ -20,6 +20,9 @@ import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.ARDeviceServiceAdapter;
+import com.serenegiant.arflight.DeviceInfo;
+import com.serenegiant.arflight.IBridgeController;
+import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.widget.PlayerTextureView;
 

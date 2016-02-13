@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
@@ -25,10 +26,17 @@ public class BaseFragment extends Fragment {
 	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
 
 	private Handler mHandler;
+	protected LocalBroadcastManager mLocalBroadcastManager;
 
 	public BaseFragment() {
 		super();
 		// デフォルトコンストラクタが必要
+	}
+
+	@Override
+	public void onAttach(final Activity activity) {
+		super.onAttach(activity);
+		mLocalBroadcastManager = LocalBroadcastManager.getInstance(activity);
 	}
 
 	@Override
@@ -48,6 +56,12 @@ public class BaseFragment extends Fragment {
 			mHandler = null;
 		}
 		super.onDestroy();
+	}
+
+	@Override
+	public void onDetach() {
+		mLocalBroadcastManager = null;
+		super.onDetach();
 	}
 
 	@Override

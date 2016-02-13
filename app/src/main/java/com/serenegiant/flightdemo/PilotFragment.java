@@ -30,11 +30,13 @@ import android.widget.Toast;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.AutoFlightListener;
 import com.serenegiant.arflight.CameraControllerListener;
+import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.FlightControllerBebop;
 import com.serenegiant.arflight.FlightControllerBebop2;
 import com.serenegiant.arflight.FlightControllerMiniDrone;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
+import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
@@ -72,9 +74,16 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	static {
 		FileUtils.DIR_NAME = "FlightDemo";
 	}
+
 	public static PilotFragment newInstance(final ARDiscoveryDeviceService device) {
 		final PilotFragment fragment = new PilotFragment();
 		fragment.setDevice(device);
+		return fragment;
+	}
+
+	public static PilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
+		final PilotFragment fragment = new PilotFragment();
+		fragment.setBridge(device, info);
 		return fragment;
 	}
 

@@ -1,6 +1,7 @@
 package com.serenegiant.arflight;
 
 import android.content.Context;
+import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -85,11 +86,19 @@ import com.parrot.arsdk.arcommands.ARCommandSkyControllerWifiStateWifiSignalChan
 import com.parrot.arsdk.arcommands.ARCommandSkyControllerWifiWifiAuthChannelListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.parrot.arsdk.arnetwork.ARNetworkManager;
+import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.serenegiant.arflight.attribute.AttributeDevice;
+import com.serenegiant.arflight.configs.ARNetworkConfig;
 import com.serenegiant.arflight.configs.ARNetworkConfigSkyController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Semaphore;
+
+import static com.serenegiant.arflight.ARFlightConst.*;
 
 public class SkyController extends DeviceController implements IBridgeController, IWiFiController {
 	private static final boolean DEBUG = true;				// FIXME 実働時はfalseにすること
@@ -97,10 +106,65 @@ public class SkyController extends DeviceController implements IBridgeController
 
 	private final List<SkyControllerListener> mListeners = new ArrayList<SkyControllerListener>();
 
+	/** 接続中の機体情報, FIXME 排他制御が必要 */
+	private DeviceInfo mConnectDevice;
+	private VideoStreamDelegater mVideoStreamDelegater;
+
 	public SkyController(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigSkyController());
 		mInfo = new AttributeDevice();
 		mStatus = new CommonStatus();
+	}
+
+	@Override
+	public ARNetworkConfig getNetConfig() {
+		return mNetConfig;
+	}
+
+	@Override
+	public ARNetworkALManager getALManager() {
+		return mARManager;
+	}
+
+	@Override
+	public ARNetworkManager getNetManager() {
+		return mARNetManager;
+	}
+
+	@Override
+	protected void internal_stop() {
+		mVideoStreamDelegater = null;
+		super.internal_stop();
+	}
+
+	@Override
+	protected void internal_start() {
+		mVideoStreamDelegater = new VideoStreamDelegater(this);
+		super.internal_start();
+	}
+
+	@Override
+	public boolean connectTo(final DeviceInfo info) {
+		return connectToDevice(info.name());
+	}
+
+	@Override
+	public void disconnectFrom() {
+	}
+
+	@Override
+	public boolean isConnected() {
+		return super.isConnected() && (mConnectDevice != null);
+	}
+
+	@Override
+	public DeviceInfo connectDeviceInfo() {
+		return mConnectDevice;
+	}
+
+	@Override
+	public VideoStreamDelegater getVideoStreamDelegater() {
+		return mVideoStreamDelegater;
 	}
 
 //================================================================================
@@ -338,7 +402,7 @@ public class SkyController extends DeviceController implements IBridgeController
 			if (DEBUG) Log.v(TAG, "onWiFiConnexionChangedUpdate:ssid=" + ssid + ", status=" + status);
 			switch (status) {
 			case ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_CONNECTED:		// 0
-			case ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_ERROR:			// 1:
+			case ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_ERROR:			// 1
 			case ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_DISCONNECTED:	// 2
 				break;
 			}
@@ -350,6 +414,7 @@ public class SkyController extends DeviceController implements IBridgeController
 	 * requestAllStatesでも来る
 	 * requestCurrentDeviceを呼ぶと来る
 	 * requestCurrentWiFiを呼んでも来る
+	 * AccessPointのSSIDやチャネル等を変更しても来る
 	 * たぶん最初に見つかった機体には勝手に接続しに行きよる
 	 * ARCommandSkyControllerWifiStateConnexionChangedListenerのコールバックメソッドよりも後に来る
 	 * TODO 複数の機体を同時に検出した時はどうなるんやろ? currentDeviceの接続状態なんかな?
@@ -368,15 +433,61 @@ public class SkyController extends DeviceController implements IBridgeController
 			final String deviceName, final short deviceProductID) {
 
 			if (DEBUG) Log.v(TAG, "onDeviceConnexionChangedUpdate:status=" + status + ", deviceName=" + deviceName + ", deviceProductID=" + deviceProductID);
-			switch (status) {
-			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_NOTCONNECTED:		// 0
-			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_CONNECTING:		// 1
-			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_CONNECTED:		// 2
-			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_DISCONNECTING:	// 3
-				break;
-			}
+			updateConnectionState(status, deviceName, deviceProductID);
 		}
 	};
+
+	private final Map<String, DeviceInfo> mDevices = new HashMap<String, DeviceInfo>();
+
+	private void updateConnectionState(
+		final ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_ENUM status,
+		final String deviceName, final short deviceProductID) {
+
+		if (DEBUG) Log.v(TAG, "updateConnectionState:");
+		DeviceInfo[] info_array = null;
+		synchronized (mDevices) {
+			DeviceInfo info = mDevices.containsKey(deviceName) ? mDevices.get(deviceName) : null;
+			switch (status) {
+			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_NOTCONNECTED:        // 0
+				removeDevice(deviceName);
+				break;
+			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_CONNECTING:		// 1
+			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_CONNECTED:		// 2
+				if (info == null) {
+					if (DEBUG) Log.v(TAG, "found new device:name=" + deviceName);
+					info = new DeviceInfo(deviceName, deviceProductID);
+					mDevices.put(deviceName, info);
+				}
+				info.connectionState(status.getValue());
+				mConnectDevice = info;
+				break;
+			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_DISCONNECTING:    // 3
+				removeDevice(deviceName);
+				break;
+			}
+			if (mDevices.size() > 0) {
+				info_array = new DeviceInfo[mDevices.size()];
+				int i = 0;
+				for (final DeviceInfo inf: mDevices.values()) {
+					info_array[i] = inf;
+				}
+			}
+		}
+		if (mLocalBroadcastManager != null) {
+			final Intent intent = new Intent(ARFLIGHT_ACTION_DEVICE_LIST_CHANGED);
+			if (info_array != null) {
+				intent.putExtra(ARFLIGHT_EXTRA_DEVICE_LIST, info_array);
+			}
+			mLocalBroadcastManager.sendBroadcast(intent);
+		}
+	}
+
+	private void removeDevice(final String deviceName) {
+		mDevices.remove(deviceName);
+		if ((mConnectDevice != null) && mConnectDevice.name().equals(deviceName)) {
+			mConnectDevice = null;
+		}
+	}
 
 //--------------------------------------------------------------------------------
 	/**
@@ -414,6 +525,7 @@ public class SkyController extends DeviceController implements IBridgeController
 	 * requestAllStatesを呼ぶと来る
 	 * FIXME ...ってどの信号強度なんだろ?
 	 * FIXME スカイコントローラーが受信しているタブレット/スマホからの電波の信号強度なんかな?
+	 * FIXME 機体と接続した時に送られてくるので機体からスカイコントローラーに届く信号強度かも
 	 */
 	private final ARCommandSkyControllerWifiStateWifiSignalChangedListener
 		mARCommandSkyControllerWifiStateWifiSignalChangedListener
@@ -1588,12 +1700,19 @@ public class SkyController extends DeviceController implements IBridgeController
 	/**
 	 * 指定したデバイス名を持つ機体へ接続する
 	 * @param deviceName
-	 * @return
+	 * @return true 接続できなかった
 	 */
 	public boolean connectToDevice(final String deviceName) {
 		if (DEBUG) Log.v(TAG, "connectToDevice:");
 		if (TextUtils.isEmpty(deviceName)) return false;
 
+		final DeviceInfo info = mDevices.containsKey(deviceName) ? mDevices.get(deviceName) : null;
+		if ((info != null) && info.isConnected()) {
+			// 既に接続されている
+			return false;
+		}
+
+		mConnectDevice = null;
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1605,7 +1724,10 @@ public class SkyController extends DeviceController implements IBridgeController
 			cmd.dispose();
 		}
 
-		if (!sentStatus) {
+		if (sentStatus) {
+			// 正常に送信できた。接続待ちする
+			// FIXME 接続待ち
+		} else {
 			Log.e(TAG, "Failed to send connectToDevice command.");
 		}
 
@@ -1918,7 +2040,6 @@ public class SkyController extends DeviceController implements IBridgeController
 
 		return sentStatus;
 	}
-
 
 	/** ジョイスティックの入力フィルター設定を要求 */
 	public boolean requestCurrentAxisFilters() {

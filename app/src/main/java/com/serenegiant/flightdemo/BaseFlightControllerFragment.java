@@ -1,21 +1,15 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
-import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightControllerListener;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.IVideoStreamController;
-import com.serenegiant.arflight.ManagerFragment;
-import com.serenegiant.arflight.SkyController;
 
 public abstract class BaseFlightControllerFragment extends BaseControllerFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること

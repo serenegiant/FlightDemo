@@ -7,20 +7,26 @@ import android.util.Log;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
+import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.FlightControllerBebop;
+import com.serenegiant.arflight.FlightControllerBebop2;
+import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.ManagerFragment;
+
+import static com.serenegiant.arflight.ARFlightConst.*;
 
 public abstract class BaseControllerFragment extends BaseFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = BaseControllerFragment.class.getSimpleName();
 
-	protected static String EXTRA_DEVICE_SERVICE = "piloting.extra.device.service";
 	/** フラグメントに戻るまでの遅延時間[ミリ秒] */
 	protected static final long POP_BACK_STACK_DELAY = 2000;
 
 	private ARDiscoveryDeviceService mDevice;
+	private DeviceInfo mDeviceInfo;
 	protected IDeviceController mController;
 
 	public BaseControllerFragment() {
@@ -41,8 +47,30 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		if (savedInstanceState == null)
 			savedInstanceState = getArguments();
 		if (savedInstanceState != null) {
-			mDevice = savedInstanceState.getParcelable(EXTRA_DEVICE_SERVICE);
-			mController = ManagerFragment.getController(getActivity(), mDevice);
+			mController = null;
+			mDevice = savedInstanceState.getParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE);
+			mDeviceInfo = savedInstanceState.getParcelable(ARFLIGHT_EXTRA_DEVICE_INFO);
+			final IDeviceController controller = ManagerFragment.getController(getActivity(), mDevice);
+			if ((mDeviceInfo != null) && (controller instanceof IBridgeController)) {
+				// スカイコントローラー経由のブリッジ接続の時
+				final IBridgeController bridge = (IBridgeController)controller;
+				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceInfo.productId());
+				switch (product) {
+				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+					bridge.connectTo(mDeviceInfo);
+					mController = new FlightControllerBebop(getActivity(), bridge);
+					break;
+				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+					bridge.connectTo(mDeviceInfo);
+					mController = new FlightControllerBebop2(getActivity(), bridge);
+					break;
+				}
+			}
+
+			// 直接機体に接続している時かブリッジ接続できなかった時
+			if (mController == null) {
+				mController = controller;
+			}
 		}
 		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState + ",mController=" + mController);
 	}
@@ -89,11 +117,26 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	protected Bundle setDevice(final ARDiscoveryDeviceService device) {
 		if (DEBUG) Log.v(TAG, "setDevice:" + device);
 		mDevice = device;
+		mDeviceInfo = null;
 		Bundle args = getArguments();
 		if (args == null) {
 			args = new Bundle();
 		}
-		args.putParcelable(EXTRA_DEVICE_SERVICE, device);
+		args.putParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE, device);
+		args.remove(ARFLIGHT_EXTRA_DEVICE_INFO);
+		setArguments(args);
+		return args;
+	}
+
+	protected Bundle setBridge(final ARDiscoveryDeviceService bridge, final DeviceInfo info) {
+		mDevice = bridge;
+		mDeviceInfo = info;
+		Bundle args = getArguments();
+		if (args == null) {
+			args = new Bundle();
+		}
+		args.putParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE, bridge);
+		args.putParcelable(ARFLIGHT_EXTRA_DEVICE_INFO, info);
 		setArguments(args);
 		return args;
 	}
