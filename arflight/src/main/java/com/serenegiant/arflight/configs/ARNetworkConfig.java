@@ -199,22 +199,20 @@ public abstract class ARNetworkConfig {
 	 * @param maxFragmentSize     Maximum size of the fragment to send
 	 * @param maxNumberOfFragment Maximum number of the fragment to send
 	 */
-	public void addStreamReaderIOBuffer(int maxFragmentSize, int maxNumberOfFragment) {
+	public void addStreamReaderIOBuffer(final int maxFragmentSize, final int maxNumberOfFragment) {
 		if ((iobufferC2dArstreamAck != -1) && (iobufferD2cArstreamData != -1)) {
             /*removeFromUIThread the Stream parameters of the last connection*/
-			for (ARNetworkIOBufferParam param : c2dParams) {
+			for (final ARNetworkIOBufferParam param : c2dParams) {
 				if (param.getId() == iobufferC2dArstreamAck) {
 					c2dParams.remove(param);
-
-					break;
+//					break;
 				}
 			}
 
-			for (ARNetworkIOBufferParam param : d2cParams) {
+			for (final ARNetworkIOBufferParam param : d2cParams) {
 				if (param.getId() == iobufferD2cArstreamData) {
 					d2cParams.remove(param);
-
-					break;
+//					break;
 				}
 			}
             

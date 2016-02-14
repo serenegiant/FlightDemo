@@ -35,7 +35,7 @@ import com.parrot.arsdk.arnetworkal.ARNETWORKAL_FRAME_TYPE_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.parrot.arsdk.arstream.ARStreamReader;
 
-public final class ARNetworkConfigARDrone3 extends ARNetworkConfig {
+public class ARNetworkConfigARDrone3 extends ARNetworkConfig {
     private static final String TAG = ARNetworkConfigARDrone3.class.getSimpleName();
 
     public ARNetworkConfigARDrone3() {
@@ -56,49 +56,52 @@ public final class ARNetworkConfigARDrone3 extends ARNetworkConfig {
         
         bleNotificationIDs = null;
         
+        // コントローラー => device(機体)へのパラメータ
         c2dParams.clear();
-        c2dParams.add (new ARNetworkIOBufferParam (iobufferC2dNak,
-                            ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
-                            1,
-                            ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-                            ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-                            2,
-                            128,
-                            true));
+        c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dNak,
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
+			1,
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+			2,
+			128,
+			true));
         c2dParams.add (new ARNetworkIOBufferParam (iobufferC2dAck,
-                            ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-                            20,
-                            500,
-                            3,
-                            20,
-                            128,
-                            false));
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+			20,
+			500,
+			3,
+			20,
+			128,
+			false));
         c2dParams.add (new ARNetworkIOBufferParam (iobufferC2dEmergency,
-                            ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-                            1,
-                            100,
-                            ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-                            1,
-                            128,
-                            false));
-        
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+			1,
+			100,
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+			1,
+			128,
+			false));
+//		c2dParams.add(ARStreamReader.newAckARNetworkIOBufferParam(iobufferC2dArstreamAck));
+
+        // device(機体) => コントローラーへのパラメータ
         d2cParams.clear();
         d2cParams.add (new ARNetworkIOBufferParam (iobufferD2cNavdata,
-                            ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
-                            20,
-                            ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-                            ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-                            20,
-                            128,
-                            false));
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
+			20,
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+			20,
+			128,
+			false));
         d2cParams.add (new ARNetworkIOBufferParam (iobufferD2cEvents,
-                            ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-                            20,
-                            500,
-                            3,
-                            20,
-                            128,
-                            false));
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+			20,
+			500,
+			3,
+			20,
+			128,
+			false));
         
         commandsBuffers = new int[] {
             iobufferD2cNavdata,

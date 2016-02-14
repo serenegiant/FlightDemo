@@ -107,7 +107,7 @@ public abstract class DeviceController implements IDeviceController {
 		mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
 		mDeviceService = null;
 		mBridge = bridge;
-		mNetConfig = bridge.getNetConfig();
+		mNetConfig = bridge.getBridgeNetConfig();
 	}
 
 	@Override

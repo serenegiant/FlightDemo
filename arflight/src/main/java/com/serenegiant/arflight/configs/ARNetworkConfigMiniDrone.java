@@ -56,7 +56,7 @@ public final class ARNetworkConfigMiniDrone extends ARNetworkConfig {
             (iobufferC2dEmergency + ackOffset)
         };
 
-        // コントローラー => 機体へのパラメータ
+        // コントローラー => device(機体)へのパラメータ
         c2dParams.clear();
         c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dNak,			    		// ID
             ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,					// FRAME type
@@ -86,7 +86,7 @@ public final class ARNetworkConfigMiniDrone extends ARNetworkConfig {
             false)																		// isOverwriting
         );
 
-        // 機体 => コントローラーへのパラメータ
+        // device(機体) => コントローラーへのパラメータ
         d2cParams.clear();
         d2cParams.add(new ARNetworkIOBufferParam(iobufferD2cNavdata,					// ID
             ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,					// FRAME type

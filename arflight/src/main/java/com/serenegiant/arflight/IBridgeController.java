@@ -6,7 +6,7 @@ import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
 public interface IBridgeController {
-	public ARNetworkConfig getNetConfig();
+	public ARNetworkConfig getBridgeNetConfig();
 	public ARDiscoveryDeviceService getDeviceService();
 	public ARNetworkALManager getALManager();
 	public ARNetworkManager getNetManager();

@@ -2204,7 +2204,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 				videoStreamDelegaterCreated = false;
 			}
 			if (mVideoStreamDelegater == null) {
-				mVideoStreamDelegater = new VideoStreamDelegater(this);
+				mVideoStreamDelegater = new VideoStreamDelegater(this, getNetConfig());
 				videoStreamDelegaterCreated = true;
 			}
 		}

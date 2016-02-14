@@ -9,7 +9,7 @@ import com.serenegiant.arflight.configs.ARNetworkConfig;
 
 /**
  * ライブ映像ストリームを取得するためのクラス
- * スカイコントローラーだとBebop/Bebop2と同じ方法だとだめ
+ * スカイコントローラーだとBebop/Bebop2と同じ方法は使えない(´・ω・｀)
  * E/ARSTREAM_Reader: 21:16:05:121 | ARSTREAM_Reader_RunDataThread:369 - Error while reading stream data: Given IOBuffer identifier is unknown
  */
 public class VideoStreamDelegater implements IVideoStreamController {
@@ -26,9 +26,9 @@ public class VideoStreamDelegater implements IVideoStreamController {
 	protected final int videoMaxAckInterval;
 
 
-	public VideoStreamDelegater(final DeviceController parent) {
+	public VideoStreamDelegater(final DeviceController parent, ARNetworkConfig config) {
 		mParent = parent;
-		mNetConfig = parent.getNetConfig();
+		mNetConfig = config;
 		videoFragmentSize = parent.videoFragmentSize;
 		videoFragmentMaximumNumber = parent.videoFragmentMaximumNumber;
 		videoMaxAckInterval = parent.videoMaxAckInterval;
@@ -161,7 +161,7 @@ public class VideoStreamDelegater implements IVideoStreamController {
 	/**
 	 * ビデオストリーミングデータ受信スレッドを開始
 	 */
-	protected void startVideoThread() {
+	public void startVideoThread() {
 		if (DEBUG) Log.v(TAG, "startVideoThread");
 		// 既に動いていれば一旦停止させる
 		stopVideoThread();
@@ -173,7 +173,7 @@ public class VideoStreamDelegater implements IVideoStreamController {
 	/**
 	 * ストリーミングデータ受信スレッドを終了(終了するまで戻らない)
 	 */
-	protected void stopVideoThread() {
+	public void stopVideoThread() {
 		if (DEBUG) Log.v(TAG, "stopVideoThread:");
         /* Cancel the looper thread and block until it is stopped. */
 		if (null != mVideoThread) {

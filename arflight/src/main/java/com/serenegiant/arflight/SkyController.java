@@ -90,6 +90,7 @@ import com.parrot.arsdk.arnetwork.ARNetworkManager;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
+import com.serenegiant.arflight.configs.ARNetworkConfigBridge;
 import com.serenegiant.arflight.configs.ARNetworkConfigSkyController;
 
 import java.util.ArrayList;
@@ -121,6 +122,12 @@ public class SkyController extends DeviceController implements IBridgeController
 		return mNetConfig;
 	}
 
+	public ARNetworkConfig getBridgeNetConfig() {
+		final ARNetworkConfig config = new ARNetworkConfigBridge();
+		config.addStreamReaderIOBuffer(videoFragmentSize, videoFragmentMaximumNumber);
+		return config;
+	}
+
 	@Override
 	public ARNetworkALManager getALManager() {
 		return mARManager;
@@ -139,7 +146,7 @@ public class SkyController extends DeviceController implements IBridgeController
 
 	@Override
 	protected void internal_start() {
-		mVideoStreamDelegater = new VideoStreamDelegater(this);
+		mVideoStreamDelegater = new VideoStreamDelegater(this, getBridgeNetConfig());
 		super.internal_start();
 	}
 
@@ -164,6 +171,9 @@ public class SkyController extends DeviceController implements IBridgeController
 
 	@Override
 	public VideoStreamDelegater getVideoStreamDelegater() {
+		if (mVideoStreamDelegater == null) {
+			mVideoStreamDelegater = new VideoStreamDelegater(this, getBridgeNetConfig());
+		}
 		return mVideoStreamDelegater;
 	}
 
