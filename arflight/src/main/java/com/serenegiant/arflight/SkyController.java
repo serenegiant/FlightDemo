@@ -124,7 +124,8 @@ public class SkyController extends DeviceController implements IBridgeController
 
 	public ARNetworkConfig getBridgeNetConfig() {
 		final ARNetworkConfig config = new ARNetworkConfigBridge();
-		config.addStreamReaderIOBuffer(videoFragmentSize, videoFragmentMaximumNumber);
+		// FIXME なんか間違えてる気がする
+		config.addStreamReaderIOBuffer(config.getFragmentSize(), config.getMaxFragmentNum());
 		return config;
 	}
 

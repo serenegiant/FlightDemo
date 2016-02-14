@@ -48,11 +48,11 @@ public class ARNetworkConfigARDrone3 extends ARNetworkConfig {
         iobufferD2cEvents = (ARNetworkALManager.ARNETWORKAL_MANAGER_WIFI_ID_MAX / 2) - 2;
         iobufferD2cArstreamData = (ARNetworkALManager.ARNETWORKAL_MANAGER_WIFI_ID_MAX / 2) - 3;
         
-        inboundPort = 54321;
-        outboundPort = 43210;
+        d2cPort = 54321;
+        c2dPort = 43210;
         
         hasVideo = true;
-        videoMaxAckInterval = ARStreamReader.DEFAULT_MAX_ACK_INTERVAL;
+        maxAckInterval = ARStreamReader.DEFAULT_MAX_ACK_INTERVAL;
         
         bleNotificationIDs = null;
         
@@ -82,7 +82,7 @@ public class ARNetworkConfigARDrone3 extends ARNetworkConfig {
 			1,
 			128,
 			false));
-//		c2dParams.add(ARStreamReader.newAckARNetworkIOBufferParam(iobufferC2dArstreamAck));
+		c2dParams.add(ARStreamReader.newAckARNetworkIOBufferParam(iobufferC2dArstreamAck));
 
         // device(機体) => コントローラーへのパラメータ
         d2cParams.clear();
@@ -106,6 +106,7 @@ public class ARNetworkConfigARDrone3 extends ARNetworkConfig {
         commandsBuffers = new int[] {
             iobufferD2cNavdata,
             iobufferD2cEvents,
+			iobufferC2dEmergency,
         };
     }
     

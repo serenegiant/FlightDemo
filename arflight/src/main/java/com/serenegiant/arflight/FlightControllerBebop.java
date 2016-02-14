@@ -2188,7 +2188,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	protected void prepare_network() {
 		if (DEBUG) Log.v(TAG, "prepare_network:");
 		// TODO :  if ardiscoveryConnect ok
-		mNetConfig.addStreamReaderIOBuffer(videoFragmentSize, videoFragmentMaximumNumber);
+		mNetConfig.addStreamReaderIOBuffer(mNetConfig.getFragmentSize(), mNetConfig.getMaxFragmentNum());
 
 	}
 

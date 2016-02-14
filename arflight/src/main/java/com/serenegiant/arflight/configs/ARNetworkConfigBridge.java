@@ -9,7 +9,6 @@ public class ARNetworkConfigBridge extends ARNetworkConfig {
 	private static final String TAG = ARNetworkConfigBridge.class.getSimpleName();
 
 	public ARNetworkConfigBridge() {
-		// FIXME これはまだARDRONE3のをコピーしただけ
 		pcmdLoopIntervalsMs = 25;
 		iobufferC2dNak = 10;
 		iobufferC2dAck = 11;
@@ -19,11 +18,11 @@ public class ARNetworkConfigBridge extends ARNetworkConfig {
 		iobufferD2cEvents = (ARNetworkALManager.ARNETWORKAL_MANAGER_WIFI_ID_MAX / 2) - 2;
 		iobufferD2cArstreamData = (ARNetworkALManager.ARNETWORKAL_MANAGER_WIFI_ID_MAX / 2) - 3;
 
-		inboundPort = 54321;
-		outboundPort = 43210;
+		d2cPort = 54321;
+		c2dPort = 43210;
 
 		hasVideo = true;
-		videoMaxAckInterval = ARStreamReader.DEFAULT_MAX_ACK_INTERVAL;
+		maxAckInterval = ARStreamReader.DEFAULT_MAX_ACK_INTERVAL;
 
 		bleNotificationIDs = null;
 
@@ -38,41 +37,41 @@ public class ARNetworkConfigBridge extends ARNetworkConfig {
 			128,
 			true));
 		c2dParams.add (new ARNetworkIOBufferParam (iobufferC2dAck,
-					  ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-					  20,
-					  500,
-					  3,
-					  20,
-					  128,
-					  false));
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+			20,
+			500,
+			3,
+			20,
+			128,
+			false));
 		c2dParams.add (new ARNetworkIOBufferParam (iobufferC2dEmergency,
-					  ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-					  1,
-					  100,
-					  ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-					  1,
-					  128,
-					  false));
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+			1,
+			100,
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+			1,
+			128,
+			false));
 //		c2dParams.add(ARStreamReader.newAckARNetworkIOBufferParam(iobufferC2dArstreamAck));
 
         // device(機体) => コントローラーへのパラメータ
 		d2cParams.clear();
 		d2cParams.add (new ARNetworkIOBufferParam (iobufferD2cNavdata,
-					  ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
-					  20,
-					  ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-					  ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
-					  20,
-					  128,
-					  false));
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
+			20,
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+			ARNetworkIOBufferParam.ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+			20,
+			128,
+			false));
 		d2cParams.add (new ARNetworkIOBufferParam (iobufferD2cEvents,
-					  ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
-					  20,
-					  500,
-					  3,
-					  20,
-					  128,
-					  false));
+			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+			20,
+			500,
+			3,
+			20,
+			128,
+			false));
 
 		commandsBuffers = new int[] {
 			iobufferD2cNavdata,

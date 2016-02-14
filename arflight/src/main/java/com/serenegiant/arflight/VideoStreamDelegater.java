@@ -5,6 +5,7 @@ import android.util.Log;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.parrot.arsdk.arstream2.ARStream2Manager;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
 /**
@@ -21,17 +22,10 @@ public class VideoStreamDelegater implements IVideoStreamController {
 	private IVideoStream mVideoStream;
 	private VideoThread mVideoThread;
 	protected final ARNetworkConfig mNetConfig;
-	protected final int videoFragmentSize;
-	protected final int videoFragmentMaximumNumber;
-	protected final int videoMaxAckInterval;
-
 
 	public VideoStreamDelegater(final DeviceController parent, ARNetworkConfig config) {
 		mParent = parent;
 		mNetConfig = config;
-		videoFragmentSize = parent.videoFragmentSize;
-		videoFragmentMaximumNumber = parent.videoFragmentMaximumNumber;
-		videoMaxAckInterval = parent.videoMaxAckInterval;
 	}
 
 	@Override
@@ -131,28 +125,69 @@ public class VideoStreamDelegater implements IVideoStreamController {
 						continue;
 					}
 				}
-				final ARStreamManager streamManager = new ARStreamManager(mParent.getNetManager(),
-					mNetConfig.getVideoDataIOBuffer(), mNetConfig.getVideoAckIOBuffer(),
-					videoFragmentSize, videoMaxAckInterval);
-				streamManager.start();
-				try {
-					for (; mIsRunning && mEnabled ;) {
-						final ARFrame frame = streamManager.getFrame(VIDEO_RECEIVE_TIMEOUT_MS);
-						if (frame != null) {
-							try {
-								synchronized (mStreamSync) {
-									if (mVideoStream != null) {
-										mVideoStream.onReceiveFrame(frame);
+				if (mNetConfig.hasVideo()) {	// これではねられることはないはず
+					if (mNetConfig.isSupportStream2()) {
+						final ARStream2Manager streamManager = new ARStream2Manager(
+							mNetConfig.getDeviceAddress(),
+							ARNetworkConfig.ARSTREAM2_SERVER_STREAM_PORT,
+							ARNetworkConfig.ARSTREAM2_SERVER_CONTROL_PORT,
+							mNetConfig.getClientStreamPort(),
+							mNetConfig.getClientControlPort(),
+							mNetConfig.getMaxPacketSize(),
+							mNetConfig.getMaxBitrate(),
+							mNetConfig.getMaxLatency(),
+							mNetConfig.getMaxNetworkLatency()
+						);
+						streamManager.start();
+						try {
+							for (; mIsRunning && mEnabled ;) {
+/*								final ARFrame frame = streamManager.getFrame(VIDEO_RECEIVE_TIMEOUT_MS);
+								if (frame != null) {
+									try {
+										synchronized (mStreamSync) {
+											if (mVideoStream != null) {
+												mVideoStream.onReceiveFrame(frame);
+											}
+										}
+									} finally {
+										streamManager.recycle(frame);
+									}
+								} */
+								try {
+									Thread.sleep(10);
+								} catch (InterruptedException e) {
+									break;
+								}
+							}
+						} finally {
+							streamManager.stop();
+							streamManager.dispose();
+						}
+					} else {
+						final ARStreamManager streamManager = new ARStreamManager(mParent.getNetManager(),
+							mNetConfig.getVideoDataIOBuffer(), mNetConfig.getVideoAckIOBuffer(),
+							mNetConfig.getFragmentSize(), mNetConfig.getMaxAckInterval());
+						streamManager.start();
+						try {
+							for (; mIsRunning && mEnabled ;) {
+								final ARFrame frame = streamManager.getFrame(VIDEO_RECEIVE_TIMEOUT_MS);
+								if (frame != null) {
+									try {
+										synchronized (mStreamSync) {
+											if (mVideoStream != null) {
+												mVideoStream.onReceiveFrame(frame);
+											}
+										}
+									} finally {
+										streamManager.recycle(frame);
 									}
 								}
-							} finally {
-								streamManager.recycle(frame);
 							}
+						} finally {
+							streamManager.stop();
+							streamManager.release();
 						}
 					}
-				} finally {
-					streamManager.stop();
-					streamManager.release();
 				}
 			}
 		}

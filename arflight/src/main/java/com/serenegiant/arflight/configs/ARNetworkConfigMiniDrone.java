@@ -46,7 +46,7 @@ public final class ARNetworkConfigMiniDrone extends ARNetworkConfig {
         iobufferD2cEvents = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2) - 2;
         
         hasVideo = false;
-        videoMaxAckInterval = -1;
+        maxAckInterval = -1;
         
         final int ackOffset = (ARNetworkALManager.ARNETWORKAL_MANAGER_BLE_ID_MAX / 2);
         bleNotificationIDs = new int[] {

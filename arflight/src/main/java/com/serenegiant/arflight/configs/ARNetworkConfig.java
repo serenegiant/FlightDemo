@@ -30,8 +30,15 @@
 */
 package com.serenegiant.arflight.configs;
 
+import android.util.Log;
+
+import com.parrot.arsdk.ardiscovery.ARDiscoveryConnection;
 import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
 import com.parrot.arsdk.arstream.ARStreamReader;
+import com.serenegiant.arflight.IVideoStreamController;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +46,11 @@ import java.util.List;
 public abstract class ARNetworkConfig {
 	private static final String TAG = ARNetworkConfig.class.getSimpleName();
 
+	public static final int ARSTREAM2_SERVER_CONTROL_PORT = 5005;
+	public static final int ARSTREAM2_SERVER_STREAM_PORT = 5004;
+
+	protected String deviceAddress;
+	protected int devicePort;
 	protected long pcmdLoopIntervalsMs = 50;
 	protected int iobufferC2dNak = -1;
 	protected int iobufferC2dAck = -1;
@@ -48,29 +60,42 @@ public abstract class ARNetworkConfig {
 	protected int iobufferD2cEvents = -1;
 	protected int iobufferD2cArstreamData = -1;
 
-	protected int inboundPort = -1;
-	protected int outboundPort = -1;
+	protected int d2cPort = -1;
+	protected int c2dPort = -1;
 
 	protected final List<ARNetworkIOBufferParam> c2dParams = new ArrayList<ARNetworkIOBufferParam>();
 	protected final List<ARNetworkIOBufferParam> d2cParams = new ArrayList<ARNetworkIOBufferParam>();
 	protected int commandsBuffers[] = {};
 
 	protected boolean hasVideo = false;
-	protected int videoMaxAckInterval = -1;
+// ARStream用
+	protected int fragmentSize = IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_SIZE;
+	protected int maxFragmentNum = IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER;
+	protected int maxAckInterval = -1;
+// ARStream2用
+	protected boolean isSupportStream2 = false;
+	protected int clientStreamPort = -1;
+	protected int clientControlPort = -1;
+	protected int maxPacketSize;
+	protected int maxLatency;
+	protected int maxNetworkLatency;
+	protected int maxBitrate;
+	protected String paramSets;
 
 	protected int bleNotificationIDs[] = null;
 
-    /*
-    public static int idToIndex (int id) {
-        for (int i = 0; i < num_params; i ++)
-        {
-            if (params[i].ID == id)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }*/
+	public void setDeviceAddress(final String ip, final int port) {
+		deviceAddress = ip;
+		devicePort = port;
+	}
+
+	public String getDeviceAddress() {
+		return deviceAddress;
+	}
+
+	public int getDevicePort() {
+		return devicePort;
+	}
 
 	public long getPCMDLoopIntervalsMs() {
 		return pcmdLoopIntervalsMs;
@@ -164,21 +189,17 @@ public abstract class ARNetworkConfig {
 	}
 
 	/**
-	 * Return the inbound port number for WiFi devices.
-	 *
-	 * @fixme Remove this and use ARDISCOVERY_Connection instead.
+	 * Return the port number for WiFi devices.
 	 */
-	public int getInboundPort() {
-		return inboundPort;
+	public int getD2CPort() {
+		return d2cPort;
 	}
 
 	/**
-	 * Return the outbound port number for WiFi devices.
-	 *
-	 * @fixme Remove this and use ARDISCOVERY_Connection instead.
+	 * Return the port number for WiFi devices.
 	 */
-	public int getOutboundPort() {
-		return outboundPort;
+	public int getC2DPort() {
+		return c2dPort;
 	}
 
 	/**
@@ -190,29 +211,68 @@ public abstract class ARNetworkConfig {
 	}
 
 	public int getDefaultVideoMaxAckInterval() {
-		return videoMaxAckInterval;
+		return maxAckInterval;
+	}
+
+	public int getFragmentSize() {
+		return fragmentSize;
+	}
+	public int getMaxFragmentNum() {
+		return maxFragmentNum;
+	}
+
+	public int getMaxAckInterval() {
+		return maxAckInterval;
+	}
+
+	public boolean isSupportStream2() {
+		return isSupportStream2;
+	}
+
+	public int getClientStreamPort() {
+		return clientStreamPort;
+	}
+
+	public int getClientControlPort() {
+		return clientControlPort;
+	}
+
+	public int getMaxPacketSize() {
+		return maxPacketSize;
+	}
+
+	public int getMaxLatency() {
+		return maxLatency;
+	}
+
+	public int getMaxNetworkLatency() {
+		return maxNetworkLatency;
+	}
+
+	public int getMaxBitrate() {
+		return maxBitrate;
+	}
+
+	public String getParamSets() {
+		return paramSets;
 	}
 
 	/**
 	 * Add a StreamReader IOBuffer
-	 *
 	 * @param maxFragmentSize     Maximum size of the fragment to send
 	 * @param maxNumberOfFragment Maximum number of the fragment to send
 	 */
 	public void addStreamReaderIOBuffer(final int maxFragmentSize, final int maxNumberOfFragment) {
 		if ((iobufferC2dArstreamAck != -1) && (iobufferD2cArstreamData != -1)) {
-            /*removeFromUIThread the Stream parameters of the last connection*/
 			for (final ARNetworkIOBufferParam param : c2dParams) {
 				if (param.getId() == iobufferC2dArstreamAck) {
 					c2dParams.remove(param);
-//					break;
 				}
 			}
 
 			for (final ARNetworkIOBufferParam param : d2cParams) {
 				if (param.getId() == iobufferD2cArstreamData) {
 					d2cParams.remove(param);
-//					break;
 				}
 			}
             
@@ -221,4 +281,53 @@ public abstract class ARNetworkConfig {
 			d2cParams.add(ARStreamReader.newDataARNetworkIOBufferParam(iobufferD2cArstreamData, maxFragmentSize, maxNumberOfFragment));
 		}
 	}
+
+	public JSONObject onSendParams(final JSONObject json) {
+		try {
+			json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY, d2cPort);
+		} catch (final JSONException e) {
+			Log.w(TAG, e);
+		}
+		return json;
+	}
+
+	/**
+	 * JSONに含まれる値でパラメータを更新する
+	 * @param json
+	 * @return
+	 */
+	public boolean update(final JSONObject json) {
+		boolean result = false;
+		c2dPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY, c2dPort);
+		maxAckInterval = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY, -1);
+		clientStreamPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY, -1);
+		clientControlPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY, -1);
+
+		final int fragment_size = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY,
+			IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_SIZE);
+		final int max_fragment_num = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY,
+			IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER);
+		final boolean support_stream2 = ((json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY, -1) != -1)
+			&& (json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY, -1) != -1));
+		final int max_packet_size = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY, -1);
+		final int max_latency = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY, -1);
+		final int max_network_latency = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY, -1);
+		final int max_bitrate = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY, -1);
+		final String params = json.optString(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY, "");
+		if ((fragment_size != fragmentSize) || (max_fragment_num != maxFragmentNum)
+				|| (max_packet_size != maxPacketSize) || (max_latency != maxLatency) || (max_network_latency != maxNetworkLatency)
+				|| (max_bitrate != maxBitrate) || (!params.equals(paramSets)) || (support_stream2 != isSupportStream2)) {
+			// どれかの値が変更された時
+      		fragmentSize = fragment_size;
+      		maxFragmentNum = max_fragment_num;
+      		isSupportStream2 = support_stream2;
+      		maxPacketSize = max_packet_size;
+      		maxLatency = max_latency;
+      		maxNetworkLatency = max_network_latency;
+      		maxBitrate = max_bitrate;
+			paramSets = params;
+			result = true;
+		}
+		return result;
+  	}
 }

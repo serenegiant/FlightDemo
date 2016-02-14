@@ -63,10 +63,6 @@ public abstract class DeviceController implements IDeviceController {
 	protected ARNetworkManager mARNetManager;
 	protected boolean mMediaOpened;
 
-	protected int videoFragmentSize = IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_SIZE;
-	protected int videoFragmentMaximumNumber = IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER;
-	protected int videoMaxAckInterval;
-
 	private final Semaphore disconnectSent = new Semaphore(0);
 	protected volatile boolean mRequestCancel;
 	/**
@@ -390,13 +386,17 @@ public abstract class DeviceController implements IDeviceController {
 				}
 
 				prepare_network();
-				final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(discoveryIp, c2dPort, d2cPort, 1);
+				final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(
+					discoveryIp, mNetConfig.getC2DPort(), mNetConfig.getD2CPort(), 1);
 
 				if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
 					mMediaOpened = true;
 				} else {
 					Log.w(TAG, "error occurred: " + netALError.toString());
 					failed = true;
+				}
+				if (!failed) {
+					mNetConfig.setDeviceAddress(discoveryIp, discoveryPort);
 				}
 			} else if (device instanceof ARDiscoveryDeviceBLEService) {
 				// Bluetoothの時
@@ -482,14 +482,11 @@ public abstract class DeviceController implements IDeviceController {
 
 	private Semaphore discoverSemaphore;
 	private ARDiscoveryConnection discoveryData;
-	private int c2dPort, d2cPort;
 
 	private boolean ardiscoveryConnect() {
 		boolean ok = true;
 		ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
 		discoverSemaphore = new Semaphore(0);
-
-		d2cPort = mNetConfig.getInboundPort();
 
 		// 製品の種類を取得
 		final ARDiscoveryDeviceService device_service = getDeviceService();
@@ -498,9 +495,9 @@ public abstract class DeviceController implements IDeviceController {
 		discoveryData = new ARDiscoveryConnection() {
 			@Override
 			public String onSendJson () {
-                /* send a json with the Device to controller port */
-				final JSONObject jsonObject = DeviceController.this.onSendJson(new JSONObject());
-				return jsonObject.toString();
+                // ARNetworkConfigのonSendParamsを呼び出して必要なパラメータをセットした後
+				final JSONObject json = DeviceController.this.onSendJson(mNetConfig.onSendParams(new JSONObject()));
+				return json.toString();
 			}
 
 			@Override
@@ -508,13 +505,12 @@ public abstract class DeviceController implements IDeviceController {
 				/* Receive a json with the controller to Device port */
 				ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
 				try {
-					/* Convert String to json */
-					final JSONObject jsonObject = new JSONObject(dataRx);
-					if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY)) {
-						c2dPort = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY);
-					}
-					DeviceController.this.onReceiveJson(jsonObject, dataRx, ip);
-					/* Else: leave it to the default value. */
+					// JSON文字列をJSONオブジェクトに変換
+					final JSONObject json = new JSONObject(dataRx);
+					// ARDiscoveryConnectionで受信したJSONを使ってARNetworkConfigを更新する
+					mNetConfig.update(json);
+					// 継承クラスでも追加処理できるようにprotectedメソッドを呼び出す
+					DeviceController.this.onReceiveJson(json, dataRx, ip);
 				} catch (final JSONException e) {
 					Log.w(TAG, e);
 					error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_ERROR;
@@ -545,39 +541,37 @@ public abstract class DeviceController implements IDeviceController {
 		return ok && (error == ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK);
 	}
 
-	protected JSONObject onSendJson(final JSONObject jsonObject) {
-		try {
-			jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY, d2cPort);
-		} catch (final JSONException e) {
-			Log.w(TAG, e);
-		}
+	/**
+	 * 機体へのパラメータを送信する時の処理
+	 * ARNetworkConfigのonSendParamsで値がセットされた後呼ばれる
+	 * @param json
+	 * @return 引数として渡されたJSONObjectを返すこと
+	 */
+	protected JSONObject onSendJson(final JSONObject json) {
 		try {
 			if (DEBUG) Log.v(TAG, "android.os.Build.MODEL: "+android.os.Build.MODEL);
-			jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY, android.os.Build.MODEL);
+			json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY, android.os.Build.MODEL);
 		} catch (final JSONException e) {
 			Log.w(TAG, e);
 		}
 		try {
 			if (DEBUG) Log.v(TAG, "android.os.Build.DEVICE: "+android.os.Build.DEVICE);
-			jsonObject.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY, android.os.Build.DEVICE);
+			json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY, android.os.Build.DEVICE);
 		} catch (final JSONException e) {
 			Log.w(TAG, e);
 		}
-		return jsonObject;
+		return json;
 	}
 
-	protected void onReceiveJson(final JSONObject jsonObject, final String dataRx, final String ip) throws JSONException {
-		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY)) {
-			videoFragmentSize = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY);
-		}
-        /* Else: leave it to the default value. */
-		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY)) {
-			videoFragmentMaximumNumber = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY);
-		}
-		/* Else: leave it to the default value. */
-		if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY)) {
-			videoMaxAckInterval = jsonObject.getInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY);
-		}
+	/**
+	 * 機体からパラメータを受信した時の処理, ARNetworkConfigは既に更新済み
+	 * DeviceControllerでは特に処理なし
+	 * @param json
+	 * @param dataRx
+	 * @param ip
+	 * @throws JSONException
+	 */
+	protected void onReceiveJson(final JSONObject json, final String dataRx, final String ip) throws JSONException {
 	}
 
 	/** 機体からのデータ受信用スレッドを生成＆開始 */

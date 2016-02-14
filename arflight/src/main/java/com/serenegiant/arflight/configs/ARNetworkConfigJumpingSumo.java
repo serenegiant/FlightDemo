@@ -47,11 +47,11 @@ public class ARNetworkConfigJumpingSumo extends ARNetworkConfig {
         iobufferD2cEvents = (ARNetworkALManager.ARNETWORKAL_MANAGER_WIFI_ID_MAX / 2) - 2;
         iobufferD2cArstreamData = (ARNetworkALManager.ARNETWORKAL_MANAGER_WIFI_ID_MAX / 2) - 3;
         
-        inboundPort = 54321;
-        outboundPort = 43210;
+        d2cPort = 54321;
+        c2dPort = 43210;
         
         hasVideo = true;
-        videoMaxAckInterval = -1;
+        maxAckInterval = -1;
         
         bleNotificationIDs = null;
         
