@@ -248,7 +248,12 @@ public class BaseFragment extends Fragment {
 	 */
 	protected void setColorFilter(final ImageView image, final int color, final long reset_delay) {
 		if (image != null) {
-			image.setColorFilter(color);
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					image.setColorFilter(color);
+				}
+			});
 			if (reset_delay > 0) {
 				ResetColorFilterTask task = mResetColorFilterTasks.get(image);
 				if (task == null) {

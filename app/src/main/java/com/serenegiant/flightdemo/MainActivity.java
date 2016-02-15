@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.parrot.arsdk.ARSDK;
 import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.net.NetworkChangedReceiver;
@@ -31,44 +32,11 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 	private static final boolean DEBUG = false;    // FIXME 実働時はfalseにすること
 	private static String TAG = MainActivity.class.getSimpleName();
 
-	private static boolean isLoaded = false;
+//	private static boolean isLoaded = false;
 
 	static {
-		if (!isLoaded) {
-			try {
-				System.loadLibrary("curl");
-				System.loadLibrary("arsal");
-				System.loadLibrary("arsal_android");
-				System.loadLibrary("arnetworkal");
-				System.loadLibrary("arnetworkal_android");
-				System.loadLibrary("arnetwork");
-				System.loadLibrary("arnetwork_android");
-				System.loadLibrary("arcommands");
-				System.loadLibrary("arcommands_android");
-				System.loadLibrary("arstream");
-				System.loadLibrary("arstream_android");
-				System.loadLibrary("json");
-				System.loadLibrary("ardiscovery");
-				System.loadLibrary("ardiscovery_android");
-				System.loadLibrary("arcontroller");
-				System.loadLibrary("arcontroller_android");
-				System.loadLibrary("arutils");
-				System.loadLibrary("arutils_android");
-				System.loadLibrary("ardatatransfer");
-				System.loadLibrary("ardatatransfer_android");
-				System.loadLibrary("armedia");
-				System.loadLibrary("armedia_android");
-				System.loadLibrary("arupdater");
-				System.loadLibrary("arupdater_android");
-				System.loadLibrary("armavlink");
-				System.loadLibrary("armavlink_android");
-
-//				ARSALPrint.enableDebugPrints();	// XXX ARライブラリのデバッグメッセージを表示する時
-				isLoaded = true;
-			} catch (final Exception e) {
-				Log.e(TAG, "Oops (LoadLibrary)", e);
-			}
-		}
+//		ARSALPrint.enableDebugPrints();	// XXX ARライブラリのデバッグメッセージを表示する時
+		ARSDK.loadSDKLibs();
 	}
 
 	/**

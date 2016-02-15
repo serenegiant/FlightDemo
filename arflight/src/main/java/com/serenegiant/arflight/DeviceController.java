@@ -354,8 +354,8 @@ public abstract class DeviceController implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "onStarted:finished");
 	}
 
-	private String discoveryIp;
-	private int discoveryPort;
+//	private String discoveryIp;
+//	private int discoveryPort;
 
 	protected void prepare_network() {
 	}
@@ -377,17 +377,17 @@ public abstract class DeviceController implements IDeviceController {
 				// Wifiの時
 				if (DEBUG) Log.v(TAG, "Wifi接続開始");
 				final ARDiscoveryDeviceNetService netDevice = (ARDiscoveryDeviceNetService)device;
-				discoveryIp = netDevice.getIp();
-				discoveryPort = netDevice.getPort();
+				final String deviceIP = netDevice.getIp();
+				final int devicePort = netDevice.getPort();
 
 				/*  */
-				if (!ardiscoveryConnect()) {
+				if (!ardiscoveryConnect(deviceIP, devicePort)) {
 					failed = true;
 				}
 
 				prepare_network();
 				final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(
-					discoveryIp, mNetConfig.getC2DPort(), mNetConfig.getD2CPort(), 1);
+					deviceIP, mNetConfig.getC2DPort(), mNetConfig.getD2CPort(), 1);
 
 				if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
 					mMediaOpened = true;
@@ -427,9 +427,33 @@ public abstract class DeviceController implements IDeviceController {
 			}
 		} else if (mBridge != null) {
 			// FIXME スカイコントローラー経由でブリッジ接続した時
-			// SkyControllerからmARManagerとmARNetManagerをコピーすればいいんかな?
+			// FIXME SkyControllerからmARManagerとmARNetManagerをコピーすればいいんかな?
 			mARManager = mBridge.getALManager();
 			mARNetManager = mBridge.getNetManager();
+/*			mARManager = new ARNetworkALManager();
+			final ARNetworkConfig config = mBridge.getBridgeNetConfig();
+			if (!bridgeConnect(mBridge.connectDeviceInfo().productId(), config.getDeviceAddress(), config.getClientControlPort())) {
+				failed = true;
+			}
+			prepare_network();
+			final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(
+				config.getDeviceAddress(), config., mNetConfig.getD2CPort(), 1);
+			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
+				mMediaOpened = true;
+			} else {
+				Log.w(TAG, "error occurred: " + netALError.toString());
+				failed = true;
+			}
+			if (!failed) {
+				// ARNetworkManagerを生成
+				if (DEBUG) Log.v(TAG, "ARNetworkManagerを生成");
+				mARNetManager = new ARNetworkManagerExtend(mARManager,
+					mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
+				if (mARNetManager.isCorrectlyInitialized() == false) {
+					Log.e(TAG, "new ARNetworkManager failed");
+					failed = true;
+				}
+			} */
 		}
 		if (DEBUG) Log.v(TAG, "startNetwork:finished:failed=" + failed);
 		return failed;
@@ -480,7 +504,12 @@ public abstract class DeviceController implements IDeviceController {
 	private Semaphore discoverSemaphore;
 	private ARDiscoveryConnection discoveryData;
 
-	private boolean ardiscoveryConnect() {
+	/**
+	 * @param ip 接続先device(機体)のIPアドレス
+	 * @param port 接続先device(機体)のポート番号
+	 * @return
+	 */
+	private boolean ardiscoveryConnect(final String ip, final int port) {
 		boolean ok = true;
 		ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
 		discoverSemaphore = new Semaphore(0);
@@ -528,7 +557,74 @@ public abstract class DeviceController implements IDeviceController {
 
 		if (ok) {
 			// 接続監視スレッドを生成＆実行開始
-			final ConnectionThread connectionThread = new ConnectionThread();
+			final ConnectionThread connectionThread = new ConnectionThread(ip, port);
+			connectionThread.start();
+            /* wait the discovery of the connection data */
+			try {
+				discoverSemaphore.acquire();
+				error = connectionThread.getError();
+			} catch (final InterruptedException e) {
+				Log.w(TAG, e);
+			}
+
+            /* release discoveryData it not needed more */
+            if (discoveryData != null) {
+				discoveryData.dispose();
+				discoveryData = null;
+			}
+		}
+
+		return ok && (error == ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK);
+	}
+
+	private boolean bridgeConnect(final int product_id, final String ip, final int port) {
+		boolean ok = true;
+		ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
+		discoverSemaphore = new Semaphore(0);
+
+		// 製品の種類を取得
+		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(product_id);
+
+		discoveryData = new ARDiscoveryConnection() {
+			@Override
+			public String onSendJson () {
+				if (DEBUG) Log.v(TAG, "onSendJson:");
+				// XXX onSendJsonの方がonReceiveJsonよりも先に呼び出される
+                // ARNetworkConfigのonSendParamsを呼び出して必要なパラメータをセットした後
+                // 継承クラスでも追加処理できるようにonSendJsonを呼び出す
+				final JSONObject json = DeviceController.this.onSendJson(mNetConfig.onSendParams(new JSONObject()));
+				if (DEBUG) Log.v(TAG, "onSendJson:" + json.toString());
+				return json.toString();
+			}
+
+			/**
+			 * device(機体)からデータを受信した時の処理
+			 * @param dataRx 受信データ, JSON文字列
+			 * @param ip device(機体)のIPアドレス
+			 * @return
+			 */
+			@Override
+			public ARDISCOVERY_ERROR_ENUM onReceiveJson (final String dataRx, final String ip) {
+				if (DEBUG) Log.v(TAG, "onReceiveJson:ip=" + ip + ", " + dataRx);
+				ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
+				try {
+					// JSON文字列をJSONオブジェクトに変換
+					final JSONObject json = new JSONObject(dataRx);
+					// ARDiscoveryConnectionで受信したJSONを使ってARNetworkConfigを更新する
+					mNetConfig.update(json, ip);
+					// 継承クラスでも追加処理できるようにonReceiveJsonを呼び出す
+					DeviceController.this.onReceiveJson(json, dataRx, ip);
+				} catch (final JSONException e) {
+					Log.w(TAG, e);
+					error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_ERROR;
+				}
+				return error;
+			}
+		};
+
+		if (ok) {
+			// 接続監視スレッドを生成＆実行開始
+			final ConnectionThread connectionThread = new ConnectionThread(ip, port);
 			connectionThread.start();
             /* wait the discovery of the connection data */
 			try {
@@ -1286,6 +1382,18 @@ public abstract class DeviceController implements IDeviceController {
 	/** 機体との接続処理用スレッド */
 	private class ConnectionThread extends Thread {
 		private ARDISCOVERY_ERROR_ENUM error;
+
+		private final String discoveryIp;
+		private final int discoveryPort;
+
+		/**
+		 * @param ip 接続先device(機体)のIPアドレス
+		 * @param port 接続先device(機体)のポート番号
+		 */
+		public ConnectionThread(final String ip, final int port) {
+			discoveryIp = ip;
+			discoveryPort = port;
+		}
 
 		@Override
 		public void run() {

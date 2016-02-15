@@ -1,11 +1,13 @@
 package com.serenegiant.arflight;
 
+import android.media.MediaCodec;
 import android.util.Log;
 
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 import com.parrot.arsdk.arstream2.ARStream2Manager;
+import com.parrot.arsdk.arstream2.ARStream2Receiver;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
 /**
@@ -28,6 +30,10 @@ public class VideoStreamDelegater implements IVideoStreamController {
 		mNetConfig = config;
 	}
 
+	/**
+	 * startを呼び前にセットしないとダメ
+	 * @param video_stream
+	 */
 	@Override
 	public void setVideoStream(final IVideoStream video_stream) {
 		synchronized (mStreamSync) {
@@ -140,24 +146,20 @@ public class VideoStreamDelegater implements IVideoStreamController {
 						);
 						streamManager.start();
 						try {
-							for (; mIsRunning && mEnabled ;) {
-/*								final ARFrame frame = streamManager.getFrame(VIDEO_RECEIVE_TIMEOUT_MS);
-								if (frame != null) {
+							MediaCodec decoder;
+							final ARStream2Receiver mReceiver = new ARStream2Receiver(streamManager, mVideoStream);
+							mReceiver.start();
+							try {
+								for (; mIsRunning && mEnabled ;) {
 									try {
-										synchronized (mStreamSync) {
-											if (mVideoStream != null) {
-												mVideoStream.onReceiveFrame(frame);
-											}
-										}
-									} finally {
-										streamManager.recycle(frame);
+										Thread.sleep(100);
+									} catch (InterruptedException e) {
+										break;
 									}
-								} */
-								try {
-									Thread.sleep(10);
-								} catch (InterruptedException e) {
-									break;
 								}
+							} finally {
+								mReceiver.stop();
+								mReceiver.dispose();
 							}
 						} finally {
 							streamManager.stop();

@@ -254,7 +254,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		@Override
 		public void onARDrone3PilotingStateFlyingStateChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
-			((DroneStatus)mStatus).setFlyingState(state.getValue());
+			((DroneStatus)mStatus).setFlyingState(state.getValue() * 0x100);
 			callOnFlyingStateChangedUpdate(getState());
 		}
 	};
@@ -1951,11 +1951,13 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 //--------------------------------------------------------------------------------
 // IVideoStreamControllerのメソッド
 //--------------------------------------------------------------------------------
+
+	/**
+	 * sendVideoStreamingEnable/enableVideoStreamingにtrueをセットする前にIVideoStreamをセットしないとダメ
+	 * @param video_stream
+	 */
 	@Override
 	public void setVideoStream(final IVideoStream video_stream) {
-//		synchronized (mStreamSync) {
-//			mVideoStream = video_stream;
-//		}
 		if (mVideoStreamDelegater != null) {
 			mVideoStreamDelegater.setVideoStream(video_stream);
 		}
@@ -1982,33 +1984,6 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			return mVideoStreamDelegater.sendVideoStreamingEnable(_enabled);
 		}
 		return false;
-
-//		boolean sentStatus = true;
-//
-//		boolean enabled = _enabled;
-//		if (mVideoThread != null) {
-//			mVideoThread.enabled(enabled);
-//		} else {
-//			enabled = false;
-//		}
-//
-//		final ARCommand cmd = new ARCommand();
-//
-//		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaStreamingVideoEnable((byte)(enabled ? 1 : 0));
-//		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-//			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-//				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
-//			cmd.dispose();
-//		}
-//
-//		if (!sentStatus) {
-//			Log.e(TAG, "Failed to send Exposure command.");
-//		}
-//		if (mVideoThread != null) {
-//			mVideoThread.enabled(enabled && sentStatus);
-//		}
-//
-//		return sentStatus;
 	}
 
 //********************************************************************************

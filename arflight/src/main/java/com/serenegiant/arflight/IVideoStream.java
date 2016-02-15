@@ -1,6 +1,8 @@
 package com.serenegiant.arflight;
 
-public interface IVideoStream {
+import com.parrot.arsdk.arstream2.ARStream2ReceiverListener;
+
+public interface IVideoStream extends ARStream2ReceiverListener {
 	public void onReceiveFrame(final ARFrame frame);
 	public void onFrameTimeout();
 }

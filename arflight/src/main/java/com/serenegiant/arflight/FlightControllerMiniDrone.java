@@ -120,7 +120,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 		public void onMiniDronePilotingStateFlyingStateChangedUpdate(
 			ARCOMMANDS_MINIDRONE_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state) {
 			if (DEBUG) Log.v(TAG, "onMiniDronePilotingStateFlyingStateChangedUpdate:");
-			((DroneStatus)mStatus).setFlyingState(state.getValue());
+			((DroneStatus)mStatus).setFlyingState(state.getValue() * 0x100);
 			callOnFlyingStateChangedUpdate(getState());
 		}
 	};

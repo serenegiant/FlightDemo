@@ -10,6 +10,8 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.Surface;
 
+import com.parrot.arsdk.arstream2.ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_ENUM;
+import com.parrot.arsdk.arstream2.ARStream2ReceiverListener;
 import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.EglTask;
 import com.serenegiant.glutils.GLDrawer2D;
@@ -19,7 +21,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class VideoStream implements IVideoStream {
-	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = "VideoStream";
 
 	private static final String VIDEO_MIME_TYPE = "video/avc";
@@ -98,6 +100,31 @@ public class VideoStream implements IVideoStream {
 		Log.w(TAG, "onFrameTimeout");
 	}
 
+//--------------------------------------------------------------------------------
+// ARStream2ReceiverListenerのメソッド
+//--------------------------------------------------------------------------------
+	@Override
+	public ByteBuffer[] onSpsPpsReady(final ByteBuffer sps, final ByteBuffer pps) {
+		if (DEBUG) Log.v(TAG, "onSpsPpsReady:");
+		mDecodeTask.initMediaCodec();
+		mDecodeTask.configureMediaCodec(sps, pps, mRendererTask.getSurface());
+		return mDecodeTask.inputBuffers;
+	}
+
+	@Override
+	public int getFreeBuffer() {
+		return mDecodeTask.mediaCodec.dequeueInputBuffer(VIDEO_INPUT_TIMEOUT_US);
+	}
+
+	@Override
+	public void onBufferReady(final int bufferIdx, final long auTimestamp, final long auTimestampShifted, final ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_ENUM auSyncType) {
+		final int flag = auSyncType == ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_ENUM.ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_IFRAME
+			? MediaCodec.BUFFER_FLAG_KEY_FRAME : 0;
+		final int sz = mDecodeTask.inputBuffers[bufferIdx].limit();
+		mDecodeTask.mediaCodec.queueInputBuffer(bufferIdx, 0, sz, auTimestampShifted, flag);
+	}
+//--------------------------------------------------------------------------------
+
 	/** 受信したh.264映像をデコードして描画タスクにキューイングするタスク */
 	private final class DecodeTask implements Runnable {
 		private MediaCodec mediaCodec;
@@ -157,9 +184,6 @@ public class VideoStream implements IVideoStream {
 						if (DEBUG) Log.v(TAG, "デコーダーの準備ができてない/入力キューが満杯");
 						waitForIFrame = true;
 					}
-				} else {
-//					if (DEBUG) Log.v(TAG, "queueFrame:フレームをドロップ:isCodecConfigured=" + isCodecConfigured
-//						+ ",waitForIFrame=" + waitForIFrame + ",isIFrame=" + (frame != null ? frame.isIFrame() : false));
 				}
 			} else {
 				Log.w(TAG, "MediaCodecが生成されていない");
@@ -231,6 +255,18 @@ public class VideoStream implements IVideoStream {
 		private void configureMediaCodec(final ByteBuffer csdBuffer, final Surface surface) {
 			final MediaFormat format = MediaFormat.createVideoFormat(VIDEO_MIME_TYPE, VIDEO_WIDTH, VIDEO_HEIGHT);
 			format.setByteBuffer("csd-0", csdBuffer);
+
+			mediaCodec.configure(format, surface, null, 0);
+			mediaCodec.start();
+
+			inputBuffers = mediaCodec.getInputBuffers();
+			isCodecConfigured = true;
+		}
+
+		private void configureMediaCodec(final ByteBuffer sps, final ByteBuffer pps, final Surface surface) {
+			final MediaFormat format = MediaFormat.createVideoFormat(VIDEO_MIME_TYPE, VIDEO_WIDTH, VIDEO_HEIGHT);
+			format.setByteBuffer("csd-0", sps);
+			format.setByteBuffer("csd-1", pps);
 
 			mediaCodec.configure(format, surface, null, 0);
 			mediaCodec.start();

@@ -684,7 +684,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
 				setColorFilter((ImageView)view);
-//				final boolean isFlying = (getState() &  IFlightController.STATE_MASK_FLYING) != 0;
 				if (!isFlying()) {
 //					takeOff();
 					Toast.makeText(getActivity(), R.string.notify_takeoff, Toast.LENGTH_SHORT).show();
@@ -806,8 +805,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				setColorFilter((ImageView)view);
 				if (!isFlying()) {
 					takeOff();
-				} else {
-					landing();
+					return true;
 				}
 			}
 			return false;
@@ -1025,16 +1023,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 					}
 				}
 			}, 100);
-
-/*			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					mModelView.onPause();
-					mModelView.setVisibility(View.GONE);
-					mVideoTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
-					mVideoTextureView.setVisibility(View.VISIBLE);
-				}
-			}); */
 		}
 		super.startVideoStreaming();
 	}
@@ -1047,15 +1035,6 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		if (screen instanceof IVideoScreen) {
 			((IVideoScreen) screen).setEnableVideo(false);
 		}
-/*		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				mModelView.onResume();
-				mModelView.setVisibility(View.VISIBLE);
-				mVideoTextureView.setVisibility(View.GONE);
-				mVideoTextureView.setSurfaceTextureListener(null);
-			}
-		}); */
 		mSurfaceId = 0;
 		if (mController instanceof IVideoStreamController) {
 			((IVideoStreamController)mController).setVideoStream(null);

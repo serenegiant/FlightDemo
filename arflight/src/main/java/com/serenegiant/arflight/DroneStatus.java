@@ -30,7 +30,7 @@ public class DroneStatus extends CommonStatus {
 //	MEDIA_READY => MEDIA_BUSY => MEDIA_SUCCESS => MEDIA_READY
 //	MEDIA_READY => MEDIA_BUSY => MEDIA_ERROR => MEDIA_READY
 
-	private int mFlyingState = 0;
+	private int mFlyingState = STATE_FLYING_LANDED;
 	private final AttributeMotor[] mMotors;
 	private int mStillCaptureState = MEDIA_UNAVAILABLE;
 	private int mVideoRecordingState = MEDIA_UNAVAILABLE;
