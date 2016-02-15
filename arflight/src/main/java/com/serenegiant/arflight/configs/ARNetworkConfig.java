@@ -41,16 +41,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public abstract class ARNetworkConfig {
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = ARNetworkConfig.class.getSimpleName();
 
 	public static final int ARSTREAM2_SERVER_CONTROL_PORT = 5005;
 	public static final int ARSTREAM2_SERVER_STREAM_PORT = 5004;
 
-	protected String deviceAddress;
-	protected int devicePort;
 	protected long pcmdLoopIntervalsMs = 50;
 	protected int iobufferC2dNak = -1;
 	protected int iobufferC2dAck = -1;
@@ -60,8 +60,10 @@ public abstract class ARNetworkConfig {
 	protected int iobufferD2cEvents = -1;
 	protected int iobufferD2cArstreamData = -1;
 
+	protected String deviceAddress;
 	protected int d2cPort = -1;
 	protected int c2dPort = -1;
+	protected int connectionStatus = -1;
 
 	protected final List<ARNetworkIOBufferParam> c2dParams = new ArrayList<ARNetworkIOBufferParam>();
 	protected final List<ARNetworkIOBufferParam> d2cParams = new ArrayList<ARNetworkIOBufferParam>();
@@ -84,9 +86,27 @@ public abstract class ARNetworkConfig {
 
 	protected int bleNotificationIDs[] = null;
 
-	public void setDeviceAddress(final String ip, final int port) {
-		deviceAddress = ip;
-		devicePort = port;
+	@Override
+	protected void finalize() throws Throwable {
+		release();
+		super.finalize();
+	}
+
+	public void release() {
+		for (final Iterator<ARNetworkIOBufferParam> iter = c2dParams.iterator() ; iter.hasNext() ;) {
+			final ARNetworkIOBufferParam param = iter.next();
+			if (param != null) {
+				param.dispose();
+			}
+		}
+		c2dParams.clear();
+		for (final Iterator<ARNetworkIOBufferParam> iter = d2cParams.iterator() ; iter.hasNext() ;) {
+			final ARNetworkIOBufferParam param = iter.next();
+			if (param != null) {
+				param.dispose();
+			}
+		}
+        d2cParams.clear();
 	}
 
 	public String getDeviceAddress() {
@@ -94,7 +114,25 @@ public abstract class ARNetworkConfig {
 	}
 
 	public int getDevicePort() {
-		return devicePort;
+		return d2cPort;
+	}
+
+	/**
+	 * Return the port number for WiFi devices.
+	 */
+	public int getD2CPort() {
+		return d2cPort;
+	}
+
+	/**
+	 * Return the port number for WiFi devices.
+	 */
+	public int getC2DPort() {
+		return c2dPort;
+	}
+
+	public int getConnectionStatus() {
+		return connectionStatus;
 	}
 
 	public long getPCMDLoopIntervalsMs() {
@@ -189,20 +227,6 @@ public abstract class ARNetworkConfig {
 	}
 
 	/**
-	 * Return the port number for WiFi devices.
-	 */
-	public int getD2CPort() {
-		return d2cPort;
-	}
-
-	/**
-	 * Return the port number for WiFi devices.
-	 */
-	public int getC2DPort() {
-		return c2dPort;
-	}
-
-	/**
 	 * specify the ID to notify
 	 * Android 4.3 BLE can notify only 4 characteristics
 	 */
@@ -264,15 +288,23 @@ public abstract class ARNetworkConfig {
 	 */
 	public void addStreamReaderIOBuffer(final int maxFragmentSize, final int maxNumberOfFragment) {
 		if ((iobufferC2dArstreamAck != -1) && (iobufferD2cArstreamData != -1)) {
-			for (final ARNetworkIOBufferParam param : c2dParams) {
+			Iterator<ARNetworkIOBufferParam> iter = c2dParams.iterator();
+			for ( ; iter.hasNext() ;) {
+				final ARNetworkIOBufferParam param = iter.next();
 				if (param.getId() == iobufferC2dArstreamAck) {
 					c2dParams.remove(param);
+					param.dispose();
+					iter = c2dParams.iterator();
 				}
 			}
 
-			for (final ARNetworkIOBufferParam param : d2cParams) {
+			iter = d2cParams.iterator();
+			for ( ; iter.hasNext() ;) {
+				final ARNetworkIOBufferParam param = iter.next();
 				if (param.getId() == iobufferD2cArstreamData) {
 					d2cParams.remove(param);
+					param.dispose();
+					iter = d2cParams.iterator();
 				}
 			}
             
@@ -283,6 +315,7 @@ public abstract class ARNetworkConfig {
 	}
 
 	public JSONObject onSendParams(final JSONObject json) {
+		if (DEBUG) Log.v(TAG, "onSendParams:" + json);
 		try {
 			json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY, d2cPort);
 		} catch (final JSONException e) {
@@ -296,8 +329,11 @@ public abstract class ARNetworkConfig {
 	 * @param json
 	 * @return
 	 */
-	public boolean update(final JSONObject json) {
+	public boolean update(final JSONObject json, final String ip) {
+		if (DEBUG) Log.v(TAG, "update:ip=" + ip + ", " + json);
 		boolean result = false;
+		deviceAddress = ip;
+		connectionStatus = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_STATUS_KEY, -1);
 		c2dPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY, c2dPort);
 		maxAckInterval = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY, -1);
 		clientStreamPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY, -1);

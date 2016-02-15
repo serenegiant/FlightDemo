@@ -34,6 +34,8 @@ import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_FRAME_TYPE_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 
+import java.util.Iterator;
+
 public class ARNetworkConfigJumpingSumo extends ARNetworkConfig {
     private static final String TAG = ARNetworkConfigJumpingSumo.class.getSimpleName();
     
@@ -56,6 +58,12 @@ public class ARNetworkConfigJumpingSumo extends ARNetworkConfig {
         bleNotificationIDs = null;
         
         // コントローラー => device(機体)へのパラメータ
+		for (final Iterator<ARNetworkIOBufferParam> iter = c2dParams.iterator() ; iter.hasNext() ;) {
+			final ARNetworkIOBufferParam param = iter.next();
+			if (param != null) {
+				param.dispose();
+			}
+		}
         c2dParams.clear();
         c2dParams.add (new ARNetworkIOBufferParam (iobufferC2dNak,
 			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
@@ -75,6 +83,12 @@ public class ARNetworkConfigJumpingSumo extends ARNetworkConfig {
 			false));
         
         // device(機体) => コントローラーへのパラメータ
+		for (final Iterator<ARNetworkIOBufferParam> iter = d2cParams.iterator() ; iter.hasNext() ;) {
+			final ARNetworkIOBufferParam param = iter.next();
+			if (param != null) {
+				param.dispose();
+			}
+		}
         d2cParams.clear();
         d2cParams.add(new ARNetworkIOBufferParam (iobufferD2cNavdata,
 			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,

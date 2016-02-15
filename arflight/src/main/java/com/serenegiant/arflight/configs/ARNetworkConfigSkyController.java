@@ -1,5 +1,7 @@
 package com.serenegiant.arflight.configs;
 
+import com.parrot.arsdk.ardiscovery.ARDiscoveryConnection;
+
 import org.json.JSONObject;
 
 /**
@@ -10,6 +12,7 @@ public class ARNetworkConfigSkyController extends ARNetworkConfigARDrone3 {
 
 	private static final int C2D_PORT = 35412;
 
+	private String version = "";
 	public ARNetworkConfigSkyController() {
 		super();
 		c2dPort = C2D_PORT;
@@ -41,7 +44,13 @@ public class ARNetworkConfigSkyController extends ARNetworkConfigARDrone3 {
 	}
 
 	@Override
-	public boolean update(final JSONObject json) {
-		return super.update(json);
+	public boolean update(final JSONObject json, final String ip) {
+		boolean result = super.update(json, ip);
+		version = json.optString(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION, version);
+		return result;
+	}
+
+	public String getSkyControllerVersion() {
+		return version;
 	}
 }

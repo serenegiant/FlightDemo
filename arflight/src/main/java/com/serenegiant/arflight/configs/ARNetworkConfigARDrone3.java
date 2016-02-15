@@ -35,6 +35,8 @@ import com.parrot.arsdk.arnetworkal.ARNETWORKAL_FRAME_TYPE_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.parrot.arsdk.arstream.ARStreamReader;
 
+import java.util.Iterator;
+
 public class ARNetworkConfigARDrone3 extends ARNetworkConfig {
     private static final String TAG = ARNetworkConfigARDrone3.class.getSimpleName();
 
@@ -57,6 +59,12 @@ public class ARNetworkConfigARDrone3 extends ARNetworkConfig {
         bleNotificationIDs = null;
         
         // コントローラー => device(機体)へのパラメータ
+		for (final Iterator<ARNetworkIOBufferParam> iter = c2dParams.iterator() ; iter.hasNext() ;) {
+			final ARNetworkIOBufferParam param = iter.next();
+			if (param != null) {
+				param.dispose();
+			}
+		}
         c2dParams.clear();
         c2dParams.add(new ARNetworkIOBufferParam(iobufferC2dNak,
 			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
@@ -85,6 +93,12 @@ public class ARNetworkConfigARDrone3 extends ARNetworkConfig {
 		c2dParams.add(ARStreamReader.newAckARNetworkIOBufferParam(iobufferC2dArstreamAck));
 
         // device(機体) => コントローラーへのパラメータ
+		for (final Iterator<ARNetworkIOBufferParam> iter = d2cParams.iterator() ; iter.hasNext() ;) {
+			final ARNetworkIOBufferParam param = iter.next();
+			if (param != null) {
+				param.dispose();
+			}
+		}
         d2cParams.clear();
         d2cParams.add (new ARNetworkIOBufferParam (iobufferD2cNavdata,
 			ARNETWORKAL_FRAME_TYPE_ENUM.ARNETWORKAL_FRAME_TYPE_DATA,
@@ -106,7 +120,6 @@ public class ARNetworkConfigARDrone3 extends ARNetworkConfig {
         commandsBuffers = new int[] {
             iobufferD2cNavdata,
             iobufferD2cEvents,
-			iobufferC2dEmergency,
         };
     }
     

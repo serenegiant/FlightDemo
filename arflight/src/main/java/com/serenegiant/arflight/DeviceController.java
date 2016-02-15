@@ -395,9 +395,6 @@ public abstract class DeviceController implements IDeviceController {
 					Log.w(TAG, "error occurred: " + netALError.toString());
 					failed = true;
 				}
-				if (!failed) {
-					mNetConfig.setDeviceAddress(discoveryIp, discoveryPort);
-				}
 			} else if (device instanceof ARDiscoveryDeviceBLEService) {
 				// Bluetoothの時
 				if (DEBUG) Log.v(TAG, "Bluetooth接続開始");
@@ -495,21 +492,31 @@ public abstract class DeviceController implements IDeviceController {
 		discoveryData = new ARDiscoveryConnection() {
 			@Override
 			public String onSendJson () {
+				if (DEBUG) Log.v(TAG, "onSendJson:");
+				// XXX onSendJsonの方がonReceiveJsonよりも先に呼び出される
                 // ARNetworkConfigのonSendParamsを呼び出して必要なパラメータをセットした後
+                // 継承クラスでも追加処理できるようにonSendJsonを呼び出す
 				final JSONObject json = DeviceController.this.onSendJson(mNetConfig.onSendParams(new JSONObject()));
+				if (DEBUG) Log.v(TAG, "onSendJson:" + json.toString());
 				return json.toString();
 			}
 
+			/**
+			 * device(機体)からデータを受信した時の処理
+			 * @param dataRx 受信データ, JSON文字列
+			 * @param ip device(機体)のIPアドレス
+			 * @return
+			 */
 			@Override
 			public ARDISCOVERY_ERROR_ENUM onReceiveJson (final String dataRx, final String ip) {
-				/* Receive a json with the controller to Device port */
+				if (DEBUG) Log.v(TAG, "onReceiveJson:ip=" + ip + ", " + dataRx);
 				ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
 				try {
 					// JSON文字列をJSONオブジェクトに変換
 					final JSONObject json = new JSONObject(dataRx);
 					// ARDiscoveryConnectionで受信したJSONを使ってARNetworkConfigを更新する
-					mNetConfig.update(json);
-					// 継承クラスでも追加処理できるようにprotectedメソッドを呼び出す
+					mNetConfig.update(json, ip);
+					// 継承クラスでも追加処理できるようにonReceiveJsonを呼び出す
 					DeviceController.this.onReceiveJson(json, dataRx, ip);
 				} catch (final JSONException e) {
 					Log.w(TAG, e);
