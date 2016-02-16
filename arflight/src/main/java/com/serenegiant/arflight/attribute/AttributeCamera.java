@@ -28,6 +28,10 @@ public class AttributeCamera {
 	/** ティルトコントロール */
 	private AttributeFloat mPan = new AttributeFloat();
 
+	/** 自動録画設定 */
+	private boolean enableAutoRecord;
+	private int autoRecordMassStorageId;
+
 	public void setSettings(final float fov, final float panMax, final float panMin, final float tiltMax, final float tiltMin) {
 		synchronized (mSync) {
 			mFov = fov;
@@ -146,6 +150,27 @@ public class AttributeCamera {
 	public boolean isVideoStreamingEnabled() {
 		synchronized (mSync) {
 			return mVideoStreamingState == 0;
+		}
+	}
+
+	public void autoRecord(final boolean enable, final int mass_storage_id) {
+		synchronized (mSync) {
+			enableAutoRecord = enable;
+			if (enable) {
+				autoRecordMassStorageId = mass_storage_id;
+			}
+		}
+	}
+
+	public boolean isAutoRecordEnabled() {
+		synchronized (mSync) {
+			return enableAutoRecord;
+		}
+	}
+
+	public int autoRecordMassStorageId() {
+		synchronized (mSync) {
+			return enableAutoRecord ? autoRecordMassStorageId : 0;
 		}
 	}
 }

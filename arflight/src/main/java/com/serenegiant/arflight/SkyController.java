@@ -172,7 +172,7 @@ public class SkyController extends DeviceController implements IBridgeController
 	@Override
 	public VideoStreamDelegater getVideoStreamDelegater() {
 		if (mVideoStreamDelegater == null) {
-			mVideoStreamDelegater = new VideoStreamDelegater(this, getBridgeNetConfig());
+			mVideoStreamDelegater = new VideoStreamDelegater(this, mNetConfig);
 		}
 		return mVideoStreamDelegater;
 	}

@@ -123,4 +123,14 @@ public class ARNetworkConfigARDrone3 extends ARNetworkConfig {
         };
     }
     
+//	@Override
+//	public JSONObject onSendParams(final JSONObject json) {
+//		super.onSendParams(json);
+//		return json;
+//	}
+
+//	@Override
+//	public boolean update(final JSONObject json, final String ip) {
+//		return super.update(json, ip);
+//	}
 }

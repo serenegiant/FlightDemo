@@ -544,7 +544,9 @@ public abstract class DeviceController implements IDeviceController {
 					// JSON文字列をJSONオブジェクトに変換
 					final JSONObject json = new JSONObject(dataRx);
 					// ARDiscoveryConnectionで受信したJSONを使ってARNetworkConfigを更新する
-					mNetConfig.update(json, ip);
+					if (mNetConfig.update(json, ip)) {
+						// FIXME 設定が変化した時は切断/再接続する?
+					}
 					// 継承クラスでも追加処理できるようにonReceiveJsonを呼び出す
 					DeviceController.this.onReceiveJson(json, dataRx, ip);
 				} catch (final JSONException e) {

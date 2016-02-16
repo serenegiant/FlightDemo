@@ -1,6 +1,5 @@
 package com.serenegiant.arflight;
 
-import android.media.MediaCodec;
 import android.util.Log;
 
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
@@ -19,19 +18,22 @@ public class VideoStreamDelegater implements IVideoStreamController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = VideoStreamDelegater.class.getSimpleName();
 
+	private static final boolean USE_ARSTREAM2 = false;
+
 	private final DeviceController mParent;
+	private final ARNetworkConfig mNetConfig;
 	private final Object mStreamSync = new Object();
 	private IVideoStream mVideoStream;
 	private VideoThread mVideoThread;
-	protected final ARNetworkConfig mNetConfig;
 
-	public VideoStreamDelegater(final DeviceController parent, ARNetworkConfig config) {
+	public VideoStreamDelegater(final DeviceController parent, final ARNetworkConfig config) {
 		mParent = parent;
 		mNetConfig = config;
 	}
 
 	/**
-	 * startを呼び前にセットしないとダメ
+	 * enableVideoStreaming/sendVideoStreamingEnable(true)を呼ぶ前にセットしないとダメ
+	 * ライブ映像ストリームが有効な間にnullににちゃだめ。いまはデッドロックの危険があって排他制御してない
 	 * @param video_stream
 	 */
 	@Override
@@ -43,7 +45,7 @@ public class VideoStreamDelegater implements IVideoStreamController {
 
 	@Override
 	public boolean isVideoStreamingEnabled() {
-		return true;
+		return mVideoThread != null && mVideoThread.isEnabled();
 	}
 
 	@Override
@@ -56,17 +58,16 @@ public class VideoStreamDelegater implements IVideoStreamController {
 	 * @param _enabled true: ビデオストリーミング開始, false:ビデオストリーミング停止
 	 * @return
 	 */
-	@Override
 	public boolean sendVideoStreamingEnable(final boolean _enabled) {
-		boolean sentStatus = true;
-
 		boolean enabled = _enabled;
 		if (mVideoThread != null) {
 			mVideoThread.enabled(enabled);
 		} else {
 			enabled = false;
 		}
+		if (DEBUG) Log.v(TAG, "sendVideoStreamingEnable:enabled=" + _enabled + ", enabled=" + enabled);
 
+		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3MediaStreamingVideoEnable((byte)(enabled ? 1 : 0));
@@ -77,7 +78,7 @@ public class VideoStreamDelegater implements IVideoStreamController {
 		}
 
 		if (!sentStatus) {
-			Log.e(TAG, "Failed to send Exposure command.");
+			Log.e(TAG, "Failed to send MediaStreamingVideoEnable command.");
 		}
 		if (mVideoThread != null) {
 			mVideoThread.enabled(enabled && sentStatus);
@@ -133,39 +134,59 @@ public class VideoStreamDelegater implements IVideoStreamController {
 				}
 				if (mNetConfig.hasVideo()) {	// これではねられることはないはず
 					if (mNetConfig.isSupportStream2()) {
-						final ARStream2Manager streamManager = new ARStream2Manager(
+						if (DEBUG) Log.v(TAG, "ARStream2を使う");
+//						public ARStream2Manager(String serverAddress, int serverStreamPort, int serverControlPort,
+//							int clientStreamPort, int clientControlPort,
+//							int maxPacketSize, int maxBitrate, int maxLatency, int maxNetworkLatency)
+						if (DEBUG) Log.v(TAG, String.format("ARStream2Manager生成:ip=%s,srv(stream=%d,ctrl=%d),client(stream=%d,ctrl=%d)",
 							mNetConfig.getDeviceAddress(),
-							ARNetworkConfig.ARSTREAM2_SERVER_STREAM_PORT,
-							ARNetworkConfig.ARSTREAM2_SERVER_CONTROL_PORT,
+							mNetConfig.getServerStreamPort(),
+							mNetConfig.getServerControlPort(),
 							mNetConfig.getClientStreamPort(),
-							mNetConfig.getClientControlPort(),
-							mNetConfig.getMaxPacketSize(),
-							mNetConfig.getMaxBitrate(),
-							mNetConfig.getMaxLatency(),
-							mNetConfig.getMaxNetworkLatency()
-						);
-						streamManager.start();
-						try {
-							MediaCodec decoder;
-							final ARStream2Receiver mReceiver = new ARStream2Receiver(streamManager, mVideoStream);
-							mReceiver.start();
+							mNetConfig.getClientControlPort()
+						));
+						if (USE_ARSTREAM2) {
+							final ARStream2Manager streamManager = new ARStream2Manager(
+								mNetConfig.getDeviceAddress(),
+								mNetConfig.getServerStreamPort(),
+								mNetConfig.getServerControlPort(),
+								mNetConfig.getClientStreamPort(),
+								mNetConfig.getClientControlPort(),
+								mNetConfig.getMaxPacketSize(),
+								mNetConfig.getMaxBitrate(),
+								mNetConfig.getMaxLatency(),
+								mNetConfig.getMaxNetworkLatency()
+							);
+							if (DEBUG) Log.v(TAG, "ARStream2Manager開始");
+							streamManager.start();
 							try {
-								for (; mIsRunning && mEnabled ;) {
-									try {
-										Thread.sleep(100);
-									} catch (InterruptedException e) {
-										break;
+								if (DEBUG) Log.v(TAG, "ARStream2Receiver生成:mVideoStream=" + mVideoStream);
+								final ARStream2Receiver mReceiver = new ARStream2Receiver(streamManager, mVideoStream);
+								if (DEBUG) Log.v(TAG, "ARStream2Receiver開始");
+								mReceiver.start();
+								try {
+									for (; mIsRunning && mEnabled ;) {
+										try {
+											Thread.sleep(100);
+										} catch (InterruptedException e) {
+											break;
+										}
 									}
+								} finally {
+									if (DEBUG) Log.v(TAG, "ARStream2Receiver停止&破棄");
+									mReceiver.stop();
+									mReceiver.dispose();
 								}
 							} finally {
-								mReceiver.stop();
-								mReceiver.dispose();
+								if (DEBUG) Log.v(TAG, "ARStream2Manager停止&破棄");
+								streamManager.stop();
+								streamManager.dispose();
 							}
-						} finally {
-							streamManager.stop();
-							streamManager.dispose();
+						} else {
+
 						}
 					} else {
+						if (DEBUG) Log.v(TAG, "ARStreamを使う");
 						final ARStreamManager streamManager = new ARStreamManager(mParent.getNetManager(),
 							mNetConfig.getVideoDataIOBuffer(), mNetConfig.getVideoAckIOBuffer(),
 							mNetConfig.getFragmentSize(), mNetConfig.getMaxAckInterval());
@@ -212,7 +233,6 @@ public class VideoStreamDelegater implements IVideoStreamController {
 	 */
 	public void stopVideoThread() {
 		if (DEBUG) Log.v(TAG, "stopVideoThread:");
-        /* Cancel the looper thread and block until it is stopped. */
 		if (null != mVideoThread) {
 			mVideoThread.stopThread();
 			try {

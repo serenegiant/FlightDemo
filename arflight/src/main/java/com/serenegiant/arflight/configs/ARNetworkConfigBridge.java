@@ -1,15 +1,8 @@
 package com.serenegiant.arflight.configs;
 
-import android.util.Log;
-
-import com.parrot.arsdk.ardiscovery.ARDiscoveryConnection;
 import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_FRAME_TYPE_ENUM;
-import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
-import com.parrot.arsdk.arstream.ARStreamReader;
-import com.serenegiant.arflight.IVideoStreamController;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Iterator;
@@ -31,8 +24,9 @@ public class ARNetworkConfigBridge extends ARNetworkConfig {
 
 		connectionStatus = src.connectionStatus;
 		deviceAddress = src.deviceAddress;
-		d2cPort = src.d2cPort;
-		c2dPort = 35412;
+
+		d2cPort = 54321;
+		c2dPort = 43210;
 
 		hasVideo = true;
 // ARStream用
@@ -43,6 +37,8 @@ public class ARNetworkConfigBridge extends ARNetworkConfig {
 		isSupportStream2 = src.isSupportStream2;
 		clientStreamPort = src.clientStreamPort;
 		clientControlPort = src.clientControlPort;
+		serverStreamPort = src.serverStreamPort;
+		serverControlPort = src.serverControlPort;
 		maxPacketSize = src.maxPacketSize;
 		maxLatency = src.maxLatency;
 		maxNetworkLatency = src.maxNetworkLatency;
@@ -118,33 +114,14 @@ public class ARNetworkConfigBridge extends ARNetworkConfig {
 		};
 	}
 
-	@Override
-	public JSONObject onSendParams(final JSONObject json) {
-		super.onSendParams(json);
-//		try {
-//			json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY, 35412);
-//			json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY, getFragmentSize());
-//			json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY, getMaxFragmentNum());
-//			json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY, -1);
-//			json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION, skyControllerVersion);
-//			json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_STATUS_KEY, connectionStatus);
-//			if (isSupportStream2()) {
-//				json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY, 5004);
-//				json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY, 5005);
-//				json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY, getMaxPacketSize());
-//				json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY, getMaxLatency());
-//				json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY, getMaxNetworkLatency());
-//				json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY, getMaxBitrate());
-//				json.put(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY, getParamSets());
-//			}
-//		} catch (JSONException e) {
-//			Log.w(TAG, e);
-//		}
-		return json;
-	}
+//	@Override
+//	public JSONObject onSendParams(final JSONObject json) {
+//		super.onSendParams(json);
+//		return json;
+//	}
 
-	@Override
-	public boolean update(final JSONObject json, final String ip) {
-		return super.update(json, ip);
-	}
+//	@Override
+//	public boolean update(final JSONObject json, final String ip) {
+//		return super.update(json, ip);
+//	}
 }

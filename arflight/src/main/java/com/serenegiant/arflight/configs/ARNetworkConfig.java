@@ -48,8 +48,8 @@ public abstract class ARNetworkConfig {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = ARNetworkConfig.class.getSimpleName();
 
-	public static final int ARSTREAM2_SERVER_CONTROL_PORT = 5005;
-	public static final int ARSTREAM2_SERVER_STREAM_PORT = 5004;
+	public static final int ARSTREAM2_CLIENT_CONTROL_PORT = 55005;
+	public static final int ARSTREAM2_CLIENT_STREAM_PORT = 55004;
 
 	protected long pcmdLoopIntervalsMs = 50;
 	protected int iobufferC2dNak = -1;
@@ -78,6 +78,8 @@ public abstract class ARNetworkConfig {
 	protected boolean isSupportStream2 = false;
 	protected int clientStreamPort = -1;
 	protected int clientControlPort = -1;
+	protected int serverStreamPort = -1;	// 5005
+	protected int serverControlPort = -1;	// 5004
 	protected int maxPacketSize;
 	protected int maxLatency;
 	protected int maxNetworkLatency;
@@ -261,6 +263,14 @@ public abstract class ARNetworkConfig {
 		return clientControlPort;
 	}
 
+	public int getServerStreamPort() {
+		return serverStreamPort;
+	}
+
+	public int getServerControlPort() {
+		return serverStreamPort;
+	}
+
 	public int getMaxPacketSize() {
 		return maxPacketSize;
 	}
@@ -287,8 +297,10 @@ public abstract class ARNetworkConfig {
 	 * @param maxNumberOfFragment Maximum number of the fragment to send
 	 */
 	public void addStreamReaderIOBuffer(final int maxFragmentSize, final int maxNumberOfFragment) {
-		if ((iobufferC2dArstreamAck != -1) && (iobufferD2cArstreamData != -1)) {
-			Iterator<ARNetworkIOBufferParam> iter = c2dParams.iterator();
+		Iterator<ARNetworkIOBufferParam> iter;
+		/* add the Stream parameters for the new connection */
+		if (iobufferC2dArstreamAck != -1) {
+			iter = c2dParams.iterator();
 			for ( ; iter.hasNext() ;) {
 				final ARNetworkIOBufferParam param = iter.next();
 				if (param.getId() == iobufferC2dArstreamAck) {
@@ -297,7 +309,9 @@ public abstract class ARNetworkConfig {
 					iter = c2dParams.iterator();
 				}
 			}
-
+			c2dParams.add(ARStreamReader.newAckARNetworkIOBufferParam(iobufferC2dArstreamAck));
+		}
+		if (iobufferD2cArstreamData != -1) {
 			iter = d2cParams.iterator();
 			for ( ; iter.hasNext() ;) {
 				final ARNetworkIOBufferParam param = iter.next();
@@ -307,9 +321,6 @@ public abstract class ARNetworkConfig {
 					iter = d2cParams.iterator();
 				}
 			}
-            
-            /* add the Stream parameters for the new connection */
-			c2dParams.add(ARStreamReader.newAckARNetworkIOBufferParam(iobufferC2dArstreamAck));
 			d2cParams.add(ARStreamReader.newDataARNetworkIOBufferParam(iobufferD2cArstreamData, maxFragmentSize, maxNumberOfFragment));
 		}
 	}
@@ -336,15 +347,16 @@ public abstract class ARNetworkConfig {
 		connectionStatus = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_STATUS_KEY, -1);
 		c2dPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY, c2dPort);
 		maxAckInterval = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY, -1);
-		clientStreamPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY, -1);
-		clientControlPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY, -1);
+		clientStreamPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY, ARSTREAM2_CLIENT_STREAM_PORT);
+		clientControlPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY, ARSTREAM2_CLIENT_CONTROL_PORT);
 
 		final int fragment_size = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY,
 			IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_SIZE);
 		final int max_fragment_num = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY,
 			IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER);
-		final boolean support_stream2 = ((json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY, -1) != -1)
-			&& (json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY, -1) != -1));
+		final int server_control_port = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY, -1);
+		final int server_stream_port = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY, -1);
+		final boolean support_stream2 = ((server_control_port != -1) && (server_stream_port != -1));
 		final int max_packet_size = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY, -1);
 		final int max_latency = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY, -1);
 		final int max_network_latency = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY, -1);
@@ -362,6 +374,8 @@ public abstract class ARNetworkConfig {
       		maxNetworkLatency = max_network_latency;
       		maxBitrate = max_bitrate;
 			paramSets = params;
+			serverControlPort = server_control_port;
+			serverStreamPort = server_stream_port;
 			result = true;
 		}
 		return result;

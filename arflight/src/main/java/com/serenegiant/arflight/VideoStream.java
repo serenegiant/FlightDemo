@@ -11,7 +11,6 @@ import android.util.SparseArray;
 import android.view.Surface;
 
 import com.parrot.arsdk.arstream2.ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_ENUM;
-import com.parrot.arsdk.arstream2.ARStream2ReceiverListener;
 import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.EglTask;
 import com.serenegiant.glutils.GLDrawer2D;
@@ -102,6 +101,7 @@ public class VideoStream implements IVideoStream {
 
 //--------------------------------------------------------------------------------
 // ARStream2ReceiverListenerのメソッド
+// 受信したフレームをDecoderTaskでMediaCodecへ投入する代わりに直接MediaCodecを操作する
 //--------------------------------------------------------------------------------
 	@Override
 	public ByteBuffer[] onSpsPpsReady(final ByteBuffer sps, final ByteBuffer pps) {
@@ -113,13 +113,15 @@ public class VideoStream implements IVideoStream {
 
 	@Override
 	public int getFreeBuffer() {
+		if (DEBUG) Log.v(TAG, "getFreeBuffer:");
 		return mDecodeTask.mediaCodec.dequeueInputBuffer(VIDEO_INPUT_TIMEOUT_US);
 	}
 
 	@Override
 	public void onBufferReady(final int bufferIdx, final long auTimestamp, final long auTimestampShifted, final ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_ENUM auSyncType) {
-		final int flag = auSyncType == ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_ENUM.ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_IFRAME
-			? MediaCodec.BUFFER_FLAG_KEY_FRAME : 0;
+		if (DEBUG) Log.v(TAG, "onBufferReady:");
+		final int flag = (auSyncType == ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_ENUM.ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_IFRAME)
+			? 1/*MediaCodec.BUFFER_FLAG_KEY_FRAME*/ : 0;
 		final int sz = mDecodeTask.inputBuffers[bufferIdx].limit();
 		mDecodeTask.mediaCodec.queueInputBuffer(bufferIdx, 0, sz, auTimestampShifted, flag);
 	}

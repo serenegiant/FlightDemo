@@ -629,7 +629,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				SelectFileDialogFragment.showDialog(PilotFragment.this, root.getAbsolutePath(), false, "fcr");
 				break;
 			case R.id.record_btn:
-				// 記録ボタンの処理
+				// 操縦記録ボタンの処理
 				if (!mFlightRecorder.isRecording()) {
 					startRecord(true);
 				} else {
@@ -721,6 +721,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				}
 				break;
 			case R.id.still_capture_btn:
+				// 静止画撮影ボタンの処理
 				if (getStillCaptureState() == DroneStatus.MEDIA_READY) {
 					setColorFilter((ImageView) view);
 					if (mFlightController != null) {
@@ -729,6 +730,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				}
 				break;
 			case R.id.video_capture_btn:
+				// 動画撮影ボタンの処理
 				setColorFilter((ImageView)view);
 				if (mController instanceof ICameraController) {
 					mVideoRecording = !mVideoRecording;

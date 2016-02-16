@@ -1064,7 +1064,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			final byte enabled, final byte mass_storage_id) {
 
 			if (DEBUG) Log.v(TAG, "onARDrone3PictureSettingsStateVideoAutorecordChangedUpdate:enabled=" + enabled + ",mass_storage_id=" + mass_storage_id);
-			// FIXME 未実装
+			mSettings.mCamera.autoRecord(enabled != 0, mass_storage_id);
 		}
 	};
 
@@ -1968,6 +1968,10 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		return mSettings.mCamera.isVideoStreamingEnabled();
 	}
 
+	/**
+	 * ビデオストリーミング設定
+	 * @param enable true: ビデオストリーミング開始, false:ビデオストリーミング停止
+	 */
 	@Override
 	public void enableVideoStreaming(boolean enable) {
 		sendVideoStreamingEnable(enable);
@@ -1975,13 +1979,12 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 
 	/**
 	 * ビデオストリーミング設定
-	 * @param _enabled true: ビデオストリーミング開始, false:ビデオストリーミング停止
+	 * @param enable true: ビデオストリーミング開始, false:ビデオストリーミング停止
 	 * @return
 	 */
-	@Override
-	public boolean sendVideoStreamingEnable(final boolean _enabled) {
+	public boolean sendVideoStreamingEnable(final boolean enable) {
 		if (mVideoStreamDelegater != null) {
-			return mVideoStreamDelegater.sendVideoStreamingEnable(_enabled);
+			return mVideoStreamDelegater.sendVideoStreamingEnable(enable);
 		}
 		return false;
 	}

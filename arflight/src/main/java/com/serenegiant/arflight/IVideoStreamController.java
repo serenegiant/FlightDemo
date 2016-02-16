@@ -11,5 +11,4 @@ public interface IVideoStreamController {
 	public void setVideoStream(final IVideoStream video_stream);
 	public boolean isVideoStreamingEnabled();
 	public void enableVideoStreaming(final boolean enable);
-	public boolean sendVideoStreamingEnable(final boolean enabled);
 }
