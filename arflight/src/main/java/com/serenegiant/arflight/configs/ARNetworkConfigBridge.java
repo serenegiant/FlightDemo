@@ -26,7 +26,7 @@ public class ARNetworkConfigBridge extends ARNetworkConfig {
 		deviceAddress = src.deviceAddress;
 
 		d2cPort = 54321;
-		c2dPort = 43210;
+		c2dPort = src.c2dPort; // src.serverControlPort;	// 43210; // ARNetworkConfigSkyControllerではc2dとserverControlPortが逆に保存されている
 
 		hasVideo = true;
 // ARStream用
@@ -35,10 +35,8 @@ public class ARNetworkConfigBridge extends ARNetworkConfig {
 		maxAckInterval = src.maxAckInterval;
 // ARStream2用
 		isSupportStream2 = src.isSupportStream2;
-		clientStreamPort = src.clientStreamPort;
-		clientControlPort = src.clientControlPort;
 		serverStreamPort = src.serverStreamPort;
-		serverControlPort = src.serverControlPort;
+		serverControlPort = src.serverControlPort; 	// ARNetworkConfigSkyControllerではc2dとserverControlPortが逆に保存されている
 		maxPacketSize = src.maxPacketSize;
 		maxLatency = src.maxLatency;
 		maxNetworkLatency = src.maxNetworkLatency;

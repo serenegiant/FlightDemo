@@ -97,11 +97,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 
 import static com.serenegiant.arflight.ARFlightConst.*;
 
-public class SkyController extends DeviceController implements IBridgeController, IWiFiController {
+public class SkyController extends DeviceController implements IBridgeController, IVideoStreamController, IWiFiController {
 	private static final boolean DEBUG = true;				// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyController.class.getSimpleName();
 
@@ -117,37 +116,30 @@ public class SkyController extends DeviceController implements IBridgeController
 		mStatus = new CommonStatus();
 	}
 
-	@Override
-	public ARNetworkConfig getNetConfig() {
-		return mNetConfig;
-	}
-
-	public ARNetworkConfig getBridgeNetConfig() {
+//================================================================================
+// IBridgeControllerのメソッド定義
+//================================================================================
+	public ARNetworkConfig createBridgeNetConfig() {
 		final ARNetworkConfig config = new ARNetworkConfigBridge(mNetConfig);
 		config.addStreamReaderIOBuffer(config.getFragmentSize(), config.getMaxFragmentNum());
 		return config;
 	}
 
+//********************************************************************************
 	@Override
-	public ARNetworkALManager getALManager() {
-		return mARManager;
-	}
-
-	@Override
-	public ARNetworkManager getNetManager() {
-		return mARNetManager;
+	protected void internal_start() {
+//		mVideoStreamDelegater = new VideoStreamDelegater(this, createBridgeNetConfig());
+		// ビデオストリーミング用スレッドを生成&開始
+		startVideoThread();
+		super.internal_start();
 	}
 
 	@Override
 	protected void internal_stop() {
-		mVideoStreamDelegater = null;
+//		mVideoStreamDelegater = null;
+		// ビデオストリーミングスレッドを終了(終了するまで戻らない)
+		stopVideoThread();
 		super.internal_stop();
-	}
-
-	@Override
-	protected void internal_start() {
-		mVideoStreamDelegater = new VideoStreamDelegater(this, getBridgeNetConfig());
-		super.internal_start();
 	}
 
 	@Override
@@ -175,6 +167,70 @@ public class SkyController extends DeviceController implements IBridgeController
 			mVideoStreamDelegater = new VideoStreamDelegater(this, mNetConfig);
 		}
 		return mVideoStreamDelegater;
+	}
+
+	/**
+	 * ビデオストリーミングデータ受信スレッドを開始
+	 */
+	protected void startVideoThread() {
+		if (DEBUG) Log.v(TAG, "startVideoThread");
+		if (mVideoStreamDelegater == null) {
+			mVideoStreamDelegater = new VideoStreamDelegater(this, mNetConfig);
+		}
+		if (mVideoStreamDelegater != null) {
+			mVideoStreamDelegater.startVideoThread();
+		}
+		if (DEBUG) Log.v(TAG, "startVideoThread:終了");
+	}
+
+	/**
+	 * ストリーミングデータ受信スレッドを終了(終了するまで戻らない)
+	 */
+	protected void stopVideoThread() {
+		if (DEBUG) Log.v(TAG, "stopVideoThread:");
+		if (mVideoStreamDelegater != null) {
+			mVideoStreamDelegater.stopVideoThread();
+		}
+		mVideoStreamDelegater = null;
+		if (DEBUG) Log.v(TAG, "stopVideoThread:終了");
+	}
+
+//================================================================================
+// IVideoStreamControllerのメソッド
+//================================================================================
+
+	/**
+	 * sendVideoStreamingEnable/enableVideoStreamingにtrueをセットする前にIVideoStreamをセットしないとダメ
+	 * @param video_stream
+	 */
+	@Override
+	public void setVideoStream(final IVideoStream video_stream) {
+		if (DEBUG) Log.v(TAG, "setVideoStream:video_stream=" + video_stream);
+		if (mVideoStreamDelegater != null) {
+			mVideoStreamDelegater.setVideoStream(video_stream);
+		}
+	}
+
+	@Override
+	public boolean isVideoStreamingEnabled() {
+		return mVideoStreamDelegater != null && mVideoStreamDelegater.isVideoStreamingEnabled();
+	}
+
+	/**
+	 * ビデオストリーミング設定
+	 * @param enable true: ビデオストリーミング開始, false:ビデオストリーミング停止
+	 */
+	@Override
+	public boolean enableVideoStreaming(boolean enable) {
+		if (DEBUG) Log.v(TAG, "enableVideoStreaming:enable=" + enable);
+		final IBridgeController bridge = getBridge();
+		if (bridge != null) {
+			VideoStreamDelegater.sendVideoStreamingEnable((DeviceController)bridge, bridge.getNetConfig(), enable);
+		}
+		if (mVideoStreamDelegater != null) {
+			return mVideoStreamDelegater.enableVideoStreaming(enable);
+		}
+		return false;
 	}
 
 //================================================================================

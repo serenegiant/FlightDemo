@@ -17,11 +17,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class ARStreamManager2 {
-	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
-	private static final String TAG = "ARStreamManager";
+	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final String TAG = "ARStreamManager2";
 
 	/** フレームプール初期化時のフレーム数(未使用) */
 	private static final int FRAME_POOL_SZ = 40;
+	private static final int DEFAULT_NALU_BUFFER_SZ = 4096;
 
 	private final Object mPoolSync = new Object();
 	private final List<ARFrame> mFramePool = new ArrayList<ARFrame>();
@@ -33,6 +34,13 @@ public class ARStreamManager2 {
 	private ARStreamReader2 mARStreamReader;
 	private final ARNetworkConfig mNetConfig;
 	private final int naluBufferSize;
+	private Thread mControlThread;
+	private Thread mStreamThread;
+
+	public ARStreamManager2(final ARNetworkConfig config) {
+		this(config, DEFAULT_NALU_BUFFER_SZ);
+	}
+
 	public ARStreamManager2(final ARNetworkConfig config, final int naluBufferSize) {
 		mNetConfig = config;
 		this.naluBufferSize = naluBufferSize;
@@ -45,22 +53,32 @@ public class ARStreamManager2 {
 		if (DEBUG) Log.v(TAG, "start:" + mIsRunning);
 		if (!mIsRunning) {
 			mIsRunning = true;
-//			ARStreamReader2(String serverAddress, int serverStreamPort, int serverControlPort, int clientStreamPort, int clientControlPort,
-//				int maxPacketSize, int maxBitrate, int maxLatency, int maxNetworkLatency, int naluBufferSize, ARStreamReader2Listener listener)
 			mARStreamReader = new ARStreamReader2(
 				mNetConfig.getDeviceAddress(),
 				mNetConfig.getServerStreamPort(),
 				mNetConfig.getServerControlPort(),
-				mNetConfig.getClientStreamPort(),
-				mNetConfig.getClientControlPort(),
+				ARNetworkConfig.ARSTREAM2_CLIENT_STREAM_PORT,
+				ARNetworkConfig.ARSTREAM2_CLIENT_CONTROL_PORT,
 				mNetConfig.getMaxPacketSize(),
 				mNetConfig.getMaxBitrate(),
 				mNetConfig.getMaxLatency(),
 				mNetConfig.getMaxNetworkLatency(),
 				naluBufferSize,
 				mARStreamReader2Listener);
-			mARStreamReader.runReaderControl();
-			mARStreamReader.runReaderStream();
+			mControlThread = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					mARStreamReader.runReaderControl();
+				}
+			}, "ARStreamReader2_ctrl");
+			mStreamThread = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					mARStreamReader.runReaderStream();
+				}
+			}, "ARStreamReader2_stream");
+			mControlThread.start();
+			mStreamThread.start();
 		}
 	}
 
@@ -74,24 +92,25 @@ public class ARStreamManager2 {
 			if (mARStreamReader != null) {
 				mARStreamReader.stop();
 			}
-/*			if (mDataThread != null) {
+			if (mControlThread != null) {
 				try {
-					if (DEBUG) Log.v(TAG, "stop:wait data thread");
-					mDataThread.join();
+					if (DEBUG) Log.v(TAG, "stop:wait control thread");
+					mControlThread.join();
 				} catch (final InterruptedException e) {
 				}
-				mDataThread = null;
+				mControlThread = null;
 			}
-			if (mAckThread != null) {
+			if (mStreamThread != null) {
 				try {
-					if (DEBUG) Log.v(TAG, "stop:wait ack thread");
-					mAckThread.join();
+					if (DEBUG) Log.v(TAG, "stop:wait stream thread");
+					mStreamThread.join();
 				} catch (final InterruptedException e) {
 				}
-				mAckThread = null;
-			} */
+				mStreamThread = null;
+			}
 			if (DEBUG) Log.v(TAG, "stop:release ARStreamReader");
 			if (mARStreamReader != null) {
+				// XXX アホフランス人はARStreamReader2が内部で生成したARNativeDataを破棄するのを忘れてる
 				mARStreamReader.dispose();
 				mARStreamReader = null;
 			}
@@ -181,50 +200,12 @@ public class ARStreamManager2 {
 			final boolean isFirstNaluInAu, final boolean sLastNaluInAu,
 			final long auTimestamp, final int missingPacketsBefore) {
 
+			final ARFrame frame = obtainFrame();
+			// FIXME これは上手く動かないかも。動いても効率悪い
+			frame.copyByteData(naluBuffer.getByteData(), naluBuffer.getDataSize());
+			frame.setMissed(missingPacketsBefore);
+			mFrameQueue.offer(frame);
 		}
 	};
-
-//	/** ARStreamReaderListenerからのコールバックリスナー */
-//	private final ARStreamReaderListener mARStreamReaderListener = new ARStreamReaderListener() {
-//		@Override
-//		public ARNativeData didUpdateFrameStatus(
-//			final ARSTREAM_READER_CAUSE_ENUM cause, final ARNativeData currentFrame,
-//			final boolean isFlushFrame, final int nbSkippedFrames, final int newBufferCapacity) {
-//
-//			ARNativeData next_frame = null;
-//			switch (cause) {
-//			case ARSTREAM_READER_CAUSE_FRAME_COMPLETE:
-//				if (DEBUG) Log.v(TAG, "ARSTREAM_READER_CAUSE_FRAME_COMPLETE"); // Frame is complete (no error)
-//			case ARSTREAM_READER_CAUSE_COPY_COMPLETE:
-//				// Copy of previous frame buffer is complete (called only after ARSTREAM_READER_CAUSE_FRAME_TOO_SMALL)
-//				if (currentFrame instanceof ARFrame) {
-//					final ARFrame _frame = (ARFrame)currentFrame;
-//					_frame.isIFrame(isFlushFrame);
-//					_frame.setMissed(nbSkippedFrames);
-//					// キューに追加する
-//					mFrameQueue.offer(_frame);
-//					// 次のフレーム用にフレームプールから取得して返す
-//					next_frame = obtainFrame();
-//				}
-//				break;
-//			case ARSTREAM_READER_CAUSE_FRAME_TOO_SMALL:
-//				// Frame buffer is too small for the frame on the network
-//				// フレームのバッファサイズが小さい時はサイズ調整してから同じのを返す
-//				currentFrame.ensureCapacityIsAtLeast(newBufferCapacity);
-//				next_frame = currentFrame;
-//				break;
-//			case ARSTREAM_READER_CAUSE_CANCEL:
-//				// StreamReaderが終了中なのでバッファーは必要ない
-//				if (currentFrame instanceof ARFrame) {
-//					recycle((ARFrame) currentFrame);
-//				}
-//				// FIXME この時に次のフレームデータとしてnullを返していいかどうか要確認
-//				// だめならダミーでcurrentFrameを返す
-//				break;
-//			}
-//
-//			return next_frame;
-//		}
-//	};
 
 }

@@ -28,6 +28,11 @@ public class ARNetworkConfigSkyController extends ARNetworkConfigARDrone3 {
 	public boolean update(final JSONObject json, final String ip) {
 		boolean result = super.update(json, ip);
 		version = json.optString(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION, version);
+		// c2dPortはスカイコントローラー経由で接続してい機器(機体, Bebop/Bebop2)へコマンドを送るためのポート番号?
+		// serverControlPortはスカイコントローラー自体へコマンドを送るためのポート番号?
+//		final int port = c2dPort;
+//		c2dPort = serverControlPort;
+//		serverControlPort = port;
 		return result;
 	}
 

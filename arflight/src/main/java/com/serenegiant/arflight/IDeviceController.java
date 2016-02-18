@@ -10,7 +10,7 @@ import java.sql.Date;
 /**
  * Created by saki on 15/10/31.
  */
-public interface IDeviceController {
+public interface IDeviceController extends IController {
 	public static final int STATE_STOPPED = 0x0000;
 	public static final int STATE_STARTING = 0x0001;
 	public static final int STATE_STARTED = 0x0002;
@@ -49,16 +49,6 @@ public interface IDeviceController {
 	 * @return
 	 */
 	public String getSerial();
-
-	/**
-	 * コントローラーに関連付けられているARDiscoveryDeviceServiceを取得
-	 * @return
-	 */
-	public ARDiscoveryDeviceService getDeviceService();
-
-	public ARNetworkConfig getNetConfig();
-	public ARNetworkALManager getALManager();
-	public ARNetworkManager getNetManager();
 
 	public int getAlarm();
 	/**

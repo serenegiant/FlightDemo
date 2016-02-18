@@ -61,7 +61,9 @@ public abstract class ARNetworkConfig {
 	protected int iobufferD2cArstreamData = -1;
 
 	protected String deviceAddress;
+	/** コントローラーが機器(機体)からのデータを受信する際のポート番号 */
 	protected int d2cPort = -1;
+	/** コントローラーが機器(機体)にデータを送信する際の接続先ポート番号 */
 	protected int c2dPort = -1;
 	protected int connectionStatus = -1;
 
@@ -76,8 +78,6 @@ public abstract class ARNetworkConfig {
 	protected int maxAckInterval = -1;
 // ARStream2用
 	protected boolean isSupportStream2 = false;
-	protected int clientStreamPort = -1;
-	protected int clientControlPort = -1;
 	protected int serverStreamPort = -1;	// 5005
 	protected int serverControlPort = -1;	// 5004
 	protected int maxPacketSize;
@@ -115,10 +115,6 @@ public abstract class ARNetworkConfig {
 		return deviceAddress;
 	}
 
-	public int getDevicePort() {
-		return d2cPort;
-	}
-
 	/**
 	 * Return the port number for WiFi devices.
 	 */
@@ -127,7 +123,7 @@ public abstract class ARNetworkConfig {
 	}
 
 	/**
-	 * Return the port number for WiFi devices.
+	 * コントローラーが機器(機体)にデータを送信する際の接続先ポート番号を取得
 	 */
 	public int getC2DPort() {
 		return c2dPort;
@@ -255,20 +251,12 @@ public abstract class ARNetworkConfig {
 		return isSupportStream2;
 	}
 
-	public int getClientStreamPort() {
-		return clientStreamPort;
-	}
-
-	public int getClientControlPort() {
-		return clientControlPort;
-	}
-
 	public int getServerStreamPort() {
 		return serverStreamPort;
 	}
 
 	public int getServerControlPort() {
-		return serverStreamPort;
+		return serverControlPort;
 	}
 
 	public int getMaxPacketSize() {
@@ -347,8 +335,8 @@ public abstract class ARNetworkConfig {
 		connectionStatus = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_STATUS_KEY, -1);
 		c2dPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY, c2dPort);
 		maxAckInterval = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY, -1);
-		clientStreamPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY, ARSTREAM2_CLIENT_STREAM_PORT);
-		clientControlPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY, ARSTREAM2_CLIENT_CONTROL_PORT);
+//		clientStreamPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY, ARSTREAM2_CLIENT_STREAM_PORT);
+//		clientControlPort = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY, ARSTREAM2_CLIENT_CONTROL_PORT);
 
 		final int fragment_size = json.optInt(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY,
 			IVideoStreamController.DEFAULT_VIDEO_FRAGMENT_SIZE);

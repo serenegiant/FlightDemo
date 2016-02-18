@@ -59,8 +59,8 @@ public abstract class DeviceController implements IDeviceController {
 	private final ARDiscoveryDeviceService mDeviceService;
 	private final IBridgeController mBridge;
 
-	protected ARNetworkALManager mARManager;
-	protected ARNetworkManager mARNetManager;
+	protected ARNetworkALManager mNetALManager;
+	protected ARNetworkManager mNetManager;
 	protected boolean mMediaOpened;
 
 	private final Semaphore disconnectSent = new Semaphore(0);
@@ -103,7 +103,7 @@ public abstract class DeviceController implements IDeviceController {
 		mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
 		mDeviceService = null;
 		mBridge = bridge;
-		mNetConfig = bridge.getBridgeNetConfig();
+		mNetConfig = bridge.createBridgeNetConfig();
 	}
 
 	@Override
@@ -141,13 +141,13 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	@Override
-	public ARNetworkALManager getALManager() {
-		return mARManager;
+	public ARNetworkALManager getNetALManager() {
+		return mNetALManager;
 	}
 
 	@Override
 	public ARNetworkManager getNetManager() {
-		return mARNetManager;
+		return mNetManager;
 	}
 
 	@Override
@@ -203,10 +203,10 @@ public abstract class DeviceController implements IDeviceController {
 
 		if (!failed) {
             // ネットワークへの送受信スレッドを生成&開始
-			rxThread = new Thread(mARNetManager.m_receivingRunnable);
+			rxThread = new Thread(mNetManager.m_receivingRunnable);
 			rxThread.start();
 
-			txThread = new Thread(mARNetManager.m_sendingRunnable);
+			txThread = new Thread(mNetManager.m_sendingRunnable);
 			txThread.start();
 
 			// 機体データ受信スレッドを生成&開始
@@ -245,7 +245,7 @@ public abstract class DeviceController implements IDeviceController {
 					discoveryData.ControllerConnectionAbort();
 				}
 			} else if (device instanceof ARDiscoveryDeviceBLEService) {
-				mARManager.cancelBLENetwork();
+				mNetALManager.cancelBLENetwork();
 			} else {
 				Log.w(TAG, "Unknown network media type.");
 			}
@@ -368,7 +368,7 @@ public abstract class DeviceController implements IDeviceController {
 		if (mDeviceService != null) {
 			// スマホ/タブレットから直接機体に接続した時
 			/* Create the looper ARNetworkALManager */
-			mARManager = new ARNetworkALManager();
+			mNetALManager = new ARNetworkALManager();
 
 			final ARDiscoveryDeviceService device_service = getDeviceService();
 			final Object device = device_service.getDevice();
@@ -386,8 +386,11 @@ public abstract class DeviceController implements IDeviceController {
 				}
 
 				prepare_network();
-				final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(
-					deviceIP, mNetConfig.getC2DPort(), mNetConfig.getD2CPort(), 1);
+				final ARNETWORKAL_ERROR_ENUM netALError = mNetALManager.initWifiNetwork(
+					deviceIP,							// 接続先IPアドレス
+					mNetConfig.getC2DPort(),			// 接続先ポート番号
+					mNetConfig.getD2CPort(),			// 受信用ポート番号
+					1);									// タイムアウト[秒]
 
 				if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
 					mMediaOpened = true;
@@ -401,7 +404,7 @@ public abstract class DeviceController implements IDeviceController {
 				final ARDiscoveryDeviceBLEService bleDevice = (ARDiscoveryDeviceBLEService) device;
 
 				prepare_network();
-				final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initBLENetwork(
+				final ARNETWORKAL_ERROR_ENUM netALError = mNetALManager.initBLENetwork(
 					getContext(), bleDevice.getBluetoothDevice(), 1, mNetConfig.getBLENotificationIDs()/*bleNotificationIDs*/);
 
 				if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
@@ -417,39 +420,46 @@ public abstract class DeviceController implements IDeviceController {
 			}
 			if (!failed) {
 				// ARNetworkManagerを生成
-				if (DEBUG) Log.v(TAG, "ARNetworkManagerを生成");
-				mARNetManager = new ARNetworkManagerExtend(mARManager,
+				if (DEBUG) Log.v(TAG, "直接接続用ARNetworkManagerを生成");
+				mNetManager = new ARNetworkManagerExtend(mNetALManager,
 					mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
-				if (mARNetManager.isCorrectlyInitialized() == false) {
+				if (!mNetManager.isCorrectlyInitialized()) {
 					Log.e(TAG, "new ARNetworkManager failed");
 					failed = true;
 				}
 			}
 		} else if (mBridge != null) {
 			// FIXME スカイコントローラー経由でブリッジ接続した時
-			// FIXME SkyControllerからmARManagerとmARNetManagerをコピーすればいいんかな?
-			mARManager = mBridge.getALManager();
-			mARNetManager = mBridge.getNetManager();
-/*			mARManager = new ARNetworkALManager();
-			final ARNetworkConfig config = mBridge.getBridgeNetConfig();
-			if (!bridgeConnect(mBridge.connectDeviceInfo().productId(), config.getDeviceAddress(), config.getClientControlPort())) {
+			// FIXME SkyControllerからmNetALManagerとmNetManagerをコピーすればいいんかな?
+			mNetALManager = mBridge.getNetALManager();
+//			mNetALManager = new ARNetworkALManager();
+/*			final String deviceIP = mNetConfig.getDeviceAddress();
+			final int devicePort = mNetConfig.getC2DPort();
+			if (!bridgeConnect(
+				mBridge.connectDeviceInfo().productId(),	// 機器(機体)のプロダクトID
+				deviceIP,									// 接続先(機体)のIPアドレス
+				devicePort)) {								// 接続先(機体)のポート番号
 				failed = true;
 			}
-			prepare_network();
-			final ARNETWORKAL_ERROR_ENUM netALError = mARManager.initWifiNetwork(
-				config.getDeviceAddress(), config., mNetConfig.getD2CPort(), 1);
+			final ARNETWORKAL_ERROR_ENUM netALError = mNetALManager.initWifiNetwork(
+				deviceIP,						// 接続先(送信先)のIPアドレス
+				devicePort,						// 接続先(送信先)のポート番号
+				mNetConfig.getD2CPort(),		// 受信するポート番号
+				1);								// 接続タイムアウト[秒]
 			if (netALError == ARNETWORKAL_ERROR_ENUM.ARNETWORKAL_OK) {
 				mMediaOpened = true;
 			} else {
 				Log.w(TAG, "error occurred: " + netALError.toString());
 				failed = true;
-			}
-			if (!failed) {
+			} */
+			mNetManager = mBridge.getNetManager();
+/*			if (!failed) {
+				prepare_network();
 				// ARNetworkManagerを生成
-				if (DEBUG) Log.v(TAG, "ARNetworkManagerを生成");
-				mARNetManager = new ARNetworkManagerExtend(mARManager,
+				if (DEBUG) Log.v(TAG, "ブリッジ接続用ARNetworkManagerを生成");
+				mNetManager = new ARNetworkManagerExtend(mNetALManager,
 					mNetConfig.getC2dParams(), mNetConfig.getD2cParams(), pingDelay);
-				if (mARNetManager.isCorrectlyInitialized() == false) {
+				if (!mNetManager.isCorrectlyInitialized()) {
 					Log.e(TAG, "new ARNetworkManager failed");
 					failed = true;
 				}
@@ -465,8 +475,8 @@ public abstract class DeviceController implements IDeviceController {
 
 		if (mDeviceService != null) {
 			// タブレット/スマホから直接機体に接続している時
-			if (mARNetManager != null) {
-				mARNetManager.stop();
+			if (mNetManager != null) {
+				mNetManager.stop();
 
 				try {
 					if (txThread != null) {
@@ -479,24 +489,24 @@ public abstract class DeviceController implements IDeviceController {
 					Log.w(TAG, e);
 				}
 
-				mARNetManager.dispose();
+				mNetManager.dispose();
 			}
 
 			final ARDiscoveryDeviceService device_service = getDeviceService();
-			if ((mARManager != null) && (mMediaOpened)) {
+			if ((mNetALManager != null) && (mMediaOpened)) {
 				if (device_service.getDevice() instanceof ARDiscoveryDeviceNetService) {
-					mARManager.closeWifiNetwork();
+					mNetALManager.closeWifiNetwork();
 				} else if (device_service.getDevice() instanceof ARDiscoveryDeviceBLEService) {
-					mARManager.closeBLENetwork(getContext());
+					mNetALManager.closeBLENetwork(getContext());
 				}
 
 				mMediaOpened = false;
-				mARManager.dispose();
+				mNetALManager.dispose();
 			}
 		} else if (mBridge != null) {
 			// FIXME スカイコントローラー経由でブリッジ接続している時
-			mARNetManager = null;
-			mARManager = null;
+			mNetManager = null;
+			mNetALManager = null;
 		}
 		if (DEBUG) Log.v(TAG, "stopNetwork:終了");
 	}
@@ -580,6 +590,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	private boolean bridgeConnect(final int product_id, final String ip, final int port) {
+		if (DEBUG) Log.v(TAG, "bridgeConnect:");
 		boolean ok = true;
 		ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
 		discoverSemaphore = new Semaphore(0);
@@ -1230,7 +1241,7 @@ public abstract class DeviceController implements IDeviceController {
 		final ARNetworkSendInfo sendInfo
 			= new ARNetworkSendInfo(timeoutPolicy, mNetworkNotificationListener, notificationData, this);
 
-		final ARNETWORK_ERROR_ENUM netError= mARNetManager.sendData(bufferId, cmd, sendInfo, true);
+		final ARNETWORK_ERROR_ENUM netError= mNetManager.sendData(bufferId, cmd, sendInfo, true);
 		if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 			Log.e(TAG, "ARNetManager#sendData failed. " + netError.toString());
 			result = false;
@@ -1430,7 +1441,7 @@ public abstract class DeviceController implements IDeviceController {
 			boolean skip = false;
 
             /* read data */
-			final ARNETWORK_ERROR_ENUM netError = mARNetManager.readDataWithTimeout(mBufferId, dataRecv, MAX_READ_TIMEOUT_MS);
+			final ARNETWORK_ERROR_ENUM netError = mNetManager.readDataWithTimeout(mBufferId, dataRecv, MAX_READ_TIMEOUT_MS);
 
 			if (netError != ARNETWORK_ERROR_ENUM.ARNETWORK_OK) {
 				// FIXME 正常終了以外の時

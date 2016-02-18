@@ -1,15 +1,10 @@
 package com.serenegiant.arflight;
 
-import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.parrot.arsdk.arnetwork.ARNetworkManager;
-import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
-public interface IBridgeController {
-	public ARNetworkConfig getBridgeNetConfig();
-	public ARDiscoveryDeviceService getDeviceService();
-	public ARNetworkALManager getALManager();
-	public ARNetworkManager getNetManager();
+public interface IBridgeController extends IController {
+	/** ブリッジ接続用のARNetworkConfigを新規に生成して返す */
+	public ARNetworkConfig createBridgeNetConfig();
 	public VideoStreamDelegater getVideoStreamDelegater();
 
 	public boolean connectTo(final DeviceInfo info);

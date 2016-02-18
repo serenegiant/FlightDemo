@@ -104,15 +104,16 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 
 	public FlightControllerBebop(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigARDrone3());
-		mInfo = new AttributeDevice();
-		mSettings = new DroneSettings();
-		mStatus = new DroneStatus(4);
-
-		mSettings.setCutOffMode(true);
+		init();
 	}
 
 	public FlightControllerBebop(final Context context, final IBridgeController bridge) {
 		super(context, bridge);
+		init();
+	}
+
+	/** 共通の初期化処理 */
+	private void init() {
 		mInfo = new AttributeDevice();
 		mSettings = new DroneSettings();
 		mStatus = new DroneStatus(4);
@@ -658,6 +659,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		@Override
 		public void onARDrone3PilotingStateAltitudeChangedUpdate(final double altitude) {
 
+			if (DEBUG) Log.v(TAG, "高度:" + altitude);
 			mStatus.altitude(altitude);
 		}
 	};
@@ -677,6 +679,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		public void onARDrone3PilotingStatePositionChangedUpdate(
 			final double latitude, final double longitude, final double altitude) {
 
+			if (DEBUG) Log.v(TAG, String.format("緯度:%f,軽度:%f,高度:%f", latitude, longitude, altitude));
 			mStatus.setPosition(latitude, longitude, altitude);
 		}
 	};
@@ -696,6 +699,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		public void onARDrone3PilotingStateAttitudeChangedUpdate(
 			final float roll, final float pitch, final float yaw) {
 
+			if (DEBUG) Log.v(TAG, String.format("roll:%f,pitch:%f,yaw:%f", roll, pitch, yaw));
 			((DroneStatus)mStatus).setAttitude(roll, pitch, yaw);
 		}
 	};
@@ -1063,7 +1067,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		public void onARDrone3PictureSettingsStateVideoAutorecordChangedUpdate(
 			final byte enabled, final byte mass_storage_id) {
 
-			if (DEBUG) Log.v(TAG, "onARDrone3PictureSettingsStateVideoAutorecordChangedUpdate:enabled=" + enabled + ",mass_storage_id=" + mass_storage_id);
+//			if (DEBUG) Log.v(TAG, "onARDrone3PictureSettingsStateVideoAutorecordChangedUpdate:enabled=" + enabled + ",mass_storage_id=" + mass_storage_id);
 			mSettings.mCamera.autoRecord(enabled != 0, mass_storage_id);
 		}
 	};
@@ -1973,18 +1977,13 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @param enable true: ビデオストリーミング開始, false:ビデオストリーミング停止
 	 */
 	@Override
-	public void enableVideoStreaming(boolean enable) {
-		sendVideoStreamingEnable(enable);
-	}
-
-	/**
-	 * ビデオストリーミング設定
-	 * @param enable true: ビデオストリーミング開始, false:ビデオストリーミング停止
-	 * @return
-	 */
-	public boolean sendVideoStreamingEnable(final boolean enable) {
+	public boolean enableVideoStreaming(boolean enable) {
+		final IBridgeController bridge = getBridge();
+		if (bridge != null) {
+			VideoStreamDelegater.sendVideoStreamingEnable((DeviceController)bridge, bridge.getNetConfig(), enable);
+		}
 		if (mVideoStreamDelegater != null) {
-			return mVideoStreamDelegater.sendVideoStreamingEnable(enable);
+			return mVideoStreamDelegater.enableVideoStreaming(enable);
 		}
 		return false;
 	}
@@ -2167,42 +2166,42 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		if (DEBUG) Log.v(TAG, "prepare_network:");
 		// TODO :  if ardiscoveryConnect ok
 		mNetConfig.addStreamReaderIOBuffer(mNetConfig.getFragmentSize(), mNetConfig.getMaxFragmentNum());
-
 	}
 
 	/**
 	 * ビデオストリーミングデータ受信スレッドを開始
 	 */
 	protected void startVideoThread() {
-//		if (DEBUG) Log.v(TAG, "startVideoThread");
+		if (DEBUG) Log.v(TAG, "startVideoThread");
 		if (mVideoStreamDelegater == null) {
+//			mVideoStreamDelegater = new VideoStreamDelegater(this, mNetConfig);
+			videoStreamDelegaterCreated = false;
 			final IBridgeController bridge = getBridge();
 			if (bridge != null) {
 				mVideoStreamDelegater = bridge.getVideoStreamDelegater();
-				videoStreamDelegaterCreated = false;
 			}
 			if (mVideoStreamDelegater == null) {
-				mVideoStreamDelegater = new VideoStreamDelegater(this, getNetConfig());
+				mVideoStreamDelegater = new VideoStreamDelegater(this, mNetConfig);
 				videoStreamDelegaterCreated = true;
 			}
 		}
-		if (mVideoStreamDelegater != null) {
+		if (videoStreamDelegaterCreated && (mVideoStreamDelegater != null)) {
 			mVideoStreamDelegater.startVideoThread();
 		}
-//		if (DEBUG) Log.v(TAG, "startVideoThread:終了");
+		if (DEBUG) Log.v(TAG, "startVideoThread:終了");
 	}
 
 	/**
 	 * ストリーミングデータ受信スレッドを終了(終了するまで戻らない)
 	 */
 	protected void stopVideoThread() {
-//		if (DEBUG) Log.v(TAG, "stopVideoThread:");
-		if (mVideoStreamDelegater != null) {
+		if (DEBUG) Log.v(TAG, "stopVideoThread:");
+		if (videoStreamDelegaterCreated && (mVideoStreamDelegater != null)) {
 			mVideoStreamDelegater.stopVideoThread();
 		}
 		videoStreamDelegaterCreated = false;
 		mVideoStreamDelegater = null;
-//		if (DEBUG) Log.v(TAG, "stopVideoThread:終了");
+		if (DEBUG) Log.v(TAG, "stopVideoThread:終了");
 	}
 
 }

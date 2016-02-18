@@ -19,6 +19,8 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.parrot.arsdk.ARSDK;
+import com.parrot.arsdk.arsal.ARSALPrint;
+import com.parrot.arsdk.arsal.ARSAL_PRINT_LEVEL_ENUM;
 import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.net.NetworkChangedReceiver;
@@ -35,8 +37,8 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 //	private static boolean isLoaded = false;
 
 	static {
-//		ARSALPrint.enableDebugPrints();	// XXX ARライブラリのデバッグメッセージを表示する時
 		ARSDK.loadSDKLibs();
+		ARSALPrint.setMinimumLogLevel(ARSAL_PRINT_LEVEL_ENUM.ARSAL_PRINT_DEBUG);
 	}
 
 	/**

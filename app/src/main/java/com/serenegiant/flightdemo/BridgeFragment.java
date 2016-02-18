@@ -93,6 +93,9 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 		if (mController instanceof SkyController) {
 			mController.addListener(mSkyControllerListener);
+			if (mController.isConnected()) {
+				((SkyController)mController).requestDeviceList();
+			}
 		}
 		startDeviceController();
 	}
@@ -206,6 +209,7 @@ public class BridgeFragment extends BaseControllerFragment {
 						final DeviceInfo info = bridge.connectDeviceInfo();
 						if (bridge.isConnected() && (info != null)) {
 							// 既に接続されていたら操縦画面へ
+							bridge.enableVideoStreaming(true);
 							replace(PilotFragment.newInstance(controller.getDeviceService(), info));
 						}
 					} catch (final Exception e) {
