@@ -18,7 +18,7 @@ public class VideoStreamDelegater implements IVideoStreamController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = VideoStreamDelegater.class.getSimpleName();
 
-	private static final boolean USE_ARSTREAM2 = true;
+	private static final boolean USE_ARSTREAM2 = false;
 
 	private final DeviceController mParent;
 	private final ARNetworkConfig mNetConfig;
@@ -42,6 +42,7 @@ public class VideoStreamDelegater implements IVideoStreamController {
 		if (DEBUG) Log.v(TAG, "setVideoStream:video_stream=" + video_stream);
 		synchronized (mStreamSync) {
 			mVideoStream = video_stream;
+			mStreamSync.notifyAll();
 		}
 	}
 
@@ -169,21 +170,30 @@ public class VideoStreamDelegater implements IVideoStreamController {
 							try {
 								if (DEBUG) Log.v(TAG, "ARStream2Receiver生成:mVideoStream=" + mVideoStream);
 								synchronized (mStreamSync) {
-									final ARStream2Receiver mReceiver = new ARStream2Receiver(streamManager, mVideoStream);
-									if (DEBUG) Log.v(TAG, "ARStream2Receiver開始");
-									mReceiver.start();
-									try {
-										for (; mIsRunning && mEnabled ;) {
-											try {
-												Thread.sleep(100);
-											} catch (InterruptedException e) {
-												break;
-											}
+									for (; mIsRunning && mEnabled && (mVideoStream == null) ;) {
+										try {
+											mStreamSync.wait(1000);
+										} catch (InterruptedException e) {
+											break;
 										}
-									} finally {
-										if (DEBUG) Log.v(TAG, "ARStream2Receiver停止&破棄");
-										mReceiver.stop();
-										mReceiver.dispose();
+									}
+									if (mIsRunning && mEnabled && (mVideoStream != null)) {
+										final ARStream2Receiver mReceiver = new ARStream2Receiver(streamManager, mVideoStream);
+										if (DEBUG) Log.v(TAG, "ARStream2Receiver開始");
+										mReceiver.start();
+										try {
+											for (; mIsRunning && mEnabled ;) {
+												try {
+													Thread.sleep(100);
+												} catch (InterruptedException e) {
+													break;
+												}
+											}
+										} finally {
+											if (DEBUG) Log.v(TAG, "ARStream2Receiver停止&破棄");
+											mReceiver.stop();
+											mReceiver.dispose();
+										}
 									}
 								}	// end of synchronized (mStreamSync)
 							} finally {

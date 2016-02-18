@@ -96,7 +96,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FlightControllerBebop extends FlightController implements ICameraController, IWiFiController {
-	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static String TAG = "FlightControllerBebop";
 
 	private boolean videoStreamDelegaterCreated;
@@ -1073,7 +1073,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	};
 
 	/**
-	 * ビデオストリーミングの有効無効を受信した時
+	 * ライブビデオストリーミングの有効無効を受信した時
 	 */
 	private final ARCommandARDrone3MediaStreamingStateVideoEnableChangedListener
 		mMediaStreamingStateVideoEnableChangedListener
@@ -1081,6 +1081,9 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		@Override
 		public void onARDrone3MediaStreamingStateVideoEnableChangedUpdate(
 			final ARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED_ENUM enabled) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3MediaStreamingStateVideoEnableChangedUpdate:enabled=" + enabled);
+
 			// 0: Video streaming is enabled.
 			// 1: Video streaming is disabled.
 			// 2: Video streaming failed to start.
@@ -1978,12 +1981,14 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 */
 	@Override
 	public boolean enableVideoStreaming(boolean enable) {
-		final IBridgeController bridge = getBridge();
-		if (bridge != null) {
-			VideoStreamDelegater.sendVideoStreamingEnable((DeviceController)bridge, bridge.getNetConfig(), enable);
-		}
+		if (DEBUG) Log.v(TAG, "enableVideoStreaming:enable=" + enable + ", mVideoStreamDelegater=" + mVideoStreamDelegater);
 		if (mVideoStreamDelegater != null) {
 			return mVideoStreamDelegater.enableVideoStreaming(enable);
+		} else {
+			final IBridgeController bridge = getBridge();
+			if (bridge != null) {
+				VideoStreamDelegater.sendVideoStreamingEnable(this, mNetConfig, enable);
+			}
 		}
 		return false;
 	}
