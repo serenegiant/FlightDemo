@@ -45,7 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public abstract class ARNetworkConfig {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = ARNetworkConfig.class.getSimpleName();
 
 	public static final int ARSTREAM2_CLIENT_CONTROL_PORT = 55005;

@@ -9,7 +9,7 @@ import android.widget.LinearLayout;
  * コールバックリスナーでタッチイベント処理を横取りするかどうかを決めることができるLinearLayout
  */
 public class TouchableLinearLayout extends LinearLayout {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = TouchableLinearLayout.class.getSimpleName();
 
 	public interface OnTouchableListener {

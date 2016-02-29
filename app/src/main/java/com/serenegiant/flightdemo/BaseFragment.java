@@ -1,5 +1,9 @@
 package com.serenegiant.flightdemo;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
@@ -12,8 +16,11 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import com.serenegiant.utils.BuildCheck;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -279,6 +286,222 @@ public class BaseFragment extends Fragment {
 		}
 	}
 
+	protected interface AnimationCallback {
+		public void onAnimationEnd(final View target, final int type);
+	}
+
+	protected static final int ANIM_CANCEL = 0;
+	protected static final int ANIM_FADE_OUT = -1;
+	protected static final int ANIM_FADE_IN = -2;
+	protected static final int ANIM_ZOOM_OUT = -3;
+	protected static final int ANIM_ZOOM_IN = -4;
+
+	/**
+	 * アルファ値をstartからstopまで変化させる
+	 * @param target
+	 * @param type ゼロ以下は内部で使用するので使用不可
+	 * @param start [0.0f-1.0f]
+	 * @param stop  [0.0f-1.0f]
+	 * @param duration [ミリ秒]
+	 * @param startDelay [ミリ秒]
+	 */
+	@SuppressLint("NewApi")
+	protected final void alphaAnimation(final View target, final int type,
+		final float start, final float stop, final long duration, final long startDelay,
+		final AnimationCallback callback) {
+//		if (DEBUG) Log.v(TAG, "fadeOut,target=" + target);
+		if (target == null) return;
+		target.clearAnimation();
+		if (target.getVisibility() == View.VISIBLE) {
+			target.setTag(R.id.anim_type, type);
+			target.setTag(R.id.anim_callback, callback);
+			target.setScaleX(1.0f);
+			target.setScaleY(1.0f);
+			target.setAlpha(start);
+			final ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(target, "alpha", start, stop );
+			objectAnimator.addListener(mAnimatorListener);
+			if (BuildCheck.isAndroid4_3())
+				objectAnimator.setAutoCancel(true);		// API >= 18 同じターゲットに対して別のAnimatorが開始したら自分をキャンセルする
+			objectAnimator.setDuration(duration > 0 ? duration : 500);	// 0.5秒かけて実行
+			objectAnimator.setStartDelay(startDelay > 0 ? startDelay : 0);	// 開始までの時間
+		    objectAnimator.start();						// アニメーションを開始
+		}
+	}
+
+	/**
+	 * アルファ値を0→1まで変化(Viewをフェードイン)させる
+	 * @param target
+	 * @param startDelay
+	 */
+	@SuppressLint("NewApi")
+	protected final void fadeIn(final View target, final long duration, final long startDelay) {
+//		if (DEBUG) Log.v(TAG, "fadeIn:target=" + target);
+		if (target == null) return;
+		target.clearAnimation();
+		target.setVisibility(View.VISIBLE);
+		target.setTag(R.id.anim_type, ANIM_FADE_IN);	// フェードインの時の印
+		target.setScaleX(1.0f);
+		target.setScaleY(1.0f);
+		target.setAlpha(0.0f);
+		final ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(target, "alpha", 0f, 1f );
+		objectAnimator.addListener(mAnimatorListener);
+		if (BuildCheck.isJellyBeanMR2())
+			objectAnimator.setAutoCancel(true);		// API >= 18 同じターゲットに対して別のAnimatorが開始したら自分をキャンセルする
+		objectAnimator.setDuration(duration > 0 ? duration : 500);	// 0.5秒かけて実行
+		objectAnimator.setStartDelay(startDelay > 0 ? startDelay : 0);	// 開始までの時間
+	    objectAnimator.start();						// アニメーションを開始
+	}
+
+	/**
+	 * アルファ値を1→0まで変化(Viewをフェードアウト)させる
+	 * @param target
+	 * @param startDelay
+	 */
+	@SuppressLint("NewApi")
+	protected final void fadeOut(final View target, final long duration, final long startDelay) {
+//		if (DEBUG) Log.v(TAG, "fadeOut,target=" + target);
+		if (target == null) return;
+		target.clearAnimation();
+		if (target.getVisibility() == View.VISIBLE) {
+			target.setTag(R.id.anim_type, ANIM_FADE_OUT);	// フェードアウトの印
+			target.setScaleX(1.0f);
+			target.setScaleY(1.0f);
+			target.setAlpha(1.0f);
+			final ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(target, "alpha", 1f, 0f );
+			objectAnimator.addListener(mAnimatorListener);
+			if (BuildCheck.isAndroid4_3())
+				objectAnimator.setAutoCancel(true);		// API >= 18 同じターゲットに対して別のAnimatorが開始したら自分をキャンセルする
+			objectAnimator.setDuration(duration > 0 ? duration : 500);	// 0.5秒かけて実行
+			objectAnimator.setStartDelay(startDelay > 0 ? startDelay : 0);	// 開始までの時間
+		    objectAnimator.start();						// アニメーションを開始
+		}
+	}
+
+	/**
+	 * スケールを0→1まで変化(Viewをズームイン)させる
+	 * @param target
+	 * @param startDelay
+	 */
+	@SuppressLint("NewApi")
+	protected final void zoomIn(final View target, final long duration, final long startDelay) {
+//		if (DEBUG) Log.v(TAG, "zoomIn:target=" + target);
+		if (target == null) return;
+		target.clearAnimation();
+		target.setVisibility(View.VISIBLE);
+		target.setTag(R.id.anim_type, ANIM_ZOOM_IN);	// ズームインの時の印
+		target.setScaleX(0.0f);
+		target.setScaleY(0.0f);
+		target.setAlpha(1.0f);
+		final PropertyValuesHolder scale_x = PropertyValuesHolder.ofFloat( "scaleX", 0.01f, 1f);
+		final PropertyValuesHolder scale_y = PropertyValuesHolder.ofFloat( "scaleY", 0.01f, 1f);
+		final ObjectAnimator objectAnimator = ObjectAnimator.ofPropertyValuesHolder(target, scale_x, scale_y);
+		objectAnimator.addListener(mAnimatorListener);
+		if (BuildCheck.isJellyBeanMR2())
+			objectAnimator.setAutoCancel(true);		// API >= 18 同じターゲットに対して別のAnimatorが開始したら自分をキャンセルする
+		objectAnimator.setDuration(duration > 0 ? duration : 500);	// 0.5秒かけて実行
+		objectAnimator.setStartDelay(startDelay > 0 ? startDelay : 0);	// 開始までの時間
+	    objectAnimator.start();						// アニメーションを開始
+	}
+
+	/**
+	 * スケールを1→0まで変化(Viewをズームアウト)させる
+	 * @param target
+	 * @param startDelay
+	 */
+	@SuppressLint("NewApi")
+	protected final void zoomOut(final View target, final long duration, final long startDelay) {
+//		if (DEBUG) Log.v(TAG, "zoomIn:target=" + target);
+		if (target == null) return;
+		target.clearAnimation();
+		target.setVisibility(View.VISIBLE);
+		target.setTag(R.id.anim_type, ANIM_ZOOM_OUT);	// ズームアウトの時の印
+		target.setScaleX(1.0f);
+		target.setScaleY(1.0f);
+		target.setAlpha(1.0f);
+		final PropertyValuesHolder scale_x = PropertyValuesHolder.ofFloat( "scaleX", 1f, 0f);
+		final PropertyValuesHolder scale_y = PropertyValuesHolder.ofFloat( "scaleY", 1f, 0f);
+		final ObjectAnimator objectAnimator = ObjectAnimator.ofPropertyValuesHolder(target, scale_x, scale_y);
+		objectAnimator.addListener(mAnimatorListener);
+		if (BuildCheck.isJellyBeanMR2())
+			objectAnimator.setAutoCancel(true);		// API >= 18 同じターゲットに対して別のAnimatorが開始したら自分をキャンセルする
+		objectAnimator.setDuration(duration > 0 ? duration : 500);			// 0.5秒かけて実行
+		objectAnimator.setStartDelay(startDelay > 0 ? startDelay : 0);	// 開始までの時間
+		objectAnimator.start();						// アニメーションを開始
+	}
+
+	/**
+	 * アニメーション用コールバックリスナー
+	 */
+	private final Animator.AnimatorListener mAnimatorListener = new Animator.AnimatorListener() {
+		@Override
+		public void onAnimationStart(final Animator animation) {
+//			if (DEBUG) Log.v(TAG, "onAnimationStart:");
+		}
+		@Override
+		public void onAnimationEnd(final Animator animation) {
+			if (animation instanceof ObjectAnimator) {
+				final Activity activity = getActivity();
+				if ((activity == null) || (activity.isFinishing())) return;
+				final ObjectAnimator anim = (ObjectAnimator)animation;
+				final View target = (View)anim.getTarget();
+				if (target == null) return;	// これはありえないはずだけど
+				int anim_type = 0;
+				try {
+					anim_type = (Integer)target.getTag(R.id.anim_type);
+				} catch (final Exception e) {
+				}
+				final int id = target.getId();
+				switch (anim_type) {
+				case ANIM_CANCEL:
+					break;
+				case ANIM_FADE_OUT:	// フェードアウト
+				case ANIM_FADE_IN:	// フェードイン
+				{
+					final boolean fadeIn = anim_type == ANIM_FADE_IN;
+					if (!fadeIn) {
+						target.setVisibility(View.GONE);
+					}
+					break;
+				}
+				case ANIM_ZOOM_IN:	// ズームイン
+				{
+					// 静止画モードならTHUMBNAIL_HIDE_DELAY経過後にフェードアウトさせる
+					// 既に動画モードに切り替えられていればすぐにフェードアウトさせる.
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							fadeOut(target, -1, 500);
+						}
+					}, 0);
+					break;
+				}
+				case ANIM_ZOOM_OUT:	// ズームアウト
+				{
+					target.setVisibility(View.GONE);
+					break;
+				}
+				default:
+				{
+					final AnimationCallback callback = (AnimationCallback)target.getTag(R.id.anim_callback);
+					if (callback != null) {
+						try {
+							callback.onAnimationEnd(target, anim_type);
+						} catch (final Exception e) {
+							Log.w(TAG, e);
+						}
+					}
+				}
+				}
+			}
+		}
+		@Override
+		public void onAnimationCancel(final Animator animation) {
+		}
+		@Override
+		public void onAnimationRepeat(final Animator animation) {
+		}
+	};
+
 	protected LayoutInflater getThemedLayoutInflater(final LayoutInflater inflater) {
 		final Activity context = getActivity();
 		final SharedPreferences pref = context.getPreferences(0);
@@ -300,4 +523,5 @@ public class BaseFragment extends Fragment {
 		// clone the inflater using the ContextThemeWrapper
 		return inflater.cloneInContext(contextThemeWrapper);
 	}
+
 }

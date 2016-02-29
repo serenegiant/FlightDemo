@@ -27,7 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class Dualshock3Pairing {
-	private static final boolean DEBUG = true;	// FIXME 実同時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実同時はfalseにすること
 	private static final String TAG = Dualshock3Pairing.class.getSimpleName();
 
 	private static final int VENDOR_SONY = 0x054c;

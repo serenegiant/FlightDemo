@@ -12,7 +12,7 @@ import com.serenegiant.arflight.*;
 import static com.serenegiant.arflight.ARFlightConst.*;
 
 public abstract class BaseControllerFragment extends BaseFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = BaseControllerFragment.class.getSimpleName();
 
 	/** フラグメントに戻るまでの遅延時間[ミリ秒] */

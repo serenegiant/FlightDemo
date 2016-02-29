@@ -101,7 +101,7 @@ import java.util.Map;
 import static com.serenegiant.arflight.ARFlightConst.*;
 
 public class SkyController extends DeviceController implements IBridgeController, IVideoStreamController, IWiFiController {
-	private static final boolean DEBUG = true;				// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyController.class.getSimpleName();
 
 	private final List<SkyControllerListener> mListeners = new ArrayList<SkyControllerListener>();

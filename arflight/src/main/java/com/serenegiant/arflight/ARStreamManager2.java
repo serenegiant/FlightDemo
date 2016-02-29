@@ -17,7 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class ARStreamManager2 {
-	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = "ARStreamManager2";
 
 	/** フレームプール初期化時のフレーム数(未使用) */

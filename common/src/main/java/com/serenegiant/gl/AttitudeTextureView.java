@@ -109,4 +109,13 @@ public class AttitudeTextureView extends GLTextureModelView {
 			((AttitudeScreenBase) mScreen).setAxis(axis);
 		}
 	}
+
+	@Override
+	public void setAlpha(final float alpha) {
+//		super.setAlpha(alpha);
+		if (mScreen != null) {
+			mScreen.setAlpha(alpha);
+		}
+	}
+
 }

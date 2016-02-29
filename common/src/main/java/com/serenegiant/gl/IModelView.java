@@ -54,6 +54,7 @@ public interface IModelView {
 	 */
 	public int getHeight();
 
+	public void setAlpha(final float alpha);
 	/**
 	 * 機体姿勢をセット
 	 * @param roll 左右の傾き[度]

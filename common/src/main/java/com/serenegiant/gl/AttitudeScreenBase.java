@@ -48,6 +48,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	private StaticTexture backgroundTexture;
 	private TextureRegion backgroundRegion;
 	protected TextureDrawer2D mFullScreenDrawer;
+	protected volatile float mAlpha;
 
 	public AttitudeScreenBase(final IModelView modelView, final int ctrl_type) {
 		super(modelView);
@@ -81,6 +82,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			67, screenWidth / (float)screenHeight, 0.01f, 30f);
 		lookAtCamera.setPosition(0, 4, -6.4f);
 
+		mAlpha = 1.0f;
 		initModel();
 	}
 
@@ -116,13 +118,12 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		rearRightRotorModel.rotate(droneObj.mRearRightRotorObj.angle);
 		// カメラを移動
 //		updateCamera(deltaTime);
-		// 最後に常に機体の方向を向くようにする・・・でもいつも原点にいるからセット不要?
+		// 最後にカメラが常に機体の方向を向くようにする・・・でもいつも原点にいるからセット不要?
 		lookAtCamera.setLookAt(droneModel.getPosition());
 	}
 
 	protected void drawBackground(final GL10 gl) {
 		// 背景を描画
-//		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		backgroundTexture.bind();
 		mFullScreenDrawer.draw();
 		backgroundTexture.unbind();
@@ -130,6 +131,12 @@ public abstract class AttitudeScreenBase extends GLScreen {
 
 	protected void drawModel(final GL10 gl) {
 		moveDrone(gl);
+
+//		gl.glEnable(GL10.GL_BLEND);
+		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		gl.glEnable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
+		gl.glColor4f(1.0f, 1.0f, 1.0f, mAlpha);
+//--------------------------------------------------------------------------------
 		droneModel.draw();
 		if (mHasGuard && (guardModel != null)) {
 			guardModel.draw();
@@ -138,6 +145,9 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		frontRightRotorModel.draw();
 		rearLeftRotorModel.draw();
 		rearRightRotorModel.draw();
+//--------------------------------------------------------------------------------
+		gl.glDisable(GL10.GL_COLOR_MATERIAL);
+		gl.glDisable(GL10.GL_BLEND);
 	}
 
 	@Override
@@ -151,6 +161,8 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		gl.glDisable(GL10.GL_LIGHTING);				// ライティングを無効化
 		gl.glDisable(GL10.GL_CULL_FACE);			// ポリゴンのカリングを無効にする
 		gl.glDisable(GL10.GL_DEPTH_TEST);			// デプステストを無効にする
+//		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+		// 背景を描画
 		drawBackground(gl);
 
 		// ここから3Dの描画処理
@@ -194,6 +206,10 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		gl.glDisable(GL10.GL_BLEND);				// ブレンディングを無効
 	}
 
+	public void setAlpha(final float alpha) {
+		mAlpha = alpha;
+	}
+
 	private void moveDrone(final GL10 gl) {
 		synchronized (mDroneSync) {
 			final Vector position = droneObj.position;
@@ -219,6 +235,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	@Override
 	public void resume() {
 		if (DEBUG) Log.v(TAG, "resume");
+		mAlpha = 1.0f;
 		plateModel.resume();
 		backgroundTexture.reload();
 	}

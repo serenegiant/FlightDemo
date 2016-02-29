@@ -96,7 +96,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FlightControllerBebop extends FlightController implements ICameraController, IWiFiController {
-	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static String TAG = "FlightControllerBebop";
 
 	private boolean videoStreamDelegaterCreated;
@@ -659,7 +659,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		@Override
 		public void onARDrone3PilotingStateAltitudeChangedUpdate(final double altitude) {
 
-			if (DEBUG) Log.v(TAG, "高度:" + altitude);
+//			if (DEBUG) Log.v(TAG, "高度:" + altitude);
 			mStatus.altitude(altitude);
 		}
 	};
@@ -679,7 +679,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		public void onARDrone3PilotingStatePositionChangedUpdate(
 			final double latitude, final double longitude, final double altitude) {
 
-			if (DEBUG) Log.v(TAG, String.format("緯度:%f,軽度:%f,高度:%f", latitude, longitude, altitude));
+//			if (DEBUG) Log.v(TAG, String.format("緯度:%f,軽度:%f,高度:%f", latitude, longitude, altitude));
 			mStatus.setPosition(latitude, longitude, altitude);
 		}
 	};
@@ -699,7 +699,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		public void onARDrone3PilotingStateAttitudeChangedUpdate(
 			final float roll, final float pitch, final float yaw) {
 
-			if (DEBUG) Log.v(TAG, String.format("roll:%f,pitch:%f,yaw:%f", roll, pitch, yaw));
+//			if (DEBUG) Log.v(TAG, String.format("roll:%f,pitch:%f,yaw:%f", roll, pitch, yaw));
 			((DroneStatus)mStatus).setAttitude(roll, pitch, yaw);
 		}
 	};

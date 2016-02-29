@@ -15,7 +15,7 @@ import com.serenegiant.arflight.configs.ARNetworkConfig;
  * E/ARSTREAM_Reader: 21:16:05:121 | ARSTREAM_Reader_RunDataThread:369 - Error while reading stream data: Given IOBuffer identifier is unknown
  */
 public class VideoStreamDelegater implements IVideoStreamController {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = VideoStreamDelegater.class.getSimpleName();
 
 	private static final boolean USE_ARSTREAM2 = false;

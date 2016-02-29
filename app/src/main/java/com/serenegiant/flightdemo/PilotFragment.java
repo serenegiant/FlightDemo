@@ -74,6 +74,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		FileUtils.DIR_NAME = "FlightDemo";
 	}
 
+	private static final long ALPHA_PILOTING_DELAY_MS = 2500;		// アイコン等のアルファを落とすまでの時間[ミリ秒]
+	private static final long HIDE_PILOTING_DELAY_MS = 5000;		// アイコン等をすべて隠すまでの時間[ミリ秒]
+
 	public static PilotFragment newInstance(final ARDiscoveryDeviceService device) {
 		final PilotFragment fragment = new PilotFragment();
 		fragment.setDevice(device);
@@ -89,7 +92,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 	private ViewGroup mControllerFrame;			// 操作パネル全体
 	private TouchableLinearLayout mPilotFrame;	// 操縦パネル
-	private OrientationView mCameraView;
+	private OrientationView mCameraView;		// カメラのPan/Tiltの十字線描画用
 
 	// 上パネル
 	private View mTopPanel;
@@ -128,6 +131,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private SideMenuListView mSideMenuListView;
 	/** 操縦に使用するボタン等の一括変更用。操作可・不可に応じてenable/disableを切り替える */
 	private final List<View> mActionViews = new ArrayList<View>();
+	private final List<View> mAlphaHideList = new ArrayList<View>();
 	/** 飛行記録 */
 	private final FlightRecorder mFlightRecorder;
 	/** スクリプト操縦 */
@@ -210,6 +214,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				layout_id = R.layout.fragment_pilot;
 			}
 		}
+		mActionViews.clear();
+		mAlphaHideList.clear();
+
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
 		final ViewGroup rootView = (ViewGroup) local_inflater.inflate(layout_id, container, false);
 
@@ -218,6 +225,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 //		rootView.setFocusable(true);
 
 		mControllerFrame = (ViewGroup) rootView.findViewById(R.id.controller_frame);
+		mControllerFrame.setOnClickListener(mOnClickListener);
 //		mControllerFrame.setFocusable(true);
 //		mControllerFrame.requestFocus();
 
@@ -227,63 +235,76 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mCameraView = (OrientationView)rootView.findViewById(R.id.camera_view);
 		if (mCameraView != null) {
 			mCameraView.setPanTilt(0, 0);
+			mCameraView.setOnClickListener(mOnClickListener);
+			mAlphaHideList.add(mCameraView);
 		}
 
-		mActionViews.clear();
-		// 上パネル
+// 上パネル
 		mTopPanel = rootView.findViewById(R.id.top_panel);
 		mActionViews.add(mTopPanel);
-
+		// フラットトリムボタン
 		mFlatTrimBtn = (ImageButton) rootView.findViewById(R.id.flat_trim_btn);
 		mFlatTrimBtn.setOnClickListener(mOnClickListener);
 		mFlatTrimBtn.setOnLongClickListener(mOnLongClickListener);
 		mActionViews.add(mFlatTrimBtn);
+		mAlphaHideList.add(mFlatTrimBtn);
 
+		// 設定表示ボタン
 		mConfigShowBtn = (ImageButton) rootView.findViewById(R.id.config_show_btn);
 		mConfigShowBtn.setOnClickListener(mOnClickListener);
+		mAlphaHideList.add(mConfigShowBtn);
 
-		// 下パネル
+// 下パネル
+		// 非常停止ボタン
 		mBottomPanel = rootView.findViewById(R.id.bottom_panel);
 		mEmergencyBtn = (ImageButton) rootView.findViewById(R.id.emergency_btn);
 		mEmergencyBtn.setOnClickListener(mOnClickListener);
-
+		// 離着陸指示ボタン
 		mTakeOnOffBtn = (ImageButton) rootView.findViewById(R.id.take_onoff_btn);
 		mTakeOnOffBtn.setOnClickListener(mOnClickListener);
 		mTakeOnOffBtn.setOnLongClickListener(mOnLongClickListener);
 		mActionViews.add(mTakeOnOffBtn);
-
+		// 記録ボタン
 		mRecordBtn = (ImageButton) rootView.findViewById(R.id.record_btn);
 		mRecordBtn.setOnClickListener(mOnClickListener);
 		mRecordBtn.setOnLongClickListener(mOnLongClickListener);
-
+		mAlphaHideList.add(mRecordBtn);
+		// 記録ラベル
 		mRecordLabel = (TextView) rootView.findViewById(R.id.record_label);
-
+		mAlphaHideList.add(mRecordLabel);
+		// 再生ボタン
 		mPlayBtn = (ImageButton) rootView.findViewById(R.id.play_btn);
 		mPlayBtn.setOnClickListener(mOnClickListener);
 		mPlayBtn.setOnLongClickListener(mOnLongClickListener);
-
+		mAlphaHideList.add(mPlayBtn);
+		// 再生ラベル
 		mPlayLabel = (TextView) rootView.findViewById(R.id.play_label);
-
+		mAlphaHideList.add(mPlayLabel);
+		// 読み込みボタン
 		mLoadBtn = (ImageButton) rootView.findViewById(R.id.load_btn);
 		mLoadBtn.setOnClickListener(mOnClickListener);
 		mLoadBtn.setOnLongClickListener(mOnLongClickListener);
-
+		mAlphaHideList.add(mLoadBtn);
+		// 時間ボタン
 		mTimeLabelTv = (TextView) rootView.findViewById(R.id.time_label);
-		mTimeLabelTv.setVisibility(View.INVISIBLE);
+		setChildVisibility(mTimeLabelTv, View.INVISIBLE);
+		mAlphaHideList.add(mTimeLabelTv);
 
 		// クリアボタン(タッチ描画操縦)
 		mClearButton = (ImageButton) rootView.findViewById(R.id.clear_btn);
 		if (mClearButton != null) {
 			mClearButton.setOnClickListener(mOnClickListener);
+			mAlphaHideList.add(mClearButton);
 		}
 		// 移動ボタン(タッチ描画操縦)
 		mMoveButton = (ImageButton) rootView.findViewById(R.id.move_btn);
 		if (mMoveButton != null) {
 			mMoveButton.setOnClickListener(mOnClickListener);
+			mAlphaHideList.add(mMoveButton);
 		}
-
+// 操縦パネル
 		ImageButton button;
-		// 右サイドパネル
+// 右サイドパネル
 		mRightSidePanel = rootView.findViewById(R.id.right_side_panel);
 		mActionViews.add(mRightSidePanel);
 
@@ -303,7 +324,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		button.setOnClickListener(mOnClickListener);
 		mActionViews.add(button);
 
-		// 左サイドパネル
+// 左サイドパネル
 		mLeftSidePanel = rootView.findViewById(R.id.left_side_panel);
 		mActionViews.add(mLeftSidePanel);
 
@@ -372,6 +393,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		TextureHelper.genTexture(getActivity(), model, color);
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 		mModelView.setModel(model, ctrl);
+//		mAlphaHideList.add((View)mModelView);
 
 //		final boolean use_gamepad_driver = pref.getBoolean(ConfigFragment.KEY_GAMEPAD_USE_DRIVER, false);
 //		if (use_gamepad_driver) {
@@ -400,11 +422,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 //				mUSBMonitor.register();
 //			}
 //		}
+		cancelAlphaHide();
 	}
 
 	@Override
 	public void onPause() {
 //		if (DEBUG) Log.v(TAG, "onPause:");
+		clearAlphaHide();
 		mJoystick = null;
 //		synchronized (mUsbSync) {
 //			releaseGamepad();
@@ -476,6 +500,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			if (intercept) {
 				// マルチタッチ開始時のタッチ位置等を保存
 				initTouch(event);
+			} else {
+				cancelAlphaHide();
 			}
 			return intercept;
 		}
@@ -491,6 +517,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				return n > 1;	// 多分ここにはこない
 			case MotionEvent.ACTION_POINTER_DOWN:
 //				if (DEBUG) Log.v(TAG, "ACTION_POINTER_DOWN:");
+				clearAlphaHide();
 				return true;
 			case MotionEvent.ACTION_MOVE:
 //				if (DEBUG) Log.v(TAG, "ACTION_MOVE:");
@@ -521,12 +548,15 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				return true;
 			case MotionEvent.ACTION_CANCEL:
 			case MotionEvent.ACTION_UP:
+				cancelAlphaHide();
+				break;
 			case MotionEvent.ACTION_POINTER_UP:
 				break;
 			}
 			if (n == 0) {
 				inited = false;
 				remove(mResetRunnable);
+				cancelAlphaHide();
 			}
 			return false;
 		}
@@ -571,6 +601,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			inited = true;
 			remove(mResetRunnable);
 			post(mResetRunnable, RESET_DURATION_MS);
+			clearAlphaHide();
 		}
 
 		/** タッチ位置を動かしたかどうかを取得 */
@@ -614,6 +645,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		@Override
 		public void onClick(final View view) {
 //			if (DEBUG) Log.v(TAG, "onClick:" + view);
+			cancelAlphaHide();
 			switch (view.getId()) {
 			case R.id.flat_trim_btn:
 				// フラットトリム
@@ -1055,7 +1087,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				mVideoRecordingBtn.setVisibility(controller instanceof IVideoStreamController ? View.VISIBLE : View.INVISIBLE);
+				setChildVisibility(mVideoRecordingBtn, controller instanceof IVideoStreamController ? View.VISIBLE : View.INVISIBLE);
 			}
 		});
 		mModelView.hasGuard((controller instanceof IFlightController) && ((IFlightController)controller).hasGuard());
@@ -1890,6 +1922,13 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	};
 
+	private void setChildVisibility(final View view, final int visibility) {
+		if (view != null) {
+			view.setVisibility(visibility);
+			view.setTag(R.id.anim_visibility, visibility);
+		}
+	}
+
 	/**
 	 * ボタン表示の更新(UIスレッドで処理)
 	 */
@@ -1927,12 +1966,12 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mFlatTrimBtn.setEnabled(can_flattrim);	// フラットトリム
 			mBatteryLabel.setTextColor(is_battery_alarm ? 0xffff0000 : 0xff9400d3);
 			mConfigShowBtn.setEnabled(can_config);
-			mConfigShowBtn.setColorFilter(can_config ? 0: DISABLE_COLOR);
+			mConfigShowBtn.setColorFilter(can_config ? 0 : DISABLE_COLOR);
 
 			// 下パネル
 			mBottomPanel.setEnabled(is_connected);
 			mEmergencyBtn.setEnabled(is_connected);	// 非常停止
-			mTimeLabelTv.setVisibility(is_recording || is_playing ? View.VISIBLE : View.INVISIBLE);
+			setChildVisibility(mTimeLabelTv, is_recording || is_playing ? View.VISIBLE : View.INVISIBLE);
 			mLoadBtn.setEnabled(can_load);            // 読み込み
 			mPlayBtn.setEnabled(can_play);            // 再生
 			mPlayBtn.setColorFilter(can_play ? (mFlightRecorder.isPlaying() ? 0xffff0000 : 0) : DISABLE_COLOR);
@@ -1972,10 +2011,10 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mRightSidePanel.setEnabled(can_fly);
 
 			mStillCaptureBtn.setEnabled(still_capture_state == DroneStatus.MEDIA_READY);
-			mStillCaptureBtn.setVisibility(still_capture_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
+			setChildVisibility(mStillCaptureBtn, still_capture_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
 
 			mVideoRecordingBtn.setEnabled((video_recording_state == DroneStatus.MEDIA_READY) || (video_recording_state == DroneStatus.MEDIA_BUSY));
-			mStillCaptureBtn.setVisibility(video_recording_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
+			setChildVisibility(mStillCaptureBtn, video_recording_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
 			mVideoRecordingBtn.setColorFilter(mVideoRecording ? 0x7fff0000 : 0);
 //			mVideoRecordingBtn.setImageResource(mVideoRecording ? android.R.drawable.presence_video_busy : android.R.drawable.presence_video_online);
 
@@ -2633,4 +2672,86 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 		}
 	};
+
+	private final Runnable mAlphaTask = new Runnable() {
+		@Override
+		public void run() {
+			if (mPilotFrame != null) {
+				for (final View target: mAlphaHideList) {
+					alphaAnimation(target, 1, 1.0f, 0.3f, -1, 0, null);
+				}
+				mModelView.setAlpha(0.6f);
+				alphaAnimation(mPilotFrame, 1, 1.0f, 0.3f, -1, 0, new AnimationCallback() {
+					@Override
+					public void onAnimationEnd(final View target, final int type) {
+						mModelView.setAlpha(0.3f);
+						runOnUiThread(mHideTask, HIDE_PILOTING_DELAY_MS);
+					}
+				});
+			}
+		}
+	};
+
+	private final Runnable mHideTask = new Runnable() {
+		private final AnimationCallback mAnimationCallback = new AnimationCallback() {
+			@Override
+			public void onAnimationEnd(final View target, final int type) {
+//				target.setVisibility(View.INVISIBLE);
+				mModelView.setAlpha(0.0f);
+			}
+		};
+		@Override
+		public void run() {
+			if (mPilotFrame != null) {
+				for (final View target: mAlphaHideList) {
+					alphaAnimation(target, 1, 0.3f, 0.0f, -1, 0, null);
+				}
+				mModelView.setAlpha(0.2f);
+				alphaAnimation(mPilotFrame, 1, 0.3f, 0.0f, -1, 0, mAnimationCallback);
+			}
+		}
+	};
+
+	private void cancelAlphaHide() {
+		removeFromUIThread(mAlphaTask);
+		removeFromUIThread(mHideTask);
+		for (final View target: mAlphaHideList) {
+			target.clearAnimation();
+			target.setAlpha(1.0f);
+			int visibility = View.VISIBLE;
+			try {
+				visibility = (Integer)target.getTag(R.id.anim_visibility);
+			} catch (final Exception e) {
+			}
+			target.setVisibility(visibility);
+		}
+		if (mPilotFrame !=  null) {
+			mPilotFrame.clearAnimation();
+			mPilotFrame.setAlpha(1.0f);
+			mPilotFrame.setVisibility(View.VISIBLE);
+			runOnUiThread(mAlphaTask, ALPHA_PILOTING_DELAY_MS);
+		}
+		mModelView.setAlpha(1.0f);
+	}
+
+	private void clearAlphaHide() {
+		removeFromUIThread(mAlphaTask);
+		removeFromUIThread(mHideTask);
+		for (final View target: mAlphaHideList) {
+			target.clearAnimation();
+			target.setAlpha(1.0f);
+			int visibility = View.VISIBLE;
+			try {
+				visibility = (Integer)target.getTag(R.id.anim_visibility);
+			} catch (final Exception e) {
+			}
+			target.setVisibility(visibility);
+		}
+		if (mPilotFrame !=  null) {
+			mPilotFrame.clearAnimation();
+			mPilotFrame.setAlpha(1.0f);
+			mPilotFrame.setVisibility(View.VISIBLE);
+		}
+		mModelView.setAlpha(1.0f);
+	}
 }

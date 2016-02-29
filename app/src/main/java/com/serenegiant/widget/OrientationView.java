@@ -20,7 +20,7 @@ import com.serenegiant.flightdemo.R;
  * カメラのPan/Tiltに対応する位置に十字線を描くためのView
  */
 public class OrientationView extends View {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = OrientationView.class.getSimpleName();
 
 	private int mPan, mTilt;

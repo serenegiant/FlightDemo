@@ -4,6 +4,7 @@ public interface IScreen {
 
 	public void update(final float deltaTime);
 	public void draw(final float deltaTime);
+	public void setAlpha(final float alpha);
 	public void onSizeChanged(int width, int height);
 	public void setScreenSize(int width, int height);
 	public void onAdSizeChanged();

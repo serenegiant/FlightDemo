@@ -12,7 +12,7 @@ import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.IVideoStreamController;
 
 public abstract class BaseFlightControllerFragment extends BaseControllerFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = BaseFlightControllerFragment.class.getSimpleName();
 
 	protected IFlightController mFlightController;

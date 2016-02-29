@@ -103,7 +103,8 @@
 			android:layout_height="match_parent"
 			android:layout_weight="10"
 			android:id="@+id/pilot_frame"
-			android:orientation="horizontal">
+			android:orientation="horizontal"
+			>
 
 			<LinearLayout
 				android:id="@+id/left_side_panel"
