@@ -9,6 +9,7 @@ android {
 		targetSdkVersion 22
 		versionCode 1
 		versionName "1.0"
+		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
 	}
 	buildTypes {
 		release {

@@ -36,7 +36,6 @@ import com.serenegiant.arflight.FlightControllerBebop2;
 import com.serenegiant.arflight.FlightControllerMiniDrone;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
-import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
@@ -82,6 +81,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	}
 
 	public static PilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
+		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final PilotFragment fragment = new PilotFragment();
 		fragment.setBridge(device, info);
 		return fragment;

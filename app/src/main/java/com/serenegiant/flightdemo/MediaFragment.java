@@ -22,7 +22,6 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.armedia.ARMediaObject;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.FTPController;
-import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.ConfirmDialog;
 import com.serenegiant.dialog.OnDialogResultIntListener;
@@ -47,6 +46,7 @@ public class MediaFragment extends BaseFlightControllerFragment
 	}
 
 	public static MediaFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
+		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final MediaFragment fragment = new MediaFragment();
 		fragment.setBridge(device, info);
 		return fragment;

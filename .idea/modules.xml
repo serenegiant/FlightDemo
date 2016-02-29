@@ -5,32 +5,19 @@
       <module fileurl="file://$PROJECT_DIR$/FlightDemo.iml" filepath="$PROJECT_DIR$/FlightDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/libraries/ScriptEngine/ScriptEngine.iml" filepath="$PROJECT_DIR$/libraries/ScriptEngine/ScriptEngine.iml" />
       <module fileurl="file://$PROJECT_DIR$/animations/animations.iml" filepath="$PROJECT_DIR$/animations/animations.iml" />
-      <module fileurl="file://$PROJECT_DIR$/animations/animations.iml" filepath="$PROJECT_DIR$/animations/animations.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/arflight/arflight.iml" filepath="$PROJECT_DIR$/arflight/arflight.iml" />
-      <module fileurl="file://$PROJECT_DIR$/arflight/arflight.iml" filepath="$PROJECT_DIR$/arflight/arflight.iml" />
-      <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
       <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
       <module fileurl="file://$PROJECT_DIR$/libraries/ScriptEngine/core/core.iml" filepath="$PROJECT_DIR$/libraries/ScriptEngine/core/core.iml" />
       <module fileurl="file://$PROJECT_DIR$/dualshock/dualshock.iml" filepath="$PROJECT_DIR$/dualshock/dualshock.iml" />
-      <module fileurl="file://$PROJECT_DIR$/dualshock/dualshock.iml" filepath="$PROJECT_DIR$/dualshock/dualshock.iml" />
-      <module fileurl="file://$PROJECT_DIR$/gamepad/gamepad.iml" filepath="$PROJECT_DIR$/gamepad/gamepad.iml" />
       <module fileurl="file://$PROJECT_DIR$/gamepad/gamepad.iml" filepath="$PROJECT_DIR$/gamepad/gamepad.iml" />
       <module fileurl="file://$PROJECT_DIR$/gamepaddiag/gamepaddiag.iml" filepath="$PROJECT_DIR$/gamepaddiag/gamepaddiag.iml" />
-      <module fileurl="file://$PROJECT_DIR$/gamepaddiag/gamepaddiag.iml" filepath="$PROJECT_DIR$/gamepaddiag/gamepaddiag.iml" />
-      <module fileurl="file://$PROJECT_DIR$/gamepadtest/gamepadtest.iml" filepath="$PROJECT_DIR$/gamepadtest/gamepadtest.iml" />
       <module fileurl="file://$PROJECT_DIR$/gamepadtest/gamepadtest.iml" filepath="$PROJECT_DIR$/gamepadtest/gamepadtest.iml" />
       <module fileurl="file://$PROJECT_DIR$/graphics_common/graphics_common.iml" filepath="$PROJECT_DIR$/graphics_common/graphics_common.iml" />
-      <module fileurl="file://$PROJECT_DIR$/graphics_common/graphics_common.iml" filepath="$PROJECT_DIR$/graphics_common/graphics_common.iml" />
-      <module fileurl="file://$PROJECT_DIR$/icon_buttons/icon_buttons.iml" filepath="$PROJECT_DIR$/icon_buttons/icon_buttons.iml" />
       <module fileurl="file://$PROJECT_DIR$/icon_buttons/icon_buttons.iml" filepath="$PROJECT_DIR$/icon_buttons/icon_buttons.iml" />
       <module fileurl="file://$PROJECT_DIR$/icon_buttons001/icon_buttons001.iml" filepath="$PROJECT_DIR$/icon_buttons001/icon_buttons001.iml" />
-      <module fileurl="file://$PROJECT_DIR$/icon_buttons001/icon_buttons001.iml" filepath="$PROJECT_DIR$/icon_buttons001/icon_buttons001.iml" />
-      <module fileurl="file://$PROJECT_DIR$/icon_buttons002/icon_buttons002.iml" filepath="$PROJECT_DIR$/icon_buttons002/icon_buttons002.iml" />
       <module fileurl="file://$PROJECT_DIR$/icon_buttons002/icon_buttons002.iml" filepath="$PROJECT_DIR$/icon_buttons002/icon_buttons002.iml" />
       <module fileurl="file://$PROJECT_DIR$/libraries/libraries.iml" filepath="$PROJECT_DIR$/libraries/libraries.iml" />
-      <module fileurl="file://$PROJECT_DIR$/resource_common/resource_common.iml" filepath="$PROJECT_DIR$/resource_common/resource_common.iml" />
       <module fileurl="file://$PROJECT_DIR$/resource_common/resource_common.iml" filepath="$PROJECT_DIR$/resource_common/resource_common.iml" />
     </modules>
   </component>

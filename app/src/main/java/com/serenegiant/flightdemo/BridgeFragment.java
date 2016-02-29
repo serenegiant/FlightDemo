@@ -56,6 +56,7 @@ public class BridgeFragment extends BaseControllerFragment {
 	public BridgeFragment() {
 		super();
 		// デフォルトコンストラクタが必要
+		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 	}
 
 	@Override

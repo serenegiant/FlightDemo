@@ -20,9 +20,6 @@ import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.ARDeviceServiceAdapter;
-import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.IBridgeController;
-import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.widget.PlayerTextureView;
 
@@ -186,7 +183,9 @@ public class ConnectionFragment extends BaseFragment {
 					adapter.add(service);
 					break;
 				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
-					adapter.add(service);
+					if (BuildConfig.USE_SKYCONTROLLER) {
+						adapter.add(service);
+					}
 					break;
 				case ARDISCOVERY_PRODUCT_NSNETSERVICE:
 					break;
@@ -262,7 +261,9 @@ public class ConnectionFragment extends BaseFragment {
 				fragment = isPiloting ? PilotFragment.newInstance(device) : MediaFragment.newInstance(device);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
-				fragment = BridgeFragment.newInstance(device);
+				if (BuildConfig.USE_SKYCONTROLLER) {
+					fragment = BridgeFragment.newInstance(device);
+				}
 				break;
 			}
 		}

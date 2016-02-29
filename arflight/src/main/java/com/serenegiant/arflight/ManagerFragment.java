@@ -342,7 +342,9 @@ public class ManagerFragment extends Fragment {
 				result = new FlightControllerBebop2(getActivity(), device);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
-				result = new SkyController(getActivity(), device);
+				if (BuildConfig.USE_SKYCONTROLLER) {
+					result = new SkyController(getActivity(), device);
+				}
 				break;
 			case ARDISCOVERY_PRODUCT_NSNETSERVICE:
 			case ARDISCOVERY_PRODUCT_JS:		// FIXME JumpingSumoは未対応

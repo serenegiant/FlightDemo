@@ -99,6 +99,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	public DeviceController(final Context context, final IBridgeController bridge) {
+		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		mWeakContext = new WeakReference<Context>(context);
 		mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
 		mDeviceService = null;
@@ -429,6 +430,7 @@ public abstract class DeviceController implements IDeviceController {
 				}
 			}
 		} else if (mBridge != null) {
+			if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 			// FIXME スカイコントローラー経由でブリッジ接続した時
 			// FIXME SkyControllerからmNetALManagerとmNetManagerをコピーすればいいんかな?
 			mNetALManager = mBridge.getNetALManager();
@@ -590,6 +592,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	private boolean bridgeConnect(final int product_id, final String ip, final int port) {
+		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		if (DEBUG) Log.v(TAG, "bridgeConnect:");
 		boolean ok = true;
 		ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;

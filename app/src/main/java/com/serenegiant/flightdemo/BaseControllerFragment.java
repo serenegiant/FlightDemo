@@ -7,14 +7,7 @@ import android.util.Log;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.FlightControllerBebop;
-import com.serenegiant.arflight.FlightControllerBebop2;
-import com.serenegiant.arflight.IBridgeController;
-import com.serenegiant.arflight.IDeviceController;
-import com.serenegiant.arflight.IFlightController;
-import com.serenegiant.arflight.ManagerFragment;
+import com.serenegiant.arflight.*;
 
 import static com.serenegiant.arflight.ARFlightConst.*;
 
@@ -51,19 +44,21 @@ public abstract class BaseControllerFragment extends BaseFragment {
 			mDevice = savedInstanceState.getParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE);
 			mDeviceInfo = savedInstanceState.getParcelable(ARFLIGHT_EXTRA_DEVICE_INFO);
 			final IDeviceController controller = ManagerFragment.getController(getActivity(), mDevice);
-			if ((mDeviceInfo != null) && (controller instanceof IBridgeController)) {
-				// スカイコントローラー経由のブリッジ接続の時
-				final IBridgeController bridge = (IBridgeController)controller;
-				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceInfo.productId());
-				switch (product) {
-				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-					bridge.connectTo(mDeviceInfo);
-					mController = new FlightControllerBebop(getActivity(), bridge);
-					break;
-				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-					bridge.connectTo(mDeviceInfo);
-					mController = new FlightControllerBebop2(getActivity(), bridge);
-					break;
+			if (BuildConfig.USE_SKYCONTROLLER) {
+				if ((mDeviceInfo != null) && (controller instanceof IBridgeController)) {
+					// スカイコントローラー経由のブリッジ接続の時
+					final IBridgeController bridge = (IBridgeController)controller;
+					final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceInfo.productId());
+					switch (product) {
+					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+						bridge.connectTo(mDeviceInfo);
+						mController = new FlightControllerBebop(getActivity(), bridge);
+						break;
+					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+						bridge.connectTo(mDeviceInfo);
+						mController = new FlightControllerBebop2(getActivity(), bridge);
+						break;
+					}
 				}
 			}
 
@@ -129,6 +124,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	}
 
 	protected Bundle setBridge(final ARDiscoveryDeviceService bridge, final DeviceInfo info) {
+		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		mDevice = bridge;
 		mDeviceInfo = info;
 		Bundle args = getArguments();

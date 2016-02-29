@@ -2,6 +2,7 @@ package com.serenegiant.arflight.configs;
 
 import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_FRAME_TYPE_ENUM;
+import com.serenegiant.arflight.BuildConfig;
 
 import org.json.JSONObject;
 
@@ -12,6 +13,7 @@ public class ARNetworkConfigBridge extends ARNetworkConfig {
 
 	private final String skyControllerVersion;
 	public ARNetworkConfigBridge(final ARNetworkConfig src) {
+		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		skyControllerVersion = src instanceof ARNetworkConfigSkyController ? ((ARNetworkConfigSkyController)src).getSkyControllerVersion() : "";
 		pcmdLoopIntervalsMs = src.pcmdLoopIntervalsMs;
 		iobufferC2dNak = src.iobufferC2dNak;
