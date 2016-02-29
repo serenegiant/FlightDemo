@@ -7,6 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 
 import com.serenegiant.widget.ColorPickerView;
 import com.serenegiant.widget.RelativeRadioGroup;
@@ -21,6 +23,7 @@ public class ConfigAppFragment extends BaseFragment {
 
 	private SharedPreferences mPref;
 	private int mColor;
+	private boolean mAutoHide;
 
 	public ConfigAppFragment() {
 		super();
@@ -59,6 +62,11 @@ public class ConfigAppFragment extends BaseFragment {
 		picker.setColor(mColor);
 		picker.showAlpha(false);
 		picker.setColorPickerListener(mColorPickerListener);
+// アイコンを自動的に隠す設定
+		mAutoHide = mPref.getBoolean(ConfigFragment.KEY_AUTO_HIDE, false);
+		final Switch sw = (Switch)rootView.findViewById(R.id.icon_auto_hide_switch);
+		sw.setChecked(mAutoHide);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		return rootView;
 	}
 
@@ -93,4 +101,20 @@ public class ConfigAppFragment extends BaseFragment {
 		}
 	};
 
+	private final CompoundButton.OnCheckedChangeListener mOnCheckedChangeListener
+		= new CompoundButton.OnCheckedChangeListener() {
+		@Override
+		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+			switch (buttonView.getId()) {
+			case R.id.icon_auto_hide_switch:
+			{
+				if (mAutoHide != isChecked) {
+					mAutoHide = isChecked;
+					mPref.edit().putBoolean(ConfigFragment.KEY_AUTO_HIDE, isChecked).apply();
+				}
+				break;
+			}
+			}
+		}
+	};
 }

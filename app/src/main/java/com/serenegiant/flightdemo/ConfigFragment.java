@@ -44,6 +44,8 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 	public static final String KEY_ICON_TYPE = "ICON_TYPE";
 	// 機体色
 	public static final String KEY_COLOR = "CONFIG_COLOR_COLOR";
+	// 操縦画面のアイコンを自動的に隠すかどうか
+	public static final String KEY_AUTO_HIDE = "CONFIG_AUTO_HIDE";
 
 	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device) {
 		final ConfigFragment fragment = new ConfigFragment();

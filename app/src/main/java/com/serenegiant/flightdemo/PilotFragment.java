@@ -131,6 +131,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private SideMenuListView mSideMenuListView;
 	/** 操縦に使用するボタン等の一括変更用。操作可・不可に応じてenable/disableを切り替える */
 	private final List<View> mActionViews = new ArrayList<View>();
+	/** 操縦に使用するボタン等の一括変更用。自動で隠す設定の時に使用  */
 	private final List<View> mAlphaHideList = new ArrayList<View>();
 	/** 飛行記録 */
 	private final FlightRecorder mFlightRecorder;
@@ -178,6 +179,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private double mScaleX, mScaleY, mScaleZ, mScaleR;
 	private float mGamepadSensitivity = 1.0f;
 	private float mGamepadScaleX, mGamepadScaleY, mGamepadScaleZ, mGamepadScaleR;
+	private boolean mAutoHide;
 
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
@@ -195,6 +197,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		mGamepadScaleY = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_Y, 1.0f);
 		mGamepadScaleZ = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_Z, 1.0f);
 		mGamepadScaleR = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_R, 1.0f);
+		mAutoHide = pref.getBoolean(ConfigFragment.KEY_AUTO_HIDE, false);
 		int layout_id;
 		if (mOperationTouch) {
 			layout_id = R.layout.fragment_pilot_touch;
@@ -214,6 +217,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 				layout_id = R.layout.fragment_pilot;
 			}
 		}
+
 		mActionViews.clear();
 		mAlphaHideList.clear();
 
@@ -2676,6 +2680,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	private final Runnable mAlphaTask = new Runnable() {
 		@Override
 		public void run() {
+			if (!mAutoHide) return;
 			if (mPilotFrame != null) {
 				for (final View target: mAlphaHideList) {
 					alphaAnimation(target, 1, 1.0f, 0.3f, -1, 0, null);
@@ -2696,12 +2701,14 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		private final AnimationCallback mAnimationCallback = new AnimationCallback() {
 			@Override
 			public void onAnimationEnd(final View target, final int type) {
+				if (!mAutoHide) return;
 //				target.setVisibility(View.INVISIBLE);
 				mModelView.setAlpha(0.0f);
 			}
 		};
 		@Override
 		public void run() {
+			if (!mAutoHide) return;
 			if (mPilotFrame != null) {
 				for (final View target: mAlphaHideList) {
 					alphaAnimation(target, 1, 0.3f, 0.0f, -1, 0, null);
@@ -2729,7 +2736,9 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 			mPilotFrame.clearAnimation();
 			mPilotFrame.setAlpha(1.0f);
 			mPilotFrame.setVisibility(View.VISIBLE);
-			runOnUiThread(mAlphaTask, ALPHA_PILOTING_DELAY_MS);
+			if (mAutoHide) {
+				runOnUiThread(mAlphaTask, ALPHA_PILOTING_DELAY_MS);
+			}
 		}
 		mModelView.setAlpha(1.0f);
 	}
