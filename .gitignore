@@ -11,3 +11,4 @@ app/build
 arflight/build
 common/build
 *.iml
+opencv/src/main/libs

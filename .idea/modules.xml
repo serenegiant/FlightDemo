@@ -18,6 +18,7 @@
       <module fileurl="file://$PROJECT_DIR$/icon_buttons001/icon_buttons001.iml" filepath="$PROJECT_DIR$/icon_buttons001/icon_buttons001.iml" />
       <module fileurl="file://$PROJECT_DIR$/icon_buttons002/icon_buttons002.iml" filepath="$PROJECT_DIR$/icon_buttons002/icon_buttons002.iml" />
       <module fileurl="file://$PROJECT_DIR$/libraries/libraries.iml" filepath="$PROJECT_DIR$/libraries/libraries.iml" />
+      <module fileurl="file://$PROJECT_DIR$/opencv/opencv.iml" filepath="$PROJECT_DIR$/opencv/opencv.iml" />
       <module fileurl="file://$PROJECT_DIR$/resource_common/resource_common.iml" filepath="$PROJECT_DIR$/resource_common/resource_common.iml" />
     </modules>
   </component>
