@@ -52,4 +52,5 @@ dependencies {
 	compile project(':icon_buttons')
 	compile project(':icon_buttons001')
 	compile project(':icon_buttons002')
+	compile project(':opencv')
 }

@@ -144,7 +144,7 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 	/** モデル表示 */
 	private IModelView mModelView;
 
-	private VideoStream mVideoStream;
+	protected VideoStream mVideoStream;
 	private boolean mVideoRecording;
 
 	public PilotFragment() {

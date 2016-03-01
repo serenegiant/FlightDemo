@@ -125,6 +125,7 @@ public class ConnectionFragment extends BaseFragment {
 		mDownloadBtn.setOnClickListener(mOnClickListener);
 		mPilotBtn = (ImageButton)rootView.findViewById(R.id.pilot_button);
 		mPilotBtn.setOnClickListener(mOnClickListener);
+		mPilotBtn.setOnLongClickListener(mOnLongClickListener);
 		ImageButton button = (ImageButton)rootView.findViewById(R.id.gallery_button);
 		button.setOnClickListener(mOnClickListener);
 		button = (ImageButton)rootView.findViewById(R.id.script_button);
@@ -233,6 +234,36 @@ public class ConnectionFragment extends BaseFragment {
 				break;
 			}
 			replace(fragment);
+		}
+	};
+
+	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
+		@Override
+		public boolean onLongClick(final View view) {
+			Fragment fragment = null;
+			switch (view.getId()) {
+			case R.id.pilot_button:
+				final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+				final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+				final String itemValue = adapter.getItemName(mDeviceListView.getCheckedItemPosition());
+				final ARDiscoveryDeviceService device = manager.getDevice(itemValue);
+				if (device != null) {
+					// 製品名を取得
+					final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
+
+					switch (product) {
+					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+						fragment = AutoPilotFragment.newInstance(device);
+					}
+				}
+				break;
+			}
+			if (fragment != null) {
+				replace(fragment);
+				return true;
+			}
+			return false;
 		}
 	};
 

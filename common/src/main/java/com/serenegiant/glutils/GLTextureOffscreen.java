@@ -11,14 +11,14 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 /**
- * テクスチャへOpenGL|ESで描画するためのオフスクリーン描画暮らす
+ * テクスチャへOpenGL|ESで描画するためのオフスクリーン描画クラス
  * テクスチャをカラーバッファとしてFBOに割り当てる
  */
 public class GLTextureOffscreen {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 //	private static final String TAG = "GLTextureOffscreen";
 
-	private final int TEX_TARGET = GLES20.GL_TEXTURE_2D;
+	private final int TEX_TARGET;
 	private final int mWidth, mHeight;					// 描画領域サイズ
 	private int mTexWidth, mTexHeight;					// テクスチャサイズ
 	private int mFBOTextureId;							// オフスクリーンのカラーバッファに使うテクスチャ
@@ -33,6 +33,23 @@ public class GLTextureOffscreen {
 	 */
 	public GLTextureOffscreen(final int width, final int height, final boolean use_depth_buffer) {
 //		if (DEBUG) Log.v(TAG, "コンストラクタ");
+		TEX_TARGET = GLES20.GL_TEXTURE_2D;
+		mWidth = width;
+		mHeight = height;
+
+		prepareFramebuffer(width, height, use_depth_buffer);
+	}
+
+	/**
+	 * コンストラクタ
+	 * @param target GLES20.GL_TEXTURE_2D
+	 * @param width オフスクリーンのサイズ
+	 * @param height
+	 * @param use_depth_buffer
+	 */
+	public GLTextureOffscreen(final int target, final int width, final int height, final boolean use_depth_buffer) {
+//		if (DEBUG) Log.v(TAG, "コンストラクタ");
+		TEX_TARGET = target;
 		mWidth = width;
 		mHeight = height;
 
@@ -175,7 +192,7 @@ public class GLTextureOffscreen {
     }
 
     /**
-     * オフスクリーンフレムバッファを破棄
+     * オフスクリーンフレームバッファを破棄
      */
     private final void releaseFrameBuffer() {
         final int[] ids = new int[1];

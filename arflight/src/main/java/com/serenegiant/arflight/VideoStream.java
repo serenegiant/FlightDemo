@@ -344,6 +344,7 @@ public class VideoStream implements IVideoStream {
 
 	/** デコードした映像をOpenGL|ESでSurface全面に表示するためのタスク */
 	private static final class RendererTask extends EglTask {
+		/** 映像の分配描画先を保持&描画するためのホルダークラス */
 		private static final class RendererSurfaceRec {
 			private Object mSurface;
 			private EGLBase.EglSurface mTargetSurface;
@@ -365,16 +366,27 @@ public class VideoStream implements IVideoStream {
 		}
 
 		private final VideoStream mParent;
+		/** 受け取った映像の分配描画の排他制御用 */
 		private final Object mClientSync = new Object();
+		/** 分配描画先 */
 		private final SparseArray<RendererSurfaceRec> mClients = new SparseArray<RendererSurfaceRec>();
 
 		private GLDrawer2D mDrawer;
+		/** MediaCodecでデコードした映像を受け取るためのテクスチャのテクスチャ名(SurfaceTexture生成時/分配描画に使用) */
 		private int mTexId;
+		/** MediaCodecでデコードした映像を受け取るためのSurfaceTexture */
 		private SurfaceTexture mMasterTexture;
+		/** mMasterTextureのテクスチャ変換行列 */
 		final float[] mTexMatrix = new float[16];
+		/** MediaCodecでデコードした映像を受け取るためのSurfaceTextureから取得したSurface */
 		private Surface mMasterSurface;
+		/** 映像サイズ */
 		private int mVideoWidth, mVideoHeight;
 
+		/**
+		 * コンストラクタ
+		 * @param parent
+		 */
 		public RendererTask(final VideoStream parent) {
 			super(null, EglTask.EGL_FLAG_RECORDABLE);
 			mParent = parent;
@@ -438,16 +450,23 @@ public class VideoStream implements IVideoStream {
 			return false;
 		}
 
+		/** 映像受け取り用Surfaceを取得 */
 		public Surface getSurface() {
 			if (DEBUG) Log.v(TAG, "getSurface:" + mMasterSurface);
 			return mMasterSurface;
 		}
 
+		/** 映像受け取り用SurfaceTextureを取得 */
 		public SurfaceTexture getSurfaceTexture() {
 			if (DEBUG) Log.v(TAG, "getSurfaceTexture:" + mMasterTexture);
 			return mMasterTexture;
 		}
 
+		/**
+		 * 分配描画用のSurfaceを追加
+		 * @param id
+		 * @param surface Surface/SurfaceHolder/SurfaceTexture
+		 */
 		public void addSurface(final int id, final Object surface) {
 			synchronized (mClientSync) {
 				if ((surface != null) && (mClients.get(id) == null)) {
@@ -461,6 +480,10 @@ public class VideoStream implements IVideoStream {
 			}
 		}
 
+		/***
+		 * 分配描画用のSurfaceを削除
+		 * @param id
+		 */
 		public void removeSurface(final int id) {
 			synchronized (mClientSync) {
 				if (mClients.get(id) != null) {
@@ -474,6 +497,11 @@ public class VideoStream implements IVideoStream {
 			}
 		}
 
+		/***
+		 * 描画映像サイズを変更
+		 * @param width
+		 * @param height
+		 */
 		public void resize(final int width, final int height) {
 			if ((mVideoWidth != width) || (mVideoHeight != height)) {
 				offer(REQUEST_UPDATE_SIZE, width, height);
@@ -481,7 +509,7 @@ public class VideoStream implements IVideoStream {
 		}
 
 		/**
-		 * 実際の描画処理
+		 * 実際の描画処理(ワーカースレッド上で実行)
 		 */
 		private void handleDraw() {
 //			if (DEBUG) Log.v(TAG, "handleDraw:");
@@ -512,6 +540,11 @@ public class VideoStream implements IVideoStream {
 //			if (DEBUG) Log.v(TAG, "handleDraw:終了");
 		}
 
+		/**
+		 * 分配描画用Surfaceを追加(ワーカースレッド上で実行)
+		 * @param id
+		 * @param surface
+		 */
 		private void handleAddSurface(final int id, final Object surface) {
 			if (DEBUG) Log.v(TAG, "handleAddSurface:id=" + id);
 			checkSurface();
@@ -531,6 +564,10 @@ public class VideoStream implements IVideoStream {
 			}
 		}
 
+		/**
+		 * 分配描画用Surfaceを取り除く(ワーカースレッド上で実行)
+		 * @param id
+		 */
 		private void handleRemoveSurface(final int id) {
 			if (DEBUG) Log.v(TAG, "handleRemoveSurface:id=" + id);
 			synchronized (mClientSync) {
@@ -580,6 +617,11 @@ public class VideoStream implements IVideoStream {
 			if (DEBUG) Log.v(TAG, "checkSurface:finished");
 		}
 
+		/**
+		 * 製造サイズ変更処理(ワーカースレッド上で実行)
+		 * @param width
+		 * @param height
+		 */
 		private void handleResize(final int width, final int height) {
 			if (DEBUG) Log.v(TAG, String.format("handleResize:(%d,%d)", width, height));
 			mVideoWidth = width;
@@ -590,7 +632,9 @@ public class VideoStream implements IVideoStream {
 		/**
 		 * TextureSurfaceで映像を受け取った際のコールバックリスナー
 		 */
-		private final SurfaceTexture.OnFrameAvailableListener mOnFrameAvailableListener = new SurfaceTexture.OnFrameAvailableListener() {
+		private final SurfaceTexture.OnFrameAvailableListener
+			mOnFrameAvailableListener = new SurfaceTexture.OnFrameAvailableListener() {
+
 			@Override
 			public void onFrameAvailable(final SurfaceTexture surfaceTexture) {
 				offer(REQUEST_DRAW);

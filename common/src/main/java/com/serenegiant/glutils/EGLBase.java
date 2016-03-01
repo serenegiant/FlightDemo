@@ -56,7 +56,7 @@ public class EGLBase {
 		private EGLSurface mEglSurface = EGL10.EGL_NO_SURFACE;
 
 		/**
-		 * Surface(Surface/SurfaceTexture/SufaceHolder)に関係付けられたEglSurface
+		 * Surface(Surface/SurfaceTexture/SurfaceHolder)に関係付けられたEglSurface
 		 * @param egl
 		 * @param surface
 		 */
@@ -155,7 +155,7 @@ public class EGLBase {
     /**
      * 指定したSurfaceからEglSurfaceを生成する
      * 生成したEglSurfaceをmakeCurrentした状態で戻る
-     * @param surface(Surface/SurfaceTexture/SurfaceHolder)
+     * @param surface (Surface/SurfaceTexture/SurfaceHolder)
      * @return
      */
 	public EglSurface createFromSurface(final Object surface) {

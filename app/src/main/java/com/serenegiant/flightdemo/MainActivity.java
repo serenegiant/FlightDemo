@@ -34,11 +34,9 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 	private static final boolean DEBUG = false;    // FIXME 実働時はfalseにすること
 	private static String TAG = MainActivity.class.getSimpleName();
 
-//	private static boolean isLoaded = false;
-
 	static {
 		ARSDK.loadSDKLibs();
-		ARSALPrint.setMinimumLogLevel(ARSAL_PRINT_LEVEL_ENUM.ARSAL_PRINT_DEBUG);
+//		ARSALPrint.setMinimumLogLevel(ARSAL_PRINT_LEVEL_ENUM.ARSAL_PRINT_DEBUG);
 	}
 
 	/**
