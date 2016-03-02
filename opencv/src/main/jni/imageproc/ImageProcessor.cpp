@@ -8,7 +8,7 @@
 	#endif
 	#undef USE_LOGALL			// 指定したLOGxだけを出力
 #else
-	#define USE_LOGALL
+//	#define USE_LOGALL
 	#define USE_LOGD
 	#undef LOG_NDEBUG
 	#undef NDEBUG
@@ -97,6 +97,13 @@ int ImageProcessor::stop() {
 		if (pthread_join(processor_thread, NULL) != EXIT_SUCCESS) {
 			LOGW("terminate processor thread: pthread_join failed");
 		}
+		mMutex.lock();
+		{
+			for ( ; !mFrames.empty(); ) {
+				mFrames.pop();
+			}
+		}
+		mMutex.unlock();
 	}
 	RETURN(0, int);
 }
@@ -127,20 +134,40 @@ void *ImageProcessor::processor_thread_func(void *vptr_args) {
 void ImageProcessor::do_process(JNIEnv *env) {
 	ENTER();
 
+	float result[20];
 	for ( ; mIsRunning ; ) {
 		// フレームデータの取得待ち
 		cv::Mat frame = getFrame();
 		if (!mIsRunning) break;
-		// OpenCVでの解析処理
-		LOGI("get Mat");
-		// FIXME 未実装
+		// FIXME 未実装 OpenCVでの解析処理
+		try {
+			cv::Mat dst, cdst;
+			// グレースケールに変換
+//			cv::cvtColor(frame, dst, cv::COLOR_RGBA2GRAY);
+			// エッジ検出
+			cv::Canny(frame, dst, 50, 200, 3);
+			cv::cvtColor(dst, cdst, cv::COLOR_GRAY2BGR);
+			// 確率的Hough変換による直線検出
+			std::vector<cv::Vec4i> lines;
+			cv::HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
+			for (size_t i = 0; i < lines.size(); i++ ) {
+				cv::Vec4i l = lines[i];
+				cv::line(frame, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0, 0, 255));
+//				LOGD("line%d:(%d,%d - %d,%d)", i, l[0], l[1], l[2], l[3]);
+			}
+		} catch (cv::Exception e) {
+			LOGE("do_process:%s", e.msg.c_str());
+			continue;
+		}
 		// Java側のコールバックメソッドを呼び出す
 		if (LIKELY(mIsRunning && fields.callFromNative && mClazz && mWeakThiz)) {
-			// FIXME コピーされるけどfloat配列の方がいいかも
-//			jobject buf = env->NewDirectByteBuffer(callback_frame->getFrame(), NULL/* FIXME */);
-//			env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, buf);
-//			env->ExceptionClear();
-//			env->DeleteLocalRef(buf);
+			// FIXME ByteBufferで返す代わりにコピーされるけどfloat配列の方がいいかも
+			jobject buf = env->NewDirectByteBuffer(result, sizeof(float) * 20);
+			jobject buf_frame = env->NewDirectByteBuffer(frame.data, frame.total());
+			env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, buf_frame, buf);
+			env->ExceptionClear();
+			env->DeleteLocalRef(buf);
+			env->DeleteLocalRef(buf_frame);
 		}
 	}
 
@@ -163,6 +190,7 @@ int ImageProcessor::handleFrame(const uint8_t *frame, const int &width, const in
 //================================================================================
 // フレームキュー
 //================================================================================
+/** フレームキューからフレームを取得, フレームキューが空ならブロックする */
 cv::Mat ImageProcessor::getFrame() {
 	ENTER();
 
@@ -180,16 +208,17 @@ cv::Mat ImageProcessor::getFrame() {
 	RET(result);
 }
 
+/** フレームキューにフレームを追加する, キュー中のフレーム数が最大数を超えると先頭を破棄する */
 int ImageProcessor::addFrame(cv::Mat &frame) {
 	ENTER();
 
 	Mutex::Autolock lock(mMutex);
 
 	if (mFrames.size() >= MAX_QUEUED_FRAMES) {
-		// 先頭を破棄する
+		// キュー中のフレーム数が最大数を超えたので先頭を破棄する
 		mFrames.pop();
 	}
-	mFrames.push(frame);
+	mFrames.push(frame.clone());	// コピーを追加する
 	mSync.signal();
 
 	RETURN(0, int);
@@ -201,7 +230,7 @@ static void nativeClassInit(JNIEnv* env, jclass clazz) {
 	ENTER();
 
 	fields.callFromNative = env->GetStaticMethodID(clazz, "callFromNative",
-         "(Ljava/lang/ref/WeakReference;Ljava/nio/ByteBuffer;)V");
+         "(Ljava/lang/ref/WeakReference;Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)V");
 	if (UNLIKELY(!fields.callFromNative)) {
 		LOGW("can't find com.serenegiant.ImageProcessor#callFromNative");
 	}

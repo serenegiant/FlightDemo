@@ -78,12 +78,13 @@ public class ImageProcessor {
 	 * @param weakSelf
 	 * @param result これの方は未定。とりあえずFloatBufferにしてみる
 	 */
-	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final ByteBuffer result) {
+	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final ByteBuffer frame, final ByteBuffer result) {
 		if (DEBUG) Log.v(TAG, "callFromNative");
 		final ImageProcessor self = weakSelf != null ? weakSelf.get() : null;
 		if (self != null) {
 			final FloatBuffer buf = result.asFloatBuffer();
 			self.handleResult(buf);
+			self.handleOpenCVFrame(frame);
 		}
 		if (DEBUG) Log.v(TAG, "callFromNative:finished");
 	}
@@ -95,6 +96,9 @@ public class ImageProcessor {
 	private void handleResult(final FloatBuffer result) {
 		// FIXME 解析結果の処理
 		result.clear();
+	}
+
+	private void handleOpenCVFrame(final ByteBuffer frame) {
 	}
 
 	private static class ProcessingTask extends EglTask {
@@ -270,6 +274,7 @@ public class ImageProcessor {
 		if (!isInit) {
 			System.loadLibrary("gnustl_shared");
 			System.loadLibrary("common");
+			System.loadLibrary("opencv_java3");
 			System.loadLibrary("imageproc");
 			nativeClassInit();
 			isInit = true;
