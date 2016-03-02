@@ -1,14 +1,27 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.TextureView;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceInfo;
+import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IVideoStreamController;
+import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.opencv.ImageProcessor;
+
+import java.nio.ByteBuffer;
 
 public class AutoPilotFragment extends PilotFragment {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
@@ -27,6 +40,7 @@ public class AutoPilotFragment extends PilotFragment {
 		return fragment;
 	}
 
+	protected SurfaceView mDetectView;
 	protected ImageProcessor mImageProcessor;
 	public AutoPilotFragment() {
 		super();
@@ -49,18 +63,29 @@ public class AutoPilotFragment extends PilotFragment {
 		super.onDetach();
 	}
 
+	@Override
+	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+		final View rootView =super.onCreateView(inflater, container, savedInstanceState);
+		mDetectView = (SurfaceView)rootView.findViewById(R.id.detect_view);
+		mDetectView.setVisibility(View.VISIBLE);
+		return rootView;
+	}
+
 	private int mImageProcessorSurfaceId;
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		super.onConnect(controller);
 		if (DEBUG) Log.v(TAG, "onConnect");
 		if ((mController instanceof IVideoStreamController) && (mVideoStream != null)) {
-			mImageProcessor = new ImageProcessor();
+			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
 			final Surface surface = mImageProcessor.getSurface();
 			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
 			if (mImageProcessorSurfaceId != 0) {
 				mVideoStream.addSurface(mImageProcessorSurfaceId, surface);
 			}
+		}
+		if (mController instanceof ICameraController) {
+			((ICameraController)mController).sendExposure(3);
 		}
 	}
 
@@ -77,4 +102,32 @@ public class AutoPilotFragment extends PilotFragment {
 		}
 		super.onDisconnect(controller);
 	}
+
+	private Bitmap mFrame;
+	private final ImageProcessor.ImageProcessorCallback mImageProcessorCallback
+		= new ImageProcessor.ImageProcessorCallback() {
+		@Override
+		public void onFrame(final ByteBuffer frame) {
+			if (mDetectView != null) {
+				final SurfaceHolder holder = mDetectView.getHolder();
+				if ((holder == null) || (holder.getSurface() == null)) return;
+				if (mFrame == null) {
+					mFrame = Bitmap.createBitmap(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT, Bitmap.Config.ARGB_8888);
+				}
+				frame.clear();
+//				if (DEBUG) Log.v(TAG, "frame=" + frame);
+				mFrame.copyPixelsFromBuffer(frame);
+				final Canvas canvas = holder.lockCanvas();
+				if (canvas != null) {
+					try {
+						canvas.drawBitmap(mFrame, 0, 0, null);
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					} finally {
+						holder.unlockCanvasAndPost(canvas);
+					}
+				}
+			}
+		}
+	};
 }

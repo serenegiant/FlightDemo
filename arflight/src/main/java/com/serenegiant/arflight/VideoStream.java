@@ -13,8 +13,10 @@ import android.view.Surface;
 import com.parrot.arsdk.arstream2.ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_ENUM;
 import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.EglTask;
+import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.GLDrawer2D;
 import com.serenegiant.glutils.GLHelper;
+import com.serenegiant.glutils.Texture2dProgram;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -26,8 +28,8 @@ public class VideoStream implements IVideoStream {
 	private static final String VIDEO_MIME_TYPE = "video/avc";
 	private static final int VIDEO_INPUT_TIMEOUT_US = 33000;
 	private static final long VIDEO_OUTPUT_TIMEOUT_US = 20000;
-	private static final int VIDEO_WIDTH = 640;
-	private static final int VIDEO_HEIGHT = 368;
+	public static final int VIDEO_WIDTH = 640;
+	public static final int VIDEO_HEIGHT = 368;
 
 	private final Object mSync = new Object();
 	private volatile boolean isRendererRunning;
@@ -371,7 +373,8 @@ public class VideoStream implements IVideoStream {
 		/** 分配描画先 */
 		private final SparseArray<RendererSurfaceRec> mClients = new SparseArray<RendererSurfaceRec>();
 
-		private GLDrawer2D mDrawer;
+//		private GLDrawer2D mDrawer;
+		private FullFrameRect mDrawer;
 		/** MediaCodecでデコードした映像を受け取るためのテクスチャのテクスチャ名(SurfaceTexture生成時/分配描画に使用) */
 		private int mTexId;
 		/** MediaCodecでデコードした映像を受け取るためのSurfaceTexture */
@@ -394,10 +397,25 @@ public class VideoStream implements IVideoStream {
 			mVideoHeight = VIDEO_HEIGHT;
 		}
 
+		private final float[] kernel = new float[] {
+			// 無変換
+//			0f, 0f, 0f,
+//			0f, 1f, 0f,
+//			0f, 0f, 0f,
+			// シャープネス
+			0f, -1f, 0f,
+			-1f, 5f, -1f,
+			0f, -1f, 0f,
+		};
+
 		@Override
 		protected void onStart() {
 			if (DEBUG) Log.v(TAG, "onStart:");
-			mDrawer = new GLDrawer2D(true);
+//			mDrawer = new GLDrawer2D(true);
+			mDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3));
+			mDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
+			mDrawer.getProgram().setKernel(kernel, 0.1f);
+//			mDrawer.updateFilter(FullFrameRect.FILTER_EDGE_DETECT);
 			mTexId = GLHelper.initTex(GLDrawer2D.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_NEAREST);
 			mMasterTexture = new SurfaceTexture(mTexId);
 			mMasterSurface = new Surface(mMasterTexture);
@@ -529,7 +547,7 @@ public class VideoStream implements IVideoStream {
 					client = mClients.valueAt(i);
 					if (client != null) {
 						client.mTargetSurface.makeCurrent();
-						mDrawer.setMvpMatrix(client.mMvpMatrix, 0);
+//						mDrawer.setMvpMatrix(client.mMvpMatrix, 0);
 						mDrawer.draw(mTexId, mTexMatrix, 0);
 						client.mTargetSurface.swap();
 					}

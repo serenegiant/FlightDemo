@@ -1,5 +1,6 @@
 package com.serenegiant.opencv;
 
+import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.util.Log;
@@ -7,8 +8,11 @@ import android.view.Surface;
 
 import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.EglTask;
+import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.GLDrawer2D;
 import com.serenegiant.glutils.GLHelper;
+import com.serenegiant.glutils.GLTextureOffscreen;
+import com.serenegiant.glutils.Texture2dProgram;
 
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
@@ -25,15 +29,24 @@ public class ImageProcessor {
 	private static final int REQUEST_DRAW = 1;
 	private static final int REQUEST_UPDATE_SIZE = 2;
 
+	public interface ImageProcessorCallback {
+		public void onFrame(final ByteBuffer frame);
+	}
+
 	private final Object mSync = new Object();
+	private final ImageProcessorCallback mCallback;
 	private volatile boolean isProcessingRunning;
 	private ProcessingTask mProcessingTask;
 
 	/** native側のインスタンスポインタ, 名前を変えたりしちゃダメ */
 	private long mNativePtr;
 
-	public ImageProcessor() {
+	public ImageProcessor(final ImageProcessorCallback callback) {
 		if (DEBUG) Log.v(TAG, "コンストラクタ");
+		if (callback == null) {
+			throw new NullPointerException("callback should not be null");
+		}
+		mCallback = callback;
 		mNativePtr = nativeCreate(new WeakReference<ImageProcessor>(this));
 		mProcessingTask = new ProcessingTask(this);
 		new Thread(mProcessingTask, "VideoStream$rendererTask").start();
@@ -79,14 +92,20 @@ public class ImageProcessor {
 	 * @param result これの方は未定。とりあえずFloatBufferにしてみる
 	 */
 	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final ByteBuffer frame, final ByteBuffer result) {
-		if (DEBUG) Log.v(TAG, "callFromNative");
+//		if (DEBUG) Log.v(TAG, "callFromNative");
 		final ImageProcessor self = weakSelf != null ? weakSelf.get() : null;
 		if (self != null) {
-			final FloatBuffer buf = result.asFloatBuffer();
-			self.handleResult(buf);
-			self.handleOpenCVFrame(frame);
+			try {
+				final FloatBuffer buf = result.asFloatBuffer();
+				self.handleResult(buf);
+				if (frame != null) {
+					self.handleOpenCVFrame(frame);
+				}
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
 		}
-		if (DEBUG) Log.v(TAG, "callFromNative:finished");
+//		if (DEBUG) Log.v(TAG, "callFromNative:finished");
 	}
 
 	/**
@@ -94,11 +113,17 @@ public class ImageProcessor {
 	 * @param result これの方は未定。とりあえずFloatBufferにしてるけど#callFromNativeと合わせる
 	 */
 	private void handleResult(final FloatBuffer result) {
-		// FIXME 解析結果の処理
+//		if (DEBUG) Log.v(TAG, "handleResult");
 		result.clear();
 	}
 
+	/**
+	 * OpenCVで処理した映像を受け取った時の処理
+	 * @param frame
+	 */
 	private void handleOpenCVFrame(final ByteBuffer frame) {
+//		if (DEBUG) Log.v(TAG, "handleOpenCVFrame");
+		mCallback.onFrame(frame);
 	}
 
 	private static class ProcessingTask extends EglTask {
@@ -118,9 +143,13 @@ public class ImageProcessor {
 		/** OpenGL|ESの描画Surfaceからフレームデータを読み込むためのダイレクトByteBuffer */
 		private ByteBuffer buf = null;
 		/** キャプチャ用のEGLSurface */
- 		private EGLBase.EglSurface captureSurface;
+		private EGLBase.EglSurface captureSurface;
 		/** キャプチャ用EGLSurfaceへの描画用 */
- 		private GLDrawer2D drawer;
+// 		private GLDrawer2D mDrawer;
+		private FullFrameRect mDrawer;
+		/** ワーク用のGLTextureOffscreen */
+ 		private GLTextureOffscreen workOffscreen;
+		private FullFrameRect mWorkDrawer;
 
 		public ProcessingTask(final ImageProcessor parent) {
 			super(null, 0);
@@ -142,6 +171,11 @@ public class ImageProcessor {
 			return mMasterTexture;
 		}
 
+		private final float[] kernel = new float[] {
+			-1f, -1f, -1f,	// エッジ検出
+			-1f, 8f, -1f,
+			-1f, -1f, -1f
+		};
 		@Override
 		protected void onStart() {
 			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:");
@@ -151,8 +185,18 @@ public class ImageProcessor {
 			mMasterSurface = new Surface(mMasterTexture);
 			mMasterTexture.setDefaultBufferSize(mVideoWidth, mVideoHeight);
 			mMasterTexture.setOnFrameAvailableListener(mOnFrameAvailableListener);
-			drawer = new GLDrawer2D(true);
-//			drawer.getMvpMatrix()[5] *= -1.0f;	// 上下反転させる時
+			// こっちはSurfaceTextureで受け取った映像を作業用テクスチャへ描画するため(OESテクスチャ)
+			mWorkDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT_NIGHT/*TEXTURE_EXT_FILT3x3*/));
+			mWorkDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
+//			mWorkDrawer.getProgram().setKernel(kernel, 0.0f);	// これを入れると畳み込みフィルタでエッジ検出
+			// キャプチャ用EGLSurfaceへの描画用(TEXTURE_2D)
+			mDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_FILT3x3));
+			mDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
+//			mDrawer.getProgram().setKernel(kernel, 0.0f);	// これを入れると畳み込みフィルタでエッジ検出
+			// これを呼ぶと映像がどんどん重なっていってしまう, setKernelで同じカーネルを割り当てる分には大丈夫なのに
+//			mDrawer.updateFilter(FullFrameRect.FILTER_EDGE_DETECT);
+//			mDrawer.updateFilter(FullFrameRect.FILTER_BLACK_WHITE);
+			mDrawer.flipMatrix(true);
 			handleResize(mVideoWidth, mVideoHeight);
 			// native側の処理を開始
 			nativeStart(mNativePtr);
@@ -183,9 +227,17 @@ public class ImageProcessor {
 				captureSurface.release();
 				captureSurface = null;
 			}
-			if (drawer != null) {
-				drawer.release();
-				drawer = null;
+			if (workOffscreen != null) {
+				workOffscreen.release();
+				workOffscreen = null;
+			}
+			if (mDrawer != null) {
+				mDrawer.release();
+				mDrawer = null;
+			}
+			if (mWorkDrawer != null) {
+				mWorkDrawer.release();
+				mWorkDrawer = null;
 			}
 			if (DEBUG) Log.v(TAG, "ProcessingTask#onStop:finished");
 		}
@@ -216,16 +268,21 @@ public class ImageProcessor {
 				return;
 			}
 			// FIXME 必要ならOpenGL|ESで前処理する, 2値化とかエッジ強調とか
+			workOffscreen.bind();
+			mWorkDrawer.draw(mTexId, mTexMatrix, 0);
+			workOffscreen.unbind();
 			// キャプチャ用に描画する
 			captureSurface.makeCurrent();
-			drawer.draw(mTexId, mTexMatrix, 0);
+//			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+//			mDrawer.draw(mTexId, mTexMatrix, 0);
+			mDrawer.draw(workOffscreen.getTexture(), workOffscreen.getTexMatrix(), 0);
 			captureSurface.swap();
 	        // ダイレクトByteBufferに読み込む
 	        buf.clear();
 	        GLES20.glReadPixels(0, 0, mVideoWidth, mVideoHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buf);
-			// FIXME ここでテクスチャ名をNative側へ渡してテクスチャの内容を読み取る&OpenCVで処理
+	        // native側へ引き渡す
 			nativeHandleFrame(mNativePtr, buf, mVideoWidth, mVideoHeight);
-			// FIXME 結果をどうやって受け取ろう?コールバックメソッドを呼び出す?
+			// 何も描画しないとハングアップする機種があるので塗りつぶす(と言っても1x1だから気にしなくて良い?)
 			makeCurrent();
 			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 			GLES20.glFlush();
@@ -249,7 +306,12 @@ public class ImageProcessor {
 	    		captureSurface.release();
 	    		captureSurface = null;
 	    	}
+	    	if (workOffscreen != null) {
+				workOffscreen.release();
+				workOffscreen = null;
+			}
 	    	captureSurface = getEgl().createOffscreen(width, height);
+			workOffscreen = new GLTextureOffscreen(width, height, false);
 		}
 
 		/**
@@ -287,4 +349,5 @@ public class ImageProcessor {
 	private static native int nativeStart(final long id_native);
 	private static native int nativeStop(final long id_native);
 	private static native int nativeHandleFrame(final long id_native, final ByteBuffer frame, final int width, final int height);
+	private static native int nativeSetShowDetects(final long id_native, final boolean showDetects);
 }

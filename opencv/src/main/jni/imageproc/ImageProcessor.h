@@ -20,6 +20,7 @@ private:
 	jobject mWeakThiz;
 	jclass mClazz;
 	volatile bool mIsRunning;
+	volatile bool mShowDetects;
 	mutable Mutex mMutex;
 	Condition mSync;
 	pthread_t processor_thread;
@@ -37,5 +38,6 @@ public:
 	int start();
 	int stop();
 	int handleFrame(const uint8_t *frame, const int &width, const int &height);
-	const bool isRunning() const { return mIsRunning; };
+	inline const bool isRunning() const { return mIsRunning; };
+	inline void setShowDetects(const bool &show_detects) { mShowDetects = show_detects; };
 };

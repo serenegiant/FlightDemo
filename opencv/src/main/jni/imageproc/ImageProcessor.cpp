@@ -37,7 +37,8 @@ using namespace android;
 ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 :	mWeakThiz(env->NewGlobalRef(weak_thiz_obj)),
 	mClazz((jclass)env->NewGlobalRef(clazz)),
-	mIsRunning(false)
+	mIsRunning(false),
+	mShowDetects(true)
 {
 }
 
@@ -141,33 +142,39 @@ void ImageProcessor::do_process(JNIEnv *env) {
 		if (!mIsRunning) break;
 		// FIXME 未実装 OpenCVでの解析処理
 		try {
-			cv::Mat dst, cdst;
-			// グレースケールに変換
-//			cv::cvtColor(frame, dst, cv::COLOR_RGBA2GRAY);
-			// エッジ検出
-			cv::Canny(frame, dst, 50, 200, 3);
-			cv::cvtColor(dst, cdst, cv::COLOR_GRAY2BGR);
+			cv::Mat gray, dst, color_dst;
+			// グレースケールに変換(RGBA->Y)
+			cv::cvtColor(frame, gray, cv::COLOR_RGBA2GRAY);
+			// FIXME 2値化/エッジ検出(これもOpenGL|ESでしてしまいたい)
+//			cv::Canny(gray, dst, 50, 200, 3);
+			cv::threshold(gray, dst, 180, 255, cv::THRESH_BINARY);
+			// 表示用にカラー画像に戻す
+			cv::cvtColor(dst, color_dst, cv::COLOR_GRAY2RGBA, 4);	// COLOR_GRAY2BGR
 			// 確率的Hough変換による直線検出
 			std::vector<cv::Vec4i> lines;
-			cv::HoughLinesP(dst, lines, 1, CV_PI/180, 50, 50, 10 );
-			for (size_t i = 0; i < lines.size(); i++ ) {
-				cv::Vec4i l = lines[i];
-				cv::line(frame, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0, 0, 255));
-//				LOGD("line%d:(%d,%d - %d,%d)", i, l[0], l[1], l[2], l[3]);
+			cv::HoughLinesP(dst, lines, 1, CV_PI/180, 80, 10, 10);
+			// 検出結果をdstに書き込み
+			if (mShowDetects) {
+				for (size_t i = 0; i < lines.size(); i++ ) {
+					cv::Vec4i l = lines[i];
+					cv::line(color_dst, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(255, 0, 0), 3, 8);
+				}
+			}
+			// Java側のコールバックメソッドを呼び出す
+			if (LIKELY(mIsRunning && fields.callFromNative && mClazz && mWeakThiz)) {
+				// 結果 FIXME ByteBufferで返す代わりにコピーされるけどfloat配列の方がいいかも
+				jobject buf = env->NewDirectByteBuffer(result, sizeof(float) * 20);
+				// 解析画像
+				jobject buf_frame = env->NewDirectByteBuffer(color_dst.data, color_dst.total() * 4);
+				// コールバックメソッドを呼び出す
+				env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, buf_frame, buf);
+				env->ExceptionClear();
+				env->DeleteLocalRef(buf);
+				env->DeleteLocalRef(buf_frame);
 			}
 		} catch (cv::Exception e) {
 			LOGE("do_process:%s", e.msg.c_str());
 			continue;
-		}
-		// Java側のコールバックメソッドを呼び出す
-		if (LIKELY(mIsRunning && fields.callFromNative && mClazz && mWeakThiz)) {
-			// FIXME ByteBufferで返す代わりにコピーされるけどfloat配列の方がいいかも
-			jobject buf = env->NewDirectByteBuffer(result, sizeof(float) * 20);
-			jobject buf_frame = env->NewDirectByteBuffer(frame.data, frame.total());
-			env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, buf_frame, buf);
-			env->ExceptionClear();
-			env->DeleteLocalRef(buf);
-			env->DeleteLocalRef(buf_frame);
 		}
 	}
 
@@ -355,15 +362,30 @@ static int nativeHandleFrame(JNIEnv *env, jobject thiz,
 	RETURN(result, jint);
 }
 
+static jint nativeSetShowDetects(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jboolean show_detects) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		processor->setShowDetects(show_detects);
+	}
+
+	RETURN(result, jint);
+}
+
 //================================================================================
 //================================================================================
 static JNINativeMethod methods[] = {
-	{ "nativeClassInit",	"()V",   (void*)nativeClassInit },
-	{ "nativeCreate",		"(Ljava/lang/ref/WeakReference;)J", (void *) nativeCreate },
-	{ "nativeRelease",		"(J)V", (void *) nativeRelease },
-	{ "nativeStart",		"(J)I", (void *) nativeStart },
-	{ "nativeStop",			"(J)I", (void *) nativeStop },
-	{ "nativeHandleFrame",	"(JLjava/nio/ByteBuffer;II)I", (void *) nativeHandleFrame },
+	{ "nativeClassInit",		"()V",   (void*)nativeClassInit },
+	{ "nativeCreate",			"(Ljava/lang/ref/WeakReference;)J", (void *) nativeCreate },
+	{ "nativeRelease",			"(J)V", (void *) nativeRelease },
+	{ "nativeStart",			"(J)I", (void *) nativeStart },
+	{ "nativeStop",				"(J)I", (void *) nativeStop },
+	{ "nativeHandleFrame",		"(JLjava/nio/ByteBuffer;II)I", (void *) nativeHandleFrame },
+	{ "nativeSetShowDetects",	"(JZ)I", (void *) nativeSetShowDetects },
 };
 
 
