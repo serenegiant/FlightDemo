@@ -47,6 +47,7 @@ LOCAL_CFLAGS += -Wl,--version-script,ImageProcessor.map
 LOCAL_LDLIBS += -L$(SYSROOT)/usr/lib -ldl	# to avoid NDK issue(no need for static library)
 LOCAL_LDLIBS += -llog
 LOCAL_LDLIBS += -landroid					# Android native related library(when you use nativeActivity etc.)
+LOCAL_LDLIBS += -lz							# zlib これを入れとかんとOpenCVのリンクに失敗する
 
 LOCAL_STATIC_LIBRARIES := $(OPENCV_MODULES)
 LOCAL_STATIC_LIBRARIES += $(3RDPARTY_MODULES)

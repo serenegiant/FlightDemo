@@ -16,13 +16,49 @@ LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/ \
 
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
+#LOCAL_EXPORT_C_INCLUDES := \
+#	$(LOCAL_PATH)/../ \
+#	$(LOCAL_PATH)/ \
+
 LOCAL_CFLAGS := $(LOCAL_C_INCLUDES:%=-I%)
 
 LOCAL_SRC_FILES := \
 	common_utils.cpp \
+	Threads.cpp \
+	AAtomizer.cpp \
+	ABuffer.cpp \
+	AMessage.cpp \
+	AString.cpp \
+	hexdump.cpp \
 	JNIHelp.cpp \
 	JniConstants.cpp \
+	RefBase.cpp \
+	SharedBuffer.cpp \
+	VectorImpl.cpp \
+	base64.cpp \
+	url_escape.cpp \
+	time_utc.cpp \
+	Timers.cpp \
+	assets.cpp \
+	eglbase.cpp \
+	glutils.cpp \
+	glProgram.cpp \
+	eglwindow.cpp \
+	gltexture.cpp \
+	glrenderer.cpp \
+	frame_conv.cpp \
+	gloffscreen.cpp \
+	matrix.cpp \
+	crc32.cpp \
+	binutils.cpp \
+	charutils.cpp \
 
+#	matrix.cpp \
+#	glutstuff.cpp \
+#	gltexsurfaceoffscreen.cpp \
+
+#EXPORT_C_INCLUDES := $(LOCAL_C_INCLUDES)
+LOCAL_CFLAGS := $(LOCAL_C_INCLUDES:%=-I%)
 #マクロ定義
 LOCAL_CFLAGS += -DANDROID_NDK
 LOCAL_CFLAGS += -DNDEBUG							# LOG_ALLを無効にする・assertを無効にする場合
@@ -52,7 +88,7 @@ LOCAL_EXPORT_LDLIBS := -L$(SYSROOT)/usr/lib -ldl	# to avoid NDK issue(no need fo
 LOCAL_EXPORT_LDLIBS += -llog						# log output library
 LOCAL_EXPORT_LDLIBS += -landroid					# Android native related library(when you use nativeActivity etc.)
 #LOCAL_EXPORT_LDLIBS += -lEGL -lGLESv1_CM			# OpenGL|ES 1.1ライブラリ
-#LOCAL_EXPORT_LDLIBS += -lEGL -lGLESv2				# OpenGL|ES 2.0ライブラリ
+LOCAL_EXPORT_LDLIBS += -lEGL -lGLESv2				# OpenGL|ES 2.0ライブラリ
 
 LOCAL_ARM_MODE := arm
 

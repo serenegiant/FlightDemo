@@ -78,11 +78,12 @@ public class ImageProcessor {
 	 * @param weakSelf
 	 * @param result これの方は未定。とりあえずFloatBufferにしてみる
 	 */
-	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final FloatBuffer result) {
+	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final ByteBuffer result) {
 		if (DEBUG) Log.v(TAG, "callFromNative");
 		final ImageProcessor self = weakSelf != null ? weakSelf.get() : null;
 		if (self != null) {
-			self.handleResult(result);
+			final FloatBuffer buf = result.asFloatBuffer();
+			self.handleResult(buf);
 		}
 		if (DEBUG) Log.v(TAG, "callFromNative:finished");
 	}
@@ -267,7 +268,7 @@ public class ImageProcessor {
 	private static native void nativeClassInit();
 	static {
 		if (!isInit) {
-			System.loadLibrary("c++_shared");
+			System.loadLibrary("gnustl_shared");
 			System.loadLibrary("common");
 			System.loadLibrary("imageproc");
 			nativeClassInit();
