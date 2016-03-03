@@ -262,24 +262,15 @@ public class FullFrameRect {
 			break;
 		case FILTER_SHARPEN:
 			programType = Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3;
-			kernel = new float[] {
-					0f, -1f, 0f,
-					-1f, 5f, -1f,
-					0f, -1f, 0f };
+			kernel = Texture2dProgram.KERNEL_SHARPNESS;
 			break;
 		case FILTER_EDGE_DETECT:
 			programType = Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3;
-			kernel = new float[] {
-					-1f, -1f, -1f,
-					-1f, 8f, -1f,
-					-1f, -1f, -1f };
+			kernel = Texture2dProgram.KERNEL_EDGE_DETECT;
 			break;
 		case FILTER_EMBOSS:
 			programType = Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3;
-			kernel = new float[] {
-					2f, 0f, 0f,
-					0f, -1f, 0f,
-					0f, 0f, -1f };
+			kernel = Texture2dProgram.KERNEL_EMBOSS;
 			colorAdj = 0.5f;
 			break;
 		default:

@@ -245,6 +245,8 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 
 // 上パネル
 		mTopPanel = rootView.findViewById(R.id.top_panel);
+		mTopPanel.setOnClickListener(mOnClickListener);
+		mTopPanel.setOnLongClickListener(mOnLongClickListener);
 		mActionViews.add(mTopPanel);
 		// フラットトリムボタン
 		mFlatTrimBtn = (ImageButton) rootView.findViewById(R.id.flat_trim_btn);
@@ -645,11 +647,16 @@ public class PilotFragment extends ControlFragment implements SelectFileDialogFr
 		}
 	};
 
+	protected boolean onClick(final View view) {
+		return false;
+	}
+
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
 		public void onClick(final View view) {
 //			if (DEBUG) Log.v(TAG, "onClick:" + view);
 			cancelAlphaHide();
+			if (PilotFragment.this.onClick(view)) return;
 			switch (view.getId()) {
 			case R.id.flat_trim_btn:
 				// フラットトリム

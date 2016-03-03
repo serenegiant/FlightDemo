@@ -17,8 +17,13 @@ import android.opengl.GLES30;
 import android.opengl.GLUtils;
 import android.util.Log;
 
+import com.serenegiant.utils.AssetsHelper;
 import com.serenegiant.utils.BuildCheck;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -33,14 +38,14 @@ public final class GLHelper {
 	private static final String TAG = "GLHelper";
 
 	/**
-	 * OepnGL|ESのエラーをチェックしてlogCatに出力する
+	 * OpenGL|ESのエラーをチェックしてlogCatに出力する
 	 * @param op
 	 */
     public static void checkGlError(final String op) {
         final int error = GLES20.glGetError();
         if (error != GLES20.GL_NO_ERROR) {
             final String msg = op + ": glError 0x" + Integer.toHexString(error);
-//			Log.e(TAG, msg);
+			Log.e(TAG, msg);
             new Throwable(msg).printStackTrace();
 //         	if (DEBUG) {
 //	            throw new RuntimeException(msg);
@@ -48,11 +53,16 @@ public final class GLHelper {
         }
     }
 
+	/**
+	 * OpenGL|ESのエラーをチェックしてlogCatに出力する
+	 * @param gl
+	 * @param op
+	 */
 	public static void checkGlError(final GL10 gl, final String op) {
 		final int error = gl.glGetError();
 		if (error != GL10.GL_NO_ERROR) {
 			final String msg = op + ": glError 0x" + Integer.toHexString(error);
-//			Log.e(TAG, msg);
+			Log.e(TAG, msg);
 			new Throwable(msg).printStackTrace();
 //         	if (DEBUG) {
 //	            throw new RuntimeException(msg);
@@ -191,6 +201,24 @@ public final class GLHelper {
 		bitmap.recycle();
 
 		return texture;
+	}
+
+	/**
+	 * load, compile and link shader from Assets files
+	 * @param context
+	 * @param vss_asset source file name in Assets of vertex shader
+	 * @param fss_asset source file name in Assets of fragment shader
+	 * @return
+	 */
+	public static int loadShader(final Context context, final String vss_asset, final String fss_asset) {
+		int program = 0;
+		try {
+			final String vss = AssetsHelper.loadString(context.getAssets(), vss_asset);
+			final String fss = AssetsHelper.loadString(context.getAssets(), vss_asset);
+			program = loadShader(vss, fss);
+		} catch (IOException e) {
+		}
+		return program;
 	}
 
 	/**

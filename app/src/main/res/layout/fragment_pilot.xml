@@ -33,7 +33,8 @@
 		android:layout_alignParentBottom="true"
 		android:layout_centerHorizontal="true"
 		android:layout_marginBottom="@dimen/bottom_panel_height"
-		android:background="@drawable/frame"/>
+		android:background="@drawable/frame"
+		android:layout_alignParentTop="false"/>
 
 	<LinearLayout
 		android:id="@+id/controller_frame"

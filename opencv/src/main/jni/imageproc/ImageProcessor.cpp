@@ -38,7 +38,7 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 :	mWeakThiz(env->NewGlobalRef(weak_thiz_obj)),
 	mClazz((jclass)env->NewGlobalRef(clazz)),
 	mIsRunning(false),
-	mShowDetects(true)
+	mShowDetects(false)
 {
 }
 
@@ -144,15 +144,33 @@ void ImageProcessor::do_process(JNIEnv *env) {
 		try {
 			cv::Mat gray, dst, color_dst;
 			// グレースケールに変換(RGBA->Y)
-			cv::cvtColor(frame, gray, cv::COLOR_RGBA2GRAY);
-			// FIXME 2値化/エッジ検出(これもOpenGL|ESでしてしまいたい)
-//			cv::Canny(gray, dst, 50, 200, 3);
-			cv::threshold(gray, dst, 180, 255, cv::THRESH_BINARY);
+			cv::cvtColor(frame, gray, cv::COLOR_RGBA2GRAY, 1);
+//			cv::normalize(gray, gray, 0, 255, cv::NORM_MINMAX);
+			// 平滑化, XXX 画像が左右半分に回転対称になって重なる感じ
+//			cv::Sobel(gray, dst, CV_32F, 1, 1);
+//			cv::convertScaleAbs(dst, gray, 1, 0);
+			// エッジ検出, XXX これも横幅が半分になって左右に白黒反転?したようなのが2つ並ぶ
+//			cv::Canny(gray, gray, 50, 200);
+			// 2値化(これはOK)
+			cv::threshold(gray, gray, 60, 255, cv::THRESH_BINARY);
+//			cv::threshold(gray, gray, 60, 255, cv::THRESH_BINARY_INV);
 			// 表示用にカラー画像に戻す
-			cv::cvtColor(dst, color_dst, cv::COLOR_GRAY2RGBA, 4);	// COLOR_GRAY2BGR
-			// 確率的Hough変換による直線検出
+			dst = gray.clone();
+			cv::cvtColor(dst, color_dst, cv::COLOR_GRAY2RGBA);
+
+//			LOGI("gray(cols=%d,rows=%d,dims=%d,depth=%d,elemSize=%d)", gray.cols, gray.rows, gray.dims, gray.depth(), gray.elemSize());
+//			LOGI("dst(cols=%d,rows=%d,dims=%d,depth=%d,elemSize=%d)", dst.cols, dst.rows, dst.dims, dst.depth(), dst.elemSize());
+//			LOGI("color_dst(cols=%d,rows=%d,dims=%d,depth=%d,elemSize=%d)", color_dst.cols, color_dst.rows, color_dst.dims, color_dst.depth(), color_dst.elemSize());
+#if 1
+			// 確率的ハフ変換による直線検出
 			std::vector<cv::Vec4i> lines;
-			cv::HoughLinesP(dst, lines, 1, CV_PI/180, 80, 10, 10);
+			cv::HoughLinesP(dst, lines,
+				1,			// 距離分解能[ピクセル]
+				CV_PI/180,	// 角度分解能[ラジアン]
+				80,			// Accumulatorのしきい値
+				30,			// 最小長さ[ピクセル]
+				5			// 2点が同一線上にあるとみなす最大距離[ピクセル]
+			);
 			// 検出結果をdstに書き込み
 			if (mShowDetects) {
 				for (size_t i = 0; i < lines.size(); i++ ) {
@@ -160,12 +178,28 @@ void ImageProcessor::do_process(JNIEnv *env) {
 					cv::line(color_dst, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(255, 0, 0), 3, 8);
 				}
 			}
+#else
+			// ハフ変換による直線検出
+			std::vector<cv::Vec2i> lines;
+			cv::HoughLines(dst, lines, 1, CV_PI/180, 100);
+			if (mShowDetects) {
+				for (size_t i = 0; i < lines.size(); i++ ) {
+					float rho = lines[i][0];
+					float theta = lines[i][1];
+					double a = cos(theta), b = sin(theta);
+					double x0 = a*rho, y0 = b*rho;
+					cv::Point pt1(cvRound(x0 + 1000*(-b)), cvRound(y0 + 1000*(a)));
+					cv::Point pt2(cvRound(x0 - 1000*(-b)), cvRound(y0 - 1000*(a)));
+					line(color_dst, pt1, pt2, cv::Scalar(255, 0, 0), 3, 8 );
+				}
+			}
+#endif
 			// Java側のコールバックメソッドを呼び出す
 			if (LIKELY(mIsRunning && fields.callFromNative && mClazz && mWeakThiz)) {
 				// 結果 FIXME ByteBufferで返す代わりにコピーされるけどfloat配列の方がいいかも
 				jobject buf = env->NewDirectByteBuffer(result, sizeof(float) * 20);
 				// 解析画像
-				jobject buf_frame = env->NewDirectByteBuffer(color_dst.data, color_dst.total() * 4);
+				jobject buf_frame = env->NewDirectByteBuffer(color_dst.data, color_dst.total() * color_dst.elemSize());
 				// コールバックメソッドを呼び出す
 				env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, buf_frame, buf);
 				env->ExceptionClear();
@@ -376,6 +410,20 @@ static jint nativeSetShowDetects(JNIEnv *env, jobject thiz,
 	RETURN(result, jint);
 }
 
+static jint nativeGetShowDetects(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native) {
+
+	ENTER();
+
+	jint result = 0;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->getShowDetects();
+	}
+
+	RETURN(result, jint);
+}
+
 //================================================================================
 //================================================================================
 static JNINativeMethod methods[] = {
@@ -386,6 +434,7 @@ static JNINativeMethod methods[] = {
 	{ "nativeStop",				"(J)I", (void *) nativeStop },
 	{ "nativeHandleFrame",		"(JLjava/nio/ByteBuffer;II)I", (void *) nativeHandleFrame },
 	{ "nativeSetShowDetects",	"(JZ)I", (void *) nativeSetShowDetects },
+	{ "nativeGetShowDetects",	"(J)I", (void *) nativeGetShowDetects },
 };
 
 

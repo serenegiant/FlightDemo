@@ -40,4 +40,5 @@ public:
 	int handleFrame(const uint8_t *frame, const int &width, const int &height);
 	inline const bool isRunning() const { return mIsRunning; };
 	inline void setShowDetects(const bool &show_detects) { mShowDetects = show_detects; };
+	inline const bool getShowDetects() const { return mShowDetects; };
 };

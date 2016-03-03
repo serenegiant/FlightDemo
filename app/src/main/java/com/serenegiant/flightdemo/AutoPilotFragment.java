@@ -3,6 +3,7 @@ package com.serenegiant.flightdemo;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -103,9 +104,21 @@ public class AutoPilotFragment extends PilotFragment {
 		super.onDisconnect(controller);
 	}
 
+	protected boolean onClick(final View view) {
+		switch (view.getId()) {
+		case R.id.top_panel:
+			if (mImageProcessor != null) {
+				mImageProcessor.setShowDetects(!mImageProcessor.getShowDetects());
+			}
+			break;
+		}
+		return false;
+	}
+
 	private Bitmap mFrame;
 	private final ImageProcessor.ImageProcessorCallback mImageProcessorCallback
 		= new ImageProcessor.ImageProcessorCallback() {
+		private final Matrix matrix = new Matrix();
 		@Override
 		public void onFrame(final ByteBuffer frame) {
 			if (mDetectView != null) {
@@ -113,6 +126,10 @@ public class AutoPilotFragment extends PilotFragment {
 				if ((holder == null) || (holder.getSurface() == null)) return;
 				if (mFrame == null) {
 					mFrame = Bitmap.createBitmap(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT, Bitmap.Config.ARGB_8888);
+					final float scaleX = mDetectView.getWidth() / (float)VideoStream.VIDEO_WIDTH;
+					final float scaleY = mDetectView.getHeight() / (float)VideoStream.VIDEO_HEIGHT;
+					matrix.reset();
+					matrix.postScale(scaleX, scaleY);
 				}
 				frame.clear();
 //				if (DEBUG) Log.v(TAG, "frame=" + frame);
@@ -120,7 +137,7 @@ public class AutoPilotFragment extends PilotFragment {
 				final Canvas canvas = holder.lockCanvas();
 				if (canvas != null) {
 					try {
-						canvas.drawBitmap(mFrame, 0, 0, null);
+						canvas.drawBitmap(mFrame, matrix, null);
 					} catch (final Exception e) {
 						Log.w(TAG, e);
 					} finally {

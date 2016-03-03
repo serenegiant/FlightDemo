@@ -170,20 +170,19 @@ public class VideoStream implements IVideoStream {
 					}
 //					if (DEBUG) Log.v(TAG, "dequeueInputBuffer:index=" + index);
 					if (index >= 0) {
-						final ByteBuffer b = inputBuffers[index];
-						final int sz = frame.getDataSize();
-						b.clear();
-						b.put(frame.getByteData(), 0, sz);
-						int flag = 0;
-						if (frame.isIFrame()) {
-							flag |= MediaCodec.BUFFER_FLAG_KEY_FRAME; //  | MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
-						}
 						try {
+							final ByteBuffer b = inputBuffers[index];
+							final int sz = frame.getDataSize();
+							b.clear();
+							b.put(frame.getByteData(), 0, sz);
+							int flag = 0;
+							if (frame.isIFrame()) {
+								flag |= MediaCodec.BUFFER_FLAG_KEY_FRAME; //  | MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
+							}
 							mediaCodec.queueInputBuffer(index, 0, sz, 0, flag);
 						} catch (final IllegalStateException e) {
 							Log.w(TAG, "Error while queue input buffer");
 						}
-
 					} else {
 						if (DEBUG) Log.v(TAG, "デコーダーの準備ができてない/入力キューが満杯");
 						waitForIFrame = true;
@@ -397,25 +396,21 @@ public class VideoStream implements IVideoStream {
 			mVideoHeight = VIDEO_HEIGHT;
 		}
 
-		private final float[] kernel = new float[] {
-			// 無変換
-//			0f, 0f, 0f,
-//			0f, 1f, 0f,
-//			0f, 0f, 0f,
-			// シャープネス
-			0f, -1f, 0f,
-			-1f, 5f, -1f,
-			0f, -1f, 0f,
-		};
-
 		@Override
 		protected void onStart() {
 			if (DEBUG) Log.v(TAG, "onStart:");
 //			mDrawer = new GLDrawer2D(true);
 			mDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3));
 			mDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
-			mDrawer.getProgram().setKernel(kernel, 0.1f);
-//			mDrawer.updateFilter(FullFrameRect.FILTER_EDGE_DETECT);
+//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EMBOSS, 0.5f);		// エンボス
+//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL_H, 0.1f);		// ソーベル(エッジ検出, 1次微分)
+//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL2_H, 0.1f);		// ソーベル(エッジ検出, 1次微分)
+//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EDGE_DETECT, 0.0f);	// エッジ検出
+//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SHARPNESS, 0.0f);	// シャープ
+//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SMOOTH, 0.0f);		// 移動平均
+			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化,ノイズ除去)
+//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, 0.0f);	// ラプラシアン(エッジ検出, 2次微分)
+
 			mTexId = GLHelper.initTex(GLDrawer2D.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_NEAREST);
 			mMasterTexture = new SurfaceTexture(mTexId);
 			mMasterSurface = new Surface(mMasterTexture);

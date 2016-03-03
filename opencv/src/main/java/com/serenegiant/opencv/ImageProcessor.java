@@ -1,6 +1,5 @@
 package com.serenegiant.opencv;
 
-import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.util.Log;
@@ -171,32 +170,57 @@ public class ImageProcessor {
 			return mMasterTexture;
 		}
 
-		private final float[] kernel = new float[] {
-			-1f, -1f, -1f,	// エッジ検出
-			-1f, 8f, -1f,
-			-1f, -1f, -1f
-		};
 		@Override
 		protected void onStart() {
 			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:");
 			// FIXME ここで生成したSurfaceTextureに割り当てたテクスチャを直接読み込めないやろか?
+			// FIXME 共有コンテキストにしたら大元のテクスチャに直接アクセスできるかも
 			mTexId = GLHelper.initTex(GLDrawer2D.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_NEAREST);
 			mMasterTexture = new SurfaceTexture(mTexId);
 			mMasterSurface = new Surface(mMasterTexture);
 			mMasterTexture.setDefaultBufferSize(mVideoWidth, mVideoHeight);
 			mMasterTexture.setOnFrameAvailableListener(mOnFrameAvailableListener);
-			// こっちはSurfaceTextureで受け取った映像を作業用テクスチャへ描画するため(OESテクスチャ)
-			mWorkDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT_NIGHT/*TEXTURE_EXT_FILT3x3*/));
+
+			// これはSurfaceTextureで受け取った映像を作業用テクスチャへ描画するため(OESテクスチャ)
+			Texture2dProgram.ProgramType program;
+			if (false) {
+				program = Texture2dProgram.ProgramType.TEXTURE_EXT_NIGHT;
+				mWorkDrawer = new FullFrameRect(new Texture2dProgram(program));
+			}
+			if (true) {
+				program = Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3;
+				mWorkDrawer = new FullFrameRect(new Texture2dProgram(program));
+//				mWorkDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EMBOSS, 0.5f);		// エンボス
+				mWorkDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL_H, 0.0f);		// ソ-ベル(エッジ検出, 1次微分)
+//				mWorkDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL2_H, 0.0f);		// ソ-ベル2(エッジ検出, 1次微分)
+//				mWorkDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EDGE_DETECT, 0.0f);	// エッジ検出
+//				mWorkDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SHARPNESS, 0.0f);	// シャープ
+//				mWorkDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SMOOTH, 0.0f);		// 移動平均(平滑化)
+//				mWorkDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化)
+//				mWorkDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, 0.0f);	// ラプラシアン(2次微分)
+			}
 			mWorkDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
-//			mWorkDrawer.getProgram().setKernel(kernel, 0.0f);	// これを入れると畳み込みフィルタでエッジ検出
+
 			// キャプチャ用EGLSurfaceへの描画用(TEXTURE_2D)
-			mDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_FILT3x3));
+			if (true) {
+				program = Texture2dProgram.ProgramType.TEXTURE_FILT3x3;
+				mDrawer = new FullFrameRect(new Texture2dProgram(program));
+//				mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EMBOSS, 0.5f);		// エンボス
+//				mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL_H, 0.1f);		// ソーベル(エッジ検出, 1次微分)
+//				mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL2_H, 0.1f);		// ソーベル2(エッジ検出, 1次微分)
+//				mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EDGE_DETECT, 0.0f);	// エッジ検出
+//				mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SHARPNESS, 0.0f);	// シャープ
+//				mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SMOOTH, 0.0f);		// 移動平均(平滑化)
+//				mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化)
+				mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, 0.0f);	// ラプラシアン(エッジ検出, 2次微分)
+			}
 			mDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
-//			mDrawer.getProgram().setKernel(kernel, 0.0f);	// これを入れると畳み込みフィルタでエッジ検出
+
 			// これを呼ぶと映像がどんどん重なっていってしまう, setKernelで同じカーネルを割り当てる分には大丈夫なのに
 //			mDrawer.updateFilter(FullFrameRect.FILTER_EDGE_DETECT);
 //			mDrawer.updateFilter(FullFrameRect.FILTER_BLACK_WHITE);
 			mDrawer.flipMatrix(true);
+			//
 			handleResize(mVideoWidth, mVideoHeight);
 			// native側の処理を開始
 			nativeStart(mNativePtr);
@@ -330,12 +354,21 @@ public class ImageProcessor {
 		};
 	}
 
+	public void setShowDetects(final boolean show) {
+		nativeSetShowDetects(mNativePtr, show);
+	}
+
+	public boolean getShowDetects() {
+		return nativeGetShowDetects(mNativePtr) != 0;
+	}
+
 	private static boolean isInit;
 	private static native void nativeClassInit();
 	static {
 		if (!isInit) {
 			System.loadLibrary("gnustl_shared");
 			System.loadLibrary("common");
+//			System.loadLibrary("opencv_java");
 			System.loadLibrary("opencv_java3");
 			System.loadLibrary("imageproc");
 			nativeClassInit();
@@ -350,4 +383,5 @@ public class ImageProcessor {
 	private static native int nativeStop(final long id_native);
 	private static native int nativeHandleFrame(final long id_native, final ByteBuffer frame, final int width, final int height);
 	private static native int nativeSetShowDetects(final long id_native, final boolean showDetects);
+	private static native int nativeGetShowDetects(final long id_native);
 }

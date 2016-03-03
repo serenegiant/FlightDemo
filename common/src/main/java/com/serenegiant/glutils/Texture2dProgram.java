@@ -18,6 +18,7 @@ package com.serenegiant.glutils;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
+import android.os.Build;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -27,12 +28,14 @@ import java.nio.FloatBuffer;
  * GL program and supporting functions for textured 2D shapes.
  */
 public class Texture2dProgram {
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
     private static final String TAG = "Texture2dProgram";
 
 	public enum ProgramType {
 		// ここはGL_TEXTURE_2D
         TEXTURE_2D,
+//		TEXTURE_SOBEL,		// フラグメントシェーダーがうまく走らなくて止まってしまう
+//		TEXTURE_SOBEL2,		// フラグメントシェーダーがうまく走らなくて止まってしまう
         TEXTURE_FILT3x3,
         // ここから下はGL_TEXTURE_EXTERNAL_OES
 		TEXTURE_EXT,
@@ -47,11 +50,21 @@ public class Texture2dProgram {
         TEXTURE_EXT_FISHEYE,
         TEXTURE_EXT_STRETCH,
         TEXTURE_EXT_MIRROR,
+//		TEXTURE_EXT_SOBEL,		// フラグメントシェーダーがうまく走らなくて止まってしまう
+//		TEXTURE_EXT_SOBEL2,		// フラグメントシェーダーがうまく走らなくて止まってしまう
 		TEXTURE_EXT_FILT3x3
     }
 
+	private static final String SHADER_VERSION = "#version 100\n";
+
+	private static final String HEADER_2D = "";
+	private static final String SAMPLER_2D = "sampler2D";
+
+	private static final String HEADER_OES = "#extension GL_OES_EGL_image_external : require\n";
+	private static final String SAMPLER_OES = "samplerExternalOES";
+
     // Simple vertex shader, used for all programs.
-    private static final String VERTEX_SHADER =
+    private static final String VERTEX_SHADER = SHADER_VERSION +
 		"uniform mat4 uMVPMatrix;\n" +
 		"uniform mat4 uTexMatrix;\n" +
 		"attribute vec4 aPosition;\n" +
@@ -63,55 +76,57 @@ public class Texture2dProgram {
 		"}\n";
 
     // Simple fragment shader for use with "normal" 2D textures.
-    private static final String FRAGMENT_SHADER_2D =
+    private static final String FRAGMENT_SHADER_BASE = SHADER_VERSION +
+    	"%s" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
-		"uniform sampler2D sTexture;\n" +
+		"uniform %s sTexture;\n" +
 		"void main() {\n" +
 		"    gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
 		"}\n";
-
-    // Simple fragment shader for use with external 2D textures (e.g. what we get from
-    // SurfaceTexture).
-    private static final String FRAGMENT_SHADER_EXT =
-		"#extension GL_OES_EGL_image_external : require\n" +
-		"precision mediump float;\n" +
-		"varying vec2 vTextureCoord;\n" +
-		"uniform samplerExternalOES sTexture;\n" +
-		"void main() {\n" +
-		"    gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
-		"}\n";
+	private static final String FRAGMENT_SHADER_2D
+		= String.format(FRAGMENT_SHADER_BASE, HEADER_2D, SAMPLER_2D);
+	private static final String FRAGMENT_SHADER_EXT
+		= String.format(FRAGMENT_SHADER_BASE, HEADER_OES, SAMPLER_OES);
 
     // Fragment shader that converts color to black & white with a simple transformation.
-    private static final String FRAGMENT_SHADER_EXT_BW =
-		"#extension GL_OES_EGL_image_external : require\n" +
+    private static final String FRAGMENT_SHADER_BW_BASE = SHADER_VERSION +
+		"%s" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
-		"uniform samplerExternalOES sTexture;\n" +
+		"uniform %s sTexture;\n" +
 		"void main() {\n" +
 		"    vec4 tc = texture2D(sTexture, vTextureCoord);\n" +
 		"    float color = tc.r * 0.3 + tc.g * 0.59 + tc.b * 0.11;\n" +
 		"    gl_FragColor = vec4(color, color, color, 1.0);\n" +
 		"}\n";
+	private static final String FRAGMENT_SHADER_BW
+		= String.format(FRAGMENT_SHADER_BW_BASE, HEADER_2D, SAMPLER_2D);
+	private static final String FRAGMENT_SHADER_EXT_BW
+		= String.format(FRAGMENT_SHADER_BW_BASE, HEADER_OES, SAMPLER_OES);
 
     // Fragment shader that attempts to produce a high contrast image
-    private static final String FRAGMENT_SHADER_EXT_NIGHT =
-		"#extension GL_OES_EGL_image_external : require\n" +
+    private static final String FRAGMENT_SHADER_NIGHT_BASE = SHADER_VERSION +
+		"%s" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
-		"uniform samplerExternalOES sTexture;\n" +
+		"uniform %s sTexture;\n" +
 		"void main() {\n" +
 		"    vec4 tc = texture2D(sTexture, vTextureCoord);\n" +
 		"    float color = ((tc.r * 0.3 + tc.g * 0.59 + tc.b * 0.11) - 0.5 * 1.5) + 0.8;\n" +
 		"    gl_FragColor = vec4(color, color + 0.15, color, 1.0);\n" +
 		"}\n";
+	private static final String FRAGMENT_SHADER_NIGHT
+		= String.format(FRAGMENT_SHADER_NIGHT_BASE, HEADER_2D, SAMPLER_2D);
+	private static final String FRAGMENT_SHADER_EXT_NIGHT
+		= String.format(FRAGMENT_SHADER_NIGHT_BASE, HEADER_OES, SAMPLER_OES);
 
     // Fragment shader that applies a Chroma Key effect, making green pixels transparent
-    private static final String FRAGMENT_SHADER_EXT_CHROMA_KEY =
-		"#extension GL_OES_EGL_image_external : require\n" +
+    private static final String FRAGMENT_SHADER_CHROMA_KEY_BASE = SHADER_VERSION +
+		"%s" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
-		"uniform samplerExternalOES sTexture;\n" +
+		"uniform %s sTexture;\n" +
 		"void main() {\n" +
 		"    vec4 tc = texture2D(sTexture, vTextureCoord);\n" +
 		"    float color = ((tc.r * 0.3 + tc.g * 0.59 + tc.b * 0.11) - 0.5 * 1.5) + 0.8;\n" +
@@ -121,12 +136,16 @@ public class Texture2dProgram {
 		"        gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +
 		"    }\n" +
 		"}\n";
+	private static final String FRAGMENT_SHADER_CHROMA_KEY
+		= String.format(FRAGMENT_SHADER_CHROMA_KEY_BASE, HEADER_2D, SAMPLER_2D);
+	private static final String FRAGMENT_SHADER_EXT_CHROMA_KEY
+		= String.format(FRAGMENT_SHADER_CHROMA_KEY_BASE, HEADER_OES, SAMPLER_OES);
 
-    private static final String FRAGMENT_SHADER_SQUEEZE =
-		"#extension GL_OES_EGL_image_external : require\n" +
+    private static final String FRAGMENT_SHADER_SQUEEZE_BASE = SHADER_VERSION +
+		"%s" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
-		"uniform samplerExternalOES sTexture;\n" +
+		"uniform %s sTexture;\n" +
 		"uniform vec2 uPosition;\n" +
 		"void main() {\n" +
 		"    vec2 texCoord = vTextureCoord.xy;\n" +
@@ -139,8 +158,13 @@ public class Texture2dProgram {
 		"    texCoord = normCoord / 2.0 + 0.5;\n"+
 		"    gl_FragColor = texture2D(sTexture, texCoord);\n"+
 		"}\n";
+	private static final String FRAGMENT_SHADER_SQUEEZE
+		= String.format(FRAGMENT_SHADER_SQUEEZE_BASE, HEADER_2D, SAMPLER_2D);
+	private static final String FRAGMENT_SHADER_EXT_SQUEEZE
+		= String.format(FRAGMENT_SHADER_SQUEEZE_BASE, HEADER_OES, SAMPLER_OES);
 
-    private static final String FRAGMENT_SHADER_TWIRL =
+    private static final String FRAGMENT_SHADER_EXT_TWIRL =
+		"#version 100\n" +
 		"#extension GL_OES_EGL_image_external : require\n" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
@@ -158,7 +182,7 @@ public class Texture2dProgram {
 		"    gl_FragColor = texture2D(sTexture, texCoord);\n"+
 		"}\n";
 
-    private static final String FRAGMENT_SHADER_TUNNEL =
+    private static final String FRAGMENT_SHADER_EXT_TUNNEL = SHADER_VERSION +
 		"#extension GL_OES_EGL_image_external : require\n" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
@@ -176,7 +200,7 @@ public class Texture2dProgram {
 		"    gl_FragColor = texture2D(sTexture, texCoord);\n"+
 		"}\n";
 
-    private static final String FRAGMENT_SHADER_BULGE =
+    private static final String FRAGMENT_SHADER_EXT_BULGE = SHADER_VERSION +
 		"#extension GL_OES_EGL_image_external : require\n" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
@@ -194,7 +218,7 @@ public class Texture2dProgram {
 		"    gl_FragColor = texture2D(sTexture, texCoord);\n"+
 		"}\n";
 
-    private static final String FRAGMENT_SHADER_DENT =
+    private static final String FRAGMENT_SHADER_EXT_DENT = SHADER_VERSION +
 		"#extension GL_OES_EGL_image_external : require\n" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
@@ -212,7 +236,7 @@ public class Texture2dProgram {
 		"    gl_FragColor = texture2D(sTexture, texCoord);\n"+
 		"}\n";
 
-    private static final String FRAGMENT_SHADER_FISHEYE =
+    private static final String FRAGMENT_SHADER_EXT_FISHEYE = SHADER_VERSION +
 		"#extension GL_OES_EGL_image_external : require\n" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
@@ -230,7 +254,7 @@ public class Texture2dProgram {
 		"    gl_FragColor = texture2D(sTexture, texCoord);\n"+
 		"}\n";
 
-    private static final String FRAGMENT_SHADER_STRETCH =
+    private static final String FRAGMENT_SHADER_EXT_STRETCH = SHADER_VERSION +
 		"#extension GL_OES_EGL_image_external : require\n" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
@@ -247,7 +271,7 @@ public class Texture2dProgram {
 		"    gl_FragColor = texture2D(sTexture, texCoord);\n"+
 		"}\n";
 
-    private static final String FRAGMENT_SHADER_MIRROR =
+    private static final String FRAGMENT_SHADER_EXT_MIRROR = SHADER_VERSION +
 		"#extension GL_OES_EGL_image_external : require\n" +
 		"precision mediump float;\n" +
 		"varying vec2 vTextureCoord;\n" +
@@ -261,55 +285,131 @@ public class Texture2dProgram {
 		"    gl_FragColor = texture2D(sTexture, texCoord);\n"+
 		"}\n";
 
-    // Fragment shader with a convolution filter.  The upper-left half will be drawn normally,
-    // the lower-right half will have the filter applied, and a thin red line will be drawn
-    // at the border.
-    //
-    // This is not optimized for performance.  Some things that might make this faster:
-    // - Remove the conditionals.  They're used to present a half & half view with a red
-    //   stripe across the middle, but that's only useful for a demo.
-    // - Unroll the loop.  Ideally the compiler does this for you when it's beneficial.
-    // - Bake the filter kernel into the shader, instead of passing it through a uniform
-    //   array.  That, combined with loop unrolling, should reduce memory accesses.
-    public static final int KERNEL_SIZE = 9;
-    private static final String FRAGMENT_SHADER_EXT_FILT3x3 =
-		"#extension GL_OES_EGL_image_external : require\n" +
+	public static final int KERNEL_SIZE = 9;
+
+//	private static final String FRAGMENT_SHADER_SOBEL_BASE = SHADER_VERSION +
+//		"%s" +
+//		"#define KERNEL_SIZE " + KERNEL_SIZE + "\n" +
+//		"precision highp float;\n" +
+//		"varying vec2    vTextureCoord;\n" +
+//		"uniform %s      sTexture;\n" +
+//		"uniform float   uKernel[KERNEL_SIZE];\n" +
+//		"uniform float   uKernel2[KERNEL_SIZE];\n" +
+//		"uniform vec2    uTexOffset[KERNEL_SIZE];\n" +
+//		"uniform float   uColorAdjust;\n" +
+//		"uniform int     uFlags[4];	// 0:0ならsobelフィルタ有効, 1:0ならグレイスケールにする\n" +
+//		"const float     redScale   = 0.298912;\n" +
+//		"const float     greenScale = 0.586611;\n" +
+//		"const float     blueScale  = 0.114478;\n" +
+//		"const vec3      monochromeScale = vec3(redScale, greenScale, blueScale);\n" +
+//		"void main(void) {\n" +
+//		"    vec4  destColor = vec4(0.0);\n" +
+//		"    if (uFlags[0] == 0) {\n" +
+//		"       vec4 sum_h = vec4(0.0);\n" +
+//		"		vec4 sum_v = vec4(0.0);\n" +
+//		"		sum_h += texture2D(sTexture, vTextureCoord + uTexOffset[0]) * uKernel[0];\n" +
+//		"		sum_h += texture2D(sTexture, vTextureCoord + uTexOffset[1]) * uKernel[1];\n" +
+//		"		sum_h += texture2D(sTexture, vTextureCoord + uTexOffset[2]) * uKernel[2];\n" +
+//		"		sum_h += texture2D(sTexture, vTextureCoord + uTexOffset[3]) * uKernel[3];\n" +
+//		"		sum_h += texture2D(sTexture, vTextureCoord + uTexOffset[4]) * uKernel[4];\n" +
+//		"		sum_h += texture2D(sTexture, vTextureCoord + uTexOffset[5]) * uKernel[5];\n" +
+//		"		sum_h += texture2D(sTexture, vTextureCoord + uTexOffset[6]) * uKernel[6];\n" +
+//		"		sum_h += texture2D(sTexture, vTextureCoord + uTexOffset[7]) * uKernel[7];\n" +
+//		"		sum_h += texture2D(sTexture, vTextureCoord + uTexOffset[8]) * uKernel[8];\n" +
+//		"		sum_v += texture2D(sTexture, vTextureCoord + uTexOffset[0]) * uKernel2[0];\n" +
+//		"		sum_v += texture2D(sTexture, vTextureCoord + uTexOffset[1]) * uKernel2[1];\n" +
+//		"		sum_v += texture2D(sTexture, vTextureCoord + uTexOffset[2]) * uKernel2[2];\n" +
+//		"		sum_v += texture2D(sTexture, vTextureCoord + uTexOffset[3]) * uKernel2[3];\n" +
+//		"		sum_v += texture2D(sTexture, vTextureCoord + uTexOffset[4]) * uKernel2[4];\n" +
+//		"		sum_v += texture2D(sTexture, vTextureCoord + uTexOffset[5]) * uKernel2[5];\n" +
+//		"		sum_v += texture2D(sTexture, vTextureCoord + uTexOffset[6]) * uKernel2[6];\n" +
+//		"		sum_v += texture2D(sTexture, vTextureCoord + uTexOffset[7]) * uKernel2[7];\n" +
+//		"		sum_v += texture2D(sTexture, vTextureCoord + uTexOffset[8]) * uKernel2[8];\n" +
+//		"       gl_FragColor = vec4(sqrt(sum_h.rgb * sum_h.rgb + sum_v.rgb * sum_v.rgb), 1.0);\n" +
+//		"    } else {\n" +
+//		"        destColor = texture2D(sTexture, vTextureCoord);\n" +
+//		"    }\n" +
+//		"    if (uFlags[1] == 0) {\n" +
+//		"        float grayColor = dot(destColor.rgb, monochromeScale);\n" +
+//		"        destColor = vec4(vec3(grayColor), 1.0);\n" +
+//		"    }\n" +
+//		"    gl_FragColor = destColor;\n" +
+//		"}\n";
+
+	private static final String FRAGMENT_SHADER_SOBEL_BASE = SHADER_VERSION +
+		"%s" +
 		"#define KERNEL_SIZE " + KERNEL_SIZE + "\n" +
 		"precision highp float;\n" +
-		"varying vec2 vTextureCoord;\n" +
-		"uniform samplerExternalOES sTexture;\n" +
-		"uniform float uKernel[KERNEL_SIZE];\n" +
-		"uniform vec2 uTexOffset[KERNEL_SIZE];\n" +
+		"varying       vec2 vTextureCoord;\n" +
+		"uniform %s    sTexture;\n" +
+		"uniform float uKernel[18];\n" +
+		"uniform vec2  uTexOffset[KERNEL_SIZE];\n" +
 		"uniform float uColorAdjust;\n" +
 		"void main() {\n" +
-		"    int i = 0;\n" +
-		"    vec4 sum = vec4(0.0);\n" +
-		"    for (i = 0; i < KERNEL_SIZE; i++) {\n"+
-		"            vec4 texc = texture2D(sTexture, vTextureCoord + uTexOffset[i]);\n" +
-		"            sum += texc * uKernel[i];\n" +
-		"    }\n" +
-		"    sum += uColorAdjust;\n" +
-		"    gl_FragColor = sum;\n" +
+		"    vec3 t0 = texture2D(sTexture, vTextureCoord + uTexOffset[0]).rgb;\n" +
+		"    vec3 t1 = texture2D(sTexture, vTextureCoord + uTexOffset[1]).rgb;\n" +
+		"    vec3 t2 = texture2D(sTexture, vTextureCoord + uTexOffset[2]).rgb;\n" +
+		"    vec3 t3 = texture2D(sTexture, vTextureCoord + uTexOffset[3]).rgb;\n" +
+		"    vec3 t4 = texture2D(sTexture, vTextureCoord + uTexOffset[4]).rgb;\n" +
+		"    vec3 t5 = texture2D(sTexture, vTextureCoord + uTexOffset[5]).rgb;\n" +
+		"    vec3 t6 = texture2D(sTexture, vTextureCoord + uTexOffset[6]).rgb;\n" +
+		"    vec3 t7 = texture2D(sTexture, vTextureCoord + uTexOffset[7]).rgb;\n" +
+		"    vec3 t8 = texture2D(sTexture, vTextureCoord + uTexOffset[8]).rgb;\n" +
+		"    vec3 sumH = t0 * uKernel[0] + t1 * uKernel[1] + t2 * uKernel[2]\n" +
+		"              + t3 * uKernel[3] + t4 * uKernel[4] + t5 * uKernel[5]\n" +
+		"              + t6 * uKernel[6] + t7 * uKernel[7] + t8 * uKernel[8];\n" +
+//		"    vec3 sumV = t0 * uKernel[ 9] + t1 * uKernel[10] + t2 * uKernel[11]\n" +
+//		"              + t3 * uKernel[12] + t4 * uKernel[13] + t5 * uKernel[14]\n" +
+//		"              + t6 * uKernel[15] + t7 * uKernel[16] + t8 * uKernel[17];\n" +
+//		"    float mag = length(abs(sumH) + abs(sumV));\n" +
+		"    float mag = length(sumH);\n" +
+		"    gl_FragColor = vec4(vec3(mag), 1.0);\n" +
 		"}\n";
 
-	private static final String FRAGMENT_SHADER_FILT3x3 =
+	private static final String FRAGMENT_SHADER_SOBEL
+		= String.format(FRAGMENT_SHADER_SOBEL_BASE, HEADER_2D, SAMPLER_2D);
+	private static final String FRAGMENT_SHADER_EXT_SOBEL
+		= String.format(FRAGMENT_SHADER_SOBEL_BASE, HEADER_OES, SAMPLER_OES);
+
+	public static final float[] KERNEL_NULL = { 0f, 0f, 0f,  0f, 1f, 0f,  0f, 0f, 0f};
+	public static final float[] KERNEL_SOBEL_H = { 1f, 0f, -1f, 2f, 0f, -2f, 1f, 0f, -1f, };	// ソーベル(1次微分)
+	public static final float[] KERNEL_SOBEL_V = { 1f, 2f, 1f, 0f, 0f, 0f, -1f, -2f, -1f, };
+	public static final float[] KERNEL_SOBEL2_H = { 3f, 0f, -3f, 10f, 0f, -10f, 3f, 0f, -3f, };
+	public static final float[] KERNEL_SOBEL2_V = { 3f, 10f, 3f, 0f, 0f, 0f, -3f, -10f, -3f, };
+	public static final float[] KERNEL_SHARPNESS = { 0f, -1f, 0f, -1f, 5f, -1f, 0f, -1f, 0f,};	// シャープネス
+	public static final float[] KERNEL_EDGE_DETECT = { -1f, -1f, -1f, -1f, 8f, -1f, -1f, -1f, -1f, }; // エッジ検出
+	public static final float[] KERNEL_EMBOSS = { 2f, 0f, 0f, 0f, -1f, 0f, 0f, 0f, -1f };	// エンボス, オフセット0.5f
+	public static final float[] KERNEL_SMOOTH = { 1/9f, 1/9f, 1/9f, 1/9f, 1/9f, 1/9f, 1/9f, 1/9f, 1/9f, };	// 移動平均
+	public static final float[] KERNEL_GAUSSIAN = { 1/16f, 2/16f, 1/16f, 2/16f, 4/16f, 2/16f, 1/16f, 2/16f, 1/16f, };	// ガウシアン(ノイズ除去/)
+	public static final float[] KERNEL_LAPLACIAN = { 1f, 1f, 1f, 1f, 2f, 1f, 1f, 1f, 1f, };	// ラプラシアン(2次微分)
+
+	private static final String FRAGMENT_SHADER_FILT3x3_BASE = SHADER_VERSION +
+		"%s" +
 		"#define KERNEL_SIZE " + KERNEL_SIZE + "\n" +
 		"precision highp float;\n" +
-		"varying vec2 vTextureCoord;\n" +
-		"uniform sampler2D sTexture;\n" +
-		"uniform float uKernel[KERNEL_SIZE];\n" +
-		"uniform vec2 uTexOffset[KERNEL_SIZE];\n" +
+		"varying       vec2 vTextureCoord;\n" +
+		"uniform %s    sTexture;\n" +
+		"uniform float uKernel[18];\n" +
+		"uniform vec2  uTexOffset[KERNEL_SIZE];\n" +
 		"uniform float uColorAdjust;\n" +
 		"void main() {\n" +
-		"    int i = 0;\n" +
 		"    vec4 sum = vec4(0.0);\n" +
-		"    for (i = 0; i < KERNEL_SIZE; i++) {\n"+
-		"            vec4 texc = texture2D(sTexture, vTextureCoord + uTexOffset[i]);\n" +
-		"            sum += texc * uKernel[i];\n" +
-		"    }\n" +
-		"    sum += uColorAdjust;\n" +
-		"    gl_FragColor = sum;\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[0]) * uKernel[0];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[1]) * uKernel[1];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[2]) * uKernel[2];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[3]) * uKernel[3];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[4]) * uKernel[4];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[5]) * uKernel[5];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[6]) * uKernel[6];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[7]) * uKernel[7];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[8]) * uKernel[8];\n" +
+		"    gl_FragColor = sum + uColorAdjust;\n" +
 		"}\n";
+	private static final String FRAGMENT_SHADER_FILT3x3
+		= String.format(FRAGMENT_SHADER_FILT3x3_BASE, HEADER_2D, SAMPLER_2D);
+	private static final String FRAGMENT_SHADER_EXT_FILT3x3
+		= String.format(FRAGMENT_SHADER_FILT3x3_BASE, HEADER_OES, SAMPLER_OES);
+
 
 	private final ProgramType mProgramType;
 
@@ -326,14 +426,17 @@ public class Texture2dProgram {
     private final int maPositionLoc;
     private final int maTextureCoordLoc;
     private int muTouchPositionLoc;
+	private int muFlagsLoc;
 
     private int mTextureTarget;
 
-    private final float[] mKernel = new float[KERNEL_SIZE];       // Inputs for convolution filter based shaders
+	private boolean mHasKernel2;
+    private final float[] mKernel = new float[KERNEL_SIZE * 2];       // Inputs for convolution filter based shaders
     private final float[] mSummedTouchPosition = new float[2];    // Summed touch event delta
     private final float[] mLastTouchPosition = new float[2];      // Raw location of last touch event
     private float[] mTexOffset;
     private float mColorAdjust;
+    private final int[] mFlags = new int[4];
 
     /**
      * Prepares the program in the current EGL context.
@@ -341,70 +444,95 @@ public class Texture2dProgram {
     public Texture2dProgram(final ProgramType programType) {
         mProgramType = programType;
 
-        switch (programType) {
-            case TEXTURE_2D:
-                mTextureTarget = GLES20.GL_TEXTURE_2D;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_2D);
+		float[] kernel = null, kernel2 = null;
+		switch (programType) {
+			case TEXTURE_2D:
+				mTextureTarget = GLES20.GL_TEXTURE_2D;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_2D);
                 break;
+//			case TEXTURE_SOBEL:
+//				mTextureTarget = GLES20.GL_TEXTURE_2D;
+//				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_SOBEL);
+//				kernel = KERNEL_SOBEL_H;
+//				kernel2 = KERNEL_SOBEL_V;
+//				break;
+//			case TEXTURE_SOBEL2:
+//				mTextureTarget = GLES20.GL_TEXTURE_2D;
+//				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_SOBEL);
+//				kernel = KERNEL_SOBEL2_H;
+//				kernel2 = KERNEL_SOBEL2_V;
+//				break;
 			case TEXTURE_FILT3x3:
 				mTextureTarget = GLES20.GL_TEXTURE_2D;
 				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_FILT3x3);
 				break;
-            case TEXTURE_EXT:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT);
-                break;
-            case TEXTURE_EXT_BW:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_BW);
-                break;
-            case TEXTURE_EXT_NIGHT:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_NIGHT);
-                break;
-            case TEXTURE_EXT_CHROMA_KEY:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_CHROMA_KEY);
-                break;
-            case TEXTURE_EXT_SQUEEZE:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_SQUEEZE);
-                break;
-            case TEXTURE_EXT_TWIRL:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_TWIRL);
-                break;
-            case TEXTURE_EXT_TUNNEL:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_TUNNEL);
-                break;
-            case TEXTURE_EXT_BULGE:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_BULGE);
-                break;
-            case TEXTURE_EXT_FISHEYE:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_FISHEYE);
-                break;
-            case TEXTURE_EXT_DENT:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_DENT);
-                break;
-            case TEXTURE_EXT_MIRROR:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_MIRROR);
-                break;
-            case TEXTURE_EXT_STRETCH:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_STRETCH);
-                break;
-            case TEXTURE_EXT_FILT3x3:
-                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_FILT3x3);
-                break;
-            default:
-                throw new RuntimeException("Unhandled type " + programType);
-        }
+			case TEXTURE_EXT:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT);
+				break;
+			case TEXTURE_EXT_BW:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_BW);
+				break;
+			case TEXTURE_EXT_NIGHT:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_NIGHT);
+				break;
+			case TEXTURE_EXT_CHROMA_KEY:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_CHROMA_KEY);
+				break;
+			case TEXTURE_EXT_SQUEEZE:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_SQUEEZE);
+				break;
+			case TEXTURE_EXT_TWIRL:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_TWIRL);
+				break;
+			case TEXTURE_EXT_TUNNEL:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_TUNNEL);
+				break;
+			case TEXTURE_EXT_BULGE:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_BULGE);
+				break;
+			case TEXTURE_EXT_FISHEYE:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_FISHEYE);
+				break;
+			case TEXTURE_EXT_DENT:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_DENT);
+				break;
+			case TEXTURE_EXT_MIRROR:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_MIRROR);
+				break;
+			case TEXTURE_EXT_STRETCH:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_STRETCH);
+				break;
+//			case TEXTURE_EXT_SOBEL:
+//				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+//				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_SOBEL);
+//				kernel = KERNEL_SOBEL_H;
+//				kernel2 = KERNEL_SOBEL_V;
+//				break;
+//			case TEXTURE_EXT_SOBEL2:
+//				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+//				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_SOBEL);
+//				kernel = KERNEL_SOBEL2_H;
+//				kernel2 = KERNEL_SOBEL2_V;
+//				break;
+			case TEXTURE_EXT_FILT3x3:
+				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_FILT3x3);
+				break;
+			default:
+				throw new RuntimeException("Unhandled type " + programType);
+		}
         if (mProgramHandle == 0) {
             throw new RuntimeException("Unable to create program");
         }
@@ -434,18 +562,29 @@ public class Texture2dProgram {
 			GLHelper.checkLocation(muColorAdjustLoc, "uColorAdjust");
 
             // initialize default values
-            setKernel(new float[] {0f, 0f, 0f,  0f, 1f, 0f,  0f, 0f, 0f}, 0f);
+            if (kernel == null) {
+            	kernel = KERNEL_NULL;
+			}
+            setKernel(kernel, 0f);
             setTexSize(256, 256);
         }
+		if (kernel2 != null) {
+			setKernel2(kernel2);
+		}
 
         muTouchPositionLoc = GLES20.glGetUniformLocation(mProgramHandle, "uPosition");
-        if(muTouchPositionLoc < 0){
+        if (muTouchPositionLoc < 0) {
             // Shader doesn't use position
             muTouchPositionLoc = -1;
-        }else{
+        } else {
             // initialize default values
             //handleTouchEvent(new float[]{0f, 0f});
         }
+		muFlagsLoc = GLES20.glGetUniformLocation(mProgramHandle, "uFlags");
+		if (muFlagsLoc < 0) {
+			muFlagsLoc = -1;
+		} else {
+		}
     }
 
     /**
@@ -478,14 +617,10 @@ public class Texture2dProgram {
         GLES20.glBindTexture(mTextureTarget, texId);
 		GLHelper.checkGlError("glBindTexture " + texId);
 
-        GLES20.glTexParameterf(mTextureTarget, GLES20.GL_TEXTURE_MIN_FILTER,
-                GLES20.GL_NEAREST);
-        GLES20.glTexParameterf(mTextureTarget, GLES20.GL_TEXTURE_MAG_FILTER,
-                GLES20.GL_LINEAR);
-        GLES20.glTexParameteri(mTextureTarget, GLES20.GL_TEXTURE_WRAP_S,
-                GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(mTextureTarget, GLES20.GL_TEXTURE_WRAP_T,
-                GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameterf(mTextureTarget, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+        GLES20.glTexParameterf(mTextureTarget, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(mTextureTarget, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(mTextureTarget, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 		GLHelper.checkGlError("glTexParameter");
 
         return texId;
@@ -522,13 +657,19 @@ public class Texture2dProgram {
      */
     public void setKernel(final float[] values, final float colorAdj) {
         if (values.length != KERNEL_SIZE) {
-            throw new IllegalArgumentException("Kernel size is " + values.length +
-                    " vs. " + KERNEL_SIZE);
+            throw new IllegalArgumentException(
+            	"Kernel size is " + values.length + " vs. " + KERNEL_SIZE);
         }
         System.arraycopy(values, 0, mKernel, 0, KERNEL_SIZE);
         mColorAdjust = colorAdj;
-        //Log.d(TAG, "filt kernel: " + Arrays.toString(mKernel) + ", adj=" + colorAdj);
     }
+
+	public void setKernel2(final float[] values) {
+		mHasKernel2 = values != null && (values.length == KERNEL_SIZE);
+		if (mHasKernel2) {
+     		System.arraycopy(values, 0, mKernel, KERNEL_SIZE, KERNEL_SIZE);
+		}
+	}
 
     /**
      * Sets the size of the texture.  This is used to find adjacent texels when filtering.
@@ -545,8 +686,20 @@ public class Texture2dProgram {
                 -rw, 0f,    0f, 0f,     rw, 0f,
                 -rw, rh,    0f, rh,     rw, rh
         };
-        //Log.d(TAG, "filt size: " + width + "x" + height + ": " + Arrays.toString(mTexOffset));
     }
+
+	public void setFlags(final int[] flags) {
+		final int n = Math.min(4, flags != null ? flags.length : 0);
+		if (n > 0) {
+			System.arraycopy(flags, 0, mFlags, 0, n);
+		}
+	}
+
+	public void setFlag(final int index, final int value) {
+		if ((index >= 0) && (index < mFlags.length)) {
+			mFlags[index] = value;
+		}
+	}
 
     /**
      * Issues the draw call.  Does the full setup on every call.
@@ -604,17 +757,26 @@ public class Texture2dProgram {
 
         // Populate the convolution kernel, if present.
         if (muKernelLoc >= 0) {
-            GLES20.glUniform1fv(muKernelLoc, KERNEL_SIZE, mKernel, 0);
+        	if (!mHasKernel2) {
+				GLES20.glUniform1fv(muKernelLoc, KERNEL_SIZE, mKernel, 0);
+			} else {
+				GLES20.glUniform1fv(muKernelLoc, KERNEL_SIZE * 2, mKernel, 0);
+			}
+			GLHelper.checkGlError("set kernel");
             GLES20.glUniform2fv(muTexOffsetLoc, KERNEL_SIZE, mTexOffset, 0);
             GLES20.glUniform1f(muColorAdjustLoc, mColorAdjust);
-        }
+		}
 
         // Populate touch position data, if present
         if (muTouchPositionLoc >= 0){
             GLES20.glUniform2fv(muTouchPositionLoc, 1, mSummedTouchPosition, 0);
         }
 
-        // Draw the rect.
+		if (muFlagsLoc >= 0) {
+			GLES20.glUniform1iv(muFlagsLoc, 4, mFlags, 0);
+		}
+
+		// Draw the rect.
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, firstVertex, vertexCount);
 		GLHelper.checkGlError("glDrawArrays");
 
