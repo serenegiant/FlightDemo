@@ -1,6 +1,6 @@
 package com.serenegiant.math;
 
-import com.serenegiant.gl.GameObject;
+import com.serenegiant.gameengine1.GameObject;
 
 import java.util.ArrayList;
 import java.util.List;

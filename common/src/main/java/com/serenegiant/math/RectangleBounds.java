@@ -2,7 +2,7 @@ package com.serenegiant.math;
 
 import android.graphics.Rect;
 
-import com.serenegiant.gl.TextureRegion;
+import com.serenegiant.gameengine1.TextureRegion;
 
 // 四角オブジェクト(2D)
 public class RectangleBounds extends BaseBounds {

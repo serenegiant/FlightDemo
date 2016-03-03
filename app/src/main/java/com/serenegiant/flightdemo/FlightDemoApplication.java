@@ -2,11 +2,11 @@ package com.serenegiant.flightdemo;
 
 import android.app.Application;
 
-import com.serenegiant.gl.FileIO;
-import com.serenegiant.gl.IModelViewApplication;
-import com.serenegiant.gl.MPAssetIO;
-import com.serenegiant.gl.MPExtFileIO;
-import com.serenegiant.gl.MPFileIO;
+import com.serenegiant.gameengine1.FileIO;
+import com.serenegiant.gameengine1.IModelViewApplication;
+import com.serenegiant.gameengine1.MPAssetIO;
+import com.serenegiant.gameengine1.MPExtFileIO;
+import com.serenegiant.gameengine1.MPFileIO;
 
 public class FlightDemoApplication extends Application implements IModelViewApplication {
 	private FileIO mFileIO;

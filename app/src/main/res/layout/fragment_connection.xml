@@ -21,7 +21,7 @@
    		android:layout_centerVertical="true"
    		android:layout_centerHorizontal="true"/>-->
 
-<!--    <com.serenegiant.gl.AttitudeTextureView
+<!--    <com.serenegiant.drone.AttitudeTextureView
         android:id="@+id/drone_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

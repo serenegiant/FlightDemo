@@ -8,7 +8,7 @@
 	tools:context="com.serenegiant.flightdemo.PilotFragment"
 	android:id="@+id/screen_frame">
 
-	<com.serenegiant.gl.AttitudeTextureView
+	<com.serenegiant.drone.AttitudeTextureView
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		android:id="@+id/drone_view"

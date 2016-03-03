@@ -11,8 +11,8 @@ import android.widget.TextView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.IFlightController;
-import com.serenegiant.gl.AttitudeScreenBase;
-import com.serenegiant.gl.IModelView;
+import com.serenegiant.drone.AttitudeScreenBase;
+import com.serenegiant.gameengine1.IModelView;
 
 public class CalibrationFragment extends BaseFlightControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
