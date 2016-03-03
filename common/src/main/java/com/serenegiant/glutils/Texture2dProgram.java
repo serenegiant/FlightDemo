@@ -31,10 +31,22 @@ public class Texture2dProgram {
     private static final String TAG = "Texture2dProgram";
 
 	public enum ProgramType {
-        TEXTURE_2D, TEXTURE_FILT3x3,
-		TEXTURE_EXT, TEXTURE_EXT_BW, TEXTURE_EXT_NIGHT, TEXTURE_EXT_CHROMA_KEY,
-        TEXTURE_EXT_SQUEEZE, TEXTURE_EXT_TWIRL, TEXTURE_EXT_TUNNEL, TEXTURE_EXT_BULGE,
-        TEXTURE_EXT_DENT, TEXTURE_EXT_FISHEYE, TEXTURE_EXT_STRETCH, TEXTURE_EXT_MIRROR,
+		// ここはGL_TEXTURE_2D
+        TEXTURE_2D,
+        TEXTURE_FILT3x3,
+        // ここから下はGL_TEXTURE_EXTERNAL_OES
+		TEXTURE_EXT,
+		TEXTURE_EXT_BW,
+		TEXTURE_EXT_NIGHT,
+		TEXTURE_EXT_CHROMA_KEY,
+        TEXTURE_EXT_SQUEEZE,
+        TEXTURE_EXT_TWIRL,
+        TEXTURE_EXT_TUNNEL,
+        TEXTURE_EXT_BULGE,
+        TEXTURE_EXT_DENT,
+        TEXTURE_EXT_FISHEYE,
+        TEXTURE_EXT_STRETCH,
+        TEXTURE_EXT_MIRROR,
 		TEXTURE_EXT_FILT3x3
     }
 
@@ -323,7 +335,6 @@ public class Texture2dProgram {
     private float[] mTexOffset;
     private float mColorAdjust;
 
-
     /**
      * Prepares the program in the current EGL context.
      */
@@ -333,63 +344,63 @@ public class Texture2dProgram {
         switch (programType) {
             case TEXTURE_2D:
                 mTextureTarget = GLES20.GL_TEXTURE_2D;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_2D);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_2D);
                 break;
 			case TEXTURE_FILT3x3:
 				mTextureTarget = GLES20.GL_TEXTURE_2D;
-				mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_FILT3x3);
+				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_FILT3x3);
 				break;
             case TEXTURE_EXT:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT);
                 break;
             case TEXTURE_EXT_BW:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT_BW);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_BW);
                 break;
             case TEXTURE_EXT_NIGHT:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT_NIGHT);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_NIGHT);
                 break;
             case TEXTURE_EXT_CHROMA_KEY:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT_CHROMA_KEY);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_CHROMA_KEY);
                 break;
             case TEXTURE_EXT_SQUEEZE:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_SQUEEZE);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_SQUEEZE);
                 break;
             case TEXTURE_EXT_TWIRL:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_TWIRL);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_TWIRL);
                 break;
             case TEXTURE_EXT_TUNNEL:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_TUNNEL);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_TUNNEL);
                 break;
             case TEXTURE_EXT_BULGE:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_BULGE);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_BULGE);
                 break;
             case TEXTURE_EXT_FISHEYE:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_FISHEYE);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_FISHEYE);
                 break;
             case TEXTURE_EXT_DENT:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_DENT);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_DENT);
                 break;
             case TEXTURE_EXT_MIRROR:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_MIRROR);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_MIRROR);
                 break;
             case TEXTURE_EXT_STRETCH:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_STRETCH);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_STRETCH);
                 break;
             case TEXTURE_EXT_FILT3x3:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT_FILT3x3);
+                mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_FILT3x3);
                 break;
             default:
                 throw new RuntimeException("Unhandled type " + programType);
@@ -402,13 +413,13 @@ public class Texture2dProgram {
         // get locations of attributes and uniforms
 
         maPositionLoc = GLES20.glGetAttribLocation(mProgramHandle, "aPosition");
-        GlUtil.checkLocation(maPositionLoc, "aPosition");
+		GLHelper.checkLocation(maPositionLoc, "aPosition");
         maTextureCoordLoc = GLES20.glGetAttribLocation(mProgramHandle, "aTextureCoord");
-        GlUtil.checkLocation(maTextureCoordLoc, "aTextureCoord");
+		GLHelper.checkLocation(maTextureCoordLoc, "aTextureCoord");
         muMVPMatrixLoc = GLES20.glGetUniformLocation(mProgramHandle, "uMVPMatrix");
-        GlUtil.checkLocation(muMVPMatrixLoc, "uMVPMatrix");
+		GLHelper.checkLocation(muMVPMatrixLoc, "uMVPMatrix");
         muTexMatrixLoc = GLES20.glGetUniformLocation(mProgramHandle, "uTexMatrix");
-        GlUtil.checkLocation(muTexMatrixLoc, "uTexMatrix");
+		GLHelper.checkLocation(muTexMatrixLoc, "uTexMatrix");
         muKernelLoc = GLES20.glGetUniformLocation(mProgramHandle, "uKernel");
         if (muKernelLoc < 0) {
             // no kernel in this one
@@ -418,9 +429,9 @@ public class Texture2dProgram {
         } else {
             // has kernel, must also have tex offset and color adj
             muTexOffsetLoc = GLES20.glGetUniformLocation(mProgramHandle, "uTexOffset");
-            GlUtil.checkLocation(muTexOffsetLoc, "uTexOffset");
+			GLHelper.checkLocation(muTexOffsetLoc, "uTexOffset");
             muColorAdjustLoc = GLES20.glGetUniformLocation(mProgramHandle, "uColorAdjust");
-            GlUtil.checkLocation(muColorAdjustLoc, "uColorAdjust");
+			GLHelper.checkLocation(muColorAdjustLoc, "uColorAdjust");
 
             // initialize default values
             setKernel(new float[] {0f, 0f, 0f,  0f, 1f, 0f,  0f, 0f, 0f}, 0f);
@@ -461,11 +472,11 @@ public class Texture2dProgram {
     public int createTextureObject() {
         final int[] textures = new int[1];
         GLES20.glGenTextures(1, textures, 0);
-        GlUtil.checkGlError("glGenTextures");
+		GLHelper.checkGlError("glGenTextures");
 
         final int texId = textures[0];
         GLES20.glBindTexture(mTextureTarget, texId);
-        GlUtil.checkGlError("glBindTexture " + texId);
+		GLHelper.checkGlError("glBindTexture " + texId);
 
         GLES20.glTexParameterf(mTextureTarget, GLES20.GL_TEXTURE_MIN_FILTER,
                 GLES20.GL_NEAREST);
@@ -475,7 +486,7 @@ public class Texture2dProgram {
                 GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(mTextureTarget, GLES20.GL_TEXTURE_WRAP_T,
                 GLES20.GL_CLAMP_TO_EDGE);
-        GlUtil.checkGlError("glTexParameter");
+		GLHelper.checkGlError("glTexParameter");
 
         return texId;
     }
@@ -554,42 +565,42 @@ public class Texture2dProgram {
     public void draw(final float[] mvpMatrix, final FloatBuffer vertexBuffer, final int firstVertex,
                      final int vertexCount, final int coordsPerVertex, final int vertexStride,
                      final float[] texMatrix, final FloatBuffer texBuffer, final int textureId, final int texStride) {
-        GlUtil.checkGlError("draw start");
+		GLHelper.checkGlError("draw start");
 
         // Select the program.
         GLES20.glUseProgram(mProgramHandle);
-        GlUtil.checkGlError("glUseProgram");
+		GLHelper.checkGlError("glUseProgram");
 
         // Set the texture.
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(mTextureTarget, textureId);
-		GlUtil.checkGlError("glBindTexture");
+		GLHelper.checkGlError("glBindTexture");
 
         // Copy the model / view / projection matrix over.
         GLES20.glUniformMatrix4fv(muMVPMatrixLoc, 1, false, mvpMatrix, 0);
-        GlUtil.checkGlError("glUniformMatrix4fv");
+		GLHelper.checkGlError("glUniformMatrix4fv");
 
         // Copy the texture transformation matrix over.
         GLES20.glUniformMatrix4fv(muTexMatrixLoc, 1, false, texMatrix, 0);
-        GlUtil.checkGlError("glUniformMatrix4fv");
+		GLHelper.checkGlError("glUniformMatrix4fv");
 
         // Enable the "aPosition" vertex attribute.
         GLES20.glEnableVertexAttribArray(maPositionLoc);
-        GlUtil.checkGlError("glEnableVertexAttribArray");
+		GLHelper.checkGlError("glEnableVertexAttribArray");
 
         // Connect vertexBuffer to "aPosition".
         GLES20.glVertexAttribPointer(maPositionLoc, coordsPerVertex,
                 GLES20.GL_FLOAT, false, vertexStride, vertexBuffer);
-        GlUtil.checkGlError("glVertexAttribPointer");
+		GLHelper.checkGlError("glVertexAttribPointer");
 
         // Enable the "aTextureCoord" vertex attribute.
         GLES20.glEnableVertexAttribArray(maTextureCoordLoc);
-        GlUtil.checkGlError("glEnableVertexAttribArray");
+		GLHelper.checkGlError("glEnableVertexAttribArray");
 
         // Connect texBuffer to "aTextureCoord".
         GLES20.glVertexAttribPointer(maTextureCoordLoc, 2,
                 GLES20.GL_FLOAT, false, texStride, texBuffer);
-        GlUtil.checkGlError("glVertexAttribPointer");
+		GLHelper.checkGlError("glVertexAttribPointer");
 
         // Populate the convolution kernel, if present.
         if (muKernelLoc >= 0) {
@@ -605,7 +616,7 @@ public class Texture2dProgram {
 
         // Draw the rect.
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, firstVertex, vertexCount);
-        GlUtil.checkGlError("glDrawArrays");
+		GLHelper.checkGlError("glDrawArrays");
 
         // Done -- disable vertex array, texture, and program.
         GLES20.glDisableVertexAttribArray(maPositionLoc);

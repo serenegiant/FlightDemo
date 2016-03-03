@@ -160,16 +160,16 @@ public class TextureOffscreen {
 		mFBOTextureId = texture_id;
 		// bind frame buffer
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBufferObj);
-		GlUtil.checkGlError("glBindFramebuffer " + mFrameBufferObj);
+		GLHelper.checkGlError("glBindFramebuffer " + mFrameBufferObj);
 		// connect color buffer(backing texture) to frame buffer object as a color buffer
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
 			TEX_TARGET, mFBOTextureId, 0);
-		GlUtil.checkGlError("glFramebufferTexture2D");
+		GLHelper.checkGlError("glFramebufferTexture2D");
 
 		if (mHasDepthBuffer) {
 			// connect depth buffer to frame buffer object
 			GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT, GLES20.GL_RENDERBUFFER, mDepthBufferObj);
-			GlUtil.checkGlError("glFramebufferRenderbuffer");
+			GLHelper.checkGlError("glFramebufferRenderbuffer");
 		}
 
 		// confirm whether all process successfully completed.
@@ -210,28 +210,28 @@ public class TextureOffscreen {
      * prepare frame buffer etc. for this instance
      */
     private final void prepareFramebuffer(final int width, final int height, final boolean adjust_power2) {
-		GlUtil.checkGlError("prepareFramebuffer start");
+		GLHelper.checkGlError("prepareFramebuffer start");
 
 		createFrameBuffer(width, height, adjust_power2);
 		// make a texture id as a color buffer
 		final int[] ids = new int[1];
 		GLES20.glGenTextures(1, ids, 0);
-		GlUtil.checkGlError("glGenTextures");
+		GLHelper.checkGlError("glGenTextures");
 
 		GLES20.glBindTexture(TEX_TARGET, ids[0]);
-		GlUtil.checkGlError("glBindTexture " + ids[0]);
+		GLHelper.checkGlError("glBindTexture " + ids[0]);
 
 		// set parameters for backing texture
 		GLES20.glTexParameterf(TEX_TARGET, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
 		GLES20.glTexParameterf(TEX_TARGET, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
 		GLES20.glTexParameteri(TEX_TARGET, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
 		GLES20.glTexParameteri(TEX_TARGET, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-		GlUtil.checkGlError("glTexParameter");
+		GLHelper.checkGlError("glTexParameter");
 
 		// allocate memory for texture
 		GLES20.glTexImage2D(TEX_TARGET, 0, GLES20.GL_RGBA, mTexWidth, mTexHeight, 0,
 				GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
-		GlUtil.checkGlError("glTexImage2D");
+		GLHelper.checkGlError("glTexImage2D");
 
 		assignTexture(ids[0], width, height);
     }
@@ -264,10 +264,10 @@ public class TextureOffscreen {
 		}
 		// create and bind frame buffer object
 		GLES20.glGenFramebuffers(1, ids, 0);
-		GlUtil.checkGlError("glGenFramebuffers");
+		GLHelper.checkGlError("glGenFramebuffers");
 		mFrameBufferObj = ids[0];
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBufferObj);
-		GlUtil.checkGlError("glBindFramebuffer " + mFrameBufferObj);
+		GLHelper.checkGlError("glBindFramebuffer " + mFrameBufferObj);
 
 		// reset to default frame buffer
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);

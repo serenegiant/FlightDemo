@@ -30,7 +30,7 @@ public class Drawable2d {
             -0.5f, -0.311004243f,   // bottom left
             0.5f, -0.311004243f    // bottom right
     };
-    private static final FloatBuffer TRIANGLE_BUF = GlUtil.createFloatBuffer(TRIANGLE_COORDS);
+    private static final FloatBuffer TRIANGLE_BUF = GLHelper.createFloatBuffer(TRIANGLE_COORDS);
 
     /**
      * Simple square, specified as a triangle strip.  The square is centered on (0,0) and has
@@ -44,7 +44,7 @@ public class Drawable2d {
             -0.5f,  0.5f,   // 2 top left
             0.5f,  0.5f,   // 3 top right
     };
-    private static final FloatBuffer RECTANGLE_BUF = GlUtil.createFloatBuffer(RECTANGLE_COORDS);
+    private static final FloatBuffer RECTANGLE_BUF = GLHelper.createFloatBuffer(RECTANGLE_COORDS);
 
     /**
      * A "full" square, extending from -1 to +1 in both dimensions.  When the model/view/projection
@@ -59,7 +59,7 @@ public class Drawable2d {
             1.0f,  1.0f,   // 3 top right
     };
     private static final FloatBuffer FULL_RECTANGLE_BUF =
-            GlUtil.createFloatBuffer(FULL_RECTANGLE_COORDS);
+		GLHelper.createFloatBuffer(FULL_RECTANGLE_COORDS);
 
     private static final int SIZEOF_FLOAT = 4;
 

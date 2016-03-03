@@ -68,7 +68,7 @@ public class FullFrameRect {
             0.0f, 1.0f,     // 2 top left
             1.0f, 1.0f      // 3 top right
     };
-    private static final FloatBuffer TEX_COORDS_BUF = GlUtil.createFloatBuffer(TEX_COORDS);
+    private static final FloatBuffer TEX_COORDS_BUF = GLHelper.createFloatBuffer(TEX_COORDS);
     private static final int TEX_COORDS_STRIDE = 2 * SIZEOF_FLOAT;
 
     private boolean mCorrectVerticalVideo = false;
