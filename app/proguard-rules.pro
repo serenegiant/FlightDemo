@@ -31,3 +31,7 @@
 -keepclasseswithmembernames class * {
 	native <methods>;
 }
+
+-keepclassmembers class com.serenegiant.opencv.** {
+	*;
+}

@@ -87,6 +87,7 @@ public class AutoPilotFragment extends PilotFragment {
 		}
 		if (mController instanceof ICameraController) {
 			((ICameraController)mController).sendExposure(3);
+			((ICameraController)mController).sendCameraOrientation(-100, 0);
 		}
 	}
 
@@ -108,7 +109,7 @@ public class AutoPilotFragment extends PilotFragment {
 		switch (view.getId()) {
 		case R.id.top_panel:
 			if (mImageProcessor != null) {
-				mImageProcessor.setShowDetects(!mImageProcessor.getShowDetects());
+				mImageProcessor.setResultFrameType(mImageProcessor.getResultFrameType() + 1);
 			}
 			break;
 		}

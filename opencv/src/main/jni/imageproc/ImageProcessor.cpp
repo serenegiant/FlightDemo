@@ -38,7 +38,7 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 :	mWeakThiz(env->NewGlobalRef(weak_thiz_obj)),
 	mClazz((jclass)env->NewGlobalRef(clazz)),
 	mIsRunning(false),
-	mShowDetects(false)
+	mResultFrameType(RESULT_FRAME_TYPE_SRC)
 {
 }
 
@@ -135,54 +135,67 @@ void *ImageProcessor::processor_thread_func(void *vptr_args) {
 void ImageProcessor::do_process(JNIEnv *env) {
 	ENTER();
 
-	float result[20];
+	float detected[20];
 	for ( ; mIsRunning ; ) {
 		// フレームデータの取得待ち
 		cv::Mat frame = getFrame();
 		if (!mIsRunning) break;
 		// FIXME 未実装 OpenCVでの解析処理
 		try {
-			cv::Mat gray, dst, color_dst;
-			// グレースケールに変換(RGBA->Y)
-			cv::cvtColor(frame, gray, cv::COLOR_RGBA2GRAY, 1);
-//			cv::normalize(gray, gray, 0, 255, cv::NORM_MINMAX);
-			// 平滑化, XXX 画像が左右半分に回転対称になって重なる感じ
-//			cv::Sobel(gray, dst, CV_32F, 1, 1);
-//			cv::convertScaleAbs(dst, gray, 1, 0);
-			// エッジ検出, XXX これも横幅が半分になって左右に白黒反転?したようなのが2つ並ぶ
-//			cv::Canny(gray, gray, 50, 200);
-			// 2値化(これはOK)
-			cv::threshold(gray, gray, 60, 255, cv::THRESH_BINARY);
-//			cv::threshold(gray, gray, 60, 255, cv::THRESH_BINARY_INV);
-			// 表示用にカラー画像に戻す
-			dst = gray.clone();
-			cv::cvtColor(dst, color_dst, cv::COLOR_GRAY2RGBA);
+			cv::Mat src, result;
 
-//			LOGI("gray(cols=%d,rows=%d,dims=%d,depth=%d,elemSize=%d)", gray.cols, gray.rows, gray.dims, gray.depth(), gray.elemSize());
-//			LOGI("dst(cols=%d,rows=%d,dims=%d,depth=%d,elemSize=%d)", dst.cols, dst.rows, dst.dims, dst.depth(), dst.elemSize());
-//			LOGI("color_dst(cols=%d,rows=%d,dims=%d,depth=%d,elemSize=%d)", color_dst.cols, color_dst.rows, color_dst.dims, color_dst.depth(), color_dst.elemSize());
+			// RGBAのままだとHSVに変換できないので一旦BGRに買える
+			cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
+			cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
+			// 色抽出処理, 色相は問わず彩度が低くて明度が高い領域を抽出
+			colorExtraction(&src, &src, cv::COLOR_BGR2HSV, 0, 180, 0, 10, 70, 255);
+			// グレースケールに変換(RGBA->Y)
+			cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
+			// 平滑化
+//			cv::Sobel(src, src, CV_32F, 1, 1);
+//			cv::convertScaleAbs(src, src, 1, 0);
+			// エッジ検出(Cannyの結果は2値化されてる)
+			cv::Canny(src, src, 50, 200);
+			// 2値化
+//			cv::threshold(src, src, 60, 255, cv::THRESH_BINARY);
+//			cv::threshold(src, src, 60, 255, cv::THRESH_BINARY_INV);
+			// 表示用にカラー画像に戻す
+			const bool show_src = (mResultFrameType == RESULT_FRAME_TYPE_SRC) || (mResultFrameType == RESULT_FRAME_TYPE_SRC_LINE);
+			if (show_src) {
+				result = frame;
+			} else {
+				cv::cvtColor(src, result, cv::COLOR_GRAY2RGBA);
+			}
+
+//			LOGI("src(cols=%d,rows=%d,dims=%d,depth=%d,elemSize=%d)", src.cols, src.rows, src.dims, src.depth(), src.elemSize());
+//			LOGI("src(cols=%d,rows=%d,dims=%d,depth=%d,elemSize=%d)", src.cols, src.rows, src.dims, src.depth(), src.elemSize());
+//			LOGI("result(cols=%d,rows=%d,dims=%d,depth=%d,elemSize=%d)", result.cols, result.rows, result.dims, result.depth(), result.elemSize());
 #if 1
+			const bool show_detects = (mResultFrameType == RESULT_FRAME_TYPE_SRC_LINE) || (mResultFrameType == RESULT_FRAME_TYPE_DST_LINE);
 			// 確率的ハフ変換による直線検出
 			std::vector<cv::Vec4i> lines;
-			cv::HoughLinesP(dst, lines,
-				1,			// 距離分解能[ピクセル]
+#if 1
+			cv::HoughLinesP(src, lines,
+				2,			// 距離分解能[ピクセル]
 				CV_PI/180,	// 角度分解能[ラジアン]
-				80,			// Accumulatorのしきい値
-				30,			// 最小長さ[ピクセル]
-				5			// 2点が同一線上にあるとみなす最大距離[ピクセル]
+				70,			// Accumulatorのしきい値
+				20,			// 最小長さ[ピクセル]
+				20			// 2点が同一線上にあるとみなす最大距離[ピクセル]
 			);
-			// 検出結果をdstに書き込み
-			if (mShowDetects) {
+#endif
+			// 検出結果をcolor_dstに書き込み
+			if (show_detects) {
 				for (size_t i = 0; i < lines.size(); i++ ) {
 					cv::Vec4i l = lines[i];
-					cv::line(color_dst, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(255, 0, 0), 3, 8);
+					cv::line(result, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(255, 0, 0), 3, 8);
 				}
 			}
 #else
 			// ハフ変換による直線検出
 			std::vector<cv::Vec2i> lines;
-			cv::HoughLines(dst, lines, 1, CV_PI/180, 100);
-			if (mShowDetects) {
+			cv::HoughLines(src, lines, 1, CV_PI/180, 100);
+			// 検出結果をcolor_dstに書き込み
+			if (show_detects) {
 				for (size_t i = 0; i < lines.size(); i++ ) {
 					float rho = lines[i][0];
 					float theta = lines[i][1];
@@ -190,29 +203,98 @@ void ImageProcessor::do_process(JNIEnv *env) {
 					double x0 = a*rho, y0 = b*rho;
 					cv::Point pt1(cvRound(x0 + 1000*(-b)), cvRound(y0 + 1000*(a)));
 					cv::Point pt2(cvRound(x0 - 1000*(-b)), cvRound(y0 - 1000*(a)));
-					line(color_dst, pt1, pt2, cv::Scalar(255, 0, 0), 3, 8 );
+					line(result, pt1, pt2, cv::Scalar(255, 0, 0), 3, 8 );
 				}
 			}
 #endif
 			// Java側のコールバックメソッドを呼び出す
 			if (LIKELY(mIsRunning && fields.callFromNative && mClazz && mWeakThiz)) {
 				// 結果 FIXME ByteBufferで返す代わりにコピーされるけどfloat配列の方がいいかも
-				jobject buf = env->NewDirectByteBuffer(result, sizeof(float) * 20);
+				jobject buf_detected = env->NewDirectByteBuffer(detected, sizeof(float) * 20);
 				// 解析画像
-				jobject buf_frame = env->NewDirectByteBuffer(color_dst.data, color_dst.total() * color_dst.elemSize());
+				jobject buf_frame = env->NewDirectByteBuffer(result.data, result.total() * result.elemSize());
 				// コールバックメソッドを呼び出す
-				env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, buf_frame, buf);
+				env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, buf_frame, buf_detected);
 				env->ExceptionClear();
-				env->DeleteLocalRef(buf);
+				env->DeleteLocalRef(buf_detected);
 				env->DeleteLocalRef(buf_frame);
 			}
 		} catch (cv::Exception e) {
-			LOGE("do_process:%s", e.msg.c_str());
+			LOGE("do_process failed:%s", e.msg.c_str());
 			continue;
 		}
 	}
 
 	EXIT();
+}
+
+/** 指定したHSV色範囲に収まる領域を抽出する */
+int ImageProcessor::colorExtraction(cv::Mat *src, cv::Mat *dst,
+	int convert_code,	// cv:cvtColorの第3引数, カラー変換方法
+	int HLower, int HUpper,	// 色相範囲 [0,180]
+	int SLower, int SUpper,	// 彩度範囲 [0,255]
+	int VLower, int VUpper) {	// 明度範囲 [0,255]
+
+	ENTER();
+
+	int result = 0;
+
+    cv::Mat colorImage;
+    int lower[3];
+    int upper[3];
+
+	try {
+		cv::Mat lut = cv::Mat(256, 1, CV_8UC3);
+
+		cv::cvtColor(*src, colorImage, convert_code);
+
+		lower[0] = HLower;
+		lower[1] = SLower;
+		lower[2] = VLower;
+
+		upper[0] = HUpper;
+		upper[1] = SUpper;
+		upper[2] = VUpper;
+
+		for (int i = 0; i < 256; i++) {
+			for (int k = 0; k < 3; k++) {
+				if (lower[k] <= upper[k]) {
+					if ((lower[k] <= i) && (i <= upper[k])) {
+						lut.data[i*lut.step+k] = 255;
+					} else{
+						lut.data[i*lut.step+k] = 0;
+					}
+				} else {
+					if ((i <= upper[k]) || (lower[k] <= i)) {
+						lut.data[i*lut.step+k] = 255;
+					} else {
+						lut.data[i*lut.step+k] = 0;
+					}
+				}
+			}
+		}
+
+		// LUTを使用して二値化
+		cv::LUT(colorImage, lut, colorImage);
+
+		// Channel毎に分解
+		std::vector<cv::Mat> planes;
+		cv::split(colorImage, planes);
+
+		// マスクを作成
+		cv::Mat maskImage;
+		cv::bitwise_and(planes[0], planes[1], maskImage);
+		cv::bitwise_and(maskImage, planes[2], maskImage);
+
+		// 出力
+		cv::Mat maskedImage;
+		src->copyTo(maskedImage, maskImage);
+		*dst = maskedImage;
+	} catch (cv::Exception e) {
+		LOGE("colorExtraction failed:%s", e.msg.c_str());
+		result = -1;
+	}
+    RETURN(result, int);
 }
 
 //================================================================================
@@ -222,7 +304,7 @@ int ImageProcessor::handleFrame(const uint8_t *frame, const int &width, const in
 	ENTER();
 
 	// 受け取ったフレームデータをMatにしてキューする
-	cv::Mat mat = cv::Mat(width, height, CV_8UC4, (void *)frame);
+	cv::Mat mat = cv::Mat(height, width, CV_8UC4, (void *)frame);
 	addFrame(mat);
 
 	RETURN(0, int);
@@ -396,21 +478,21 @@ static int nativeHandleFrame(JNIEnv *env, jobject thiz,
 	RETURN(result, jint);
 }
 
-static jint nativeSetShowDetects(JNIEnv *env, jobject thiz,
-	ID_TYPE id_native, jboolean show_detects) {
+static jint nativeSetResultFrameType(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jint result_frame_type) {
 
 	ENTER();
 
 	jint result = -1;
 	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
 	if (LIKELY(processor)) {
-		processor->setShowDetects(show_detects);
+		processor->setResultFrameType(result_frame_type);
 	}
 
 	RETURN(result, jint);
 }
 
-static jint nativeGetShowDetects(JNIEnv *env, jobject thiz,
+static jint nativeGetResultFrameType(JNIEnv *env, jobject thiz,
 	ID_TYPE id_native) {
 
 	ENTER();
@@ -418,7 +500,7 @@ static jint nativeGetShowDetects(JNIEnv *env, jobject thiz,
 	jint result = 0;
 	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
 	if (LIKELY(processor)) {
-		result = processor->getShowDetects();
+		result = processor->getResultFrameType();
 	}
 
 	RETURN(result, jint);
@@ -433,8 +515,8 @@ static JNINativeMethod methods[] = {
 	{ "nativeStart",			"(J)I", (void *) nativeStart },
 	{ "nativeStop",				"(J)I", (void *) nativeStop },
 	{ "nativeHandleFrame",		"(JLjava/nio/ByteBuffer;II)I", (void *) nativeHandleFrame },
-	{ "nativeSetShowDetects",	"(JZ)I", (void *) nativeSetShowDetects },
-	{ "nativeGetShowDetects",	"(J)I", (void *) nativeGetShowDetects },
+	{ "nativeSetResultFrameType",	"(JI)I", (void *) nativeSetResultFrameType },
+	{ "nativeGetResultFrameType",	"(J)I", (void *) nativeGetResultFrameType },
 };
 
 

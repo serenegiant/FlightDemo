@@ -408,7 +408,7 @@ public class VideoStream implements IVideoStream {
 //			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EDGE_DETECT, 0.0f);	// エッジ検出
 //			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SHARPNESS, 0.0f);	// シャープ
 //			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SMOOTH, 0.0f);		// 移動平均
-			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化,ノイズ除去)
+//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化,ノイズ除去)
 //			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, 0.0f);	// ラプラシアン(エッジ検出, 2次微分)
 
 			mTexId = GLHelper.initTex(GLDrawer2D.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_NEAREST);
