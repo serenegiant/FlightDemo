@@ -28,21 +28,28 @@ public class AutoPilotFragment extends PilotFragment {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = AutoPilotFragment.class.getSimpleName();
 
-	public static AutoPilotFragment newInstance(final ARDiscoveryDeviceService device) {
+	private static final String ENABLE_EMPHASIS = "ENABLE_EMPHASIS";
+
+	public static AutoPilotFragment newInstance(final ARDiscoveryDeviceService device, final boolean enable_emphasis) {
 		final AutoPilotFragment fragment = new AutoPilotFragment();
-		fragment.setDevice(device);
+		final Bundle args = fragment.setDevice(device);
+		args.putBoolean("ENABLE_EMPHASIS", enable_emphasis);
 		return fragment;
 	}
 
-	public static AutoPilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
+	public static AutoPilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final boolean enable_emphasis) {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final AutoPilotFragment fragment = new AutoPilotFragment();
-		fragment.setBridge(device, info);
+		final Bundle args = fragment.setBridge(device, info);
+		args.putBoolean(ENABLE_EMPHASIS, enable_emphasis);
+		fragment.mEnableEmphasis = enable_emphasis;
 		return fragment;
 	}
 
 	protected SurfaceView mDetectView;
 	protected ImageProcessor mImageProcessor;
+	protected boolean mEnableEmphasis;
+
 	public AutoPilotFragment() {
 		super();
 		// デフォルトコンストラクタが必要
@@ -66,9 +73,11 @@ public class AutoPilotFragment extends PilotFragment {
 
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-		final View rootView =super.onCreateView(inflater, container, savedInstanceState);
+		final View rootView = super.onCreateView(inflater, container, savedInstanceState);
 		mDetectView = (SurfaceView)rootView.findViewById(R.id.detect_view);
 		mDetectView.setVisibility(View.VISIBLE);
+		final Bundle args = getArguments();
+		mEnableEmphasis = args.getBoolean("ENABLE_EMPHASIS", true);
 		return rootView;
 	}
 
@@ -79,6 +88,7 @@ public class AutoPilotFragment extends PilotFragment {
 		if (DEBUG) Log.v(TAG, "onConnect");
 		if ((mController instanceof IVideoStreamController) && (mVideoStream != null)) {
 			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
+			mImageProcessor.setEmphasis(mEnableEmphasis);
 			final Surface surface = mImageProcessor.getSurface();
 			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
 			if (mImageProcessorSurfaceId != 0) {

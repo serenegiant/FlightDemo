@@ -36,6 +36,7 @@ public class ImageProcessor {
 	private final ImageProcessorCallback mCallback;
 	private volatile boolean isProcessingRunning;
 	private ProcessingTask mProcessingTask;
+	private volatile boolean mEnableEmphasis;
 
 	/** native側のインスタンスポインタ, 名前を変えたりしちゃダメ */
 	private long mNativePtr;
@@ -83,6 +84,23 @@ public class ImageProcessor {
 	/** 映像受け取り用SurfaceTextureを取得 */
 	public SurfaceTexture getSurfaceTexture() {
 		return mProcessingTask.getSurfaceTexture();
+	}
+
+	public void setEmphasis(final boolean emphasis) {
+		if (mEnableEmphasis != emphasis) {
+			mEnableEmphasis = emphasis;
+			if ((mProcessingTask != null) && (mProcessingTask.mDrawer != null)) {
+				if (emphasis) {
+					mProcessingTask.mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, -0.1f);	// ラプラシアン(エッジ検出, 2次微分)
+				} else {
+					mProcessingTask.mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_NULL, 0);
+				}
+			}
+		}
+	}
+
+	public boolean getEmphasis() {
+		return mEnableEmphasis;
 	}
 
 	/**
@@ -212,7 +230,9 @@ public class ImageProcessor {
 //			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SHARPNESS, 0.0f);	// シャープ
 //			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SMOOTH, 0.0f);		// 移動平均(平滑化)
 //			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化)
-			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, 0.0f);	// ラプラシアン(エッジ検出, 2次微分)
+			if (mParent.mEnableEmphasis) {
+				mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, -0.1f);	// ラプラシアン(エッジ検出, 2次微分)
+			}
 			mDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
 
 			// これを呼ぶと映像がどんどん重なっていってしまう, setKernelで同じカーネルを割り当てる分には大丈夫なのに

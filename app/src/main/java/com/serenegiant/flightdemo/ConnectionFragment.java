@@ -123,15 +123,19 @@ public class ConnectionFragment extends BaseFragment {
 
 		mDownloadBtn = (ImageButton)rootView.findViewById(R.id.download_button);
 		mDownloadBtn.setOnClickListener(mOnClickListener);
+		mDownloadBtn.setOnLongClickListener(mOnLongClickListener);
 		mPilotBtn = (ImageButton)rootView.findViewById(R.id.pilot_button);
 		mPilotBtn.setOnClickListener(mOnClickListener);
 		mPilotBtn.setOnLongClickListener(mOnLongClickListener);
 		ImageButton button = (ImageButton)rootView.findViewById(R.id.gallery_button);
 		button.setOnClickListener(mOnClickListener);
+		button.setOnLongClickListener(mOnLongClickListener);
 		button = (ImageButton)rootView.findViewById(R.id.script_button);
 		button.setOnClickListener(mOnClickListener);
+		button.setOnLongClickListener(mOnLongClickListener);
 		button = (ImageButton)rootView.findViewById(R.id.config_show_btn);
 		button.setOnClickListener(mOnClickListener);
+		button.setOnLongClickListener(mOnLongClickListener);
 	}
 
 	private void updateButtons(final boolean visible) {
@@ -241,8 +245,10 @@ public class ConnectionFragment extends BaseFragment {
 		@Override
 		public boolean onLongClick(final View view) {
 			Fragment fragment = null;
-			switch (view.getId()) {
+			final int id = view.getId();
+			switch (id) {
 			case R.id.pilot_button:
+			case R.id.download_button:
 				final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 				final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
 				final String itemValue = adapter.getItemName(mDeviceListView.getCheckedItemPosition());
@@ -254,7 +260,7 @@ public class ConnectionFragment extends BaseFragment {
 					switch (product) {
 					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-						fragment = AutoPilotFragment.newInstance(device);
+						fragment = AutoPilotFragment.newInstance(device, id == R.id.pilot_button);
 					}
 				}
 				break;
