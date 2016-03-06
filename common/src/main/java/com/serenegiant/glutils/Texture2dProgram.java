@@ -37,6 +37,7 @@ public class Texture2dProgram {
 //		TEXTURE_SOBEL,		// フラグメントシェーダーがうまく走らなくて止まってしまう
 //		TEXTURE_SOBEL2,		// フラグメントシェーダーがうまく走らなくて止まってしまう
         TEXTURE_FILT3x3,
+        TEXTURE_CUSTOM,
         // ここから下はGL_TEXTURE_EXTERNAL_OES
 		TEXTURE_EXT,
 		TEXTURE_EXT_BW,
@@ -52,19 +53,19 @@ public class Texture2dProgram {
         TEXTURE_EXT_MIRROR,
 //		TEXTURE_EXT_SOBEL,		// フラグメントシェーダーがうまく走らなくて止まってしまう
 //		TEXTURE_EXT_SOBEL2,		// フラグメントシェーダーがうまく走らなくて止まってしまう
-		TEXTURE_EXT_FILT3x3
+		TEXTURE_EXT_FILT3x3,
     }
 
-	private static final String SHADER_VERSION = "#version 100\n";
+	public static final String SHADER_VERSION = "#version 100\n";
 
-	private static final String HEADER_2D = "";
-	private static final String SAMPLER_2D = "sampler2D";
+	public static final String HEADER_2D = "";
+	public static final String SAMPLER_2D = "sampler2D";
 
-	private static final String HEADER_OES = "#extension GL_OES_EGL_image_external : require\n";
-	private static final String SAMPLER_OES = "samplerExternalOES";
+	public static final String HEADER_OES = "#extension GL_OES_EGL_image_external : require\n";
+	public static final String SAMPLER_OES = "samplerExternalOES";
 
     // Simple vertex shader, used for all programs.
-    private static final String VERTEX_SHADER = SHADER_VERSION +
+    public static final String VERTEX_SHADER = SHADER_VERSION +
 		"uniform mat4 uMVPMatrix;\n" +
 		"uniform mat4 uTexMatrix;\n" +
 		"attribute vec4 aPosition;\n" +
@@ -410,7 +411,6 @@ public class Texture2dProgram {
 	private static final String FRAGMENT_SHADER_EXT_FILT3x3
 		= String.format(FRAGMENT_SHADER_FILT3x3_BASE, HEADER_OES, SAMPLER_OES);
 
-
 	private final ProgramType mProgramType;
 
     private float mTexWidth;
@@ -430,19 +430,31 @@ public class Texture2dProgram {
 
     private int mTextureTarget;
 
-	private boolean mHasKernel2;
-    private final float[] mKernel = new float[KERNEL_SIZE * 2];       // Inputs for convolution filter based shaders
-    private final float[] mSummedTouchPosition = new float[2];    // Summed touch event delta
-    private final float[] mLastTouchPosition = new float[2];      // Raw location of last touch event
+	protected boolean mHasKernel2;
+    private final float[] mKernel = new float[KERNEL_SIZE * 2];	// Inputs for convolution filter based shaders
+    private final float[] mSummedTouchPosition = new float[2];	// Summed touch event delta
+    private final float[] mLastTouchPosition = new float[2];	// Raw location of last touch event
     private float[] mTexOffset;
     private float mColorAdjust;
     private final int[] mFlags = new int[4];
 
+	public Texture2dProgram(final int target, final String fss) {
+		this(ProgramType.TEXTURE_CUSTOM, target, VERTEX_SHADER, fss);
+	}
+
+	public Texture2dProgram(final int target, final String vss, final String fss) {
+		this(ProgramType.TEXTURE_CUSTOM, target, vss, fss);
+	}
+
+	public Texture2dProgram(final ProgramType programType) {
+		this(programType, 0, null, null);
+	}
+
     /**
      * Prepares the program in the current EGL context.
      */
-    public Texture2dProgram(final ProgramType programType) {
-        mProgramType = programType;
+    protected Texture2dProgram(final ProgramType programType, final int target, final String vss, final String fss) {
+		mProgramType = programType;
 
 		float[] kernel = null, kernel2 = null;
 		switch (programType) {
@@ -530,6 +542,17 @@ public class Texture2dProgram {
 				mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
 				mProgramHandle = GLHelper.loadShader(VERTEX_SHADER, FRAGMENT_SHADER_EXT_FILT3x3);
 				break;
+			case TEXTURE_CUSTOM:
+				switch (target) {
+				case GLES20.GL_TEXTURE_2D:
+				case GLES11Ext.GL_TEXTURE_EXTERNAL_OES:
+					break;
+				default:
+					throw new IllegalArgumentException("target should be GL_TEXTURE_2D or GL_TEXTURE_EXTERNAL_OES");
+				}
+				mTextureTarget = target;
+				mProgramHandle = GLHelper.loadShader(vss, fss);
+				break;
 			default:
 				throw new RuntimeException("Unhandled type " + programType);
 		}
@@ -557,9 +580,15 @@ public class Texture2dProgram {
         } else {
             // has kernel, must also have tex offset and color adj
             muTexOffsetLoc = GLES20.glGetUniformLocation(mProgramHandle, "uTexOffset");
-			GLHelper.checkLocation(muTexOffsetLoc, "uTexOffset");
+            if (muTexOffsetLoc < 0) {
+				muTexOffsetLoc = -1;
+			}
+//			GLHelper.checkLocation(muTexOffsetLoc, "uTexOffset");	// 未使用だと削除されてしまうのでチェックしない
             muColorAdjustLoc = GLES20.glGetUniformLocation(mProgramHandle, "uColorAdjust");
-			GLHelper.checkLocation(muColorAdjustLoc, "uColorAdjust");
+            if (muColorAdjustLoc < 0) {
+				muColorAdjustLoc = -1;
+			}
+//			GLHelper.checkLocation(muColorAdjustLoc, "uColorAdjust");	// 未使用だと削除されてしまうのでチェックしない
 
             // initialize default values
             if (kernel == null) {
@@ -656,7 +685,7 @@ public class Texture2dProgram {
      * @param values Normalized filter values; must be KERNEL_SIZE elements.
      */
     public void setKernel(final float[] values, final float colorAdj) {
-        if (values.length != KERNEL_SIZE) {
+        if (values.length < KERNEL_SIZE) {
             throw new IllegalArgumentException(
             	"Kernel size is " + values.length + " vs. " + KERNEL_SIZE);
         }
@@ -763,8 +792,12 @@ public class Texture2dProgram {
 				GLES20.glUniform1fv(muKernelLoc, KERNEL_SIZE * 2, mKernel, 0);
 			}
 			GLHelper.checkGlError("set kernel");
-            GLES20.glUniform2fv(muTexOffsetLoc, KERNEL_SIZE, mTexOffset, 0);
-            GLES20.glUniform1f(muColorAdjustLoc, mColorAdjust);
+			if (muTexOffsetLoc >= 0) {
+            	GLES20.glUniform2fv(muTexOffsetLoc, KERNEL_SIZE, mTexOffset, 0);
+			}
+			if (muColorAdjustLoc >= 0) {
+            	GLES20.glUniform1f(muColorAdjustLoc, mColorAdjust);
+			}
 		}
 
         // Populate touch position data, if present
@@ -776,9 +809,7 @@ public class Texture2dProgram {
 			GLES20.glUniform1iv(muFlagsLoc, 4, mFlags, 0);
 		}
 
-		// Draw the rect.
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, firstVertex, vertexCount);
-		GLHelper.checkGlError("glDrawArrays");
+		internal_draw(firstVertex, vertexCount);
 
         // Done -- disable vertex array, texture, and program.
         GLES20.glDisableVertexAttribArray(maPositionLoc);
@@ -786,4 +817,10 @@ public class Texture2dProgram {
         GLES20.glBindTexture(mTextureTarget, 0);
         GLES20.glUseProgram(0);
     }
+
+    protected void internal_draw(final int firstVertex, final int vertexCount) {
+		// Draw the rect.
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, firstVertex, vertexCount);
+		GLHelper.checkGlError("glDrawArrays");
+	}
 }

@@ -848,6 +848,7 @@ static jint nativeSetResultFrameType(JNIEnv *env, jobject thiz,
 	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
 	if (LIKELY(processor)) {
 		processor->setResultFrameType(result_frame_type);
+		result = 0;
 	}
 
 	RETURN(result, jint);

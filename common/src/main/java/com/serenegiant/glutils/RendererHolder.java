@@ -228,7 +228,7 @@ public class RendererHolder {
 		protected boolean onError(final Exception e) {
 //			if (DEBUG) Log.w(TAG, e);
 			return false;
-		};
+		}
 
 		@Override
 		protected boolean processRequest(final int request, final int arg1, final int arg2, final Object obj) {

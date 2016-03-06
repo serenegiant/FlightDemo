@@ -117,7 +117,7 @@ public class MediaSource implements ISource {
 	}
 
 	public TextureOffscreen getOutputTexture() {
-		return mOutputScreen;
+		return !needSwap ? mOutputScreen : mSourceScreen;
 	}
 
 	@Override
