@@ -108,7 +108,7 @@ public class ImageProcessor {
 	 * @param weakSelf
 	 * @param result これの方は未定。とりあえずFloatBufferにしてみる
 	 */
-	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final ByteBuffer frame, final float[] result) {
+	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final int type, final ByteBuffer frame, final float[] result) {
 //		if (DEBUG) Log.v(TAG, "callFromNative");
 		final ImageProcessor self = weakSelf != null ? weakSelf.get() : null;
 		if (self != null) {

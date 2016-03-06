@@ -22,6 +22,19 @@ using namespace android;
 #define RESULT_FRAME_TYPE_DST_LINE 4
 #define RESULT_FRAME_TYPE_MAX 5
 
+struct DetectRec {
+	std::vector< cv::Point > contour;	// 近似輪郭
+	cv::RotatedRect area_rect;	// 内包する最小矩形
+	int type;
+	float area_rate;			// 近似輪郭の面積に対する近似輪郭を内包する最小矩形の面積の比...基本的に1以上のはず
+	float area_vertex;			// 頂点1つあたりの面積, 大きい方が角数が少ない
+	float area;
+	float aspect;
+	float analogous;			// 100-基準図形のHu momentsとの差の絶対値,
+	float length;				// 長軸長さ
+	float width;				// 短軸長さ
+};
+
 class ImageProcessor {
 private:
 	jobject mWeakThiz;
@@ -36,6 +49,16 @@ private:
 	std::queue<cv::Mat> mFrames;
 protected:
 	void do_process(JNIEnv *env);
+	// 直線ラインの検出処理
+	int detect_line(std::vector< std::vector< cv::Point > > &contours,
+		const bool needs_result, const bool show_detects, const cv::Mat result_frame,
+		struct DetectRec &possible);
+	int detect_circle(std::vector< std::vector< cv::Point > > &contours,
+		const bool needs_result, const bool show_detects, const cv::Mat result_frame,
+		struct DetectRec &possible);
+	int detect_corner(std::vector< std::vector< cv::Point > > &contours,
+		const bool needs_result, const bool show_detects, const cv::Mat result_frame,
+		struct DetectRec &possible);
 	cv::Mat getFrame();
 	int addFrame(cv::Mat &frame);
 	int colorExtraction(cv::Mat *src, cv::Mat *dst,
