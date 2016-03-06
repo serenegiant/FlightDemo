@@ -48,6 +48,7 @@ private:
 	static void *processor_thread_func(void *vptr_args);
 	// フレームキュー
 	std::queue<cv::Mat> mFrames;
+	int mExtractColorHSV[6];	// 0,1,2: HSV下限, 3,4,5:HSV上限
 protected:
 	void do_process(JNIEnv *env);
 	// 直線ラインの検出処理
@@ -64,9 +65,7 @@ protected:
 	int addFrame(cv::Mat &frame);
 	int colorExtraction(cv::Mat *src, cv::Mat *dst,
 	    int convert_code,	// cv:cvtColorの第3引数, カラー変換方法
-	    int HLower, int HUpper,	// 色相範囲 [0,180]
-	    int SLower, int SUpper,	// 彩度範囲 [0,255]
-	    int VLower, int VUpper	// 明度範囲 [0,255]
+		const int lower[], const int upper[]
 	);
 public:
 	ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz);
@@ -78,4 +77,6 @@ public:
 	inline const bool isRunning() const { return mIsRunning; };
 	inline void setResultFrameType(const int &result_frame_type) { mResultFrameType = result_frame_type % RESULT_FRAME_TYPE_MAX; };
 	inline const int getResultFrameType() const { return mResultFrameType; };
+	/** 抽出色の上下限をHSVで設定 */
+	int setExtractionColor(const int lower[], const int upper[]);
 };

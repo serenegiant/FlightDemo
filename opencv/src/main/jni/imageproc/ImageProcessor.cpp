@@ -45,6 +45,13 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	mIsRunning(false),
 	mResultFrameType(RESULT_FRAME_TYPE_DST_LINE)
 {
+	// H(色相)は制限なし, S(彩度)は0-約5%, 2:V(明度)は約80-100%
+	mExtractColorHSV[0] = 0;	// H下限
+	mExtractColorHSV[1] = 0;	// S下限
+	mExtractColorHSV[2] = 200;	// V下限
+	mExtractColorHSV[3] = 180;	// H下限
+	mExtractColorHSV[4] = 10;	// S上限
+	mExtractColorHSV[5] = 255;	// V上限
 }
 
 ImageProcessor::~ImageProcessor() {
@@ -111,6 +118,17 @@ int ImageProcessor::stop() {
 		}
 		mMutex.unlock();
 	}
+	RETURN(0, int);
+}
+
+int ImageProcessor::setExtractionColor(const int lower[], const int upper[]) {
+	ENTER();
+
+	Mutex::Autolock lock(mMutex);
+
+	memcpy(&mExtractColorHSV[0], lower, sizeof(float) * 3);
+	memcpy(&mExtractColorHSV[3], upper, sizeof(float) * 3);
+
 	RETURN(0, int);
 }
 
@@ -302,7 +320,7 @@ int ImageProcessor::detect_line(
 		// 最小矩形と元輪郭の面積比が大き過ぎる場合と面積の割に頂点が多いものもスキップ
 		const float area_vertex = approx.area / approx.contour.size();
 		if (((approx.area_rate < 0.67f) && (approx.area_rate > 1.5f))	// ±50%以上ずれている時はスキップ
-			|| (area_vertex < 300.0f)) continue;		// 1頂点あたり300ピクセルよりも小さい
+			|| (area_vertex < 200.0f)) continue;		// 1頂点あたり200ピクセルよりも小さい
 		if (show_detects) {
 			draw_rect(result_frame, area_rect, cv::Scalar(0, 255, 0));	// 緑色
 		}
@@ -411,6 +429,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 	float detected[RESULT_NUM];
 	std::stringstream ss;
 	double hu_moments[8];
+	int extractColorHSV[6];
 	struct DetectRec possible;
 	std::vector<std::vector< cv::Point>> contours;	// 輪郭データ
 	std::vector<struct DetectRec> approxes;	// 近似輪郭
@@ -427,11 +446,12 @@ void ImageProcessor::do_process(JNIEnv *env) {
 			cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
 			cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
 			// 色抽出処理, 色相は問わず彩度が低くて明度が高い領域を抽出 FIXME 抽出条件を指定できるようにしたい
-			colorExtraction(&src, &src, cv::COLOR_BGR2HSV,
-				0, 180,		// H(色相)は制限なし
-				0, 10,		// S(彩度)は0-約5%
-				200, 255	// V(明度)は約80-100%
-			);
+			mMutex.lock();
+			{
+				memcpy(extractColorHSV, mExtractColorHSV, sizeof(extractColorHSV));
+			}
+			mMutex.unlock();
+			colorExtraction(&src, &src, cv::COLOR_BGR2HSV, &extractColorHSV[0], &mExtractColorHSV[3]);
 			// グレースケールに変換(RGBA->Y)
 			cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
 			// 平滑化
@@ -584,30 +604,18 @@ void ImageProcessor::do_process(JNIEnv *env) {
 /** 指定したHSV色範囲に収まる領域を抽出する */
 int ImageProcessor::colorExtraction(cv::Mat *src, cv::Mat *dst,
 	int convert_code,			// cv:cvtColorの第3引数, カラー変換方法
-	int HLower, int HUpper,		// 色相範囲 [0,180]
-	int SLower, int SUpper,		// 彩度範囲 [0,255]
-	int VLower, int VUpper) {	// 明度範囲 [0,255]
+	const int lower[], const int upper[]) {
 
 	ENTER();
 
 	int result = 0;
 
     cv::Mat colorImage;
-    int lower[3];
-    int upper[3];
 
 	try {
 		cv::Mat lut = cv::Mat(256, 1, CV_8UC3);
 
 		cv::cvtColor(*src, colorImage, convert_code);
-
-		lower[0] = HLower;
-		lower[1] = SLower;
-		lower[2] = VLower;
-
-		upper[0] = HUpper;
-		upper[1] = SUpper;
-		upper[2] = VUpper;
 
 		for (int i = 0; i < 256; i++) {
 			for (int k = 0; k < 3; k++) {
@@ -859,6 +867,21 @@ static jint nativeGetResultFrameType(JNIEnv *env, jobject thiz,
 	RETURN(result, jint);
 }
 
+static jint nativeSetExtractionColor(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jint lowerH, jint upperH, jint lowerS, jint upperS, jint lowerV, jint upperV) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		const int lower[3] = {lowerH, lowerS, lowerV};
+		const int upper[3] = {upperH, upperS, upperV};
+		result = processor->setExtractionColor(lower, upper);
+	}
+
+	RETURN(result, jint);
+}
 //================================================================================
 //================================================================================
 static JNINativeMethod methods[] = {
@@ -870,6 +893,7 @@ static JNINativeMethod methods[] = {
 	{ "nativeHandleFrame",		"(JLjava/nio/ByteBuffer;II)I", (void *) nativeHandleFrame },
 	{ "nativeSetResultFrameType",	"(JI)I", (void *) nativeSetResultFrameType },
 	{ "nativeGetResultFrameType",	"(J)I", (void *) nativeGetResultFrameType },
+	{ "nativeSetExtractionColor",	"(JIIIIII)I", (void *) nativeSetExtractionColor },
 };
 
 

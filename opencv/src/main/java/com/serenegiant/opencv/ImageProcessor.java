@@ -378,11 +378,24 @@ public class ImageProcessor {
 	public static final int RESULT_FRAME_TYPE_DST_LINE = 3;
 
 	public void setResultFrameType(final int result_frame_type) {
-		nativeSetResultFrameType(mNativePtr, result_frame_type);
+		final int result = nativeSetResultFrameType(mNativePtr, result_frame_type);
+		if (result != 0) {
+			throw new IllegalStateException("result=" + result);
+		}
 	}
 
 	public int getResultFrameType() {
 		return nativeGetResultFrameType(mNativePtr);
+	}
+
+	public void setExtractionColor(
+		final int lowerH, final int upperH,
+		final int lowerS, final int upperS,
+		final int lowerV, final int upperV) {
+		final int result = nativeSetExtractionColor(mNativePtr, lowerH, upperH, lowerS, upperS, lowerV, upperV);
+		if (result != 0) {
+			throw new IllegalStateException("result=" + result);
+		}
 	}
 
 	private static boolean isInit;
@@ -406,4 +419,8 @@ public class ImageProcessor {
 	private static native int nativeHandleFrame(final long id_native, final ByteBuffer frame, final int width, final int height);
 	private static native int nativeSetResultFrameType(final long id_native, final int showDetects);
 	private static native int nativeGetResultFrameType(final long id_native);
+	private static native int nativeSetExtractionColor(final long id_native,
+		final int lowerH, final int upperH,
+		final int lowerS, final int upperS,
+		final int lowerV, final int upperV);
 }

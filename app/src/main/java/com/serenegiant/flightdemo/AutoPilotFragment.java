@@ -89,6 +89,7 @@ public class AutoPilotFragment extends PilotFragment {
 		if ((mController instanceof IVideoStreamController) && (mVideoStream != null)) {
 			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
 			mImageProcessor.setEmphasis(mEnableEmphasis);
+			mImageProcessor.setExtractionColor(0, 180, 0, 10, 200, 255);
 			final Surface surface = mImageProcessor.getSurface();
 			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
 			if (mImageProcessorSurfaceId != 0) {
