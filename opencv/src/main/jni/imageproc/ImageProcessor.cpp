@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <sstream>
 
 #include "utilbase.h"
 #include "common_utils.h"
@@ -42,7 +43,7 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 :	mWeakThiz(env->NewGlobalRef(weak_thiz_obj)),
 	mClazz((jclass)env->NewGlobalRef(clazz)),
 	mIsRunning(false),
-	mResultFrameType(RESULT_FRAME_TYPE_SRC)
+	mResultFrameType(RESULT_FRAME_TYPE_DST_LINE)
 {
 }
 
@@ -153,23 +154,25 @@ static void draw_rect(cv::Mat img, cv::RotatedRect rect, cv::Scalar color) {
 	}
 }
 
-struct DetectRec {
-	std::vector< cv::Point > contour;
-	cv::RotatedRect area_rect;
-	float area_rate;
-	float area;
-	float aspect;
-	float analogous;
-	float length;	// 長い方の辺
-};
-
 static double HU_MOMENTS[] = {
-	0.383871,0.119557,0.000044,0.000022,0.000000,0.000008,0.000000
+//	0.383871,0.119557,0.000044,0.000022,0.000000,0.000008,0.000000
+	3.673166e-01,1.071715e-01,1.763543e-04,9.209628e-05,1.173179e-08,3.007932e-05,-3.488433e-10
 };
 
-// Hu Momentsを基準値と比較
-// methodは1〜3
-static float compHuMoments(const double mb[], int method) {
+/**
+ * doubleの引数の符号を返す
+ * @return 0:引数がゼロの時, -1:引数が負の時, 1:引数が正の時
+ */
+static inline int sign(const double v) {
+	return (v > 0) - (v < 0);
+}
+
+/** Hu momentsを基準値と比較
+ * methodは1〜3
+ * cv::matchShapesが画像を引数にしているのを計算済みのHu momentsを渡せるようにしただけ
+ * @return 0: 完全一致
+ */
+static double compHuMoments(const double mb[], int method) {
 	static const double eps = 1.e-5;
 
     int sma, smb;
@@ -182,18 +185,8 @@ static float compHuMoments(const double mb[], int method) {
             double ama = fabs(HU_MOMENTS[i]);
             double amb = fabs(mb[i]);
 
-            if (HU_MOMENTS[i] > 0)
-                sma = 1;
-            else if (HU_MOMENTS[i] < 0)
-                sma = -1;
-            else
-                sma = 0;
-            if ( mb[i] > 0 )
-                smb = 1;
-            else if (mb[i] < 0)
-                smb = -1;
-            else
-                smb = 0;
+			sma = sign(HU_MOMENTS[i]);	// (HU_MOMENTS[i] > 0) ? 1 : ((HU_MOMENTS[i] < 0) ? -1 : 0);
+			smb = sign(mb[i]);			// (mb[i] > 0) ? 1 : ((mb[i] < 0) ? -1 : 0);
 
             if (ama > eps && amb > eps) {
                 ama = 1. / (sma * log10(ama));
@@ -208,18 +201,8 @@ static float compHuMoments(const double mb[], int method) {
             double ama = fabs(HU_MOMENTS[i]);
             double amb = fabs(mb[i]);
 
-            if (HU_MOMENTS[i] > 0)
-                sma = 1;
-            else if (HU_MOMENTS[i] < 0)
-                sma = -1;
-            else
-                sma = 0;
-            if (mb[i] > 0)
-                smb = 1;
-            else if (mb[i] < 0)
-                smb = -1;
-            else
-                smb = 0;
+			sma = sign(HU_MOMENTS[i]);	// (HU_MOMENTS[i] > 0) ? 1 : ((HU_MOMENTS[i] < 0) ? -1 : 0);
+			smb = sign(mb[i]);			// (mb[i] > 0) ? 1 : ((mb[i] < 0) ? -1 : 0);
 
             if (ama > eps && amb > eps) {
                 ama = sma * log10(ama);
@@ -231,21 +214,11 @@ static float compHuMoments(const double mb[], int method) {
 
     case 3:
         for (int i = 0; i < 7; i++ ) {
-            double ama = fabs( HU_MOMENTS[i]);
-            double amb = fabs( mb[i] );
+            double ama = fabs(HU_MOMENTS[i]);
+            double amb = fabs(mb[i]);
 
-            if (HU_MOMENTS[i] > 0)
-                sma = 1;
-            else if (HU_MOMENTS[i] < 0)
-                sma = -1;
-            else
-                sma = 0;
-            if (mb[i] > 0)
-                smb = 1;
-            else if (mb[i] < 0)
-                smb = -1;
-            else
-                smb = 0;
+			sma = sign(HU_MOMENTS[i]);	// (HU_MOMENTS[i] > 0) ? 1 : ((HU_MOMENTS[i] < 0) ? -1 : 0);
+			smb = sign(mb[i]);			// (mb[i] > 0) ? 1 : ((mb[i] < 0) ? -1 : 0);
 
             if (ama > eps && amb > eps) {
                 ama = sma * log10(ama);
@@ -260,25 +233,51 @@ static float compHuMoments(const double mb[], int method) {
         LOGE("Unknown comparison method:%d", method);
     }
 
-    return (float)result;
+    return result;
 }
 
+struct DetectRec {
+	std::vector< cv::Point > contour;	// 近似輪郭
+	cv::RotatedRect area_rect;	// 内包する最小矩形
+	float area_rate;			// 近似輪郭の面積に対する近似輪郭を内包する最小矩形の面積の比...基本的に1以上のはず
+	float area_vertex;			// 頂点1つあたりの面積, 大きい方が角数が少ない
+	float area;
+	float aspect;
+	float analogous;			// 100-基準図形のHu momentsとの差の絶対値,
+	float length;				// 長軸長さ
+	float width;				// 短軸長さ
+};
+
 // 検出したオブジェクトの優先度の判定
+// 第1引数が第2引数よりも小さい(前にある=優先度が高い)時に真(正)を返す
 static bool comp_priority(const DetectRec &left, const DetectRec &right ) {
-	// 面積の比較
-	const float a1 = left.area / right.area;
-	const bool b1 = (a1 < 0.9f || a1 > 1.1f) ? left.area > right.area : false;
-	// アスペクト比の比較
-	const float a2 = left.aspect / right.aspect;
-	const bool b2 = (a2 < 0.8f || a2 > 1.2f) ? left.aspect > right.aspect : false;
-	// 近似輪郭と実輪郭の差
-	const float a3 = left.area_rate / right.area_rate;
-	const bool b3 = (a3 < 0.8f || a3 > 1.2f) ? left.area_rate < right.area_rate : false;
-	// 類似率の差
-	const bool b4 = left.analogous < right.analogous;
-	// 長さの比較
-	const bool b5 = left.length > right.length;
-	return b5 || (b4 && !b5) || (b4 && !b5 && b1) || (!b4 && a1) || (b1 || b2);
+//	// 頂点1つあたりの面積の比較(大きい方)
+//	const bool b1 = left.area_vertex > right.area_vertex;
+	// 類似性(小さい方, 曲線だと大きくなってしまう)
+	const bool b2 = left.analogous < right.analogous;
+	// 近似輪郭と実輪郭の面積比(小さい方, 曲線だと大きくなってしまう)
+	const bool b3 = left.area_rate < right.area_rate;
+	// アスペクト比の比較(10%以上違う時, 大きい方)
+	const float a4 = left.aspect / right.aspect;
+	const bool b4 = (a4 < 0.9f || a4 > 1.1f) ? left.aspect > right.aspect : false;
+	// 長さの比較(10ピクセル以上違う時, 大きい方)
+	const bool b5 = fabs(left.length - right.length) > 10 ? left.length - right.length : false;
+	return
+		(b5 && b4 && b3 && b2)		// 長くてアスペクト比が大きくて面積比が小さくて類似性が良い
+		|| (b5 && b4 && b3)			// 長くてアスペクト比が大きくて面積比が小さい
+		|| (b5 && b4 && b2)			// 長くてアスペクト比が大きくて類似性が良い
+		|| (b5 && b4)				// 長くてアスペクト比が大きい
+		|| (b5 && b3 && b2)			// 長くて面積比が小さくて類似性が良い
+		|| (b5 && b3)				// 長くて面積比が小さい
+		|| (b5 && b2)				// 長くて類似性が良い
+		|| (b4 && b3 && b2)			// アスペクト比が大きくて面積比が小さくて類似性が良い
+		|| (b4 && b3)				// アスペクト比が大きくて面積比が小さい
+		|| (b4 && b2)				// アスペクト比が大きくて類似性が良い
+		|| (b3 && b2)				// 面積比が小さくて類似性良い
+		|| (b5)						// 長い
+		|| (b4)						// アスペクト比が大きい
+		|| (b3)						// 面積比が小さくい
+		|| (b2);					// 類似性が良い
 }
 
 // 直線検知
@@ -319,14 +318,15 @@ void ImageProcessor::do_process(JNIEnv *env) {
 //			cv::threshold(src, src, 200, 255, cv::THRESH_BINARY);
 //			cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
 			// 表示用にカラー画像に戻す
+			const bool needs_result = mResultFrameType != RESULT_FRAME_TYPE_NON;
 			const bool show_src = (mResultFrameType == RESULT_FRAME_TYPE_SRC) || (mResultFrameType == RESULT_FRAME_TYPE_SRC_LINE);
-			if (show_src) {
+			if (needs_result && show_src) {
 				result = frame;
-			} else {
+			} else if (needs_result) {
 				cv::cvtColor(src, result, cv::COLOR_GRAY2RGBA);
 			}
 
-			const bool show_detects = (mResultFrameType == RESULT_FRAME_TYPE_SRC_LINE) || (mResultFrameType == RESULT_FRAME_TYPE_DST_LINE);
+			const bool show_detects = needs_result && (mResultFrameType == RESULT_FRAME_TYPE_SRC_LINE) || (mResultFrameType == RESULT_FRAME_TYPE_DST_LINE);
 //--------------------------------------------------------------------------------
 #if DETECT_LINES
 			std::vector<cv::Vec4i> lines;
@@ -368,69 +368,94 @@ void ImageProcessor::do_process(JNIEnv *env) {
 #if DETECT_CONTOURS
 			// 外周に四角を描いておく。でないと画面の外にはみ出した部分が有る形状を閉曲線として近似出来ない
 			cv:rectangle(src, cv::Rect(8, 8, src.cols - 8, src.rows - 8), cv::Scalar(255, 255, 255), 8);
+			// 輪郭を求める
 			std::vector< std::vector< cv::Point > > contours;	// 輪郭データ
-			std::vector< DetectRec > possibles;	// ラインの可能性のある輪郭データ
 			cv::findContours(src, contours,
 				cv::RETR_CCOMP, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
 				cv::CHAIN_APPROX_NONE);	// 輪郭データ近似方法, CHAIN_APPROX_NONE:無し,  CHAIN_APPROX_SIMPLE:直線は頂点のみにする,  CHAIN_APPROX_TC89_L1, CHAIN_APPROX_TC89_KCOS
 			// 検出した輪郭を全て描画
-//			cv::drawContours(result, contours, -1, cv::Scalar(80, 80, 0));	// 薄い黄色
-			// 輪郭のインデックス
-			int ix = 0;
+//			if (show_detects) {
+//				cv::drawContours(result, contours, -1, cv::Scalar(80, 80, 0));	// 薄い黄色
+//			}
+
+			int ix = 0;	// 輪郭のインデックス
+			std::vector< DetectRec > possibles;	// ラインの可能性のある輪郭データ
 			float last_analogous = -1;
 			std::stringstream ss;
+			double hu_moments[8];
+			struct DetectRec possible;
+			std::vector< cv::Point > approx;	// 近似図形データ
+			// 検出した輪郭の数分ループする
 			for (auto contour = contours.begin(); contour != contours.end(); contour++) {
-				std::vector< cv::Point > approx;	// 近似図形データ
-				// 輪郭を近似する
+				approx.clear();
+				// 輪郭を近似する, 近似精度は輪郭全周の1%まで(FIXME これはもう少し大きくてもいいかも)
 				cv::approxPolyDP(cv::Mat(*contour), approx,
 					0.01 * cv::arcLength(*contour, true),  // epsilon: 近似精度(元の輪郭と近似曲線との最大距離)
 					true);	// closed: 閉曲線にするかどうか
 				const size_t num_vertex = approx.size();
-				if (LIKELY(num_vertex < 4)) continue;	// 3角形は除外
-				// 輪郭線を描画する
-//				cv::drawContours(result, contours, ix, cv::Scalar(255, 255, 0));	// 黄色
+				if (LIKELY(num_vertex < 4)) continue;	// 3角形はスキップ
+				if (show_detects) {
+					// 輪郭線を描画する
+					cv::drawContours(result, contours, ix, cv::Scalar(255, 255, 0));	// 黄色
+				}
 				// 輪郭を内包する最小矩形(回転あり)を取得
 				cv::RotatedRect area_rect = cv::minAreaRect(approx);
-				const float w = area_rect.size.width;
-				const float h = area_rect.size.height;
+				// 常に横長として幅と高さを取得
+				const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
+				const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
 				// 外周線
 				if ((w > 620) && (h > 350)) continue;
-				// 近似図形の面積を計算
-				const float area = (float)cv::contourArea(approx);
-				// 面積が小さすぎるものはスキップ
-				if (area < 2000.0f) continue;
-				draw_rect(result, area_rect, cv::Scalar(255, 255, 0));	// 黄色
-				// 最小矩形のアスペクト比を計算
+				// 最小矩形のアスペクト比を計算, アスペクト比が正方形に近いものはスキップ
 				const float aspect = w / h;
-				// アスペクト比が正方形に近いものはスキップ
 				if (LIKELY((aspect > 0.3f) && (aspect < 3.0f))) continue;
-				draw_rect(result, area_rect, cv::Scalar(255, 127, 0));	// 橙色
+				if (show_detects) {
+					draw_rect(result, area_rect, cv::Scalar(255, 127, 0));	// 橙色
+				}
+				// 近似輪郭の面積を計算, 面積が小さすぎるはスキップ
+				const float area = (float)cv::contourArea(approx);
+				if (area < 2000.0f) continue;
+				if (show_detects) {
+					draw_rect(result, area_rect, cv::Scalar(0, 255, 255));	// 水色
+				}
+				// 最小矩形と元輪郭の面積比が大き過ぎる場合と面積の割に頂点が多いものもスキップ
+				const float area_vertex = area / num_vertex;
 				const float area_rate = w * h / area;
-				// 近似輪郭と元輪郭の面積差が大き過ぎる場合もスキップ
-				if ((area_rate < 0.9f) && (area_rate > 1.8f)) continue;
-				draw_rect(result, area_rect, cv::Scalar(0, 255, 255));	// 水色
-//				draw_rect(result, area_rect, cv::Scalar(0, 255, 0));	// 緑色
-
-				double hu_moments[8];
+				if (((area_rate < 0.67f) && (area_rate > 1.5f)) || (area_vertex < 300.0f)) continue;
+				if (show_detects) {
+					draw_rect(result, area_rect, cv::Scalar(0, 255, 0));	// 緑色
+				}
 				cv::HuMoments(cv::moments(approx), hu_moments);
-				// メソッド1は時々一致しない, メソッド2,3だとほとんど一致しない
-				const float analogous = compHuMoments(hu_moments, 1);
+				// メソッド1は時々一致しない, メソッド2,3だとほとんど一致しない, 完全一致なら0が返る
+				const float analogous = (float)compHuMoments(hu_moments, 1);
 				// Hu momentsが基準値との差が大きい時はスキップ
 				if (analogous > last_analogous) {
 					last_analogous = analogous;
-//					LOGI("hu_moments%d:%f,%f,%f,%f,%f,%f,%f", ix,
+#if 0
+					clear_stringstream(ss);
+					ss 	<< std::scientific << hu_moments[0] << ','
+						<< std::scientific << hu_moments[1] << ','
+						<< std::scientific << hu_moments[2] << ','
+						<< std::scientific << hu_moments[3] << ','
+						<< std::scientific << hu_moments[4] << ','
+						<< std::scientific << hu_moments[5] << ','
+						<< std::scientific << hu_moments[6];
+					LOGI("hu_moments%d:%s", ix, ss.str().c_str());
+//					LOGI("hu_moments%d:%18le,%18le,%18le,%18le,%18le,%18le,%18le", ix,
 //						hu_moments[0], hu_moments[1], hu_moments[2], hu_moments[3], hu_moments[4], hu_moments[5], hu_moments[6]);
 //					LOGI("analogous%d:%f", ix, analogous);
-					struct DetectRec possible;
+#endif
 					possible.contour.assign(approx.begin(), approx.end());
 					possible.area_rect = area_rect;
 					possible.area = area;
 					possible.area_rate = area_rate;
 					possible.aspect = aspect;
-					possible.analogous = fabs(analogous - 100);
-					possible.length = fmax(area_rect.size.width, area_rect.size.height);
+					possible.analogous = analogous;
+					possible.length = w;	// 長軸長さ
+					possible.width = h;		// 短軸長さ
 					possibles.push_back(possible);
-					draw_rect(result, area_rect, cv::Scalar(0, 0, 125));	// 青色
+					if (show_detects) {
+						draw_rect(result, area_rect, cv::Scalar(0, 0, 125));	// 青色
+					}
 				}
 				ix++;
 			}
@@ -439,28 +464,37 @@ void ImageProcessor::do_process(JNIEnv *env) {
 				// 優先度の降順にソートする
 				std::sort(possibles.begin(), possibles.end(), comp_priority);
 				struct DetectRec possible = *possibles.begin();
-				cv::polylines(result, possible.contour, true, cv::Scalar(255, 0, 0), 2);	// 赤色
-				// 中央から検出したオブジェクトの中心に向かって線を引く
-				cv::line(result, cv::Point(320, 184), possible.area_rect.center, cv::Scalar(255, 0, 0), 8, 8);
-//				int ix = 0;
-//				for (auto iter = possibles.begin(); iter != possibles.end(); iter++) {
-//					LOGI("possible%d:%f", ix, (*iter).analogous);
-//					ix++;
-//				}
+				if (show_detects) {
+					cv::polylines(result, possible.contour, true, cv::Scalar(255, 0, 0), 2);	// 赤色
+					// 中央から検出したオブジェクトの中心に向かって線を引く
+					cv::line(result, cv::Point(320, 184), possible.area_rect.center, cv::Scalar(255, 0, 0), 8, 8);
+					// FIXME 解析結果を配列にセットする
+					// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
+					// ラインの長さ(長軸長さ=length)
+					// ラインの方向(cv::RotatedRect#angle)
+					// アスペクト比(もしくは幅=短軸長さ)
+				}
+			} else {
+				// FIXME 解析結果をクリアする
 			}
 #endif	// #if DETECT_CONTOURS
 //--------------------------------------------------------------------------------
 			// Java側のコールバックメソッドを呼び出す
 			if (LIKELY(mIsRunning && fields.callFromNative && mClazz && mWeakThiz)) {
 				// 結果 FIXME ByteBufferで返す代わりにコピーされるけどfloat配列の方がいいかも
-				jobject buf_detected = env->NewDirectByteBuffer(detected, sizeof(float) * 20);
+				jfloatArray detected_array = env->NewFloatArray(20);
+				env->SetFloatArrayRegion(detected_array, 0, 20, detected);
 				// 解析画像
-				jobject buf_frame = env->NewDirectByteBuffer(result.data, result.total() * result.elemSize());
+				jobject buf_frame = needs_result ? env->NewDirectByteBuffer(result.data, result.total() * result.elemSize()) : NULL;
 				// コールバックメソッドを呼び出す
-				env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, buf_frame, buf_detected);
+				env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, buf_frame, detected_array);
 				env->ExceptionClear();
-				env->DeleteLocalRef(buf_detected);
-				env->DeleteLocalRef(buf_frame);
+				if (LIKELY(detected_array)) {
+					env->DeleteLocalRef(detected_array);
+				}
+				if (buf_frame) {
+					env->DeleteLocalRef(buf_frame);
+				}
 			}
 		} catch (cv::Exception e) {
 			LOGE("do_process failed:%s", e.msg.c_str());
@@ -596,7 +630,7 @@ static void nativeClassInit(JNIEnv* env, jclass clazz) {
 	ENTER();
 
 	fields.callFromNative = env->GetStaticMethodID(clazz, "callFromNative",
-         "(Ljava/lang/ref/WeakReference;Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)V");
+         "(Ljava/lang/ref/WeakReference;Ljava/nio/ByteBuffer;[F)V");
 	if (UNLIKELY(!fields.callFromNative)) {
 		LOGW("can't find com.serenegiant.ImageProcessor#callFromNative");
 	}

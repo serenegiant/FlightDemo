@@ -108,13 +108,12 @@ public class ImageProcessor {
 	 * @param weakSelf
 	 * @param result これの方は未定。とりあえずFloatBufferにしてみる
 	 */
-	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final ByteBuffer frame, final ByteBuffer result) {
+	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final ByteBuffer frame, final float[] result) {
 //		if (DEBUG) Log.v(TAG, "callFromNative");
 		final ImageProcessor self = weakSelf != null ? weakSelf.get() : null;
 		if (self != null) {
 			try {
-				final FloatBuffer buf = result.asFloatBuffer();
-				self.handleResult(buf);
+				self.handleResult(result);
 				if (frame != null) {
 					self.handleOpenCVFrame(frame);
 				}
@@ -129,9 +128,8 @@ public class ImageProcessor {
 	 * native側からの結果コールバックの実際の処理
 	 * @param result これの方は未定。とりあえずFloatBufferにしてるけど#callFromNativeと合わせる
 	 */
-	private void handleResult(final FloatBuffer result) {
+	private void handleResult(final float[] result) {
 //		if (DEBUG) Log.v(TAG, "handleResult");
-		result.clear();
 	}
 
 	/**

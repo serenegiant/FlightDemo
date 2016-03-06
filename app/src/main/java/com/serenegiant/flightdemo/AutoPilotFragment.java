@@ -119,7 +119,7 @@ public class AutoPilotFragment extends PilotFragment {
 		switch (view.getId()) {
 		case R.id.top_panel:
 			if (mImageProcessor != null) {
-				mImageProcessor.setResultFrameType(mImageProcessor.getResultFrameType() + 1);
+				mImageProcessor.setResultFrameType((mImageProcessor.getResultFrameType()) % 4 + 1);
 			}
 			break;
 		}
