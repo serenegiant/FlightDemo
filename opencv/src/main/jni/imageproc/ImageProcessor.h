@@ -33,6 +33,7 @@ struct DetectRec {
 	float analogous;			// 100-基準図形のHu momentsとの差の絶対値,
 	float length;				// 長軸長さ
 	float width;				// 短軸長さ
+	float curvature;			// 曲率
 };
 
 class ImageProcessor {
@@ -50,13 +51,13 @@ private:
 protected:
 	void do_process(JNIEnv *env);
 	// 直線ラインの検出処理
-	int detect_line(std::vector< std::vector< cv::Point > > &contours,
+	int detect_line(std::vector<struct DetectRec> &contours,
 		const bool needs_result, const bool show_detects, const cv::Mat result_frame,
 		struct DetectRec &possible);
-	int detect_circle(std::vector< std::vector< cv::Point > > &contours,
+	int detect_circle(std::vector<struct DetectRec> &contours,
 		const bool needs_result, const bool show_detects, const cv::Mat result_frame,
 		struct DetectRec &possible);
-	int detect_corner(std::vector< std::vector< cv::Point > > &contours,
+	int detect_corner(std::vector<struct DetectRec> &contours,
 		const bool needs_result, const bool show_detects, const cv::Mat result_frame,
 		struct DetectRec &possible);
 	cv::Mat getFrame();

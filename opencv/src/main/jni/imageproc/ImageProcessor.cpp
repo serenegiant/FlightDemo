@@ -276,52 +276,38 @@ static bool comp_line_priority(const DetectRec &left, const DetectRec &right ) {
 #define RESULT_NUM 20
 // 直線検知
 #define DETECT_LINES 0
-// 輪郭抽出
-#define DETECT_CONTOURS 1
 
 int ImageProcessor::detect_line(
-	std::vector< std::vector< cv::Point > > &contours,	// 近似輪郭
+	std::vector<struct DetectRec> &contours,	// 近似輪郭
 	const bool needs_result, const bool show_detects, const cv::Mat result_frame,
 	struct DetectRec &possible) {			// 結果
 
 	ENTER();
 
-	std::vector< DetectRec > possibles;		// 可能性のある輪郭
+	std::vector<struct DetectRec> possibles;		// 可能性のある輪郭
 	double hu_moments[8];
 	int ix = 0;	// 輪郭のインデックス
 	float last_analogous = -1;
 
 	// 検出した輪郭の数分ループする
 	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
-		std::vector< cv::Point > approx = *contour;		// 近似輪郭
-		const size_t num_vertex = approx.size();
-		if (show_detects) {
-			// 輪郭線を描画する
-			cv::drawContours(result_frame, contours, ix, cv::Scalar(255, 255, 0));	// 黄色
-		}
+		struct DetectRec approx = *contour;		// 近似輪郭
 		// 輪郭を内包する最小矩形(回転あり)を取得
-		cv::RotatedRect area_rect = cv::minAreaRect(approx);
-		// 常に横長として幅と高さを取得
-		const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
-		const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
-		// 最小矩形のアスペクト比を計算, アスペクト比が正方形に近いものはスキップ
-		const float aspect = w / h;
-		if (LIKELY((aspect > 0.3f) && (aspect < 3.0f))) continue;
+		cv::RotatedRect area_rect = approx.area_rect;
+		// アスペクト比が正方形に近いものはスキップ
+		if (LIKELY((approx.aspect > 0.3f) && (approx.aspect < 3.0f))) continue;
 		if (show_detects) {
 			draw_rect(result_frame, area_rect, cv::Scalar(255, 127, 0));	// 橙色
 		}
-		// 近似輪郭の面積を計算, 面積が小さすぎるのはスキップ
-		const float area = (float)cv::contourArea(approx);
 		// 最小矩形と元輪郭の面積比が大き過ぎる場合と面積の割に頂点が多いものもスキップ
-		const float area_vertex = area / approx.size();
-		const float area_rate = w * h / area;
-		if (((area_rate < 0.67f) && (area_rate > 1.5f))	// ±50%以上ずれている時はスキップ
+		const float area_vertex = approx.area / approx.contour.size();
+		if (((approx.area_rate < 0.67f) && (approx.area_rate > 1.5f))	// ±50%以上ずれている時はスキップ
 			|| (area_vertex < 300.0f)) continue;		// 1頂点あたり300ピクセルよりも小さい
 		if (show_detects) {
 			draw_rect(result_frame, area_rect, cv::Scalar(0, 255, 0));	// 緑色
 		}
 		// 輪郭のHu momentを計算
-		cv::HuMoments(cv::moments(approx), hu_moments);
+		cv::HuMoments(cv::moments(approx.contour), hu_moments);
 		// 基準値と比較, メソッド1は時々一致しない, メソッド2,3だとほとんど一致しない, 完全一致なら0が返る
 		const float analogous = (float)compHuMoments(hu_moments, 1);
 		// Hu momentsが基準値との差が大きい時はスキップ FIXME ここは幅を持たせた方がいいかも
@@ -343,14 +329,14 @@ int ImageProcessor::detect_line(
 #endif
 			// ラインの可能性が高い輪郭を追加
 			possible.type = TYPE_LINE;
-			possible.contour.assign(approx.begin(), approx.end());
-			possible.area_rect = area_rect;
-			possible.area = area;
-			possible.area_rate = area_rate;
-			possible.aspect = aspect;
+			possible.contour.assign(approx.contour.begin(), approx.contour.end());
+			possible.area_rect = approx.area_rect;
+			possible.area = approx.area;
+			possible.area_rate = approx.area_rate;
+			possible.aspect = approx.aspect;
+			possible.length = approx.length;	// 長軸長さ
+			possible.width = approx.width;		// 短軸長さ
 			possible.analogous = analogous;
-			possible.length = w;	// 長軸長さ
-			possible.width = h;		// 短軸長さ
 			possibles.push_back(possible);
 			if (show_detects) {
 				draw_rect(result_frame, area_rect, cv::Scalar(0, 0, 125));	// 青色
@@ -363,6 +349,25 @@ int ImageProcessor::detect_line(
 		// 優先度の降順にソートする
 		std::sort(possibles.begin(), possibles.end(), comp_line_priority);
 		possible = *possibles.begin();
+		possible.curvature = 0;
+		// 近似輪郭の面積と最小矩形の面積の比が大きい時は曲がっているかもしれないので楕円フィッティングして曲率を計算してみる
+		if ((possible.area_rate > 1.2f) && (possible.contour.size() > 6)) {	// 5点以上あれば楕円フィッティング出来る
+			try {
+				cv::RotatedRect ellipse = cv::fitEllipse(possible.contour);
+//				LOGI("fit elipse:(%f,%f),%f", ellipse.size.width, ellipse.size.height, ellipse.angle);
+				const double a = fmax(ellipse.size.width, ellipse.size.height);
+				if (a > 0) {
+					const double b = fmin(ellipse.size.width, ellipse.size.height);
+					possible.curvature = (float)(b / a / a);
+//					LOGI("fit elipse:(%f,%f),%f,%f", ellipse.size.width, ellipse.size.height, ellipse.angle, possible.curvature);
+				}
+				if (show_detects) {
+					cv::ellipse(result_frame, ellipse.center, ellipse.size, ellipse.angle, 0, 360, cv::Scalar(255, 0, 0));
+				}
+			} catch (cv::Exception e) {
+				LOGE("fitEllipse failed:%s", e.msg.c_str());
+			}
+		}
 		if (show_detects) {
 			cv::polylines(result_frame, possible.contour, true, cv::Scalar(255, 0, 0), 2);	// 赤色
 			// 中央から検出したオブジェクトの中心に向かって線を引く
@@ -381,37 +386,17 @@ int ImageProcessor::detect_line(
 }
 
 int ImageProcessor::detect_circle(
-	std::vector< std::vector< cv::Point > > &contours,	// 近似輪郭
+	std::vector<struct DetectRec> &contours,	// 近似輪郭
 	const bool needs_result, const bool show_detects, const cv::Mat result_frame,
 	struct DetectRec &possible) {			// 結果
 
 	ENTER();
 
-	std::vector< DetectRec > possibles;		// 可能性のある輪郭
-	double hu_moments[8];
-	int ix = 0;	// 輪郭のインデックス
-	float last_analogous = -1;
-
-	// 検出した輪郭の数分ループする
-	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
-		std::vector< cv::Point > approx = *contour;		// 近似輪郭
-		const size_t num_vertex = approx.size();
-		if (show_detects) {
-			// 輪郭線を描画する
-			cv::drawContours(result_frame, contours, ix, cv::Scalar(255, 255, 0));	// 黄色
-		}
-		// 輪郭を内包する最小矩形(回転あり)を取得
-		cv::RotatedRect area_rect = cv::minAreaRect(approx);
-		// 常に横長として幅と高さを取得
-		const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
-		const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
-	}
-
 	RETURN(0, int);
 }
 
 int ImageProcessor::detect_corner(
-	std::vector< std::vector< cv::Point > > &contours,	// 輪郭
+	std::vector<struct DetectRec> &contours,	// 輪郭
 	const bool needs_result, const bool show_detects, const cv::Mat result_frame,
 	struct DetectRec &possible) {			// 結果
 	ENTER();
@@ -427,12 +412,8 @@ void ImageProcessor::do_process(JNIEnv *env) {
 	std::stringstream ss;
 	double hu_moments[8];
 	struct DetectRec possible;
-	std::vector< std::vector< cv::Point > > contours;	// 輪郭データ
-	std::vector< std::vector< cv::Point > > approxes;	// 近似輪郭
-//	std::vector< cv::Point > approx;	// 近似図形データ
-//	std::vector< DetectRec > possibles;	// ラインの可能性のある輪郭データ
-//	int ix;					// 輪郭のインデックス
-//	float last_analogous;	// 類似性, 0なら完全一致
+	std::vector<std::vector< cv::Point>> contours;	// 輪郭データ
+	std::vector<struct DetectRec> approxes;	// 近似輪郭
 
 	for ( ; mIsRunning ; ) {
 		// フレームデータの取得待ち
@@ -441,7 +422,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 		try {
 //================================================================================
 // 前処理
-			cv::Mat src, result;
+			cv::Mat src, bk_result, result;
 			// RGBAのままだとHSVに変換できないので一旦BGRに変える
 			cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
 			cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
@@ -467,10 +448,12 @@ void ImageProcessor::do_process(JNIEnv *env) {
 			const bool show_src = (frame_type == RESULT_FRAME_TYPE_SRC) || (frame_type == RESULT_FRAME_TYPE_SRC_LINE);
 			const bool show_detects = needs_result && (frame_type == RESULT_FRAME_TYPE_SRC_LINE) || (frame_type == RESULT_FRAME_TYPE_DST_LINE);
 			// 表示用にカラー画像に戻す
-			if (needs_result && show_src) {
-				result = frame;
-			} else if (needs_result) {
-				cv::cvtColor(src, result, cv::COLOR_GRAY2RGBA);
+			if (needs_result) {
+				if (show_src) {
+					bk_result = frame;
+				} else {
+					cv::cvtColor(src, bk_result, cv::COLOR_GRAY2RGBA);
+				}
 			}
 //--------------------------------------------------------------------------------
 #if DETECT_LINES
@@ -489,7 +472,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 			if (show_detects) {
 				for (size_t i = 0; i < lines.size(); i++ ) {
 					cv::Vec4i l = lines[i];
-					cv::line(result, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(255, 0, 0), 3, 8);
+					cv::line(bk_result, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(255, 0, 0), 3, 8);
 				}
 			}
 #else
@@ -505,13 +488,14 @@ void ImageProcessor::do_process(JNIEnv *env) {
 					double x0 = a*rho, y0 = b*rho;
 					cv::Point pt1(cvRound(x0 + 1000*(-b)), cvRound(y0 + 1000*(a)));
 					cv::Point pt2(cvRound(x0 - 1000*(-b)), cvRound(y0 - 1000*(a)));
-					cv::line(result, pt1, pt2, cv::Scalar(255, 0, 0), 3, 8 );
+					cv::line(bk_result, pt1, pt2, cv::Scalar(255, 0, 0), 3, 8 );
 				}
 			}
 #endif
 #endif // #if DETECT_LINES
 //================================================================================
 // 輪郭の検出処理
+// 最大で直線・円弧・コーナーの3つの処理が走るので近似輪郭検出と最低限のチェック(面積とか)は1回だけ先に済ましておく
 			// 外周に四角を描いておく。でないと画面の外にはみ出した部分が有る形状を閉曲線として検出出来ない
 			cv:rectangle(src, cv::Rect(8, 8, src.cols - 8, src.rows - 8), cv::Scalar(255, 255, 255), 8);
 			// 輪郭を求める
@@ -523,7 +507,6 @@ void ImageProcessor::do_process(JNIEnv *env) {
 //			if (show_detects) {
 //				cv::drawContours(result, contours, -1, cv::Scalar(80, 80, 0));	// 薄い黄色
 //			}
-#if DETECT_CONTOURS
 			approxes.clear();
 			// 検出した輪郭の数分ループする
 			for (auto contour = contours.begin(); contour != contours.end(); contour++) {
@@ -543,20 +526,33 @@ void ImageProcessor::do_process(JNIEnv *env) {
 				if ((w > 620) && (h > 350)) continue;
 				// 近似輪郭の面積を計算, 面積が小さすぎるのはスキップ
 				const float area = (float)cv::contourArea(approx);
-				if (area < 2000.0f) continue;
-				approxes.push_back(approx);
+				if (area < 1000.0f) continue;
+				if (show_detects) {
+					draw_rect(bk_result, area_rect, cv::Scalar(255, 255, 0));	// 黄色
+				}
+				possible.type = TYPE_NON;
+				possible.contour.assign(approx.begin(), approx.end());
+				possible.area_rect = area_rect;
+				possible.area = area;
+				possible.area_rate = w * h / area;
+				possible.aspect = w / h;
+				possible.length = w;	// 長軸長さ
+				possible.width = h;		// 短軸長さ
+				approxes.push_back(possible);
 			}
 //================================================================================
 // 直線ラインの検出処理
+			// 表示用にカラー画像に戻す
+			result = bk_result;
 			detect_line(approxes, needs_result, show_detects, result, possible);
-#endif	// #if DETECT_CONTOURS
-//================================================================================
 			if (UNLIKELY(possible.type == TYPE_NON)) {
-				// 円弧の検出処理
+// 円弧の検出処理
+				result = bk_result;
 				detect_circle(approxes, needs_result, show_detects, result, possible);
 			}
 			if (UNLIKELY(possible.type == TYPE_NON)) {
-				// コーナーの検出処理
+// コーナーの検出処理
+				result = bk_result;
 				detect_circle(approxes, needs_result, show_detects, result, possible);
 			}
 //================================================================================
