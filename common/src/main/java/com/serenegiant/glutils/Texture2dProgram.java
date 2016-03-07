@@ -382,7 +382,8 @@ public class Texture2dProgram {
 	public static final float[] KERNEL_EMBOSS = { 2f, 0f, 0f, 0f, -1f, 0f, 0f, 0f, -1f };	// エンボス, オフセット0.5f
 	public static final float[] KERNEL_SMOOTH = { 1/9f, 1/9f, 1/9f, 1/9f, 1/9f, 1/9f, 1/9f, 1/9f, 1/9f, };	// 移動平均
 	public static final float[] KERNEL_GAUSSIAN = { 1/16f, 2/16f, 1/16f, 2/16f, 4/16f, 2/16f, 1/16f, 2/16f, 1/16f, };	// ガウシアン(ノイズ除去/)
-	public static final float[] KERNEL_LAPLACIAN = { 1f, 1f, 1f, 1f, 2f, 1f, 1f, 1f, 1f, };	// ラプラシアン(2次微分)
+	public static final float[] KERNEL_BRIGHTEN = { 1f, 1f, 1f, 1f, 2f, 1f, 1f, 1f, 1f, };
+	public static final float[] KERNEL_LAPLACIAN = { 1f, 1f, 1f, 1f, -8f, 1f, 1f, 1f, 1f, };	// ラプラシアン(2次微分)
 
 	private static final String FRAGMENT_SHADER_FILT3x3_BASE = SHADER_VERSION +
 		"%s" +
@@ -584,11 +585,6 @@ public class Texture2dProgram {
 				muTexOffsetLoc = -1;
 			}
 //			GLHelper.checkLocation(muTexOffsetLoc, "uTexOffset");	// 未使用だと削除されてしまうのでチェックしない
-            muColorAdjustLoc = GLES20.glGetUniformLocation(mProgramHandle, "uColorAdjust");
-            if (muColorAdjustLoc < 0) {
-				muColorAdjustLoc = -1;
-			}
-//			GLHelper.checkLocation(muColorAdjustLoc, "uColorAdjust");	// 未使用だと削除されてしまうのでチェックしない
 
             // initialize default values
             if (kernel == null) {
@@ -600,6 +596,12 @@ public class Texture2dProgram {
 		if (kernel2 != null) {
 			setKernel2(kernel2);
 		}
+
+		muColorAdjustLoc = GLES20.glGetUniformLocation(mProgramHandle, "uColorAdjust");
+		if (muColorAdjustLoc < 0) {
+			muColorAdjustLoc = -1;
+		}
+//		GLHelper.checkLocation(muColorAdjustLoc, "uColorAdjust");	// 未使用だと削除されてしまうのでチェックしない
 
         muTouchPositionLoc = GLES20.glGetUniformLocation(mProgramHandle, "uPosition");
         if (muTouchPositionLoc < 0) {
@@ -700,6 +702,10 @@ public class Texture2dProgram {
 		}
 	}
 
+	public void setColorAdjust(final float adjust) {
+		mColorAdjust = adjust;
+	}
+
     /**
      * Sets the size of the texture.  This is used to find adjacent texels when filtering.
      */
@@ -795,9 +801,9 @@ public class Texture2dProgram {
 			if (muTexOffsetLoc >= 0) {
             	GLES20.glUniform2fv(muTexOffsetLoc, KERNEL_SIZE, mTexOffset, 0);
 			}
-			if (muColorAdjustLoc >= 0) {
-            	GLES20.glUniform1f(muColorAdjustLoc, mColorAdjust);
-			}
+		}
+		if (muColorAdjustLoc >= 0) {
+           	GLES20.glUniform1f(muColorAdjustLoc, mColorAdjust);
 		}
 
         // Populate touch position data, if present

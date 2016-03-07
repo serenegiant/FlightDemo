@@ -15,8 +15,18 @@ import com.serenegiant.glutils.GLTextureOffscreen;
 import com.serenegiant.glutils.Texture2dProgram;
 import com.serenegiant.glutils.TextureOffscreen;
 import com.serenegiant.mediaeffect.IEffect;
+import com.serenegiant.mediaeffect.MediaEffect;
+import com.serenegiant.mediaeffect.MediaEffectAutoFix;
+import com.serenegiant.mediaeffect.MediaEffectBlackWhite;
+import com.serenegiant.mediaeffect.MediaEffectBrightness;
+import com.serenegiant.mediaeffect.MediaEffectCanny;
+import com.serenegiant.mediaeffect.MediaEffectContrast;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
+import com.serenegiant.mediaeffect.MediaEffectGrayScale;
+import com.serenegiant.mediaeffect.MediaEffectKernel;
 import com.serenegiant.mediaeffect.MediaEffectNull;
+import com.serenegiant.mediaeffect.MediaEffectPosterize;
+import com.serenegiant.mediaeffect.MediaEffectSaturate;
 import com.serenegiant.mediaeffect.MediaSource;
 
 import java.lang.ref.WeakReference;
@@ -44,6 +54,7 @@ public class ImageProcessor {
 	private volatile boolean isProcessingRunning;
 	private ProcessingTask mProcessingTask;
 	private volatile boolean mEnableEmphasis;
+	private volatile boolean mEnabledExtraction;
 
 	/** native側のインスタンスポインタ, 名前を変えたりしちゃダメ */
 	private long mNativePtr;
@@ -111,19 +122,22 @@ public class ImageProcessor {
 		if (DEBUG) Log.v(TAG, "setEmphasis:" + emphasis);
 		if (mEnableEmphasis != emphasis) {
 			mEnableEmphasis = emphasis;
-			// FIXME
-//			if ((mProcessingTask != null) && (mProcessingTask.mDrawer != null)) {
-//				if (emphasis) {
-//					mProcessingTask.mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, -0.1f);	// ラプラシアン(エッジ検出, 2次微分)
-//				} else {
-//					mProcessingTask.mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_NULL, 0);
-//				}
-//			}
 		}
 	}
 
 	public boolean getEmphasis() {
 		return mEnableEmphasis;
+	}
+
+	public void setExtraction(final boolean extraction) {
+		if (DEBUG) Log.v(TAG, "setExtraction:");
+		if (mEnabledExtraction != extraction) {
+			mEnabledExtraction = extraction;
+		}
+	}
+
+	public boolean getExtraction() {
+		return mEnabledExtraction;
 	}
 
 	/**
@@ -213,15 +227,6 @@ public class ImageProcessor {
 		@Override
 		protected void onStart() {
 			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:");
-			// プレフィルタの準備
-			mEffectContext = EffectContext.createWithCurrentGlContext();
-			final MediaEffectExtraction extraction = new MediaEffectExtraction();
-			extraction.setParameter(	// 白色を抽出
-				0.0f, 1.0f,		// H(色相) 制限なし(0-360)
-				0.0f, 0.04f,	// S(彩度) 0-10
-				0.08f, 1.0f,	// V(明度) 200-255
-				0.5f);			// 2値化時のしきい値, 0なら2値化なし
-			mEffects.add(extraction);
 			// ソース映像の描画用
 			mSrcDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3));
 			mSrcDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
@@ -233,25 +238,60 @@ public class ImageProcessor {
 //			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SHARPNESS, 0.0f);		// シャープ
 //			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SMOOTH, 0.0f);		// 移動平均(平滑化)
 			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化)
+//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_BRIGHTEN, 0.0f);		//
 //			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, 0.0f);		// ラプラシアン(2次微分)
 			mTexId = mSrcDrawer.createTextureObject();
 			mSourceTexture = new SurfaceTexture(mTexId);
 			mSourceSurface = new Surface(mSourceTexture);
 			mSourceTexture.setDefaultBufferSize(mVideoWidth, mVideoHeight);
 			mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener);
-//			// キャプチャ用
-//			mCaptureDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_FILT3x3));
-//			mCaptureDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
-//			mCaptureDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EMBOSS, 0.5f);		// エンボス
-//			mCaptureDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL_H, 0.1f);		// ソーベル(エッジ検出, 1次微分)
-//			mCaptureDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL2_H, 0.1f);		// ソーベル2(エッジ検出, 1次微分)
-//			mCaptureDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EDGE_DETECT, 0.0f);	// エッジ検出
-//			mCaptureDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SHARPNESS, 0.0f);		// シャープ
-//			mCaptureDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SMOOTH, 0.0f);		// 移動平均(平滑化)
-//			mCaptureDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化)
-//			if (mParent.mEnableEmphasis) {
-//				mCaptureDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, -0.1f);// ラプラシアン(エッジ検出, 2次微分)
-//			}
+//--------------------------------------------------------------------------------
+			// プレフィルタの準備
+			mEffectContext = EffectContext.createWithCurrentGlContext();
+			// 自動調整(0〜1.0f, 0なら変化なし)
+			final MediaEffectAutoFix autofix = new MediaEffectAutoFix(mEffectContext, 1.0f);
+			mEffects.add(autofix);
+			// 彩度調整(-1.0f〜1.0f, -1.0fならグレースケール)
+			final MediaEffectSaturate saturate = new MediaEffectSaturate(mEffectContext, 0.1f);
+			mEffects.add(saturate);
+			// 明るさ調整
+			if (mParent.mEnableEmphasis) {
+				final MediaEffectExtraction adjust = new MediaEffectExtraction();
+				adjust.setParameter(    // 抽出なし
+					0.0f, 1.0f,			// H(色相) 制限なし(0-360),
+					0.0f, 1.0f,			// S(彩度) 0-10,
+					0.0f, 1.0f,			// V(明度) 200-255,
+					0.0f, 0.0f, 0.1f,	// 抽出後加算値(HSV)
+					0.0f);				// 2値化時のしきい値, 0なら2値化なし
+				mEffects.add(adjust);
+			}
+//			final MediaEffectKernel adjust2 = new MediaEffectKernel(Texture2dProgram.KERNEL_LAPLACIAN);
+//			mEffects.add(adjust2);
+//			// 明るさ調整(0〜1.0f, 0なら変化なし)
+//			final MediaEffectBrightness brightness = new MediaEffectBrightness(mEffectContext, 1.0f);
+//			mEffects.add(brightness);
+//			mEffects.add(brightness);
+/*			// コントラスト(0〜1.0f, 0なら変化なし)
+			final MediaEffectContrast contrast = new MediaEffectContrast(mEffectContext, 1.0f);
+			mEffects.add(contrast); */
+			if (mParent.mEnabledExtraction) {
+				// 色抽出(白色)
+				final MediaEffectExtraction extraction = new MediaEffectExtraction();
+				extraction.setParameter(    // 白色を抽出
+					0.00f, 1.00f,           // H(色相) 制限なし(0-360),
+					0.00f, 0.20f,           // S(彩度) 0-10,
+					0.45f, 1.00f,           // V(明度) 200-255,
+					0.00f, 0.00f, 0.00f,    // 抽出後加算値(HSV)
+					0.45f);					// 2値化時のしきい値, 0なら2値化なし
+				mEffects.add(extraction);
+				// ノイズ除去(平滑化)
+				final MediaEffectKernel gaussian = new MediaEffectKernel();
+				gaussian.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
+				mEffects.add(gaussian);
+			}
+/*			// Cannyエッジ検出フィルタ FIXME これはちょっと動作がおかしい
+			final MediaEffectCanny canny = new MediaEffectCanny();
+			mEffects.add(canny); */
 //--------------------------------------------------------------------------------
 			handleResize(mVideoWidth, mVideoHeight);
 			// native側の処理を開始
@@ -360,18 +400,6 @@ public class ImageProcessor {
 			// ピクセル読み込み用のダイレクトByteBufferを生成する
 			directBuffer = ByteBuffer.allocateDirect(width * height * 4);
 	    	directBuffer.order(ByteOrder.LITTLE_ENDIAN);
-//	    	// キャプチャ用のオフスクリーンSurfaceを作りなおす
-//	    	if (captureSurface != null) {
-//	    		captureSurface.release();
-//	    		captureSurface = null;
-//	    	}
-//			captureSurface = getEgl().createOffscreen(width, height);
-//			mCaptureDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
-//	    	if (workOffscreen != null) {
-//				workOffscreen.release();
-//				workOffscreen = null;
-//			}
-//			workOffscreen = new GLTextureOffscreen(width, height, false);
 			// プレフィルタ用
 			if (mMediaSource != null) {
 				mMediaSource.resize(width, height);

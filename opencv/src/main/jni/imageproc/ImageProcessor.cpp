@@ -126,8 +126,8 @@ int ImageProcessor::setExtractionColor(const int lower[], const int upper[]) {
 
 	Mutex::Autolock lock(mMutex);
 
-	memcpy(&mExtractColorHSV[0], lower, sizeof(float) * 3);
-	memcpy(&mExtractColorHSV[3], upper, sizeof(float) * 3);
+	memcpy(&mExtractColorHSV[0], &lower[0], sizeof(int) * 3);
+	memcpy(&mExtractColorHSV[3], &upper[0], sizeof(int) * 3);
 
 	RETURN(0, int);
 }
@@ -444,14 +444,14 @@ void ImageProcessor::do_process(JNIEnv *env) {
 			cv::Mat src, bk_result, result;
 			// RGBAのままだとHSVに変換できないので一旦BGRに変える
 			cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
-			cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
-			// 色抽出処理, 色相は問わず彩度が低くて明度が高い領域を抽出 FIXME 抽出条件を指定できるようにしたい
+//			cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
+/*			// 色抽出処理, 色相は問わず彩度が低くて明度が高い領域を抽出
 			mMutex.lock();
 			{
-				memcpy(extractColorHSV, mExtractColorHSV, sizeof(extractColorHSV));
+				memcpy(extractColorHSV, mExtractColorHSV, sizeof(int) * 6);
 			}
 			mMutex.unlock();
-			colorExtraction(&src, &src, cv::COLOR_BGR2HSV, &extractColorHSV[0], &mExtractColorHSV[3]);
+			colorExtraction(&src, &src, cv::COLOR_BGR2HSV, 0, &extractColorHSV[0], &extractColorHSV[3]); */
 			// グレースケールに変換(RGBA->Y)
 			cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
 			// 平滑化
@@ -460,7 +460,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 			// エッジ検出(Cannyの結果は2値化されてる)
 			cv::Canny(src, src, 50, 200);
 			// 2値化
-//			cv::threshold(src, src, 200, 255, cv::THRESH_BINARY);
+//			cv::threshold(src, src, 125, 255, cv::THRESH_BINARY);
 //			cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
 
 			const int frame_type = mResultFrameType;
@@ -473,8 +473,10 @@ void ImageProcessor::do_process(JNIEnv *env) {
 					bk_result = frame;
 				} else {
 					cv::cvtColor(src, bk_result, cv::COLOR_GRAY2RGBA);
+//					cv::cvtColor(src, bk_result, cv::COLOR_BGR2RGBA);
 				}
 			}
+//			cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
 //--------------------------------------------------------------------------------
 #if DETECT_LINES
 // 線分の検出処理(単なるテスト)
@@ -533,7 +535,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 				std::vector< cv::Point > approx;		// 近似輪郭
 				// 輪郭を近似する, 近似精度は輪郭全周の1%まで(FIXME これはもう少し大きくてもいいかも)
 				cv::approxPolyDP(cv::Mat(*contour), approx,
-					0.01 * cv::arcLength(*contour, true),  // epsilon: 近似精度(元の輪郭と近似曲線との最大距離)
+					0.02 * cv::arcLength(*contour, true),  // epsilon: 近似精度(元の輪郭と近似曲線との最大距離)
 					true);	// closed: 閉曲線にするかどうか
 				const size_t num_vertex = approx.size();
 				if (LIKELY(num_vertex < 4)) continue;	// 3角形はスキップ
@@ -601,56 +603,75 @@ void ImageProcessor::do_process(JNIEnv *env) {
 	EXIT();
 }
 
-/** 指定したHSV色範囲に収まる領域を抽出する */
+/**
+ * 指定したHSV色範囲に収まる領域を抽出する
+ * @param src
+ * @param dst
+ * @param convert_code srcの画像をHSVに変換するためのcv:cvtColorの第3引数
+ * @param method 抽出方法 0:LUT, 1:inRange
+ * @param lower HSV下限
+ * @param upper HSV上限
+ */
 int ImageProcessor::colorExtraction(cv::Mat *src, cv::Mat *dst,
 	int convert_code,			// cv:cvtColorの第3引数, カラー変換方法
+	int method,
 	const int lower[], const int upper[]) {
 
 	ENTER();
 
 	int result = 0;
 
-    cv::Mat colorImage;
+    cv::Mat hsv;
 
 	try {
-		cv::Mat lut = cv::Mat(256, 1, CV_8UC3);
+		// HSVに変換
+		cv::cvtColor(*src, hsv, convert_code);
 
-		cv::cvtColor(*src, colorImage, convert_code);
-
-		for (int i = 0; i < 256; i++) {
-			for (int k = 0; k < 3; k++) {
-				if (lower[k] <= upper[k]) {
-					if ((lower[k] <= i) && (i <= upper[k])) {
-						lut.data[i * lut.step + k] = 255;
-					} else{
-						lut.data[i * lut.step + k] = 0;
-					}
-				} else {
-					if ((i <= upper[k]) || (lower[k] <= i)) {
-						lut.data[i * lut.step + k] = 255;
+		if (method == 1) {
+			cv::Mat mask;
+			cv::inRange(hsv, cv::Scalar(lower[0], lower[1], lower[2]) , cv::Scalar(upper[0], upper[1], upper[2]), mask);
+			cv::Mat output;
+			src->copyTo(output, mask);
+			*dst = output;
+		} else {
+			cv::Mat lut = cv::Mat(256, 1, CV_8UC3);
+			// 指定したHSV範囲からLUT(Look Up Table)を作成
+			for (int i = 0; i < 256; i++) {
+				for (int k = 0; k < 3; k++) {
+					if (lower[k] <= upper[k]) {
+						if ((lower[k] <= i) && (i <= upper[k])) {
+							lut.data[i * lut.step + k] = 255;
+						} else{
+							lut.data[i * lut.step + k] = 0;
+						}
 					} else {
-						lut.data[i * lut.step + k] = 0;
+						if ((i <= upper[k]) || (lower[k] <= i)) {
+							lut.data[i * lut.step + k] = 255;
+						} else {
+							lut.data[i * lut.step + k] = 0;
+						}
 					}
 				}
 			}
+
+			// LUTを使用して二値化
+			cv::LUT(hsv, lut, hsv);
+
+			// Channel毎に分解
+			std::vector<cv::Mat> planes;
+			cv::split(hsv, planes);
+
+			// マスクを作成・・・HSVのどれかが0になってれば除外される
+			cv::Mat mask;
+			cv::bitwise_and(planes[0], planes[1], mask);
+			cv::bitwise_and(mask, planes[2], mask);
+
+			// 出力
+			cv::Mat output;
+			src->copyTo(output, mask);
+			*dst = output;
+//			*dst = mask;	// マスクを返せば勝手に２値画像になる
 		}
-
-		// LUTを使用して二値化
-		cv::LUT(colorImage, lut, colorImage);
-
-		// Channel毎に分解
-		std::vector<cv::Mat> planes;
-		cv::split(colorImage, planes);
-
-		// マスクを作成
-		cv::Mat maskImage;
-		cv::bitwise_and(planes[0], planes[1], maskImage);
-		cv::bitwise_and(maskImage, planes[2], maskImage);
-
-		// 出力
-		cv::Mat maskedImage;
-		src->copyTo(maskedImage, maskImage);
-		*dst = maskedImage;
 	} catch (cv::Exception e) {
 		LOGE("colorExtraction failed:%s", e.msg.c_str());
 		result = -1;

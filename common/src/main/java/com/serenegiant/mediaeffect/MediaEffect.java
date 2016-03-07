@@ -48,7 +48,7 @@ public class MediaEffect implements IEffect {
 	}
 
 	@Override
-	public void apply(ISource src) {
+	public void apply(final ISource src) {
 		if (mEffect != null) {
 			mEffect.apply(src.getSourceTexId()[0], src.getWidth(), src.getHeight(), src.getOutputTexId());
 		}

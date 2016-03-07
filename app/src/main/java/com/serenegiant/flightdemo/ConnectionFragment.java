@@ -249,6 +249,7 @@ public class ConnectionFragment extends BaseFragment {
 			switch (id) {
 			case R.id.pilot_button:
 			case R.id.download_button:
+			case R.id.gallery_button:
 				final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 				final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
 				final String itemValue = adapter.getItemName(mDeviceListView.getCheckedItemPosition());
@@ -260,7 +261,9 @@ public class ConnectionFragment extends BaseFragment {
 					switch (product) {
 					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-						fragment = AutoPilotFragment.newInstance(device, id == R.id.pilot_button);
+						fragment = AutoPilotFragment.newInstance(device,
+							id == R.id.pilot_button,
+							id == R.id.gallery_button);
 					}
 				}
 				break;

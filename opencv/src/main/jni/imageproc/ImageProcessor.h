@@ -65,6 +65,7 @@ protected:
 	int addFrame(cv::Mat &frame);
 	int colorExtraction(cv::Mat *src, cv::Mat *dst,
 	    int convert_code,	// cv:cvtColorの第3引数, カラー変換方法
+	    int method,
 		const int lower[], const int upper[]
 	);
 public:
