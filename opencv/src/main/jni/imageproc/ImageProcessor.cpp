@@ -20,6 +20,8 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 
 #include "utilbase.h"
 #include "common_utils.h"
@@ -682,11 +684,14 @@ int ImageProcessor::colorExtraction(cv::Mat *src, cv::Mat *dst,
 //================================================================================
 //
 //================================================================================
-int ImageProcessor::handleFrame(const uint8_t *frame, const int &width, const int &height) {
+int ImageProcessor::handleFrame(const uint8_t *frame, const int &width, const int &height, const int &tex_name) {
 	ENTER();
 
 	// 受け取ったフレームデータをMatにしてキューする
-	cv::Mat mat = cv::Mat(height, width, CV_8UC4, (void *)frame);
+//	cv::Mat mat = cv::Mat(height, width, CV_8UC4, (void *)frame);
+	cv::Mat mat = cv::Mat(height, width, CV_8UC4);
+	// FIXME ここはPBOを使うようにしたほうがいいのかも
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, mat.data);
 	addFrame(mat);
 
 	RETURN(0, int);
@@ -817,7 +822,7 @@ static jint nativeStop(JNIEnv *env, jobject thiz,
 }
 
 static int nativeHandleFrame(JNIEnv *env, jobject thiz,
-	ID_TYPE id_native, jobject byteBuf_obj, jint width, jint height) {
+	ID_TYPE id_native, jint width, jint height, jint tex_name) {
 
 	ENTER();
 
@@ -825,6 +830,8 @@ static int nativeHandleFrame(JNIEnv *env, jobject thiz,
 	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
 	if (LIKELY(processor)) {
 		// フレーム処理
+#if 0
+		// こっちはJava側でglReadPixelsを呼んでDirectBufferに画像を読み込んで処理する時
 		// 引数のByteBufferをnativeバッファに変換出来るかどうか試してみる
 		void *buf = env->GetDirectBufferAddress(byteBuf_obj);
 	    jlong dstSize;
@@ -855,6 +862,10 @@ static int nativeHandleFrame(JNIEnv *env, jobject thiz,
 	    if (byteArray) {
 	        env->ReleaseByteArrayElements(byteArray, (jbyte *)buf, 0);
 	    }
+#else
+		// こっちはNative側でglReadPixelsを呼んで画像を読み込んで処理する時
+		result = processor->handleFrame(NULL, width, height, tex_name);
+#endif
 	}
 
 	RETURN(result, jint);
@@ -912,7 +923,8 @@ static JNINativeMethod methods[] = {
 	{ "nativeRelease",			"(J)V", (void *) nativeRelease },
 	{ "nativeStart",			"(J)I", (void *) nativeStart },
 	{ "nativeStop",				"(J)I", (void *) nativeStop },
-	{ "nativeHandleFrame",		"(JLjava/nio/ByteBuffer;II)I", (void *) nativeHandleFrame },
+//	{ "nativeHandleFrame",		"(JLjava/nio/ByteBuffer;II)I", (void *) nativeHandleFrame },	// これは古い実装
+	{ "nativeHandleFrame",		"(JIII)I", (void *) nativeHandleFrame },
 	{ "nativeSetResultFrameType",	"(JI)I", (void *) nativeSetResultFrameType },
 	{ "nativeGetResultFrameType",	"(J)I", (void *) nativeGetResultFrameType },
 	{ "nativeSetExtractionColor",	"(JIIIIII)I", (void *) nativeSetExtractionColor },

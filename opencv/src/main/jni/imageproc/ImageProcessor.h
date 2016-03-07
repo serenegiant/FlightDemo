@@ -74,7 +74,7 @@ public:
 	void release(JNIEnv *env);
 	int start();
 	int stop();
-	int handleFrame(const uint8_t *frame, const int &width, const int &height);
+	int handleFrame(const uint8_t *frame, const int &width, const int &height, const int &tex_name = 0);
 	inline const bool isRunning() const { return mIsRunning; };
 	inline void setResultFrameType(const int &result_frame_type) { mResultFrameType = result_frame_type % RESULT_FRAME_TYPE_MAX; };
 	inline const int getResultFrameType() const { return mResultFrameType; };

@@ -180,8 +180,6 @@ public class ImageProcessor {
 		private Surface mSourceSurface;
 		/** 映像サイズ */
 		private int mVideoWidth, mVideoHeight;
-		/** OpenGL|ESの描画Surfaceからフレームデータを読み込むためのダイレクトByteBuffer */
-		private ByteBuffer directBuffer = null;
 		// プレフィルタ処理用
 		private EffectContext mEffectContext;
 		private FullFrameRect mSrcDrawer;
@@ -304,7 +302,6 @@ public class ImageProcessor {
 			// 破棄処理
 			makeCurrent();
 			mSourceSurface = null;
-			directBuffer = null;
 			if (mSourceTexture != null) {
 				mSourceTexture.release();
 				mSourceTexture = null;
@@ -361,13 +358,10 @@ public class ImageProcessor {
 			for (final IEffect effect: mEffects) {
 				mMediaSource.apply(effect);
 			}
-	        // ダイレクトByteBufferに読み込む
-			directBuffer.clear();
 			mMediaSource.getOutputTexture().bind();
-			GLES20.glReadPixels(0, 0, mVideoWidth, mVideoHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, directBuffer);
+			// Native側でglReadPixelsを使ってフレームバッファから画像データを取得する
+			nativeHandleFrame(mNativePtr, mVideoWidth, mVideoHeight, 0);
 			mMediaSource.getOutputTexture().unbind();
-			// native側へ引き渡す
-			nativeHandleFrame(mNativePtr, directBuffer, mVideoWidth, mVideoHeight);
 			// 何も描画しないとハングアップする機種があるので塗りつぶす(と言っても1x1だから気にしなくて良い?)
 			makeCurrent();
 			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
@@ -386,9 +380,6 @@ public class ImageProcessor {
 			mVideoHeight = height;
 			mSourceTexture.setDefaultBufferSize(mVideoWidth, mVideoHeight);
 			mSrcDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
-			// ピクセル読み込み用のダイレクトByteBufferを生成する
-			directBuffer = ByteBuffer.allocateDirect(width * height * 4);
-	    	directBuffer.order(ByteOrder.LITTLE_ENDIAN);
 			// プレフィルタ用
 			if (mMediaSource != null) {
 				mMediaSource.resize(width, height);
@@ -460,7 +451,7 @@ public class ImageProcessor {
 
 	private static native int nativeStart(final long id_native);
 	private static native int nativeStop(final long id_native);
-	private static native int nativeHandleFrame(final long id_native, final ByteBuffer frame, final int width, final int height);
+	private static native int nativeHandleFrame(final long id_native, final int width, final int height, final int tex_name);
 	private static native int nativeSetResultFrameType(final long id_native, final int showDetects);
 	private static native int nativeGetResultFrameType(final long id_native);
 	private static native int nativeSetExtractionColor(final long id_native,
