@@ -41,51 +41,21 @@ public class MediaEffectCanny implements IEffect {
 		"uniform float uKernel[18];\n" +
 		"uniform vec2  uTexOffset[KERNEL_SIZE];\n" +
 		"uniform float uColorAdjust;\n" +
-		"const float texWidth  = 1.0 / 640.0;\n" +
-		"const float texHeight = 1.0 / 368.0;\n" +
-		"const float threshold = 0.2;\n" +
-		"const vec2 unshift = vec2(1.0 / 256.0, 1.0);\n" +
-		"const float atan0   = 0.414213;\n" +
-		"const float atan45  = 2.414213;\n" +
-		"const float atan90  = -2.414213;\n" +
-		"const float atan135 = -0.414213;\n" +
-		"vec2 atanForCanny(float x) {\n" +
-		"    if (x < atan0 && x > atan135) {\n" +
-		"        return vec2(1.0, 0.0);\n" +
-		"    }\n" +
-		"    if (x < atan90 && x > atan45) {\n" +
-		"        return vec2(0.0, 1.0);\n" +
-		"    }\n" +
-		"    if (x > atan135 && x < atan90) {\n" +
-		"        return vec2(-1.0, 1.0);\n" +
-		"    }\n" +
-		"    return vec2(1.0, 1.0);\n" +
-		"}\n" +
-		"vec4 cannyEdge(vec2 coords) {\n" +
-		"    vec4 color = texture2D(sTexture, coords);\n" +
-		"    color.z = dot(color.zw, unshift);\n" +
-		"    if (color.z > threshold) {\n" +
-		"        color.x -= 0.5;\n" +
-		"        color.y -= 0.5;\n" +
-		"        vec2 offset = atanForCanny(color.y / color.x);\n" +
-		"        offset.x *= texWidth;\n" +
-		"        offset.y *= texHeight;\n" +
-		"        vec4 forward  = texture2D(sTexture, coords + offset);\n" +
-		"        vec4 backward = texture2D(sTexture, coords - offset);\n" +
-		"        forward.z  = dot(forward.zw, unshift);\n" +
-		"        backward.z = dot(backward.zw, unshift);\n" +
-		"        if (forward.z >= color.z ||\n" +
-		"            backward.z >= color.z) {\n" +
-		"            return vec4(0.0, 0.0, 0.0, 1.0);\n" +
-		"        } else {\n" +
-		"            color.x += 0.5; color.y += 0.5;\n" +
-		"            return vec4(1.0, color.x, color.y, 1.0);\n" +
-		"        }\n" +
-		"    }\n" +
-		"    return vec4(0.0, 0.0, 0.0, 1.0);\n" +
-		"}\n" +
+		"const float texelWidth = 1.0 / 640.0;\n" +
+		"const float texelHeight = 1.0 / 368.0;\n" +
+		"const float lowerThreshold = 0.4;\n" +	// lowerとupperの値を入れ替えると白黒反転する
+		"const float upperThreshold = 0.8;\n" +
 		"void main() {\n" +
-		"    gl_FragColor = cannyEdge(vTextureCoord);\n" +
+		"    vec3 currentGradientAndDirection = texture2D(sTexture, vTextureCoord).rgb;\n" +
+		"    vec2 gradientDirection = ((currentGradientAndDirection.gb * 2.0) - 1.0) * vec2(texelWidth, texelHeight);\n" +
+		"    float firstSampledGradientMagnitude = texture2D(sTexture, vTextureCoord + gradientDirection).r;\n" +
+		"    float secondSampledGradientMagnitude = texture2D(sTexture, vTextureCoord - gradientDirection).r;\n" +
+		"    float multiplier = step(firstSampledGradientMagnitude, currentGradientAndDirection.r);\n" +
+		"    multiplier = multiplier * step(secondSampledGradientMagnitude, currentGradientAndDirection.r);\n" +
+		"    float thresholdCompliance = smoothstep(lowerThreshold, upperThreshold, currentGradientAndDirection.r);\n" +
+		"    multiplier = multiplier * thresholdCompliance;\n" +
+		"    gl_FragColor = vec4(multiplier, multiplier, multiplier, 1.0);\n" +
+		"}\n";
 //		"void main() {\n" +
 //		"    vec4 magdir = texture2D(sTexture, vTextureCoord);\n" +
 //		"    float a = 0.5 / sin(3.14159 / 8.0); \n" +	// eight directions on grid
@@ -102,7 +72,54 @@ public class MediaEffectCanny implements IEffect {
 //		"    if (magdir.z < uColorAdjust)\n" +
 //		"        colorO  = vec4(0.0, 0.0, 0.0, 0.0);\n" +	// thresholding
 //		"    gl_FragColor = colorO;\n" +
-		"}\n";
+//		"}\n";
+//----
+//		"const float texWidth  = 1.0 / 640.0;\n" +
+//		"const float texHeight = 1.0 / 368.0;\n" +
+//		"const float threshold = 0.2;\n" +
+//		"const vec2 unshift = vec2(1.0 / 256.0, 1.0);\n" +
+//		"const float atan0   = 0.414213;\n" +
+//		"const float atan45  = 2.414213;\n" +
+//		"const float atan90  = -2.414213;\n" +
+//		"const float atan135 = -0.414213;\n" +
+//		"vec2 atanForCanny(float x) {\n" +
+//		"    if (x < atan0 && x > atan135) {\n" +
+//		"        return vec2(1.0, 0.0);\n" +
+//		"    }\n" +
+//		"    if (x < atan90 && x > atan45) {\n" +
+//		"        return vec2(0.0, 1.0);\n" +
+//		"    }\n" +
+//		"    if (x > atan135 && x < atan90) {\n" +
+//		"        return vec2(-1.0, 1.0);\n" +
+//		"    }\n" +
+//		"    return vec2(1.0, 1.0);\n" +
+//		"}\n" +
+//		"vec4 cannyEdge(vec2 coords) {\n" +
+//		"    vec4 color = texture2D(sTexture, coords);\n" +
+//		"    color.z = dot(color.zw, unshift);\n" +
+//		"    if (color.z > threshold) {\n" +
+//		"        color.x -= 0.5;\n" +
+//		"        color.y -= 0.5;\n" +
+//		"        vec2 offset = atanForCanny(color.y / color.x);\n" +
+//		"        offset.x *= texWidth;\n" +
+//		"        offset.y *= texHeight;\n" +
+//		"        vec4 forward  = texture2D(sTexture, coords + offset);\n" +
+//		"        vec4 backward = texture2D(sTexture, coords - offset);\n" +
+//		"        forward.z  = dot(forward.zw, unshift);\n" +
+//		"        backward.z = dot(backward.zw, unshift);\n" +
+//		"        if (forward.z >= color.z ||\n" +
+//		"            backward.z >= color.z) {\n" +
+//		"            return vec4(0.0, 0.0, 0.0, 1.0);\n" +
+//		"        } else {\n" +
+//		"            color.x += 0.5; color.y += 0.5;\n" +
+//		"            return vec4(1.0, color.x, color.y, 1.0);\n" +
+//		"        }\n" +
+//		"    }\n" +
+//		"    return vec4(0.0, 0.0, 0.0, 1.0);\n" +
+//		"}\n" +
+//		"void main() {\n" +
+//		"    gl_FragColor = cannyEdge(vTextureCoord);\n" +
+//		"}\n";
 	private static final String FRAGMENT_SHADER
 		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_2D, Texture2dProgram.SAMPLER_2D);
 	private static final String FRAGMENT_SHADER_EXT

@@ -263,7 +263,7 @@ public class ConnectionFragment extends BaseFragment {
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 						fragment = AutoPilotFragment.newInstance(device,
 							id == R.id.pilot_button,
-							id == R.id.gallery_button);
+							id != R.id.gallery_button);
 					}
 				}
 				break;

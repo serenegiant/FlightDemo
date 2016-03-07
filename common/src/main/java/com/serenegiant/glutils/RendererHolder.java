@@ -41,8 +41,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Hold shared texture that has camera frame and draw them to registered surface if needs<br>
- * Using RenderHandler is little bit slow and it is better to draw in this class directly.
+ * 共有EGLコンテキストを使ってテクスチャを登録した複数のSurfaceに描画するためのクラス
  */
 public class RendererHolder {
 //	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
@@ -142,6 +141,7 @@ public class RendererHolder {
 	private static final int REQUEST_ADD_SURFACE = 3;
 	private static final int REQUEST_REMOVE_SURFACE = 4;
 
+	/** 描画用スレッドの実行部(EglTask Runnable) */
 	private static final class RendererTask extends EglTask {
 
 		private final class RendererSurfaceRec {
@@ -249,16 +249,29 @@ public class RendererHolder {
 			return false;
 		}
 
+		/**
+		 * RendererHolderへの描画用SurfaceTextureを取得する
+ 		 * @return
+		 */
 		public Surface getSurface() {
 //			if (DEBUG) Log.v(TAG, "getSurface:" + mMasterSurface);
 			return mMasterSurface;
 		}
 
+		/**
+		 * RendererHolderへの描画用SurfaceTextureを取得する
+		 * @return
+		 */
 		public SurfaceTexture getSurfaceTexture() {
 //			if (DEBUG) Log.v(TAG, "getSurfaceTexture:" + mMasterTexture);
 			return mMasterTexture;
 		}
 
+		/**
+		 * Surface追加要求, 終了するまでブロッkス荒れる
+		 * @param id
+		 * @param surface
+		 */
 		public void addSurface(final int id, final Object surface) {
 			synchronized (mClientSync) {
 				if ((surface != null) && (mClients.get(id) == null)) {
@@ -272,6 +285,10 @@ public class RendererHolder {
 			}
 		}
 
+		/**
+		 * Surface削除要求, 終了するまでブロックされる
+		 * @param id
+		 */
 		public void removeSurface(final int id) {
 			synchronized (mClientSync) {
 				if (mClients.get(id) != null) {
@@ -285,15 +302,18 @@ public class RendererHolder {
 			}
 		}
 
+		/**
+		 * サイズ変更要求
+		 * @param width
+		 * @param height
+		 */
 		public void resize(final int width, final int height) {
 			if ((mVideoWidth != width) || (mVideoHeight != height)) {
 				offer(REQUEST_UPDATE_SIZE, width, height);
 			}
 		}
 
-		/**
-		 * 実際の描画処理
-		 */
+		/** 実際の描画処理 */
 		private void handleDraw() {
 			try {
 				makeCurrent();
@@ -325,6 +345,11 @@ public class RendererHolder {
 			GLES20.glFlush();
 		}
 
+		/**
+		 * 実際のSurfaceの追加処理, 描画スレッド上で実行される
+		 * @param id
+		 * @param surface
+		 */
 		private void handleAddSurface(final int id, final Object surface) {
 //			if (DEBUG) Log.v(TAG, "handleAddSurface:id=" + id);
 			checkSurface();
@@ -344,6 +369,10 @@ public class RendererHolder {
 			}
 		}
 
+		/**
+		 * 実際のSurface削除処理, 描画スレッド上で実行される
+		 * @param id
+		 */
 		private void handleRemoveSurface(final int id) {
 //			if (DEBUG) Log.v(TAG, "handleRemoveSurface:id=" + id);
 			synchronized (mClientSync) {
@@ -357,6 +386,9 @@ public class RendererHolder {
 			}
 		}
 
+		/**
+		 * 登録してある全てのSurfaceを削除する, 描画スレッド上で実行される
+		 */
 		private void handleRemoveAll() {
 //			if (DEBUG) Log.v(TAG, "handleRemoveAll:");
 			synchronized (mClientSync) {
@@ -374,6 +406,9 @@ public class RendererHolder {
 //			if (DEBUG) Log.v(TAG, "handleRemoveAll:finished");
 		}
 
+		/**
+		 * 登録されているSurfaceが有効かどうかをチェックして無効なものは削除する, 描画スレッド上で実行される
+		 */
 		private void checkSurface() {
 //			if (DEBUG) Log.v(TAG, "checkSurface");
 			synchronized (mClientSync) {
@@ -393,6 +428,11 @@ public class RendererHolder {
 //			if (DEBUG) Log.v(TAG, "checkSurface:finished");
 		}
 
+		/**
+		 * 実際のリサイズ処理
+		 * @param width
+		 * @param height
+		 */
 		private void handleResize(final int width, final int height) {
 //			if (DEBUG) Log.v(TAG, String.format("handleResize:(%d,%d)", width, height));
 			mVideoWidth = width;

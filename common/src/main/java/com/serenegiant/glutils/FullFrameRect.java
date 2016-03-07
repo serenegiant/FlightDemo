@@ -28,7 +28,7 @@ import java.nio.FloatBuffer;
  */
 public class FullFrameRect {
 	private static final boolean DEBUG = false;
-	private static final String TAG = "FullFrameRect";
+	private static final String TAG = FullFrameRect.class.getSimpleName();
 
 	public static final int FILTER_NONE = 0;
 	public static final int FILTER_BLACK_WHITE = 1;

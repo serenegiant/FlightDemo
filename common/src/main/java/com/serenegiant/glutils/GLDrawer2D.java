@@ -170,7 +170,7 @@ public class GLDrawer2D {
 	 * TextureOffscreenオブジェクトを描画するためのヘルパーメソッド
 	 * @param offscreen
 	 */
-	public void draw(final GLTextureOffscreen offscreen) {
+	public void draw(final TextureOffscreen offscreen) {
 		draw(offscreen.getTexture(), offscreen.getTexMatrix(), 0);
 	}
 

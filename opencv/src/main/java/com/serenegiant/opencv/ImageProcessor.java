@@ -6,26 +6,13 @@ import android.opengl.GLES20;
 import android.util.Log;
 import android.view.Surface;
 
-import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.EglTask;
 import com.serenegiant.glutils.FullFrameRect;
-import com.serenegiant.glutils.GLDrawer2D;
-import com.serenegiant.glutils.GLHelper;
-import com.serenegiant.glutils.GLTextureOffscreen;
 import com.serenegiant.glutils.Texture2dProgram;
-import com.serenegiant.glutils.TextureOffscreen;
 import com.serenegiant.mediaeffect.IEffect;
-import com.serenegiant.mediaeffect.MediaEffect;
 import com.serenegiant.mediaeffect.MediaEffectAutoFix;
-import com.serenegiant.mediaeffect.MediaEffectBlackWhite;
-import com.serenegiant.mediaeffect.MediaEffectBrightness;
-import com.serenegiant.mediaeffect.MediaEffectCanny;
-import com.serenegiant.mediaeffect.MediaEffectContrast;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
-import com.serenegiant.mediaeffect.MediaEffectGrayScale;
 import com.serenegiant.mediaeffect.MediaEffectKernel;
-import com.serenegiant.mediaeffect.MediaEffectNull;
-import com.serenegiant.mediaeffect.MediaEffectPosterize;
 import com.serenegiant.mediaeffect.MediaEffectSaturate;
 import com.serenegiant.mediaeffect.MediaSource;
 
@@ -289,7 +276,9 @@ public class ImageProcessor {
 				gaussian.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
 				mEffects.add(gaussian);
 			}
-/*			// Cannyエッジ検出フィルタ FIXME これはちょっと動作がおかしい
+//			final MediaEffectBlackWhite bw = new MediaEffectBlackWhite(mEffectContext);
+//			mEffects.add(bw);
+/*			// Cannyエッジ検出フィルタ
 			final MediaEffectCanny canny = new MediaEffectCanny();
 			mEffects.add(canny); */
 //--------------------------------------------------------------------------------

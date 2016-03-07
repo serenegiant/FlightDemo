@@ -535,7 +535,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 				std::vector< cv::Point > approx;		// 近似輪郭
 				// 輪郭を近似する, 近似精度は輪郭全周の1%まで(FIXME これはもう少し大きくてもいいかも)
 				cv::approxPolyDP(cv::Mat(*contour), approx,
-					0.02 * cv::arcLength(*contour, true),  // epsilon: 近似精度(元の輪郭と近似曲線との最大距離)
+					0.01 * cv::arcLength(*contour, true),  // epsilon: 近似精度(元の輪郭と近似曲線との最大距離)
 					true);	// closed: 閉曲線にするかどうか
 				const size_t num_vertex = approx.size();
 				if (LIKELY(num_vertex < 4)) continue;	// 3角形はスキップ

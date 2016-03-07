@@ -33,7 +33,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class EGLBase {
 //	private static final boolean DEBUG = false;	// FIXME set false on release
-	private static final String TAG = "EGLBase";
+	private static final String TAG = EGLBase.class.getSimpleName();
 
     private static final int EGL_RECORDABLE_ANDROID = 0x3142;
     private static final int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
@@ -232,6 +232,10 @@ public class EGLBase {
         return mGlVersion;
     }
 
+	public boolean isGlES3() {
+		return mGlVersion == 3;
+	}
+
 	/**
 	 * 初期化の下請け
 	 * @param max_version
@@ -299,7 +303,7 @@ public class EGLBase {
         // confirm whether the EGL rendering context is successfully created
 		final int[] values = new int[1];
 		mEgl.eglQueryContext(mEglDisplay, mEglContext, EGL_CONTEXT_CLIENT_VERSION, values);
-//		if (DEBUG) Log.d(TAG, "EGLContext created, client version " + values[0]);
+		Log.d(TAG, "EGLContext created, client version " + values[0]);
         makeDefault();
 	}
 

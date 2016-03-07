@@ -411,12 +411,14 @@ public class ManagerFragment extends Fragment {
 
 		if (ardiscoveryServiceBound) {
 			ardiscoveryServiceBound = false;
+			final Activity activity = getActivity();
+			final Context app_context = activity != null ? activity.getApplicationContext() : null;
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					try {
 						ardiscoveryService.stop();
-						getActivity().getApplicationContext().unbindService(ardiscoveryServiceConnection);
+						app_context.unbindService(ardiscoveryServiceConnection);
 						discoveryServiceBinder = null;
 						ardiscoveryService = null;
 					} catch (final Exception e) {
