@@ -282,7 +282,7 @@ public class ImageProcessor {
 //--------------------------------------------------------------------------------
 			handleResize(mVideoWidth, mVideoHeight);
 			// native側の処理を開始
-			nativeStart(mNativePtr);
+			nativeStart(mNativePtr, mVideoWidth, mVideoHeight);
 			synchronized (mSync) {
 				mParent.isProcessingRunning = true;
 				mSync.notifyAll();
@@ -340,7 +340,6 @@ public class ImageProcessor {
 			return true;
 		}
 
-		private volatile int cnt;
 		/**
 		 * 実際の描画処理(ワーカースレッド上で実行)
 		 */
@@ -354,12 +353,17 @@ public class ImageProcessor {
 				Log.e(TAG, "ProcessingTask#draw:thread id =" + Thread.currentThread().getId(), e);
 				return;
 			}
+			// SurfaceTextureで受け取った画像をプレフィルター用にセット
 			mMediaSource.setSource(mSrcDrawer, mTexId, mTexMatrix);
+			// プレフィルター処理
 			for (final IEffect effect: mEffects) {
 				mMediaSource.apply(effect);
 			}
+			// プレフィルター処理後の画像をNative側へ送る
 			mMediaSource.getOutputTexture().bind();
 			// Native側でglReadPixelsを使ってフレームバッファから画像データを取得する
+			// Nexus6Pで直接glReadPixelsで読み込むと約5ミリ秒かかる
+			// PBOのピンポンバッファを使うと約1/10の0.5ミリ秒で返ってくる
 			nativeHandleFrame(mNativePtr, mVideoWidth, mVideoHeight, 0);
 			mMediaSource.getOutputTexture().unbind();
 			// 何も描画しないとハングアップする機種があるので塗りつぶす(と言っても1x1だから気にしなくて良い?)
@@ -449,7 +453,7 @@ public class ImageProcessor {
 	private native long nativeCreate(final WeakReference<ImageProcessor> weakSelf);
 	private native void nativeRelease(final long id_native);
 
-	private static native int nativeStart(final long id_native);
+	private static native int nativeStart(final long id_native, final int width, final int height);
 	private static native int nativeStop(final long id_native);
 	private static native int nativeHandleFrame(final long id_native, final int width, final int height, final int tex_name);
 	private static native int nativeSetResultFrameType(final long id_native, final int showDetects);

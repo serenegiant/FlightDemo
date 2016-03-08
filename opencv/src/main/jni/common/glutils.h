@@ -8,8 +8,10 @@
 #ifndef GLUTILS_H_
 #define GLUTILS_H_
 
+#ifndef __gl3_h_
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#endif
 
 #undef GLCHECK
 

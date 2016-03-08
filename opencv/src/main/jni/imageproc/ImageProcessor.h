@@ -43,12 +43,18 @@ private:
 	volatile bool mIsRunning;
 	volatile int mResultFrameType;
 	mutable Mutex mMutex;
+	mutable Mutex mPoolMutex;
 	Condition mSync;
 	pthread_t processor_thread;
 	static void *processor_thread_func(void *vptr_args);
+	// フレームプール
+	std::vector<cv::Mat> mPool;
 	// フレームキュー
 	std::queue<cv::Mat> mFrames;
 	int mExtractColorHSV[6];	// 0,1,2: HSV下限, 3,4,5:HSV上限
+	// glReadPixelsを呼ぶ際のピンポンバッファに使うPBOのバッファ名
+	GLuint pbo[2];
+	int pbo_ix;
 protected:
 	void do_process(JNIEnv *env);
 	// 直線ラインの検出処理
@@ -62,19 +68,22 @@ protected:
 		const bool needs_result, const bool show_detects, const cv::Mat result_frame,
 		struct DetectRec &possible);
 	cv::Mat getFrame();
+	cv::Mat obtainFromPool(const int &width, const int &height);
+	void recycle(cv::Mat &frame);
 	int addFrame(cv::Mat &frame);
 	int colorExtraction(cv::Mat *src, cv::Mat *dst,
 	    int convert_code,	// cv:cvtColorの第3引数, カラー変換方法
 	    int method,
 		const int lower[], const int upper[]
 	);
+	void clearFrames();
 public:
 	ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz);
 	virtual ~ImageProcessor();
 	void release(JNIEnv *env);
-	int start();
-	int stop();
-	int handleFrame(const uint8_t *frame, const int &width, const int &height, const int &tex_name = 0);
+	int start(const int &width, const int &height);	// これはJava側の描画スレッド内から呼ばれる(EGLContextが有る)
+	int stop();		// これはJava側の描画スレッド内から呼ばれる(EGLContextが有る)
+	int handleFrame(const int &width, const int &height, const int &tex_name = 0);
 	inline const bool isRunning() const { return mIsRunning; };
 	inline void setResultFrameType(const int &result_frame_type) { mResultFrameType = result_frame_type % RESULT_FRAME_TYPE_MAX; };
 	inline const int getResultFrameType() const { return mResultFrameType; };

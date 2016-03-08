@@ -5,10 +5,10 @@ android {
 	buildToolsVersion '23.0.1'
 	defaultConfig {
 		applicationId "com.serenegiant.flightdemo"
-		minSdkVersion 16
+		minSdkVersion 18
 		targetSdkVersion 22
-		versionCode 16
-		versionName '0.66.3'
+		versionCode 17
+		versionName '0.66.4'
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
 	}
 	signingConfigs {

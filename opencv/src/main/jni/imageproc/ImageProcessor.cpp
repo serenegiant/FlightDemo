@@ -20,18 +20,25 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+//#include <GLES2/gl2.h>
+//#include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>		// API>=18
+#include <GLES3/gl3ext.h>	// API>=18
 
 #include "utilbase.h"
 #include "common_utils.h"
 #include "JNIHelp.h"
 #include "Errors.h"
+#include "glutils.h"
 
 #include "ImageProcessor.h"
 
 // キューに入れることができる最大フレーム数
 #define MAX_QUEUED_FRAMES 8
+// フレームプール中の最大フレーム数
+#define MAX_POOL_SIZE 8
+
+#define USE_PBO 1
 
 struct fields_t {
     jmethodID callFromNative;
@@ -45,7 +52,8 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 :	mWeakThiz(env->NewGlobalRef(weak_thiz_obj)),
 	mClazz((jclass)env->NewGlobalRef(clazz)),
 	mIsRunning(false),
-	mResultFrameType(RESULT_FRAME_TYPE_DST_LINE)
+	mResultFrameType(RESULT_FRAME_TYPE_DST_LINE),
+	pbo_ix(0)
 {
 	// H(色相)は制限なし, S(彩度)は0-約5%, 2:V(明度)は約80-100%
 	mExtractColorHSV[0] = 0;	// H下限
@@ -54,9 +62,14 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	mExtractColorHSV[3] = 180;	// H下限
 	mExtractColorHSV[4] = 10;	// S上限
 	mExtractColorHSV[5] = 255;	// V上限
+
+#if USE_PBO
+	pbo[0] = pbo[1] = 0;
+#endif
 }
 
 ImageProcessor::~ImageProcessor() {
+	clearFrames();
 }
 
 void ImageProcessor::release(JNIEnv *env) {
@@ -72,18 +85,37 @@ void ImageProcessor::release(JNIEnv *env) {
 			mClazz = NULL;
 		}
 	}
+	clearFrames();
 
 	EXIT();
 }
 
-/** プロセッシングスレッド開始 */
-int ImageProcessor::start() {
+/**
+ * プロセッシングスレッド開始
+ * これはJava側の描画スレッド内から呼ばれる(EGLContextが有るのでOpenGL|ES関係の処理可)
+ */
+int ImageProcessor::start(const int &width, const int &height) {
 	ENTER();
 	int result = -1;
 
 	if (!isRunning()) {
 		mMutex.lock();
 		{
+#if USE_PBO
+			// glReadPixelsに使うピンポンバッファ用PBOの準備
+			const GLsizeiptr pbo_size = (GLsizeiptr)width * height * 4;
+			// バッファ名を2つ生成
+			glGenBuffers(2, pbo);
+			GLCHECK("glGenBuffers");
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[0]);
+			GLCHECK("glBindBuffer");
+			glBufferData(GL_PIXEL_PACK_BUFFER, pbo_size, NULL, GL_DYNAMIC_READ);
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[1]);
+			GLCHECK("glBindBuffer");
+			glBufferData(GL_PIXEL_PACK_BUFFER, pbo_size, NULL, GL_DYNAMIC_READ);
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+			pbo_ix = 0;
+#endif
 			mIsRunning = true;
 			result = pthread_create(&processor_thread, NULL, processor_thread_func, (void *)this);
 		}
@@ -95,7 +127,10 @@ int ImageProcessor::start() {
 	RETURN(result, int);
 }
 
-/** プロセッシングスレッド終了 */
+/**
+ * プロセッシングスレッド終了
+ * これはJava側の描画スレッド内から呼ばれる(EGLContextが有るのでOpenGL|ES関係の処理可)
+ */
 int ImageProcessor::stop() {
 	ENTER();
 
@@ -112,14 +147,15 @@ int ImageProcessor::stop() {
 		if (pthread_join(processor_thread, NULL) != EXIT_SUCCESS) {
 			LOGW("terminate processor thread: pthread_join failed");
 		}
-		mMutex.lock();
-		{
-			for ( ; !mFrames.empty(); ) {
-				mFrames.pop();
-			}
-		}
-		mMutex.unlock();
+#if USE_PBO
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+		glDeleteBuffers(2, pbo);
+		pbo[0] = pbo[1] = 0;
+#endif
 	}
+	clearFrames();
+	mPool.clear();
+
 	RETURN(0, int);
 }
 
@@ -130,6 +166,127 @@ int ImageProcessor::setExtractionColor(const int lower[], const int upper[]) {
 
 	memcpy(&mExtractColorHSV[0], &lower[0], sizeof(int) * 3);
 	memcpy(&mExtractColorHSV[3], &upper[0], sizeof(int) * 3);
+
+	RETURN(0, int);
+}
+
+//================================================================================
+//
+//================================================================================
+int ImageProcessor::handleFrame(const int &width, const int &height, const int &tex_name) {
+	ENTER();
+
+	// OpenGLのフレームバッファをMatに読み込んでキューする
+	cv::Mat mat = obtainFromPool(width, height);
+#if USE_PBO
+	const int read_ix = pbo_ix; // 今回読み込むPBOのインデックス
+	const int next_read_ix = pbo_ix = (pbo_ix + 1) % 2;	// 読み込み要求するPBOのインデックス
+	const GLsizeiptr pbo_size = (GLsizeiptr)width * height * 4;
+	//　読み込み要求を行うPBOをbind
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[next_read_ix]);
+	// 非同期でPBOへ読み込み要求
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	// 実際にデータを取得するPBOをbind
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[read_ix]);
+	// PBO内のデータにアクセスできるようにマップする
+	const uint8_t *read_data = (uint8_t *)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, pbo_size, GL_MAP_READ_BIT);
+	if (LIKELY(read_data)) {
+		// ここでコピーする
+		memcpy(mat.data, read_data, width * height * 4);
+		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+	}
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+#else
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, mat.data);
+#endif
+	addFrame(mat);
+
+	RETURN(0, int);
+}
+
+//================================================================================
+// フレームキュー
+//================================================================================
+void ImageProcessor::clearFrames() {
+	ENTER();
+
+	mPoolMutex.lock();
+	{
+		mPool.clear();
+	}
+	mPoolMutex.unlock();
+
+	mMutex.lock();
+	{
+		for ( ; !mFrames.empty(); ) {
+			mFrames.pop();
+		}
+	}
+	mMutex.unlock();
+
+	EXIT();
+}
+
+/** フレームキューからフレームを取得, フレームキューが空ならブロックする */
+cv::Mat ImageProcessor::getFrame() {
+	ENTER();
+
+	cv::Mat result;
+
+	Mutex::Autolock lock(mMutex);
+	if (mFrames.empty()) {
+		mSync.wait(mMutex);
+	}
+	if (mIsRunning && !mFrames.empty()) {
+		result = mFrames.front();
+		mFrames.pop();
+	}
+
+	RET(result);
+}
+
+/** フレームプールからフレームを取得, フレームプールが空なら新規に生成する  */
+cv::Mat ImageProcessor::obtainFromPool(const int &width, const int &height) {
+	ENTER();
+
+	Mutex::Autolock lock(mMutex);
+
+	cv::Mat frame;
+	if (LIKELY(!mPool.empty())) {
+		frame = mPool.back();
+		mPool.pop_back();
+		frame.create(height, width, CV_8UC4);	// XXX rows=height, cols=widthなので注意
+	} else {
+		frame = cv::Mat(height, width, CV_8UC4);	// XXX rows=height, cols=widthなので注意
+	}
+
+	RET(frame);
+}
+
+void ImageProcessor::recycle(cv::Mat &frame) {
+	ENTER();
+
+	Mutex::Autolock lock(mMutex);
+
+	if (mPool.size() < MAX_POOL_SIZE) {
+		mPool.push_back(frame);
+	}
+
+	EXIT();
+}
+
+/** フレームキューにフレームを追加する, キュー中のフレーム数が最大数を超えると先頭を破棄する */
+int ImageProcessor::addFrame(cv::Mat &frame) {
+	ENTER();
+
+	Mutex::Autolock lock(mMutex);
+
+	if (mFrames.size() >= MAX_QUEUED_FRAMES) {
+		// キュー中のフレーム数が最大数を超えたので先頭を破棄する
+		mFrames.pop();
+	}
+	mFrames.push(frame);
+	mSync.signal();
 
 	RETURN(0, int);
 }
@@ -600,6 +757,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 			LOGE("do_process failed:%s", e.msg.c_str());
 			continue;
 		}
+		recycle(frame);
 	}
 
 	EXIT();
@@ -681,59 +839,6 @@ int ImageProcessor::colorExtraction(cv::Mat *src, cv::Mat *dst,
     RETURN(result, int);
 }
 
-//================================================================================
-//
-//================================================================================
-int ImageProcessor::handleFrame(const uint8_t *frame, const int &width, const int &height, const int &tex_name) {
-	ENTER();
-
-	// 受け取ったフレームデータをMatにしてキューする
-//	cv::Mat mat = cv::Mat(height, width, CV_8UC4, (void *)frame);
-	cv::Mat mat = cv::Mat(height, width, CV_8UC4);
-	// FIXME ここはPBOを使うようにしたほうがいいのかも
-	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, mat.data);
-	addFrame(mat);
-
-	RETURN(0, int);
-}
-
-//================================================================================
-// フレームキュー
-//================================================================================
-/** フレームキューからフレームを取得, フレームキューが空ならブロックする */
-cv::Mat ImageProcessor::getFrame() {
-	ENTER();
-
-	cv::Mat result;
-
-	Mutex::Autolock lock(mMutex);
-	if (mFrames.empty()) {
-		mSync.wait(mMutex);
-	}
-	if (mIsRunning && !mFrames.empty()) {
-		result = mFrames.front();
-		mFrames.pop();
-	}
-
-	RET(result);
-}
-
-/** フレームキューにフレームを追加する, キュー中のフレーム数が最大数を超えると先頭を破棄する */
-int ImageProcessor::addFrame(cv::Mat &frame) {
-	ENTER();
-
-	Mutex::Autolock lock(mMutex);
-
-	if (mFrames.size() >= MAX_QUEUED_FRAMES) {
-		// キュー中のフレーム数が最大数を超えたので先頭を破棄する
-		mFrames.pop();
-	}
-	mFrames.push(frame.clone());	// コピーを追加する
-	mSync.signal();
-
-	RETURN(0, int);
-}
-
 //********************************************************************************
 //********************************************************************************
 static void nativeClassInit(JNIEnv* env, jclass clazz) {
@@ -794,14 +899,14 @@ static void nativeRelease(JNIEnv *env, jobject thiz,
 }
 
 static jint nativeStart(JNIEnv *env, jobject thiz,
-	ID_TYPE id_native) {
+	ID_TYPE id_native, jint width, jint height) {
 
 	ENTER();
 
 	jint result = -1;
 	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
 	if (LIKELY(processor)) {
-		result = processor->start();
+		result = processor->start(width, height);
 	}
 
 	RETURN(result, jint);
@@ -830,42 +935,8 @@ static int nativeHandleFrame(JNIEnv *env, jobject thiz,
 	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
 	if (LIKELY(processor)) {
 		// フレーム処理
-#if 0
-		// こっちはJava側でglReadPixelsを呼んでDirectBufferに画像を読み込んで処理する時
-		// 引数のByteBufferをnativeバッファに変換出来るかどうか試してみる
-		void *buf = env->GetDirectBufferAddress(byteBuf_obj);
-	    jlong dstSize;
-		jbyteArray byteArray = NULL;
-		if (LIKELY(buf)) {
-			// ダイレクトバッファだった＼(^o^)／
-			dstSize = env->GetDirectBufferCapacity(byteBuf_obj);
-		} else {
-			// 引数のByteBufferがダイレクトバッファじゃなかった(´・ω・｀)
-			// ByteBuffer#arrayを呼び出して内部のbyte[]を取得できるかどうか試みる
-			byteArray = (jbyteArray)env->CallObjectMethod(byteBuf_obj, fields.arrayID);
-			if (UNLIKELY(byteArray == NULL)) {
-				// byte[]を取得できなかった時
-				LOGE("byteArray is null");
-		        RETURN(BAD_VALUE, jint);
-			}
-	        buf = env->GetByteArrayElements(byteArray, NULL);
-	        dstSize = env->GetArrayLength(byteArray);
-		}
-		// 配列の長さチェック
-	    if (LIKELY(dstSize >= (width * height) << 2)) {	// RGBA
-			result = processor->handleFrame((uint8_t *)buf, width, height);
-		} else {
-	        LOGE("nativeHandleFrame saw wrong dstSize %lld", dstSize);
-	        result = BAD_VALUE;
-	    }
-		// ByteBufferのデータを開放
-	    if (byteArray) {
-	        env->ReleaseByteArrayElements(byteArray, (jbyte *)buf, 0);
-	    }
-#else
 		// こっちはNative側でglReadPixelsを呼んで画像を読み込んで処理する時
-		result = processor->handleFrame(NULL, width, height, tex_name);
-#endif
+		result = processor->handleFrame(width, height, tex_name);
 	}
 
 	RETURN(result, jint);
@@ -921,9 +992,8 @@ static JNINativeMethod methods[] = {
 	{ "nativeClassInit",		"()V",   (void*)nativeClassInit },
 	{ "nativeCreate",			"(Ljava/lang/ref/WeakReference;)J", (void *) nativeCreate },
 	{ "nativeRelease",			"(J)V", (void *) nativeRelease },
-	{ "nativeStart",			"(J)I", (void *) nativeStart },
+	{ "nativeStart",			"(JII)I", (void *) nativeStart },
 	{ "nativeStop",				"(J)I", (void *) nativeStop },
-//	{ "nativeHandleFrame",		"(JLjava/nio/ByteBuffer;II)I", (void *) nativeHandleFrame },	// これは古い実装
 	{ "nativeHandleFrame",		"(JIII)I", (void *) nativeHandleFrame },
 	{ "nativeSetResultFrameType",	"(JI)I", (void *) nativeSetResultFrameType },
 	{ "nativeGetResultFrameType",	"(J)I", (void *) nativeGetResultFrameType },
