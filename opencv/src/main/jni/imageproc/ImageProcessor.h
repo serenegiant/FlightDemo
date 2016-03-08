@@ -56,6 +56,8 @@ private:
 	jclass mClazz;
 	volatile bool mIsRunning;
 	volatile int mResultFrameType;
+	volatile bool mEnableExtract;
+
 	mutable Mutex mMutex;
 	mutable Mutex mPoolMutex;
 	Condition mSync;
@@ -74,7 +76,7 @@ private:
 	int callJavaCallback(JNIEnv *env, DetectRec_t detect_result, cv::Mat &result, const bool &needs_result);
 protected:
 	int pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result, cv::Mat &result,
-		const bool &needs_result, const bool &show_src);
+		const bool &enable_extract, const bool &needs_result, const bool &show_src);
 	int findContours(cv::Mat &src, cv::Mat &result,
 		std::vector<std::vector< cv::Point>> contours,	// 輪郭データ
 		std::vector<DetectRec_t> approxes,	// 近似輪郭
@@ -111,6 +113,8 @@ public:
 	inline const bool isRunning() const { return mIsRunning; };
 	inline void setResultFrameType(const int &result_frame_type) { mResultFrameType = result_frame_type % RESULT_FRAME_TYPE_MAX; };
 	inline const int getResultFrameType() const { return mResultFrameType; };
+	inline void setEnableExtract(const bool &enable) { mEnableExtract = enable; };
+	inline const bool getEnableExtract() const { return mEnableExtract; };
 	/** 抽出色の上下限をHSVで設定 */
 	int setExtractionColor(const int lower[], const int upper[]);
 };
