@@ -33,11 +33,6 @@
 
 #include "ImageProcessor.h"
 
-// キューに入れることができる最大フレーム数
-#define MAX_QUEUED_FRAMES 8
-// フレームプール中の最大フレーム数
-#define MAX_POOL_SIZE 8
-
 #define USE_PBO 1
 
 struct fields_t {
@@ -45,6 +40,14 @@ struct fields_t {
     jmethodID arrayID;	// ByteBufferがdirectBufferでない時にJava側からbyte[]を取得するためのメソッドid
 };
 static fields_t fields;
+
+static const cv::Scalar COLOR_ORANGE = cv::Scalar(255, 127, 0);
+static const cv::Scalar COLOR_RED = cv::Scalar(255, 0, 0);
+static const cv::Scalar COLOR_GREEN = cv::Scalar(255, 0, 0);
+static const cv::Scalar COLOR_BLUE = cv::Scalar(0, 0, 255);
+static const cv::Scalar COLOR_WHITE = cv::Scalar(255, 255, 255);
+static const cv::Scalar COLOR_BLACK = cv::Scalar(0, 0, 0);
+static const cv::Scalar COLOR_YELLOW = cv::Scalar(255, 255, 0);
 
 using namespace android;
 
@@ -173,8 +176,10 @@ int ImageProcessor::setExtractionColor(const int lower[], const int upper[]) {
 //================================================================================
 //
 //================================================================================
-int ImageProcessor::handleFrame(const int &width, const int &height, const int &tex_name) {
+int ImageProcessor::handleFrame(const int &width, const int &height, const int &unused) {
 	ENTER();
+
+	if (!canAddFrame()) RETURN(1, int);;	// dropped
 
 	// OpenGLのフレームバッファをMatに読み込んでキューする
 	cv::Mat mat = obtainFromPool(width, height);
@@ -192,7 +197,7 @@ int ImageProcessor::handleFrame(const int &width, const int &height, const int &
 	const uint8_t *read_data = (uint8_t *)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, pbo_size, GL_MAP_READ_BIT);
 	if (LIKELY(read_data)) {
 		// ここでコピーする
-		memcpy(mat.data, read_data, width * height * 4);
+		memcpy(mat.data, read_data, pbo_size);
 		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 	}
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
@@ -207,6 +212,7 @@ int ImageProcessor::handleFrame(const int &width, const int &height, const int &
 //================================================================================
 // フレームキュー
 //================================================================================
+/*protected*/
 void ImageProcessor::clearFrames() {
 	ENTER();
 
@@ -228,6 +234,7 @@ void ImageProcessor::clearFrames() {
 }
 
 /** フレームキューからフレームを取得, フレームキューが空ならブロックする */
+/*protected*/
 cv::Mat ImageProcessor::getFrame() {
 	ENTER();
 
@@ -246,6 +253,7 @@ cv::Mat ImageProcessor::getFrame() {
 }
 
 /** フレームプールからフレームを取得, フレームプールが空なら新規に生成する  */
+/*protected*/
 cv::Mat ImageProcessor::obtainFromPool(const int &width, const int &height) {
 	ENTER();
 
@@ -263,6 +271,8 @@ cv::Mat ImageProcessor::obtainFromPool(const int &width, const int &height) {
 	RET(frame);
 }
 
+/** フレームプールにフレームを返却する */
+/*protected*/
 void ImageProcessor::recycle(cv::Mat &frame) {
 	ENTER();
 
@@ -276,6 +286,7 @@ void ImageProcessor::recycle(cv::Mat &frame) {
 }
 
 /** フレームキューにフレームを追加する, キュー中のフレーム数が最大数を超えると先頭を破棄する */
+/*protected*/
 int ImageProcessor::addFrame(cv::Mat &frame) {
 	ENTER();
 
@@ -292,6 +303,7 @@ int ImageProcessor::addFrame(cv::Mat &frame) {
 }
 
 /** プロセッシングスレッドの実行関数 */
+/*private*/
 void *ImageProcessor::processor_thread_func(void *vptr_args) {
 	ENTER();
 
@@ -311,6 +323,95 @@ void *ImageProcessor::processor_thread_func(void *vptr_args) {
 
 	PRE_EXIT();
 	pthread_exit(NULL);
+}
+
+/** プロセッシングスレッドの実体 */
+/*private*/
+void ImageProcessor::do_process(JNIEnv *env) {
+	ENTER();
+
+	DetectRec_t possible;
+	std::vector<std::vector< cv::Point>> contours;	// 輪郭データ
+	std::vector<DetectRec_t> approxes;	// 近似輪郭
+
+	for ( ; mIsRunning ; ) {
+		// フレームデータの取得待ち
+		cv::Mat frame = getFrame();
+		if (!mIsRunning) break;
+		try {
+//================================================================================
+// フラグ更新
+			const int frame_type = mResultFrameType;
+			const bool needs_result = frame_type != RESULT_FRAME_TYPE_NON;
+			const bool show_src = (frame_type == RESULT_FRAME_TYPE_SRC) || (frame_type == RESULT_FRAME_TYPE_SRC_LINE);
+			const bool show_detects = needs_result && (frame_type == RESULT_FRAME_TYPE_SRC_LINE) || (frame_type == RESULT_FRAME_TYPE_DST_LINE);
+
+// 前処理
+			cv::Mat src, bk_result, result;
+			pre_process(frame, src, bk_result, result, needs_result, show_src);
+//--------------------------------------------------------------------------------
+// 輪郭の検出処理
+// 最大で直線・円弧・コーナーの3つの処理が走るので近似輪郭検出と最低限のチェック(面積とか)は1回だけ先に済ましておく
+			findContours(src, bk_result, contours, approxes, show_detects);
+//--------------------------------------------------------------------------------
+// 直線ラインの検出処理
+			// 表示用にカラー画像に戻す
+			result = bk_result;
+			detect_line(approxes, needs_result, show_detects, result, possible);
+			if (UNLIKELY(possible.type == TYPE_NON)) {
+// 円弧の検出処理
+				result = bk_result;
+				detect_circle(approxes, needs_result, show_detects, result, possible);
+			}
+			if (UNLIKELY(possible.type == TYPE_NON)) {
+// コーナーの検出処理
+				result = bk_result;
+				detect_circle(approxes, needs_result, show_detects, result, possible);
+			}
+//================================================================================
+			// Java側のコールバックメソッドを呼び出す
+			callJavaCallback(env, possible, result, needs_result);
+		} catch (cv::Exception e) {
+			LOGE("do_process failed:%s", e.msg.c_str());
+			continue;
+		}
+		recycle(frame);
+	}
+
+	EXIT();
+}
+
+#define RESULT_NUM 20
+
+/*private*/
+int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t detect_result, cv::Mat &result, const bool &needs_result) {
+	ENTER();
+
+	float detected[RESULT_NUM];
+
+	if (LIKELY(mIsRunning && fields.callFromNative && mClazz && mWeakThiz)) {
+		// FIXME 解析結果を配列にセットする
+		// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
+		// ラインの長さ(長軸長さ=length)
+		// ラインの方向(cv::RotatedRect#angle)
+		// アスペクト比(もしくは幅=短軸長さ)
+		// FIXME 円フィッティングの曲率/上半分と下半分の傾き
+		jfloatArray detected_array = env->NewFloatArray(RESULT_NUM);
+		env->SetFloatArrayRegion(detected_array, 0, RESULT_NUM, detected);
+		// 解析画像
+		jobject buf_frame = needs_result ? env->NewDirectByteBuffer(result.data, result.total() * result.elemSize()) : NULL;
+		// コールバックメソッドを呼び出す
+		env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, detect_result.type, buf_frame, detected_array);
+		env->ExceptionClear();
+		if (LIKELY(detected_array)) {
+			env->DeleteLocalRef(detected_array);
+		}
+		if (buf_frame) {
+			env->DeleteLocalRef(buf_frame);
+		}
+	}
+
+	RETURN(0, int);
 }
 
 // stringstreamをクリアして再利用できるようにする
@@ -413,11 +514,6 @@ static double compHuMoments(const double mb[], int method) {
     return result;
 }
 
-#define TYPE_NON -1
-#define TYPE_LINE 0
-#define TYPE_CURVE 1
-#define TYPE_CORNER 2
-
 // 検出したオブジェクトの優先度の判定
 // 第1引数が第2引数よりも小さい(前にある=優先度が高い)時に真(正)を返す
 static bool comp_line_priority(const DetectRec &left, const DetectRec &right ) {
@@ -450,60 +546,82 @@ static bool comp_line_priority(const DetectRec &left, const DetectRec &right ) {
 		|| (b2);					// 類似性が良い
 }
 
-#define RESULT_NUM 20
 // 直線検知
 #define DETECT_LINES 0
 
+/*protected*/
 int ImageProcessor::detect_line(
-	std::vector<struct DetectRec> &contours,	// 近似輪郭
-	const bool needs_result, const bool show_detects, const cv::Mat result_frame,
-	struct DetectRec &possible) {			// 結果
+	std::vector<DetectRec_t> &contours,	// 近似輪郭
+	const bool &needs_result, const bool &show_detects,
+	cv::Mat &result_frame, DetectRec_t &possible) {			// 結果
 
 	ENTER();
 
-	std::vector<struct DetectRec> possibles;		// 可能性のある輪郭
+#if DETECT_LINES
+// 線分の検出処理(単なるテスト)
+	std::vector<cv::Vec4i> lines;
+#if 1
+	// 確率的ハフ変換による直線検出
+	cv::HoughLinesP(src, lines,
+		2,			// 距離分解能[ピクセル]
+		CV_PI/180,	// 角度分解能[ラジアン]
+		70,			// Accumulatorのしきい値
+		20,			// 最小長さ[ピクセル]
+		20			// 2点が同一線上にあるとみなす最大距離[ピクセル]
+	);
+	// 検出結果をresultに書き込み
+	if (show_detects) {
+		for (size_t i = 0; i < lines.size(); i++ ) {
+			cv::Vec4i l = lines[i];
+			cv::line(bk_result, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), COLOR_RED, 3, 8);
+		}
+	}
+#else
+	// ハフ変換による直線検出
+	std::vector<cv::Vec2i> lines;
+	cv::HoughLines(src, lines, 1, CV_PI/180, 100);
+	// 検出結果をresultに書き込み
+	if (show_detects) {
+		for (size_t i = 0; i < lines.size(); i++ ) {
+			float rho = lines[i][0];
+			float theta = lines[i][1];
+			double a = cos(theta), b = sin(theta);
+			double x0 = a*rho, y0 = b*rho;
+			cv::Point pt1(cvRound(x0 + 1000*(-b)), cvRound(y0 + 1000*(a)));
+			cv::Point pt2(cvRound(x0 - 1000*(-b)), cvRound(y0 - 1000*(a)));
+			cv::line(bk_result, pt1, pt2, COLOR_RED, 3, 8 );
+		}
+	}
+#endif
+#endif // #if DETECT_LINES
+
+	std::vector<DetectRec_t> possibles;		// 可能性のある輪郭
 	double hu_moments[8];
 	int ix = 0;	// 輪郭のインデックス
-	float last_analogous = -1;
 
 	// 検出した輪郭の数分ループする
 	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
-		struct DetectRec approx = *contour;		// 近似輪郭
+		DetectRec_t approx = *contour;		// 近似輪郭
 		// 輪郭を内包する最小矩形(回転あり)を取得
 		cv::RotatedRect area_rect = approx.area_rect;
 		// アスペクト比が正方形に近いものはスキップ
 		if (LIKELY((approx.aspect > 0.3f) && (approx.aspect < 3.0f))) continue;
 		if (show_detects) {
-			draw_rect(result_frame, area_rect, cv::Scalar(255, 127, 0));	// 橙色
+			draw_rect(result_frame, area_rect, COLOR_ORANGE);
 		}
 		// 最小矩形と元輪郭の面積比が大き過ぎる場合と面積の割に頂点が多いものもスキップ
 		const float area_vertex = approx.area / approx.contour.size();
 		if (((approx.area_rate < 0.67f) && (approx.area_rate > 1.5f))	// ±50%以上ずれている時はスキップ
 			|| (area_vertex < 200.0f)) continue;		// 1頂点あたり200ピクセルよりも小さい
 		if (show_detects) {
-			draw_rect(result_frame, area_rect, cv::Scalar(0, 255, 0));	// 緑色
+			draw_rect(result_frame, area_rect, COLOR_GREEN);
 		}
 		// 輪郭のHu momentを計算
 		cv::HuMoments(cv::moments(approx.contour), hu_moments);
 		// 基準値と比較, メソッド1は時々一致しない, メソッド2,3だとほとんど一致しない, 完全一致なら0が返る
 		const float analogous = (float)compHuMoments(hu_moments, 1);
 		// Hu momentsが基準値との差が大きい時はスキップ FIXME ここは幅を持たせた方がいいかも
-		if (analogous > last_analogous) {
-			last_analogous = analogous;
-#if 0
-			clear_stringstream(ss);
-			ss 	<< std::scientific << hu_moments[0] << ','
-				<< std::scientific << hu_moments[1] << ','
-				<< std::scientific << hu_moments[2] << ','
-				<< std::scientific << hu_moments[3] << ','
-				<< std::scientific << hu_moments[4] << ','
-				<< std::scientific << hu_moments[5] << ','
-				<< std::scientific << hu_moments[6];
-			LOGI("hu_moments%d:%s", ix, ss.str().c_str());
-//					LOGI("hu_moments%d:%18le,%18le,%18le,%18le,%18le,%18le,%18le", ix,
-//						hu_moments[0], hu_moments[1], hu_moments[2], hu_moments[3], hu_moments[4], hu_moments[5], hu_moments[6]);
-//					LOGI("analogous%d:%f", ix, analogous);
-#endif
+		if (analogous > 20.0f) {
 			// ラインの可能性が高い輪郭を追加
 			possible.type = TYPE_LINE;
 			possible.contour.assign(approx.contour.begin(), approx.contour.end());
@@ -516,7 +634,7 @@ int ImageProcessor::detect_line(
 			possible.analogous = analogous;
 			possibles.push_back(possible);
 			if (show_detects) {
-				draw_rect(result_frame, area_rect, cv::Scalar(0, 0, 125));	// 青色
+				draw_rect(result_frame, area_rect, COLOR_BLUE);
 			}
 		}
 		ix++;
@@ -539,22 +657,16 @@ int ImageProcessor::detect_line(
 //					LOGI("fit elipse:(%f,%f),%f,%f", ellipse.size.width, ellipse.size.height, ellipse.angle, possible.curvature);
 				}
 				if (show_detects) {
-					cv::ellipse(result_frame, ellipse.center, ellipse.size, ellipse.angle, 0, 360, cv::Scalar(255, 0, 0));
+					cv::ellipse(result_frame, ellipse.center, ellipse.size, ellipse.angle, 0, 360, COLOR_RED);
 				}
 			} catch (cv::Exception e) {
 				LOGE("fitEllipse failed:%s", e.msg.c_str());
 			}
 		}
 		if (show_detects) {
-			cv::polylines(result_frame, possible.contour, true, cv::Scalar(255, 0, 0), 2);	// 赤色
+			cv::polylines(result_frame, possible.contour, true, COLOR_RED, 2);	// 赤色
 			// 中央から検出したオブジェクトの中心に向かって線を引く
-			cv::line(result_frame, cv::Point(320, 184), possible.area_rect.center, cv::Scalar(255, 0, 0), 8, 8);
-			// FIXME 解析結果を配列にセットする
-			// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
-			// ラインの長さ(長軸長さ=length)
-			// ラインの方向(cv::RotatedRect#angle)
-			// アスペクト比(もしくは幅=短軸長さ)
-			// FIXME 円フィッティングの曲率/上半分と下半分の傾き
+			cv::line(result_frame, cv::Point(320, 184), possible.area_rect.center, COLOR_RED, 8, 8);
 		}
 	} else {
 		possible.type = TYPE_NON;
@@ -562,205 +674,124 @@ int ImageProcessor::detect_line(
 	RETURN(0, int);
 }
 
+/*protected*/
 int ImageProcessor::detect_circle(
-	std::vector<struct DetectRec> &contours,	// 近似輪郭
-	const bool needs_result, const bool show_detects, const cv::Mat result_frame,
-	struct DetectRec &possible) {			// 結果
+	std::vector<DetectRec_t> &contours,	// 近似輪郭
+	const bool &needs_result, const bool &show_detects,
+	cv::Mat &result_frame, DetectRec_t &possible) {			// 結果
 
 	ENTER();
 
 	RETURN(0, int);
 }
 
+/*protected*/
 int ImageProcessor::detect_corner(
-	std::vector<struct DetectRec> &contours,	// 輪郭
-	const bool needs_result, const bool show_detects, const cv::Mat result_frame,
-	struct DetectRec &possible) {			// 結果
+	std::vector<DetectRec_t> &contours,	// 近似輪郭
+	const bool &needs_result, const bool &show_detects,
+	cv::Mat &result_frame, DetectRec_t &possible) {			// 結果
+
 	ENTER();
 
 	RETURN(0, int);
 }
 
-/** プロセッシングスレッドの実体 */
-void ImageProcessor::do_process(JNIEnv *env) {
+/*protected*/
+int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
+	std::vector<std::vector< cv::Point>> contours,	// 輪郭データ
+	std::vector<DetectRec_t> approxes,	// 近似輪郭
+	const bool &show_detects) {
 	ENTER();
 
-	float detected[RESULT_NUM];
-	std::stringstream ss;
-	double hu_moments[8];
-	int extractColorHSV[6];
-	struct DetectRec possible;
-	std::vector<std::vector< cv::Point>> contours;	// 輪郭データ
-	std::vector<struct DetectRec> approxes;	// 近似輪郭
+	DetectRec_t possible;
 
-	for ( ; mIsRunning ; ) {
-		// フレームデータの取得待ち
-		cv::Mat frame = getFrame();
-		if (!mIsRunning) break;
-		try {
-//================================================================================
-// 前処理
-			cv::Mat src, bk_result, result;
-			// RGBAのままだとHSVに変換できないので一旦BGRに変える
-			cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
-//			cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
-/*			// 色抽出処理, 色相は問わず彩度が低くて明度が高い領域を抽出
-			mMutex.lock();
-			{
-				memcpy(extractColorHSV, mExtractColorHSV, sizeof(int) * 6);
-			}
-			mMutex.unlock();
-			colorExtraction(&src, &src, cv::COLOR_BGR2HSV, 0, &extractColorHSV[0], &extractColorHSV[3]); */
-			// グレースケールに変換(RGBA->Y)
-			cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
-			// 平滑化
-//			cv::Sobel(src, src, CV_32F, 1, 1);
-//			cv::convertScaleAbs(src, src, 1, 0);
-			// エッジ検出(Cannyの結果は2値化されてる)
-			cv::Canny(src, src, 50, 200);
-			// 2値化
-//			cv::threshold(src, src, 125, 255, cv::THRESH_BINARY);
-//			cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
-
-			const int frame_type = mResultFrameType;
-			const bool needs_result = frame_type != RESULT_FRAME_TYPE_NON;
-			const bool show_src = (frame_type == RESULT_FRAME_TYPE_SRC) || (frame_type == RESULT_FRAME_TYPE_SRC_LINE);
-			const bool show_detects = needs_result && (frame_type == RESULT_FRAME_TYPE_SRC_LINE) || (frame_type == RESULT_FRAME_TYPE_DST_LINE);
-			// 表示用にカラー画像に戻す
-			if (needs_result) {
-				if (show_src) {
-					bk_result = frame;
-				} else {
-					cv::cvtColor(src, bk_result, cv::COLOR_GRAY2RGBA);
-//					cv::cvtColor(src, bk_result, cv::COLOR_BGR2RGBA);
-				}
-			}
-//			cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
-//--------------------------------------------------------------------------------
-#if DETECT_LINES
-// 線分の検出処理(単なるテスト)
-			std::vector<cv::Vec4i> lines;
-#if 1
-			// 確率的ハフ変換による直線検出
-			cv::HoughLinesP(src, lines,
-				2,			// 距離分解能[ピクセル]
-				CV_PI/180,	// 角度分解能[ラジアン]
-				70,			// Accumulatorのしきい値
-				20,			// 最小長さ[ピクセル]
-				20			// 2点が同一線上にあるとみなす最大距離[ピクセル]
-			);
-			// 検出結果をresultに書き込み
-			if (show_detects) {
-				for (size_t i = 0; i < lines.size(); i++ ) {
-					cv::Vec4i l = lines[i];
-					cv::line(bk_result, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(255, 0, 0), 3, 8);
-				}
-			}
-#else
-			// ハフ変換による直線検出
-			std::vector<cv::Vec2i> lines;
-			cv::HoughLines(src, lines, 1, CV_PI/180, 100);
-			// 検出結果をresultに書き込み
-			if (show_detects) {
-				for (size_t i = 0; i < lines.size(); i++ ) {
-					float rho = lines[i][0];
-					float theta = lines[i][1];
-					double a = cos(theta), b = sin(theta);
-					double x0 = a*rho, y0 = b*rho;
-					cv::Point pt1(cvRound(x0 + 1000*(-b)), cvRound(y0 + 1000*(a)));
-					cv::Point pt2(cvRound(x0 - 1000*(-b)), cvRound(y0 - 1000*(a)));
-					cv::line(bk_result, pt1, pt2, cv::Scalar(255, 0, 0), 3, 8 );
-				}
-			}
-#endif
-#endif // #if DETECT_LINES
-//================================================================================
-// 輪郭の検出処理
-// 最大で直線・円弧・コーナーの3つの処理が走るので近似輪郭検出と最低限のチェック(面積とか)は1回だけ先に済ましておく
-			// 外周に四角を描いておく。でないと画面の外にはみ出した部分が有る形状を閉曲線として検出出来ない
-			cv:rectangle(src, cv::Rect(8, 8, src.cols - 8, src.rows - 8), cv::Scalar(255, 255, 255), 8);
-			// 輪郭を求める
-			contours.clear();
-			cv::findContours(src, contours,
-				cv::RETR_CCOMP, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
-				cv::CHAIN_APPROX_NONE);	// 輪郭データ近似方法, CHAIN_APPROX_NONE:無し,  CHAIN_APPROX_SIMPLE:直線は頂点のみにする,  CHAIN_APPROX_TC89_L1, CHAIN_APPROX_TC89_KCOS
-//			// 検出した輪郭を全て描画
-//			if (show_detects) {
-//				cv::drawContours(result, contours, -1, cv::Scalar(80, 80, 0));	// 薄い黄色
-//			}
-			approxes.clear();
-			// 検出した輪郭の数分ループする
-			for (auto contour = contours.begin(); contour != contours.end(); contour++) {
-				std::vector< cv::Point > approx;		// 近似輪郭
-				// 輪郭を近似する, 近似精度は輪郭全周の1%まで(FIXME これはもう少し大きくてもいいかも)
-				cv::approxPolyDP(cv::Mat(*contour), approx,
-					0.01 * cv::arcLength(*contour, true),  // epsilon: 近似精度(元の輪郭と近似曲線との最大距離)
-					true);	// closed: 閉曲線にするかどうか
-				const size_t num_vertex = approx.size();
-				if (LIKELY(num_vertex < 4)) continue;	// 3角形はスキップ
-				// 輪郭を内包する最小矩形(回転あり)を取得
-				cv::RotatedRect area_rect = cv::minAreaRect(approx);
-				// 常に横長として幅と高さを取得
-				const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
-				const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
-				// 外周線
-				if ((w > 620) && (h > 350)) continue;
-				// 近似輪郭の面積を計算, 面積が小さすぎるのはスキップ
-				const float area = (float)cv::contourArea(approx);
-				if (area < 1000.0f) continue;
-				if (show_detects) {
-					draw_rect(bk_result, area_rect, cv::Scalar(255, 255, 0));	// 黄色
-				}
-				possible.type = TYPE_NON;
-				possible.contour.assign(approx.begin(), approx.end());
-				possible.area_rect = area_rect;
-				possible.area = area;
-				possible.area_rate = w * h / area;
-				possible.aspect = w / h;
-				possible.length = w;	// 長軸長さ
-				possible.width = h;		// 短軸長さ
-				approxes.push_back(possible);
-			}
-//================================================================================
-// 直線ラインの検出処理
-			// 表示用にカラー画像に戻す
-			result = bk_result;
-			detect_line(approxes, needs_result, show_detects, result, possible);
-			if (UNLIKELY(possible.type == TYPE_NON)) {
-// 円弧の検出処理
-				result = bk_result;
-				detect_circle(approxes, needs_result, show_detects, result, possible);
-			}
-			if (UNLIKELY(possible.type == TYPE_NON)) {
-// コーナーの検出処理
-				result = bk_result;
-				detect_circle(approxes, needs_result, show_detects, result, possible);
-			}
-//================================================================================
-// Java側のコールバックメソッドを呼び出す
-			if (LIKELY(mIsRunning && fields.callFromNative && mClazz && mWeakThiz)) {
-				jfloatArray detected_array = env->NewFloatArray(RESULT_NUM);
-				env->SetFloatArrayRegion(detected_array, 0, RESULT_NUM, detected);
-				// 解析画像
-				jobject buf_frame = needs_result ? env->NewDirectByteBuffer(result.data, result.total() * result.elemSize()) : NULL;
-				// コールバックメソッドを呼び出す
-				env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, possible.type, buf_frame, detected_array);
-				env->ExceptionClear();
-				if (LIKELY(detected_array)) {
-					env->DeleteLocalRef(detected_array);
-				}
-				if (buf_frame) {
-					env->DeleteLocalRef(buf_frame);
-				}
-			}
-		} catch (cv::Exception e) {
-			LOGE("do_process failed:%s", e.msg.c_str());
-			continue;
+	// 外周に四角を描いておく。でないと画面の外にはみ出した部分が有る形状を閉曲線として検出出来ない
+	cv:rectangle(src, cv::Rect(8, 8, src.cols - 8, src.rows - 8), COLOR_WHITE, 8);
+	// 輪郭を求める
+	contours.clear();
+	cv::findContours(src, contours,
+		cv::RETR_CCOMP, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
+		cv::CHAIN_APPROX_NONE);	// 輪郭データ近似方法, CHAIN_APPROX_NONE:無し,  CHAIN_APPROX_SIMPLE:直線は頂点のみにする,  CHAIN_APPROX_TC89_L1, CHAIN_APPROX_TC89_KCOS
+//	// 検出した輪郭を全て描画
+//	if (show_detects) {
+//		cv::drawContours(result, contours, -1, COLOR_YELLOW);
+//	}
+	approxes.clear();
+	// 検出した輪郭の数分ループする
+	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
+		std::vector< cv::Point > approx;		// 近似輪郭
+		// 輪郭を近似する, 近似精度は輪郭全周の1%まで(FIXME これはもう少し大きくてもいいかも)
+		cv::approxPolyDP(cv::Mat(*contour), approx,
+			0.01 * cv::arcLength(*contour, true),  // epsilon: 近似精度(元の輪郭と近似曲線との最大距離)
+			true);	// closed: 閉曲線にするかどうか
+		const size_t num_vertex = approx.size();
+		if (LIKELY(num_vertex < 4)) continue;	// 3角形はスキップ
+		// 輪郭を内包する最小矩形(回転あり)を取得
+		cv::RotatedRect area_rect = cv::minAreaRect(approx);
+		// 常に横長として幅と高さを取得
+		const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
+		const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
+		// 外周線
+		if ((w > 620) && (h > 350)) continue;
+		// 近似輪郭の面積を計算, 面積が小さすぎるのはスキップ
+		const float area = (float)cv::contourArea(approx);
+		if (area < 1000.0f) continue;
+		if (show_detects) {
+			draw_rect(result, area_rect, COLOR_YELLOW);
 		}
-		recycle(frame);
+		possible.type = TYPE_NON;
+		possible.contour.assign(approx.begin(), approx.end());
+		possible.area_rect = area_rect;
+		possible.area = area;
+		possible.area_rate = w * h / area;
+		possible.aspect = w / h;
+		possible.length = w;	// 長軸長さ
+		possible.width = h;		// 短軸長さ
+		approxes.push_back(possible);
 	}
 
-	EXIT();
+	RETURN(0, int);
+}
+
+/*protected*/
+int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result, cv::Mat &result,
+	const bool &needs_result, const bool &show_src) {
+
+	ENTER();
+
+	// RGBAのままだとHSVに変換できないので一旦BGRに変える
+	cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
+//	cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
+/*	// 色抽出処理, 色相は問わず彩度が低くて明度が高い領域を抽出
+	mMutex.lock();
+	{
+		memcpy(extractColorHSV, mExtractColorHSV, sizeof(int) * 6);
+	}
+	mMutex.unlock();
+	colorExtraction(&src, &src, cv::COLOR_BGR2HSV, 0, &extractColorHSV[0], &extractColorHSV[3]); */
+	// グレースケールに変換(RGBA->Y)
+	cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
+	// 平滑化
+//	cv::Sobel(src, src, CV_32F, 1, 1);
+//	cv::convertScaleAbs(src, src, 1, 0);
+	// エッジ検出(Cannyの結果は2値化されてる)
+	cv::Canny(src, src, 50, 200);
+	// 2値化
+//	cv::threshold(src, src, 125, 255, cv::THRESH_BINARY);
+//	cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
+
+	// 表示用にカラー画像に戻す
+	if (needs_result) {
+		if (show_src) {
+			bk_result = frame;
+		} else {
+			cv::cvtColor(src, bk_result, cv::COLOR_GRAY2RGBA);
+//			cv::cvtColor(src, bk_result, cv::COLOR_BGR2RGBA);
+		}
+	}
+//	cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
+
+	RETURN(0, int);
 }
 
 /**
@@ -772,6 +803,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
  * @param lower HSV下限
  * @param upper HSV上限
  */
+/*protected*/
 int ImageProcessor::colorExtraction(cv::Mat *src, cv::Mat *dst,
 	int convert_code,			// cv:cvtColorの第3引数, カラー変換方法
 	int method,
