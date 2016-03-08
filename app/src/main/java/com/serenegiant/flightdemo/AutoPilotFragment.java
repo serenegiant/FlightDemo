@@ -105,6 +105,8 @@ public class AutoPilotFragment extends PilotFragment {
 			mImageProcessor.setEmphasis(mEnableEmphasis);
 			mImageProcessor.setExtraction(mEnableExtraction);
 			mImageProcessor.setExtractionColor(0, 180, 0, 50, 120, 255);
+			mImageProcessor.enableNativeExtract(false);
+			mImageProcessor.enableNativeCanny(true);
 			mImageProcessor.start();
 			final Surface surface = mImageProcessor.getSurface();
 			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;

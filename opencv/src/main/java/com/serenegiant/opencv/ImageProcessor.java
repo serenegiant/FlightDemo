@@ -419,12 +419,16 @@ public class ImageProcessor {
 	public void setResultFrameType(final int result_frame_type) {
 		final int result = nativeSetResultFrameType(mNativePtr, result_frame_type);
 		if (result != 0) {
-			throw new IllegalStateException("result=" + result);
+			throw new IllegalStateException("nativeSetResultFrameType:result=" + result);
 		}
 	}
 
 	public int getResultFrameType() {
-		return nativeGetResultFrameType(mNativePtr);
+		final int result = nativeGetResultFrameType(mNativePtr);
+		if (result < 0) {
+			throw new IllegalStateException("nativeGetResultFrameType:result=" + result);
+		}
+		return result;
 	}
 
 	public void setExtractionColor(
@@ -433,8 +437,38 @@ public class ImageProcessor {
 		final int lowerV, final int upperV) {
 		final int result = nativeSetExtractionColor(mNativePtr, lowerH, upperH, lowerS, upperS, lowerV, upperV);
 		if (result != 0) {
-			throw new IllegalStateException("result=" + result);
+			throw new IllegalStateException("nativeSetExtractionColor:result=" + result);
 		}
+	}
+
+	public void enableNativeExtract(final boolean enable) {
+		final int result = nativeSetEnableExtract(mNativePtr, enable ? 1 : 0);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetEnableExtract:result=" + result);
+		}
+	}
+
+	public boolean enableNativeExtract() {
+		final int result = nativeGetEnableExtract(mNativePtr);
+		if (result < 0) {
+			throw new IllegalStateException("nativeGetEnableExtract:result=" + result);
+		}
+		return result != 0;
+	}
+
+	public void enableNativeCanny(final boolean enable) {
+		final int result = nativeSetEnableCanny(mNativePtr, enable ? 1 : 0);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetEnableCanny:result=" + result);
+		}
+	}
+
+	public boolean enableNativeCanny() {
+		final int result = nativeGetEnableCanny(mNativePtr);
+		if (result < 0) {
+			throw new IllegalStateException("nativeGetEnableCanny:result=" + result);
+		}
+		return result != 0;
 	}
 
 	private static boolean isInit;
@@ -462,4 +496,8 @@ public class ImageProcessor {
 		final int lowerH, final int upperH,
 		final int lowerS, final int upperS,
 		final int lowerV, final int upperV);
+	private static native int nativeSetEnableExtract(final long id_native, final int enable);
+	private static native int nativeGetEnableExtract(final long id_native);
+	private static native int nativeSetEnableCanny(final long id_native, final int enable);
+	private static native int nativeGetEnableCanny(final long id_native);
 }

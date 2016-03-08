@@ -15,7 +15,7 @@
 
 using namespace android;
 
-#define RESULT_FRAME_TYPE_NON 0
+#define RESULT_FRAME_TYPE_NON 0			// 数値のみ返す
 #define RESULT_FRAME_TYPE_SRC 1
 #define RESULT_FRAME_TYPE_DST 2
 #define RESULT_FRAME_TYPE_SRC_LINE 3
@@ -27,13 +27,17 @@ using namespace android;
 // フレームプール中の最大フレーム数
 #define MAX_POOL_SIZE 8
 
-
 typedef enum DetectType {
 	TYPE_NON = -1,
 	TYPE_LINE = 0,
 	TYPE_CURVE = 1,
 	TYPE_CORNER = 2,
 } DetectType_t;
+
+typedef enum ApproxType {
+	APPROX_ABS = 0,		// mApproxFactorの値は絶対値[ピクセル]
+	APPROX_RELATIVE,	// mApproxFactorの値は輪郭周長に対する割合
+} ApproxType_t;
 
 typedef struct DetectRec {
 	std::vector< cv::Point > contour;	// 近似輪郭
@@ -49,14 +53,42 @@ typedef struct DetectRec {
 	float curvature;			// 曲率
 } DetectRec_t;
 
+typedef struct DetectParam DetectParam_t;
+struct DetectParam {
+public:
+	volatile int mResultFrameType;
+	volatile bool mEnableExtract;
+	volatile bool mEnableCanny;
+	volatile ApproxType_t mApproxType;
+	volatile double mApproxFactor;
+	volatile double mCannythreshold1;
+	volatile double mCannythreshold2;
+	volatile float mMaxAnalogous;
+	// これより下は内部計算
+	bool needs_result;	// これは内部計算
+	bool show_src;		// これは内部計算
+	bool show_detects;	// これは内部計算
+	void set(const DetectParam_t &other) {
+		mResultFrameType = other.mResultFrameType;
+		mEnableExtract = other.mEnableExtract;
+		mEnableCanny = other.mEnableCanny;
+		mApproxType = other.mApproxType;
+		mApproxFactor = other.mApproxFactor;
+		mCannythreshold1 = other.mCannythreshold1;
+		mCannythreshold2 = other.mCannythreshold2;
+		mMaxAnalogous = other.mMaxAnalogous;
+		needs_result = mResultFrameType != RESULT_FRAME_TYPE_NON;
+		show_src = (mResultFrameType == RESULT_FRAME_TYPE_SRC) || (mResultFrameType == RESULT_FRAME_TYPE_SRC_LINE);
+		show_detects = needs_result && (mResultFrameType == RESULT_FRAME_TYPE_SRC_LINE) || (mResultFrameType == RESULT_FRAME_TYPE_DST_LINE);
+	}
+} ;
 
 class ImageProcessor {
 private:
 	jobject mWeakThiz;
 	jclass mClazz;
 	volatile bool mIsRunning;
-	volatile int mResultFrameType;
-	volatile bool mEnableExtract;
+	DetectParam_t mParam;
 
 	mutable Mutex mMutex;
 	mutable Mutex mPoolMutex;
@@ -73,29 +105,25 @@ private:
 	// 処理スレッドの実行関数
 	static void *processor_thread_func(void *vptr_args);
 	void do_process(JNIEnv *env);
-	int callJavaCallback(JNIEnv *env, DetectRec_t detect_result, cv::Mat &result, const bool &needs_result);
+	int callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv::Mat &result, const DetectParam_t &param);
 protected:
-	int pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result, cv::Mat &result,
-		const bool &enable_extract, const bool &needs_result, const bool &show_src);
+	int pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result, cv::Mat &result, const DetectParam_t &param);
 	int findContours(cv::Mat &src, cv::Mat &result,
-		std::vector<std::vector< cv::Point>> contours,	// 輪郭データ
-		std::vector<DetectRec_t> approxes,	// 近似輪郭
-		const bool &show_detects);
-	int colorExtraction(cv::Mat *src, cv::Mat *dst,
+		std::vector<std::vector< cv::Point>> &contours,	// 輪郭データ
+		std::vector<DetectRec_t> &approxes,	// 近似輪郭
+		const DetectParam_t &param);
+	int colorExtraction(const cv::Mat &src, cv::Mat *dst,
 	    int convert_code,	// cv:cvtColorの第3引数, カラー変換方法
 	    int method,
 		const int lower[], const int upper[]
 	);
 	// 直線ラインの検出処理
 	int detect_line(std::vector<DetectRec_t> &contours,
-		const bool &needs_result, const bool &show_detects,
-		cv::Mat &result_frame, DetectRec_t &possible);
+		cv::Mat &result_frame, DetectRec_t &possible, const DetectParam_t &param);
 	int detect_circle(std::vector<DetectRec_t> &contours,
-		const bool &needs_result, const bool &show_detects,
-		cv::Mat &result_frame, DetectRec_t &possible);
+		cv::Mat &result_frame, DetectRec_t &possible, const DetectParam_t &param);
 	int detect_corner(std::vector<DetectRec_t> &contours,
-		const bool &needs_result, const bool &show_detects,
-		cv::Mat &result_frame, DetectRec_t &possible);
+		cv::Mat &result_frame, DetectRec_t &possible, const DetectParam_t &param);
 	// フレームプール・フレームキュー関係
 	cv::Mat getFrame();
 	cv::Mat obtainFromPool(const int &width, const int &height);
@@ -111,10 +139,12 @@ public:
 	int stop();		// これはJava側の描画スレッド内から呼ばれる(EGLContextが有る)
 	int handleFrame(const int &width, const int &height, const int &unused = 0);
 	inline const bool isRunning() const { return mIsRunning; };
-	inline void setResultFrameType(const int &result_frame_type) { mResultFrameType = result_frame_type % RESULT_FRAME_TYPE_MAX; };
-	inline const int getResultFrameType() const { return mResultFrameType; };
-	inline void setEnableExtract(const bool &enable) { mEnableExtract = enable; };
-	inline const bool getEnableExtract() const { return mEnableExtract; };
+	inline void setResultFrameType(const int &result_frame_type) { mParam.mResultFrameType = result_frame_type % RESULT_FRAME_TYPE_MAX; };
+	inline const int getResultFrameType() const { return mParam.mResultFrameType; };
+	inline void setEnableExtract(const int &enable) { mParam.mEnableExtract = enable != 0; };
+	inline const int getEnableExtract() const { return mParam.mEnableExtract ? 1 : 0; };
+	inline void setEnableCanny(const int &enable) { mParam.mEnableCanny = enable != 0; };
+	inline const int getEnableCanny() const { return mParam.mEnableCanny ? 1 : 0; };
 	/** 抽出色の上下限をHSVで設定 */
 	int setExtractionColor(const int lower[], const int upper[]);
 };

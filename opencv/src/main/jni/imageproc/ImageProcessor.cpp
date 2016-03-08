@@ -41,6 +41,7 @@ struct fields_t {
 };
 static fields_t fields;
 
+// 繰り返し使うのでstaticに生成しておく
 static const cv::Scalar COLOR_ORANGE = cv::Scalar(255, 127, 0);
 static const cv::Scalar COLOR_RED = cv::Scalar(255, 0, 0);
 static const cv::Scalar COLOR_GREEN = cv::Scalar(255, 0, 0);
@@ -55,10 +56,21 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 :	mWeakThiz(env->NewGlobalRef(weak_thiz_obj)),
 	mClazz((jclass)env->NewGlobalRef(clazz)),
 	mIsRunning(false),
-	mEnableExtract(false),
-	mResultFrameType(RESULT_FRAME_TYPE_DST_LINE),
 	pbo_ix(0)
 {
+	// 結果形式
+	mParam.mResultFrameType = RESULT_FRAME_TYPE_DST_LINE;
+	// 色抽出するかどうか
+	mParam.mEnableExtract = false;
+	// 輪郭近似
+	mParam.mApproxType = APPROX_RELATIVE;
+	mParam.mApproxFactor = 0.01;
+	// Canny
+	mParam.mEnableCanny = true;
+	mParam.mCannythreshold1 = 50.0;	// エッジ検出する際のしきい値
+	mParam.mCannythreshold2 = 200.0;
+	// 基準図形との類似性の最大値
+	mParam.mMaxAnalogous = 50.0;
 	// H(色相)は制限なし, S(彩度)は0-約5%, 2:V(明度)は約80-100%
 	mExtractColorHSV[0] = 0;	// H下限
 	mExtractColorHSV[1] = 0;	// S下限
@@ -334,6 +346,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 	DetectRec_t possible;
 	std::vector<std::vector< cv::Point>> contours;	// 輪郭データ
 	std::vector<DetectRec_t> approxes;	// 近似輪郭
+	DetectParam_t param;
 
 	for ( ; mIsRunning ; ) {
 		// フレームデータの取得待ち
@@ -342,36 +355,38 @@ void ImageProcessor::do_process(JNIEnv *env) {
 		try {
 //================================================================================
 // フラグ更新
-			const int frame_type = mResultFrameType;
-			const bool needs_result = frame_type != RESULT_FRAME_TYPE_NON;
-			const bool show_src = (frame_type == RESULT_FRAME_TYPE_SRC) || (frame_type == RESULT_FRAME_TYPE_SRC_LINE);
-			const bool show_detects = needs_result && (frame_type == RESULT_FRAME_TYPE_SRC_LINE) || (frame_type == RESULT_FRAME_TYPE_DST_LINE);
-			const bool enable_extract = mEnableExtract;
+			param.set(mParam);
+//			const int frame_type = mResultFrameType;
+//			const bool needs_result = frame_type != RESULT_FRAME_TYPE_NON;
+//			const bool show_src = (frame_type == RESULT_FRAME_TYPE_SRC) || (frame_type == RESULT_FRAME_TYPE_SRC_LINE);
+//			const bool show_detects = needs_result && (frame_type == RESULT_FRAME_TYPE_SRC_LINE) || (frame_type == RESULT_FRAME_TYPE_DST_LINE);
+//			const bool enable_extract = mEnableExtract;
+//			const bool enable_canny = mEnableCanny;
 // 前処理
 			cv::Mat src, bk_result, result;
-			pre_process(frame, src, bk_result, result, enable_extract, needs_result, show_src);
+			pre_process(frame, src, bk_result, result, param);
 //--------------------------------------------------------------------------------
 // 輪郭の検出処理
 // 最大で直線・円弧・コーナーの3つの処理が走るので近似輪郭検出と最低限のチェック(面積とか)は1回だけ先に済ましておく
-			findContours(src, bk_result, contours, approxes, show_detects);
+			findContours(src, bk_result, contours, approxes, param);
 //--------------------------------------------------------------------------------
 // 直線ラインの検出処理
 			// 表示用にカラー画像に戻す
 			result = bk_result;
-			detect_line(approxes, needs_result, show_detects, result, possible);
+			detect_line(approxes, result, possible, param);
 			if (UNLIKELY(possible.type == TYPE_NON)) {
 // 円弧の検出処理
 				result = bk_result;
-				detect_circle(approxes, needs_result, show_detects, result, possible);
+				detect_circle(approxes, result, possible, param);
 			}
 			if (UNLIKELY(possible.type == TYPE_NON)) {
 // コーナーの検出処理
 				result = bk_result;
-				detect_circle(approxes, needs_result, show_detects, result, possible);
+				detect_circle(approxes, result, possible, param);
 			}
 //================================================================================
 			// Java側のコールバックメソッドを呼び出す
-			callJavaCallback(env, possible, result, needs_result);
+			callJavaCallback(env, possible, result, param);
 		} catch (cv::Exception e) {
 			LOGE("do_process failed:%s", e.msg.c_str());
 			continue;
@@ -385,7 +400,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 #define RESULT_NUM 20
 
 /*private*/
-int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t detect_result, cv::Mat &result, const bool &needs_result) {
+int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv::Mat &result, const DetectParam_t &param) {
 	ENTER();
 
 	float detected[RESULT_NUM];
@@ -400,7 +415,7 @@ int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t detect_result, cv:
 		jfloatArray detected_array = env->NewFloatArray(RESULT_NUM);
 		env->SetFloatArrayRegion(detected_array, 0, RESULT_NUM, detected);
 		// 解析画像
-		jobject buf_frame = needs_result ? env->NewDirectByteBuffer(result.data, result.total() * result.elemSize()) : NULL;
+		jobject buf_frame = param.needs_result ? env->NewDirectByteBuffer(result.data, result.total() * result.elemSize()) : NULL;
 		// コールバックメソッドを呼び出す
 		env->CallStaticVoidMethod(mClazz, fields.callFromNative, mWeakThiz, detect_result.type, buf_frame, detected_array);
 		env->ExceptionClear();
@@ -517,7 +532,7 @@ static double compHuMoments(const double mb[], int method) {
 
 // 検出したオブジェクトの優先度の判定
 // 第1引数が第2引数よりも小さい(前にある=優先度が高い)時に真(正)を返す
-static bool comp_line_priority(const DetectRec &left, const DetectRec &right ) {
+static bool comp_line_priority(const DetectRec &left, const DetectRec &right) {
 //	// 頂点1つあたりの面積の比較(大きい方)
 //	const bool b1 = left.area_vertex > right.area_vertex;
 	// 類似性(小さい方, 曲線だと大きくなってしまう)
@@ -550,7 +565,7 @@ static bool comp_line_priority(const DetectRec &left, const DetectRec &right ) {
 /** 映像の前処理 */
 /*protected*/
 int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result, cv::Mat &result,
-	const bool &enable_extract, const bool &needs_result, const bool &show_src) {
+	const DetectParam_t &param) {
 
 	ENTER();
 
@@ -558,29 +573,31 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 	cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
 //	cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
 	// 色抽出処理, 色相は問わず彩度が低くて明度が高い領域を抽出
-	if (enable_extract) {
+	if (param.mEnableExtract) {
 		int extractColorHSV[6];
 		mMutex.lock();
 		{
 			memcpy(extractColorHSV, mExtractColorHSV, sizeof(int) * 6);
 		}
 		mMutex.unlock();
-		colorExtraction(&src, &src, cv::COLOR_BGR2HSV, 0, &extractColorHSV[0], &extractColorHSV[3]);
+		colorExtraction(src, &src, cv::COLOR_BGR2HSV, 0, &extractColorHSV[0], &extractColorHSV[3]);
 	}
 	// グレースケールに変換(RGBA->Y)
 	cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
 	// 平滑化
 //	cv::Sobel(src, src, CV_32F, 1, 1);
 //	cv::convertScaleAbs(src, src, 1, 0);
-	// エッジ検出(Cannyの結果は2値化されてる)
-	cv::Canny(src, src, 50, 200);
+	if (param.mEnableCanny) {
+		// エッジ検出(Cannyの結果は2値化されてる)
+		cv::Canny(src, src, param.mCannythreshold1, param.mCannythreshold2);
+	}
 	// 2値化
 //	cv::threshold(src, src, 125, 255, cv::THRESH_BINARY);
 //	cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
 
 	// 表示用にカラー画像に戻す
-	if (needs_result) {
-		if (show_src) {
+	if (param.needs_result) {
+		if (param.show_src) {
 			bk_result = frame;
 		} else {
 			cv::cvtColor(src, bk_result, cv::COLOR_GRAY2RGBA);
@@ -602,7 +619,7 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
  * @param upper HSV上限
  */
 /*protected*/
-int ImageProcessor::colorExtraction(cv::Mat *src, cv::Mat *dst,
+int ImageProcessor::colorExtraction(const cv::Mat &src, cv::Mat *dst,
 	int convert_code,			// cv:cvtColorの第3引数, カラー変換方法
 	int method,
 	const int lower[], const int upper[]) {
@@ -615,13 +632,13 @@ int ImageProcessor::colorExtraction(cv::Mat *src, cv::Mat *dst,
 
 	try {
 		// HSVに変換
-		cv::cvtColor(*src, hsv, convert_code);
+		cv::cvtColor(src, hsv, convert_code);
 
 		if (method == 1) {
 			cv::Mat mask;
 			cv::inRange(hsv, cv::Scalar(lower[0], lower[1], lower[2]) , cv::Scalar(upper[0], upper[1], upper[2]), mask);
 			cv::Mat output;
-			src->copyTo(output, mask);
+			src.copyTo(output, mask);	// copyToの出力先はデータが入ってちゃだめらしい
 			*dst = output;
 		} else {
 			cv::Mat lut = cv::Mat(256, 1, CV_8UC3);
@@ -658,7 +675,7 @@ int ImageProcessor::colorExtraction(cv::Mat *src, cv::Mat *dst,
 
 			// 出力
 			cv::Mat output;
-			src->copyTo(output, mask);
+			src.copyTo(output, mask);	// copyToの出力先はデータが入ってちゃだめらしい
 			*dst = output;
 //			*dst = mask;	// マスクを返せば勝手に２値画像になる
 		}
@@ -672,17 +689,19 @@ int ImageProcessor::colorExtraction(cv::Mat *src, cv::Mat *dst,
 /** 輪郭線を検出 */
 /*protected*/
 int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
-	std::vector<std::vector< cv::Point>> contours,	// 輪郭データ
-	std::vector<DetectRec_t> approxes,	// 近似輪郭
-	const bool &show_detects) {
+	std::vector<std::vector< cv::Point>> &contours,	// 輪郭データ
+	std::vector<DetectRec_t> &approxes,	// 近似輪郭
+	const DetectParam_t &param) {
 	ENTER();
 
 	DetectRec_t possible;
 
+	contours.clear();
+	approxes.clear();
+
 	// 外周に四角を描いておく。でないと画面の外にはみ出した部分が有る形状を閉曲線として検出出来ない
 	cv:rectangle(src, cv::Rect(8, 8, src.cols - 8, src.rows - 8), COLOR_WHITE, 8);
 	// 輪郭を求める
-	contours.clear();
 	cv::findContours(src, contours,
 		cv::RETR_CCOMP, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
 		cv::CHAIN_APPROX_NONE);	// 輪郭データ近似方法, CHAIN_APPROX_NONE:無し,  CHAIN_APPROX_SIMPLE:直線は頂点のみにする,  CHAIN_APPROX_TC89_L1, CHAIN_APPROX_TC89_KCOS
@@ -690,14 +709,15 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 //	if (show_detects) {
 //		cv::drawContours(result, contours, -1, COLOR_YELLOW);
 //	}
-	approxes.clear();
 	// 検出した輪郭の数分ループする
 	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
 		std::vector< cv::Point > approx;		// 近似輪郭
-		// 輪郭を近似する, 近似精度は輪郭全周の1%まで(FIXME これはもう少し大きくてもいいかも)
-		cv::approxPolyDP(cv::Mat(*contour), approx,
-			0.01 * cv::arcLength(*contour, true),  // epsilon: 近似精度(元の輪郭と近似曲線との最大距離)
-			true);	// closed: 閉曲線にするかどうか
+		// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
+		const double epsilon = param.mApproxType == APPROX_RELATIVE
+			? mParam.mApproxFactor * cv::arcLength(*contour, true)
+			: mParam.mApproxFactor;
+		// 輪郭を近似する
+		cv::approxPolyDP(*contour, approx, epsilon, true);	// 閉曲線にする
 		const size_t num_vertex = approx.size();
 		if (LIKELY(num_vertex < 4)) continue;	// 3角形はスキップ
 		// 輪郭を内包する最小矩形(回転あり)を取得
@@ -705,12 +725,11 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		// 常に横長として幅と高さを取得
 		const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
 		const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
-		// 外周線
-		if ((w > 620) && (h > 350)) continue;
+		if ((w > 620) && (h > 345)) continue;	// 外周線
 		// 近似輪郭の面積を計算, 面積が小さすぎるのはスキップ
 		const float area = (float)cv::contourArea(approx);
 		if (area < 1000.0f) continue;
-		if (show_detects) {
+		if (param.show_detects) {
 			draw_rect(result, area_rect, COLOR_YELLOW);
 		}
 		possible.type = TYPE_NON;
@@ -733,8 +752,8 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 /*protected*/
 int ImageProcessor::detect_line(
 	std::vector<DetectRec_t> &contours,	// 近似輪郭
-	const bool &needs_result, const bool &show_detects,
-	cv::Mat &result_frame, DetectRec_t &possible) {			// 結果
+	cv::Mat &result_frame, DetectRec_t &possible,
+	const DetectParam_t &param) {			// 結果
 
 	ENTER();
 
@@ -751,7 +770,7 @@ int ImageProcessor::detect_line(
 		20			// 2点が同一線上にあるとみなす最大距離[ピクセル]
 	);
 	// 検出結果をresultに書き込み
-	if (show_detects) {
+	if (param.show_detects) {
 		for (size_t i = 0; i < lines.size(); i++ ) {
 			cv::Vec4i l = lines[i];
 			cv::line(bk_result, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), COLOR_RED, 3, 8);
@@ -762,7 +781,7 @@ int ImageProcessor::detect_line(
 	std::vector<cv::Vec2i> lines;
 	cv::HoughLines(src, lines, 1, CV_PI/180, 100);
 	// 検出結果をresultに書き込み
-	if (show_detects) {
+	if (param.show_detects) {
 		for (size_t i = 0; i < lines.size(); i++ ) {
 			float rho = lines[i][0];
 			float theta = lines[i][1];
@@ -775,7 +794,6 @@ int ImageProcessor::detect_line(
 	}
 #endif
 #endif // #if DETECT_LINES
-
 	std::vector<DetectRec_t> possibles;		// 可能性のある輪郭
 	double hu_moments[8];
 	int ix = 0;	// 輪郭のインデックス
@@ -787,22 +805,23 @@ int ImageProcessor::detect_line(
 		cv::RotatedRect area_rect = approx.area_rect;
 		// アスペクト比が正方形に近いものはスキップ
 		if (LIKELY((approx.aspect > 0.3f) && (approx.aspect < 3.0f))) continue;
-		if (show_detects) {
+		if (param.show_detects) {
 			draw_rect(result_frame, area_rect, COLOR_ORANGE);
 		}
-		// 最小矩形と元輪郭の面積比が大き過ぎる場合と面積の割に頂点が多いものもスキップ
+		// 最小矩形と元輪郭の面積比が大き過ぎる場合スキップ
+		if ((approx.area_rate < 0.67f) && (approx.area_rate > 1.5f)) continue;	// ±50%以上ずれている時はスキップ
 		const float area_vertex = approx.area / approx.contour.size();
-		if (((approx.area_rate < 0.67f) && (approx.area_rate > 1.5f))	// ±50%以上ずれている時はスキップ
-			|| (area_vertex < 200.0f)) continue;		// 1頂点あたり200ピクセルよりも小さい
-		if (show_detects) {
+		// 面積の割に頂点が多いものもスキップ これを入れるとエッジがギザギザの時に検出できなくなる
+//		if (area_vertex < 200.0f) continue;		// 1頂点あたり200ピクセルよりも小さい
+		if (param.show_detects) {
 			draw_rect(result_frame, area_rect, COLOR_GREEN);
 		}
 		// 輪郭のHu momentを計算
 		cv::HuMoments(cv::moments(approx.contour), hu_moments);
 		// 基準値と比較, メソッド1は時々一致しない, メソッド2,3だとほとんど一致しない, 完全一致なら0が返る
 		const float analogous = (float)compHuMoments(hu_moments, 1);
-		// Hu momentsが基準値との差が大きい時はスキップ FIXME ここは幅を持たせた方がいいかも
-		if (analogous > 20.0f) {
+		// Hu momentsが基準値との差が大きい時はスキップ
+		if (analogous < param.mMaxAnalogous) {
 			// ラインの可能性が高い輪郭を追加
 			possible.type = TYPE_LINE;
 			possible.contour.assign(approx.contour.begin(), approx.contour.end());
@@ -814,7 +833,7 @@ int ImageProcessor::detect_line(
 			possible.width = approx.width;		// 短軸長さ
 			possible.analogous = analogous;
 			possibles.push_back(possible);
-			if (show_detects) {
+			if (param.show_detects) {
 				draw_rect(result_frame, area_rect, COLOR_BLUE);
 			}
 		}
@@ -837,14 +856,14 @@ int ImageProcessor::detect_line(
 					possible.curvature = (float)(b / a / a);
 //					LOGI("fit ellipse:(%f,%f),%f,%f", ellipse.size.width, ellipse.size.height, ellipse.angle, possible.curvature);
 				}
-				if (show_detects) {
+				if (param.show_detects) {
 					cv::ellipse(result_frame, ellipse.center, ellipse.size, ellipse.angle, 0, 360, COLOR_RED);
 				}
 			} catch (cv::Exception e) {
 				LOGE("fitEllipse failed:%s", e.msg.c_str());
 			}
 		}
-		if (show_detects) {
+		if (param.show_detects) {
 			// ラインとして検出した輪郭線を赤で描画する
 			cv::polylines(result_frame, possible.contour, true, COLOR_RED, 2);	// 赤色
 			// 中央から検出したオブジェクトの中心に向かって線を引く
@@ -860,8 +879,8 @@ int ImageProcessor::detect_line(
 /*protected*/
 int ImageProcessor::detect_circle(
 	std::vector<DetectRec_t> &contours,	// 近似輪郭
-	const bool &needs_result, const bool &show_detects,
-	cv::Mat &result_frame, DetectRec_t &possible) {			// 結果
+	cv::Mat &result_frame, DetectRec_t &possible,
+	const DetectParam_t &param) {			// 結果
 
 	ENTER();
 
@@ -872,8 +891,8 @@ int ImageProcessor::detect_circle(
 /*protected*/
 int ImageProcessor::detect_corner(
 	std::vector<DetectRec_t> &contours,	// 近似輪郭
-	const bool &needs_result, const bool &show_detects,
-	cv::Mat &result_frame, DetectRec_t &possible) {			// 結果
+	cv::Mat &result_frame, DetectRec_t &possible,
+	const DetectParam_t &param) {			// 結果
 
 	ENTER();
 
@@ -1027,18 +1046,81 @@ static jint nativeSetExtractionColor(JNIEnv *env, jobject thiz,
 
 	RETURN(result, jint);
 }
+
+static jint nativeSetEnableExtract(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jint enable) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		processor->setEnableExtract(enable);
+		result = 0;
+	}
+
+	RETURN(result, jint);
+}
+
+static jint nativeGetEnableExtract(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->getEnableExtract();
+	}
+
+	RETURN(result, jint);
+}
+
+static jint nativeSetEnableCanny(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jint enable) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		processor->setEnableCanny(enable);
+		result = 0;
+	}
+
+	RETURN(result, jint);
+}
+
+static jint nativeGetEnableCanny(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->getEnableCanny();
+	}
+
+	RETURN(result, jint);
+}
+
 //================================================================================
 //================================================================================
 static JNINativeMethod methods[] = {
-	{ "nativeClassInit",		"()V",   (void*)nativeClassInit },
-	{ "nativeCreate",			"(Ljava/lang/ref/WeakReference;)J", (void *) nativeCreate },
-	{ "nativeRelease",			"(J)V", (void *) nativeRelease },
-	{ "nativeStart",			"(JII)I", (void *) nativeStart },
-	{ "nativeStop",				"(J)I", (void *) nativeStop },
-	{ "nativeHandleFrame",		"(JIII)I", (void *) nativeHandleFrame },
+	{ "nativeClassInit",			"()V",   (void*)nativeClassInit },
+	{ "nativeCreate",				"(Ljava/lang/ref/WeakReference;)J", (void *) nativeCreate },
+	{ "nativeRelease",				"(J)V", (void *) nativeRelease },
+	{ "nativeStart",				"(JII)I", (void *) nativeStart },
+	{ "nativeStop",					"(J)I", (void *) nativeStop },
+	{ "nativeHandleFrame",			"(JIII)I", (void *) nativeHandleFrame },
 	{ "nativeSetResultFrameType",	"(JI)I", (void *) nativeSetResultFrameType },
 	{ "nativeGetResultFrameType",	"(J)I", (void *) nativeGetResultFrameType },
 	{ "nativeSetExtractionColor",	"(JIIIIII)I", (void *) nativeSetExtractionColor },
+	{ "nativeSetEnableExtract",		"(JI)I", (void *) nativeSetEnableExtract },
+	{ "nativeGetEnableExtract",		"(J)I", (void *) nativeGetEnableExtract },
+	{ "nativeSetEnableCanny",		"(JI)I", (void *) nativeSetEnableCanny },
+	{ "nativeGetEnableCanny",		"(J)I", (void *) nativeGetEnableCanny },
 };
 
 
