@@ -25,6 +25,7 @@ import android.text.TextUtils;
 public class MediaEffect implements IEffect {
 	protected final EffectContext mEffectContext;
 	protected Effect mEffect;
+	protected boolean mEnabled = true;
 	/**
 	 * コンストラクタ
 	 * GLコンテキスト内で生成すること
@@ -42,14 +43,14 @@ public class MediaEffect implements IEffect {
 
 	@Override
 	public void apply(final int [] src_tex_ids, final int width, final int height, final int out_tex_id) {
-		if (mEffect != null) {
+		if (mEnabled && (mEffect != null)) {
 			mEffect.apply(src_tex_ids[0], width, height, out_tex_id);
 		}
 	}
 
 	@Override
 	public void apply(final ISource src) {
-		if (mEffect != null) {
+		if (mEnabled && (mEffect != null)) {
 			mEffect.apply(src.getSourceTexId()[0], src.getWidth(), src.getHeight(), src.getOutputTexId());
 		}
 	}
@@ -62,6 +63,12 @@ public class MediaEffect implements IEffect {
 		}
 	}
 
+	@Override
+	public MediaEffect resize(final int width, final int height) {
+		// ignore
+		return this;
+	}
+
 	protected MediaEffect setParameter(final String parameterKey, final Object value) {
 		if ((mEffect != null) && (value != null)) {
 			mEffect.setParameter(parameterKey, value);
@@ -69,4 +76,14 @@ public class MediaEffect implements IEffect {
 		return this;
 	}
 
+	@Override
+	public boolean enabled() {
+		return mEnabled;
+	}
+
+	@Override
+	public IEffect setEnable(final boolean enable) {
+		mEnabled = enable;
+		return this;
+	}
 }

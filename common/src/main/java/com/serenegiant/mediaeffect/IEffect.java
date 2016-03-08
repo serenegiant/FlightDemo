@@ -21,4 +21,7 @@ public interface IEffect {
 	public void apply(int[] src_tex_ids, int width, int height, int out_tex_id);
 	public void apply(ISource src);
 	public void release();
+	public IEffect resize(final int width, final int height);
+	public boolean enabled();
+	public IEffect setEnable(final boolean enable);
 }

@@ -27,6 +27,7 @@ public class MediaEffectKernel implements IEffect {
 
 	private FullFrameRect mDrawer;
 	private TextureOffscreen mOutputOffscreen;
+	private boolean mEnabled = true;
 
 	public MediaEffectKernel() {
 		mDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_FILT3x3));
@@ -52,6 +53,7 @@ public class MediaEffectKernel implements IEffect {
 	 */
 	@Override
 	public void apply(final int [] src_tex_ids, final int width, final int height, final int out_tex_id) {
+		if (!mEnabled) return;
 		if (mOutputOffscreen == null) {
 			mOutputOffscreen = new TextureOffscreen(width, height, false);
 		}
@@ -67,6 +69,7 @@ public class MediaEffectKernel implements IEffect {
 
 	@Override
 	public void apply(final ISource src) {
+		if (!mEnabled) return;
 		if (src instanceof MediaSource) {
 			final TextureOffscreen output_tex = ((MediaSource)src).getOutputTexture();
 			final int[] src_tex_ids = src.getSourceTexId();
@@ -97,6 +100,7 @@ public class MediaEffectKernel implements IEffect {
 		return this;
 	}
 
+	@Override
 	public MediaEffectKernel resize(final int width, final int height) {
 		if ((mOutputOffscreen == null) || (width != mOutputOffscreen.getWidth())
 			|| (height != mOutputOffscreen.getHeight())) {
@@ -105,6 +109,17 @@ public class MediaEffectKernel implements IEffect {
 			mOutputOffscreen = new TextureOffscreen(width, height, false);
 		}
 		mDrawer.getProgram().setTexSize(width, height);
+		return this;
+	}
+
+	@Override
+	public boolean enabled() {
+		return mEnabled;
+	}
+
+	@Override
+	public IEffect setEnable(final boolean enable) {
+		mEnabled = enable;
 		return this;
 	}
 }

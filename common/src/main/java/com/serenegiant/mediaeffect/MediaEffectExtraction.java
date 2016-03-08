@@ -32,6 +32,7 @@ public class MediaEffectExtraction implements IEffect {
 	private FullFrameRect mDrawer;
 	private TextureOffscreen mOutputOffscreen;
 	private final float[] mLimit = new float[Texture2dProgram.KERNEL_SIZE];
+	private boolean mEnabled = true;
 
 	private static final String FRAGMENT_SHADER_BASE = Texture2dProgram.SHADER_VERSION +
 		"%s" +
@@ -128,6 +129,7 @@ public class MediaEffectExtraction implements IEffect {
 	 */
 	@Override
 	public void apply(final int [] src_tex_ids, final int width, final int height, final int out_tex_id) {
+		if (!mEnabled) return;
 		if (mOutputOffscreen == null) {
 			mOutputOffscreen = new TextureOffscreen(width, height, false);
 		}
@@ -143,6 +145,7 @@ public class MediaEffectExtraction implements IEffect {
 
 	@Override
 	public void apply(final ISource src) {
+		if (!mEnabled) return;
 		if (src instanceof MediaSource) {
 			final TextureOffscreen output_tex = ((MediaSource)src).getOutputTexture();
 			final int[] src_tex_ids = src.getSourceTexId();
@@ -221,6 +224,7 @@ public class MediaEffectExtraction implements IEffect {
 		return this;
 	}
 
+	@Override
 	public MediaEffectExtraction resize(final int width, final int height) {
 		if ((mOutputOffscreen == null) || (width != mOutputOffscreen.getWidth())
 			|| (height != mOutputOffscreen.getHeight())) {
@@ -229,6 +233,17 @@ public class MediaEffectExtraction implements IEffect {
 			mOutputOffscreen = new TextureOffscreen(width, height, false);
 		}
 		mDrawer.getProgram().setTexSize(width, height);
+		return this;
+	}
+
+	@Override
+	public boolean enabled() {
+		return mEnabled;
+	}
+
+	@Override
+	public IEffect setEnable(final boolean enable) {
+		mEnabled = enable;
 		return this;
 	}
 }

@@ -11,6 +11,7 @@ import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.Texture2dProgram;
 import com.serenegiant.mediaeffect.IEffect;
 import com.serenegiant.mediaeffect.MediaEffectAutoFix;
+import com.serenegiant.mediaeffect.MediaEffectCanny;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
 import com.serenegiant.mediaeffect.MediaEffectKernel;
 import com.serenegiant.mediaeffect.MediaEffectSaturate;
@@ -228,7 +229,6 @@ public class ImageProcessor {
 			mTexId = mSrcDrawer.createTextureObject();
 			mSourceTexture = new SurfaceTexture(mTexId);
 			mSourceSurface = new Surface(mSourceTexture);
-			mSourceTexture.setDefaultBufferSize(mVideoWidth, mVideoHeight);
 			mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener);
 //--------------------------------------------------------------------------------
 			// プレフィルタの準備
@@ -391,7 +391,7 @@ public class ImageProcessor {
 				mMediaSource = new MediaSource(width, height);
 			}
 			for (final IEffect effect: mEffects) {
-				mMediaSource.resize(width, height);
+				effect.resize(width, height);
 			}
 		}
 

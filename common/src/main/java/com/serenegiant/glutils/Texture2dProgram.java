@@ -66,11 +66,11 @@ public class Texture2dProgram {
 
     // Simple vertex shader, used for all programs.
     public static final String VERTEX_SHADER = SHADER_VERSION +
-		"uniform mat4 uMVPMatrix;\n" +
-		"uniform mat4 uTexMatrix;\n" +
-		"attribute vec4 aPosition;\n" +
-		"attribute vec4 aTextureCoord;\n" +
-		"varying vec2 vTextureCoord;\n" +
+		"uniform mat4 uMVPMatrix;\n" +		// モデルビュー変換行列
+		"uniform mat4 uTexMatrix;\n" +		// テクスチャ変換行列
+		"attribute vec4 aPosition;\n" +		// 頂点座標
+		"attribute vec4 aTextureCoord;\n" +	// テクスチャ情報
+		"varying vec2 vTextureCoord;\n" +	// フラグメントシェーダーへ引き渡すテクスチャ座標
 		"void main() {\n" +
 		"    gl_Position = uMVPMatrix * aPosition;\n" +
 		"    vTextureCoord = (uTexMatrix * aTextureCoord).xy;\n" +
@@ -419,13 +419,13 @@ public class Texture2dProgram {
 
     // Handles to the GL program and various components of it.
     private int mProgramHandle;
-    private final int muMVPMatrixLoc;
-    private final int muTexMatrixLoc;
-    private int muKernelLoc;
-    private int muTexOffsetLoc;
-    private int muColorAdjustLoc;
-    private final int maPositionLoc;
-    private final int maTextureCoordLoc;
+    private final int muMVPMatrixLoc;	// モデルビュー変換行列
+    private final int muTexMatrixLoc;	// テクスチャ行列
+    private int muKernelLoc;			// カーネル行列(float配列)
+    private int muTexOffsetLoc;			// テクスチャオフセット(カーネル行列用)
+    private int muColorAdjustLoc;		// 色調整
+	private final int maPositionLoc;	//
+	private final int maTextureCoordLoc;//
     private int muTouchPositionLoc;
 	private int muFlagsLoc;
 
@@ -666,13 +666,13 @@ public class Texture2dProgram {
     public void handleTouchEvent(final MotionEvent ev){
         if(ev.getAction() == MotionEvent.ACTION_MOVE){
             // A finger is dragging about
-            if(mTexHeight != 0 && mTexWidth != 0){
+            if (mTexHeight != 0 && mTexWidth != 0){
                 mSummedTouchPosition[0] += (2 * (ev.getX() - mLastTouchPosition[0])) / mTexWidth;
                 mSummedTouchPosition[1] += (2 * (ev.getY() - mLastTouchPosition[1])) / -mTexHeight;
                 mLastTouchPosition[0] = ev.getX();
                 mLastTouchPosition[1] = ev.getY();
             }
-        } else if(ev.getAction() == MotionEvent.ACTION_DOWN){
+        } else if (ev.getAction() == MotionEvent.ACTION_DOWN){
             // The primary finger has landed
             mLastTouchPosition[0] = ev.getX();
             mLastTouchPosition[1] = ev.getY();
@@ -755,42 +755,38 @@ public class Texture2dProgram {
                      final float[] texMatrix, final FloatBuffer texBuffer, final int textureId, final int texStride) {
 		GLHelper.checkGlError("draw start");
 
-        // Select the program.
+        // シェーダープログラムを選択
         GLES20.glUseProgram(mProgramHandle);
 		GLHelper.checkGlError("glUseProgram");
 
-        // Set the texture.
+        // テクスチャを選択
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(mTextureTarget, textureId);
 		GLHelper.checkGlError("glBindTexture");
 
-        // Copy the model / view / projection matrix over.
+        // モデルビュー変換行列をセット
         GLES20.glUniformMatrix4fv(muMVPMatrixLoc, 1, false, mvpMatrix, 0);
 		GLHelper.checkGlError("glUniformMatrix4fv");
 
-        // Copy the texture transformation matrix over.
+        // テクスチャ変換行列をセット
         GLES20.glUniformMatrix4fv(muTexMatrixLoc, 1, false, texMatrix, 0);
 		GLHelper.checkGlError("glUniformMatrix4fv");
 
-        // Enable the "aPosition" vertex attribute.
+        // 頂点座標バッファを有効にする("aPosition" vertex attribute)
         GLES20.glEnableVertexAttribArray(maPositionLoc);
 		GLHelper.checkGlError("glEnableVertexAttribArray");
-
-        // Connect vertexBuffer to "aPosition".
         GLES20.glVertexAttribPointer(maPositionLoc, coordsPerVertex,
                 GLES20.GL_FLOAT, false, vertexStride, vertexBuffer);
 		GLHelper.checkGlError("glVertexAttribPointer");
 
-        // Enable the "aTextureCoord" vertex attribute.
+        // テクスチャ座標バッファを有効にする("aTextureCoord" vertex attribute)
         GLES20.glEnableVertexAttribArray(maTextureCoordLoc);
 		GLHelper.checkGlError("glEnableVertexAttribArray");
-
-        // Connect texBuffer to "aTextureCoord".
         GLES20.glVertexAttribPointer(maTextureCoordLoc, 2,
                 GLES20.GL_FLOAT, false, texStride, texBuffer);
 		GLHelper.checkGlError("glVertexAttribPointer");
 
-        // Populate the convolution kernel, if present.
+        // カーネル関数(行列)
         if (muKernelLoc >= 0) {
         	if (!mHasKernel2) {
 				GLES20.glUniform1fv(muKernelLoc, KERNEL_SIZE, mKernel, 0);
@@ -798,19 +794,20 @@ public class Texture2dProgram {
 				GLES20.glUniform1fv(muKernelLoc, KERNEL_SIZE * 2, mKernel, 0);
 			}
 			GLHelper.checkGlError("set kernel");
-			if (muTexOffsetLoc >= 0) {
-            	GLES20.glUniform2fv(muTexOffsetLoc, KERNEL_SIZE, mTexOffset, 0);
-			}
 		}
+		// テクセルオフセット
+		if ((muTexOffsetLoc >= 0) && (mTexOffset != null)) {
+           	GLES20.glUniform2fv(muTexOffsetLoc, KERNEL_SIZE, mTexOffset, 0);
+		}
+		// 色調整オフセット
 		if (muColorAdjustLoc >= 0) {
            	GLES20.glUniform1f(muColorAdjustLoc, mColorAdjust);
 		}
-
-        // Populate touch position data, if present
+        // タッチ座標
         if (muTouchPositionLoc >= 0){
             GLES20.glUniform2fv(muTouchPositionLoc, 1, mSummedTouchPosition, 0);
         }
-
+		// フラグ
 		if (muFlagsLoc >= 0) {
 			GLES20.glUniform1iv(muFlagsLoc, 4, mFlags, 0);
 		}

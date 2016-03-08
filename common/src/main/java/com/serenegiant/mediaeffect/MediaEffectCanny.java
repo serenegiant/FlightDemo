@@ -31,6 +31,7 @@ public class MediaEffectCanny implements IEffect {
 
 	private FullFrameRect mDrawer;
 	private TextureOffscreen mOutputOffscreen;
+	private boolean mEnabled = true;
 
 	private static final String FRAGMENT_SHADER_BASE = Texture2dProgram.SHADER_VERSION +
 		"%s" +
@@ -41,13 +42,11 @@ public class MediaEffectCanny implements IEffect {
 		"uniform float uKernel[18];\n" +
 		"uniform vec2  uTexOffset[KERNEL_SIZE];\n" +
 		"uniform float uColorAdjust;\n" +
-		"const float texelWidth = 1.0 / 640.0;\n" +
-		"const float texelHeight = 1.0 / 368.0;\n" +
 		"const float lowerThreshold = 0.4;\n" +	// lowerとupperの値を入れ替えると白黒反転する
 		"const float upperThreshold = 0.8;\n" +
 		"void main() {\n" +
 		"    vec3 currentGradientAndDirection = texture2D(sTexture, vTextureCoord).rgb;\n" +
-		"    vec2 gradientDirection = ((currentGradientAndDirection.gb * 2.0) - 1.0) * vec2(texelWidth, texelHeight);\n" +
+		"    vec2 gradientDirection = ((currentGradientAndDirection.gb * 2.0) - 1.0) * vec2(uTexOffset[7], uTexOffset[8]);\n" +
 		"    float firstSampledGradientMagnitude = texture2D(sTexture, vTextureCoord + gradientDirection).r;\n" +
 		"    float secondSampledGradientMagnitude = texture2D(sTexture, vTextureCoord - gradientDirection).r;\n" +
 		"    float multiplier = step(firstSampledGradientMagnitude, currentGradientAndDirection.r);\n" +
@@ -74,8 +73,6 @@ public class MediaEffectCanny implements IEffect {
 //		"    gl_FragColor = colorO;\n" +
 //		"}\n";
 //----
-//		"const float texWidth  = 1.0 / 640.0;\n" +
-//		"const float texHeight = 1.0 / 368.0;\n" +
 //		"const float threshold = 0.2;\n" +
 //		"const vec2 unshift = vec2(1.0 / 256.0, 1.0);\n" +
 //		"const float atan0   = 0.414213;\n" +
@@ -101,8 +98,8 @@ public class MediaEffectCanny implements IEffect {
 //		"        color.x -= 0.5;\n" +
 //		"        color.y -= 0.5;\n" +
 //		"        vec2 offset = atanForCanny(color.y / color.x);\n" +
-//		"        offset.x *= texWidth;\n" +
-//		"        offset.y *= texHeight;\n" +
+//		"        offset.x *= uTexOffset[7];\n" +
+//		"        offset.y *= uTexOffset[8];\n" +
 //		"        vec4 forward  = texture2D(sTexture, coords + offset);\n" +
 //		"        vec4 backward = texture2D(sTexture, coords - offset);\n" +
 //		"        forward.z  = dot(forward.zw, unshift);\n" +
@@ -145,6 +142,7 @@ public class MediaEffectCanny implements IEffect {
 	 */
 	@Override
 	public void apply(final int [] src_tex_ids, final int width, final int height, final int out_tex_id) {
+		if (!mEnabled) return;
 		if (mOutputOffscreen == null) {
 			mOutputOffscreen = new TextureOffscreen(width, height, false);
 		}
@@ -160,6 +158,7 @@ public class MediaEffectCanny implements IEffect {
 
 	@Override
 	public void apply(final ISource src) {
+		if (!mEnabled) return;
 		if (src instanceof MediaSource) {
 			final TextureOffscreen output_tex = ((MediaSource)src).getOutputTexture();
 			final int[] src_tex_ids = src.getSourceTexId();
@@ -189,6 +188,7 @@ public class MediaEffectCanny implements IEffect {
 		return this;
 	}
 
+	@Override
 	public MediaEffectCanny resize(final int width, final int height) {
 		if ((mOutputOffscreen == null) || (width != mOutputOffscreen.getWidth())
 			|| (height != mOutputOffscreen.getHeight())) {
@@ -197,6 +197,17 @@ public class MediaEffectCanny implements IEffect {
 			mOutputOffscreen = new TextureOffscreen(width, height, false);
 		}
 		mDrawer.getProgram().setTexSize(width, height);
+		return this;
+	}
+
+	@Override
+	public boolean enabled() {
+		return mEnabled;
+	}
+
+	@Override
+	public IEffect setEnable(final boolean enable) {
+		mEnabled = enable;
 		return this;
 	}
 }
