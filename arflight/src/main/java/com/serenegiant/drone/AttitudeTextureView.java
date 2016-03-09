@@ -36,6 +36,9 @@ public class AttitudeTextureView extends GLTextureModelView {
 		if (DEBUG) Log.v(TAG, "createScreen");
 		IScreen result = null;
 		switch (mModel) {
+		case MODEL_NON:
+			result = new AttitudeScreenNull(this);
+			break;
 		case MODEL_MINIDRONE:
 		case MODEL_JUMPINGSUMO:
 			result = new AttitudeScreenMinidrone(this, mCtrlType);

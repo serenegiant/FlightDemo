@@ -261,7 +261,7 @@ public class ConnectionFragment extends BaseFragment {
 					switch (product) {
 					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-						fragment = AutoPilotFragment.newInstance(device,
+						fragment = AutoPilotFragment2.newInstance(device,
 							id == R.id.pilot_button,
 							id != R.id.gallery_button);
 					}
@@ -289,7 +289,7 @@ public class ConnectionFragment extends BaseFragment {
 			switch (product) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				fragment = isPiloting ? Pilot2Fragment.newInstance(device) : MediaFragment.newInstance(device);
+				fragment = isPiloting ? PilotFragment2.newInstance(device) : MediaFragment.newInstance(device);
 				break;
 			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
 				//FIXME JumpingSumoは未実装
@@ -298,7 +298,7 @@ public class ConnectionFragment extends BaseFragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
-				fragment = isPiloting ? Pilot2Fragment.newInstance(device) : MediaFragment.newInstance(device);
+				fragment = isPiloting ? PilotFragment2.newInstance(device) : MediaFragment.newInstance(device);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
 				if (BuildConfig.USE_SKYCONTROLLER) {

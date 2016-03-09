@@ -104,7 +104,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	protected boolean mAutoHide;
 
 	@Override
-	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+	public final View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final SharedPreferences pref = getActivity().getPreferences(0);
 		mOperationTouch = pref.getBoolean(ConfigFragment.KEY_OPERATION_TOUCH, false);
@@ -155,17 +155,21 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 //		mControllerFrame.setKeepScreenOn(true);
 		startDeviceController();
 		startSensor();
-		if ((mFlightController != null) && isConnected()) {
-			mModelView.hasGuard(mFlightController.hasGuard());
+		if (mModelView != null) {
+			if ((mFlightController != null) && isConnected()) {
+				mModelView.hasGuard(mFlightController.hasGuard());
+			}
+			mModelView.onResume();
 		}
-		mModelView.onResume();
 	}
 
 	@Override
 	public void onPause() {
 //		if (DEBUG) Log.v(TAG, "onPause:");
 		mJoystick = null;
-		mModelView.onPause();
+		if (mModelView != null) {
+			mModelView.onPause();
+		}
 		if (mController instanceof ICameraController) {
 			((ICameraController)mController).sendVideoRecording(false);
 		}
@@ -1042,7 +1046,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 		}
 	};
 
-	private void setChildVisibility(final View view, final int visibility) {
+	protected void setChildVisibility(final View view, final int visibility) {
 		if (view != null) {
 			view.setVisibility(visibility);
 			view.setTag(R.id.anim_visibility, visibility);
@@ -1053,6 +1057,8 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	 * ボタン表示の更新(UIスレッドで処理)
 	 */
 	protected abstract void updateButtons();
+
+	protected static final int DISABLE_COLOR = 0xcf777777;
 
 	/** ゲームパッド読み取りスレッド操作用Handler */
 	private Handler mGamePadHandler;

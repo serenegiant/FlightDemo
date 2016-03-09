@@ -44,22 +44,22 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Pilot2Fragment extends BasePilotFragment {
+public class PilotFragment2 extends BasePilotFragment {
 //	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static String TAG = Pilot2Fragment.class.getSimpleName();
+	private static String TAG = PilotFragment2.class.getSimpleName();
 
 	private static final long ALPHA_PILOTING_DELAY_MS = 2500;		// アイコン等のアルファを落とすまでの時間[ミリ秒]
 	private static final long HIDE_PILOTING_DELAY_MS = 5000;		// アイコン等をすべて隠すまでの時間[ミリ秒]
 
-	public static Pilot2Fragment newInstance(final ARDiscoveryDeviceService device) {
-		final Pilot2Fragment fragment = new Pilot2Fragment();
+	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device) {
+		final PilotFragment2 fragment = new PilotFragment2();
 		fragment.setDevice(device);
 		return fragment;
 	}
 
-	public static Pilot2Fragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
+	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
-		final Pilot2Fragment fragment = new Pilot2Fragment();
+		final PilotFragment2 fragment = new PilotFragment2();
 		fragment.setBridge(device, info);
 		return fragment;
 	}
@@ -107,7 +107,7 @@ public class Pilot2Fragment extends BasePilotFragment {
 	/** 操縦に使用するボタン等の一括変更用。自動で隠す設定の時に使用  */
 	private final List<View> mAlphaHideList = new ArrayList<View>();
 
-	public Pilot2Fragment() {
+	public PilotFragment2() {
 		super();
 	}
 
@@ -181,7 +181,6 @@ public class Pilot2Fragment extends BasePilotFragment {
 		mFlatTrimBtn.setOnLongClickListener(mOnLongClickListener);
 		mActionViews.add(mFlatTrimBtn);
 		mAlphaHideList.add(mFlatTrimBtn);
-
 		// 設定表示ボタン
 		mConfigShowBtn = (ImageButton) rootView.findViewById(R.id.config_show_btn);
 		mConfigShowBtn.setOnClickListener(mOnClickListener);
@@ -517,7 +516,7 @@ public class Pilot2Fragment extends BasePilotFragment {
 		public void onClick(final View view) {
 //			if (DEBUG) Log.v(TAG, "onClick:" + view);
 			cancelAlphaHide();
-			if (Pilot2Fragment.this.onClick(view)) return;
+			if (PilotFragment2.this.onClick(view)) return;
 			switch (view.getId()) {
 			case R.id.flat_trim_btn:
 				// フラットトリム
@@ -530,7 +529,7 @@ public class Pilot2Fragment extends BasePilotFragment {
 				// 読み込みボタンの処理
 				setColorFilter((ImageView)view);
 				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", false);
-				SelectFileDialogFragment.showDialog(Pilot2Fragment.this, root.getAbsolutePath(), false, "fcr");
+				SelectFileDialogFragment.showDialog(PilotFragment2.this, root.getAbsolutePath(), false, "fcr");
 				break;
 			case R.id.record_btn:
 				// 操縦記録ボタンの処理
@@ -543,7 +542,7 @@ public class Pilot2Fragment extends BasePilotFragment {
 				break;
 			case R.id.play_btn:
 				// 再生ボタンの処理
-				Pilot2Fragment.super.stopMove();
+				PilotFragment2.super.stopMove();
 				if (!mFlightRecorder.isPlaying()) {
 					startPlay();
 				} else {
@@ -573,7 +572,7 @@ public class Pilot2Fragment extends BasePilotFragment {
 				// タッチ描画で操縦開始
 				setColorFilter((ImageView)view);
 				// 再生ボタンの処理
-				Pilot2Fragment.super.stopMove();
+				PilotFragment2.super.stopMove();
 				if (!mTouchFlight.isPlaying()) {
 					startTouchMove();
 				} else {
@@ -953,13 +952,6 @@ public class Pilot2Fragment extends BasePilotFragment {
 		mTimeLabelTv.setText(String.format("%3d:%02d", minutes, seconds));
 	}
 
-	private void setChildVisibility(final View view, final int visibility) {
-		if (view != null) {
-			view.setVisibility(visibility);
-			view.setTag(R.id.anim_visibility, visibility);
-		}
-	}
-
 	/**
 	 * ボタン表示の更新(UIスレッドで処理)
 	 */
@@ -967,7 +959,6 @@ public class Pilot2Fragment extends BasePilotFragment {
 		runOnUiThread(mUpdateButtonsTask);
 	}
 
-	private static final int DISABLE_COLOR = 0xcf777777;
 	/**
 	 *　ボタンの表示更新をUIスレッドで行うためのRunnable
 	 */
