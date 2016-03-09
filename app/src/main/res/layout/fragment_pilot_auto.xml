@@ -19,22 +19,31 @@
 			android:layout_height="match_parent"
 			android:layout_weight="1">
 
-			<com.serenegiant.drone.AttitudeTextureView
+			<RelativeLayout
 				android:layout_width="match_parent"
 				android:layout_height="0dp"
-				android:id="@+id/drone_view"
-				android:visibility="visible"
-				android:layout_centerInParent="true"
-				android:background="@null"
-				android:layout_weight="1"/>
+				android:layout_weight="1"
+				android:background="@null" >
+				<com.serenegiant.drone.AttitudeTextureView
+					android:id="@+id/drone_view"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:visibility="visible"
+					android:background="@null"/>
+				<ImageView
+					android:id="@+id/target_frame"
+					android:layout_width="60dp"
+					android:layout_height="60dp"
+					android:layout_centerInParent="true"
+					android:src="@null"
+					android:background="@drawable/frame"/>
+			</RelativeLayout>
 
 			<SurfaceView
 				android:layout_width="match_parent"
 				android:layout_height="0dp"
 				android:id="@+id/detect_view"
 				android:visibility="visible"
-				android:layout_alignParentBottom="true"
-				android:layout_centerHorizontal="true"
 				android:background="@drawable/frame"
 				android:layout_weight="1"/>
 
@@ -143,73 +152,80 @@
 					android:layout_height="match_parent"
 					android:layout_weight="1"/>
 
-				<LinearLayout
-					android:orientation="vertical"
+				<ScrollView
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
+					android:id="@+id/scrollView"
 					android:layout_weight="1"
 					android:layout_marginRight="@dimen/btn_size_action"
 					android:layout_marginLeft="@dimen/half_padding">
 
-					<TextView
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:text="New Text"/>
-					<SeekBar
+					<LinearLayout
+						android:orientation="vertical"
 						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:id="@+id/seekBar"/>
-					<TextView
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:text="New Text"/>
-					<SeekBar
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:id="@+id/seekBar2"/>
-					<TextView
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:text="New Text"/>
-					<SeekBar
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:id="@+id/seekBar3"/>
-					<TextView
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:text="New Text"/>
-					<SeekBar
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:id="@+id/seekBar4"/>
-					<TextView
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:text="New Text"/>
-					<SeekBar
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:id="@+id/seekBar5"/>
-					<TextView
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:text="New Text"/>
-					<SeekBar
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:id="@+id/seekBar6"/>
-					<Switch
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:text="New Switch"
-						android:id="@+id/switch1"/>
-					<Switch
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content"
-						android:text="New Switch"
-						android:id="@+id/switch2"/>
-				</LinearLayout>
+						android:layout_height="wrap_content">
+
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="New Text"/>
+						<SeekBar
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:id="@+id/seekBar"/>
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="New Text"/>
+						<SeekBar
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:id="@+id/seekBar2"/>
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="New Text"/>
+						<SeekBar
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:id="@+id/seekBar3"/>
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="New Text"/>
+						<SeekBar
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:id="@+id/seekBar4"/>
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="New Text"/>
+						<SeekBar
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:id="@+id/seekBar5"/>
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="New Text"/>
+						<SeekBar
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:id="@+id/seekBar6"/>
+						<Switch
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:text="@string/trace_use_native_extraction"
+							android:id="@+id/use_native_extract_sw"/>
+						<Switch
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:text="@string/trace_use_native_canny"
+							android:id="@+id/use_native_canny_sw"/>
+					</LinearLayout>
+				</ScrollView>
+
 			</LinearLayout>
 
 			<LinearLayout

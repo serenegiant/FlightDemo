@@ -123,4 +123,7 @@
 	<string name="anim_slalome">スラローム</string>
 	<string name="anim_boost">ブースト</string>
 
+	<!-- ライントレース画面の文字列 -->
+	<string name="trace_use_native_extraction">色抽出方法</string>
+	<string name="trace_use_native_canny">エッジ検出方法</string>
 </resources>

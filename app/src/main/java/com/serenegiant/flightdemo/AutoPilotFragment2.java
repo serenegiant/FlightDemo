@@ -12,8 +12,10 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -98,8 +100,14 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 	protected SurfaceView mDetectView;
 	protected ImageProcessor mImageProcessor;
+
+	// 設定
 	protected boolean mEnableEmphasis;
 	protected boolean mEnableExtraction;
+	/** native側の色抽出を使うかどうか */
+	protected boolean mUseNativeExtraction = false;
+	/** native側のエッジ検出(Canny)を使うかどうか */
+	protected boolean mUseNativeCanny = true;
 
 	public AutoPilotFragment2() {
 		super();
@@ -192,6 +200,16 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 		mDetectView = (SurfaceView)rootView.findViewById(R.id.detect_view);
 		mDetectView.setVisibility(View.VISIBLE);
+
+		// Native側の色抽出を使うかどうか
+		Switch sw = (Switch)rootView.findViewById(R.id.use_native_extract_sw);
+		sw.setChecked(mUseNativeExtraction);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// Native側のCannyを使うかどうか
+		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
+		sw.setChecked(mUseNativeCanny);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+
 		final Bundle args = getArguments();
 		mEnableEmphasis = args.getBoolean(ENABLE_EMPHASIS, true);
 		mEnableExtraction = args.getBoolean(ENABLE_EXTRACTION, true);
@@ -202,7 +220,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		@Override
 		public void onClick(final View view) {
 //			if (DEBUG) Log.v(TAG, "onClick:" + view);
-			if (AutoPilotFragment2.this.onClick(view)) return;
 			switch (view.getId()) {
 			case R.id.flat_trim_btn:
 				// フラットトリム
@@ -270,6 +287,12 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					((ICameraController)mController).sendVideoRecording(mVideoRecording);
 				}
 				break;
+			//--------------------------------------------------------------------------------
+			case R.id.top_panel:
+				if (mImageProcessor != null) {
+					mImageProcessor.setResultFrameType((mImageProcessor.getResultFrameType()) % 4 + 1);
+				}
+				break;
 			}
 		}
 	};
@@ -305,6 +328,27 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		}
 	};
 
+	private final CompoundButton.OnCheckedChangeListener mOnCheckedChangeListener
+		= new CompoundButton.OnCheckedChangeListener() {
+		@Override
+		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+			switch (buttonView.getId()) {
+			case R.id.use_native_extract_sw:
+				if (mImageProcessor != null) {
+					mUseNativeExtraction = isChecked;
+					mImageProcessor.enableNativeExtract(isChecked);
+				}
+				break;
+			case R.id.use_native_canny_sw:
+				if (mImageProcessor != null) {
+					mUseNativeCanny = isChecked;
+					mImageProcessor.enableNativeCanny(isChecked);
+				}
+				break;
+			}
+		}
+	};
+
 	private int mImageProcessorSurfaceId;
 	@Override
 	protected void onConnect(final IDeviceController controller) {
@@ -314,7 +358,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
 			mImageProcessor.setEmphasis(mEnableEmphasis);
 			mImageProcessor.setExtraction(mEnableExtraction);
-			mImageProcessor.setExtractionColor(0, 180, 0, 50, 120, 255);
+			mImageProcessor.setExtractionColor(0, 180, 0, 50, 120, 255);	// FIXME これは画面の画像から読み取る
 			mImageProcessor.enableNativeExtract(false);
 			mImageProcessor.enableNativeCanny(true);
 			mImageProcessor.start();
@@ -467,17 +511,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		}
 	};
 
-	protected boolean onClick(final View view) {
-		switch (view.getId()) {
-		case R.id.top_panel:
-			if (mImageProcessor != null) {
-				mImageProcessor.setResultFrameType((mImageProcessor.getResultFrameType()) % 4 + 1);
-			}
-			break;
-		}
-		return false;
-	}
-
 	private Bitmap mFrame;
 	private final ImageProcessor.ImageProcessorCallback mImageProcessorCallback
 		= new ImageProcessor.ImageProcessorCallback() {
@@ -510,4 +543,5 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			}
 		}
 	};
+
 }

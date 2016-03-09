@@ -122,4 +122,7 @@
 	<string name="anim_slalome">Slalom</string>
 	<string name="anim_boost">Boost</string>
 
+	<!-- ライントレース画面の文字列 -->
+	<string name="trace_use_native_extraction">Color extraction method</string>
+	<string name="trace_use_native_canny">Edge detection method</string>
 </resources>
