@@ -127,7 +127,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		mActionViews.clear();
 
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
-		final ViewGroup rootView = (ViewGroup) local_inflater.inflate(layout_id, container, false);
+		final ViewGroup rootView = (ViewGroup) local_inflater.inflate(R.layout.fragment_pilot_auto, container, false);
 
 		mControllerFrame = (ViewGroup) rootView.findViewById(R.id.controller_frame);
 		mControllerFrame.setOnClickListener(mOnClickListener);
@@ -145,6 +145,10 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		// 設定表示ボタン
 		mConfigShowBtn = (ImageButton) rootView.findViewById(R.id.config_show_btn);
 		mConfigShowBtn.setOnClickListener(mOnClickListener);
+		//
+		mBatteryLabel = (TextView) rootView.findViewById(R.id.batteryLabel);
+		mAlertMessage = (TextView) rootView.findViewById(R.id.alert_message);
+		mAlertMessage.setVisibility(View.INVISIBLE);
 
 // 下パネル
 		// 非常停止ボタン

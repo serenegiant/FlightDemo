@@ -185,6 +185,10 @@ public class PilotFragment2 extends BasePilotFragment {
 		mConfigShowBtn = (ImageButton) rootView.findViewById(R.id.config_show_btn);
 		mConfigShowBtn.setOnClickListener(mOnClickListener);
 		mAlphaHideList.add(mConfigShowBtn);
+		//
+		mBatteryLabel = (TextView) rootView.findViewById(R.id.batteryLabel);
+		mAlertMessage = (TextView) rootView.findViewById(R.id.alert_message);
+		mAlertMessage.setVisibility(View.INVISIBLE);
 
 // 下パネル
 		// 非常停止ボタン
@@ -296,10 +300,6 @@ public class PilotFragment2 extends BasePilotFragment {
 			mTouchPilotView.setTouchPilotListener(mTouchPilotListener);
 			mActionViews.add(mTouchPilotView);
 		}
-
-		mBatteryLabel = (TextView) rootView.findViewById(R.id.batteryLabel);
-		mAlertMessage = (TextView) rootView.findViewById(R.id.alert_message);
-		mAlertMessage.setVisibility(View.INVISIBLE);
 
 		// 機体モデル表示
 		final int model;

@@ -1,41 +1,33 @@
 package com.serenegiant.drone;
 
+import android.graphics.SurfaceTexture;
 import android.util.Log;
 
-import com.serenegiant.gameengine1.FileIO;
-import com.serenegiant.gameengine1.GLAmbientLight;
+import com.serenegiant.gameengine1.DynamicTexture;
 import com.serenegiant.gameengine1.GLCamera2D;
-import com.serenegiant.gameengine1.GLCubeModel;
-import com.serenegiant.gameengine1.GLDirectionLight;
-import com.serenegiant.gameengine1.GLLoadableModel;
-import com.serenegiant.gameengine1.GLLookAtCamera;
-import com.serenegiant.gameengine1.GLPointLight;
 import com.serenegiant.gameengine1.GLScreen;
 import com.serenegiant.gameengine1.IModelView;
 import com.serenegiant.gameengine1.StaticTexture;
 import com.serenegiant.gameengine1.TextureDrawer2D;
 import com.serenegiant.gameengine1.TextureRegion;
 import com.serenegiant.gameengine1.TouchEvent;
-import com.serenegiant.gameengine1.Vertex;
-import com.serenegiant.glutils.GLHelper;
-import com.serenegiant.math.Vector;
-
-import java.io.IOException;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class AttitudeScreenNull extends GLScreen {
+public class AttitudeScreenNull extends GLScreen implements IVideoScreen {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "AttitudeScreenBase";
 
-	protected final GLLookAtCamera lookAtCamera;
+//	protected final GLLookAtCamera lookAtCamera;
+
 	protected final GLCamera2D guiCamera;
+	private DynamicTexture mVideoFrameTexture;
+	private volatile boolean mVideoEnabled;
 
 	// 背景
 	private StaticTexture backgroundTexture;
 	private TextureRegion backgroundRegion;
 	protected TextureDrawer2D mFullScreenDrawer;
-	protected volatile float mAlpha;
 
 	public AttitudeScreenNull(final IModelView modelView) {
 		super(modelView);
@@ -44,15 +36,11 @@ public class AttitudeScreenNull extends GLScreen {
 		backgroundTexture = new StaticTexture(modelView, "background.png");
 		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, screenWidth, screenHeight);
 		mFullScreenDrawer = new TextureDrawer2D(glGraphics, screenWidth, screenHeight);
-
 		// 2Dカメラ
 		guiCamera = new GLCamera2D(glGraphics, screenWidth, screenHeight);
-		// 視線カメラ
-		lookAtCamera = new GLLookAtCamera(
-			67, screenWidth / (float)screenHeight, 0.01f, 30f);
-		lookAtCamera.setPosition(0, 4, -6.4f);
-
-		mAlpha = 1.0f;
+		// ライブ映像受け取り用のテクスチャオブジェクトを生成
+		mVideoFrameTexture = new DynamicTexture(mModelView);
+		mVideoFrameTexture.setSize(640, 368);
 	}
 
 	@Override
@@ -72,20 +60,28 @@ public class AttitudeScreenNull extends GLScreen {
 		gl.glDisable(GL10.GL_DEPTH_TEST);			// デプステストを無効にする
 //		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		// 背景を描画
-		backgroundTexture.bind();
-		mFullScreenDrawer.draw();
-		backgroundTexture.unbind();
-
+		if (mVideoEnabled && (mVideoFrameTexture != null) && mVideoFrameTexture.isAvailable()) {
+//			gl.glPushMatrix();
+			mVideoFrameTexture.bind();
+//			gl.glMultMatrixf(mVideoFrameTexture.texMatrix(), 0);	// これを入れると表示サイズがおかしい
+			mFullScreenDrawer.draw();
+			mVideoFrameTexture.unbind();
+//			gl.glPopMatrix();
+		} else {
+			backgroundTexture.bind();
+			mFullScreenDrawer.draw();
+			backgroundTexture.unbind();
+		}
 	}
 
+	@Override
 	public void setAlpha(final float alpha) {
-		mAlpha = alpha;
+		// 何もしない
 	}
 
 	@Override
 	public void resume() {
 		if (DEBUG) Log.v(TAG, "resume");
-		mAlpha = 1.0f;
 		backgroundTexture.reload();
 	}
 
@@ -98,6 +94,10 @@ public class AttitudeScreenNull extends GLScreen {
 	public void release() {
 		if (DEBUG) Log.v(TAG, "release");
 		backgroundTexture.release();
+		if (mVideoFrameTexture != null) {
+			mVideoFrameTexture.release();
+			mVideoFrameTexture = null;
+		}
 	}
 
 	@Override
@@ -111,6 +111,16 @@ public class AttitudeScreenNull extends GLScreen {
 
 	@Override
 	public void onAccelEvent() {
+	}
+
+	@Override
+	public void setEnableVideo(final boolean enable) {
+		mVideoEnabled = enable;
+	}
+
+	@Override
+	public SurfaceTexture getVideoTexture() {
+		return mVideoFrameTexture != null ? mVideoFrameTexture.getSurfaceTexture() : null;
 	}
 
 }
