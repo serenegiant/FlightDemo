@@ -448,7 +448,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				break;
 			}
 
-			// 右サイドパネル(とmCapXXXBtn等)
+			// 右サイドパネル
 			mRightSidePanel.setEnabled(can_fly);
 
 			mStillCaptureBtn.setEnabled(still_capture_state == DroneStatus.MEDIA_READY);
@@ -457,7 +457,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			mVideoRecordingBtn.setEnabled((video_recording_state == DroneStatus.MEDIA_READY) || (video_recording_state == DroneStatus.MEDIA_BUSY));
 			setChildVisibility(mStillCaptureBtn, video_recording_state != DroneStatus.MEDIA_UNAVAILABLE ? View.VISIBLE : View.INVISIBLE);
 			mVideoRecordingBtn.setColorFilter(mVideoRecording ? 0x7fff0000 : 0);
-//			mVideoRecordingBtn.setImageResource(mVideoRecording ? android.R.drawable.presence_video_busy : android.R.drawable.presence_video_online);
 
 			for (final View view: mActionViews) {
 				view.setEnabled(can_fly);
