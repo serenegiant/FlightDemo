@@ -45,14 +45,14 @@ public class MediaEffectCanny implements IEffect {
 		"const float lowerThreshold = 0.4;\n" +	// lowerとupperの値を入れ替えると白黒反転する
 		"const float upperThreshold = 0.8;\n" +
 		"void main() {\n" +
-		"    vec3 currentGradientAndDirection = texture2D(sTexture, vTextureCoord).rgb;\n" +
-		"    vec2 gradientDirection = ((currentGradientAndDirection.gb * 2.0) - 1.0) * vec2(uTexOffset[7], uTexOffset[8]);\n" +
-		"    float firstSampledGradientMagnitude = texture2D(sTexture, vTextureCoord + gradientDirection).r;\n" +
-		"    float secondSampledGradientMagnitude = texture2D(sTexture, vTextureCoord - gradientDirection).r;\n" +
-		"    float multiplier = step(firstSampledGradientMagnitude, currentGradientAndDirection.r);\n" +
-		"    multiplier = multiplier * step(secondSampledGradientMagnitude, currentGradientAndDirection.r);\n" +
-		"    float thresholdCompliance = smoothstep(lowerThreshold, upperThreshold, currentGradientAndDirection.r);\n" +
-		"    multiplier = multiplier * thresholdCompliance;\n" +
+		"    vec4 magdir = texture2D(sTexture, vTextureCoord);\n" +
+		"    vec2 offset = ((magdir.gb * 2.0) - 1.0) * vec2(uTexOffset[7], uTexOffset[8]);\n" +
+		"    float first = texture2D(sTexture, vTextureCoord + offset).r;\n" +
+		"    float second = texture2D(sTexture, vTextureCoord - offset).r;\n" +
+		"    float multiplier = step(first, magdir.r);\n" +
+		"    multiplier = multiplier * step(second, magdir.r);\n" +
+		"    float threshold = smoothstep(lowerThreshold, upperThreshold, magdir.r);\n" +
+		"    multiplier = multiplier * threshold;\n" +
 		"    gl_FragColor = vec4(multiplier, multiplier, multiplier, 1.0);\n" +
 		"}\n";
 //		"void main() {\n" +
