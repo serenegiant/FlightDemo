@@ -61,6 +61,7 @@ public class MediaEffectExtraction extends MediaEffectGLESBase {
 		"    }\n" +
 		"    hsv = v + add;\n" +
 		"    if (uColorAdjust > 0.0) {\n" +
+//		"        hsv = step(vec3(1.0, 1.0, uColorAdjust), hsv);\n" +		// 2値化
 		"        hsv = hsv * step(vec3(0.0, 0.0, uColorAdjust), hsv);\n" +	// 2値化
 		"    }\n" +
 		"    gl_FragColor = vec4(hsv2rgb(clamp(hsv, 0.0, 1.0)), 1.0);\n" +

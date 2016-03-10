@@ -531,7 +531,7 @@ static double compHuMoments(const double mb[], int method) {
 }
 
 // 検出したオブジェクトの優先度の判定
-// 第1引数が第2引数よりも小さい(前にある=優先度が高い)時に真(正)を返す
+// 第1引数が第2引数よりも小さい(=前にある=優先度が高い)時に真(正)を返す
 static bool comp_line_priority(const DetectRec &left, const DetectRec &right) {
 //	// 頂点1つあたりの面積の比較(大きい方)
 //	const bool b1 = left.area_vertex > right.area_vertex;
@@ -713,8 +713,8 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		std::vector< cv::Point > approx;		// 近似輪郭
 		// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
 		const double epsilon = param.mApproxType == APPROX_RELATIVE
-			? mParam.mApproxFactor * cv::arcLength(*contour, true)
-			: mParam.mApproxFactor;
+			? mParam.mApproxFactor * cv::arcLength(*contour, true)	// 周長に対する比
+			: mParam.mApproxFactor;									// 絶対値
 		// 輪郭を近似する
 		cv::approxPolyDP(*contour, approx, epsilon, true);	// 閉曲線にする
 		const size_t num_vertex = approx.size();
@@ -733,12 +733,12 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		}
 		possible.type = TYPE_NON;
 		possible.contour.assign(approx.begin(), approx.end());
-		possible.area_rect = area_rect;
-		possible.area = area;
-		possible.area_rate = w * h / area;
-		possible.aspect = w / h;
-		possible.length = w;	// 長軸長さ
-		possible.width = h;		// 短軸長さ
+		possible.area_rect = area_rect;	// 最小矩形
+		possible.area = area;				// 近似輪郭の面積
+		possible.area_rate = w * h / area;	// 近似輪郭の面積に対する最小矩形の面積比
+		possible.aspect = w / h;	// 最小矩形のアスペクト比
+		possible.length = w;		// 最小矩形の長軸長さ
+		possible.width = h;			// 最小矩形の短軸長さ
 		approxes.push_back(possible);
 	}
 
@@ -808,7 +808,8 @@ int ImageProcessor::detect_line(
 			draw_rect(result_frame, area_rect, COLOR_ORANGE);
 		}
 		// 最小矩形と元輪郭の面積比が大き過ぎる場合スキップ
-		if ((approx.area_rate < 0.67f) && (approx.area_rate > 1.5f)) continue;	// ±50%以上ずれている時はスキップ
+//		if ((approx.area_rate < 0.67f) && (approx.area_rate > 1.5f)) continue;	// ±50%以上ずれている時はスキップ
+		if ((approx.area_rate < 0.5f) && (approx.area_rate > 2.0f)) continue;		// ±100%以上ずれている時はスキップ
 		const float area_vertex = approx.area / approx.contour.size();
 		// 面積の割に頂点が多いものもスキップ これを入れるとエッジがギザギザの時に検出できなくなる
 //		if (area_vertex < 200.0f) continue;		// 1頂点あたり200ピクセルよりも小さい
