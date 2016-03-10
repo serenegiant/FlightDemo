@@ -17,18 +17,43 @@ package com.serenegiant.mediaeffect;
  *  limitations under the License.
 */
 
-import android.media.effect.EffectContext;
-import android.media.effect.EffectFactory;
+import com.serenegiant.glutils.Texture2dProgram;
 
-public class MediaEffectPosterize extends MediaEffect {
-	/**
-	 * コンストラクタ
-	 * GLコンテキスト内で生成すること
-	 *
-	 * @param effect_context
-	 */
-	public MediaEffectPosterize(final EffectContext effect_context) {
-		super(effect_context, EffectFactory.EFFECT_POSTERIZE);
+public class MediaEffectPosterize extends MediaEffectGLESBase {
+	private static final boolean DEBUG = false;
+	private static final String TAG = "MediaEffectBrightness";
+
+	private static final String FRAGMENT_SHADER_BASE = Texture2dProgram.SHADER_VERSION +
+		"%s" +
+		"precision highp float;\n" +
+		"varying       vec2 vTextureCoord;\n" +
+		"uniform %s    sTexture;\n" +
+		"uniform highp float uColorAdjust;\n" +
+		"void main() {\n" +
+		"    highp vec4 tex = texture2D(sTexture, vTextureCoord);\n" +
+		"    gl_FragColor = floor((tex * uColorAdjust) + vec4(0.5)) / uColorAdjust;\n" +
+		"}\n";
+	private static final String FRAGMENT_SHADER
+		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_2D, Texture2dProgram.SAMPLER_2D);
+	private static final String FRAGMENT_SHADER_EXT
+		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_OES, Texture2dProgram.SAMPLER_OES);
+
+	public MediaEffectPosterize() {
+		this(10.0f);
 	}
 
+	public MediaEffectPosterize(final float posterize) {
+		super(FRAGMENT_SHADER);
+		setParameter(posterize);
+	}
+
+	/**
+	 * 階調レベルをセット
+	 * @param posterize [1,256]
+	 * @return
+	 */
+	public MediaEffectPosterize setParameter(final float posterize) {
+		mDrawer.getProgram().setColorAdjust(posterize);
+		return this;
+	}
 }

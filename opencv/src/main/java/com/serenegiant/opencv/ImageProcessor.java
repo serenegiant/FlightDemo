@@ -15,6 +15,8 @@ import com.serenegiant.mediaeffect.MediaEffectBrightness;
 import com.serenegiant.mediaeffect.MediaEffectCanny;
 import com.serenegiant.mediaeffect.MediaEffectExposure;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
+import com.serenegiant.mediaeffect.MediaEffectGrayScale;
+import com.serenegiant.mediaeffect.MediaEffectPosterize;
 import com.serenegiant.mediaeffect.MediaEffectSaturate;
 import com.serenegiant.mediaeffect.MediaSource;
 
@@ -49,6 +51,8 @@ public class ImageProcessor {
 	private float mBrightness;
 	private boolean mEnableSaturation;
 	private float mSaturation;
+	private boolean mEnablePosterize;
+	private float mPosterize;	// [1,256], デフォルト10
 	private boolean mEnableExtraction;
 	private boolean mEnableCanny;
 	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
@@ -239,6 +243,47 @@ public class ImageProcessor {
 		return mSaturation;
 	}
 
+	public void enablePosterize(final boolean enable) {
+		if (mEnablePosterize != enable) {
+			if (DEBUG) Log.v(TAG, "enablePosterize:" + enable);
+			mEnablePosterize = enable;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectPosterize) {
+						effect.setEnable(enable);
+					}
+				}
+			}
+		}
+	}
+
+	public boolean enablePosterize() {
+		return mEnablePosterize;
+	}
+
+	/**
+	 * ポスタライズ(階調化)
+	 * @param posterize 1〜256, デフォルト10
+	 */
+	public void setPosterize(final float posterize) {
+		final float post = sat((int)posterize, 1, 256);
+		if (mPosterize != post) {
+			mPosterize = post;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectPosterize) {
+						((MediaEffectPosterize)effect).setParameter(post);
+					}
+				}
+//				enablePosterize(post != 10.0f);
+			}
+		}
+	}
+
+	public float getPosterize() {
+		return mPosterize;
+	}
+
 	/**
 	 * OpenGL|ESでの色抽出の有効/無効切り替え
 	 * @param enable
@@ -271,7 +316,8 @@ public class ImageProcessor {
 			mEnableCanny = enable;
 			synchronized (mSync) {
 				for (final IEffect effect: mEffects) {
-					if (effect instanceof MediaEffectCanny) {
+					if ((effect instanceof MediaEffectCanny)
+					 || (effect instanceof MediaEffectGrayScale)) {
 						effect.setEnable(enable);
 					}
 				}
@@ -495,17 +541,6 @@ public class ImageProcessor {
 				final MediaEffectSaturate saturate = new MediaEffectSaturate(mEffectContext, mParent.mSaturation);
 				saturate.setEnable(true);
 				mEffects.add(saturate);
-//				// 明るさ調整
-//				if (mParent.mEnableEmphasis) {
-//					final MediaEffectExtraction adjust = new MediaEffectExtraction();
-//					adjust.setParameter(    // 抽出なし
-//						0.0f, 1.0f,			// H(色相) 制限なし(0-360),
-//						0.0f, 1.0f,			// S(彩度) 0-10,
-//						0.0f, 1.0f,			// V(明度) 200-255,
-//						0.0f, 0.0f, 0.1f,	// 抽出後加算値(HSV)
-//						0.0f);				// 2値化時のしきい値, 0なら2値化なし
-//					mEffects.add(adjust);
-//				}
 				// 明るさ調整(0〜, 1.0fなら変化なし)
 				final MediaEffectBrightness brightness = new MediaEffectBrightness(mParent.mBrightness);
 				brightness.setEnable(true);
@@ -513,6 +548,10 @@ public class ImageProcessor {
 /*				// コントラスト(0〜1.0f, 0なら変化なし)
 				final MediaEffectContrast contrast = new MediaEffectContrast(mEffectContext, 1.0f);
 				mEffects.add(contrast); */
+				// ポスタライズ
+				final MediaEffectPosterize posterize = new MediaEffectPosterize(mParent.mPosterize);
+				posterize.setEnable(mParent.mEnablePosterize);
+				mEffects.add(posterize);
 				// 色抽出(白色)
 				final MediaEffectExtraction extraction = new MediaEffectExtraction();
 				extraction.setParameter(    // 白色を抽出
@@ -530,6 +569,9 @@ public class ImageProcessor {
 				final MediaEffectKernel gaussian = new MediaEffectKernel();
 				gaussian.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
 				mEffects.add(gaussian); */
+				final MediaEffectGrayScale gray = new MediaEffectGrayScale(mEffectContext);
+				gray.setEnable(mParent.mEnableCanny);
+				mEffects.add(gray);
 				// Cannyエッジ検出フィルタ
 				final MediaEffectCanny canny = new MediaEffectCanny();
 				canny.setEnable(mParent.mEnableCanny);

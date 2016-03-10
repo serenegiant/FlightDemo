@@ -2,7 +2,7 @@ package com.serenegiant.mediaeffect;
 /*
  * Copyright (c) 2015 saki t_saki@serenegiant.com
  *
- * File name: MediaEffectKernel.java
+ * File name: MediaEffectExtraction.java
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,14 @@ package com.serenegiant.mediaeffect;
  *  limitations under the License.
 */
 
-import android.opengl.GLES20;
 import android.util.Log;
 
-import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.Texture2dProgram;
-import com.serenegiant.glutils.TextureOffscreen;
 
 /** 色抽出フィルタ */
-public class MediaEffectExtraction implements IEffect {
-	private static final boolean DEBUG = true;
+public class MediaEffectExtraction extends MediaEffectGLESBase {
+	private static final boolean DEBUG = false;
 	private static final String TAG = "MediaEffectExtraction";
-
-	private FullFrameRect mDrawer;
-	private TextureOffscreen mOutputOffscreen;
-	private final float[] mLimit = new float[Texture2dProgram.KERNEL_SIZE];
-	private boolean mEnabled = true;
 
 	private static final String FRAGMENT_SHADER_BASE = Texture2dProgram.SHADER_VERSION +
 		"%s" +
@@ -78,65 +70,16 @@ public class MediaEffectExtraction implements IEffect {
 	private static final String FRAGMENT_SHADER_EXT
 		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_OES, Texture2dProgram.SAMPLER_OES);
 
+	private final float[] mLimit = new float[Texture2dProgram.KERNEL_SIZE];
+
 	public MediaEffectExtraction() {
+		super(FRAGMENT_SHADER);
 		if (DEBUG) Log.v(TAG, "コンストラクタ:");
-		mDrawer = new FullFrameRect(new Texture2dProgram(GLES20.GL_TEXTURE_2D, FRAGMENT_SHADER));
 		mLimit[0] = 0.0f;	mLimit[1] = 1.0f;	// H上下限
 		mLimit[2] = 0.0f;	mLimit[3] = 1.0f;	// S上下限
 		mLimit[4] = 0.0f; 	mLimit[5] = 1.0f;	// V上下限
 		mLimit[6] = 0.0f; 	mLimit[7] = 0.0f;	mLimit[8] = 0.0f;	// 抽出後加算値HSV
 		mDrawer.getProgram().setKernel(mLimit, 0.0f);	// デフォルトは2値化しないのでcolorAdjは0
-	}
-
-	/**
-	 * If you know the source texture came from MediaSource,
-	 * using #apply(MediaSource) is much efficient instead of this
-	 * @param src_tex_ids
-	 * @param width
-	 * @param height
-	 * @param out_tex_id
-	 */
-	@Override
-	public void apply(final int [] src_tex_ids, final int width, final int height, final int out_tex_id) {
-		if (!mEnabled) return;
-		if (mOutputOffscreen == null) {
-			mOutputOffscreen = new TextureOffscreen(width, height, false);
-		}
-		if ((out_tex_id != mOutputOffscreen.getTexture())
-			|| (width != mOutputOffscreen.getWidth())
-			|| (height != mOutputOffscreen.getHeight())) {
-			mOutputOffscreen.assignTexture(out_tex_id, width, height);
-		}
-		mOutputOffscreen.bind();
-		mDrawer.draw(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
-		mOutputOffscreen.unbind();
-	}
-
-	@Override
-	public void apply(final ISource src) {
-		if (!mEnabled) return;
-		if (src instanceof MediaSource) {
-			final TextureOffscreen output_tex = ((MediaSource)src).getOutputTexture();
-			final int[] src_tex_ids = src.getSourceTexId();
-			output_tex.bind();
-			mDrawer.draw(src_tex_ids[0], output_tex.getTexMatrix(), 0);
-			output_tex.unbind();
-		} else {
-			apply(src.getSourceTexId(), src.getWidth(), src.getHeight(), src.getOutputTexId());
-		}
-	}
-
-	@Override
-	public void release() {
-		if (DEBUG) Log.v(TAG, "release:");
-		if (mDrawer != null) {
-			mDrawer.release();
-			mDrawer = null;
-		}
-		if (mOutputOffscreen != null) {
-			mOutputOffscreen.release();
-			mOutputOffscreen = null;
-		}
 	}
 
 	/**
@@ -190,29 +133,6 @@ public class MediaEffectExtraction implements IEffect {
 		}
 		System.arraycopy(limit, 0, mLimit, 0, 6);
 		mDrawer.getProgram().setKernel(mLimit, color_adjust);
-		return this;
-	}
-
-	@Override
-	public MediaEffectExtraction resize(final int width, final int height) {
-		if ((mOutputOffscreen == null) || (width != mOutputOffscreen.getWidth())
-			|| (height != mOutputOffscreen.getHeight())) {
-			if (mOutputOffscreen != null)
-				mOutputOffscreen.release();
-			mOutputOffscreen = new TextureOffscreen(width, height, false);
-		}
-		mDrawer.getProgram().setTexSize(width, height);
-		return this;
-	}
-
-	@Override
-	public boolean enabled() {
-		return mEnabled;
-	}
-
-	@Override
-	public IEffect setEnable(final boolean enable) {
-		mEnabled = enable;
 		return this;
 	}
 }

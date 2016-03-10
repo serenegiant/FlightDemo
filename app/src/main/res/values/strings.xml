@@ -126,6 +126,7 @@
 	<string name="trace_use_exposure">Exposure</string>
 	<string name="trace_use_saturation">Saturation</string>
 	<string name="trace_use_brightness">Brightness</string>
+	<string name="trace_use_posterize">Posterize</string>
 	<string name="trace_use_native_extraction">Color extraction on OpenCV</string>
 	<string name="trace_use_native_canny">Edge detection on OpenCV</string>
 	<string name="trace_use_extraction">Color extraction on OpenGL|ES</string>

@@ -17,17 +17,11 @@ package com.serenegiant.mediaeffect;
  *  limitations under the License.
 */
 
-import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.Texture2dProgram;
-import com.serenegiant.glutils.TextureOffscreen;
 
 public class MediaEffectKernel extends MediaEffectGLESBase {
 	private static final boolean DEBUG = true;
 	private static final String TAG = "MediaEffectKernel";
-
-	private FullFrameRect mDrawer;
-	private TextureOffscreen mOutputOffscreen;
-	private boolean mEnabled = true;
 
 	public MediaEffectKernel() {
 		super(Texture2dProgram.ProgramType.TEXTURE_FILT3x3);

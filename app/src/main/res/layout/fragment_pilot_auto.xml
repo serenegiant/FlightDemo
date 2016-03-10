@@ -189,14 +189,15 @@
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
 							android:id="@+id/brightness_seekbar"/>
-						<TextView
-							android:layout_width="wrap_content"
+						<Switch
+							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
-							android:text="New Text"/>
+							android:text="@string/trace_use_posterize"
+							android:id="@+id/use_posterize_sw"/>
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
-							android:id="@+id/seekBar4"/>
+							android:id="@+id/posterize_seekbar"/>
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"

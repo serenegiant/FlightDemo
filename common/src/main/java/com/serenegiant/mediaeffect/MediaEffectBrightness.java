@@ -45,12 +45,11 @@ public class MediaEffectBrightness extends MediaEffectGLESBase {
 		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_OES, Texture2dProgram.SAMPLER_OES);
 
 	public MediaEffectBrightness() {
-		super(FRAGMENT_SHADER);
-		if (DEBUG) Log.v(TAG, "コンストラクタ:");
+		this(0.0f);
 	}
 
 	public MediaEffectBrightness(final float exposure) {
-		this();
+		super(FRAGMENT_SHADER);
 		setParameter(exposure);
 	}
 

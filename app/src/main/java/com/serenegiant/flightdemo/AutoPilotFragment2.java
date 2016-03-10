@@ -50,6 +50,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private static final String KEY_EXPOSURE = "KEY_EXPOSURE";
 	private static final String KEY_SATURATION = "KEY_SATURATION";
 	private static final String KEY_BRIGHTNESS = "KEY_BRIGHTNESS";
+	private static final String KEY_ENABLE_POSTERIZE = "KEY_ENABLE_POSTERIZE";
+	private static final String KEY_POSTERIZE = "KEY_POSTERIZE";
 	private static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
 	private static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";
 	private static final String KEY_ENABLE_EDGE_DETECTION = "KEY_ENABLE_EDGE_DETECTION";
@@ -111,6 +113,9 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	protected float mSaturation;
 	/** 明るさ */
 	protected float mBrightness;
+	/** ポスタライズ */
+	protected boolean mEnablePosterize;
+	protected float mPosterize;
 	/** OpenGL|ESで色抽出を行うかどうか  */
 	protected boolean mEnableGLESExtraction = false;
 	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
@@ -475,9 +480,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	};
 
 	private void setupSettingView(final View rootView) {
+		Switch sw;
+		SeekBar sb;
 		// 露出
 		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
-		SeekBar sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
+		sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
 		sb.setMax(200);
 		sb.setProgress((int)(mExposure * 10.0f) + 100);	// [-10,+ 10] => [0, 200]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
@@ -493,10 +500,20 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sb.setMax(200);
 		sb.setProgress((int)(mBrightness * 10.0f) + 100);	// [-1.0f, +1.0f] => [0, 100]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		// ポスタライズ
+		mPosterize = mPref.getFloat(KEY_POSTERIZE, 10);
+		sb = (SeekBar)rootView.findViewById(R.id.posterize_seekbar);
+		sb.setMax(255);
+		sb.setProgress((int)(mPosterize - 1));	// [1, 256] => [0, 255]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
+		sw = (Switch)rootView.findViewById(R.id.use_posterize_sw);
+		sw.setChecked(mEnablePosterize);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 
 		// OpenGL|ESで色抽出を使うかどうか
 		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, false);
-		Switch sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
+		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
 		sw.setChecked(mEnableGLESExtraction);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// OpenGL|ESでエッジ検出を行うかどうか
@@ -526,11 +543,17 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					mEnableGLESExtraction = isChecked;
 					mImageProcessor.enableExtraction(isChecked);
 				}
+				if (mPref != null) {
+					mPref.edit().putBoolean(KEY_ENABLE_EXTRACTION, isChecked).apply();
+				}
 				break;
 			case R.id.use_canny_sw:
 				if (mImageProcessor != null) {
 					mEnableGLESCanny = isChecked;
 					mImageProcessor.enableCanny(isChecked);
+				}
+				if (mPref != null) {
+					mPref.edit().putBoolean(KEY_ENABLE_EDGE_DETECTION, isChecked).apply();
 				}
 				break;
 			case R.id.use_native_extract_sw:
@@ -538,11 +561,26 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					mEnableNativeExtraction = isChecked;
 					mImageProcessor.enableNativeExtract(isChecked);
 				}
+				if (mPref != null) {
+					mPref.edit().putBoolean(KEY_ENABLE_NATIVE_EXTRACTION, isChecked).apply();
+				}
 				break;
 			case R.id.use_native_canny_sw:
 				if (mImageProcessor != null) {
 					mEnableNativeCanny = isChecked;
 					mImageProcessor.enableNativeCanny(isChecked);
+				}
+				if (mPref != null) {
+					mPref.edit().putBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, isChecked).apply();
+				}
+				break;
+			case R.id.use_posterize_sw:
+				if (mImageProcessor != null) {
+					mEnablePosterize = isChecked;
+					mImageProcessor.enablePosterize(isChecked);
+				}
+				if (mPref != null) {
+					mPref.edit().putBoolean(KEY_ENABLE_POSTERIZE, isChecked).apply();
 				}
 				break;
 			}
@@ -582,6 +620,15 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					}
 				}
 				break;
+			case R.id.posterize_seekbar:
+				final float posterize = progress + 1;
+				if (mPosterize != posterize) {
+					mPosterize = posterize;
+					if (mImageProcessor != null) {
+						mImageProcessor.setPosterize(posterize);
+					}
+				}
+				break;
 			}
 		}
 
@@ -605,6 +652,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			case R.id.brightness_seekbar:
 				if (mPref != null) {
 					mPref.edit().putFloat(KEY_BRIGHTNESS, mBrightness).apply();
+				}
+				break;
+			case R.id.posterize_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_POSTERIZE, mPosterize).apply();
 				}
 				break;
 			}

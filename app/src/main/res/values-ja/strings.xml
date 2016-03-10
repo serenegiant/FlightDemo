@@ -127,6 +127,7 @@
 	<string name="trace_use_exposure">露出</string>
 	<string name="trace_use_saturation">彩度</string>
 	<string name="trace_use_brightness">明るさ</string>
+	<string name="trace_use_posterize">ポスタライズ</string>
 	<string name="trace_use_native_extraction">色抽出OpenCV</string>
 	<string name="trace_use_native_canny">エッジ検出OpenCV</string>
 	<string name="trace_use_extraction">色抽出OpenGL|ES</string>
