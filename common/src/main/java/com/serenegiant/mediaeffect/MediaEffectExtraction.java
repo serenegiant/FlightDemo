@@ -43,24 +43,6 @@ public class MediaEffectExtraction implements IEffect {
 		"uniform float uKernel[18];\n" +
 		"uniform vec2  uTexOffset[KERNEL_SIZE];\n" +
 		"uniform float uColorAdjust;\n" +
-//		"vec3 rgb2hsv(vec3 rgb) {\n" +
-//		"    float min = min(min(rgb.r, rgb.g), rgb.b);\n" +
-//		"    float max = max(max(rgb.r, rgb.g), rgb.b);\n" +
-//		"    float h = 0.0;\n" +
-//		"    float s = 0.0;\n" +
-//		"    if (min != max) {\n" +
-//		"        s = max - min;\n" +
-//		"        h = 60.0 / (max - min);\n" +
-//		"        if (min == rgb.r) {\n" +
-//		"            h = h * (rgb.b - rgb.g) + 180.0;\n" +
-//		"        } else if (min == rgb.g) {\n" +
-//		"            h = h * (rgb.r - rgb.b) + 300.0;\n" +
-//		"        } else if (min == rgb.b) {\n" +
-//		"            h = h * (rgb.g - rgb.r) + 60.0;\n" +
-//		"        }\n" +
-//		"    }\n" +
-//		"    return clamp(vec3(mod(h, 360.0) / 360.0, s, max), 0.0, 1.0);\n" +	// hsv全成分とも[0.0-1.0]
-//		"}\n" +
 		"vec3 rgb2hsv(vec3 c) {\n" +
 		"    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);\n" +
 		"    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));\n" +
@@ -69,14 +51,6 @@ public class MediaEffectExtraction implements IEffect {
 		"    float e = 1.0e-10;\n" +
 		"    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);\n" +
 		"}\n" +
-//		"vec3 hue(float hue) {\n" +
-//		"    vec3 rgb = fract(hue + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0));\n" +
-//		"    rgb = abs(rgb * 2.0 - 1.0);\n" +
-//		"    return clamp(rgb * 3.0 - 1.0, 0.0, 1.0);\n" +
-//		"}\n" +
-//		"vec3 hsv2rgb(vec3 hsv) {\n" +
-//		"    return ((hue(hsv.x) - 1.0) * hsv.y + 1.0) * hsv.z;\n" +
-//		"}\n" +
 		"vec3 hsv2rgb(vec3 c) {\n" +
 		"    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n" +
 		"    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n" +
@@ -89,11 +63,6 @@ public class MediaEffectExtraction implements IEffect {
 		"    vec3 add = vec3(uKernel[6], uKernel[7], uKernel[8]);\n" +	// HSV加算
 		"    float e = 1e-10;\n" +
 		"    vec3 eps = vec3(e, e, e);\n" +
-//		"    vec3 v = hsv * step(min - eps, hsv);\n" +	// 元の色がminより小さければ0
-//		"    v = v * step(-max - eps, -hsv);\n" +		// 元の色がmaxより大きければ0
-//		"    if ((v.x * v.y * v.z == 0.0) && (hsv.x * hsv.y * hsv.z != 0.0)) {\n" +
-//		"    	hsv = vec3(0.0, 0.0, 0.0);\n" +
-//		"    }\n" +
 		"    vec3 v = hsv;\n" +
 		"    if (hsv.r < min.r || hsv.r > max.r || hsv.g < min.g || hsv.g > max.g || hsv.b < min.b || hsv.b > max.b) {\n" +
 		"        v = vec3(0.0);\n" +

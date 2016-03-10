@@ -40,6 +40,11 @@ public abstract class MediaEffectGLESBase implements IEffect {
 		mDrawer = new FullFrameRect(new Texture2dProgram(GLES20.GL_TEXTURE_2D, shader));
 	}
 
+	public MediaEffectGLESBase(final Texture2dProgram.ProgramType type) {
+		if (DEBUG) Log.v(TAG, "コンストラクタ:");
+		mDrawer = new FullFrameRect(new Texture2dProgram(type));
+	}
+
 	/**
 	 * If you know the source texture came from MediaSource,
 	 * using #apply(MediaSource) is much efficient instead of this

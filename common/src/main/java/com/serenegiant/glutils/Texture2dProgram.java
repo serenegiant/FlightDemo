@@ -412,6 +412,7 @@ public class Texture2dProgram {
 	private static final String FRAGMENT_SHADER_EXT_FILT3x3
 		= String.format(FRAGMENT_SHADER_FILT3x3_BASE, HEADER_OES, SAMPLER_OES);
 
+	private final Object mSync = new Object();
 	private final ProgramType mProgramType;
 
     private float mTexWidth;
@@ -664,19 +665,21 @@ public class Texture2dProgram {
      * use positional effects like SQUEEZE and MIRROR
      */
     public void handleTouchEvent(final MotionEvent ev){
-        if(ev.getAction() == MotionEvent.ACTION_MOVE){
-            // A finger is dragging about
-            if (mTexHeight != 0 && mTexWidth != 0){
-                mSummedTouchPosition[0] += (2 * (ev.getX() - mLastTouchPosition[0])) / mTexWidth;
-                mSummedTouchPosition[1] += (2 * (ev.getY() - mLastTouchPosition[1])) / -mTexHeight;
-                mLastTouchPosition[0] = ev.getX();
-                mLastTouchPosition[1] = ev.getY();
-            }
-        } else if (ev.getAction() == MotionEvent.ACTION_DOWN){
-            // The primary finger has landed
-            mLastTouchPosition[0] = ev.getX();
-            mLastTouchPosition[1] = ev.getY();
-        }
+		synchronized (mSync) {
+			if (ev.getAction() == MotionEvent.ACTION_MOVE){
+				// A finger is dragging about
+				if (mTexHeight != 0 && mTexWidth != 0){
+					mSummedTouchPosition[0] += (2 * (ev.getX() - mLastTouchPosition[0])) / mTexWidth;
+					mSummedTouchPosition[1] += (2 * (ev.getY() - mLastTouchPosition[1])) / -mTexHeight;
+					mLastTouchPosition[0] = ev.getX();
+					mLastTouchPosition[1] = ev.getY();
+				}
+			} else if (ev.getAction() == MotionEvent.ACTION_DOWN){
+				// The primary finger has landed
+				mLastTouchPosition[0] = ev.getX();
+				mLastTouchPosition[1] = ev.getY();
+			}
+		}
     }
 
     /**
@@ -696,14 +699,18 @@ public class Texture2dProgram {
     }
 
 	public void setKernel2(final float[] values) {
-		mHasKernel2 = values != null && (values.length == KERNEL_SIZE);
-		if (mHasKernel2) {
-     		System.arraycopy(values, 0, mKernel, KERNEL_SIZE, KERNEL_SIZE);
+		synchronized (mSync) {
+			mHasKernel2 = values != null && (values.length == KERNEL_SIZE);
+			if (mHasKernel2) {
+				System.arraycopy(values, 0, mKernel, KERNEL_SIZE, KERNEL_SIZE);
+			}
 		}
 	}
 
 	public void setColorAdjust(final float adjust) {
-		mColorAdjust = adjust;
+		synchronized (mSync) {
+			mColorAdjust = adjust;
+		}
 	}
 
     /**
@@ -716,23 +723,29 @@ public class Texture2dProgram {
         final float rh = 1.0f / height;
 
         // Don't need to create a new array here, but it's syntactically convenient.
-        mTexOffset = new float[] {
-                -rw, -rh,   0f, -rh,    rw, -rh,
-                -rw, 0f,    0f, 0f,     rw, 0f,
-                -rw, rh,    0f, rh,     rw, rh
-        };
+		synchronized (mSync) {
+			mTexOffset = new float[] {
+					-rw, -rh,   0f, -rh,    rw, -rh,
+					-rw, 0f,    0f, 0f,     rw, 0f,
+					-rw, rh,    0f, rh,     rw, rh
+			};
+		}
     }
 
 	public void setFlags(final int[] flags) {
 		final int n = Math.min(4, flags != null ? flags.length : 0);
 		if (n > 0) {
-			System.arraycopy(flags, 0, mFlags, 0, n);
+			synchronized (mSync) {
+				System.arraycopy(flags, 0, mFlags, 0, n);
+			}
 		}
 	}
 
 	public void setFlag(final int index, final int value) {
 		if ((index >= 0) && (index < mFlags.length)) {
-			mFlags[index] = value;
+			synchronized (mSync) {
+				mFlags[index] = value;
+			}
 		}
 	}
 
@@ -764,52 +777,54 @@ public class Texture2dProgram {
         GLES20.glBindTexture(mTextureTarget, textureId);
 		GLHelper.checkGlError("glBindTexture");
 
-        // モデルビュー変換行列をセット
-        GLES20.glUniformMatrix4fv(muMVPMatrixLoc, 1, false, mvpMatrix, 0);
-		GLHelper.checkGlError("glUniformMatrix4fv");
+		synchronized (mSync) {
+			// モデルビュー変換行列をセット
+			GLES20.glUniformMatrix4fv(muMVPMatrixLoc, 1, false, mvpMatrix, 0);
+			GLHelper.checkGlError("glUniformMatrix4fv");
 
-        // テクスチャ変換行列をセット
-        GLES20.glUniformMatrix4fv(muTexMatrixLoc, 1, false, texMatrix, 0);
-		GLHelper.checkGlError("glUniformMatrix4fv");
+			// テクスチャ変換行列をセット
+			GLES20.glUniformMatrix4fv(muTexMatrixLoc, 1, false, texMatrix, 0);
+			GLHelper.checkGlError("glUniformMatrix4fv");
 
-        // 頂点座標バッファを有効にする("aPosition" vertex attribute)
-        GLES20.glEnableVertexAttribArray(maPositionLoc);
-		GLHelper.checkGlError("glEnableVertexAttribArray");
-        GLES20.glVertexAttribPointer(maPositionLoc, coordsPerVertex,
-                GLES20.GL_FLOAT, false, vertexStride, vertexBuffer);
-		GLHelper.checkGlError("glVertexAttribPointer");
+			// 頂点座標バッファを有効にする("aPosition" vertex attribute)
+			GLES20.glEnableVertexAttribArray(maPositionLoc);
+			GLHelper.checkGlError("glEnableVertexAttribArray");
+			GLES20.glVertexAttribPointer(maPositionLoc, coordsPerVertex,
+					GLES20.GL_FLOAT, false, vertexStride, vertexBuffer);
+			GLHelper.checkGlError("glVertexAttribPointer");
 
-        // テクスチャ座標バッファを有効にする("aTextureCoord" vertex attribute)
-        GLES20.glEnableVertexAttribArray(maTextureCoordLoc);
-		GLHelper.checkGlError("glEnableVertexAttribArray");
-        GLES20.glVertexAttribPointer(maTextureCoordLoc, 2,
-                GLES20.GL_FLOAT, false, texStride, texBuffer);
-		GLHelper.checkGlError("glVertexAttribPointer");
+			// テクスチャ座標バッファを有効にする("aTextureCoord" vertex attribute)
+			GLES20.glEnableVertexAttribArray(maTextureCoordLoc);
+			GLHelper.checkGlError("glEnableVertexAttribArray");
+			GLES20.glVertexAttribPointer(maTextureCoordLoc, 2,
+					GLES20.GL_FLOAT, false, texStride, texBuffer);
+			GLHelper.checkGlError("glVertexAttribPointer");
 
-        // カーネル関数(行列)
-        if (muKernelLoc >= 0) {
-        	if (!mHasKernel2) {
-				GLES20.glUniform1fv(muKernelLoc, KERNEL_SIZE, mKernel, 0);
-			} else {
-				GLES20.glUniform1fv(muKernelLoc, KERNEL_SIZE * 2, mKernel, 0);
+			// カーネル関数(行列)
+			if (muKernelLoc >= 0) {
+				if (!mHasKernel2) {
+					GLES20.glUniform1fv(muKernelLoc, KERNEL_SIZE, mKernel, 0);
+				} else {
+					GLES20.glUniform1fv(muKernelLoc, KERNEL_SIZE * 2, mKernel, 0);
+				}
+				GLHelper.checkGlError("set kernel");
 			}
-			GLHelper.checkGlError("set kernel");
-		}
-		// テクセルオフセット
-		if ((muTexOffsetLoc >= 0) && (mTexOffset != null)) {
-           	GLES20.glUniform2fv(muTexOffsetLoc, KERNEL_SIZE, mTexOffset, 0);
-		}
-		// 色調整オフセット
-		if (muColorAdjustLoc >= 0) {
-           	GLES20.glUniform1f(muColorAdjustLoc, mColorAdjust);
-		}
-        // タッチ座標
-        if (muTouchPositionLoc >= 0){
-            GLES20.glUniform2fv(muTouchPositionLoc, 1, mSummedTouchPosition, 0);
-        }
-		// フラグ
-		if (muFlagsLoc >= 0) {
-			GLES20.glUniform1iv(muFlagsLoc, 4, mFlags, 0);
+			// テクセルオフセット
+			if ((muTexOffsetLoc >= 0) && (mTexOffset != null)) {
+				GLES20.glUniform2fv(muTexOffsetLoc, KERNEL_SIZE, mTexOffset, 0);
+			}
+			// 色調整オフセット
+			if (muColorAdjustLoc >= 0) {
+				GLES20.glUniform1f(muColorAdjustLoc, mColorAdjust);
+			}
+			// タッチ座標
+			if (muTouchPositionLoc >= 0){
+				GLES20.glUniform2fv(muTouchPositionLoc, 1, mSummedTouchPosition, 0);
+			}
+			// フラグ
+			if (muFlagsLoc >= 0) {
+				GLES20.glUniform1iv(muFlagsLoc, 4, mFlags, 0);
+			}
 		}
 
 		internal_draw(firstVertex, vertexCount);
