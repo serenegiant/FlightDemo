@@ -131,4 +131,5 @@
 	<string name="trace_use_native_canny">Edge detection on OpenCV</string>
 	<string name="trace_use_extraction">Color extraction on OpenGL|ES</string>
 	<string name="trace_use_canny">>Edge detection on OpenGL|ES</string>
+	<string name="trace_update_extraction_color">Update extraction color</string>
 </resources>

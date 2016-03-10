@@ -578,7 +578,6 @@ public class Texture2dProgram {
             // no kernel in this one
             muKernelLoc = -1;
             muTexOffsetLoc = -1;
-            muColorAdjustLoc = -1;
         } else {
             // has kernel, must also have tex offset and color adj
             muTexOffsetLoc = GLES20.glGetUniformLocation(mProgramHandle, "uTexOffset");

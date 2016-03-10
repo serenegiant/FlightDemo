@@ -14,6 +14,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -214,6 +215,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 		mModelView.setModel(IModelView.MODEL_NON, AttitudeScreenBase.CTRL_ATTITUDE);
+		((View)mModelView).setOnClickListener(mOnClickListener);
 
 		mDetectView = (SurfaceView)rootView.findViewById(R.id.detect_view);
 		mDetectView.setVisibility(View.VISIBLE);
@@ -299,6 +301,22 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				if (mImageProcessor != null) {
 					mImageProcessor.setResultFrameType((mImageProcessor.getResultFrameType()) % 4 + 1);
 				}
+				break;
+			case R.id.drone_view:
+				if (mImageProcessor != null) {
+					mImageProcessor.requestUpdateExtractionColor();
+				}
+				break;
+			case R.id.update_extraction_color_btn:
+				post(new Runnable() {
+					@Override
+					public void run() {
+						if (mImageProcessor != null) {
+							final int[] result = mImageProcessor.requestUpdateExtractionColor();
+							// FIXME プレファレンスに保存する
+						}
+					}
+				}, 0);
 				break;
 			}
 		}
@@ -482,6 +500,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private void setupSettingView(final View rootView) {
 		Switch sw;
 		SeekBar sb;
+		Button btn;
 		// 露出
 		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
 		sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
@@ -531,6 +550,9 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
 		sw.setChecked(mEnableNativeCanny);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		//
+		btn = (Button)rootView.findViewById(R.id.update_extraction_color_btn);
+		btn.setOnClickListener(mOnClickListener);
 	}
 
 	private final CompoundButton.OnCheckedChangeListener mOnCheckedChangeListener

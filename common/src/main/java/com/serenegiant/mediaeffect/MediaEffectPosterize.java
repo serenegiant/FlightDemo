@@ -19,6 +19,9 @@ package com.serenegiant.mediaeffect;
 
 import com.serenegiant.glutils.Texture2dProgram;
 
+/**
+ * FIXME ポスタライズ, うまく動かない
+ */
 public class MediaEffectPosterize extends MediaEffectGLESBase {
 	private static final boolean DEBUG = false;
 	private static final String TAG = "MediaEffectBrightness";
@@ -28,9 +31,9 @@ public class MediaEffectPosterize extends MediaEffectGLESBase {
 		"precision highp float;\n" +
 		"varying       vec2 vTextureCoord;\n" +
 		"uniform %s    sTexture;\n" +
-		"uniform highp float uColorAdjust;\n" +
+		"uniform float uColorAdjust;\n" +
 		"void main() {\n" +
-		"    highp vec4 tex = texture2D(sTexture, vTextureCoord);\n" +
+		"    vec4 tex = texture2D(sTexture, vTextureCoord);\n" +
 		"    gl_FragColor = floor((tex * uColorAdjust) + vec4(0.5)) / uColorAdjust;\n" +
 		"}\n";
 	private static final String FRAGMENT_SHADER

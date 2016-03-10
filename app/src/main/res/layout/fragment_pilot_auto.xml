@@ -31,7 +31,6 @@
 					android:visibility="visible"
 					android:background="@null"/>
 				<ImageView
-					android:id="@+id/target_frame"
 					android:layout_width="60dp"
 					android:layout_height="60dp"
 					android:layout_centerInParent="true"
@@ -39,13 +38,24 @@
 					android:background="@drawable/frame"/>
 			</RelativeLayout>
 
-			<SurfaceView
+			<RelativeLayout
 				android:layout_width="match_parent"
 				android:layout_height="0dp"
-				android:id="@+id/detect_view"
-				android:visibility="visible"
-				android:background="@drawable/frame"
-				android:layout_weight="1"/>
+				android:layout_weight="1"
+				android:background="@null" >
+				<SurfaceView
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:id="@+id/detect_view"
+					android:visibility="visible"
+					android:background="@drawable/frame"/>
+				<ImageView
+					android:layout_width="60dp"
+					android:layout_height="60dp"
+					android:layout_centerInParent="true"
+					android:src="@null"
+					android:background="@drawable/frame"/>
+			</RelativeLayout>
 
 		</LinearLayout>
 
@@ -193,10 +203,12 @@
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
 							android:text="@string/trace_use_posterize"
+							android:visibility="gone"
 							android:id="@+id/use_posterize_sw"/>
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:visibility="gone"
 							android:id="@+id/posterize_seekbar"/>
 						<TextView
 							android:layout_width="wrap_content"
@@ -234,6 +246,13 @@
 							android:layout_height="wrap_content"
 							android:text="@string/trace_use_native_canny"
 							android:id="@+id/use_native_canny_sw"/>
+
+						<Button
+							style="?android:attr/buttonStyleSmall"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:text="@string/trace_update_extraction_color"
+							android:id="@+id/update_extraction_color_btn"/>
 					</LinearLayout>
 				</ScrollView>
 

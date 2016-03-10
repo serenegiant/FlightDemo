@@ -15,13 +15,13 @@ import com.serenegiant.mediaeffect.MediaEffectBrightness;
 import com.serenegiant.mediaeffect.MediaEffectCanny;
 import com.serenegiant.mediaeffect.MediaEffectExposure;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
-import com.serenegiant.mediaeffect.MediaEffectGrayScale;
 import com.serenegiant.mediaeffect.MediaEffectPosterize;
 import com.serenegiant.mediaeffect.MediaEffectSaturate;
 import com.serenegiant.mediaeffect.MediaSource;
 
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +56,8 @@ public class ImageProcessor {
 	private boolean mEnableExtraction;
 	private boolean mEnableCanny;
 	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
+
+	private volatile boolean requestUpdateExtractionColor;
 
 	/** native側のインスタンスポインタ, 名前を変えたりしちゃダメ */
 	private long mNativePtr;
@@ -123,7 +125,6 @@ public class ImageProcessor {
 //================================================================================
 	public void enableExposure(final boolean enable) {
 		if (mEnableExposure != enable) {
-			if (DEBUG) Log.v(TAG, "enableExposure:");
 			mEnableExposure = enable;
 			synchronized (mSync) {
 				for (final IEffect effect: mEffects) {
@@ -153,7 +154,6 @@ public class ImageProcessor {
 						((MediaEffectExposure)effect).setParameter(exp);
 					}
 				}
-//				enableExposure(exp != 0);
 			}
 		}
 	}
@@ -164,7 +164,6 @@ public class ImageProcessor {
 
 	public void enableBrightness(final boolean enable) {
 		if (mEnableBrightness != enable) {
-			if (DEBUG) Log.v(TAG, "enableBrightness:" + enable);
 			mEnableBrightness = enable;
 			synchronized (mSync) {
 				for (final IEffect effect: mEffects) {
@@ -193,7 +192,6 @@ public class ImageProcessor {
 						((MediaEffectBrightness)effect).setParameter(brightness);
 					}
 				}
-//				enableBrightness(brightness != 0.0f);
 			}
 		}
 	}
@@ -204,7 +202,6 @@ public class ImageProcessor {
 
 	public void enableSaturation(final boolean enable) {
 		if (mEnableSaturation != enable) {
-			if (DEBUG) Log.v(TAG, "enableSaturation:" + enable);
 			mEnableSaturation = enable;
 			synchronized (mSync) {
 				for (final IEffect effect: mEffects) {
@@ -234,7 +231,6 @@ public class ImageProcessor {
 						((MediaEffectSaturate)effect).setParameter(sat);
 					}
 				}
-//				enableSaturation(sat != 0.0f);
 			}
 		}
 	}
@@ -275,7 +271,6 @@ public class ImageProcessor {
 						((MediaEffectPosterize)effect).setParameter(post);
 					}
 				}
-//				enablePosterize(post != 10.0f);
 			}
 		}
 	}
@@ -291,13 +286,8 @@ public class ImageProcessor {
 	public void enableExtraction(final boolean enable) {
 		if (mEnableExtraction != enable) {
 			if (DEBUG) Log.v(TAG, "setExtraction:" + enable);
-			mEnableExtraction = enable;
 			synchronized (mSync) {
-				for (final IEffect effect: mEffects) {
-					if (effect instanceof MediaEffectExtraction) {
-						effect.setEnable(enable);
-					}
-				}
+				mEnableExtraction = enable;
 			}
 		}
 	}
@@ -313,20 +303,28 @@ public class ImageProcessor {
 	public void enableCanny(final boolean enable) {
 		if (mEnableCanny != enable) {
 			if (DEBUG) Log.v(TAG, "enableCanny:" + enable);
-			mEnableCanny = enable;
 			synchronized (mSync) {
-				for (final IEffect effect: mEffects) {
-					if ((effect instanceof MediaEffectCanny)
-					 || (effect instanceof MediaEffectGrayScale)) {
-						effect.setEnable(enable);
-					}
-				}
+				mEnableCanny = enable;
 			}
 		}
 	}
 
 	public boolean enableCanny() {
 		return mEnableCanny;
+	}
+
+	public int[] requestUpdateExtractionColor() {
+		if (DEBUG) Log.v(TAG, "requestUpdateExtractionColor:");
+		final int[] temp = new int[6];
+		synchronized (mSync) {
+			requestUpdateExtractionColor = true;
+			try {
+				mSync.wait();
+				System.arraycopy(EXTRACT_COLOR_HSV_LIMIT, 0, temp, 0, 6);
+			} catch (InterruptedException e) {
+			}
+		}
+		return temp;
 	}
 
 	public static final int RESULT_FRAME_TYPE_SRC = 0;
@@ -363,28 +361,37 @@ public class ImageProcessor {
 		final int lowerS, final int upperS,
 		final int lowerV, final int upperV) {
 
-		EXTRACT_COLOR_HSV_LIMIT[0] = sat(lowerH, 0, 180);
-		EXTRACT_COLOR_HSV_LIMIT[1] = sat(upperH, 0, 180);
-		EXTRACT_COLOR_HSV_LIMIT[2] = sat(lowerS, 0, 255);
-		EXTRACT_COLOR_HSV_LIMIT[3] = sat(upperS, 0, 255);
-		EXTRACT_COLOR_HSV_LIMIT[4] = sat(lowerV, 0, 255);
-		EXTRACT_COLOR_HSV_LIMIT[5] = sat(upperV, 0, 255);
 		synchronized (mSync) {
-			for (final IEffect effect: mEffects) {
-				if (effect instanceof MediaEffectExtraction) {
-					((MediaEffectExtraction)effect).setParameter(
-						EXTRACT_COLOR_HSV_LIMIT[0] / 180.0f,	// 色相H 制限なし(0-180),
-						EXTRACT_COLOR_HSV_LIMIT[1] / 180.0f,
-						EXTRACT_COLOR_HSV_LIMIT[2] / 255.0f,	// 彩度S 0-10,
-						EXTRACT_COLOR_HSV_LIMIT[3] / 255.0f,
-						EXTRACT_COLOR_HSV_LIMIT[4] / 255.0f,	// 明度V 200-255,
-						EXTRACT_COLOR_HSV_LIMIT[5] / 255.0f,
-						0.0f
-					);
-				}
-			}
+			EXTRACT_COLOR_HSV_LIMIT[0] = sat(lowerH, 0, 180);
+			EXTRACT_COLOR_HSV_LIMIT[1] = sat(upperH, 0, 180);
+			EXTRACT_COLOR_HSV_LIMIT[2] = sat(lowerS, 0, 255);
+			EXTRACT_COLOR_HSV_LIMIT[3] = sat(upperS, 0, 255);
+			EXTRACT_COLOR_HSV_LIMIT[4] = sat(lowerV, 0, 255);
+			EXTRACT_COLOR_HSV_LIMIT[5] = sat(upperV, 0, 255);
+			applyExtractionColor();
 		}
-		final int result = nativeSetExtractionColor(mNativePtr, lowerH, upperH, lowerS, upperS, lowerV, upperV);
+	}
+
+	private void applyExtractionColor() {
+		if ((mProcessingTask != null) && (mProcessingTask.mExtraction != null)) {
+			// 指定色範囲を抽出
+			mProcessingTask.mExtraction.setParameter(
+				EXTRACT_COLOR_HSV_LIMIT[0] / 180.0f,    // H(色相) 制限なし(0-180),
+				EXTRACT_COLOR_HSV_LIMIT[1] / 180.0f,
+				EXTRACT_COLOR_HSV_LIMIT[2] / 255.0f,    // S(彩度) 0-10,
+				EXTRACT_COLOR_HSV_LIMIT[3] / 255.0f,
+				EXTRACT_COLOR_HSV_LIMIT[4] / 255.0f,    // V(明度) 200-255,
+				EXTRACT_COLOR_HSV_LIMIT[5] / 255.0f,
+				0.00f, 0.00f, 0.00f,    // 抽出後加算値(HSV)
+				0.50f);					// 2値化時のしきい値, 0なら2値化なし
+		}
+		final int result = nativeSetExtractionColor(mNativePtr,
+			EXTRACT_COLOR_HSV_LIMIT[0],
+			EXTRACT_COLOR_HSV_LIMIT[1],
+			EXTRACT_COLOR_HSV_LIMIT[2],
+			EXTRACT_COLOR_HSV_LIMIT[3],
+			EXTRACT_COLOR_HSV_LIMIT[4],
+			EXTRACT_COLOR_HSV_LIMIT[5]);
 		if (result != 0) {
 			throw new IllegalStateException("nativeSetExtractionColor:result=" + result);
 		}
@@ -461,11 +468,7 @@ public class ImageProcessor {
 		mCallback.onFrame(frame);
 	}
 
-	private static class ProcessingTask extends EglTask {
-		private final ImageProcessor mParent;
-		/** コピー */
-		private final long mNativePtr;
-		private final Object mSync;
+	private class ProcessingTask extends EglTask {
 		/** 映像をテクスチャとして受け取る時のテクスチャ名(SurfaceTexture生成時/分配描画に使用) */
 		private int mTexId;
 		/** 映像を受け取るtsめのSurfaceTexture */
@@ -479,17 +482,13 @@ public class ImageProcessor {
 		// プレフィルタ処理用
 		private EffectContext mEffectContext;
 		private FullFrameRect mSrcDrawer;
+		private MediaEffectExtraction mExtraction;
+		private MediaEffectCanny mEdgeDetection;
 		// 映像受け取り用
 		private MediaSource mMediaSource;
-		// 映像効果リスト
-		private final List<IEffect> mEffects;
 
 		public ProcessingTask(final ImageProcessor parent) {
 			super(null, 0);
-			mParent = parent;
-			mSync = parent.mSync;
-			mEffects = parent.mEffects;
-			mNativePtr = mParent.mNativePtr;
 			mVideoWidth = VIDEO_WIDTH;
 			mVideoHeight = VIDEO_HEIGHT;
 		}
@@ -534,55 +533,48 @@ public class ImageProcessor {
 				final MediaEffectAutoFix autofix = new MediaEffectAutoFix(mEffectContext, 1.0f);
 				mEffects.add(autofix);
 				// 露出調整
-				final MediaEffectExposure exposure = new MediaEffectExposure(mParent.mExposure);
+				final MediaEffectExposure exposure = new MediaEffectExposure(mExposure);
 				exposure.setEnable(true);
 				mEffects.add(exposure);
 				// 彩度調整(-1.0f〜1.0f, -1.0fならグレースケール)
-				final MediaEffectSaturate saturate = new MediaEffectSaturate(mEffectContext, mParent.mSaturation);
+				final MediaEffectSaturate saturate = new MediaEffectSaturate(mEffectContext, mSaturation);
 				saturate.setEnable(true);
 				mEffects.add(saturate);
 				// 明るさ調整(0〜, 1.0fなら変化なし)
-				final MediaEffectBrightness brightness = new MediaEffectBrightness(mParent.mBrightness);
+				final MediaEffectBrightness brightness = new MediaEffectBrightness(mBrightness);
 				brightness.setEnable(true);
 				mEffects.add(brightness);
 /*				// コントラスト(0〜1.0f, 0なら変化なし)
 				final MediaEffectContrast contrast = new MediaEffectContrast(mEffectContext, 1.0f);
 				mEffects.add(contrast); */
-				// ポスタライズ
+/*				// ポスタライズ
 				final MediaEffectPosterize posterize = new MediaEffectPosterize(mParent.mPosterize);
 				posterize.setEnable(mParent.mEnablePosterize);
-				mEffects.add(posterize);
+				mEffects.add(posterize); */
+				// 色抽出とCannyエッジ検出はプレフィルタじゃないよ
 				// 色抽出(白色)
-				final MediaEffectExtraction extraction = new MediaEffectExtraction();
-				extraction.setParameter(    // 白色を抽出
-					mParent.EXTRACT_COLOR_HSV_LIMIT[0] / 180.0f,	// H(色相) 制限なし(0-180),
-					mParent.EXTRACT_COLOR_HSV_LIMIT[1] / 180.0f,
-					mParent.EXTRACT_COLOR_HSV_LIMIT[2] / 255.0f,	// S(彩度) 0-10,
-					mParent.EXTRACT_COLOR_HSV_LIMIT[3] / 255.0f,
-					mParent.EXTRACT_COLOR_HSV_LIMIT[4] / 255.0f,	// V(明度) 200-255,
-					mParent.EXTRACT_COLOR_HSV_LIMIT[5] / 255.0f,
-					0.00f, 0.00f, 0.00f,    // 抽出後加算値(HSV)
-					0.00f);					// 2値化時のしきい値, 0なら2値化なし
-				extraction.setEnable(mParent.mEnableExtraction);
-				mEffects.add(extraction);
+				mExtraction = new MediaEffectExtraction();
+				applyExtractionColor();
+				mExtraction.setEnable(true);
+//				mEffects.add(mExtraction);
 /*				// ノイズ除去(平滑化)
 				final MediaEffectKernel gaussian = new MediaEffectKernel();
 				gaussian.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
 				mEffects.add(gaussian); */
-				final MediaEffectGrayScale gray = new MediaEffectGrayScale(mEffectContext);
-				gray.setEnable(mParent.mEnableCanny);
-				mEffects.add(gray);
+//				final MediaEffectGrayScale gray = new MediaEffectGrayScale(mEffectContext);
+//				gray.setEnable(mEnableCanny);
+//				mEffects.add(gray);
 				// Cannyエッジ検出フィルタ
-				final MediaEffectCanny canny = new MediaEffectCanny();
-				canny.setEnable(mParent.mEnableCanny);
-				mEffects.add(canny);
+				mEdgeDetection = new MediaEffectCanny();
+				mEdgeDetection.setEnable(true);
+//				mEffects.add(mEdgeDetection);
 			}	// synchronized (mSync)
 //--------------------------------------------------------------------------------
 			handleResize(mVideoWidth, mVideoHeight);
 			// native側の処理を開始
 			nativeStart(mNativePtr, mVideoWidth, mVideoHeight);
 			synchronized (mSync) {
-				mParent.isProcessingRunning = true;
+				isProcessingRunning = true;
 				mSync.notifyAll();
 			}
 			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:finished");
@@ -592,7 +584,7 @@ public class ImageProcessor {
 		protected void onStop() {
 			if (DEBUG) Log.v(TAG, "ProcessingTask#onStop");
 			synchronized (mSync) {
-				mParent.isProcessingRunning = false;
+				isProcessingRunning = false;
 				mSync.notifyAll();
 			}
 			// native側の処理を停止させる
@@ -660,6 +652,20 @@ public class ImageProcessor {
 						mMediaSource.apply(effect);
 					}
 				}
+				// この時点での映像中心部の色をHSVで取得して色抽出に使えるようにする
+				if (requestUpdateExtractionColor) {
+					requestUpdateExtractionColor = false;
+					updateExtractionColor();
+					mSync.notifyAll();
+				}
+				// 色抽出処理
+				if (mEnableExtraction) {
+					mMediaSource.apply(mExtraction);
+				}
+				// エッジ検出処理
+				if (mEnableCanny) {
+					mMediaSource.apply(mEdgeDetection);
+				}
 			}
 			// プレフィルター処理後の画像をNative側へ送る
 			mMediaSource.getOutputTexture().bind();
@@ -673,6 +679,89 @@ public class ImageProcessor {
 			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 			GLES20.glFlush();
 //			if (DEBUG) Log.v(TAG, "ProcessingTask#handleDraw:finished");
+		}
+
+		private void updateExtractionColor() {
+			final int n = 40 * 40;
+			final int sz = n * 4;
+			final ByteBuffer temp = ByteBuffer.allocateDirect(sz);
+			temp.order(ByteOrder.nativeOrder());
+			mMediaSource.getOutputTexture().bind();
+			GLES20.glReadPixels(mVideoWidth / 2 - 20, mVideoHeight / 2 - 20, 40, 40, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, temp);
+			mMediaSource.getOutputTexture().unbind();
+			final byte[] rgba = new byte[sz];
+			temp.clear();
+			temp.get(rgba);
+			//
+			final float[] hsv = new float[3];
+			final int[] h_cnt = new int[256];	// 0..255
+			final int[] s_cnt = new int[256];	// 0..255
+			final int[] v_cnt = new int[256];	// 0..255
+			for (int i = 0; i < sz; i += 4) {
+				rgb2hsv(rgba[i], rgba[i+1], rgba[i+2], hsv);	// RGBAの順
+				h_cnt[(int)(hsv[0] / 360f * 255) % 256]++;
+				s_cnt[(int)(hsv[1] * 255) % 256]++;
+				v_cnt[(int)(hsv[2] * 255) % 256]++;
+//				if (hsv[2] != 0) Log.v(TAG, String.format("HSV(%f,%f,%f)", hsv[0], hsv[1], hsv[2]));
+			}
+			float h = 0, s = 0, v = 0;
+			for (int i = 0; i < 256; i++) {
+				h += i * h_cnt[i];
+				s += i * s_cnt[i];
+				v += i * v_cnt[i];
+//				if (DEBUG) Log.v(TAG, String.format("%d)%4d,%4d,%4d", i, h_cnt[i], s_cnt[i], v_cnt[i]));
+			}
+			// 平均
+			h /= n;
+			s /= n;
+			v /= n;
+			float h_sd = 0, s_sd = 0, v_sd = 0;
+			for (int i = 0; i < 256; i++) {
+				h_sd += (i - h) * (i - h) * h_cnt[i];
+				s_sd += (i - s) * (i - s) * s_cnt[i];
+				v_sd += (i - v) * (i - v) * v_cnt[i];
+			}
+			// 標準偏差2σ
+			h_sd = (float)Math.sqrt(h_sd / n) * 2; if (h_sd < 2) h_sd= 2;	// 2σ
+			s_sd = (float)Math.sqrt(s_sd / n) * 3; if (s_sd < 3) s_sd= 3;	// 3σ
+			v_sd = (float)Math.sqrt(v_sd / n) * 5; if (v_sd < 5) v_sd= 5;	// 5σ
+
+			EXTRACT_COLOR_HSV_LIMIT[0] = sat((int)((h - h_sd) / 250 * 180), 0, 180);
+			EXTRACT_COLOR_HSV_LIMIT[1] = sat((int)((h + h_sd) / 250 * 180), 0, 180);
+			EXTRACT_COLOR_HSV_LIMIT[2] = sat((int)((s - s_sd)), 0, 255);
+			EXTRACT_COLOR_HSV_LIMIT[3] = sat((int)((s + s_sd)), 0, 255);
+			EXTRACT_COLOR_HSV_LIMIT[4] = sat((int)((v - v_sd)), 0, 255);
+			EXTRACT_COLOR_HSV_LIMIT[5] = sat((int)((v + v_sd)), 0, 255);
+			applyExtractionColor();
+			if (DEBUG) Log.v(TAG, String.format("AVE(%f,%f,%f),SD(%f,%f,%f)",
+				h, s, v, h_sd, s_sd, v_sd));
+
+			if (DEBUG) Log.v(TAG, String.format("HSV(%d,%d,%d,%d,%d,%d)",
+				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
+				EXTRACT_COLOR_HSV_LIMIT[2], EXTRACT_COLOR_HSV_LIMIT[3],
+				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]));
+		}
+
+		private void rgb2hsv(final byte _r, final byte _g, final byte _b, final float[] hsv) {
+			final float b = sat(((_b & 0xff)) / 255.0f, 0, 1);
+			final float g = sat(((_g & 0xff)) / 255.0f, 0, 1);
+			final float r = sat((_r & 0xff) / 255.0f, 0, 1);
+			final float rgb_min = Math.min(Math.min(r, g), b);
+			final float rgb_max = Math.max(Math.max(r, g), b);
+			hsv[0] = hsv[1] = hsv[2] = 0.0f;
+			if (rgb_max != rgb_min) {
+				// 色相Hの計算[0,360]
+				if (rgb_min == b) {
+					hsv[0] = (60 * (g - r) / (rgb_max - rgb_min) + 60);
+				} else if (rgb_min == r) {
+					hsv[0] = (60 * (b - g) / (rgb_max - rgb_min) + 180);
+				} else if (rgb_min == g) {
+					hsv[0] = (60 * (r - b) / (rgb_max - rgb_min) + 300);
+				}
+			}
+			// 彩度S, 明度Vの計算[0.0f,1.0f]
+			hsv[1] = rgb_max - rgb_min;
+			hsv[2] = rgb_max;
 		}
 
 		/**

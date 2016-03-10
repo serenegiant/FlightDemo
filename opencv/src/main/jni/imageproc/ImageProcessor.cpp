@@ -539,22 +539,21 @@ static bool comp_line_priority(const DetectRec &left, const DetectRec &right) {
 	const bool b2 = left.analogous < right.analogous;
 	// 近似輪郭と実輪郭の面積比(小さい方, 曲線だと大きくなってしまう)
 	const bool b3 = left.area_rate < right.area_rate;
-	// アスペクト比の比較(10%以上違う時, 大きい方)
-	const float a4 = left.aspect / right.aspect;
-	const bool b4 = (a4 < 0.9f || a4 > 1.1f) ? left.aspect > right.aspect : false;
-	// 長さの比較(10ピクセル以上違う時, 大きい方)
-	const bool b5 = fabs(left.length - right.length) > 10 ? left.length - right.length : false;
+	// アスペクト比の比較(大きい方)
+	const bool b4 = left.aspect > right.aspect;
+	// 長さの比較(大きい方)
+	const bool b5 = left.length > right.length;
 	return
 		(b5 && b4 && b3 && b2)		// 長くてアスペクト比が大きくて面積比が小さくて類似性が良い
 		|| (b5 && b4 && b3)			// 長くてアスペクト比が大きくて面積比が小さい
 		|| (b5 && b4 && b2)			// 長くてアスペクト比が大きくて類似性が良い
 		|| (b5 && b4)				// 長くてアスペクト比が大きい
-		|| (b5 && b3 && b2)			// 長くて面積比が小さくて類似性が良い
-		|| (b5 && b3)				// 長くて面積比が小さい
-		|| (b5 && b2)				// 長くて類似性が良い
 		|| (b4 && b3 && b2)			// アスペクト比が大きくて面積比が小さくて類似性が良い
 		|| (b4 && b3)				// アスペクト比が大きくて面積比が小さい
 		|| (b4 && b2)				// アスペクト比が大きくて類似性が良い
+		|| (b5 && b3 && b2)			// 長くて面積比が小さくて類似性が良い
+		|| (b5 && b3)				// 長くて面積比が小さい
+		|| (b5 && b2)				// 長くて類似性が良い
 		|| (b3 && b2)				// 面積比が小さくて類似性良い
 		|| (b5)						// 長い
 		|| (b4)						// アスペクト比が大きい
