@@ -168,27 +168,27 @@
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
-							android:text="New Text"/>
+							android:text="@string/trace_use_exposure"/>
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
-							android:id="@+id/seekBar"/>
+							android:id="@+id/exposure_seekbar"/>
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
-							android:text="New Text"/>
+							android:text="@string/trace_use_saturation"/>
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
-							android:id="@+id/seekBar2"/>
+							android:id="@+id/saturation_seekbar"/>
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
-							android:text="New Text"/>
+							android:text="@string/trace_use_brightness"/>
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
-							android:id="@+id/seekBar3"/>
+							android:id="@+id/brightness_seekbar"/>
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
@@ -213,6 +213,16 @@
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
 							android:id="@+id/seekBar6"/>
+						<Switch
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:text="@string/trace_use_extraction"
+							android:id="@+id/use_extract_sw"/>
+						<Switch
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:text="@string/trace_use_canny"
+							android:id="@+id/use_canny_sw"/>
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"

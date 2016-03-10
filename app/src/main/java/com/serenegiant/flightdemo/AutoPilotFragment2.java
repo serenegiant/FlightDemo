@@ -1,10 +1,12 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -15,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,7 +25,6 @@ import android.widget.Toast;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
@@ -43,33 +45,32 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = AutoPilotFragment2.class.getSimpleName();
 
-	private static final String ENABLE_EMPHASIS = "ENABLE_EMPHASIS";
-	private static final String ENABLE_EXTRACTION = "ENABLE_EXTRACTION";
+	private static final String KEY_PREF_NAME_AUTOPILOT = "KEY_PREF_NAME_AUTOPILOT";
 
-	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device,
-		final boolean enable_emphasis,
-		final boolean enable_extraction) {
+	private static final String KEY_EXPOSURE = "KEY_EXPOSURE";
+	private static final String KEY_SATURATION = "KEY_SATURATION";
+	private static final String KEY_BRIGHTNESS = "KEY_BRIGHTNESS";
+	private static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
+	private static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";
+	private static final String KEY_ENABLE_EDGE_DETECTION = "KEY_ENABLE_EDGE_DETECTION";
+	private static final String KEY_ENABLE_NATIVE_EDGE_DETECTION = "KEY_ENABLE_NATIVE_EDGE_DETECTION";
+
+	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device, final String pref_name) {
 
 		final AutoPilotFragment2 fragment = new AutoPilotFragment2();
 		final Bundle args = fragment.setDevice(device);
-		args.putBoolean(ENABLE_EMPHASIS, enable_emphasis);
-		args.putBoolean(ENABLE_EXTRACTION, enable_extraction);
-		fragment.mEnableEmphasis = enable_emphasis;
-		fragment.mEnableExtraction = enable_extraction;
+		fragment.mPrefName =  TextUtils.isEmpty(pref_name) ? TAG : pref_name;
+		args.putString(KEY_PREF_NAME_AUTOPILOT, fragment.mPrefName);
 		return fragment;
 	}
 
-	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info,
-		final boolean enable_emphasis,
-		final boolean enable_extraction) {
+	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final String pref_name) {
 
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final AutoPilotFragment2 fragment = new AutoPilotFragment2();
 		final Bundle args = fragment.setBridge(device, info);
-		args.putBoolean(ENABLE_EMPHASIS, enable_emphasis);
-		args.putBoolean(ENABLE_EXTRACTION, enable_extraction);
-		fragment.mEnableEmphasis = enable_emphasis;
-		fragment.mEnableExtraction = enable_extraction;
+		fragment.mPrefName =  TextUtils.isEmpty(pref_name) ? TAG : pref_name;
+		args.putString(KEY_PREF_NAME_AUTOPILOT, fragment.mPrefName);
 		return fragment;
 	}
 
@@ -102,12 +103,24 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	protected ImageProcessor mImageProcessor;
 
 	// 設定
-	protected boolean mEnableEmphasis;
-	protected boolean mEnableExtraction;
+	protected String mPrefName;
+	protected SharedPreferences mPref;
+	/** 露出 */
+	protected float mExposure;
+	/** 彩度 */
+	protected float mSaturation;
+	/** 明るさ */
+	protected float mBrightness;
+	/** OpenGL|ESで色抽出を行うかどうか  */
+	protected boolean mEnableGLESExtraction = false;
+	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
+	protected boolean mEnableGLESCanny = false;
+	/** 色抽出範囲設定(HSV上下限) */
+	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
 	/** native側の色抽出を使うかどうか */
-	protected boolean mUseNativeExtraction = false;
+	protected boolean mEnableNativeExtraction = false;
 	/** native側のエッジ検出(Canny)を使うかどうか */
-	protected boolean mUseNativeCanny = true;
+	protected boolean mEnableNativeCanny = true;
 
 	public AutoPilotFragment2() {
 		super();
@@ -118,15 +131,14 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	public void onAttach(final Activity activity) {
 		super.onAttach(activity);
 		if (DEBUG) Log.v(TAG, "onAttach");
+		mPref = activity.getSharedPreferences(mPrefName, 0);
 	}
 
 	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach");
-		if (mImageProcessor != null) {
-			mImageProcessor.release();
-			mImageProcessor = null;
-		}
+		stopImageProcessor();
+		mPref = null;
 		super.onDetach();
 	}
 
@@ -200,19 +212,9 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 		mDetectView = (SurfaceView)rootView.findViewById(R.id.detect_view);
 		mDetectView.setVisibility(View.VISIBLE);
+//--------------------------------------------------------------------------------
+		setupSettingView(rootView);
 
-		// Native側の色抽出を使うかどうか
-		Switch sw = (Switch)rootView.findViewById(R.id.use_native_extract_sw);
-		sw.setChecked(mUseNativeExtraction);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// Native側のCannyを使うかどうか
-		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
-		sw.setChecked(mUseNativeCanny);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-
-		final Bundle args = getArguments();
-		mEnableEmphasis = args.getBoolean(ENABLE_EMPHASIS, true);
-		mEnableExtraction = args.getBoolean(ENABLE_EXTRACTION, true);
 		return rootView;
 	}
 
@@ -328,45 +330,13 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		}
 	};
 
-	private final CompoundButton.OnCheckedChangeListener mOnCheckedChangeListener
-		= new CompoundButton.OnCheckedChangeListener() {
-		@Override
-		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-			switch (buttonView.getId()) {
-			case R.id.use_native_extract_sw:
-				if (mImageProcessor != null) {
-					mUseNativeExtraction = isChecked;
-					mImageProcessor.enableNativeExtract(isChecked);
-				}
-				break;
-			case R.id.use_native_canny_sw:
-				if (mImageProcessor != null) {
-					mUseNativeCanny = isChecked;
-					mImageProcessor.enableNativeCanny(isChecked);
-				}
-				break;
-			}
-		}
-	};
-
 	private int mImageProcessorSurfaceId;
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		super.onConnect(controller);
 		if (DEBUG) Log.v(TAG, "onConnect");
 		if ((mController instanceof IVideoStreamController) && (mVideoStream != null)) {
-			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
-			mImageProcessor.setEmphasis(mEnableEmphasis);
-			mImageProcessor.setExtraction(mEnableExtraction);
-			mImageProcessor.setExtractionColor(0, 180, 0, 50, 120, 255);	// FIXME これは画面の画像から読み取る
-			mImageProcessor.enableNativeExtract(false);
-			mImageProcessor.enableNativeCanny(true);
-			mImageProcessor.start();
-			final Surface surface = mImageProcessor.getSurface();
-			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
-			if (mImageProcessorSurfaceId != 0) {
-				mVideoStream.addSurface(mImageProcessorSurfaceId, surface);
-			}
+			startImageProcessor();
 		}
 		if (mController instanceof ICameraController) {
 			((ICameraController)mController).sendExposure(3);
@@ -377,14 +347,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onDisconnect");
-		if ((mVideoStream != null) && (mImageProcessorSurfaceId != 0)) {
-			mVideoStream.removeSurface(mImageProcessorSurfaceId);
-			mImageProcessorSurfaceId = 0;
-		}
-		if (mImageProcessor != null) {
-			mImageProcessor.release();
-			mImageProcessor = null;
-		}
+		stopImageProcessor();
 		super.onDisconnect(controller);
 	}
 
@@ -510,6 +473,176 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			}
 		}
 	};
+
+	private void setupSettingView(final View rootView) {
+		// 露出
+		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
+		SeekBar sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
+		sb.setMax(200);
+		sb.setProgress((int)(mExposure * 10.0f) + 100);	// [-10,+ 10] => [0, 200]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		// 彩度
+		mSaturation = mPref.getFloat(KEY_SATURATION, 0.0f);
+		sb = (SeekBar)rootView.findViewById(R.id.saturation_seekbar);
+		sb.setMax(200);
+		sb.setProgress((int)(mSaturation * 100.0f) + 100);	// [-1.0f, +1.0f] => [0, 200]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		// 明るさ
+		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, 0.0f);
+		sb = (SeekBar)rootView.findViewById(R.id.brightness_seekbar);
+		sb.setMax(200);
+		sb.setProgress((int)(mBrightness * 10.0f) + 100);	// [-1.0f, +1.0f] => [0, 100]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+
+		// OpenGL|ESで色抽出を使うかどうか
+		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, false);
+		Switch sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
+		sw.setChecked(mEnableGLESExtraction);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// OpenGL|ESでエッジ検出を行うかどうか
+		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, false);
+		sw = (Switch)rootView.findViewById(R.id.use_canny_sw);
+		sw.setChecked(mEnableGLESCanny);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// Native側の色抽出を使うかどうか
+		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
+		sw = (Switch)rootView.findViewById(R.id.use_native_extract_sw);
+		sw.setChecked(mEnableNativeExtraction);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// Native側のCannyを使うかどうか
+		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, true);
+		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
+		sw.setChecked(mEnableNativeCanny);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+	}
+
+	private final CompoundButton.OnCheckedChangeListener mOnCheckedChangeListener
+		= new CompoundButton.OnCheckedChangeListener() {
+		@Override
+		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
+			switch (buttonView.getId()) {
+			case R.id.use_extract_sw:
+				if (mImageProcessor != null) {
+					mEnableGLESExtraction = isChecked;
+					mImageProcessor.enableExtraction(isChecked);
+				}
+				break;
+			case R.id.use_canny_sw:
+				if (mImageProcessor != null) {
+					mEnableGLESCanny = isChecked;
+					mImageProcessor.enableCanny(isChecked);
+				}
+				break;
+			case R.id.use_native_extract_sw:
+				if (mImageProcessor != null) {
+					mEnableNativeExtraction = isChecked;
+					mImageProcessor.enableNativeExtract(isChecked);
+				}
+				break;
+			case R.id.use_native_canny_sw:
+				if (mImageProcessor != null) {
+					mEnableNativeCanny = isChecked;
+					mImageProcessor.enableNativeCanny(isChecked);
+				}
+				break;
+			}
+		}
+	};
+
+	private final SeekBar.OnSeekBarChangeListener mOnSeekBarChangeListener
+		= new SeekBar.OnSeekBarChangeListener() {
+		@Override
+		public void onProgressChanged(final SeekBar seekBar, final int progress, final boolean fromUser) {
+			if (!fromUser) return;
+			switch (seekBar.getId()) {
+			case R.id.exposure_seekbar:
+				final float exposure = (progress - 100) / 10.0f;	// [0,200] => [-10.0f, +10.0f]
+				if (mExposure != exposure) {
+					mExposure = exposure;
+					if (mImageProcessor != null) {
+						mImageProcessor.setExposure(exposure);
+					}
+				}
+				break;
+			case R.id.saturation_seekbar:
+				final float saturation = (progress - 100) / 100.0f;	// [0,200] => [-1.0f, +1.0f]
+				if (mSaturation != saturation) {
+					mSaturation = saturation;
+					if (mImageProcessor != null) {
+						mImageProcessor.setSaturation(saturation);
+					}
+				}
+				break;
+			case R.id.brightness_seekbar:
+				final float brightness = (progress - 100) / 100.0f;	// [0,200] => [-1.0f, +1.0f]
+				if (mBrightness != brightness) {
+					mBrightness = brightness;
+					if (mImageProcessor != null) {
+						mImageProcessor.setBrightness(brightness);
+					}
+				}
+				break;
+			}
+		}
+
+		@Override
+		public void onStartTrackingTouch(final SeekBar seekBar) {
+		}
+
+		@Override
+		public void onStopTrackingTouch(final SeekBar seekBar) {
+			switch (seekBar.getId()) {
+			case R.id.exposure_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_EXPOSURE, mExposure).apply();
+				}
+				break;
+			case R.id.saturation_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_SATURATION, mSaturation).apply();
+				}
+				break;
+			case R.id.brightness_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_BRIGHTNESS, mBrightness).apply();
+				}
+				break;
+			}
+		}
+	};
+
+	private void startImageProcessor() {
+		if (mImageProcessor == null) {
+			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
+			mImageProcessor.setExposure(mExposure);
+			mImageProcessor.setSaturation(mSaturation);
+			mImageProcessor.setBrightness(mBrightness);
+			mImageProcessor.setExtractionColor(
+				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
+				EXTRACT_COLOR_HSV_LIMIT[2], EXTRACT_COLOR_HSV_LIMIT[3],
+				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]);
+			mImageProcessor.enableExtraction(mEnableGLESExtraction);
+			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
+			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
+			mImageProcessor.start();
+			final Surface surface = mImageProcessor.getSurface();
+			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
+			if (mImageProcessorSurfaceId != 0) {
+				mVideoStream.addSurface(mImageProcessorSurfaceId, surface);
+			}
+		}
+	}
+
+	private void stopImageProcessor() {
+		if ((mVideoStream != null) && (mImageProcessorSurfaceId != 0)) {
+			mVideoStream.removeSurface(mImageProcessorSurfaceId);
+		}
+		mImageProcessorSurfaceId = 0;
+		if (mImageProcessor != null) {
+			mImageProcessor.release();
+			mImageProcessor = null;
+		}
+	}
 
 	private Bitmap mFrame;
 	private final ImageProcessor.ImageProcessorCallback mImageProcessorCallback

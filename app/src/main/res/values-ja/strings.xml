@@ -124,6 +124,11 @@
 	<string name="anim_boost">ブースト</string>
 
 	<!-- ライントレース画面の文字列 -->
-	<string name="trace_use_native_extraction">色抽出方法</string>
-	<string name="trace_use_native_canny">エッジ検出方法</string>
+	<string name="trace_use_exposure">露出</string>
+	<string name="trace_use_saturation">彩度</string>
+	<string name="trace_use_brightness">明るさ</string>
+	<string name="trace_use_native_extraction">色抽出OpenCV</string>
+	<string name="trace_use_native_canny">エッジ検出OpenCV</string>
+	<string name="trace_use_extraction">色抽出OpenGL|ES</string>
+	<string name="trace_use_canny">エッジ検出OpenGL|ES</string>
 </resources>

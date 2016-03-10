@@ -24,10 +24,10 @@ import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.Texture2dProgram;
 import com.serenegiant.glutils.TextureOffscreen;
 
-/** 明るさ調整([-1.0f,+1.0f], RGB各成分に単純加算), 0だと無調整 */
-public class MediaEffectBrightness extends MediaEffectGLESBase {
+/** 露出調整, -10〜+10, 0だと無調整 */
+public class MediaEffectExposure extends MediaEffectGLESBase {
 	private static final boolean DEBUG = false;
-	private static final String TAG = "MediaEffectBrightness";
+	private static final String TAG = "MediaEffectExposure";
 
 	private static final String FRAGMENT_SHADER_BASE = Texture2dProgram.SHADER_VERSION +
 		"%s" +
@@ -37,30 +37,31 @@ public class MediaEffectBrightness extends MediaEffectGLESBase {
 		"uniform float uColorAdjust;\n" +
 		"void main() {\n" +
 		"    highp vec4 tex = texture2D(sTexture, vTextureCoord);\n" +
-		"    gl_FragColor = vec4(tex.rgb + vec3(uColorAdjust, uColorAdjust, uColorAdjust), tex.w);\n" +
+		"    gl_FragColor = vec4(tex.rgb * pow(2.0, uColorAdjust), tex.w);\n" +
 		"}\n";
 	private static final String FRAGMENT_SHADER
 		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_2D, Texture2dProgram.SAMPLER_2D);
 	private static final String FRAGMENT_SHADER_EXT
 		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_OES, Texture2dProgram.SAMPLER_OES);
 
-	public MediaEffectBrightness() {
+	public MediaEffectExposure() {
 		super(FRAGMENT_SHADER);
 		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 	}
 
-	public MediaEffectBrightness(final float exposure) {
+	public MediaEffectExposure(final float exposure) {
 		this();
 		setParameter(exposure);
 	}
 
 	/**
 	 * 露出調整
-	 * @param brightness [-1.0f,+1.0f], RGB各成分に単純加算)
+	 * @param exposure -10〜+10, 0は無調整
 	 * @return
 	 */
-	public MediaEffectBrightness setParameter(final float brightness) {
-		mDrawer.getProgram().setColorAdjust(brightness);
+	public MediaEffectExposure setParameter(final float exposure) {
+		mDrawer.getProgram().setColorAdjust(exposure);
 		return this;
 	}
+
 }

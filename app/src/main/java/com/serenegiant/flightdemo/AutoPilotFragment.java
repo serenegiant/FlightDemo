@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -28,39 +27,39 @@ public class AutoPilotFragment extends PilotFragment {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = AutoPilotFragment.class.getSimpleName();
 
-	private static final String ENABLE_EMPHASIS = "ENABLE_EMPHASIS";
+	private static final String ENABLE_BRIGHTNESS = "ENABLE_BRIGHTNESS";
 	private static final String ENABLE_EXTRACTION = "ENABLE_EXTRACTION";
 
 	public static AutoPilotFragment newInstance(final ARDiscoveryDeviceService device,
-		final boolean enable_emphasis,
+		final boolean enable_brightness,
 		final boolean enable_extraction) {
 
 		final AutoPilotFragment fragment = new AutoPilotFragment();
 		final Bundle args = fragment.setDevice(device);
-		args.putBoolean(ENABLE_EMPHASIS, enable_emphasis);
+		args.putBoolean(ENABLE_BRIGHTNESS, enable_brightness);
 		args.putBoolean(ENABLE_EXTRACTION, enable_extraction);
-		fragment.mEnableEmphasis = enable_emphasis;
+		fragment.mEnableBrightness = enable_brightness;
 		fragment.mEnableExtraction = enable_extraction;
 		return fragment;
 	}
 
 	public static AutoPilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info,
-		final boolean enable_emphasis,
+		final boolean enable_brightness,
 		final boolean enable_extraction) {
 
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final AutoPilotFragment fragment = new AutoPilotFragment();
 		final Bundle args = fragment.setBridge(device, info);
-		args.putBoolean(ENABLE_EMPHASIS, enable_emphasis);
+		args.putBoolean(ENABLE_BRIGHTNESS, enable_brightness);
 		args.putBoolean(ENABLE_EXTRACTION, enable_extraction);
-		fragment.mEnableEmphasis = enable_emphasis;
+		fragment.mEnableBrightness = enable_brightness;
 		fragment.mEnableExtraction = enable_extraction;
 		return fragment;
 	}
 
 	protected SurfaceView mDetectView;
 	protected ImageProcessor mImageProcessor;
-	protected boolean mEnableEmphasis;
+	protected boolean mEnableBrightness;
 	protected boolean mEnableExtraction;
 
 	public AutoPilotFragment() {
@@ -90,7 +89,7 @@ public class AutoPilotFragment extends PilotFragment {
 		mDetectView = (SurfaceView)rootView.findViewById(R.id.detect_view);
 		mDetectView.setVisibility(View.VISIBLE);
 		final Bundle args = getArguments();
-		mEnableEmphasis = args.getBoolean(ENABLE_EMPHASIS, true);
+		mEnableBrightness = args.getBoolean(ENABLE_BRIGHTNESS, true);
 		mEnableExtraction = args.getBoolean(ENABLE_EXTRACTION, true);
 		return rootView;
 	}
@@ -102,8 +101,8 @@ public class AutoPilotFragment extends PilotFragment {
 		if (DEBUG) Log.v(TAG, "onConnect");
 		if ((mController instanceof IVideoStreamController) && (mVideoStream != null)) {
 			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
-			mImageProcessor.setEmphasis(mEnableEmphasis);
-			mImageProcessor.setExtraction(mEnableExtraction);
+			mImageProcessor.enableBrightness(mEnableBrightness);
+			mImageProcessor.enableExtraction(mEnableExtraction);
 			mImageProcessor.setExtractionColor(0, 180, 0, 50, 120, 255);
 			mImageProcessor.enableNativeExtract(false);
 			mImageProcessor.enableNativeCanny(true);

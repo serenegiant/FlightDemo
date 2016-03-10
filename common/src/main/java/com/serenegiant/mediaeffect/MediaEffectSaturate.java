@@ -34,11 +34,11 @@ public class MediaEffectSaturate extends MediaEffect {
 	}
 
 	/**
-	 * @param scale The scale of color saturation. between -1 and 1. 0 means no change, while -1 indicates full desaturation, i.e. grayscale.
+	 * @param saturation The scale of color saturation. between -1 and 1. 0 means no change, while -1 indicates full desaturation, i.e. grayscale.
 	 * @return
 	 */
-	public MediaEffectSaturate setParameter(final float scale) {
-		setParameter("scale", scale);
+	public MediaEffectSaturate setParameter(final float saturation) {
+		setParameter("scale", saturation);
 		return this;
 	}
 }

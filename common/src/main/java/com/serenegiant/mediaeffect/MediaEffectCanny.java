@@ -17,21 +17,14 @@ package com.serenegiant.mediaeffect;
  *  limitations under the License.
 */
 
-import android.opengl.GLES20;
 import android.util.Log;
 
-import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.Texture2dProgram;
-import com.serenegiant.glutils.TextureOffscreen;
 
 /** Cannyエッジ検出フィルタ */
-public class MediaEffectCanny implements IEffect {
+public class MediaEffectCanny extends MediaEffectGLESBase {
 	private static final boolean DEBUG = true;
 	private static final String TAG = "MediaEffectCanny";
-
-	private FullFrameRect mDrawer;
-	private TextureOffscreen mOutputOffscreen;
-	private boolean mEnabled = true;
 
 	private static final String FRAGMENT_SHADER_BASE = Texture2dProgram.SHADER_VERSION +
 		"%s" +
@@ -46,7 +39,7 @@ public class MediaEffectCanny implements IEffect {
 		"const float upperThreshold = 0.8;\n" +
 		"void main() {\n" +
 		"    vec4 magdir = texture2D(sTexture, vTextureCoord);\n" +
-		"    vec2 offset = ((magdir.gb * 2.0) - 1.0) * vec2(uTexOffset[7], uTexOffset[8]);\n" +
+		"    vec2 offset = ((magdir.gb * 2.0) - 1.0) * uTexOffset[8];\n" +
 		"    float first = texture2D(sTexture, vTextureCoord + offset).r;\n" +
 		"    float second = texture2D(sTexture, vTextureCoord - offset).r;\n" +
 		"    float multiplier = step(first, magdir.r);\n" +
@@ -123,8 +116,8 @@ public class MediaEffectCanny implements IEffect {
 		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_OES, Texture2dProgram.SAMPLER_OES);
 
 	public MediaEffectCanny() {
+		super(FRAGMENT_SHADER);
 		if (DEBUG) Log.v(TAG, "コンストラクタ:");
-		mDrawer = new FullFrameRect(new Texture2dProgram(GLES20.GL_TEXTURE_2D, FRAGMENT_SHADER));
 	}
 
 	public MediaEffectCanny(final float threshold) {
@@ -132,82 +125,8 @@ public class MediaEffectCanny implements IEffect {
 		setParameter(threshold);
 	}
 
-	/**
-	 * If you know the source texture came from MediaSource,
-	 * using #apply(MediaSource) is much efficient instead of this
-	 * @param src_tex_ids
-	 * @param width
-	 * @param height
-	 * @param out_tex_id
-	 */
-	@Override
-	public void apply(final int [] src_tex_ids, final int width, final int height, final int out_tex_id) {
-		if (!mEnabled) return;
-		if (mOutputOffscreen == null) {
-			mOutputOffscreen = new TextureOffscreen(width, height, false);
-		}
-		if ((out_tex_id != mOutputOffscreen.getTexture())
-			|| (width != mOutputOffscreen.getWidth())
-			|| (height != mOutputOffscreen.getHeight())) {
-			mOutputOffscreen.assignTexture(out_tex_id, width, height);
-		}
-		mOutputOffscreen.bind();
-		mDrawer.draw(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
-		mOutputOffscreen.unbind();
-	}
-
-	@Override
-	public void apply(final ISource src) {
-		if (!mEnabled) return;
-		if (src instanceof MediaSource) {
-			final TextureOffscreen output_tex = ((MediaSource)src).getOutputTexture();
-			final int[] src_tex_ids = src.getSourceTexId();
-			output_tex.bind();
-			mDrawer.draw(src_tex_ids[0], output_tex.getTexMatrix(), 0);
-			output_tex.unbind();
-		} else {
-			apply(src.getSourceTexId(), src.getWidth(), src.getHeight(), src.getOutputTexId());
-		}
-	}
-
-	@Override
-	public void release() {
-		if (DEBUG) Log.v(TAG, "release:");
-		if (mDrawer != null) {
-			mDrawer.release();
-			mDrawer = null;
-		}
-		if (mOutputOffscreen != null) {
-			mOutputOffscreen.release();
-			mOutputOffscreen = null;
-		}
-	}
-
 	public MediaEffectCanny setParameter(final float threshold) {
 		mDrawer.getProgram().setColorAdjust(threshold);
-		return this;
-	}
-
-	@Override
-	public MediaEffectCanny resize(final int width, final int height) {
-		if ((mOutputOffscreen == null) || (width != mOutputOffscreen.getWidth())
-			|| (height != mOutputOffscreen.getHeight())) {
-			if (mOutputOffscreen != null)
-				mOutputOffscreen.release();
-			mOutputOffscreen = new TextureOffscreen(width, height, false);
-		}
-		mDrawer.getProgram().setTexSize(width, height);
-		return this;
-	}
-
-	@Override
-	public boolean enabled() {
-		return mEnabled;
-	}
-
-	@Override
-	public IEffect setEnable(final boolean enable) {
-		mEnabled = enable;
 		return this;
 	}
 }

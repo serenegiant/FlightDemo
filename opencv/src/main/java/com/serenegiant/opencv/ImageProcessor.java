@@ -11,15 +11,15 @@ import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.Texture2dProgram;
 import com.serenegiant.mediaeffect.IEffect;
 import com.serenegiant.mediaeffect.MediaEffectAutoFix;
+import com.serenegiant.mediaeffect.MediaEffectBrightness;
 import com.serenegiant.mediaeffect.MediaEffectCanny;
+import com.serenegiant.mediaeffect.MediaEffectExposure;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
-import com.serenegiant.mediaeffect.MediaEffectKernel;
 import com.serenegiant.mediaeffect.MediaEffectSaturate;
 import com.serenegiant.mediaeffect.MediaSource;
 
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,10 +39,19 @@ public class ImageProcessor {
 
 	private final Object mSync = new Object();
 	private final ImageProcessorCallback mCallback;
+	private List<IEffect> mEffects = new ArrayList<IEffect>();
 	private volatile boolean isProcessingRunning;
 	private ProcessingTask mProcessingTask;
-	private volatile boolean mEnableEmphasis;
-	private volatile boolean mEnabledExtraction;
+
+	private boolean mEnableExposure;
+	private float mExposure;
+	private boolean mEnableBrightness;
+	private float mBrightness;
+	private boolean mEnableSaturation;
+	private float mSaturation;
+	private boolean mEnableExtraction;
+	private boolean mEnableCanny;
+	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
 
 	/** native側のインスタンスポインタ, 名前を変えたりしちゃダメ */
 	private long mNativePtr;
@@ -86,6 +95,7 @@ public class ImageProcessor {
 			task.release();
 		}
 	}
+
 	/**
 	 * 関連するリソースをすべて破棄する
 	 */
@@ -106,32 +116,271 @@ public class ImageProcessor {
 		return mProcessingTask.getSurfaceTexture();
 	}
 
-	public void setEmphasis(final boolean emphasis) {
-		if (DEBUG) Log.v(TAG, "setEmphasis:" + emphasis);
-		if (mEnableEmphasis != emphasis) {
-			mEnableEmphasis = emphasis;
+//================================================================================
+	public void enableExposure(final boolean enable) {
+		if (mEnableExposure != enable) {
+			if (DEBUG) Log.v(TAG, "enableExposure:");
+			mEnableExposure = enable;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectExposure) {
+						effect.setEnable(enable);
+					}
+				}
+			}
 		}
 	}
 
-	public boolean getEmphasis() {
-		return mEnableEmphasis;
-	}
-
-	public void setExtraction(final boolean extraction) {
-		if (DEBUG) Log.v(TAG, "setExtraction:");
-		if (mEnabledExtraction != extraction) {
-			mEnabledExtraction = extraction;
-		}
-	}
-
-	public boolean getExtraction() {
-		return mEnabledExtraction;
+	public boolean enableExposure() {
+		return mEnableExposure;
 	}
 
 	/**
+	 * 露出調整
+	 * @param exposure -10〜+10, 0なら無調整
+	 */
+	public void setExposure(final float exposure) {
+		final float exp = sat(exposure, -10.0f, +10.0f);
+		if (mExposure != exp) {
+			mExposure = exp;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectExposure) {
+						((MediaEffectExposure)effect).setParameter(exp);
+					}
+				}
+//				enableExposure(exp != 0);
+			}
+		}
+	}
+
+	public float getExposure() {
+		return mExposure;
+	}
+
+	public void enableBrightness(final boolean enable) {
+		if (mEnableBrightness != enable) {
+			if (DEBUG) Log.v(TAG, "enableBrightness:" + enable);
+			mEnableBrightness = enable;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectBrightness) {
+						effect.setEnable(enable);
+					}
+				}
+			}
+		}
+	}
+
+	public boolean enableBrightness() {
+		return mEnableBrightness;
+	}
+
+	/**
+	 * 明るさ調整
+	 * @param brightness [-1.0,+1.0], 0だと無調整
+	 */
+	public void setBrightness(final float brightness) {
+		if (mBrightness != brightness) {
+			mBrightness = brightness;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectBrightness) {
+						((MediaEffectBrightness)effect).setParameter(brightness);
+					}
+				}
+//				enableBrightness(brightness != 0.0f);
+			}
+		}
+	}
+
+	public float getBrightness() {
+		return mBrightness;
+	}
+
+	public void enableSaturation(final boolean enable) {
+		if (mEnableSaturation != enable) {
+			if (DEBUG) Log.v(TAG, "enableSaturation:" + enable);
+			mEnableSaturation = enable;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectSaturate) {
+						effect.setEnable(enable);
+					}
+				}
+			}
+		}
+	}
+
+	public boolean enableSaturation() {
+		return mEnableSaturation;
+	}
+
+	/**
+	 * 彩度調整
+	 * @param saturation -1.0f〜+1.0f, -1.0ならグレースケール
+	 */
+	public void setSaturation(final float saturation) {
+		final float sat = sat(saturation, -1.0f, +1.0f);
+		if (mSaturation != sat) {
+			mSaturation = sat;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectSaturate) {
+						((MediaEffectSaturate)effect).setParameter(sat);
+					}
+				}
+//				enableSaturation(sat != 0.0f);
+			}
+		}
+	}
+
+	public float getSaturation() {
+		return mSaturation;
+	}
+
+	/**
+	 * OpenGL|ESでの色抽出の有効/無効切り替え
+	 * @param enable
+	 */
+	public void enableExtraction(final boolean enable) {
+		if (mEnableExtraction != enable) {
+			if (DEBUG) Log.v(TAG, "setExtraction:" + enable);
+			mEnableExtraction = enable;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectExtraction) {
+						effect.setEnable(enable);
+					}
+				}
+			}
+		}
+	}
+
+	public boolean enableExtraction() {
+		return mEnableExtraction;
+	}
+
+	/**
+	 * OpenGL|ESでのCannyエッジ検出の有効/無効を切り替え
+	 * @param enable
+	 */
+	public void enableCanny(final boolean enable) {
+		if (mEnableCanny != enable) {
+			if (DEBUG) Log.v(TAG, "enableCanny:" + enable);
+			mEnableCanny = enable;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectCanny) {
+						effect.setEnable(enable);
+					}
+				}
+			}
+		}
+	}
+
+	public boolean enableCanny() {
+		return mEnableCanny;
+	}
+
+	public static final int RESULT_FRAME_TYPE_SRC = 0;
+	public static final int RESULT_FRAME_TYPE_DST = 1;
+	public static final int RESULT_FRAME_TYPE_SRC_LINE = 2;
+	public static final int RESULT_FRAME_TYPE_DST_LINE = 3;
+
+	public void setResultFrameType(final int result_frame_type) {
+		final int result = nativeSetResultFrameType(mNativePtr, result_frame_type);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetResultFrameType:result=" + result);
+		}
+	}
+
+	public int getResultFrameType() {
+		final int result = nativeGetResultFrameType(mNativePtr);
+		if (result < 0) {
+			throw new IllegalStateException("nativeGetResultFrameType:result=" + result);
+		}
+		return result;
+	}
+
+	/**
+	 * 抽出色の範囲をHSVで指定
+	 * @param lowerH 色相(H)下限, 0-180
+	 * @param upperH 色相(H)上限, 0-180
+	 * @param lowerS 彩度(S)下限, 0-255
+	 * @param upperS 彩度(S)上限, 0-255
+	 * @param lowerV 明度(V)下限, 0-255
+	 * @param upperV 明度(V)上限, 0-255
+	 */
+	public void setExtractionColor(
+		final int lowerH, final int upperH,
+		final int lowerS, final int upperS,
+		final int lowerV, final int upperV) {
+
+		EXTRACT_COLOR_HSV_LIMIT[0] = sat(lowerH, 0, 180);
+		EXTRACT_COLOR_HSV_LIMIT[1] = sat(upperH, 0, 180);
+		EXTRACT_COLOR_HSV_LIMIT[2] = sat(lowerS, 0, 255);
+		EXTRACT_COLOR_HSV_LIMIT[3] = sat(upperS, 0, 255);
+		EXTRACT_COLOR_HSV_LIMIT[4] = sat(lowerV, 0, 255);
+		EXTRACT_COLOR_HSV_LIMIT[5] = sat(upperV, 0, 255);
+		synchronized (mSync) {
+			for (final IEffect effect: mEffects) {
+				if (effect instanceof MediaEffectExtraction) {
+					((MediaEffectExtraction)effect).setParameter(
+						EXTRACT_COLOR_HSV_LIMIT[0] / 180.0f,	// 色相H 制限なし(0-180),
+						EXTRACT_COLOR_HSV_LIMIT[1] / 180.0f,
+						EXTRACT_COLOR_HSV_LIMIT[2] / 255.0f,	// 彩度S 0-10,
+						EXTRACT_COLOR_HSV_LIMIT[3] / 255.0f,
+						EXTRACT_COLOR_HSV_LIMIT[4] / 255.0f,	// 明度V 200-255,
+						EXTRACT_COLOR_HSV_LIMIT[5] / 255.0f,
+						0.0f
+					);
+				}
+			}
+		}
+		final int result = nativeSetExtractionColor(mNativePtr, lowerH, upperH, lowerS, upperS, lowerV, upperV);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetExtractionColor:result=" + result);
+		}
+	}
+
+	public void enableNativeExtract(final boolean enable) {
+		final int result = nativeSetEnableExtract(mNativePtr, enable ? 1 : 0);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetEnableExtract:result=" + result);
+		}
+	}
+
+	public boolean enableNativeExtract() {
+		final int result = nativeGetEnableExtract(mNativePtr);
+		if (result < 0) {
+			throw new IllegalStateException("nativeGetEnableExtract:result=" + result);
+		}
+		return result != 0;
+	}
+
+	public void enableNativeCanny(final boolean enable) {
+		final int result = nativeSetEnableCanny(mNativePtr, enable ? 1 : 0);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetEnableCanny:result=" + result);
+		}
+	}
+
+	public boolean enableNativeCanny() {
+		final int result = nativeGetEnableCanny(mNativePtr);
+		if (result < 0) {
+			throw new IllegalStateException("nativeGetEnableCanny:result=" + result);
+		}
+		return result != 0;
+	}
+
+//================================================================================
+	/**
 	 * native側からの結果コールバック
 	 * @param weakSelf
-	 * @param result これの方は未定。とりあえずFloatBufferにしてみる
+	 * @param type
+	 * @param frame
+	 * @param result
 	 */
 	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final int type, final ByteBuffer frame, final float[] result) {
 //		if (DEBUG) Log.v(TAG, "callFromNative");
@@ -151,7 +400,7 @@ public class ImageProcessor {
 
 	/**
 	 * native側からの結果コールバックの実際の処理
-	 * @param result これの方は未定。とりあえずFloatBufferにしてるけど#callFromNativeと合わせる
+	 * @param result
 	 */
 	private void handleResult(final float[] result) {
 //		if (DEBUG) Log.v(TAG, "handleResult");
@@ -187,12 +436,13 @@ public class ImageProcessor {
 		// 映像受け取り用
 		private MediaSource mMediaSource;
 		// 映像効果リスト
-		private List<IEffect> mEffects = new ArrayList<IEffect>();
+		private final List<IEffect> mEffects;
 
 		public ProcessingTask(final ImageProcessor parent) {
 			super(null, 0);
 			mParent = parent;
 			mSync = parent.mSync;
+			mEffects = parent.mEffects;
 			mNativePtr = mParent.mNativePtr;
 			mVideoWidth = VIDEO_WIDTH;
 			mVideoHeight = VIDEO_HEIGHT;
@@ -233,52 +483,58 @@ public class ImageProcessor {
 //--------------------------------------------------------------------------------
 			// プレフィルタの準備
 			mEffectContext = EffectContext.createWithCurrentGlContext();
-			// 自動調整(0〜1.0f, 0なら変化なし)
-			final MediaEffectAutoFix autofix = new MediaEffectAutoFix(mEffectContext, 1.0f);
-			mEffects.add(autofix);
-			// 彩度調整(-1.0f〜1.0f, -1.0fならグレースケール)
-			final MediaEffectSaturate saturate = new MediaEffectSaturate(mEffectContext, 0.1f);
-			mEffects.add(saturate);
-			// 明るさ調整
-			if (mParent.mEnableEmphasis) {
-				final MediaEffectExtraction adjust = new MediaEffectExtraction();
-				adjust.setParameter(    // 抽出なし
-					0.0f, 1.0f,			// H(色相) 制限なし(0-360),
-					0.0f, 1.0f,			// S(彩度) 0-10,
-					0.0f, 1.0f,			// V(明度) 200-255,
-					0.0f, 0.0f, 0.1f,	// 抽出後加算値(HSV)
-					0.0f);				// 2値化時のしきい値, 0なら2値化なし
-				mEffects.add(adjust);
-			}
-//			final MediaEffectKernel adjust2 = new MediaEffectKernel(Texture2dProgram.KERNEL_LAPLACIAN);
-//			mEffects.add(adjust2);
-//			// 明るさ調整(0〜1.0f, 0なら変化なし)
-//			final MediaEffectBrightness brightness = new MediaEffectBrightness(mEffectContext, 1.0f);
-//			mEffects.add(brightness);
-//			mEffects.add(brightness);
-/*			// コントラスト(0〜1.0f, 0なら変化なし)
-			final MediaEffectContrast contrast = new MediaEffectContrast(mEffectContext, 1.0f);
-			mEffects.add(contrast); */
-			if (mParent.mEnabledExtraction) {
+			synchronized (mSync) {
+				// 自動調整(0〜1.0f, 0なら変化なし)
+				final MediaEffectAutoFix autofix = new MediaEffectAutoFix(mEffectContext, 1.0f);
+				mEffects.add(autofix);
+				// 露出調整
+				final MediaEffectExposure exposure = new MediaEffectExposure(mParent.mExposure);
+				exposure.setEnable(true);
+				mEffects.add(exposure);
+				// 彩度調整(-1.0f〜1.0f, -1.0fならグレースケール)
+				final MediaEffectSaturate saturate = new MediaEffectSaturate(mEffectContext, mParent.mSaturation);
+				saturate.setEnable(true);
+				mEffects.add(saturate);
+//				// 明るさ調整
+//				if (mParent.mEnableEmphasis) {
+//					final MediaEffectExtraction adjust = new MediaEffectExtraction();
+//					adjust.setParameter(    // 抽出なし
+//						0.0f, 1.0f,			// H(色相) 制限なし(0-360),
+//						0.0f, 1.0f,			// S(彩度) 0-10,
+//						0.0f, 1.0f,			// V(明度) 200-255,
+//						0.0f, 0.0f, 0.1f,	// 抽出後加算値(HSV)
+//						0.0f);				// 2値化時のしきい値, 0なら2値化なし
+//					mEffects.add(adjust);
+//				}
+				// 明るさ調整(0〜, 1.0fなら変化なし)
+				final MediaEffectBrightness brightness = new MediaEffectBrightness(mParent.mBrightness);
+				brightness.setEnable(true);
+				mEffects.add(brightness);
+/*				// コントラスト(0〜1.0f, 0なら変化なし)
+				final MediaEffectContrast contrast = new MediaEffectContrast(mEffectContext, 1.0f);
+				mEffects.add(contrast); */
 				// 色抽出(白色)
 				final MediaEffectExtraction extraction = new MediaEffectExtraction();
 				extraction.setParameter(    // 白色を抽出
-					0.00f, 1.00f,           // H(色相) 制限なし(0-360),
-					0.00f, 0.20f,           // S(彩度) 0-10,
-					0.45f, 1.00f,           // V(明度) 200-255,
+					mParent.EXTRACT_COLOR_HSV_LIMIT[0] / 180.0f,	// H(色相) 制限なし(0-180),
+					mParent.EXTRACT_COLOR_HSV_LIMIT[1] / 180.0f,
+					mParent.EXTRACT_COLOR_HSV_LIMIT[2] / 255.0f,	// S(彩度) 0-10,
+					mParent.EXTRACT_COLOR_HSV_LIMIT[3] / 255.0f,
+					mParent.EXTRACT_COLOR_HSV_LIMIT[4] / 255.0f,	// V(明度) 200-255,
+					mParent.EXTRACT_COLOR_HSV_LIMIT[5] / 255.0f,
 					0.00f, 0.00f, 0.00f,    // 抽出後加算値(HSV)
-					0.45f);					// 2値化時のしきい値, 0なら2値化なし
+					0.00f);					// 2値化時のしきい値, 0なら2値化なし
+				extraction.setEnable(mParent.mEnableExtraction);
 				mEffects.add(extraction);
-				// ノイズ除去(平滑化)
+/*				// ノイズ除去(平滑化)
 				final MediaEffectKernel gaussian = new MediaEffectKernel();
 				gaussian.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
-				mEffects.add(gaussian);
-			}
-//			final MediaEffectBlackWhite bw = new MediaEffectBlackWhite(mEffectContext);
-//			mEffects.add(bw);
-/*			// Cannyエッジ検出フィルタ
-			final MediaEffectCanny canny = new MediaEffectCanny();
-			mEffects.add(canny); */
+				mEffects.add(gaussian); */
+				// Cannyエッジ検出フィルタ
+				final MediaEffectCanny canny = new MediaEffectCanny();
+				canny.setEnable(mParent.mEnableCanny);
+				mEffects.add(canny);
+			}	// synchronized (mSync)
 //--------------------------------------------------------------------------------
 			handleResize(mVideoWidth, mVideoHeight);
 			// native側の処理を開始
@@ -356,8 +612,12 @@ public class ImageProcessor {
 			// SurfaceTextureで受け取った画像をプレフィルター用にセット
 			mMediaSource.setSource(mSrcDrawer, mTexId, mTexMatrix);
 			// プレフィルター処理
-			for (final IEffect effect: mEffects) {
-				mMediaSource.apply(effect);
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect.enabled()) {
+						mMediaSource.apply(effect);
+					}
+				}
 			}
 			// プレフィルター処理後の画像をNative側へ送る
 			mMediaSource.getOutputTexture().bind();
@@ -411,64 +671,12 @@ public class ImageProcessor {
 		};
 	}
 
-	public static final int RESULT_FRAME_TYPE_SRC = 0;
-	public static final int RESULT_FRAME_TYPE_DST = 1;
-	public static final int RESULT_FRAME_TYPE_SRC_LINE = 2;
-	public static final int RESULT_FRAME_TYPE_DST_LINE = 3;
-
-	public void setResultFrameType(final int result_frame_type) {
-		final int result = nativeSetResultFrameType(mNativePtr, result_frame_type);
-		if (result != 0) {
-			throw new IllegalStateException("nativeSetResultFrameType:result=" + result);
-		}
+	private static final int sat(final int v, final int min, final int max) {
+		return v <= min ? min : (v >= max ? max : v);
 	}
 
-	public int getResultFrameType() {
-		final int result = nativeGetResultFrameType(mNativePtr);
-		if (result < 0) {
-			throw new IllegalStateException("nativeGetResultFrameType:result=" + result);
-		}
-		return result;
-	}
-
-	public void setExtractionColor(
-		final int lowerH, final int upperH,
-		final int lowerS, final int upperS,
-		final int lowerV, final int upperV) {
-		final int result = nativeSetExtractionColor(mNativePtr, lowerH, upperH, lowerS, upperS, lowerV, upperV);
-		if (result != 0) {
-			throw new IllegalStateException("nativeSetExtractionColor:result=" + result);
-		}
-	}
-
-	public void enableNativeExtract(final boolean enable) {
-		final int result = nativeSetEnableExtract(mNativePtr, enable ? 1 : 0);
-		if (result != 0) {
-			throw new IllegalStateException("nativeSetEnableExtract:result=" + result);
-		}
-	}
-
-	public boolean enableNativeExtract() {
-		final int result = nativeGetEnableExtract(mNativePtr);
-		if (result < 0) {
-			throw new IllegalStateException("nativeGetEnableExtract:result=" + result);
-		}
-		return result != 0;
-	}
-
-	public void enableNativeCanny(final boolean enable) {
-		final int result = nativeSetEnableCanny(mNativePtr, enable ? 1 : 0);
-		if (result != 0) {
-			throw new IllegalStateException("nativeSetEnableCanny:result=" + result);
-		}
-	}
-
-	public boolean enableNativeCanny() {
-		final int result = nativeGetEnableCanny(mNativePtr);
-		if (result < 0) {
-			throw new IllegalStateException("nativeGetEnableCanny:result=" + result);
-		}
-		return result != 0;
+	private static final float sat(final float v, final float min, final float max) {
+		return v <= min ? min : (v >= max ? max : v);
 	}
 
 	private static boolean isInit;
