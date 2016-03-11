@@ -128,6 +128,11 @@
 	<string name="trace_use_saturation">彩度</string>
 	<string name="trace_use_brightness">明るさ</string>
 	<string name="trace_use_posterize">ポスタライズ</string>
+	<string name="trace_smooth">平滑化</string>
+	<string name="trace_smooth_non">無し</string>
+	<string name="trace_smooth_gaussian">ガウシアン</string>
+	<string name="trace_smooth_median">メディアン</string>
+	<string name="trace_smooth_blur">ブラー</string>
 	<string name="trace_use_native_extraction">色抽出OpenCV</string>
 	<string name="trace_use_native_canny">エッジ検出OpenCV</string>
 	<string name="trace_use_extraction">色抽出OpenGL|ES</string>

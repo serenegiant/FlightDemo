@@ -45,6 +45,7 @@ static fields_t fields;
 static const cv::Scalar COLOR_ORANGE = cv::Scalar(255, 127, 0);
 static const cv::Scalar COLOR_RED = cv::Scalar(255, 0, 0);
 static const cv::Scalar COLOR_GREEN = cv::Scalar(255, 0, 0);
+static const cv::Scalar COLOR_ACUA = cv::Scalar(0, 255, 255);
 static const cv::Scalar COLOR_BLUE = cv::Scalar(0, 0, 255);
 static const cv::Scalar COLOR_WHITE = cv::Scalar(255, 255, 255);
 static const cv::Scalar COLOR_BLACK = cv::Scalar(0, 0, 0);
@@ -62,9 +63,16 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	mParam.mResultFrameType = RESULT_FRAME_TYPE_DST_LINE;
 	// 色抽出するかどうか
 	mParam.mEnableExtract = false;
+	// 輪郭近似前にガウシアンフィルタを当てるかどうか
+	mParam.mSmoothType = SMOOTH_NON;
 	// 輪郭近似
+#if 1
 	mParam.mApproxType = APPROX_RELATIVE;
 	mParam.mApproxFactor = 0.01;
+#else
+	mParam.mApproxType = APPROX_ABS;
+	mParam.mApproxFactor = 10;
+#endif
 	// Canny
 	mParam.mEnableCanny = true;
 	mParam.mCannythreshold1 = 50.0;	// エッジ検出する際のしきい値
@@ -390,6 +398,9 @@ void ImageProcessor::do_process(JNIEnv *env) {
 		} catch (cv::Exception e) {
 			LOGE("do_process failed:%s", e.msg.c_str());
 			continue;
+		} catch (...) {
+			LOGE("do_process unknown exception:");
+			break;
 		}
 		recycle(frame);
 	}
@@ -544,10 +555,8 @@ static bool comp_line_priority(const DetectRec &left, const DetectRec &right) {
 	// 長さの比較(大きい方)
 	const bool b5 = left.length > right.length;
 	return
-		(b5 && b4 && b3 && b2)		// 長くてアスペクト比が大きくて面積比が小さくて類似性が良い
-		|| (b5 && b4 && b3)			// 長くてアスペクト比が大きくて面積比が小さい
-		|| (b5 && b4 && b2)			// 長くてアスペクト比が大きくて類似性が良い
-		|| (b5 && b4)				// 長くてアスペクト比が大きい
+		(b5 && b4)					// 長くてアスペクト比が大きい
+		|| (b5 && b4 && b3 && b2)	// 長くてアスペクト比が大きくて面積比が小さくて類似性が良い
 		|| (b4 && b3 && b2)			// アスペクト比が大きくて面積比が小さくて類似性が良い
 		|| (b4 && b3)				// アスペクト比が大きくて面積比が小さい
 		|| (b4 && b2)				// アスペクト比が大きくて類似性が良い
@@ -586,8 +595,28 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 	// 平滑化
 //	cv::Sobel(src, src, CV_32F, 1, 1);
 //	cv::convertScaleAbs(src, src, 1, 0);
+	static const double sigma = 3.0;	// FIXME これはパラメータにする?
+	const int ksize = (int)(sigma * 5) | 1;	// カーネルサイズ, 正の奇数かゼロでないとだめ(ゼロの時はsigmaから内部計算)
+	switch (param.mSmoothType) {
+	case SMOOTH_GAUSSIAN:
+		cv::GaussianBlur(src, src, cv::Size(ksize, ksize), sigma, sigma);
+		break;
+	case SMOOTH_MEDIAN:
+		cv::medianBlur(src, src, ksize);
+		break;
+	case SMOOTH_BLUR:
+		cv::blur(src, src, cv::Size(ksize, ksize));
+		break;
+	default:
+		break;
+	}
+	// FIXME 平滑化後に2値化が必要?
+//	if (param.mSmoothType) {
+//		// 2値化
+//		cv::adaptiveThreshold(src, src, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, 7, 0);
+//	}
+	// エッジ検出(Cannyの結果は2値化されてる)
 	if (param.mEnableCanny) {
-		// エッジ検出(Cannyの結果は2値化されてる)
 		cv::Canny(src, src, param.mCannythreshold1, param.mCannythreshold2);
 	}
 	// 2値化
@@ -699,24 +728,27 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 	approxes.clear();
 
 	// 外周に四角を描いておく。でないと画面の外にはみ出した部分が有る形状を閉曲線として検出出来ない
+	// ただしこれを描くとRETR_EXTERNALにした時に必ず外周枠がかかったそれより内側が検出されない
 	cv:rectangle(src, cv::Rect(8, 8, src.cols - 8, src.rows - 8), COLOR_WHITE, 8);
 	// 輪郭を求める
 	cv::findContours(src, contours,
-		cv::RETR_CCOMP, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
+		cv::RETR_CCOMP, 			// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
 		cv::CHAIN_APPROX_NONE);	// 輪郭データ近似方法, CHAIN_APPROX_NONE:無し,  CHAIN_APPROX_SIMPLE:直線は頂点のみにする,  CHAIN_APPROX_TC89_L1, CHAIN_APPROX_TC89_KCOS
-//	// 検出した輪郭を全て描画
-//	if (show_detects) {
+	// 検出した輪郭を全て描画
+//	if (param.show_detects) {
 //		cv::drawContours(result, contours, -1, COLOR_YELLOW);
 //	}
 	// 検出した輪郭の数分ループする
 	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
 		std::vector< cv::Point > approx;		// 近似輪郭
+		// 凸包頂点にする
+		cv::convexHull(*contour, approx);
 		// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
 		const double epsilon = param.mApproxType == APPROX_RELATIVE
-			? mParam.mApproxFactor * cv::arcLength(*contour, true)	// 周長に対する比
+			? mParam.mApproxFactor * cv::arcLength(approx, true)	// 周長に対する比
 			: mParam.mApproxFactor;									// 絶対値
 		// 輪郭を近似する
-		cv::approxPolyDP(*contour, approx, epsilon, true);	// 閉曲線にする
+		cv::approxPolyDP(approx, approx, epsilon, true);	// 閉曲線にする
 		const size_t num_vertex = approx.size();
 		if (LIKELY(num_vertex < 4)) continue;	// 3角形はスキップ
 		// 輪郭を内包する最小矩形(回転あり)を取得
@@ -725,11 +757,14 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
 		const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
 		if ((w > 620) && (h > 345)) continue;	// 外周線
-		// 近似輪郭の面積を計算, 面積が小さすぎるのはスキップ
-		const float area = (float)cv::contourArea(approx);
-		if (area < 1000.0f) continue;
 		if (param.show_detects) {
 			draw_rect(result, area_rect, COLOR_YELLOW);
+		}
+		// 近似輪郭の面積を計算, 面積が小さすぎるのはスキップ
+		const float area = (float)cv::contourArea(approx);
+		if (area < 500.0f) continue;
+		if (param.show_detects) {
+			draw_rect(result, area_rect, COLOR_GREEN);
 		}
 		possible.type = TYPE_NON;
 		possible.contour.assign(approx.begin(), approx.end());
@@ -795,26 +830,25 @@ int ImageProcessor::detect_line(
 #endif // #if DETECT_LINES
 	std::vector<DetectRec_t> possibles;		// 可能性のある輪郭
 	double hu_moments[8];
-	int ix = 0;	// 輪郭のインデックス
 
 	// 検出した輪郭の数分ループする
-	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
-		DetectRec_t approx = *contour;		// 近似輪郭
+	for (auto iter = contours.begin(); iter != contours.end(); iter++) {
+		DetectRec_t approx = *iter;		// 近似輪郭
 		// 輪郭を内包する最小矩形(回転あり)を取得
 		cv::RotatedRect area_rect = approx.area_rect;
 		// アスペクト比が正方形に近いものはスキップ
-		if (LIKELY((approx.aspect > 0.3f) && (approx.aspect < 3.0f))) continue;
+		if (LIKELY(approx.aspect < 3.0f)) continue;
 		if (param.show_detects) {
 			draw_rect(result_frame, area_rect, COLOR_ORANGE);
 		}
 		// 最小矩形と元輪郭の面積比が大き過ぎる場合スキップ
-//		if ((approx.area_rate < 0.67f) && (approx.area_rate > 1.5f)) continue;	// ±50%以上ずれている時はスキップ
-		if ((approx.area_rate < 0.5f) && (approx.area_rate > 2.0f)) continue;		// ±100%以上ずれている時はスキップ
+		if ((approx.area_rate < 0.67f) && (approx.area_rate > 1.5f)) continue;	// ±50%以上ずれている時はスキップ
+//		if ((approx.area_rate < 0.5f) && (approx.area_rate > 2.0f)) continue;	// ±100%以上ずれている時はスキップ
 		const float area_vertex = approx.area / approx.contour.size();
 		// 面積の割に頂点が多いものもスキップ これを入れるとエッジがギザギザの時に検出できなくなる
 //		if (area_vertex < 200.0f) continue;		// 1頂点あたり200ピクセルよりも小さい
 		if (param.show_detects) {
-			draw_rect(result_frame, area_rect, COLOR_GREEN);
+			draw_rect(result_frame, area_rect, COLOR_ACUA);
 		}
 		// 輪郭のHu momentを計算
 		cv::HuMoments(cv::moments(approx.contour), hu_moments);
@@ -837,7 +871,6 @@ int ImageProcessor::detect_line(
 				draw_rect(result_frame, area_rect, COLOR_BLUE);
 			}
 		}
-		ix++;
 	}
 	// 優先度の最も高いものを選択する
 	if (possibles.size() > 0) {
@@ -855,9 +888,9 @@ int ImageProcessor::detect_line(
 					const double b = fmin(ellipse.size.width, ellipse.size.height);
 					possible.curvature = (float)(b / a / a);
 //					LOGI("fit ellipse:(%f,%f),%f,%f", ellipse.size.width, ellipse.size.height, ellipse.angle, possible.curvature);
-				}
-				if (param.show_detects) {
-					cv::ellipse(result_frame, ellipse.center, ellipse.size, ellipse.angle, 0, 360, COLOR_RED);
+					if (param.show_detects) {
+						cv::ellipse(result_frame, ellipse.center, ellipse.size, ellipse.angle, 0, 360, COLOR_RED);
+					}
 				}
 			} catch (cv::Exception e) {
 				LOGE("fitEllipse failed:%s", e.msg.c_str());
@@ -1076,6 +1109,35 @@ static jint nativeGetEnableExtract(JNIEnv *env, jobject thiz,
 	RETURN(result, jint);
 }
 
+static jint nativeSetSmooth(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jint smooth_type) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		processor->setEnableSmooth((SmoothType_t)smooth_type);
+		result = 0;
+	}
+
+	RETURN(result, jint);
+}
+
+static jint nativeGetSmooth(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->getEnableSmooth();
+	}
+
+	RETURN(result, jint);
+}
+
 static jint nativeSetEnableCanny(JNIEnv *env, jobject thiz,
 	ID_TYPE id_native, jint enable) {
 
@@ -1119,6 +1181,8 @@ static JNINativeMethod methods[] = {
 	{ "nativeSetExtractionColor",	"(JIIIIII)I", (void *) nativeSetExtractionColor },
 	{ "nativeSetEnableExtract",		"(JI)I", (void *) nativeSetEnableExtract },
 	{ "nativeGetEnableExtract",		"(J)I", (void *) nativeGetEnableExtract },
+	{ "nativeSetSmooth",			"(JI)I", (void *) nativeSetSmooth },
+	{ "nativeGetSmooth",			"(J)I", (void *) nativeGetSmooth },
 	{ "nativeSetEnableCanny",		"(JI)I", (void *) nativeSetEnableCanny },
 	{ "nativeGetEnableCanny",		"(J)I", (void *) nativeGetEnableCanny },
 };

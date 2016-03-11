@@ -39,6 +39,13 @@ typedef enum ApproxType {
 	APPROX_RELATIVE,	// mApproxFactorの値は輪郭周長に対する割合
 } ApproxType_t;
 
+typedef enum SmoothType {
+	SMOOTH_NON = 0,
+	SMOOTH_GAUSSIAN,
+	SMOOTH_MEDIAN,
+	SMOOTH_BLUR,
+} SmoothType_t;
+
 typedef struct DetectRec {
 	std::vector< cv::Point > contour;	// 近似輪郭
 	cv::RotatedRect area_rect;	// 内包する最小矩形
@@ -58,6 +65,7 @@ struct DetectParam {
 public:
 	volatile int mResultFrameType;
 	volatile bool mEnableExtract;
+	volatile SmoothType_t mSmoothType;
 	volatile bool mEnableCanny;
 	volatile ApproxType_t mApproxType;
 	volatile double mApproxFactor;
@@ -71,6 +79,7 @@ public:
 	void set(const DetectParam_t &other) {
 		mResultFrameType = other.mResultFrameType;
 		mEnableExtract = other.mEnableExtract;
+		mSmoothType = other.mSmoothType;
 		mEnableCanny = other.mEnableCanny;
 		mApproxType = other.mApproxType;
 		mApproxFactor = other.mApproxFactor;
@@ -143,6 +152,8 @@ public:
 	inline const int getResultFrameType() const { return mParam.mResultFrameType; };
 	inline void setEnableExtract(const int &enable) { mParam.mEnableExtract = enable != 0; };
 	inline const int getEnableExtract() const { return mParam.mEnableExtract ? 1 : 0; };
+	inline void setEnableSmooth(const SmoothType_t &smooth_type) { mParam.mSmoothType = smooth_type; };
+	inline const SmoothType_t getEnableSmooth() const { return mParam.mSmoothType; };
 	inline void setEnableCanny(const int &enable) { mParam.mEnableCanny = enable != 0; };
 	inline const int getEnableCanny() const { return mParam.mEnableCanny ? 1 : 0; };
 	/** 抽出色の上下限をHSVで設定 */

@@ -127,9 +127,27 @@
 	<string name="trace_use_saturation">Saturation</string>
 	<string name="trace_use_brightness">Brightness</string>
 	<string name="trace_use_posterize">Posterize</string>
+	<string name="trace_smooth">Smooth</string>
+	<string name="trace_smooth_non">Non</string>
+	<string name="trace_smooth_gaussian">Gaussian</string>
+	<string name="trace_smooth_median">Median</string>
+	<string name="trace_smooth_blur">Blur</string>
 	<string name="trace_use_native_extraction">Color extraction on OpenCV</string>
 	<string name="trace_use_native_canny">Edge detection on OpenCV</string>
 	<string name="trace_use_extraction">Color extraction on OpenGL|ES</string>
 	<string name="trace_use_canny">>Edge detection on OpenGL|ES</string>
 	<string name="trace_update_extraction_color">Update extraction color</string>
+
+	<array name="trace_smooth_entries">
+		<item>@string/trace_smooth_non</item>
+		<item>@string/trace_smooth_gaussian</item>
+		<item>@string/trace_smooth_median</item>
+		<item>@string/trace_smooth_blur</item>
+	</array>
+	<array name="trace_smooth_value2">
+		<item>0</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+	</array>
 </resources>

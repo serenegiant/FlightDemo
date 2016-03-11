@@ -1,6 +1,7 @@
 package com.serenegiant.flightdemo;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -14,11 +15,15 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,8 +58,10 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private static final String KEY_BRIGHTNESS = "KEY_BRIGHTNESS";
 	private static final String KEY_ENABLE_POSTERIZE = "KEY_ENABLE_POSTERIZE";
 	private static final String KEY_POSTERIZE = "KEY_POSTERIZE";
+	private static final String KEY_SMOOTH_TYPE = "KEY_SMOOTH_TYPE";
 	private static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
 	private static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";
+	private static final String KEY_NATIVE_SMOOTH_TYPE = "KEY_NATIVE_SMOOTH_TYPE";
 	private static final String KEY_ENABLE_EDGE_DETECTION = "KEY_ENABLE_EDGE_DETECTION";
 	private static final String KEY_ENABLE_NATIVE_EDGE_DETECTION = "KEY_ENABLE_NATIVE_EDGE_DETECTION";
 
@@ -119,12 +126,16 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	protected float mPosterize;
 	/** OpenGL|ESで色抽出を行うかどうか  */
 	protected boolean mEnableGLESExtraction = false;
+	/** OpenGL|ESでのエッジ検出前平滑化 */
+	protected int mGLESSmoothType = 0;
 	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
 	protected boolean mEnableGLESCanny = false;
 	/** 色抽出範囲設定(HSV上下限) */
 	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
 	/** native側の色抽出を使うかどうか */
 	protected boolean mEnableNativeExtraction = false;
+	/** native側のエッジ検出前平滑化 */
+	protected int mNativeSmoothType = 0;
 	/** native側のエッジ検出(Canny)を使うかどうか */
 	protected boolean mEnableNativeCanny = true;
 
@@ -497,10 +508,24 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		}
 	};
 
+	private int getInt(final SharedPreferences pref, final String key, final int default_value) {
+		int result = default_value;
+		try {
+			result = pref.getInt(key, default_value);
+		} catch (final Exception e) {
+			try {
+				result = Integer.parseInt(pref.getString(key, Integer.toString(default_value)));
+			} catch (final Exception e1) {
+			}
+		}
+		return result;
+	}
+
 	private void setupSettingView(final View rootView) {
 		Switch sw;
 		SeekBar sb;
 		Button btn;
+		Spinner spinner;
 		// 露出
 		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
 		sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
@@ -535,6 +560,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
 		sw.setChecked(mEnableGLESExtraction);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// OpenGL|ESのエッジ検出前平滑化
+		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
+		spinner = (Spinner)rootView.findViewById(R.id.use_smooth_spinner);
+		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
+		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
 		// OpenGL|ESでエッジ検出を行うかどうか
 		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, false);
 		sw = (Switch)rootView.findViewById(R.id.use_canny_sw);
@@ -553,7 +583,47 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		//
 		btn = (Button)rootView.findViewById(R.id.update_extraction_color_btn);
 		btn.setOnClickListener(mOnClickListener);
+		// native側のエッジ検出前フィルタ
+		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
+		spinner = (Spinner)rootView.findViewById(R.id.use_native_smooth_spinner);
+		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
+		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
 	}
+
+	private static class SmoothTypeAdapter extends ArrayAdapter<String> {
+		private final String[] values;
+		public SmoothTypeAdapter(final Context context) {
+			super(context, android.R.layout.simple_dropdown_item_1line);
+			values = context.getResources().getStringArray(R.array.trace_smooth_value2);
+			final String[] entries = context.getResources().getStringArray(R.array.trace_smooth_entries);
+			addAll(entries);
+		}
+	}
+
+	private final AdapterView.OnItemSelectedListener mOnItemSelectedListener
+		= new AdapterView.OnItemSelectedListener() {
+		@Override
+		public void onItemSelected(final AdapterView<?> parent, final View view, final int position, final long id) {
+			switch (parent.getId()) {
+			case R.id.use_native_smooth_spinner:
+				if (mImageProcessor != null) {
+					mImageProcessor.nativeSmoothType(position % 4);
+				}
+				break;
+			}
+		}
+
+		@Override
+		public void onNothingSelected(final AdapterView<?> parent) {
+			switch (parent.getId()) {
+			case R.id.use_native_smooth_spinner:
+				if (mImageProcessor != null) {
+					mImageProcessor.nativeSmoothType(0);
+				}
+				break;
+			}
+		}
+	};
 
 	private final CompoundButton.OnCheckedChangeListener mOnCheckedChangeListener
 		= new CompoundButton.OnCheckedChangeListener() {

@@ -235,6 +235,15 @@
 							android:layout_height="wrap_content"
 							android:text="@string/trace_use_extraction"
 							android:id="@+id/use_extract_sw"/>
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="@string/trace_smooth"/>
+						<Spinner
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:id="@+id/use_smooth_spinner"
+							android:layout_gravity="center_horizontal"/>
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
@@ -245,6 +254,15 @@
 							android:layout_height="wrap_content"
 							android:text="@string/trace_use_native_extraction"
 							android:id="@+id/use_native_extract_sw"/>
+						<TextView
+							android:layout_width="wrap_content"
+							android:layout_height="wrap_content"
+							android:text="@string/trace_smooth"/>
+						<Spinner
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:id="@+id/use_native_smooth_spinner"
+							android:layout_gravity="center_horizontal"/>
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"

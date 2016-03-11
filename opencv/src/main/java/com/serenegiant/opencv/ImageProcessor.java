@@ -15,6 +15,7 @@ import com.serenegiant.mediaeffect.MediaEffectBrightness;
 import com.serenegiant.mediaeffect.MediaEffectCanny;
 import com.serenegiant.mediaeffect.MediaEffectExposure;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
+import com.serenegiant.mediaeffect.MediaEffectKernel;
 import com.serenegiant.mediaeffect.MediaEffectPosterize;
 import com.serenegiant.mediaeffect.MediaEffectSaturate;
 import com.serenegiant.mediaeffect.MediaSource;
@@ -54,6 +55,7 @@ public class ImageProcessor {
 	private boolean mEnablePosterize;
 	private float mPosterize;	// [1,256], デフォルト10
 	private boolean mEnableExtraction;
+	private int mSmoothType = 0;
 	private boolean mEnableCanny;
 	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
 
@@ -296,6 +298,37 @@ public class ImageProcessor {
 		return mEnableExtraction;
 	}
 
+	public void smoothType(final int smooth_type) {
+		if (mSmoothType != smooth_type) {
+			synchronized (mSync) {
+				mSmoothType = smooth_type;
+			}
+		}
+	}
+
+	private void applymooth(final int smooth_type) {
+		if ((mProcessingTask != null) && (mProcessingTask.mSmooth != null)) {
+			switch (smooth_type) {
+			case 1:	// ガウシアン
+				mProcessingTask.mSmooth.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
+				break;
+			case 2:	// メディアン
+				// FIXME 未実装
+				break;
+			case 3:	// ブラー
+				// FIXME 未実装
+				break;
+			default:
+				mProcessingTask.mSmooth.setParameter(Texture2dProgram.KERNEL_NULL, 0.0f);
+				break;
+			}
+		}
+	}
+
+	public int smoothType() {
+		return mSmoothType;
+	}
+
 	/**
 	 * OpenGL|ESでのCannyエッジ検出の有効/無効を切り替え
 	 * @param enable
@@ -412,6 +445,21 @@ public class ImageProcessor {
 		return result != 0;
 	}
 
+	public void nativeSmoothType(final int smooth_type) {
+		final int result = nativeSetSmooth(mNativePtr, smooth_type % 4);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetSmooth:result=" + result);
+		}
+	}
+
+	public int nativeSmoothType() {
+		final int result = nativeGetSmooth(mNativePtr);
+		if (result < 0) {
+			throw new IllegalStateException("nativeGetSmooth:result=" + result);
+		}
+		return result;
+	}
+
 	public void enableNativeCanny(final boolean enable) {
 		final int result = nativeSetEnableCanny(mNativePtr, enable ? 1 : 0);
 		if (result != 0) {
@@ -483,6 +531,7 @@ public class ImageProcessor {
 		private EffectContext mEffectContext;
 		private FullFrameRect mSrcDrawer;
 		private MediaEffectExtraction mExtraction;
+		private MediaEffectKernel mSmooth;
 		private MediaEffectCanny mEdgeDetection;
 		// 映像受け取り用
 		private MediaSource mMediaSource;
@@ -551,16 +600,20 @@ public class ImageProcessor {
 				final MediaEffectPosterize posterize = new MediaEffectPosterize(mParent.mPosterize);
 				posterize.setEnable(mParent.mEnablePosterize);
 				mEffects.add(posterize); */
+//				// エンボス
+//				final MediaEffectEmboss emboss = new MediaEffectEmboss();
+//				emboss.setParameter(2.0f);
+//				mEffects.add(emboss);
+//--------------------------------------------------------------------------------
 				// 色抽出とCannyエッジ検出はプレフィルタじゃないよ
 				// 色抽出(白色)
 				mExtraction = new MediaEffectExtraction();
 				applyExtractionColor();
 				mExtraction.setEnable(true);
 //				mEffects.add(mExtraction);
-/*				// ノイズ除去(平滑化)
-				final MediaEffectKernel gaussian = new MediaEffectKernel();
-				gaussian.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
-				mEffects.add(gaussian); */
+				// ノイズ除去(平滑化)
+				mSmooth = new MediaEffectKernel();
+				mSmooth.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
 //				final MediaEffectGrayScale gray = new MediaEffectGrayScale(mEffectContext);
 //				gray.setEnable(mEnableCanny);
 //				mEffects.add(gray);
@@ -595,6 +648,18 @@ public class ImageProcessor {
 			if (mSourceTexture != null) {
 				mSourceTexture.release();
 				mSourceTexture = null;
+			}
+			if (mExtraction != null) {
+				mExtraction.release();
+				mExtraction = null;
+			}
+			if (mSmooth != null) {
+				mSmooth.release();
+				mSmooth = null;
+			}
+			if (mEdgeDetection != null) {
+				mEdgeDetection.release();
+				mEdgeDetection = null;
 			}
 			for (final IEffect effect: mEffects) {
 				effect.release();
@@ -662,6 +727,10 @@ public class ImageProcessor {
 				if (mEnableExtraction) {
 					mMediaSource.apply(mExtraction);
 				}
+				// 平滑化処理
+				if (mSmoothType != 0) {
+					mMediaSource.apply(mSmooth);
+				}
 				// エッジ検出処理
 				if (mEnableCanny) {
 					mMediaSource.apply(mEdgeDetection);
@@ -722,9 +791,9 @@ public class ImageProcessor {
 				v_sd += (i - v) * (i - v) * v_cnt[i];
 			}
 			// 標準偏差2σ
-			h_sd = (float)Math.sqrt(h_sd / n) * 2; if (h_sd < 2) h_sd= 2;	// 2σ
-			s_sd = (float)Math.sqrt(s_sd / n) * 3; if (s_sd < 3) s_sd= 3;	// 3σ
-			v_sd = (float)Math.sqrt(v_sd / n) * 5; if (v_sd < 5) v_sd= 5;	// 5σ
+			h_sd = (float)Math.sqrt(h_sd / n); if (h_sd < 0.5f) h_sd= 1;	h_sd *= 2;	// 2σ
+			s_sd = (float)Math.sqrt(s_sd / n); if (s_sd < 0.5f) s_sd= 1;	s_sd *= 3;	// 3σ
+			v_sd = (float)Math.sqrt(v_sd / n); if (v_sd < 0.5f) v_sd= 1;	v_sd *= 6;	// 6σ
 
 			EXTRACT_COLOR_HSV_LIMIT[0] = sat((int)((h - h_sd) / 250 * 180), 0, 180);
 			EXTRACT_COLOR_HSV_LIMIT[1] = sat((int)((h + h_sd) / 250 * 180), 0, 180);
@@ -837,6 +906,8 @@ public class ImageProcessor {
 		final int lowerV, final int upperV);
 	private static native int nativeSetEnableExtract(final long id_native, final int enable);
 	private static native int nativeGetEnableExtract(final long id_native);
+	private static native int nativeSetSmooth(final long id_native, final int smooth_type);
+	private static native int nativeGetSmooth(final long id_native);
 	private static native int nativeSetEnableCanny(final long id_native, final int enable);
 	private static native int nativeGetEnableCanny(final long id_native);
 }
