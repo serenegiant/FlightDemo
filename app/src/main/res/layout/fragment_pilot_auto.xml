@@ -24,12 +24,14 @@
 				android:layout_height="0dp"
 				android:layout_weight="1"
 				android:background="@null" >
+				<!-- 機体からのライブ映像表示用 -->
 				<com.serenegiant.drone.AttitudeTextureView
 					android:id="@+id/drone_view"
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:visibility="visible"
 					android:background="@null"/>
+				<!-- 色抽出用ターゲットマーカー -->
 				<ImageView
 					android:layout_width="60dp"
 					android:layout_height="60dp"
@@ -43,18 +45,33 @@
 				android:layout_height="0dp"
 				android:layout_weight="1"
 				android:background="@null" >
+				<!-- 処理中の映像確認用 -->
 				<SurfaceView
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:id="@+id/detect_view"
 					android:visibility="visible"
 					android:background="@drawable/frame"/>
+				<!-- 色抽出用ターゲットマーカー -->
 				<ImageView
 					android:layout_width="60dp"
 					android:layout_height="60dp"
 					android:layout_centerInParent="true"
 					android:src="@null"
 					android:background="@drawable/frame"/>
+
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:id="@+id/trace1_tv"
+					android:textColor="@color/RED"/>
+
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_below="@id/trace1_tv"
+					android:id="@+id/trace2_tv"
+					android:textColor="@color/RED"/>
 			</RelativeLayout>
 
 		</LinearLayout>
@@ -352,6 +369,15 @@
 					android:background="@null"
 					android:scaleType="fitXY"
 					android:src="?attr/flightdemo_icon_movie"/>
+
+				<ImageButton
+					android:id="@+id/trace_btn"
+					android:layout_width="@dimen/btn_size_action"
+					android:layout_height="@dimen/btn_size_action"
+					android:paddingTop="@dimen/padding"
+					android:background="@null"
+					android:scaleType="fitXY"
+					android:src="?attr/flightdemo_icon_plane"/>
 
 			</LinearLayout>
 

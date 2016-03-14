@@ -39,13 +39,17 @@ import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine1.IModelView;
+import com.serenegiant.math.Vector;
 import com.serenegiant.opencv.ImageProcessor;
 import com.serenegiant.utils.FileUtils;
+import com.serenegiant.utils.MessageTask;
 
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.parsers.FactoryConfigurationError;
 
 public class AutoPilotFragment2 extends BasePilotFragment {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
@@ -107,13 +111,16 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private View mRightSidePanel;
 	private ImageButton mStillCaptureBtn;
 	private ImageButton mVideoRecordingBtn;
+	private ImageButton mTraceButton;
 
 	/** 操縦に使用するボタン等の一括変更用。操作可・不可に応じてenable/disableを切り替える */
 	private final List<View> mActionViews = new ArrayList<View>();
 
 	protected SurfaceView mDetectView;
 	protected ImageProcessor mImageProcessor;
+	protected TraceTask mTraceTask;
 	protected Switch mAutoWhiteBlanceSw;
+	private TextView mTraceTv1, mTraceTv2;
 
 	// 設定
 	protected String mPrefName;
@@ -161,7 +168,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach");
-		stopImageProcessor();
 		mPref = null;
 		super.onDetach();
 	}
@@ -226,6 +232,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		mVideoRecordingBtn = (ImageButton) rootView.findViewById(R.id.video_capture_btn);
 		mVideoRecordingBtn.setOnClickListener(mOnClickListener);
 
+		// トレース実行
+		mTraceButton = (ImageButton)rootView.findViewById(R.id.trace_btn);
+		mTraceButton.setOnClickListener(mOnClickListener);
+		mTraceButton.setOnLongClickListener(mOnLongClickListener);
+
 		if (mController instanceof ICameraController) {
 			((ICameraController)mController).setCameraControllerListener(null);
 			((ICameraController)mController).sendCameraOrientation(0, 0);
@@ -281,13 +292,23 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					}
 				}
 				break;
+			case R.id.trace_btn:
+				// 自動操縦ボタン
+				setColorFilter((ImageView)view);
+				mAutoPilot = false;	// 自動操縦解除
+				setColorFilter(mTraceButton, 0, 0);
+				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
+				mAutoPilot = false;
+				setColorFilter(mTraceButton, 0, 0);
 				setColorFilter((ImageView) view);
 				emergencyStop();
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
+				mAutoPilot = false;
+				setColorFilter(mTraceButton, 0, 0);
 				setColorFilter((ImageView)view);
 				if (!isFlying()) {
 //					takeOff();
@@ -316,14 +337,12 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				break;
 //--------------------------------------------------------------------------------
 			case R.id.top_panel:
+				// 解析中画像の表示モードを変更
 				if (mImageProcessor != null) {
 					mImageProcessor.setResultFrameType((mImageProcessor.getResultFrameType() - 2) % 2 + 3);
 				}
 				break;
 			case R.id.drone_view:
-				if (mImageProcessor != null) {
-					mImageProcessor.requestUpdateExtractionColor();
-				}
 				break;
 			case R.id.update_extraction_color_btn:
 				post(new Runnable() {
@@ -337,6 +356,10 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				}, 0);
 				break;
 			case R.id.reset_extraction_color_btn:
+				// 抽出色をリセット
+				if (mImageProcessor != null) {
+					mImageProcessor.resetExtractionColor();
+				}
 				break;
 			}
 		}
@@ -355,6 +378,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				}
 				return true;
 			case R.id.flat_trim_btn:
+				mAutoPilot = false;
+				setColorFilter(mTraceButton, 0, 0);
 				setColorFilter((ImageView)view);
 				if ((mFlightController != null) && (getState() == IFlightController.STATE_STARTED)) {
 					replace(CalibrationFragment.newInstance(getDevice()));
@@ -363,7 +388,16 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸/着陸ボタンを長押しした時の処理
+				mAutoPilot = false;
+				setColorFilter(mTraceButton, 0, 0);
 				setColorFilter((ImageView)view);
+				if (!isFlying()) {
+					takeOff();
+					return true;
+				}
+			case R.id.trace_btn:
+				mAutoPilot = true;
+				setColorFilter(mTraceButton, TOUCH_RESPONSE_COLOR, 0);
 				if (!isFlying()) {
 					takeOff();
 					return true;
@@ -378,9 +412,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	protected void onConnect(final IDeviceController controller) {
 		super.onConnect(controller);
 		if (DEBUG) Log.v(TAG, "onConnect");
-		if ((controller instanceof IVideoStreamController) && (mVideoStream != null)) {
-			startImageProcessor();
-		}
 		if (controller instanceof ICameraController) {
 			((ICameraController)controller).sendExposure(3);
 			((ICameraController)controller).sendCameraOrientation(-100, 0);
@@ -395,6 +426,18 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		if (DEBUG) Log.v(TAG, "onDisconnect");
 		stopImageProcessor();
 		super.onDisconnect(controller);
+	}
+
+	@Override
+	protected void startVideoStreaming() {
+		super.startVideoStreaming();
+		startImageProcessor();
+	}
+
+	@Override
+	protected void stopVideoStreaming() {
+		stopImageProcessor();
+		super.stopVideoStreaming();
 	}
 
 	@Override
@@ -613,6 +656,9 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		spinner = (Spinner)rootView.findViewById(R.id.use_native_smooth_spinner);
 		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
 		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
+		//
+		mTraceTv1 = (TextView)rootView.findViewById(R.id.trace1_tv);
+		mTraceTv2 = (TextView)rootView.findViewById(R.id.trace2_tv);
 	}
 
 	private static class SmoothTypeAdapter extends ArrayAdapter<String> {
@@ -801,6 +847,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	};
 
 	private void startImageProcessor() {
+		setColorFilter(mTraceButton, 0, 0);
+		if (mTraceTask == null) {
+			mTraceTask = new TraceTask();
+			new Thread(mTraceTask, TAG).start();
+		}
 		if (mImageProcessor == null) {
 			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
 			mImageProcessor.setExposure(mExposure);
@@ -831,11 +882,120 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			mImageProcessor.release();
 			mImageProcessor = null;
 		}
+		mTraceTask = null;
+		synchronized (mQueue) {
+			mIsRunning = false;
+			mQueue.notifyAll();
+		}
+		setColorFilter(mTraceButton, 0, 0);
 	}
 
-	private Bitmap mFrame;
+	private static class LineRec {
+		public int type;
+		public final Vector mLinePos = new Vector();
+		public float mLineLen, mLineWidth, mAngle, mAreaRate, mCurvature;
+	}
+
+	private static final int MAX_QUEUE = 4;
+	private final List<LineRec> mPool = new ArrayList<LineRec>();
+	private final List<LineRec> mQueue = new ArrayList<LineRec>();
+	private volatile boolean mIsRunning;
+	private volatile boolean mAutoPilot;
+
+	private class TraceTask implements Runnable {
+		public TraceTask() {
+		}
+
+		@Override
+		public void run() {
+			synchronized (mQueue) {
+				for (int i = 0; i < MAX_QUEUE; i++) {
+					mPool.add(new LineRec());
+				}
+			}
+			mIsRunning = true;
+			mAutoPilot = false;
+			float angle = 0;	// カメラの上方向に対する移動方向の角度
+			float factor = 1.0f;
+			long lostTime = -1;
+			final Vector work = new Vector();
+			final Vector prev = new Vector();
+			final Vector mPilotValue = new Vector();	// roll/pitch制御量
+			for ( ; mIsRunning ; ) {
+				synchronized (mQueue) {
+					try {
+						mQueue.wait(500);
+					} catch (InterruptedException e) {
+						break;
+					}
+					if (!mIsRunning) break;
+					if (mQueue.size() > 0) {
+						final String msg1;
+						final LineRec rec = mQueue.remove(0);
+						if (rec.type >= 0) {	// 0:TYPE_LINE, 1:TYPE_CIRCLE, 2:TYPE_CORNER
+							lostTime = -1;
+							factor *= 1.1f;
+							if (factor > 2.0f) {
+								factor = 2.0f;
+							}
+							// 画像中心からの距離
+							work.set(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT).div(2.0f).sub(rec.mLinePos);
+							msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f)", work.x, work.y, work.len(), rec.mAngle);
+							work.div(320.0f, 184.0f).mult(100.0f);
+							mPilotValue.set(0.f, 100.0f);	// 前進
+							// 前回の位置とコマンドから想定する現在位置とラインの位置が大きく違う時は制限をする
+							prev.sub(rec.mLinePos);
+							if (prev.len() > 200) {
+								factor *= 0.8f;
+								if (factor < 0.1f) {
+									factor = 0.1f;
+								}
+							}
+							mPilotValue.sub(work.x, -work.y).mult(factor).rotate(0, 0, angle);	// カメラの向きに合わせて進行方向をあわせる。z軸周りに回転
+							if (mAutoPilot) {
+								// 制御コマンド送信
+								mFlightController.requestAnimationsCap(Math.round(rec.mAngle / 5) * 5);
+								mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0);
+							}
+							// 今回の位置を保存
+							prev.set(rec.mLinePos);
+						} else {
+							factor = 0.1f;
+							mPilotValue.clear(0.0f);
+							rec.mAngle = 0;
+							msg1 = null;
+							if (lostTime < 0) {
+								lostTime = System.currentTimeMillis();
+							}
+							if (System.currentTimeMillis() - lostTime > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
+								mAutoPilot = false;
+							}
+						}
+						final String msg2 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, 0.0f, -rec.mAngle);
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								mTraceTv1.setText(msg1);
+								mTraceTv2.setText(msg2);
+							}
+						});
+					}
+				}
+			}
+			synchronized (mQueue) {
+				mIsRunning = false;
+				mQueue.clear();
+				mPool.clear();
+			}
+			System.gc();
+		}
+	}
+
+	/** ImageProcessorからのコールバックリスナー */
 	private final ImageProcessor.ImageProcessorCallback mImageProcessorCallback
 		= new ImageProcessor.ImageProcessorCallback() {
+
+		private Bitmap mFrame;
 		private final Matrix matrix = new Matrix();
 		@Override
 		public void onFrame(final ByteBuffer frame) {
@@ -850,7 +1010,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					matrix.postScale(scaleX, scaleY);
 				}
 				frame.clear();
-//				if (DEBUG) Log.v(TAG, "frame=" + frame);
 				mFrame.copyPixelsFromBuffer(frame);
 				final Canvas canvas = holder.lockCanvas();
 				if (canvas != null) {
@@ -864,6 +1023,38 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				}
 			}
 		}
+
+		@Override
+		public void onResult(final int type, final float[] result) {
+			synchronized (mQueue) {
+				if (!mIsRunning) return;
+				LineRec rec = mPool.size() > 0 ? mPool.remove(0) : null;
+				if (rec == null) {
+					rec = new LineRec();
+				}
+				rec.type = type;
+				// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
+				rec.mLinePos.set(result[0], result[1]);
+				// ラインの長さ(長軸長さ=length)
+				rec.mLineLen = result[2];
+				// ライン幅(短軸長さ)
+				rec.mLineWidth = result[3];
+				// ラインの方向(cv::RotatedRect#angle)
+				rec.mAngle = result[4];
+				// 最小矩形面積に対する輪郭面積の比
+				rec.mAreaRate = result[5];
+				// 円フィッティングの曲率
+				rec.mCurvature = result[6];
+				// キュー内に最大数入っていたらプールに戻す
+				for ( ; mQueue.size() > MAX_QUEUE ; ) {
+					mPool.add(mQueue.remove(0));
+				}
+				// キューの最後に追加
+				mQueue.add(rec);
+				mQueue.notify();
+			}
+		}
+
 	};
 
 }

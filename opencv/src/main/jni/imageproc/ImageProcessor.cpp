@@ -465,12 +465,23 @@ int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv
 	float detected[RESULT_NUM];
 
 	if (LIKELY(mIsRunning && fields.callFromNative && mClazz && mWeakThiz)) {
-		// FIXME 解析結果を配列にセットする
+		// 解析結果を配列にセットする
 		// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
+		detected[0] = detect_result.area_rect.center.x;
+		detected[1] = detect_result.area_rect.center.y;
 		// ラインの長さ(長軸長さ=length)
+		detected[2] = detect_result.length;
+		// ライン幅(短軸長さ)
+		detected[3] = detect_result.width;
 		// ラインの方向(cv::RotatedRect#angle)
-		// アスペクト比(もしくは幅=短軸長さ)
-		// FIXME 円フィッティングの曲率/上半分と下半分の傾き
+		// カメラ映像の真上を0としてラインが右(1,2,3時方向)に傾いてれば負,左(11,10,9時方向)に傾いていれば正
+		// 機体の向きは逆
+		detected[4] = (detect_result.area_rect.size.width <= detect_result.area_rect.size.height ? 0.0f : -90.0f) - detect_result.area_rect.angle;
+		// 最小矩形面積に対する輪郭面積の比
+		detected[5] = detect_result.area_rate;
+		// 円フィッティングの曲率
+		detected[6] = detect_result.curvature;
+		//
 		jfloatArray detected_array = env->NewFloatArray(RESULT_NUM);
 		env->SetFloatArrayRegion(detected_array, 0, RESULT_NUM, detected);
 		// 解析画像
@@ -973,6 +984,7 @@ int ImageProcessor::detect_line(
 		// 優先度の降順にソートする
 		std::sort(possibles.begin(), possibles.end(), comp_line_priority);
 		possible = *possibles.begin();	// 先頭=優先度が最高
+		possible.type = TYPE_LINE;
 		possible.curvature = 0;
 		// 近似輪郭の面積と最小矩形の面積の比が大きい時は曲がっているかもしれないので楕円フィッティングして曲率を計算してみる
 		if ((possible.area_rate > 1.2f) && (possible.contour.size() > 6)) {	// 5点以上あれば楕円フィッティング出来る

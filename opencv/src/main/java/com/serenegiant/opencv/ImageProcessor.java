@@ -9,6 +9,7 @@ import android.view.Surface;
 import com.serenegiant.glutils.EglTask;
 import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.Texture2dProgram;
+import com.serenegiant.math.Vector;
 import com.serenegiant.mediaeffect.IEffect;
 import com.serenegiant.mediaeffect.MediaEffectAutoFix;
 import com.serenegiant.mediaeffect.MediaEffectBrightness;
@@ -40,6 +41,7 @@ public class ImageProcessor {
 
 	public interface ImageProcessorCallback {
 		public void onFrame(final ByteBuffer frame);
+		public void onResult(final int type, final float[] result);
 	}
 
 	private final Object mSync = new Object();
@@ -532,7 +534,7 @@ public class ImageProcessor {
 		final ImageProcessor self = weakSelf != null ? weakSelf.get() : null;
 		if (self != null) {
 			try {
-				self.handleResult(result);
+				self.handleResult(type, result);
 				if (frame != null) {
 					self.handleOpenCVFrame(frame);
 				}
@@ -547,8 +549,12 @@ public class ImageProcessor {
 	 * native側からの結果コールバックの実際の処理
 	 * @param result
 	 */
-	private void handleResult(final float[] result) {
+	private void handleResult(final int type, final float[] result) {
 //		if (DEBUG) Log.v(TAG, "handleResult");
+		try {
+			mCallback.onResult(type, result);
+		} catch (final Exception e) {
+		}
 	}
 
 	/**

@@ -276,18 +276,59 @@ public class Vector implements Serializable, Cloneable {
 	/**
 	 * ベクトルの各成分にスカラ値をかけ算
 	 */
-	public Vector mult(final float scalar) {
-		this.x *= scalar;
-		this.y *= scalar;
-		this.z *= scalar;
+	public Vector mult(final float scale) {
+		this.x *= scale;
+		this.y *= scale;
+		this.z *= scale;
+		return this;
+	}
+
+	/**
+	 * ベクトルの各成分にスカラ値をかけ算
+	 */
+	public Vector mult(final float x_scale, final float y_scale) {
+		this.x *= x_scale;
+		this.y *= y_scale;
+		return this;
+	}
+
+	/**
+	 * ベクトルの各成分にスカラ値をかけ算
+	 */
+	public Vector mult(final float x_scale, final float y_scale, final float z_scale) {
+		this.x *= x_scale;
+		this.y *= y_scale;
+		this.z *= z_scale;
 		return this;
 	}
 
 	/**
 	 * ベクトルの各成分をスカラ値で割り算
 	 */
-	public Vector div(final float scalar) {
-		return mult(1 / scalar);
+	public Vector div(final float scale) {
+		this.x /= scale;
+		this.y /= scale;
+		this.z /= scale;
+		return this;
+	}
+
+	/**
+	 * ベクトルの各成分をスカラ値で割り算
+	 */
+	public Vector div(final float x_scale, final float y_scale) {
+		this.x /= x_scale;
+		this.y /= y_scale;
+		return this;
+	}
+
+	/**
+	 * ベクトルの各成分をスカラ値で割り算
+	 */
+	public Vector div(final float x_scale, final float y_scale, final float z_scale) {
+		this.x /= x_scale;
+		this.y /= y_scale;
+		this.z /= z_scale;
+		return this;
 	}
 
 	/**
