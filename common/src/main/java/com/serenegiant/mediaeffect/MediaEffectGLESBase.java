@@ -27,7 +27,7 @@ import com.serenegiant.glutils.TextureOffscreen;
 /**
  * OpenGL|ES2のフラグメントシェーダーで映像効果を与える時の基本クラス
  */
-public abstract class MediaEffectGLESBase implements IEffect {
+public class MediaEffectGLESBase implements IEffect {
 	private static final boolean DEBUG = false;
 	private static final String TAG = "MediaEffectGLESBase";
 
@@ -35,14 +35,75 @@ public abstract class MediaEffectGLESBase implements IEffect {
 	protected TextureOffscreen mOutputOffscreen;
 	protected boolean mEnabled = true;
 
+	/**
+	 * フラグメントシェーダーを指定する場合のコンストラクタ(頂点シェーダーはデフォルトを使用)
+	 * @param shader
+	 */
 	public MediaEffectGLESBase(final String shader) {
 		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 		mDrawer = new FullFrameRect(new Texture2dProgram(GLES20.GL_TEXTURE_2D, shader));
 	}
 
+	/**
+	 * 頂点シェーダーとフラグメントシェーダーを指定する場合のコンストラクタ
+	 * @param vss
+	 * @param fss
+	 */
+	public MediaEffectGLESBase(final String vss, final String fss) {
+		if (DEBUG) Log.v(TAG, "コンストラクタ:");
+		mDrawer = new FullFrameRect(new Texture2dProgram(GLES20.GL_TEXTURE_2D, vss, fss));
+	}
+
+	/**
+	 * テクスチャターゲットと頂点シェーダーとフラグメントシェーダーを指定する場合のコンストラクタ
+	 * @param target GLES20.GL_TEXTURE_2D
+	 * @param vss
+	 * @param fss
+	 */
+	public MediaEffectGLESBase(final int target, final String vss, final String fss) {
+		if (DEBUG) Log.v(TAG, "コンストラクタ:");
+		mDrawer = new FullFrameRect(new Texture2dProgram(target, vss, fss));
+	}
+
 	public MediaEffectGLESBase(final Texture2dProgram.ProgramType type) {
 		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 		mDrawer = new FullFrameRect(new Texture2dProgram(type));
+	}
+
+	@Override
+	public void release() {
+		if (DEBUG) Log.v(TAG, "release:");
+		if (mDrawer != null) {
+			mDrawer.release();
+			mDrawer = null;
+		}
+		if (mOutputOffscreen != null) {
+			mOutputOffscreen.release();
+			mOutputOffscreen = null;
+		}
+	}
+
+	@Override
+	public MediaEffectGLESBase resize(final int width, final int height) {
+		if ((mOutputOffscreen == null) || (width != mOutputOffscreen.getWidth())
+			|| (height != mOutputOffscreen.getHeight())) {
+			if (mOutputOffscreen != null)
+				mOutputOffscreen.release();
+			mOutputOffscreen = new TextureOffscreen(width, height, false);
+		}
+		mDrawer.getProgram().setTexSize(width, height);
+		return this;
+	}
+
+	@Override
+	public boolean enabled() {
+		return mEnabled;
+	}
+
+	@Override
+	public IEffect setEnable(final boolean enable) {
+		mEnabled = enable;
+		return this;
 	}
 
 	/**
@@ -81,41 +142,5 @@ public abstract class MediaEffectGLESBase implements IEffect {
 		} else {
 			apply(src.getSourceTexId(), src.getWidth(), src.getHeight(), src.getOutputTexId());
 		}
-	}
-
-	@Override
-	public void release() {
-		if (DEBUG) Log.v(TAG, "release:");
-		if (mDrawer != null) {
-			mDrawer.release();
-			mDrawer = null;
-		}
-		if (mOutputOffscreen != null) {
-			mOutputOffscreen.release();
-			mOutputOffscreen = null;
-		}
-	}
-
-	@Override
-	public MediaEffectGLESBase resize(final int width, final int height) {
-		if ((mOutputOffscreen == null) || (width != mOutputOffscreen.getWidth())
-			|| (height != mOutputOffscreen.getHeight())) {
-			if (mOutputOffscreen != null)
-				mOutputOffscreen.release();
-			mOutputOffscreen = new TextureOffscreen(width, height, false);
-		}
-		mDrawer.getProgram().setTexSize(width, height);
-		return this;
-	}
-
-	@Override
-	public boolean enabled() {
-		return mEnabled;
-	}
-
-	@Override
-	public IEffect setEnable(final boolean enable) {
-		mEnabled = enable;
-		return this;
 	}
 }

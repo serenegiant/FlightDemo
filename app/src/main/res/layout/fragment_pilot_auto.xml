@@ -294,23 +294,18 @@
 							android:text="@string/trace_use_native_canny"
 							android:id="@+id/use_native_canny_sw"/>
 
-						<LinearLayout
-							android:orientation="horizontal"
+						<Button
+							style="?android:attr/buttonStyleSmall"
 							android:layout_width="match_parent"
-							android:layout_height="match_parent">
-							<Button
-								style="?android:attr/buttonStyleSmall"
-								android:layout_width="match_parent"
-								android:layout_height="wrap_content"
-								android:text="@string/trace_update_extraction_color"
-								android:id="@+id/update_extraction_color_btn"/>
-							<Button
-								style="?android:attr/buttonStyleSmall"
-								android:layout_width="match_parent"
-								android:layout_height="wrap_content"
-								android:text="@string/trace_reset_extraction_color"
-								android:id="@+id/reset_extraction_color_btn"/>
-						</LinearLayout>
+							android:layout_height="wrap_content"
+							android:text="@string/trace_update_extraction_color"
+							android:id="@+id/update_extraction_color_btn"/>
+						<Button
+							style="?android:attr/buttonStyleSmall"
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:text="@string/trace_reset_extraction_color"
+							android:id="@+id/reset_extraction_color_btn"/>
 
 					</LinearLayout>
 				</ScrollView>
