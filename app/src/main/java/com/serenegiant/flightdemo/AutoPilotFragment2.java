@@ -578,7 +578,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sb.setProgress((int)(mBinarizeThreshold * 100.0f));	// [0.0f, +1.0f] => [0, 100]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		// OpenGL|ESで色抽出を使うかどうか
-		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, false);
+		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
 		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
 		sw.setChecked(mEnableGLESExtraction);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
@@ -598,7 +598,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sw.setChecked(mEnableNativeExtraction);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// Native側のCannyを使うかどうか
-		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, true);
+		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
 		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
 		sw.setChecked(mEnableNativeCanny);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
