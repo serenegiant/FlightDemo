@@ -908,6 +908,11 @@ public class PilotFragment2 extends BasePilotFragment {
 			}
 		});
 		setSideMenu();
+		if (mController instanceof ICameraController) {
+			((ICameraController)mController).sendExposure(0);
+			((ICameraController)mController).sendCameraOrientation(0, 0);
+			((ICameraController)mController).sendAutoWhiteBalance(0);	// 自動ホワイトバランス
+		}
 	}
 
 	@Override

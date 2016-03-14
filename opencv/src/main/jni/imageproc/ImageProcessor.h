@@ -63,32 +63,39 @@ typedef struct DetectRec {
 typedef struct DetectParam DetectParam_t;
 struct DetectParam {
 public:
-	volatile int mResultFrameType;
-	volatile bool mEnableExtract;
-	volatile SmoothType_t mSmoothType;
-	volatile bool mEnableCanny;
-	volatile ApproxType_t mApproxType;
-	volatile double mApproxFactor;
-	volatile double mCannythreshold1;
-	volatile double mCannythreshold2;
-	volatile float mMaxAnalogous;
+	bool changed;
+	int mResultFrameType;
+	bool mEnableExtract;
+	SmoothType_t mSmoothType;
+	bool mEnableCanny;
+	ApproxType_t mApproxType;
+	double mApproxFactor;
+	double mCannythreshold1;
+	double mCannythreshold2;
+	float mMaxAnalogous;
+	int extractColorHSV[6];	// 抽出色(HSV上下限)
 	// これより下は内部計算
 	bool needs_result;	// これは内部計算
 	bool show_src;		// これは内部計算
 	bool show_detects;	// これは内部計算
-	void set(const DetectParam_t &other) {
-		mResultFrameType = other.mResultFrameType;
-		mEnableExtract = other.mEnableExtract;
-		mSmoothType = other.mSmoothType;
-		mEnableCanny = other.mEnableCanny;
-		mApproxType = other.mApproxType;
-		mApproxFactor = other.mApproxFactor;
-		mCannythreshold1 = other.mCannythreshold1;
-		mCannythreshold2 = other.mCannythreshold2;
-		mMaxAnalogous = other.mMaxAnalogous;
+
+	/** 値をセットして更新, src#changed=trueの時のみ */
+	void set(const DetectParam_t &src) {
+		mResultFrameType = src.mResultFrameType;
+		mEnableExtract = src.mEnableExtract;
+		mSmoothType = src.mSmoothType;
+		mEnableCanny = src.mEnableCanny;
+		mApproxType = src.mApproxType;
+		mApproxFactor = src.mApproxFactor;
+		mCannythreshold1 = src.mCannythreshold1;
+		mCannythreshold2 = src.mCannythreshold2;
+		mMaxAnalogous = src.mMaxAnalogous;
+		memcpy(extractColorHSV, src.extractColorHSV, sizeof(int) * 6);
+		// 計算
 		needs_result = mResultFrameType != RESULT_FRAME_TYPE_NON;
 		show_src = (mResultFrameType == RESULT_FRAME_TYPE_SRC) || (mResultFrameType == RESULT_FRAME_TYPE_SRC_LINE);
 		show_detects = needs_result && (mResultFrameType == RESULT_FRAME_TYPE_SRC_LINE) || (mResultFrameType == RESULT_FRAME_TYPE_DST_LINE);
+		changed = false;
 	}
 } ;
 
@@ -107,7 +114,7 @@ private:
 	std::vector<cv::Mat> mPool;
 	// フレームキュー
 	std::queue<cv::Mat> mFrames;
-	int mExtractColorHSV[6];	// 0,1,2: HSV下限, 3,4,5:HSV上限
+//	int mExtractColorHSV[6];	// 0,1,2: HSV下限, 3,4,5:HSV上限
 	// glReadPixelsを呼ぶ際のピンポンバッファに使うPBOのバッファ名
 	GLuint pbo[2];
 	int pbo_ix;
@@ -148,13 +155,13 @@ public:
 	int stop();		// これはJava側の描画スレッド内から呼ばれる(EGLContextが有る)
 	int handleFrame(const int &width, const int &height, const int &unused = 0);
 	inline const bool isRunning() const { return mIsRunning; };
-	inline void setResultFrameType(const int &result_frame_type) { mParam.mResultFrameType = result_frame_type % RESULT_FRAME_TYPE_MAX; };
+	void setResultFrameType(const int &result_frame_type);
 	inline const int getResultFrameType() const { return mParam.mResultFrameType; };
-	inline void setEnableExtract(const int &enable) { mParam.mEnableExtract = enable != 0; };
+	void setEnableExtract(const int &enable);
 	inline const int getEnableExtract() const { return mParam.mEnableExtract ? 1 : 0; };
-	inline void setEnableSmooth(const SmoothType_t &smooth_type) { mParam.mSmoothType = smooth_type; };
+	void setEnableSmooth(const SmoothType_t &smooth_type);
 	inline const SmoothType_t getEnableSmooth() const { return mParam.mSmoothType; };
-	inline void setEnableCanny(const int &enable) { mParam.mEnableCanny = enable != 0; };
+	void setEnableCanny(const int &enable);
 	inline const int getEnableCanny() const { return mParam.mEnableCanny ? 1 : 0; };
 	/** 抽出色の上下限をHSVで設定 */
 	int setExtractionColor(const int lower[], const int upper[]);

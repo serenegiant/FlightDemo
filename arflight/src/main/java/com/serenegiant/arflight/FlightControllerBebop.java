@@ -1678,7 +1678,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 
 			cmdError = cmd.setARDrone3PictureSettingsAutoWhiteBalanceSelection(type);
 		} else {
-			// FIXME 手動設定の時の設定値はどうやって設定するんやろ?
+			// このコマンドを送った時の映像からホワイトバランスを調整するみたい
 			cmdError = cmd.setARDrone3DebugVideoManualWhiteBalance();
 		}
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {

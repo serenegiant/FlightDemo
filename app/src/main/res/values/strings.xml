@@ -133,10 +133,13 @@
 	<string name="trace_smooth_median">Median</string>
 	<string name="trace_smooth_blur">Blur</string>
 	<string name="trace_use_native_extraction">Color extraction on OpenCV</string>
-	<string name="trace_use_native_canny">Edge detection on OpenCV</string>
+	<string name="trace_use_native_canny">Edge detection(Canny) on OpenCV</string>
 	<string name="trace_use_extraction">Color extraction on OpenGL|ES</string>
-	<string name="trace_use_canny">>Edge detection on OpenGL|ES</string>
+	<string name="trace_use_canny">>Edge detection(Canny) on OpenGL|ES</string>
 	<string name="trace_update_extraction_color">Update extraction color</string>
+	<string name="trace_white_blance">White blance</string>
+	<string name="trace_white_blance_auto">auto</string>
+	<string name="trace_white_blance_manual">manual</string>
 
 	<array name="trace_smooth_entries">
 		<item>@string/trace_smooth_non</item>

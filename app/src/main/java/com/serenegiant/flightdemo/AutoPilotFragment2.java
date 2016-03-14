@@ -375,6 +375,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		if (mController instanceof ICameraController) {
 			((ICameraController)mController).sendExposure(3);
 			((ICameraController)mController).sendCameraOrientation(-100, 0);
+			((ICameraController)mController).sendAutoWhiteBalance(0);	// 自動ホワイトバランス
 		}
 	}
 

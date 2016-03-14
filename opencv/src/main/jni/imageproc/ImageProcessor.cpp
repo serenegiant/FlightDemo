@@ -80,12 +80,13 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	// 基準図形との類似性の最大値
 	mParam.mMaxAnalogous = 50.0;
 	// H(色相)は制限なし, S(彩度)は0-約5%, 2:V(明度)は約80-100%
-	mExtractColorHSV[0] = 0;	// H下限
-	mExtractColorHSV[1] = 0;	// S下限
-	mExtractColorHSV[2] = 200;	// V下限
-	mExtractColorHSV[3] = 180;	// H下限
-	mExtractColorHSV[4] = 10;	// S上限
-	mExtractColorHSV[5] = 255;	// V上限
+	mParam.extractColorHSV[0] = 0;	// H下限
+	mParam.extractColorHSV[1] = 0;	// S下限
+	mParam.extractColorHSV[2] = 200;	// V下限
+	mParam.extractColorHSV[3] = 180;	// H下限
+	mParam.extractColorHSV[4] = 10;	// S上限
+	mParam.extractColorHSV[5] = 255;	// V上限
+	mParam.changed = true;
 
 #if USE_PBO
 	pbo[0] = pbo[1] = 0;
@@ -183,13 +184,58 @@ int ImageProcessor::stop() {
 	RETURN(0, int);
 }
 
+void ImageProcessor::setResultFrameType(const int &result_frame_type) {
+	ENTER();
+
+	Mutex::Autolock lock(mMutex);
+
+	mParam.mResultFrameType = result_frame_type % RESULT_FRAME_TYPE_MAX;
+	mParam.changed = true;
+
+	EXIT();
+};
+
+void ImageProcessor::setEnableExtract(const int &enable) {
+	ENTER();
+
+	Mutex::Autolock lock(mMutex);
+
+	mParam.mEnableExtract = enable != 0;
+	mParam.changed = true;
+
+	EXIT();
+};
+
+void ImageProcessor::setEnableSmooth(const SmoothType_t &smooth_type) {
+	ENTER();
+
+	Mutex::Autolock lock(mMutex);
+
+	mParam.mSmoothType = smooth_type;
+	mParam.changed = true;
+
+	EXIT();
+};
+
+void ImageProcessor::setEnableCanny(const int &enable) {
+	ENTER();
+
+	Mutex::Autolock lock(mMutex);
+
+	mParam.mEnableCanny = enable != 0;
+	mParam.changed = true;
+
+	EXIT();
+};
+
 int ImageProcessor::setExtractionColor(const int lower[], const int upper[]) {
 	ENTER();
 
 	Mutex::Autolock lock(mMutex);
 
-	memcpy(&mExtractColorHSV[0], &lower[0], sizeof(int) * 3);
-	memcpy(&mExtractColorHSV[3], &upper[0], sizeof(int) * 3);
+	memcpy(&mParam.extractColorHSV[0], &lower[0], sizeof(int) * 3);
+	memcpy(&mParam.extractColorHSV[3], &upper[0], sizeof(int) * 3);
+	mParam.changed = true;
 
 	RETURN(0, int);
 }
@@ -363,13 +409,14 @@ void ImageProcessor::do_process(JNIEnv *env) {
 		try {
 //================================================================================
 // フラグ更新
-			param.set(mParam);
-//			const int frame_type = mResultFrameType;
-//			const bool needs_result = frame_type != RESULT_FRAME_TYPE_NON;
-//			const bool show_src = (frame_type == RESULT_FRAME_TYPE_SRC) || (frame_type == RESULT_FRAME_TYPE_SRC_LINE);
-//			const bool show_detects = needs_result && (frame_type == RESULT_FRAME_TYPE_SRC_LINE) || (frame_type == RESULT_FRAME_TYPE_DST_LINE);
-//			const bool enable_extract = mEnableExtract;
-//			const bool enable_canny = mEnableCanny;
+			mMutex.lock();
+			{
+				if (UNLIKELY(mParam.changed)) {
+					param.set(mParam);
+					mParam.changed = false;
+				}
+			}
+			mMutex.unlock();
 // 前処理
 			cv::Mat src, bk_result, result;
 			pre_process(frame, src, bk_result, result, param);
@@ -379,17 +426,16 @@ void ImageProcessor::do_process(JNIEnv *env) {
 			findContours(src, bk_result, contours, approxes, param);
 //--------------------------------------------------------------------------------
 // 直線ラインの検出処理
-			// 表示用にカラー画像に戻す
-			result = bk_result;
+			result = bk_result;	// 結果用画像を初期化
 			detect_line(approxes, result, possible, param);
 			if (UNLIKELY(possible.type == TYPE_NON)) {
 // 円弧の検出処理
-				result = bk_result;
+				result = bk_result;	// 結果用画像を初期化
 				detect_circle(approxes, result, possible, param);
 			}
 			if (UNLIKELY(possible.type == TYPE_NON)) {
 // コーナーの検出処理
-				result = bk_result;
+				result = bk_result;	// 結果用画像を初期化
 				detect_circle(approxes, result, possible, param);
 			}
 //================================================================================
@@ -580,35 +626,31 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 	// RGBAのままだとHSVに変換できないので一旦BGRに変える
 	cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
 //	cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
-	// 色抽出処理, 色相は問わず彩度が低くて明度が高い領域を抽出
+	// 色抽出処理
 	if (param.mEnableExtract) {
-		int extractColorHSV[6];
-		mMutex.lock();
-		{
-			memcpy(extractColorHSV, mExtractColorHSV, sizeof(int) * 6);
-		}
-		mMutex.unlock();
-		colorExtraction(src, &src, cv::COLOR_BGR2HSV, 0, &extractColorHSV[0], &extractColorHSV[3]);
+		colorExtraction(src, &src, cv::COLOR_BGR2HSV, 0, &param.extractColorHSV[0], &param.extractColorHSV[3]);
 	}
 	// グレースケールに変換(RGBA->Y)
 	cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
 	// 平滑化
 //	cv::Sobel(src, src, CV_32F, 1, 1);
 //	cv::convertScaleAbs(src, src, 1, 0);
-	static const double sigma = 3.0;	// FIXME これはパラメータにする?
-	const int ksize = (int)(sigma * 5) | 1;	// カーネルサイズ, 正の奇数かゼロでないとだめ(ゼロの時はsigmaから内部計算)
-	switch (param.mSmoothType) {
-	case SMOOTH_GAUSSIAN:
-		cv::GaussianBlur(src, src, cv::Size(ksize, ksize), sigma, sigma);
-		break;
-	case SMOOTH_MEDIAN:
-		cv::medianBlur(src, src, ksize);
-		break;
-	case SMOOTH_BLUR:
-		cv::blur(src, src, cv::Size(ksize, ksize));
-		break;
-	default:
-		break;
+	if (param.mSmoothType) {
+		static const double sigma = 3.0;	// FIXME これはパラメータにする?
+		const int ksize = (int)(sigma * 5) | 1;	// カーネルサイズ, 正の奇数かゼロでないとだめ(ゼロの時はsigmaから内部計算)
+		switch (param.mSmoothType) {
+		case SMOOTH_GAUSSIAN:
+			cv::GaussianBlur(src, src, cv::Size(ksize, ksize), sigma, sigma);
+			break;
+		case SMOOTH_MEDIAN:
+			cv::medianBlur(src, src, ksize);
+			break;
+		case SMOOTH_BLUR:
+			cv::blur(src, src, cv::Size(ksize, ksize));
+			break;
+		default:
+			break;
+		}
 	}
 	// FIXME 平滑化後に2値化が必要?
 //	if (param.mSmoothType) {
@@ -629,10 +671,8 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 			bk_result = frame;
 		} else {
 			cv::cvtColor(src, bk_result, cv::COLOR_GRAY2RGBA);
-//			cv::cvtColor(src, bk_result, cv::COLOR_BGR2RGBA);
 		}
 	}
-//	cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
 
 	RETURN(0, int);
 }
@@ -670,7 +710,7 @@ int ImageProcessor::colorExtraction(const cv::Mat &src, cv::Mat *dst,
 			*dst = output;
 		} else {
 			cv::Mat lut = cv::Mat(256, 1, CV_8UC3);
-			// 指定したHSV範囲からLUT(Look Up Table)を作成
+			// 指定したHSV範囲からLUT(Look Up Table)を作成・・・これは設定変えた時だけでいい
 			for (int i = 0; i < 256; i++) {
 				for (int k = 0; k < 3; k++) {
 					if (lower[k] <= upper[k]) {
@@ -732,21 +772,22 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 	cv:rectangle(src, cv::Rect(8, 8, src.cols - 8, src.rows - 8), COLOR_WHITE, 8);
 	// 輪郭を求める
 	cv::findContours(src, contours,
-		cv::RETR_CCOMP, 			// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
+		cv::RETR_CCOMP, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
 		cv::CHAIN_APPROX_NONE);	// 輪郭データ近似方法, CHAIN_APPROX_NONE:無し,  CHAIN_APPROX_SIMPLE:直線は頂点のみにする,  CHAIN_APPROX_TC89_L1, CHAIN_APPROX_TC89_KCOS
 	// 検出した輪郭を全て描画
 //	if (param.show_detects) {
 //		cv::drawContours(result, contours, -1, COLOR_YELLOW);
 //	}
+	std::vector< cv::Point > approx;		// 近似輪郭
 	// 検出した輪郭の数分ループする
 	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
-		std::vector< cv::Point > approx;		// 近似輪郭
+		approx.clear();
 		// 凸包頂点にする
 		cv::convexHull(*contour, approx);
 		// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
 		const double epsilon = param.mApproxType == APPROX_RELATIVE
-			? mParam.mApproxFactor * cv::arcLength(approx, true)	// 周長に対する比
-			: mParam.mApproxFactor;									// 絶対値
+			? param.mApproxFactor * cv::arcLength(approx, true)	// 周長に対する比
+			: param.mApproxFactor;									// 絶対値
 		// 輪郭を近似する
 		cv::approxPolyDP(approx, approx, epsilon, true);	// 閉曲線にする
 		const size_t num_vertex = approx.size();
@@ -756,13 +797,13 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		// 常に横長として幅と高さを取得
 		const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
 		const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
-		if ((w > 620) && (h > 345)) continue;	// 外周線
+		if (((w > 620) && (h > 345)) || (w * h < 1000.0f)) continue;	// 外周線または最小矩形が小さすぎる
 		if (param.show_detects) {
 			draw_rect(result, area_rect, COLOR_YELLOW);
 		}
 		// 近似輪郭の面積を計算, 面積が小さすぎるのはスキップ
 		const float area = (float)cv::contourArea(approx);
-		if (area < 500.0f) continue;
+		if (area < 1000.0f) continue;
 		if (param.show_detects) {
 			draw_rect(result, area_rect, COLOR_GREEN);
 		}
