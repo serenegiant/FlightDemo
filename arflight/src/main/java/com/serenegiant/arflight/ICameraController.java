@@ -53,6 +53,12 @@ public interface ICameraController extends IVideoStreamController {
 	public boolean sendAutoWhiteBalance(final int auto_white_balance);
 
 	/**
+	 * オートホワイトバランス設定を取得
+	 * @return
+	 */
+	public int autoWhiteBalance();
+
+	/**
 	 * 露出設定
 	 * @param exposure Exposure value (bounds given by ExpositionChanged arg min and max, by default [-3:3])
 	 * @return

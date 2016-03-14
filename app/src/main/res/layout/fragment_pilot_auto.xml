@@ -175,6 +175,15 @@
 						android:layout_width="match_parent"
 						android:layout_height="wrap_content">
 
+						<Switch
+							android:layout_width="match_parent"
+							android:layout_height="wrap_content"
+							android:paddingTop="@dimen/quater_padding"
+							android:paddingBottom="@dimen/quater_padding"
+							android:text="@string/trace_white_blance"
+							android:textOn="@string/trace_white_blance_auto"
+							android:textOff="@string/trace_white_blance_manual"
+							android:id="@+id/white_balance_sw"/>
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
@@ -182,6 +191,7 @@
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingBottom="@dimen/quater_padding"
 							android:id="@+id/exposure_seekbar"/>
 						<TextView
 							android:layout_width="wrap_content"
@@ -190,6 +200,7 @@
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingBottom="@dimen/quater_padding"
 							android:id="@+id/saturation_seekbar"/>
 						<TextView
 							android:layout_width="wrap_content"
@@ -198,6 +209,7 @@
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingBottom="@dimen/quater_padding"
 							android:id="@+id/brightness_seekbar"/>
 						<Switch
 							android:layout_width="match_parent"
@@ -208,6 +220,7 @@
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingBottom="@dimen/quater_padding"
 							android:visibility="gone"
 							android:id="@+id/posterize_seekbar"/>
 						<TextView
@@ -218,6 +231,7 @@
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingBottom="@dimen/quater_padding"
 							android:visibility="gone"
 							android:id="@+id/seekBar5"/>
 						<TextView
@@ -228,11 +242,14 @@
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingBottom="@dimen/quater_padding"
 							android:visibility="gone"
 							android:id="@+id/seekBar6"/>
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingTop="@dimen/quater_padding"
+							android:paddingBottom="@dimen/quater_padding"
 							android:text="@string/trace_use_extraction"
 							android:id="@+id/use_extract_sw"/>
 						<TextView
@@ -242,16 +259,22 @@
 						<Spinner
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingTop="@dimen/quater_padding"
+							android:paddingBottom="@dimen/quater_padding"
 							android:id="@+id/use_smooth_spinner"
 							android:layout_gravity="center_horizontal"/>
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingTop="@dimen/quater_padding"
+							android:paddingBottom="@dimen/quater_padding"
 							android:text="@string/trace_use_canny"
 							android:id="@+id/use_canny_sw"/>
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingTop="@dimen/quater_padding"
+							android:paddingBottom="@dimen/quater_padding"
 							android:text="@string/trace_use_native_extraction"
 							android:id="@+id/use_native_extract_sw"/>
 						<TextView
@@ -266,15 +289,29 @@
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
+							android:paddingTop="@dimen/quater_padding"
+							android:paddingBottom="@dimen/quater_padding"
 							android:text="@string/trace_use_native_canny"
 							android:id="@+id/use_native_canny_sw"/>
 
-						<Button
-							style="?android:attr/buttonStyleSmall"
+						<LinearLayout
+							android:orientation="horizontal"
 							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:text="@string/trace_update_extraction_color"
-							android:id="@+id/update_extraction_color_btn"/>
+							android:layout_height="match_parent">
+							<Button
+								style="?android:attr/buttonStyleSmall"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:text="@string/trace_update_extraction_color"
+								android:id="@+id/update_extraction_color_btn"/>
+							<Button
+								style="?android:attr/buttonStyleSmall"
+								android:layout_width="match_parent"
+								android:layout_height="wrap_content"
+								android:text="@string/trace_reset_extraction_color"
+								android:id="@+id/reset_extraction_color_btn"/>
+						</LinearLayout>
+
 					</LinearLayout>
 				</ScrollView>
 

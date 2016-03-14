@@ -44,7 +44,7 @@ static fields_t fields;
 // 繰り返し使うのでstaticに生成しておく
 static const cv::Scalar COLOR_ORANGE = cv::Scalar(255, 127, 0);
 static const cv::Scalar COLOR_RED = cv::Scalar(255, 0, 0);
-static const cv::Scalar COLOR_GREEN = cv::Scalar(255, 0, 0);
+static const cv::Scalar COLOR_GREEN = cv::Scalar(0, 255, 0);
 static const cv::Scalar COLOR_ACUA = cv::Scalar(0, 255, 255);
 static const cv::Scalar COLOR_BLUE = cv::Scalar(0, 0, 255);
 static const cv::Scalar COLOR_WHITE = cv::Scalar(255, 255, 255);
@@ -80,11 +80,11 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	// 基準図形との類似性の最大値
 	mParam.mMaxAnalogous = 50.0;
 	// H(色相)は制限なし, S(彩度)は0-約5%, 2:V(明度)は約80-100%
-	mParam.extractColorHSV[0] = 0;	// H下限
-	mParam.extractColorHSV[1] = 0;	// S下限
+	mParam.extractColorHSV[0] = 0;		// H下限
+	mParam.extractColorHSV[1] = 0;		// S下限
 	mParam.extractColorHSV[2] = 200;	// V下限
 	mParam.extractColorHSV[3] = 180;	// H下限
-	mParam.extractColorHSV[4] = 10;	// S上限
+	mParam.extractColorHSV[4] = 10;		// S上限
 	mParam.extractColorHSV[5] = 255;	// V上限
 	mParam.changed = true;
 
@@ -769,7 +769,7 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 
 	// 外周に四角を描いておく。でないと画面の外にはみ出した部分が有る形状を閉曲線として検出出来ない
 	// ただしこれを描くとRETR_EXTERNALにした時に必ず外周枠がかかったそれより内側が検出されない
-	cv:rectangle(src, cv::Rect(8, 8, src.cols - 8, src.rows - 8), COLOR_WHITE, 8);
+	cv:rectangle(src, cv::Rect(4, 4, src.cols - 8, src.rows - 8), COLOR_WHITE, 8);
 	// 輪郭を求める
 	cv::findContours(src, contours,
 		cv::RETR_CCOMP, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
@@ -797,7 +797,7 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		// 常に横長として幅と高さを取得
 		const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
 		const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
-		if (((w > 620) && (h > 345)) || (w * h < 1000.0f)) continue;	// 外周線または最小矩形が小さすぎる
+		if (((w > 480) && (h > 276)) || (w * h < 1000.0f)) continue;	// 外周線または最小矩形が小さすぎる
 		if (param.show_detects) {
 			draw_rect(result, area_rect, COLOR_YELLOW);
 		}
@@ -917,7 +917,7 @@ int ImageProcessor::detect_line(
 	if (possibles.size() > 0) {
 		// 優先度の降順にソートする
 		std::sort(possibles.begin(), possibles.end(), comp_line_priority);
-		possible = *possibles.begin();
+		possible = *possibles.begin();	// 先頭=優先度が最高
 		possible.curvature = 0;
 		// 近似輪郭の面積と最小矩形の面積の比が大きい時は曲がっているかもしれないので楕円フィッティングして曲率を計算してみる
 		if ((possible.area_rate > 1.2f) && (possible.contour.size() > 6)) {	// 5点以上あれば楕円フィッティング出来る

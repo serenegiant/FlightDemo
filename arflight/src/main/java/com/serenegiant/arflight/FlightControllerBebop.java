@@ -1541,7 +1541,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3SpeedSettingsOutdoor((byte) (is_outdoor ? 1 : 0));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3SpeedSettingsOutdoor((byte)(is_outdoor ? 1 : 0));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -1680,6 +1680,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		} else {
 			// このコマンドを送った時の映像からホワイトバランスを調整するみたい
 			cmdError = cmd.setARDrone3DebugVideoManualWhiteBalance();
+			mSettings.autoWhiteBalance(-1);
 		}
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
@@ -1692,6 +1693,14 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		}
 
 		return sentStatus;
+	}
+
+	/**
+	 * オートホワイトバランス設定を取得
+	 * @return
+	 */
+	public int autoWhiteBalance() {
+		return mSettings.autoWhiteBalance();
 	}
 
 	/**

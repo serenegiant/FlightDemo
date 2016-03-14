@@ -17,12 +17,9 @@ package com.serenegiant.mediaeffect;
  *  limitations under the License.
 */
 
-import android.opengl.GLES20;
 import android.util.Log;
 
-import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.Texture2dProgram;
-import com.serenegiant.glutils.TextureOffscreen;
 
 /** 露出調整, -10〜+10, 0だと無調整 */
 public class MediaEffectExposure extends MediaEffectGLESBase {

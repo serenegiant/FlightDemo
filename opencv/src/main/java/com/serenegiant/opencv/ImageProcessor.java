@@ -15,6 +15,7 @@ import com.serenegiant.mediaeffect.MediaEffectBrightness;
 import com.serenegiant.mediaeffect.MediaEffectCanny;
 import com.serenegiant.mediaeffect.MediaEffectExposure;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
+import com.serenegiant.mediaeffect.MediaEffectGrayScale;
 import com.serenegiant.mediaeffect.MediaEffectKernel;
 import com.serenegiant.mediaeffect.MediaEffectPosterize;
 import com.serenegiant.mediaeffect.MediaEffectSaturate;
@@ -125,6 +126,26 @@ public class ImageProcessor {
 	}
 
 //================================================================================
+	public static final int RESULT_FRAME_TYPE_SRC = 0;
+	public static final int RESULT_FRAME_TYPE_DST = 1;
+	public static final int RESULT_FRAME_TYPE_SRC_LINE = 2;
+	public static final int RESULT_FRAME_TYPE_DST_LINE = 3;
+
+	public void setResultFrameType(final int result_frame_type) {
+		final int result = nativeSetResultFrameType(mNativePtr, result_frame_type);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetResultFrameType:result=" + result);
+		}
+	}
+
+	public int getResultFrameType() {
+		final int result = nativeGetResultFrameType(mNativePtr);
+		if (result < 0) {
+			throw new IllegalStateException("nativeGetResultFrameType:result=" + result);
+		}
+		return result;
+	}
+
 	public void enableExposure(final boolean enable) {
 		if (mEnableExposure != enable) {
 			mEnableExposure = enable;
@@ -302,11 +323,12 @@ public class ImageProcessor {
 		if (mSmoothType != smooth_type) {
 			synchronized (mSync) {
 				mSmoothType = smooth_type;
+				applySmooth(smooth_type);
 			}
 		}
 	}
 
-	private void applymooth(final int smooth_type) {
+	private void applySmooth(final int smooth_type) {
 		if ((mProcessingTask != null) && (mProcessingTask.mSmooth != null)) {
 			switch (smooth_type) {
 			case 1:	// ガウシアン
@@ -346,6 +368,10 @@ public class ImageProcessor {
 		return mEnableCanny;
 	}
 
+	/**
+	 * 抽出色を映像中央部から取得して適用
+	 * @return
+	 */
 	public int[] requestUpdateExtractionColor() {
 		if (DEBUG) Log.v(TAG, "requestUpdateExtractionColor:");
 		final int[] temp = new int[6];
@@ -360,24 +386,19 @@ public class ImageProcessor {
 		return temp;
 	}
 
-	public static final int RESULT_FRAME_TYPE_SRC = 0;
-	public static final int RESULT_FRAME_TYPE_DST = 1;
-	public static final int RESULT_FRAME_TYPE_SRC_LINE = 2;
-	public static final int RESULT_FRAME_TYPE_DST_LINE = 3;
-
-	public void setResultFrameType(final int result_frame_type) {
-		final int result = nativeSetResultFrameType(mNativePtr, result_frame_type);
-		if (result != 0) {
-			throw new IllegalStateException("nativeSetResultFrameType:result=" + result);
+	/**
+	 * 抽出色を初期値にリセット
+	 */
+	public void resetExtractionColor() {
+		synchronized (mSync) {
+			EXTRACT_COLOR_HSV_LIMIT[0] = 0;
+			EXTRACT_COLOR_HSV_LIMIT[1] = 180;
+			EXTRACT_COLOR_HSV_LIMIT[2] = 0;
+			EXTRACT_COLOR_HSV_LIMIT[3] = 50;
+			EXTRACT_COLOR_HSV_LIMIT[4] = 120;
+			EXTRACT_COLOR_HSV_LIMIT[5] = 255;
+			applyExtractionColor();
 		}
-	}
-
-	public int getResultFrameType() {
-		final int result = nativeGetResultFrameType(mNativePtr);
-		if (result < 0) {
-			throw new IllegalStateException("nativeGetResultFrameType:result=" + result);
-		}
-		return result;
 	}
 
 	/**
@@ -405,9 +426,12 @@ public class ImageProcessor {
 		}
 	}
 
+	/**
+	 * 抽出色を適用、mSyncをロックして呼び出すこと
+	 */
 	private void applyExtractionColor() {
 		if ((mProcessingTask != null) && (mProcessingTask.mExtraction != null)) {
-			// 指定色範囲を抽出
+			// 指定色範囲を抽出(OpenGL|ES側)
 			mProcessingTask.mExtraction.setParameter(
 				EXTRACT_COLOR_HSV_LIMIT[0] / 180.0f,    // H(色相) 制限なし(0-180),
 				EXTRACT_COLOR_HSV_LIMIT[1] / 180.0f,
@@ -418,6 +442,7 @@ public class ImageProcessor {
 				0.00f, 0.00f, 0.00f,    // 抽出後加算値(HSV)
 				0.50f);					// 2値化時のしきい値, 0なら2値化なし
 		}
+		// 指定色範囲を抽出(OpenCV)
 		final int result = nativeSetExtractionColor(mNativePtr,
 			EXTRACT_COLOR_HSV_LIMIT[0],
 			EXTRACT_COLOR_HSV_LIMIT[1],
@@ -532,6 +557,7 @@ public class ImageProcessor {
 		private FullFrameRect mSrcDrawer;
 		private MediaEffectExtraction mExtraction;
 		private MediaEffectKernel mSmooth;
+		private MediaEffectGrayScale mGray;
 		private MediaEffectCanny mEdgeDetection;
 		// 映像受け取り用
 		private MediaSource mMediaSource;
@@ -609,18 +635,13 @@ public class ImageProcessor {
 				// 色抽出(白色)
 				mExtraction = new MediaEffectExtraction();
 				applyExtractionColor();
-				mExtraction.setEnable(true);
-//				mEffects.add(mExtraction);
 				// ノイズ除去(平滑化)
 				mSmooth = new MediaEffectKernel();
 				mSmooth.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
-//				final MediaEffectGrayScale gray = new MediaEffectGrayScale(mEffectContext);
-//				gray.setEnable(mEnableCanny);
-//				mEffects.add(gray);
+				// グレースケール
+				mGray = new MediaEffectGrayScale(mEffectContext);
 				// Cannyエッジ検出フィルタ
 				mEdgeDetection = new MediaEffectCanny();
-				mEdgeDetection.setEnable(true);
-//				mEffects.add(mEdgeDetection);
 			}	// synchronized (mSync)
 //--------------------------------------------------------------------------------
 			handleResize(mVideoWidth, mVideoHeight);
@@ -656,6 +677,10 @@ public class ImageProcessor {
 			if (mSmooth != null) {
 				mSmooth.release();
 				mSmooth = null;
+			}
+			if (mGray != null) {
+				mGray.release();
+				mGray = null;
 			}
 			if (mEdgeDetection != null) {
 				mEdgeDetection.release();
@@ -733,6 +758,7 @@ public class ImageProcessor {
 				}
 				// エッジ検出処理
 				if (mEnableCanny) {
+					mMediaSource.apply(mGray);
 					mMediaSource.apply(mEdgeDetection);
 				}
 			}
@@ -842,8 +868,8 @@ public class ImageProcessor {
 			if (DEBUG) Log.v(TAG, String.format("ProcessingTask#handleResize:(%d,%d)", width, height));
 			mVideoWidth = width;
 			mVideoHeight = height;
-			mSourceTexture.setDefaultBufferSize(mVideoWidth, mVideoHeight);
-			mSrcDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
+			mSourceTexture.setDefaultBufferSize(width, height);
+			mSrcDrawer.getProgram().setTexSize(width, height);
 			// プレフィルタ用
 			if (mMediaSource != null) {
 				mMediaSource.resize(width, height);
@@ -853,6 +879,10 @@ public class ImageProcessor {
 			for (final IEffect effect: mEffects) {
 				effect.resize(width, height);
 			}
+			mExtraction.resize(width, height);
+			mSmooth.resize(width, height);
+			mGray.resize(width, height);
+			mEdgeDetection.resize(width, height);
 		}
 
 		/**

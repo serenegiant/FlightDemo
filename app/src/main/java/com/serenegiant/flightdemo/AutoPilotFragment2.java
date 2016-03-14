@@ -53,6 +53,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 	private static final String KEY_PREF_NAME_AUTOPILOT = "KEY_PREF_NAME_AUTOPILOT";
 
+	private static final String KEY_AUTO_WHITE_BLANCE = "KEY_AUTO_WHITE_BLANCE";
 	private static final String KEY_EXPOSURE = "KEY_EXPOSURE";
 	private static final String KEY_SATURATION = "KEY_SATURATION";
 	private static final String KEY_BRIGHTNESS = "KEY_BRIGHTNESS";
@@ -111,10 +112,13 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 	protected SurfaceView mDetectView;
 	protected ImageProcessor mImageProcessor;
+	protected Switch mAutoWhiteBlanceSw;
 
 	// 設定
 	protected String mPrefName;
 	protected SharedPreferences mPref;
+	/** ホワイトバランス */
+	protected boolean mAutoWhiteBlance;
 	/** 露出 */
 	protected float mExposure;
 	/** 彩度 */
@@ -307,10 +311,10 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					((ICameraController)mController).sendVideoRecording(mVideoRecording);
 				}
 				break;
-			//--------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------
 			case R.id.top_panel:
 				if (mImageProcessor != null) {
-					mImageProcessor.setResultFrameType((mImageProcessor.getResultFrameType()) % 4 + 1);
+					mImageProcessor.setResultFrameType((mImageProcessor.getResultFrameType() - 2) % 2 + 3);
 				}
 				break;
 			case R.id.drone_view:
@@ -328,6 +332,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 						}
 					}
 				}, 0);
+				break;
+			case R.id.reset_extraction_color_btn:
 				break;
 			}
 		}
@@ -369,13 +375,15 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	protected void onConnect(final IDeviceController controller) {
 		super.onConnect(controller);
 		if (DEBUG) Log.v(TAG, "onConnect");
-		if ((mController instanceof IVideoStreamController) && (mVideoStream != null)) {
+		if ((controller instanceof IVideoStreamController) && (mVideoStream != null)) {
 			startImageProcessor();
 		}
-		if (mController instanceof ICameraController) {
-			((ICameraController)mController).sendExposure(3);
-			((ICameraController)mController).sendCameraOrientation(-100, 0);
-			((ICameraController)mController).sendAutoWhiteBalance(0);	// 自動ホワイトバランス
+		if (controller instanceof ICameraController) {
+			((ICameraController)controller).sendExposure(3);
+			((ICameraController)controller).sendCameraOrientation(-100, 0);
+			((ICameraController)controller).sendAutoWhiteBalance(mAutoWhiteBlance ? 0 : -1);	// 自動ホワイトバランス
+		} else {
+			mAutoWhiteBlanceSw.setVisibility(View.GONE);
 		}
 	}
 
@@ -527,6 +535,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		SeekBar sb;
 		Button btn;
 		Spinner spinner;
+		// ホワイトバランス
+		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, true);
+		mAutoWhiteBlanceSw = (Switch)rootView.findViewById(R.id.white_balance_sw);
+		mAutoWhiteBlanceSw.setChecked(mAutoWhiteBlance);
+		mAutoWhiteBlanceSw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// 露出
 		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
 		sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
@@ -581,8 +594,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
 		sw.setChecked(mEnableNativeCanny);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		//
+		// 抽出色取得
 		btn = (Button)rootView.findViewById(R.id.update_extraction_color_btn);
+		btn.setOnClickListener(mOnClickListener);
+		// 抽出色リセット
+		btn = (Button)rootView.findViewById(R.id.reset_extraction_color_btn);
 		btn.setOnClickListener(mOnClickListener);
 		// native側のエッジ検出前フィルタ
 		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
@@ -631,6 +647,12 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		@Override
 		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
 			switch (buttonView.getId()) {
+			case R.id.white_balance_sw:
+				((ICameraController)mController).sendAutoWhiteBalance(isChecked ? 0 : -1);
+				if (mPref != null) {
+					mPref.edit().putBoolean(KEY_AUTO_WHITE_BLANCE, isChecked).apply();
+				}
+				break;
 			case R.id.use_extract_sw:
 				if (mImageProcessor != null) {
 					mEnableGLESExtraction = isChecked;
