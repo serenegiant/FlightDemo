@@ -210,7 +210,7 @@ public class BridgeFragment extends BaseControllerFragment {
 						final DeviceInfo info = bridge.connectDeviceInfo();
 						if (bridge.isConnected() && (info != null)) {
 							// 既に接続されていたら操縦画面へ
-							replace(PilotFragment.newInstance(controller.getDeviceService(), info));
+							replace(PilotFragment2.newInstance(controller.getDeviceService(), info));
 						}
 					} catch (final Exception e) {
 					}
@@ -330,7 +330,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		switch (product) {
 		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 		case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-			fragment = isPiloting ? PilotFragment.newInstance(mController.getDeviceService(), info) : MediaFragment.newInstance(mController.getDeviceService(), info);
+			fragment = isPiloting ? PilotFragment2.newInstance(mController.getDeviceService(), info) : MediaFragment.newInstance(mController.getDeviceService(), info);
 			break;
 		}
 		return fragment;

@@ -262,9 +262,6 @@ public class ConnectionFragment extends BaseFragment {
 					switch (product) {
 					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-//						fragment = AutoPilotFragment.newInstance(device,
-//							id == R.id.pilot_button,
-//							id != R.id.gallery_button);
 						switch (id) {
 						case R.id.pilot_button:
 							fragment = AutoPilotFragment2.newInstance(device, "test001");
