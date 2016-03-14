@@ -59,6 +59,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private static final String KEY_BRIGHTNESS = "KEY_BRIGHTNESS";
 	private static final String KEY_ENABLE_POSTERIZE = "KEY_ENABLE_POSTERIZE";
 	private static final String KEY_POSTERIZE = "KEY_POSTERIZE";
+	private static final String KEY_BINARIZE_THRETHOLD = "KEY_BINARIZE_THRETHOLD";
 	private static final String KEY_SMOOTH_TYPE = "KEY_SMOOTH_TYPE";
 	private static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
 	private static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";
@@ -128,6 +129,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	/** ポスタライズ */
 	protected boolean mEnablePosterize;
 	protected float mPosterize;
+	/** 2値化閾値 */
+	protected float mBinarizeThreshold;
 	/** OpenGL|ESで色抽出を行うかどうか  */
 	protected boolean mEnableGLESExtraction = false;
 	/** OpenGL|ESでのエッジ検出前平滑化 */
@@ -568,7 +571,12 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sw = (Switch)rootView.findViewById(R.id.use_posterize_sw);
 		sw.setChecked(mEnablePosterize);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-
+		// 二値化閾値
+		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRETHOLD, 0.5f);
+		sb = (SeekBar)rootView.findViewById(R.id.binarize_threshold_seekbar);
+		sb.setMax(100);
+		sb.setProgress((int)(mBinarizeThreshold * 100.0f));	// [0.0f, +1.0f] => [0, 100]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		// OpenGL|ESで色抽出を使うかどうか
 		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, false);
 		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
@@ -744,6 +752,15 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					}
 				}
 				break;
+			case R.id.binarize_threshold_seekbar:
+				final float threshold = progress / 100.0f;
+				if (mBinarizeThreshold != threshold) {
+					mBinarizeThreshold = threshold;
+					if (mImageProcessor != null) {
+						mImageProcessor.setBinarizeThreshold(threshold);
+					}
+				}
+				break;
 			}
 		}
 
@@ -772,6 +789,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			case R.id.posterize_seekbar:
 				if (mPref != null) {
 					mPref.edit().putFloat(KEY_POSTERIZE, mPosterize).apply();
+				}
+				break;
+			case R.id.binarize_threshold_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_BINARIZE_THRETHOLD, mBinarizeThreshold).apply();
 				}
 				break;
 			}

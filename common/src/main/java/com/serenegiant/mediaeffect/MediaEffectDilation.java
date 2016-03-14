@@ -22,13 +22,15 @@ import android.util.Log;
 import com.serenegiant.glutils.Texture2dProgram;
 
 /** Dilation(膨張)フィルタ */
-public class MediaEffectDilation extends MediaEffectGLESBase {
+public class MediaEffectDilation extends MediaEffectGLESTwoPassBase {
 	private static final boolean DEBUG = true;
 	private static final String TAG = "MediaEffectDilation";
 
 	public static final String VERTEX_SHADER_1 =
-		"attribute vec4 position;\n" +
-		"attribute vec2 inputTextureCoordinate;\n" +
+		"uniform mat4 uMVPMatrix;\n" +		// モデルビュー変換行列
+		"uniform mat4 uTexMatrix;\n" +		// テクスチャ変換行列
+		"attribute vec4 aPosition;\n" +		// 頂点座標
+		"attribute vec4 aTextureCoord;\n" +	// テクスチャ情報
 		"\n" +
 		"uniform float texelWidthOffset; \n" +
 		"uniform float texelHeightOffset; \n" +
@@ -39,18 +41,21 @@ public class MediaEffectDilation extends MediaEffectGLESBase {
 		"\n" +
 		"void main()\n" +
 		"{\n" +
-			"gl_Position = position;\n" +
+			"gl_Position = uMVPMatrix * aPosition;\n" +
+			"vec2 tex = (uTexMatrix * aTextureCoord).xy;\n" +
 			"\n" +
 			"vec2 offset = vec2(texelWidthOffset, texelHeightOffset);\n" +
 			"\n" +
-			"centerTextureCoordinate = inputTextureCoordinate;\n" +
-			"oneStepNegativeTextureCoordinate = inputTextureCoordinate - offset;\n" +
-			"oneStepPositiveTextureCoordinate = inputTextureCoordinate + offset;\n" +
+			"centerTextureCoordinate = tex;\n" +
+			"oneStepNegativeTextureCoordinate = tex - offset;\n" +
+			"oneStepPositiveTextureCoordinate = tex + offset;\n" +
 		"}\n";
 
 	public static final String VERTEX_SHADER_2 =
-		"attribute vec4 position;\n" +
-		"attribute vec2 inputTextureCoordinate;\n" +
+		"uniform mat4 uMVPMatrix;\n" +		// モデルビュー変換行列
+		"uniform mat4 uTexMatrix;\n" +		// テクスチャ変換行列
+		"attribute vec4 aPosition;\n" +		// 頂点座標
+		"attribute vec4 aTextureCoord;\n" +	// テクスチャ情報
 		"\n" +
 		"uniform float texelWidthOffset;\n" +
 		"uniform float texelHeightOffset;\n" +
@@ -63,20 +68,23 @@ public class MediaEffectDilation extends MediaEffectGLESBase {
 		"\n" +
 		"void main()\n" +
 		"{\n" +
-			"gl_Position = position;\n" +
+			"gl_Position = uMVPMatrix * aPosition;\n" +
+			"vec2 tex = (uTexMatrix * aTextureCoord).xy;\n" +
 			"\n" +
 			"vec2 offset = vec2(texelWidthOffset, texelHeightOffset);\n" +
 			"\n" +
-			"centerTextureCoordinate = inputTextureCoordinate;\n" +
-			"oneStepNegativeTextureCoordinate = inputTextureCoordinate - offset;\n" +
-			"oneStepPositiveTextureCoordinate = inputTextureCoordinate + offset;\n" +
-			"twoStepsNegativeTextureCoordinate = inputTextureCoordinate - (offset * 2.0);\n" +
-			"twoStepsPositiveTextureCoordinate = inputTextureCoordinate + (offset * 2.0);\n" +
+			"centerTextureCoordinate = tex;\n" +
+			"oneStepNegativeTextureCoordinate = tex - offset;\n" +
+			"oneStepPositiveTextureCoordinate = tex + offset;\n" +
+			"twoStepsNegativeTextureCoordinate = tex - (offset * 2.0);\n" +
+			"twoStepsPositiveTextureCoordinate = tex + (offset * 2.0);\n" +
 		"}\n";
 
 	public static final String VERTEX_SHADER_3 =
-		"attribute vec4 position;\n" +
-		"attribute vec2 inputTextureCoordinate;\n" +
+		"uniform mat4 uMVPMatrix;\n" +		// モデルビュー変換行列
+		"uniform mat4 uTexMatrix;\n" +		// テクスチャ変換行列
+		"attribute vec4 aPosition;\n" +		// 頂点座標
+		"attribute vec4 aTextureCoord;\n" +	// テクスチャ情報
 		"\n" +
 		"uniform float texelWidthOffset;\n" +
 		"uniform float texelHeightOffset;\n" +
@@ -91,22 +99,25 @@ public class MediaEffectDilation extends MediaEffectGLESBase {
 		"\n" +
 		"void main()\n" +
 		"{\n" +
-			"gl_Position = position;\n" +
+			"gl_Position = uMVPMatrix * aPosition;\n" +
+			"vec2 tex = (uTexMatrix * aTextureCoord).xy;\n" +
 			"\n" +
 			"vec2 offset = vec2(texelWidthOffset, texelHeightOffset);\n" +
 			"\n" +
-			"centerTextureCoordinate = inputTextureCoordinate;\n" +
-			"oneStepNegativeTextureCoordinate = inputTextureCoordinate - offset;\n" +
-			"oneStepPositiveTextureCoordinate = inputTextureCoordinate + offset;\n" +
-			"twoStepsNegativeTextureCoordinate = inputTextureCoordinate - (offset * 2.0);\n" +
-			"twoStepsPositiveTextureCoordinate = inputTextureCoordinate + (offset * 2.0);\n" +
-			"threeStepsNegativeTextureCoordinate = inputTextureCoordinate - (offset * 3.0);\n" +
-			"threeStepsPositiveTextureCoordinate = inputTextureCoordinate + (offset * 3.0);\n" +
+			"centerTextureCoordinate = tex;\n" +
+			"oneStepNegativeTextureCoordinate = tex - offset;\n" +
+			"oneStepPositiveTextureCoordinate = tex + offset;\n" +
+			"twoStepsNegativeTextureCoordinate = tex - (offset * 2.0);\n" +
+			"twoStepsPositiveTextureCoordinate = tex + (offset * 2.0);\n" +
+			"threeStepsNegativeTextureCoordinate = tex - (offset * 3.0);\n" +
+			"threeStepsPositiveTextureCoordinate = tex + (offset * 3.0);\n" +
 		"}\n";
 
 	public static final String VERTEX_SHADER_4 =
-		"attribute vec4 position;\n" +
-		"attribute vec2 inputTextureCoordinate;\n" +
+		"uniform mat4 uMVPMatrix;\n" +		// モデルビュー変換行列
+		"uniform mat4 uTexMatrix;\n" +		// テクスチャ変換行列
+		"attribute vec4 aPosition;\n" +		// 頂点座標
+		"attribute vec4 aTextureCoord;\n" +	// テクスチャ情報
 		"\n" +
 		"uniform float texelWidthOffset;\n" +
 		"uniform float texelHeightOffset;\n" +
@@ -123,19 +134,20 @@ public class MediaEffectDilation extends MediaEffectGLESBase {
 		"\n" +
 		"void main()\n" +
 		"{\n" +
-			"gl_Position = position;\n" +
+			"gl_Position = uMVPMatrix * aPosition;\n" +
+			"vec2 tex = (uTexMatrix * aTextureCoord).xy;\n" +
 			"\n" +
 			"vec2 offset = vec2(texelWidthOffset, texelHeightOffset);\n" +
 			"\n" +
-			"centerTextureCoordinate = inputTextureCoordinate;\n" +
-			"oneStepNegativeTextureCoordinate = inputTextureCoordinate - offset;\n" +
-			"oneStepPositiveTextureCoordinate = inputTextureCoordinate + offset;\n" +
-			"twoStepsNegativeTextureCoordinate = inputTextureCoordinate - (offset * 2.0);\n" +
-			"twoStepsPositiveTextureCoordinate = inputTextureCoordinate + (offset * 2.0);\n" +
-			"threeStepsNegativeTextureCoordinate = inputTextureCoordinate - (offset * 3.0);\n" +
-			"threeStepsPositiveTextureCoordinate = inputTextureCoordinate + (offset * 3.0);\n" +
-			"fourStepsNegativeTextureCoordinate = inputTextureCoordinate - (offset * 4.0);\n" +
-			"fourStepsPositiveTextureCoordinate = inputTextureCoordinate + (offset * 4.0);\n" +
+			"centerTextureCoordinate = tex;\n" +
+			"oneStepNegativeTextureCoordinate = tex - offset;\n" +
+			"oneStepPositiveTextureCoordinate = tex + offset;\n" +
+			"twoStepsNegativeTextureCoordinate = tex - (offset * 2.0);\n" +
+			"twoStepsPositiveTextureCoordinate = tex + (offset * 2.0);\n" +
+			"threeStepsNegativeTextureCoordinate = tex - (offset * 3.0);\n" +
+			"threeStepsPositiveTextureCoordinate = tex + (offset * 3.0);\n" +
+			"fourStepsNegativeTextureCoordinate = tex - (offset * 4.0);\n" +
+			"fourStepsPositiveTextureCoordinate = tex + (offset * 4.0);\n" +
 		"}\n";
 
 
@@ -146,13 +158,13 @@ public class MediaEffectDilation extends MediaEffectGLESBase {
 		"varying vec2 oneStepPositiveTextureCoordinate;\n" +
 		"varying vec2 oneStepNegativeTextureCoordinate;\n" +
 		"\n" +
-		"uniform sampler2D inputImageTexture;\n" +
+		"uniform sampler2D sTexture;\n" +
 		"\n" +
 		"void main()\n" +
 		"{\n" +
-			"float centerIntensity = texture2D(inputImageTexture, centerTextureCoordinate).r;\n" +
-			"float oneStepPositiveIntensity = texture2D(inputImageTexture, oneStepPositiveTextureCoordinate).r;\n" +
-			"float oneStepNegativeIntensity = texture2D(inputImageTexture, oneStepNegativeTextureCoordinate).r;\n" +
+			"float centerIntensity = texture2D(sTexture, centerTextureCoordinate).r;\n" +
+			"float oneStepPositiveIntensity = texture2D(sTexture, oneStepPositiveTextureCoordinate).r;\n" +
+			"float oneStepNegativeIntensity = texture2D(sTexture, oneStepNegativeTextureCoordinate).r;\n" +
 			"\n" +
 			"lowp float maxValue = max(centerIntensity, oneStepPositiveIntensity);\n" +
 			"maxValue = max(maxValue, oneStepNegativeIntensity);\n" +
@@ -169,15 +181,15 @@ public class MediaEffectDilation extends MediaEffectGLESBase {
 		"varying vec2 twoStepsPositiveTextureCoordinate;\n" +
 		"varying vec2 twoStepsNegativeTextureCoordinate;\n" +
 		"\n" +
-		"uniform sampler2D inputImageTexture;\n" +
+		"uniform sampler2D sTexture;\n" +
 		"\n" +
 		"void main()\n" +
 		"{\n" +
-			"float centerIntensity = texture2D(inputImageTexture, centerTextureCoordinate).r;\n" +
-			"float oneStepPositiveIntensity = texture2D(inputImageTexture, oneStepPositiveTextureCoordinate).r;\n" +
-			"float oneStepNegativeIntensity = texture2D(inputImageTexture, oneStepNegativeTextureCoordinate).r;\n" +
-			"float twoStepsPositiveIntensity = texture2D(inputImageTexture, twoStepsPositiveTextureCoordinate).r;\n" +
-			"float twoStepsNegativeIntensity = texture2D(inputImageTexture, twoStepsNegativeTextureCoordinate).r;\n" +
+			"float centerIntensity = texture2D(sTexture, centerTextureCoordinate).r;\n" +
+			"float oneStepPositiveIntensity = texture2D(sTexture, oneStepPositiveTextureCoordinate).r;\n" +
+			"float oneStepNegativeIntensity = texture2D(sTexture, oneStepNegativeTextureCoordinate).r;\n" +
+			"float twoStepsPositiveIntensity = texture2D(sTexture, twoStepsPositiveTextureCoordinate).r;\n" +
+			"float twoStepsNegativeIntensity = texture2D(sTexture, twoStepsNegativeTextureCoordinate).r;\n" +
 			"\n" +
 			"lowp float maxValue = max(centerIntensity, oneStepPositiveIntensity);\n" +
 			"maxValue = max(maxValue, oneStepNegativeIntensity);\n" +
@@ -198,17 +210,17 @@ public class MediaEffectDilation extends MediaEffectGLESBase {
 		"varying vec2 threeStepsPositiveTextureCoordinate;\n" +
 		"varying vec2 threeStepsNegativeTextureCoordinate;\n" +
 		"\n" +
-		"uniform sampler2D inputImageTexture;\n" +
+		"uniform sampler2D sTexture;\n" +
 		"\n" +
 		"void main()\n" +
 		"{\n" +
-			"float centerIntensity = texture2D(inputImageTexture, centerTextureCoordinate).r;\n" +
-			"float oneStepPositiveIntensity = texture2D(inputImageTexture, oneStepPositiveTextureCoordinate).r;\n" +
-			"float oneStepNegativeIntensity = texture2D(inputImageTexture, oneStepNegativeTextureCoordinate).r;\n" +
-			"float twoStepsPositiveIntensity = texture2D(inputImageTexture, twoStepsPositiveTextureCoordinate).r;\n" +
-			"float twoStepsNegativeIntensity = texture2D(inputImageTexture, twoStepsNegativeTextureCoordinate).r;\n" +
-			"float threeStepsPositiveIntensity = texture2D(inputImageTexture, threeStepsPositiveTextureCoordinate).r;\n" +
-			"float threeStepsNegativeIntensity = texture2D(inputImageTexture, threeStepsNegativeTextureCoordinate).r;\n" +
+			"float centerIntensity = texture2D(sTexture, centerTextureCoordinate).r;\n" +
+			"float oneStepPositiveIntensity = texture2D(sTexture, oneStepPositiveTextureCoordinate).r;\n" +
+			"float oneStepNegativeIntensity = texture2D(sTexture, oneStepNegativeTextureCoordinate).r;\n" +
+			"float twoStepsPositiveIntensity = texture2D(sTexture, twoStepsPositiveTextureCoordinate).r;\n" +
+			"float twoStepsNegativeIntensity = texture2D(sTexture, twoStepsNegativeTextureCoordinate).r;\n" +
+			"float threeStepsPositiveIntensity = texture2D(sTexture, threeStepsPositiveTextureCoordinate).r;\n" +
+			"float threeStepsNegativeIntensity = texture2D(sTexture, threeStepsNegativeTextureCoordinate).r;\n" +
 			"\n" +
 			"lowp float maxValue = max(centerIntensity, oneStepPositiveIntensity);\n" +
 			"maxValue = max(maxValue, oneStepNegativeIntensity);\n" +
@@ -233,19 +245,19 @@ public class MediaEffectDilation extends MediaEffectGLESBase {
 		"varying vec2 fourStepsPositiveTextureCoordinate;\n" +
 		"varying vec2 fourStepsNegativeTextureCoordinate;\n" +
 		"\n" +
-		"uniform sampler2D inputImageTexture;\n" +
+		"uniform sampler2D sTexture;\n" +
 		"\n" +
 		"void main()\n" +
 		"{\n" +
-			"float centerIntensity = texture2D(inputImageTexture, centerTextureCoordinate).r;\n" +
-			"float oneStepPositiveIntensity = texture2D(inputImageTexture, oneStepPositiveTextureCoordinate).r;\n" +
-			"float oneStepNegativeIntensity = texture2D(inputImageTexture, oneStepNegativeTextureCoordinate).r;\n" +
-			"float twoStepsPositiveIntensity = texture2D(inputImageTexture, twoStepsPositiveTextureCoordinate).r;\n" +
-			"float twoStepsNegativeIntensity = texture2D(inputImageTexture, twoStepsNegativeTextureCoordinate).r;\n" +
-			"float threeStepsPositiveIntensity = texture2D(inputImageTexture, threeStepsPositiveTextureCoordinate).r;\n" +
-			"float threeStepsNegativeIntensity = texture2D(inputImageTexture, threeStepsNegativeTextureCoordinate).r;\n" +
-			"float fourStepsPositiveIntensity = texture2D(inputImageTexture, fourStepsPositiveTextureCoordinate).r;\n" +
-			"float fourStepsNegativeIntensity = texture2D(inputImageTexture, fourStepsNegativeTextureCoordinate).r;\n" +
+			"float centerIntensity = texture2D(sTexture, centerTextureCoordinate).r;\n" +
+			"float oneStepPositiveIntensity = texture2D(sTexture, oneStepPositiveTextureCoordinate).r;\n" +
+			"float oneStepNegativeIntensity = texture2D(sTexture, oneStepNegativeTextureCoordinate).r;\n" +
+			"float twoStepsPositiveIntensity = texture2D(sTexture, twoStepsPositiveTextureCoordinate).r;\n" +
+			"float twoStepsNegativeIntensity = texture2D(sTexture, twoStepsNegativeTextureCoordinate).r;\n" +
+			"float threeStepsPositiveIntensity = texture2D(sTexture, threeStepsPositiveTextureCoordinate).r;\n" +
+			"float threeStepsNegativeIntensity = texture2D(sTexture, threeStepsNegativeTextureCoordinate).r;\n" +
+			"float fourStepsPositiveIntensity = texture2D(sTexture, fourStepsPositiveTextureCoordinate).r;\n" +
+			"float fourStepsNegativeIntensity = texture2D(sTexture, fourStepsNegativeTextureCoordinate).r;\n" +
 			"\n" +
 			"lowp float maxValue = max(centerIntensity, oneStepPositiveIntensity);\n" +
 			"maxValue = max(maxValue, oneStepNegativeIntensity);\n" +
@@ -287,17 +299,22 @@ public class MediaEffectDilation extends MediaEffectGLESBase {
 		}
 	}
 
+	public MediaEffectDilation() {
+		this(1);
+	}
+
 	/**
 	 *
 	 * @param radius 1, 2, 3, 4
 	 */
 	public MediaEffectDilation(final int radius) {
-		super(getVertexShader(radius), getFragmentShader(radius));
+		this(getVertexShader(radius), getFragmentShader(radius));
 		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 	}
 
-	public MediaEffectDilation(final float threshold) {
-		this(1);
+	private MediaEffectDilation(final String vss, final String fss) {
+		super(vss, fss);
+		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 	}
 
 }

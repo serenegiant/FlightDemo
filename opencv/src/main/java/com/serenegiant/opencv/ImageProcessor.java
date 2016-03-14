@@ -13,6 +13,7 @@ import com.serenegiant.mediaeffect.IEffect;
 import com.serenegiant.mediaeffect.MediaEffectAutoFix;
 import com.serenegiant.mediaeffect.MediaEffectBrightness;
 import com.serenegiant.mediaeffect.MediaEffectCanny;
+import com.serenegiant.mediaeffect.MediaEffectDilation;
 import com.serenegiant.mediaeffect.MediaEffectExposure;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
 import com.serenegiant.mediaeffect.MediaEffectGrayScale;
@@ -57,6 +58,7 @@ public class ImageProcessor {
 	private float mPosterize;	// [1,256], デフォルト10
 	private boolean mEnableExtraction;
 	private int mSmoothType = 0;
+	private float mBinarizeThreshold = 0.5f;
 	private boolean mEnableCanny;
 	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
 
@@ -319,6 +321,20 @@ public class ImageProcessor {
 		return mEnableExtraction;
 	}
 
+	public void setBinarizeThreshold(final float binarize_threshold) {
+		if (mBinarizeThreshold != binarize_threshold) {
+			if (DEBUG) Log.v(TAG, "setBinarizeThreshold:" + binarize_threshold);
+			synchronized (mSync) {
+				mBinarizeThreshold = binarize_threshold;
+				applyExtractionColor();
+			}
+		}
+	}
+
+	public float binarizeThreshold() {
+		return mBinarizeThreshold;
+	}
+
 	public void smoothType(final int smooth_type) {
 		if (mSmoothType != smooth_type) {
 			synchronized (mSync) {
@@ -339,6 +355,9 @@ public class ImageProcessor {
 				break;
 			case 3:	// ブラー
 				// FIXME 未実装
+				break;
+			case 4:	// ダイレーション
+				// これはmProcessingTask.mSmootを使わないのでここでは何もしない
 				break;
 			default:
 				mProcessingTask.mSmooth.setParameter(Texture2dProgram.KERNEL_NULL, 0.0f);
@@ -440,7 +459,7 @@ public class ImageProcessor {
 				EXTRACT_COLOR_HSV_LIMIT[4] / 255.0f,    // V(明度) 200-255,
 				EXTRACT_COLOR_HSV_LIMIT[5] / 255.0f,
 				0.00f, 0.00f, 0.00f,    // 抽出後加算値(HSV)
-				0.50f);					// 2値化時のしきい値, 0なら2値化なし
+				mBinarizeThreshold);	// 2値化時のしきい値, 0なら2値化なし
 		}
 		// 指定色範囲を抽出(OpenCV)
 		final int result = nativeSetExtractionColor(mNativePtr,
@@ -557,6 +576,7 @@ public class ImageProcessor {
 		private FullFrameRect mSrcDrawer;
 		private MediaEffectExtraction mExtraction;
 		private MediaEffectKernel mSmooth;
+		private MediaEffectDilation mDilation;
 		private MediaEffectGrayScale mGray;
 		private MediaEffectCanny mEdgeDetection;
 		// 映像受け取り用
@@ -638,6 +658,7 @@ public class ImageProcessor {
 				// ノイズ除去(平滑化)
 				mSmooth = new MediaEffectKernel();
 				mSmooth.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
+				mDilation = new MediaEffectDilation(4);
 				// グレースケール
 				mGray = new MediaEffectGrayScale(mEffectContext);
 				// Cannyエッジ検出フィルタ
@@ -677,6 +698,10 @@ public class ImageProcessor {
 			if (mSmooth != null) {
 				mSmooth.release();
 				mSmooth = null;
+			}
+			if (mDilation != null) {
+				mDilation.release();
+				mDilation = null;
 			}
 			if (mGray != null) {
 				mGray.release();
@@ -753,19 +778,23 @@ public class ImageProcessor {
 					mMediaSource.apply(mExtraction);
 				}
 				// 平滑化処理
-				if (mSmoothType != 0) {
+				if (mSmoothType == 4) {
+					mMediaSource.apply(mDilation);
+				} else if (mSmoothType != 0) {
 					mMediaSource.apply(mSmooth);
 				}
 				// エッジ検出処理
 				if (mEnableCanny) {
-					mMediaSource.apply(mGray);
+					if (!mEnableExtraction || (mBinarizeThreshold == 0)) {
+						mMediaSource.apply(mGray);
+					}
 					mMediaSource.apply(mEdgeDetection);
 				}
 			}
 			// プレフィルター処理後の画像をNative側へ送る
 			mMediaSource.getOutputTexture().bind();
 			// Native側でglReadPixelsを使ってフレームバッファから画像データを取得する
-			// Nexus6Pで直接glReadPixelsで読み込むと約5ミリ秒かかる
+			// Nexus6Pで直接glReadPixelsを使って読み込むと約5ミリ秒かかる
 			// PBOのピンポンバッファを使うと約1/10の0.5ミリ秒で返ってくる
 			nativeHandleFrame(mNativePtr, mVideoWidth, mVideoHeight, 0);
 			mMediaSource.getOutputTexture().unbind();
@@ -797,14 +826,12 @@ public class ImageProcessor {
 				h_cnt[(int)(hsv[0] / 360f * 255) % 256]++;
 				s_cnt[(int)(hsv[1] * 255) % 256]++;
 				v_cnt[(int)(hsv[2] * 255) % 256]++;
-//				if (hsv[2] != 0) Log.v(TAG, String.format("HSV(%f,%f,%f)", hsv[0], hsv[1], hsv[2]));
 			}
 			float h = 0, s = 0, v = 0;
 			for (int i = 0; i < 256; i++) {
 				h += i * h_cnt[i];
 				s += i * s_cnt[i];
 				v += i * v_cnt[i];
-//				if (DEBUG) Log.v(TAG, String.format("%d)%4d,%4d,%4d", i, h_cnt[i], s_cnt[i], v_cnt[i]));
 			}
 			// 平均
 			h /= n;

@@ -44,6 +44,7 @@ typedef enum SmoothType {
 	SMOOTH_GAUSSIAN,
 	SMOOTH_MEDIAN,
 	SMOOTH_BLUR,
+	SMOOTH_DILATION,
 } SmoothType_t;
 
 typedef struct DetectRec {

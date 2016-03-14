@@ -133,6 +133,7 @@
 	<string name="trace_smooth_gaussian">ガウシアン</string>
 	<string name="trace_smooth_median">メディアン</string>
 	<string name="trace_smooth_blur">ブラー</string>
+	<string name="trace_smooth_dilation">ダイレーション</string>
 	<string name="trace_use_native_extraction">色抽出OpenCV</string>
 	<string name="trace_use_native_canny">エッジ検出(Canny)OpenCV</string>
 	<string name="trace_use_extraction">色抽出OpenGL|ES</string>
@@ -142,4 +143,5 @@
 	<string name="trace_white_blance">ホワイトバランス</string>
 	<string name="trace_white_blance_auto">自動</string>
 	<string name="trace_white_blance_manual">手動</string>
+	<string name="trace_binarize_threshold">二値化閾値</string>
 </resources>

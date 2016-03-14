@@ -23,7 +23,9 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 
 	public MediaEffectGLESTwoPassBase(final String vss1, final String fss1, final String vss2, final String fss2) {
 		super(vss1, fss1);
-		mDrawer2 = new FullFrameRect(new Texture2dProgram(GLES20.GL_TEXTURE_2D, vss2, fss2));
+		if (!vss1.equals(vss2) || !fss1.equals(fss2)) {
+			mDrawer2 = new FullFrameRect(new Texture2dProgram(GLES20.GL_TEXTURE_2D, vss2, fss2));
+		}
 	}
 
 	@Override

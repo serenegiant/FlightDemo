@@ -132,6 +132,7 @@
 	<string name="trace_smooth_gaussian">Gaussian</string>
 	<string name="trace_smooth_median">Median</string>
 	<string name="trace_smooth_blur">Blur</string>
+	<string name="trace_smooth_dilation">Dilation</string>
 	<string name="trace_use_native_extraction">Color extraction on OpenCV</string>
 	<string name="trace_use_native_canny">Edge detection(Canny) on OpenCV</string>
 	<string name="trace_use_extraction">Color extraction on OpenGL|ES</string>
@@ -141,17 +142,20 @@
 	<string name="trace_white_blance">White blance</string>
 	<string name="trace_white_blance_auto">auto</string>
 	<string name="trace_white_blance_manual">manual</string>
+	<string name="trace_binarize_threshold">Binarize threshold</string>
 
 	<array name="trace_smooth_entries">
 		<item>@string/trace_smooth_non</item>
 		<item>@string/trace_smooth_gaussian</item>
 		<item>@string/trace_smooth_median</item>
 		<item>@string/trace_smooth_blur</item>
+		<item>@string/trace_smooth_dilation</item>
 	</array>
 	<array name="trace_smooth_value2">
 		<item>0</item>
 		<item>1</item>
 		<item>2</item>
 		<item>3</item>
+		<item>4</item>
 	</array>
 </resources>

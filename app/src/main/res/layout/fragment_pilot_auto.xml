@@ -175,6 +175,7 @@
 						android:layout_width="match_parent"
 						android:layout_height="wrap_content">
 
+						<!-- ホワイトバランス -->
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
@@ -184,6 +185,7 @@
 							android:textOn="@string/trace_white_blance_auto"
 							android:textOff="@string/trace_white_blance_manual"
 							android:id="@+id/white_balance_sw"/>
+						<!-- 露出 -->
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
@@ -193,6 +195,7 @@
 							android:layout_height="wrap_content"
 							android:paddingBottom="@dimen/quater_padding"
 							android:id="@+id/exposure_seekbar"/>
+						<!-- 彩度 -->
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
@@ -202,6 +205,7 @@
 							android:layout_height="wrap_content"
 							android:paddingBottom="@dimen/quater_padding"
 							android:id="@+id/saturation_seekbar"/>
+						<!-- 明るさ -->
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
@@ -211,6 +215,7 @@
 							android:layout_height="wrap_content"
 							android:paddingBottom="@dimen/quater_padding"
 							android:id="@+id/brightness_seekbar"/>
+						<!-- ポスタライズ  -->
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
@@ -223,17 +228,17 @@
 							android:paddingBottom="@dimen/quater_padding"
 							android:visibility="gone"
 							android:id="@+id/posterize_seekbar"/>
+						<!-- 二値化閾値  -->
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
-							android:visibility="gone"
-							android:text="New Text"/>
+							android:text="@string/trace_binarize_threshold"/>
 						<SeekBar
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
 							android:paddingBottom="@dimen/quater_padding"
-							android:visibility="gone"
-							android:id="@+id/seekBar5"/>
+							android:id="@+id/binarize_threshold_seekbar"/>
+						<!-- 予備  -->
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
@@ -245,6 +250,7 @@
 							android:paddingBottom="@dimen/quater_padding"
 							android:visibility="gone"
 							android:id="@+id/seekBar6"/>
+						<!-- 色抽出(OpenGL|ES) -->
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
@@ -252,6 +258,7 @@
 							android:paddingBottom="@dimen/quater_padding"
 							android:text="@string/trace_use_extraction"
 							android:id="@+id/use_extract_sw"/>
+						<!-- 平滑化(OpenGL|ES) -->
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
@@ -263,6 +270,7 @@
 							android:paddingBottom="@dimen/quater_padding"
 							android:id="@+id/use_smooth_spinner"
 							android:layout_gravity="center_horizontal"/>
+						<!-- エッジ検出(OpenGL|ES,Canny) -->
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
@@ -270,6 +278,7 @@
 							android:paddingBottom="@dimen/quater_padding"
 							android:text="@string/trace_use_canny"
 							android:id="@+id/use_canny_sw"/>
+						<!-- 色抽出(OpenCV) -->
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
@@ -277,6 +286,7 @@
 							android:paddingBottom="@dimen/quater_padding"
 							android:text="@string/trace_use_native_extraction"
 							android:id="@+id/use_native_extract_sw"/>
+						<!-- 平滑化(OpenCV) -->
 						<TextView
 							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
@@ -286,6 +296,7 @@
 							android:layout_height="wrap_content"
 							android:id="@+id/use_native_smooth_spinner"
 							android:layout_gravity="center_horizontal"/>
+						<!-- エッジ検出(OpenCV,Canny) -->
 						<Switch
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
@@ -293,13 +304,14 @@
 							android:paddingBottom="@dimen/quater_padding"
 							android:text="@string/trace_use_native_canny"
 							android:id="@+id/use_native_canny_sw"/>
-
+						<!-- 抽出色更新 -->
 						<Button
 							style="?android:attr/buttonStyleSmall"
 							android:layout_width="match_parent"
 							android:layout_height="wrap_content"
 							android:text="@string/trace_update_extraction_color"
 							android:id="@+id/update_extraction_color_btn"/>
+						<!-- 抽出色リセット -->
 						<Button
 							style="?android:attr/buttonStyleSmall"
 							android:layout_width="match_parent"
