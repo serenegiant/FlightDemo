@@ -123,10 +123,18 @@
 	<string name="anim_boost">Boost</string>
 
 	<!-- ライントレース画面の文字列 -->
+	<!-- プリプロセス設定 -->
+	<string name="trace_config_title_preprocess">Preprocess settings</string>
+	<string name="trace_white_blance">White blance</string>
+	<string name="trace_white_blance_auto">auto</string>
+	<string name="trace_white_blance_manual">manual</string>
 	<string name="trace_use_exposure">Exposure</string>
 	<string name="trace_use_saturation">Saturation</string>
 	<string name="trace_use_brightness">Brightness</string>
 	<string name="trace_use_posterize">Posterize</string>
+	<string name="trace_binarize_threshold">Binarize threshold</string>
+	<!-- 検出設定 -->
+	<string name="trace_config_title_detect">ライン検出設定</string>
 	<string name="trace_smooth">Smooth</string>
 	<string name="trace_smooth_non">Non</string>
 	<string name="trace_smooth_gaussian">Gaussian</string>
@@ -139,10 +147,8 @@
 	<string name="trace_use_canny">>Edge detection(Canny) on OpenGL|ES</string>
 	<string name="trace_update_extraction_color">Update extraction color</string>
 	<string name="trace_reset_extraction_color">Reset extraction color</string>
-	<string name="trace_white_blance">White blance</string>
-	<string name="trace_white_blance_auto">auto</string>
-	<string name="trace_white_blance_manual">manual</string>
-	<string name="trace_binarize_threshold">Binarize threshold</string>
+	<!-- 飛行制御設定 -->
+	<string name="trace_config_title_auto_pilot">Auto trace settings</string>
 
 	<array name="trace_smooth_entries">
 		<item>@string/trace_smooth_non</item>

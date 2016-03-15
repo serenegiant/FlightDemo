@@ -25,6 +25,8 @@ import com.serenegiant.utils.BuildCheck;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.serenegiant.flightdemo.AppConst.*;
+
 public class BaseFragment extends Fragment {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = BaseFragment.class.getSimpleName();
@@ -506,7 +508,7 @@ public class BaseFragment extends Fragment {
 		final Activity context = getActivity();
 		final SharedPreferences pref = context.getPreferences(0);
 		final int layout_style;
-		switch (pref.getInt(ConfigFragment.KEY_ICON_TYPE, 0)) {
+		switch (pref.getInt(KEY_ICON_TYPE, 0)) {
 		case 1:
 			layout_style = R.style.AppTheme_001;
 			break;

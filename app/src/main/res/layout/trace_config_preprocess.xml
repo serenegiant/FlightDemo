@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+		<!-- ホワイトバランス -->
+		<Switch
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingTop="@dimen/quater_padding"
+			android:paddingBottom="@dimen/quater_padding"
+			android:text="@string/trace_white_blance"
+			android:textColor="@color/trace_config"
+			android:textOn="@string/trace_white_blance_auto"
+			android:textOff="@string/trace_white_blance_manual"
+			android:id="@+id/white_balance_sw"/>
+		<!-- 露出 -->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_use_exposure"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/quater_padding"
+			android:id="@+id/exposure_seekbar"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 彩度 -->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_use_saturation"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/quater_padding"
+			android:id="@+id/saturation_seekbar"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 明るさ -->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_use_brightness"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/quater_padding"
+			android:id="@+id/brightness_seekbar"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- ポスタライズ  -->
+		<Switch
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:text="@string/trace_use_posterize"
+			android:visibility="gone"
+			android:id="@+id/use_posterize_sw"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/quater_padding"
+			android:visibility="gone"
+			android:id="@+id/posterize_seekbar"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 二値化閾値  -->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_binarize_threshold"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/quater_padding"
+			android:id="@+id/binarize_threshold_seekbar"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+	</LinearLayout>
+</ScrollView>

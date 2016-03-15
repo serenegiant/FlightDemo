@@ -20,32 +20,11 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.widget.ColorPickerView;
 import com.serenegiant.widget.RelativeRadioGroup;
+import static com.serenegiant.flightdemo.AppConst.*;
 
 public class ConfigFragment extends BaseFlightControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConfigFragment.class.getSimpleName();
-
-	public static final String KEY_OPERATION_TYPE = "OPERATION_TYPE";
-	public static final String KEY_OPERATION_TOUCH = "OPERATION_TOUCH";
-	// ゲームパッド
-	public static final String KEY_GAMEPAD_USE_DRIVER = "CONFIG_GAMEPAD_USE_DRIVER";
-	public static final String KEY_GAMEPAD_SENSITIVITY = "CONFIG_GAMEPAD_SENSITIVITY";
-	public static final String KEY_GAMEPAD_SCALE_X = "CONFIG_GAMEPAD_SCALE_X";
-	public static final String KEY_GAMEPAD_SCALE_Y = "CONFIG_GAMEPAD_SCALE_Y";
-	public static final String KEY_GAMEPAD_SCALE_Z = "CONFIG_GAMEPAD_SCALE_Z";
-	public static final String KEY_GAMEPAD_SCALE_R = "CONFIG_GAMEPAD_SCALE_R";
-	// 自動操縦
-	public static final String KEY_AUTOPILOT_MAX_CONTROL_VALUE = "CONFIG_AUTOPILOT_MAX_CONTROL_VALUE";
-	public static final String KEY_AUTOPILOT_SCALE_X = "CONFIG_AUTOPILOT_SCALE_X";
-	public static final String KEY_AUTOPILOT_SCALE_Y = "CONFIG_AUTOPILOT_SCALE_Y";
-	public static final String KEY_AUTOPILOT_SCALE_Z = "CONFIG_AUTOPILOT_SCALE_Z";
-	public static final String KEY_AUTOPILOT_SCALE_R = "CONFIG_AUTOPILOT_SCALE_R";
-	// アイコン
-	public static final String KEY_ICON_TYPE = "ICON_TYPE";
-	// 機体色
-	public static final String KEY_COLOR = "CONFIG_COLOR_COLOR";
-	// 操縦画面のアイコンを自動的に隠すかどうか
-	public static final String KEY_AUTO_HIDE = "CONFIG_AUTO_HIDE";
 
 	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device) {
 		final ConfigFragment fragment = new ConfigFragment();
@@ -55,8 +34,6 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 
 	private ARDISCOVERY_PRODUCT_ENUM mProduct;
 	private SharedPreferences mPref;
-	private ViewPager mViewPager;
-	private ConfigPagerAdapter mPagerAdapter;
 
 	private TextView mMaxAltitudeLabel;
 	private TextView mMaxTiltLabel;
@@ -134,9 +111,9 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 		mProduct = getProduct();
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
 		final View rootView = local_inflater.inflate(R.layout.fragment_config, container, false);
-		mPagerAdapter = new ConfigPagerAdapter(inflater);
-		mViewPager = (ViewPager)rootView.findViewById(R.id.pager);
-		mViewPager.setAdapter(mPagerAdapter);
+		final ConfigPagerAdapter adapter = new ConfigPagerAdapter(inflater);
+		final ViewPager pager = (ViewPager)rootView.findViewById(R.id.pager);
+		pager.setAdapter(adapter);
 		return rootView;
 	}
 
@@ -335,8 +312,6 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
-	private static final float SCALE_FACTOR = 250f;
-	private static final int SCALE_OFFSET = 500;
 	private float mGamepadMaxControlValue;
 	private float mGamepadScaleX;
 	private float mGamepadScaleY;

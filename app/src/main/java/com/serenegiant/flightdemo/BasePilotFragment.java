@@ -48,6 +48,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.serenegiant.flightdemo.AppConst.*;
+
 public abstract class BasePilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
 //	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = BasePilotFragment.class.getSimpleName();
@@ -107,19 +109,19 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	public final View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final SharedPreferences pref = getActivity().getPreferences(0);
-		mOperationTouch = pref.getBoolean(ConfigFragment.KEY_OPERATION_TOUCH, false);
-		mOperationType = pref.getInt(ConfigFragment.KEY_OPERATION_TYPE, 0);
-		mMaxControlValue = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
-		mScaleX = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_X, 1.0f);
-		mScaleY = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Y, 1.0f);
-		mScaleZ = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_Z, 1.0f);
-		mScaleR = pref.getFloat(ConfigFragment.KEY_AUTOPILOT_SCALE_R, 1.0f);
-		mGamepadSensitivity = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SENSITIVITY, 1.0f);
-		mGamepadScaleX = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_X, 1.0f);
-		mGamepadScaleY = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_Y, 1.0f);
-		mGamepadScaleZ = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_Z, 1.0f);
-		mGamepadScaleR = pref.getFloat(ConfigFragment.KEY_GAMEPAD_SCALE_R, 1.0f);
-		mAutoHide = pref.getBoolean(ConfigFragment.KEY_AUTO_HIDE, false);
+		mOperationTouch = pref.getBoolean(KEY_OPERATION_TOUCH, false);
+		mOperationType = pref.getInt(KEY_OPERATION_TYPE, 0);
+		mMaxControlValue = pref.getFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
+		mScaleX = pref.getFloat(KEY_AUTOPILOT_SCALE_X, 1.0f);
+		mScaleY = pref.getFloat(KEY_AUTOPILOT_SCALE_Y, 1.0f);
+		mScaleZ = pref.getFloat(KEY_AUTOPILOT_SCALE_Z, 1.0f);
+		mScaleR = pref.getFloat(KEY_AUTOPILOT_SCALE_R, 1.0f);
+		mGamepadSensitivity = pref.getFloat(KEY_GAMEPAD_SENSITIVITY, 1.0f);
+		mGamepadScaleX = pref.getFloat(KEY_GAMEPAD_SCALE_X, 1.0f);
+		mGamepadScaleY = pref.getFloat(KEY_GAMEPAD_SCALE_Y, 1.0f);
+		mGamepadScaleZ = pref.getFloat(KEY_GAMEPAD_SCALE_Z, 1.0f);
+		mGamepadScaleR = pref.getFloat(KEY_GAMEPAD_SCALE_R, 1.0f);
+		mAutoHide = pref.getBoolean(KEY_AUTO_HIDE, false);
 		int layout_id;
 		if (mOperationTouch) {
 			layout_id = R.layout.fragment_pilot_touch;

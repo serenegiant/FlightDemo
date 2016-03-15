@@ -14,6 +14,8 @@ import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine1.IModelView;
 
+import static com.serenegiant.flightdemo.AppConst.*;
+
 public class CalibrationFragment extends BaseFlightControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = CalibrationFragment.class.getSimpleName();
@@ -60,7 +62,7 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 		final int model = getProduct() == ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BEBOP_2
 						? IModelView.MODEL_BEBOP2 :	IModelView.MODEL_BEBOP;
 		final SharedPreferences pref = getActivity().getPreferences(0);
-		final int color = pref.getInt(ConfigFragment.KEY_COLOR, getResources().getColor(R.color.RED));
+		final int color = pref.getInt(KEY_COLOR, getResources().getColor(R.color.RED));
 		TextureHelper.genTexture(getActivity(), model, color);
 
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);

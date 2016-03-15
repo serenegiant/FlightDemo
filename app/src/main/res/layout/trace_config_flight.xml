@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/config_max_altitude"
+		android:id="@+id/max_altitude_textview"
+		android:textColor="@color/trace_config"
+		android:textSize="@dimen/text_sz_trace_config_list"/>
+
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/max_altitude_seekbar"
+		android:layout_gravity="center_horizontal"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/config_max_tilt"
+		android:id="@+id/max_tilt_textview"
+		android:textColor="@color/trace_config"
+		android:textSize="@dimen/text_sz_trace_config_list"/>
+
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/max_tilt_seekbar"
+		android:layout_gravity="center_horizontal"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/config_max_vertical_speed"
+		android:id="@+id/max_vertical_speed_textview"
+		android:textColor="@color/trace_config"
+		android:textSize="@dimen/text_sz_trace_config_list"/>
+
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/max_vertical_speed_seekbar"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/config_max_rotating_speed"
+		android:id="@+id/max_rotation_speed_textview"
+		android:textColor="@color/trace_config"
+		android:textSize="@dimen/text_sz_trace_config_list"/>
+
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/max_rotation_speed_seekbar"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+
+</LinearLayout>

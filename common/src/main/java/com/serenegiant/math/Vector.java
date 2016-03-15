@@ -274,6 +274,18 @@ public class Vector implements Serializable, Cloneable {
 	}
 
 	/**
+	 * ベクトルの各成分同士の掛け算(内積・外積じゃないよ)
+	 * @param other
+	 * @return
+	 */
+	public Vector mult(final Vector other) {
+		this.x *= other.x;
+		this.y *= other.y;
+		this.z *= other.z;
+		return this;
+	}
+
+	/**
 	 * ベクトルの各成分にスカラ値をかけ算
 	 */
 	public Vector mult(final float scale) {
@@ -302,6 +314,17 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
+	/**
+	 * ベクトルの各成分同士の割り算(内積・外積じゃないよ)
+	 * @param other
+	 * @return
+	 */
+	public Vector div(final Vector other) {
+		this.x /= other.x;
+		this.y /= other.y;
+		this.z /= other.z;
+		return this;
+	}
 	/**
 	 * ベクトルの各成分をスカラ値で割り算
 	 */
@@ -372,6 +395,16 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
+	public Vector limit(final float lower, final float upper) {
+		while (x >= upper) x -= upper;
+		while (x < -lower) x += lower;
+		while (y >= upper) y -= upper;
+		while (y < -lower) y += lower;
+		while (z >= upper) z -= upper;
+		while (z < -lower) z += lower;
+		return this;
+	}
+
 	/**
 	 * ベクトルの長さを取得
 	 */
@@ -400,7 +433,15 @@ public class Vector implements Serializable, Cloneable {
 	}
 
 	/**
-	 * ベクトルの内積を取得
+	 * ベクトルの内積を取得(dotProductと同じ)
+	 * 標準化ベクトルv2を含む直線にベクトルv1を真っ直ぐ下ろした（正射影した）時の長さ
+	 */
+	public float dot(final Vector v) {
+		return x * v.x + y * v.y + z * v.z;
+	}
+
+	/**
+	 * ベクトルの内積を取得(dotと同じ)
 	 * 標準化ベクトルv2を含む直線にベクトルv1を真っ直ぐ下ろした（正射影した）時の長さ
 	 */
 	public float dotProduct(final Vector v) {
@@ -408,14 +449,29 @@ public class Vector implements Serializable, Cloneable {
 	}
 
 	/**
-	 * ベクトルの内積を取得
+	 * ベクトルの内積を取得(dotProductと同じ)
+	 */
+	public float dot(final float x, final float y, final float z) {
+		return this.x * x + this.y * y + this.z * z;
+	}
+
+	/**
+	 * ベクトルの内積を取得(dotと同じ)
 	 */
 	public float dotProduct(final float x, final float y, final float z) {
 		return this.x * x + this.y * y + this.z * z;
 	}
 
 	/**
-	 * ベクトルの外積を計算(2D)
+	 * ベクトルの外積を計算(2D, crossProduct2と同じ)
+	 * v1×v2= x1*y2-x2*y1 = |v1||v2|sin(θ)
+	 */
+	public float cross2(final Vector v) {
+		return x * v.y - v.x * y;
+	}
+
+	/**
+	 * ベクトルの外積を計算(2D, cross2と同じ)
 	 * v1×v2= x1*y2-x2*y1 = |v1||v2|sin(θ)
 	 */
 	public float crossProduct2(final Vector v) {
@@ -423,7 +479,16 @@ public class Vector implements Serializable, Cloneable {
 	}
 
 	/*
-	 * ベクトルの外積を計算(3D)
+	 * ベクトルの外積を計算(3D, crossProductと同じ)
+	 * v1×v2= (y1*z2-z1*y2, z1*x2-x1*z2, x1*y2-y1*x2) = (x3, y3, z3) =  v3
+	 * 2つのベクトルに垂直な方向を向いた大きさが|v1||v2|sinθのベクトル
+	 */
+	public Vector cross(final Vector v) {
+		return crossProduct(this, this, v);
+	}
+
+	/*
+	 * ベクトルの外積を計算(3D, crossと同じ)
 	 * v1×v2= (y1*z2-z1*y2, z1*x2-x1*z2, x1*y2-y1*x2) = (x3, y3, z3) =  v3
 	 * 2つのベクトルに垂直な方向を向いた大きさが|v1||v2|sinθのベクトル
 	 */
@@ -432,7 +497,18 @@ public class Vector implements Serializable, Cloneable {
 	}
 
 	/**
-	 * ベクトルの外積を計算(3D)
+	 * ベクトルの外積を計算(3D, crossProductと同じ)
+	 */
+	public static Vector cross(final Vector v3, final Vector v1, final Vector v2) {
+		final float x3 = v1.y * v2.z - v1.z * v2.y;
+		final float y3 = v1.z * v2.x - v1.x * v2.z;
+		final float z3 = v1.x * v2.y - v1.y * v2.x;
+		v3.x = x3; v3.y = y3; v3.z = z3;
+		return v3;
+	}
+
+	/**
+	 * ベクトルの外積を計算(3D, crossと同じ)
 	 */
 	public static Vector crossProduct(final Vector v3, final Vector v1, final Vector v2) {
 		final float x3 = v1.y * v2.z - v1.z * v2.y;

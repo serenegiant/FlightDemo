@@ -7,6 +7,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.os.Bundle;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,7 +25,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,42 +35,24 @@ import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
-import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.VideoStream;
+import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine1.IModelView;
 import com.serenegiant.math.Vector;
 import com.serenegiant.opencv.ImageProcessor;
 import com.serenegiant.utils.FileUtils;
-import com.serenegiant.utils.MessageTask;
 
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.parsers.FactoryConfigurationError;
+import static com.serenegiant.flightdemo.AppConst.*;
 
 public class AutoPilotFragment2 extends BasePilotFragment {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = AutoPilotFragment2.class.getSimpleName();
-
-	private static final String KEY_PREF_NAME_AUTOPILOT = "KEY_PREF_NAME_AUTOPILOT";
-
-	private static final String KEY_AUTO_WHITE_BLANCE = "KEY_AUTO_WHITE_BLANCE";
-	private static final String KEY_EXPOSURE = "KEY_EXPOSURE";
-	private static final String KEY_SATURATION = "KEY_SATURATION";
-	private static final String KEY_BRIGHTNESS = "KEY_BRIGHTNESS";
-	private static final String KEY_ENABLE_POSTERIZE = "KEY_ENABLE_POSTERIZE";
-	private static final String KEY_POSTERIZE = "KEY_POSTERIZE";
-	private static final String KEY_BINARIZE_THRETHOLD = "KEY_BINARIZE_THRETHOLD";
-	private static final String KEY_SMOOTH_TYPE = "KEY_SMOOTH_TYPE";
-	private static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
-	private static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";
-	private static final String KEY_NATIVE_SMOOTH_TYPE = "KEY_NATIVE_SMOOTH_TYPE";
-	private static final String KEY_ENABLE_EDGE_DETECTION = "KEY_ENABLE_EDGE_DETECTION";
-	private static final String KEY_ENABLE_NATIVE_EDGE_DETECTION = "KEY_ENABLE_NATIVE_EDGE_DETECTION";
 
 	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device, final String pref_name) {
 
@@ -125,33 +108,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	// 設定
 	protected String mPrefName;
 	protected SharedPreferences mPref;
-	/** ホワイトバランス */
-	protected boolean mAutoWhiteBlance;
-	/** 露出 */
-	protected float mExposure;
-	/** 彩度 */
-	protected float mSaturation;
-	/** 明るさ */
-	protected float mBrightness;
-	/** ポスタライズ */
-	protected boolean mEnablePosterize;
-	protected float mPosterize;
-	/** 2値化閾値 */
-	protected float mBinarizeThreshold;
-	/** OpenGL|ESで色抽出を行うかどうか  */
-	protected boolean mEnableGLESExtraction = false;
-	/** OpenGL|ESでのエッジ検出前平滑化 */
-	protected int mGLESSmoothType = 0;
-	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
-	protected boolean mEnableGLESCanny = false;
-	/** 色抽出範囲設定(HSV上下限) */
-	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
-	/** native側の色抽出を使うかどうか */
-	protected boolean mEnableNativeExtraction = false;
-	/** native側のエッジ検出前平滑化 */
-	protected int mNativeSmoothType = 0;
-	/** native側のエッジ検出(Canny)を使うかどうか */
-	protected boolean mEnableNativeCanny = true;
 
 	public AutoPilotFragment2() {
 		super();
@@ -249,7 +205,12 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		mDetectView = (SurfaceView)rootView.findViewById(R.id.detect_view);
 		mDetectView.setVisibility(View.VISIBLE);
 //--------------------------------------------------------------------------------
-		setupSettingView(rootView);
+		final ConfigPagerAdapter adapter = new ConfigPagerAdapter(inflater);
+		final ViewPager pager = (ViewPager)rootView.findViewById(R.id.pager);
+		pager.setAdapter(adapter);
+		//
+		mTraceTv1 = (TextView)rootView.findViewById(R.id.trace1_tv);
+		mTraceTv2 = (TextView)rootView.findViewById(R.id.trace2_tv);
 
 		return rootView;
 	}
@@ -563,6 +524,242 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		}
 	};
 
+	private void startImageProcessor() {
+		setColorFilter(mTraceButton, 0, 0);
+		if (mTraceTask == null) {
+			mTraceTask = new TraceTask();
+			new Thread(mTraceTask, TAG).start();
+		}
+		if (mImageProcessor == null) {
+			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
+			mImageProcessor.setExposure(mExposure);
+			mImageProcessor.setSaturation(mSaturation);
+			mImageProcessor.setBrightness(mBrightness);
+			mImageProcessor.setExtractionColor(
+				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
+				EXTRACT_COLOR_HSV_LIMIT[2], EXTRACT_COLOR_HSV_LIMIT[3],
+				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]);
+			mImageProcessor.enableExtraction(mEnableGLESExtraction);
+			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
+			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
+			mImageProcessor.start();
+			final Surface surface = mImageProcessor.getSurface();
+			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
+			if (mImageProcessorSurfaceId != 0) {
+				mVideoStream.addSurface(mImageProcessorSurfaceId, surface);
+			}
+		}
+	}
+
+	private void stopImageProcessor() {
+		if ((mVideoStream != null) && (mImageProcessorSurfaceId != 0)) {
+			mVideoStream.removeSurface(mImageProcessorSurfaceId);
+		}
+		mImageProcessorSurfaceId = 0;
+		if (mImageProcessor != null) {
+			mImageProcessor.release();
+			mImageProcessor = null;
+		}
+		mTraceTask = null;
+		synchronized (mQueue) {
+			mIsRunning = false;
+			mQueue.notifyAll();
+		}
+		setColorFilter(mTraceButton, 0, 0);
+	}
+
+	private void onStopAutoPilot(final boolean isError) {
+	}
+
+	private static class LineRec {
+		public int type;
+		public final Vector mLinePos = new Vector();
+		public float mLineLen, mLineWidth, mAngle, mAreaRate, mCurvature;
+	}
+
+	private static final int MAX_QUEUE = 4;
+	private final List<LineRec> mPool = new ArrayList<LineRec>();
+	private final List<LineRec> mQueue = new ArrayList<LineRec>();
+	private volatile boolean mIsRunning;
+	private volatile boolean mAutoPilot;
+	private boolean mReqUpdateParams;
+	private final Object mParamSync = new Object();
+
+	private class TraceTask implements Runnable {
+		public TraceTask() {
+		}
+
+		@Override
+		public void run() {
+			synchronized (mQueue) {
+				for (int i = 0; i < MAX_QUEUE; i++) {
+					mPool.add(new LineRec());
+				}
+			}
+			mIsRunning = mReqUpdateParams = true;
+			mAutoPilot = false;
+			float angle = 0;	// カメラの上方向に対する移動方向の角度
+			float maxControlValue = (float)mMaxControlValue;
+			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
+			float scaleR = (float)mScaleR;
+			final Vector factor = new Vector(1.0f, 1.0f, 1.0f);
+			//
+			long lostTime = -1;
+			final Vector work = new Vector();
+			final Vector prev = new Vector();
+			final Vector mPilotValue = new Vector();	// roll/pitch制御量
+			LineRec rec = null;
+			for ( ; mIsRunning ; ) {
+				synchronized (mParamSync) {
+					if (mReqUpdateParams) {
+						mReqUpdateParams = false;
+						maxControlValue = (float)mMaxControlValue;
+						scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
+						scaleR = (float)mScaleR;
+					}
+				}
+				synchronized (mQueue) {
+					try {
+						mQueue.wait(500);
+					} catch (InterruptedException e) {
+						break;
+					}
+					if (!mIsRunning) break;
+					if (mQueue.size() > 0) {
+						rec = mQueue.remove(0);
+					}
+				}
+				if (rec != null) {
+					final String msg1;
+					if (rec.type >= 0) {	// 0:TYPE_LINE, 1:TYPE_CIRCLE, 2:TYPE_CORNER
+						// ラインを検出出来た時
+						lostTime = -1;
+						factor.mult(1.1f).limit(0.1f, 2.0f);
+						// 画像中心からの距離
+						work.set(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT).div(2.0f).sub(rec.mLinePos);
+						msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f)", work.x, work.y, work.len(), rec.mAngle);
+						// 制御量を計算
+						final float pilotAngle = Math.round(rec.mAngle * scaleR * 5) * 5;
+						work.div(320.0f, 184.0f, 1.0f).mult(maxControlValue).mult(scale);
+						mPilotValue.set(0.f, 100.0f);	// 前進
+						// 前回の位置とコマンドから想定する現在位置とラインの位置が大きく違う時は制限をする
+						prev.sub(rec.mLinePos);
+						if (prev.len() > 200) {
+							factor.mult(1.0f, 0.8f).limit(0.1f, 2.0f);
+						}
+						mPilotValue.sub(work.x, -work.y).mult(factor).rotate(0, 0, angle);	// カメラの向きに合わせて進行方向をあわせる。z軸周りに回転
+						if (mAutoPilot) {
+							// 制御コマンド送信
+							mFlightController.requestAnimationsCap((int)pilotAngle);
+							mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0);
+						}
+						// 今回の位置を保存
+						prev.set(rec.mLinePos);
+					} else {
+						// ラインを見失った時
+						msg1 = null;
+						factor.clear(0.1f);
+						mPilotValue.clear(0.0f);
+						rec.mAngle = 0;
+						if (mAutoPilot) {
+							if (lostTime < 0) {
+								lostTime = System.currentTimeMillis();
+							}
+							if (System.currentTimeMillis() - lostTime > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
+								onStopAutoPilot(true);
+								mAutoPilot = false;
+							}
+						}
+					}
+					final String msg2 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, 0.0f, -rec.mAngle);
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							mTraceTv1.setText(msg1);
+							mTraceTv2.setText(msg2);
+						}
+					});
+					synchronized (mQueue) {
+						mPool.add(rec);
+					}
+				}
+			}
+			onStopAutoPilot(!mAutoPilot);
+			synchronized (mQueue) {
+				mIsRunning = mAutoPilot = false;
+				mQueue.clear();
+				mPool.clear();
+			}
+			System.gc();
+		}
+	}
+
+	/** ImageProcessorからのコールバックリスナー */
+	private final ImageProcessor.ImageProcessorCallback mImageProcessorCallback
+		= new ImageProcessor.ImageProcessorCallback() {
+
+		private Bitmap mFrame;
+		private final Matrix matrix = new Matrix();
+		@Override
+		public void onFrame(final ByteBuffer frame) {
+			if (mDetectView != null) {
+				final SurfaceHolder holder = mDetectView.getHolder();
+				if ((holder == null) || (holder.getSurface() == null)) return;
+				if (mFrame == null) {
+					mFrame = Bitmap.createBitmap(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT, Bitmap.Config.ARGB_8888);
+					final float scaleX = mDetectView.getWidth() / (float)VideoStream.VIDEO_WIDTH;
+					final float scaleY = mDetectView.getHeight() / (float)VideoStream.VIDEO_HEIGHT;
+					matrix.reset();
+					matrix.postScale(scaleX, scaleY);
+				}
+				frame.clear();
+				mFrame.copyPixelsFromBuffer(frame);
+				final Canvas canvas = holder.lockCanvas();
+				if (canvas != null) {
+					try {
+						canvas.drawBitmap(mFrame, matrix, null);
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					} finally {
+						holder.unlockCanvasAndPost(canvas);
+					}
+				}
+			}
+		}
+
+		@Override
+		public void onResult(final int type, final float[] result) {
+			synchronized (mQueue) {
+				if (!mIsRunning) return;
+				LineRec rec = mPool.size() > 0 ? mPool.remove(0) : null;
+				if (rec == null) {
+					rec = new LineRec();
+				}
+				rec.type = type;
+				// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
+				rec.mLinePos.set(result[0], result[1]);
+				// ラインの長さ(長軸長さ=length)
+				rec.mLineLen = result[2];
+				// ライン幅(短軸長さ)
+				rec.mLineWidth = result[3];
+				// ラインの方向(cv::RotatedRect#angle)
+				rec.mAngle = result[4];
+				// 最小矩形面積に対する輪郭面積の比
+				rec.mAreaRate = result[5];
+				// 円フィッティングの曲率
+				rec.mCurvature = result[6];
+				// キュー内に最大数入っていたらプールに戻す
+				for ( ; mQueue.size() > MAX_QUEUE ; ) {
+					mPool.add(mQueue.remove(0));
+				}
+				// キューの最後に追加
+				mQueue.add(rec);
+				mQueue.notify();
+			}
+		}
+
+	};
+
 	private int getInt(final SharedPreferences pref, final String key, final int default_value) {
 		int result = default_value;
 		try {
@@ -576,91 +773,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		return result;
 	}
 
-	private void setupSettingView(final View rootView) {
-		Switch sw;
-		SeekBar sb;
-		Button btn;
-		Spinner spinner;
-		// ホワイトバランス
-		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, true);
-		mAutoWhiteBlanceSw = (Switch)rootView.findViewById(R.id.white_balance_sw);
-		mAutoWhiteBlanceSw.setChecked(mAutoWhiteBlance);
-		mAutoWhiteBlanceSw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// 露出
-		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
-		sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
-		sb.setMax(200);
-		sb.setProgress((int)(mExposure * 10.0f) + 100);	// [-10,+ 10] => [0, 200]
-		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		// 彩度
-		mSaturation = mPref.getFloat(KEY_SATURATION, 0.0f);
-		sb = (SeekBar)rootView.findViewById(R.id.saturation_seekbar);
-		sb.setMax(200);
-		sb.setProgress((int)(mSaturation * 100.0f) + 100);	// [-1.0f, +1.0f] => [0, 200]
-		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		// 明るさ
-		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, 0.0f);
-		sb = (SeekBar)rootView.findViewById(R.id.brightness_seekbar);
-		sb.setMax(200);
-		sb.setProgress((int)(mBrightness * 10.0f) + 100);	// [-1.0f, +1.0f] => [0, 100]
-		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		// ポスタライズ
-		mPosterize = mPref.getFloat(KEY_POSTERIZE, 10);
-		sb = (SeekBar)rootView.findViewById(R.id.posterize_seekbar);
-		sb.setMax(255);
-		sb.setProgress((int)(mPosterize - 1));	// [1, 256] => [0, 255]
-		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
-		sw = (Switch)rootView.findViewById(R.id.use_posterize_sw);
-		sw.setChecked(mEnablePosterize);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// 二値化閾値
-		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRETHOLD, 0.5f);
-		sb = (SeekBar)rootView.findViewById(R.id.binarize_threshold_seekbar);
-		sb.setMax(100);
-		sb.setProgress((int)(mBinarizeThreshold * 100.0f));	// [0.0f, +1.0f] => [0, 100]
-		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		// OpenGL|ESで色抽出を使うかどうか
-		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
-		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
-		sw.setChecked(mEnableGLESExtraction);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// OpenGL|ESのエッジ検出前平滑化
-		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
-		spinner = (Spinner)rootView.findViewById(R.id.use_smooth_spinner);
-		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
-		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
-		// OpenGL|ESでエッジ検出を行うかどうか
-		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, false);
-		sw = (Switch)rootView.findViewById(R.id.use_canny_sw);
-		sw.setChecked(mEnableGLESCanny);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// Native側の色抽出を使うかどうか
-		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
-		sw = (Switch)rootView.findViewById(R.id.use_native_extract_sw);
-		sw.setChecked(mEnableNativeExtraction);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// Native側のCannyを使うかどうか
-		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
-		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
-		sw.setChecked(mEnableNativeCanny);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// 抽出色取得
-		btn = (Button)rootView.findViewById(R.id.update_extraction_color_btn);
-		btn.setOnClickListener(mOnClickListener);
-		// 抽出色リセット
-		btn = (Button)rootView.findViewById(R.id.reset_extraction_color_btn);
-		btn.setOnClickListener(mOnClickListener);
-		// native側のエッジ検出前フィルタ
-		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
-		spinner = (Spinner)rootView.findViewById(R.id.use_native_smooth_spinner);
-		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
-		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
-		//
-		mTraceTv1 = (TextView)rootView.findViewById(R.id.trace1_tv);
-		mTraceTv2 = (TextView)rootView.findViewById(R.id.trace2_tv);
-	}
-
 	private static class SmoothTypeAdapter extends ArrayAdapter<String> {
 		private final String[] values;
 		public SmoothTypeAdapter(final Context context) {
@@ -668,6 +780,25 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			values = context.getResources().getStringArray(R.array.trace_smooth_value2);
 			final String[] entries = context.getResources().getStringArray(R.array.trace_smooth_entries);
 			addAll(entries);
+		}
+
+		@Override
+		public View getView(final int position, final View convertView, final ViewGroup parent) {
+			final View rootView = super.getView(position, convertView, parent);
+			changeColor(rootView, getContext().getResources().getColor(R.color.WHITE));
+			return rootView;
+		}
+
+		private void changeColor(final View view, final int cl) {
+			if (view instanceof TextView) {
+				((TextView)view).setTextColor(cl);
+			} else if (view instanceof ViewGroup) {
+				final ViewGroup parent = (ViewGroup)view;
+				final int n = parent.getChildCount();
+				for (int i = 0; i < n; i++) {
+					changeColor(parent.getChildAt(i), cl);
+				}
+			}
 		}
 	}
 
@@ -807,6 +938,42 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					}
 				}
 				break;
+			case R.id.max_altitude_seekbar:
+				final float altitude = (int) (progress / 100f * (mMaxAltitude.max() - mMaxAltitude.min())) / 10f + mMaxAltitude.min();
+				updateMaxAltitude(altitude);
+				break;
+			case R.id.max_tilt_seekbar:
+				final float tilt = (int) (progress / 100f * (mMaxTilt.max() - mMaxTilt.min())) / 10f + mMaxTilt.min();
+				updateMaxTilt(tilt);
+				break;
+			case R.id.max_vertical_speed_seekbar:
+				final float vertical = (int) (progress / 100f * (mMaxVerticalSpeed.max() - mMaxVerticalSpeed.min())) / 10f + mMaxVerticalSpeed.min();
+				updateMaxVerticalSpeed(vertical);
+				break;
+			case R.id.max_rotation_speed_seekbar:
+				final float rotation = (int) (progress / 1000f * (mMaxRotationSpeed.max() - mMaxRotationSpeed.min())) + mMaxRotationSpeed.min();
+				updateMaxRotationSpeed(rotation);
+				break;
+			case R.id.max_control_value_seekbar:	// -500〜+500
+				final float max_control_value = progress - SCALE_OFFSET;
+				updateAutopilotMaxControlValue(max_control_value);
+				break;
+			case R.id.scale_seekbar_x:
+				final float scale_x = (progress - SCALE_OFFSET) / SCALE_FACTOR;
+				updateAutopilotScaleX(scale_x);
+				break;
+			case R.id.scale_seekbar_y:
+				final float scale_y = (progress - SCALE_OFFSET) / SCALE_FACTOR;
+				updateAutopilotScaleY(scale_y);
+				break;
+			case R.id.scale_seekbar_z:
+				final float scale_z = (progress - SCALE_OFFSET) / SCALE_FACTOR;
+				updateAutopilotScaleZ(scale_z);
+				break;
+			case R.id.scale_seekbar_r:
+				final float scale_r = (progress - SCALE_OFFSET) / SCALE_FACTOR;
+				updateAutopilotScaleR(scale_r);
+				break;
 			}
 		}
 
@@ -842,219 +1009,577 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					mPref.edit().putFloat(KEY_BINARIZE_THRETHOLD, mBinarizeThreshold).apply();
 				}
 				break;
+			case R.id.max_altitude_seekbar:
+				final float altitude = (int)(seekBar.getProgress() / 100f * (mMaxAltitude.max() - mMaxAltitude.min())) / 10f + mMaxAltitude.min();
+				if (altitude != mMaxAltitude.current()) {
+					mFlightController.setMaxAltitude(altitude);
+				}
+				break;
+			case R.id.max_tilt_seekbar:
+				final float tilt = (int)(seekBar.getProgress() / 100f * (mMaxTilt.max() - mMaxTilt.min())) / 10f + mMaxTilt.min();
+				if (tilt != mMaxTilt.current()) {
+					mFlightController.setMaxTilt(tilt);
+				}
+				break;
+			case R.id.max_vertical_speed_seekbar:
+				final float vertical = (int)(seekBar.getProgress() / 100f * (mMaxVerticalSpeed.max() - mMaxVerticalSpeed.min())) / 10f + mMaxVerticalSpeed.min();
+				if (vertical != mMaxVerticalSpeed.current()) {
+					mFlightController.setMaxVerticalSpeed(vertical);
+				}
+				break;
+			case R.id.max_rotation_speed_seekbar:
+				final float rotation = (int)(seekBar.getProgress() / 1000f * (mMaxRotationSpeed.max() - mMaxRotationSpeed.min())) + mMaxRotationSpeed.min();
+				if (rotation != mMaxRotationSpeed.current()) {
+					mFlightController.setMaxRotationSpeed(rotation);
+				}
+				break;
+			// 自動操縦
+			case R.id.max_control_value_seekbar:
+				final float max_control_value = seekBar.getProgress() - SCALE_OFFSET;
+				if (max_control_value != mMaxControlValue) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mMaxControlValue = max_control_value;
+						mPref.edit().putFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, max_control_value).apply();
+					}
+				}
+				break;
+			case R.id.scale_seekbar_x:
+				final float scale_x = (seekBar.getProgress() - SCALE_OFFSET) / SCALE_FACTOR;
+				if (scale_x != mScaleX) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mScaleX = scale_x;
+						mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_X, scale_x).apply();
+					}
+				}
+				break;
+			case R.id.scale_seekbar_y:
+				final float scale_y = (seekBar.getProgress() - SCALE_OFFSET) / SCALE_FACTOR;
+				if (scale_y != mScaleY) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mScaleY = scale_y;
+						mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_Y, scale_y).apply();
+					}
+				}
+				break;
+			case R.id.scale_seekbar_z:
+				final float scale_z = (seekBar.getProgress() - SCALE_OFFSET) / SCALE_FACTOR;
+				if (scale_z != mScaleZ) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mScaleZ = scale_z;
+						mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_Z, scale_z).apply();
+					}
+				}
+				break;
+			case R.id.scale_seekbar_r:
+				final float scale_r = (seekBar.getProgress() - SCALE_OFFSET) / SCALE_FACTOR;
+				if (scale_r != mScaleR) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mScaleR = scale_r;
+						mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_R, scale_r).apply();
+					}
+				}
+				break;
 			}
 		}
 	};
 
-	private void startImageProcessor() {
-		setColorFilter(mTraceButton, 0, 0);
-		if (mTraceTask == null) {
-			mTraceTask = new TraceTask();
-			new Thread(mTraceTask, TAG).start();
+//--------------------------------------------------------------------------------
+	/** ホワイトバランス */
+	protected boolean mAutoWhiteBlance;
+	/** 露出 */
+	protected float mExposure;
+	/** 彩度 */
+	protected float mSaturation;
+	/** 明るさ */
+	protected float mBrightness;
+	/** ポスタライズ */
+	protected boolean mEnablePosterize;
+	protected float mPosterize;
+	/** 2値化閾値 */
+	protected float mBinarizeThreshold;
+	private void initPreprocess(final View rootView) {
+		Switch sw;
+		SeekBar sb;
+		Button btn;
+		Spinner spinner;
+		// ホワイトバランス
+		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, true);
+		mAutoWhiteBlanceSw = (Switch)rootView.findViewById(R.id.white_balance_sw);
+		mAutoWhiteBlanceSw.setChecked(mAutoWhiteBlance);
+		mAutoWhiteBlanceSw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// 露出
+		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
+		sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
+		sb.setMax(200);
+		sb.setProgress((int)(mExposure * 10.0f) + 100);	// [-10,+ 10] => [0, 200]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		// 彩度
+		mSaturation = mPref.getFloat(KEY_SATURATION, 0.0f);
+		sb = (SeekBar)rootView.findViewById(R.id.saturation_seekbar);
+		sb.setMax(200);
+		sb.setProgress((int)(mSaturation * 100.0f) + 100);	// [-1.0f, +1.0f] => [0, 200]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		// 明るさ
+		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, 0.0f);
+		sb = (SeekBar)rootView.findViewById(R.id.brightness_seekbar);
+		sb.setMax(200);
+		sb.setProgress((int)(mBrightness * 10.0f) + 100);	// [-1.0f, +1.0f] => [0, 100]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		// ポスタライズ
+		mPosterize = mPref.getFloat(KEY_POSTERIZE, 10);
+		sb = (SeekBar)rootView.findViewById(R.id.posterize_seekbar);
+		sb.setMax(255);
+		sb.setProgress((int)(mPosterize - 1));	// [1, 256] => [0, 255]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
+		sw = (Switch)rootView.findViewById(R.id.use_posterize_sw);
+		sw.setChecked(mEnablePosterize);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// 二値化閾値
+		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRETHOLD, 0.5f);
+		sb = (SeekBar)rootView.findViewById(R.id.binarize_threshold_seekbar);
+		sb.setMax(100);
+		sb.setProgress((int)(mBinarizeThreshold * 100.0f));	// [0.0f, +1.0f] => [0, 100]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+	}
+
+//--------------------------------------------------------------------------------
+	/** OpenGL|ESで色抽出を行うかどうか  */
+	protected boolean mEnableGLESExtraction = false;
+	/** OpenGL|ESでのエッジ検出前平滑化 */
+	protected int mGLESSmoothType = 0;
+	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
+	protected boolean mEnableGLESCanny = false;
+	/** 色抽出範囲設定(HSV上下限) */
+	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
+	/** native側の色抽出を使うかどうか */
+	protected boolean mEnableNativeExtraction = false;
+	/** native側のエッジ検出前平滑化 */
+	protected int mNativeSmoothType = 0;
+	/** native側のエッジ検出(Canny)を使うかどうか */
+	protected boolean mEnableNativeCanny = true;
+	private void initDetect(final View rootView) {
+		Switch sw;
+		Button btn;
+		Spinner spinner;
+		// OpenGL|ESで色抽出を使うかどうか
+		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
+		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
+		sw.setChecked(mEnableGLESExtraction);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// OpenGL|ESのエッジ検出前平滑化
+		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
+		spinner = (Spinner)rootView.findViewById(R.id.use_smooth_spinner);
+		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
+		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
+		// OpenGL|ESでエッジ検出を行うかどうか
+		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, false);
+		sw = (Switch)rootView.findViewById(R.id.use_canny_sw);
+		sw.setChecked(mEnableGLESCanny);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// Native側の色抽出を使うかどうか
+		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
+		sw = (Switch)rootView.findViewById(R.id.use_native_extract_sw);
+		sw.setChecked(mEnableNativeExtraction);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// Native側のCannyを使うかどうか
+		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
+		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
+		sw.setChecked(mEnableNativeCanny);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// 抽出色取得
+		btn = (Button)rootView.findViewById(R.id.update_extraction_color_btn);
+		btn.setOnClickListener(mOnClickListener);
+		// 抽出色リセット
+		btn = (Button)rootView.findViewById(R.id.reset_extraction_color_btn);
+		btn.setOnClickListener(mOnClickListener);
+		// native側のエッジ検出前フィルタ
+		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
+		spinner = (Spinner)rootView.findViewById(R.id.use_native_smooth_spinner);
+		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
+		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
+	}
+
+//--------------------------------------------------------------------------------
+	private void initAutoTrace(final View rootView) {
+	}
+
+//--------------------------------------------------------------------------------
+	private String mMaxAltitudeFormat;
+	private String mMaxTiltFormat;
+	private String mMaxVerticalSpeedFormat;
+	private String mMaxRotationSpeedFormat;
+	private TextView mMaxAltitudeLabel;
+	private TextView mMaxTiltLabel;
+	private TextView mMaxVerticalSpeedLabel;
+	private TextView mMaxRotationSpeedLabel;
+	private AttributeFloat mMaxAltitude;
+	private AttributeFloat mMaxTilt;
+	private AttributeFloat mMaxVerticalSpeed;
+	private AttributeFloat mMaxRotationSpeed;
+
+	/**
+	 * 飛行設定画面の準備
+	 * @param root
+	 */
+	private void initConfigFlight(final View root) {
+		if (DEBUG) Log.v(TAG, "initConfigFlight:");
+		mMaxAltitudeFormat = getString(R.string.config_max_altitude);
+		mMaxTiltFormat = getString(R.string.config_max_tilt);
+		mMaxVerticalSpeedFormat = getString(R.string.config_max_vertical_speed);
+		mMaxRotationSpeedFormat = getString(R.string.config_max_rotating_speed);
+		// 最大高度設定
+		mMaxAltitudeLabel = (TextView)root.findViewById(R.id.max_altitude_textview);
+		SeekBar seekbar = (SeekBar)root.findViewById(R.id.max_altitude_seekbar);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mMaxAltitude = mFlightController.getMaxAltitude();
+		try {
+			seekbar.setProgress((int) ((mMaxAltitude.current() - mMaxAltitude.min()) / (mMaxAltitude.max() - mMaxAltitude.min()) * 1000));
+		} catch (final Exception e) {
+			seekbar.setProgress(0);
 		}
-		if (mImageProcessor == null) {
-			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
-			mImageProcessor.setExposure(mExposure);
-			mImageProcessor.setSaturation(mSaturation);
-			mImageProcessor.setBrightness(mBrightness);
-			mImageProcessor.setExtractionColor(
-				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
-				EXTRACT_COLOR_HSV_LIMIT[2], EXTRACT_COLOR_HSV_LIMIT[3],
-				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]);
-			mImageProcessor.enableExtraction(mEnableGLESExtraction);
-			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
-			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
-			mImageProcessor.start();
-			final Surface surface = mImageProcessor.getSurface();
-			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
-			if (mImageProcessorSurfaceId != 0) {
-				mVideoStream.addSurface(mImageProcessorSurfaceId, surface);
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateMaxAltitude(mMaxAltitude.current());
+		// 最大傾斜設定
+		// bebopは5-30度。最大時速約50km/hrからすると13.9m/s/30度≒0.46[m/s/度]
+		mMaxTiltLabel = (TextView)root.findViewById(R.id.max_tilt_textview);
+		seekbar = (SeekBar)root.findViewById(R.id.max_tilt_seekbar);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mMaxTilt = mFlightController.getMaxTilt();
+		try {
+			seekbar.setProgress((int) ((mMaxTilt.current() - mMaxTilt.min()) / (mMaxTilt.max() - mMaxTilt.min()) * 1000));
+		} catch (final Exception e) {
+			seekbar.setProgress(0);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateMaxTilt(mMaxTilt.current());
+		// 最大上昇/降下速度設定
+		mMaxVerticalSpeedLabel = (TextView)root.findViewById(R.id.max_vertical_speed_textview);
+		seekbar = (SeekBar)root.findViewById(R.id.max_vertical_speed_seekbar);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mMaxVerticalSpeed = mFlightController.getMaxVerticalSpeed();
+		try {
+			seekbar.setProgress((int) ((mMaxVerticalSpeed.current() - mMaxVerticalSpeed.min()) / (mMaxVerticalSpeed.max() - mMaxVerticalSpeed.min()) * 1000));
+		} catch (final Exception e) {
+			seekbar.setProgress(0);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateMaxVerticalSpeed(mMaxVerticalSpeed.current());
+		// 最大回転速度
+		mMaxRotationSpeedLabel = (TextView)root.findViewById(R.id.max_rotation_speed_textview);
+		seekbar = (SeekBar)root.findViewById(R.id.max_rotation_speed_seekbar);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mMaxRotationSpeed = mFlightController.getMaxRotationSpeed();
+		try {
+			seekbar.setProgress((int) ((mMaxRotationSpeed.current() - mMaxRotationSpeed.min()) / (mMaxRotationSpeed.max() - mMaxRotationSpeed.min()) * 1000));
+		} catch (final Exception e) {
+			seekbar.setProgress(0);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateMaxRotationSpeed(mMaxRotationSpeed.current());
+	}
+
+	/**
+	 * 最大高度設定値表示を更新
+	 * @param max_altitude
+	 */
+	private void updateMaxAltitude(final float max_altitude) {
+		if (mMaxAltitudeLabel != null) {
+			mMaxAltitudeLabel.setText(String.format(mMaxAltitudeFormat, max_altitude));
+		}
+	}
+
+	/**
+	 * 最大傾斜設定表示を更新
+	 * @param max_tilt
+	 */
+	private void updateMaxTilt(final float max_tilt) {
+		if (mMaxTiltLabel != null) {
+			mMaxTiltLabel.setText(String.format(mMaxTiltFormat, max_tilt));
+		}
+	}
+
+	/**
+	 * 最大上昇/降下速度設定表示を更新
+	 * @param max_vertical_speed
+	 */
+	private void updateMaxVerticalSpeed(final float max_vertical_speed) {
+		if (mMaxVerticalSpeedLabel != null) {
+			mMaxVerticalSpeedLabel.setText(String.format(mMaxVerticalSpeedFormat, max_vertical_speed));
+		}
+	}
+
+	/**
+	 * 最大回転速度設定表示を更新
+	 * @param max_rotation_speed
+	 */
+	private void updateMaxRotationSpeed(final float max_rotation_speed) {
+		if (mMaxRotationSpeedLabel != null) {
+			mMaxRotationSpeedLabel.setText(String.format(mMaxRotationSpeedFormat, max_rotation_speed));
+		}
+	}
+
+//----------------------------------------------------------------------
+	private TextView mAutopilotScaleXLabel;
+	private TextView mAutopilotScaleYLabel;
+	private TextView mAutopilotScaleZLabel;
+	private TextView mAutopilotScaleRLabel;
+	private TextView mAutopilotMaxControlValueLabel;
+//	private float mAutopilotMaxControlValue;
+//	private float mAutopilotScaleX;
+//	private float mAutopilotScaleY;
+//	private float mAutopilotScaleZ;
+//	private float mAutopilotScaleR;
+	private String mAutopilotScaleXFormat;
+	private String mAutopilotScaleYFormat;
+	private String mAutopilotScaleZFormat;
+	private String mAutopilotScaleRFormat;
+	private String mAutopilotMaxControlValueFormat;
+	/**
+	 * 自動操縦設定画面の準備
+	 * @param root
+	 */
+	private void initConfigAutopilot(final View root) {
+		mAutopilotScaleXFormat = getString(R.string.config_scale_x);
+		mAutopilotScaleYFormat = getString(R.string.config_scale_y);
+		mAutopilotScaleZFormat = getString(R.string.config_scale_z);
+		mAutopilotScaleRFormat = getString(R.string.config_scale_r);
+		mAutopilotMaxControlValueFormat = getString(R.string.config_control_max);
+		// 最大制御値設定
+		mAutopilotMaxControlValueLabel = (TextView)root.findViewById(R.id.max_control_value_textview);
+		SeekBar seekbar = (SeekBar)root.findViewById(R.id.max_control_value_seekbar);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mMaxControlValue = mPref.getFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
+		try {
+			seekbar.setProgress((int) (mMaxControlValue + SCALE_OFFSET));
+		} catch (final Exception e) {
+			seekbar.setProgress(SCALE_OFFSET);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateAutopilotMaxControlValue(mMaxControlValue);
+		// スケールX設定
+		mAutopilotScaleXLabel = (TextView)root.findViewById(R.id.scale_x_textview);
+		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_x);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mScaleX = mPref.getFloat(KEY_AUTOPILOT_SCALE_X, 1.0f);
+		try {
+			seekbar.setProgress((int) (mScaleX * SCALE_FACTOR + SCALE_OFFSET));
+		} catch (final Exception e) {
+			seekbar.setProgress(SCALE_OFFSET);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateAutopilotScaleX(mScaleX);
+		// スケールY設定
+		mAutopilotScaleYLabel = (TextView)root.findViewById(R.id.scale_y_textview);
+		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_y);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mScaleY = mPref.getFloat(KEY_AUTOPILOT_SCALE_Y, 1.0f);
+		try {
+			seekbar.setProgress((int) (mScaleY * SCALE_FACTOR + SCALE_OFFSET));
+		} catch (final Exception e) {
+			seekbar.setProgress(SCALE_OFFSET);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateAutopilotScaleY(mScaleY);
+		// スケールZ設定
+		mAutopilotScaleZLabel = (TextView)root.findViewById(R.id.scale_z_textview);
+		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_z);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mScaleZ = mPref.getFloat(KEY_AUTOPILOT_SCALE_Z, 1.0f);
+		try {
+			seekbar.setProgress((int) (mScaleZ * SCALE_FACTOR + SCALE_OFFSET));
+		} catch (final Exception e) {
+			seekbar.setProgress(SCALE_OFFSET);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateAutopilotScaleZ(mScaleZ);
+		// スケールR設定
+		mAutopilotScaleRLabel = (TextView)root.findViewById(R.id.scale_r_textview);
+		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_r);
+		seekbar.setOnSeekBarChangeListener(null);
+		seekbar.setMax(1000);
+		mScaleR = mPref.getFloat(KEY_AUTOPILOT_SCALE_R, 1.0f);
+		try {
+			seekbar.setProgress((int) (mScaleR * SCALE_FACTOR + SCALE_OFFSET));
+		} catch (final Exception e) {
+			seekbar.setProgress(SCALE_OFFSET);
+		}
+		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateAutopilotScaleR(mScaleR);
+	}
+
+	/**
+	 * 自動操縦:最大制御設定値表示を更新
+	 * @param max_control_value
+	 */
+	private void updateAutopilotMaxControlValue(final double max_control_value) {
+		if (mAutopilotMaxControlValueLabel != null) {
+			mAutopilotMaxControlValueLabel.setText(String.format(mAutopilotMaxControlValueFormat, max_control_value));
+		}
+	}
+
+	/**
+	 * 自動操縦:スケールZ設定表示を更新
+	 * @param scale_x
+	 */
+	private void updateAutopilotScaleX(final double scale_x) {
+		if (mAutopilotScaleXLabel != null) {
+			mAutopilotScaleXLabel.setText(String.format(mAutopilotScaleXFormat, scale_x));
+		}
+	}
+
+	/**
+	 * 自動操縦:スケールY設定表示を更新
+	 * @param scale_y
+	 */
+	private void updateAutopilotScaleY(final double scale_y) {
+		if (mAutopilotScaleYLabel != null) {
+			mAutopilotScaleYLabel.setText(String.format(mAutopilotScaleYFormat, scale_y));
+		}
+	}
+
+	/**
+	 * 自動操縦:スケールZ設定表示を更新
+	 * @param scale_z
+	 */
+	private void updateAutopilotScaleZ(final double scale_z) {
+		if (mAutopilotScaleZLabel != null) {
+			mAutopilotScaleZLabel.setText(String.format(mAutopilotScaleZFormat, scale_z));
+		}
+	}
+
+	/**
+	 * 自動操縦:スケールR設定表示を更新
+	 * @param scale_r
+	 */
+	private void updateAutopilotScaleR(final double scale_r) {
+		if (mAutopilotScaleRLabel != null) {
+			mAutopilotScaleRLabel.setText(String.format(mAutopilotScaleRFormat, scale_r));
+		}
+	}
+
+//================================================================================
+//================================================================================
+	private static interface AdapterItemHandler {
+		public void initialize(final AutoPilotFragment2 parent, final View view);
+	}
+
+	private static final class PagerAdapterConfig {
+		public final int title_id;
+		public final int layout_id;
+		public final AdapterItemHandler handler;
+
+		public PagerAdapterConfig(final int _title_id, final int _layout_id, final AdapterItemHandler _handler) {
+			title_id = _title_id;
+			layout_id = _layout_id;
+			handler = _handler;
+		}
+	}
+
+	private static PagerAdapterConfig[] PAGER_CONFIG_TRACE;
+	static {
+		//
+		PAGER_CONFIG_TRACE = new PagerAdapterConfig[5];
+		PAGER_CONFIG_TRACE[0] = new PagerAdapterConfig(R.string.trace_config_title_preprocess, R.layout.trace_config_preprocess, new AdapterItemHandler() {
+			@Override
+			public void initialize(final AutoPilotFragment2 parent, final View view) {
+				parent.initPreprocess(view);
 			}
-		}
+		});
+		PAGER_CONFIG_TRACE[1] = new PagerAdapterConfig(R.string.trace_config_title_detect, R.layout.trace_config_detect, new AdapterItemHandler() {
+			@Override
+			public void initialize(final AutoPilotFragment2 parent, final View view) {
+				parent.initDetect(view);
+			}
+		});
+		PAGER_CONFIG_TRACE[2] = new PagerAdapterConfig(R.string.trace_config_title_auto_pilot, R.layout.trace_config_auto_trace, new AdapterItemHandler() {
+			@Override
+			public void initialize(final AutoPilotFragment2 parent, final View view) {
+				parent.initAutoTrace(view);
+			}
+		});
+		PAGER_CONFIG_TRACE[3] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.trace_config_flight, new AdapterItemHandler() {
+			@Override
+			public void initialize(final AutoPilotFragment2 parent, final View view) {
+				parent.initConfigFlight(view);
+			}
+		});
+		PAGER_CONFIG_TRACE[4] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.trace_config_autopilot, new AdapterItemHandler() {
+			@Override
+			public void initialize(final AutoPilotFragment2 parent, final View view) {
+				parent.initConfigAutopilot(view);
+			}
+		});
 	}
 
-	private void stopImageProcessor() {
-		if ((mVideoStream != null) && (mImageProcessorSurfaceId != 0)) {
-			mVideoStream.removeSurface(mImageProcessorSurfaceId);
-		}
-		mImageProcessorSurfaceId = 0;
-		if (mImageProcessor != null) {
-			mImageProcessor.release();
-			mImageProcessor = null;
-		}
-		mTraceTask = null;
-		synchronized (mQueue) {
-			mIsRunning = false;
-			mQueue.notifyAll();
-		}
-		setColorFilter(mTraceButton, 0, 0);
-	}
-
-	private static class LineRec {
-		public int type;
-		public final Vector mLinePos = new Vector();
-		public float mLineLen, mLineWidth, mAngle, mAreaRate, mCurvature;
-	}
-
-	private static final int MAX_QUEUE = 4;
-	private final List<LineRec> mPool = new ArrayList<LineRec>();
-	private final List<LineRec> mQueue = new ArrayList<LineRec>();
-	private volatile boolean mIsRunning;
-	private volatile boolean mAutoPilot;
-
-	private class TraceTask implements Runnable {
-		public TraceTask() {
+	/**
+	 * 設定画面の各ページ用のViewを提供するためのPagerAdapterクラス
+	 */
+	private class ConfigPagerAdapter extends PagerAdapter {
+		private final LayoutInflater mInflater;
+		private final PagerAdapterConfig[] mConfigs;
+		public ConfigPagerAdapter(final LayoutInflater inflater) {
+			super();
+			mInflater = inflater;
+			mConfigs = PAGER_CONFIG_TRACE;
 		}
 
 		@Override
-		public void run() {
-			synchronized (mQueue) {
-				for (int i = 0; i < MAX_QUEUE; i++) {
-					mPool.add(new LineRec());
-				}
+		public synchronized Object instantiateItem(final ViewGroup container, final int position) {
+			if (DEBUG) Log.v(TAG, "instantiateItem:position=" + position);
+			View view = null;
+			final int n = mConfigs != null ? mConfigs.length : 0;
+			if ((position >= 0) && (position < n)) {
+				final PagerAdapterConfig config = mConfigs[position];
+				view = mInflater.inflate(config.layout_id, container, false);
+				config.handler.initialize(AutoPilotFragment2.this, view);
 			}
-			mIsRunning = true;
-			mAutoPilot = false;
-			float angle = 0;	// カメラの上方向に対する移動方向の角度
-			float factor = 1.0f;
-			long lostTime = -1;
-			final Vector work = new Vector();
-			final Vector prev = new Vector();
-			final Vector mPilotValue = new Vector();	// roll/pitch制御量
-			for ( ; mIsRunning ; ) {
-				synchronized (mQueue) {
-					try {
-						mQueue.wait(500);
-					} catch (InterruptedException e) {
-						break;
-					}
-					if (!mIsRunning) break;
-					if (mQueue.size() > 0) {
-						final String msg1;
-						final LineRec rec = mQueue.remove(0);
-						if (rec.type >= 0) {	// 0:TYPE_LINE, 1:TYPE_CIRCLE, 2:TYPE_CORNER
-							lostTime = -1;
-							factor *= 1.1f;
-							if (factor > 2.0f) {
-								factor = 2.0f;
-							}
-							// 画像中心からの距離
-							work.set(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT).div(2.0f).sub(rec.mLinePos);
-							msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f)", work.x, work.y, work.len(), rec.mAngle);
-							work.div(320.0f, 184.0f).mult(100.0f);
-							mPilotValue.set(0.f, 100.0f);	// 前進
-							// 前回の位置とコマンドから想定する現在位置とラインの位置が大きく違う時は制限をする
-							prev.sub(rec.mLinePos);
-							if (prev.len() > 200) {
-								factor *= 0.8f;
-								if (factor < 0.1f) {
-									factor = 0.1f;
-								}
-							}
-							mPilotValue.sub(work.x, -work.y).mult(factor).rotate(0, 0, angle);	// カメラの向きに合わせて進行方向をあわせる。z軸周りに回転
-							if (mAutoPilot) {
-								// 制御コマンド送信
-								mFlightController.requestAnimationsCap(Math.round(rec.mAngle / 5) * 5);
-								mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0);
-							}
-							// 今回の位置を保存
-							prev.set(rec.mLinePos);
-						} else {
-							factor = 0.1f;
-							mPilotValue.clear(0.0f);
-							rec.mAngle = 0;
-							msg1 = null;
-							if (lostTime < 0) {
-								lostTime = System.currentTimeMillis();
-							}
-							if (System.currentTimeMillis() - lostTime > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
-								mAutoPilot = false;
-							}
-						}
-						final String msg2 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, 0.0f, -rec.mAngle);
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								mTraceTv1.setText(msg1);
-								mTraceTv2.setText(msg2);
-							}
-						});
-					}
-				}
+			if (view != null) {
+				container.addView(view);
 			}
-			synchronized (mQueue) {
-				mIsRunning = false;
-				mQueue.clear();
-				mPool.clear();
+			return view;
+		}
+
+		@Override
+		public synchronized void destroyItem(final ViewGroup container, final int position, final Object object) {
+			if (DEBUG) Log.v(TAG, "destroyItem:position=" + position);
+			if (object instanceof View) {
+				container.removeView((View)object);
 			}
-			System.gc();
+		}
+
+		@Override
+		public int getCount() {
+			return mConfigs != null ? mConfigs.length : 0;
+		}
+
+		@Override
+		public boolean isViewFromObject(final View view, final Object object) {
+			return view.equals(object);
+		}
+
+		@Override
+		public CharSequence getPageTitle(final int position) {
+			if (DEBUG) Log.v(TAG, "getPageTitle:position=" + position);
+			CharSequence result = null;
+			final int n = mConfigs != null ? mConfigs.length : 0;
+			if ((position >= 0) && (position < n)) {
+				result = getString(mConfigs[position].title_id);
+			}
+			return result;
 		}
 	}
-
-	/** ImageProcessorからのコールバックリスナー */
-	private final ImageProcessor.ImageProcessorCallback mImageProcessorCallback
-		= new ImageProcessor.ImageProcessorCallback() {
-
-		private Bitmap mFrame;
-		private final Matrix matrix = new Matrix();
-		@Override
-		public void onFrame(final ByteBuffer frame) {
-			if (mDetectView != null) {
-				final SurfaceHolder holder = mDetectView.getHolder();
-				if ((holder == null) || (holder.getSurface() == null)) return;
-				if (mFrame == null) {
-					mFrame = Bitmap.createBitmap(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT, Bitmap.Config.ARGB_8888);
-					final float scaleX = mDetectView.getWidth() / (float)VideoStream.VIDEO_WIDTH;
-					final float scaleY = mDetectView.getHeight() / (float)VideoStream.VIDEO_HEIGHT;
-					matrix.reset();
-					matrix.postScale(scaleX, scaleY);
-				}
-				frame.clear();
-				mFrame.copyPixelsFromBuffer(frame);
-				final Canvas canvas = holder.lockCanvas();
-				if (canvas != null) {
-					try {
-						canvas.drawBitmap(mFrame, matrix, null);
-					} catch (final Exception e) {
-						Log.w(TAG, e);
-					} finally {
-						holder.unlockCanvasAndPost(canvas);
-					}
-				}
-			}
-		}
-
-		@Override
-		public void onResult(final int type, final float[] result) {
-			synchronized (mQueue) {
-				if (!mIsRunning) return;
-				LineRec rec = mPool.size() > 0 ? mPool.remove(0) : null;
-				if (rec == null) {
-					rec = new LineRec();
-				}
-				rec.type = type;
-				// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
-				rec.mLinePos.set(result[0], result[1]);
-				// ラインの長さ(長軸長さ=length)
-				rec.mLineLen = result[2];
-				// ライン幅(短軸長さ)
-				rec.mLineWidth = result[3];
-				// ラインの方向(cv::RotatedRect#angle)
-				rec.mAngle = result[4];
-				// 最小矩形面積に対する輪郭面積の比
-				rec.mAreaRate = result[5];
-				// 円フィッティングの曲率
-				rec.mCurvature = result[6];
-				// キュー内に最大数入っていたらプールに戻す
-				for ( ; mQueue.size() > MAX_QUEUE ; ) {
-					mPool.add(mQueue.remove(0));
-				}
-				// キューの最後に追加
-				mQueue.add(rec);
-				mQueue.notify();
-			}
-		}
-
-	};
-
 }

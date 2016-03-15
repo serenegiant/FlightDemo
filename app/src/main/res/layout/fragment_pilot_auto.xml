@@ -9,9 +9,29 @@
 	android:id="@+id/screen_frame">
 
 	<LinearLayout
+		android:id="@+id/controller_frame"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:foreground="?android:windowContentOverlay"
+		android:orientation="vertical">
+
+		<RelativeLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_weight="10"
+			android:id="@+id/pilot_frame"
+			android:orientation="horizontal">
+
+		</RelativeLayout>
+
+
+	</LinearLayout>
+
+	<LinearLayout
 		android:orientation="horizontal"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent">
+		android:layout_height="match_parent"
+		android:background="@drawable/blue_gradient">
 
 		<LinearLayout
 			android:orientation="vertical"
@@ -76,402 +96,220 @@
 
 		</LinearLayout>
 
-		<Space
-			android:orientation="vertical"
+		<android.support.v4.view.ViewPager
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"
+			android:id="@+id/pager"
 			android:layout_weight="1"
-			android:layout_marginRight="@dimen/btn_size_action">
-		</Space>
+			android:layout_marginRight="@dimen/btn_size_action"
+			android:layout_marginLeft="@dimen/half_padding"
+			android:layout_marginTop="@dimen/top_panel_height"
+			android:layout_marginBottom="@dimen/bottom_panel_height">
+
+			<android.support.v4.view.PagerTitleStrip
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_gravity="top"
+				android:textColor="@color/BLUEVIOLET"
+				android:textSize="@dimen/text_sz_trace_config_title"
+				android:paddingTop="10dp"
+				android:paddingBottom="@dimen/half_padding"/>
+				<!--<include android:layout="@layout/trace_config_preprocess" /> -->
+		</android.support.v4.view.ViewPager>
+
 	</LinearLayout>
 
 	<LinearLayout
-		android:id="@+id/controller_frame"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:foreground="?android:windowContentOverlay"
-		android:orientation="vertical">
+		android:id="@+id/right_side_panel"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center_vertical|right"
+		android:orientation="vertical"
+		android:layout_alignParentRight="true"
+		android:layout_centerVertical="true">
 
-		<RelativeLayout
-			android:id="@+id/top_panel"
-			android:layout_width="match_parent"
-			android:layout_height="@dimen/top_panel_height"
-			android:gravity="top"
-			android:background="@drawable/top_frame">
+		<ImageButton
+			android:id="@+id/still_capture_btn"
+			android:layout_width="@dimen/btn_size_action"
+			android:layout_height="@dimen/btn_size_action"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_camera"
+			android:layout_marginTop="@dimen/quater_padding"/>
 
-			<TextView
-				android:id="@+id/keymap_stick_left_button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_alignParentLeft="true"
-				android:layout_alignParentStart="true"
-				android:layout_centerVertical="true"
-				android:text="@string/battery"
-				android:textAppearance="?android:attr/textAppearanceMedium"
-				android:textSize="@dimen/text_sz_button"
-				android:textColor="@color/DARKVIOLET"/>
+		<ImageButton
+			android:id="@+id/video_capture_btn"
+			android:layout_width="@dimen/btn_size_action"
+			android:layout_height="@dimen/btn_size_action"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_movie"/>
 
-			<TextView
-				android:id="@+id/batteryLabel"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_centerVertical="true"
-				android:layout_toEndOf="@+id/keymap_stick_left_button"
-				android:layout_toRightOf="@+id/keymap_stick_left_button"
-				android:text="XXX%"
-				android:textAppearance="?android:attr/textAppearanceMedium"
-				android:textSize="@dimen/text_sz_button"
-				android:textColor="@color/DARKVIOLET"/>
-
-			<ImageButton
-				android:id="@+id/flat_trim_btn"
-				android:layout_width="@dimen/top_panel_height"
-				android:layout_height="@dimen/top_panel_height"
-				android:layout_centerInParent="true"
-				android:background="@null"
-				android:scaleType="centerCrop"
-				android:src="?attr/flightdemo_icon_trim"/>
-
-			<TextView
-				android:id="@+id/alert_message"
-				android:layout_width="wrap_content"
-				android:layout_height="@dimen/top_panel_height"
-				android:layout_centerVertical="true"
-				android:layout_toLeftOf="@+id/config_show_btn"
-				android:layout_toRightOf="@+id/flat_trim_btn"
-				android:layout_toStartOf="@+id/config_show_btn"
-				android:gravity="center_vertical"
-				android:text="message"
-				android:textColor="#ffff0000"
-				android:textSize="@dimen/text_sz_message"
-				android:visibility="invisible"/>
-
-			<ImageButton
-				android:id="@+id/config_show_btn"
-				android:layout_width="@dimen/top_panel_height"
-				android:layout_height="@dimen/top_panel_height"
-				android:layout_alignParentEnd="true"
-				android:layout_alignParentRight="true"
-				android:layout_alignParentTop="true"
-				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="?attr/flightdemo_icon_settings"/>
-
-		</RelativeLayout>
-
-		<RelativeLayout
-			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:layout_weight="10"
-			android:id="@+id/pilot_frame"
-			android:orientation="horizontal">
-
-			<LinearLayout
-				android:orientation="horizontal"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:layout_weight="1"
-				>
-
-				<Space
-					android:orientation="vertical"
-					android:layout_width="match_parent"
-					android:layout_height="match_parent"
-					android:layout_weight="1"/>
-
-				<ScrollView
-					android:layout_width="match_parent"
-					android:layout_height="match_parent"
-					android:id="@+id/scrollView"
-					android:layout_weight="1"
-					android:layout_marginRight="@dimen/btn_size_action"
-					android:layout_marginLeft="@dimen/half_padding">
-
-					<LinearLayout
-						android:orientation="vertical"
-						android:layout_width="match_parent"
-						android:layout_height="wrap_content">
-
-						<!-- ホワイトバランス -->
-						<Switch
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingTop="@dimen/quater_padding"
-							android:paddingBottom="@dimen/quater_padding"
-							android:text="@string/trace_white_blance"
-							android:textOn="@string/trace_white_blance_auto"
-							android:textOff="@string/trace_white_blance_manual"
-							android:id="@+id/white_balance_sw"/>
-						<!-- 露出 -->
-						<TextView
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:text="@string/trace_use_exposure"/>
-						<SeekBar
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingBottom="@dimen/quater_padding"
-							android:id="@+id/exposure_seekbar"/>
-						<!-- 彩度 -->
-						<TextView
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:text="@string/trace_use_saturation"/>
-						<SeekBar
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingBottom="@dimen/quater_padding"
-							android:id="@+id/saturation_seekbar"/>
-						<!-- 明るさ -->
-						<TextView
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:text="@string/trace_use_brightness"/>
-						<SeekBar
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingBottom="@dimen/quater_padding"
-							android:id="@+id/brightness_seekbar"/>
-						<!-- ポスタライズ  -->
-						<Switch
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:text="@string/trace_use_posterize"
-							android:visibility="gone"
-							android:id="@+id/use_posterize_sw"/>
-						<SeekBar
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingBottom="@dimen/quater_padding"
-							android:visibility="gone"
-							android:id="@+id/posterize_seekbar"/>
-						<!-- 二値化閾値  -->
-						<TextView
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:text="@string/trace_binarize_threshold"/>
-						<SeekBar
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingBottom="@dimen/quater_padding"
-							android:id="@+id/binarize_threshold_seekbar"/>
-						<!-- 予備  -->
-						<TextView
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:visibility="gone"
-							android:text="New Text"/>
-						<SeekBar
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingBottom="@dimen/quater_padding"
-							android:visibility="gone"
-							android:id="@+id/seekBar6"/>
-						<!-- 色抽出(OpenGL|ES) -->
-						<Switch
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingTop="@dimen/quater_padding"
-							android:paddingBottom="@dimen/quater_padding"
-							android:text="@string/trace_use_extraction"
-							android:id="@+id/use_extract_sw"/>
-						<!-- 平滑化(OpenGL|ES) -->
-						<TextView
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:text="@string/trace_smooth"/>
-						<Spinner
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingTop="@dimen/quater_padding"
-							android:paddingBottom="@dimen/quater_padding"
-							android:id="@+id/use_smooth_spinner"
-							android:layout_gravity="center_horizontal"/>
-						<!-- エッジ検出(OpenGL|ES,Canny) -->
-						<Switch
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingTop="@dimen/quater_padding"
-							android:paddingBottom="@dimen/quater_padding"
-							android:text="@string/trace_use_canny"
-							android:id="@+id/use_canny_sw"/>
-						<!-- 色抽出(OpenCV) -->
-						<Switch
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingTop="@dimen/quater_padding"
-							android:paddingBottom="@dimen/quater_padding"
-							android:text="@string/trace_use_native_extraction"
-							android:id="@+id/use_native_extract_sw"/>
-						<!-- 平滑化(OpenCV) -->
-						<TextView
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:text="@string/trace_smooth"/>
-						<Spinner
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:id="@+id/use_native_smooth_spinner"
-							android:layout_gravity="center_horizontal"/>
-						<!-- エッジ検出(OpenCV,Canny) -->
-						<Switch
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:paddingTop="@dimen/quater_padding"
-							android:paddingBottom="@dimen/quater_padding"
-							android:text="@string/trace_use_native_canny"
-							android:id="@+id/use_native_canny_sw"/>
-						<!-- 抽出色更新 -->
-						<Button
-							style="?android:attr/buttonStyleSmall"
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:text="@string/trace_update_extraction_color"
-							android:id="@+id/update_extraction_color_btn"/>
-						<!-- 抽出色リセット -->
-						<Button
-							style="?android:attr/buttonStyleSmall"
-							android:layout_width="match_parent"
-							android:layout_height="wrap_content"
-							android:text="@string/trace_reset_extraction_color"
-							android:id="@+id/reset_extraction_color_btn"/>
-
-					</LinearLayout>
-				</ScrollView>
-
-			</LinearLayout>
-
-			<LinearLayout
-				android:id="@+id/right_side_panel"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_alignParentLeft="false"
-				android:layout_alignParentStart="false"
-				android:layout_alignParentTop="false"
-				android:layout_gravity="center_vertical|right"
-				android:orientation="vertical"
-				android:layout_alignParentRight="true"
-				android:layout_centerVertical="true">
-
-				<ImageButton
-					android:id="@+id/still_capture_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_camera"
-					android:layout_marginTop="@dimen/quater_padding"/>
-
-				<ImageButton
-					android:id="@+id/video_capture_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_movie"/>
-
-				<ImageButton
-					android:id="@+id/trace_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:paddingTop="@dimen/padding"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_plane"/>
-
-			</LinearLayout>
-
-		</RelativeLayout>
-
-
-		<RelativeLayout
-			android:id="@+id/bottom_panel"
-			android:layout_width="match_parent"
-			android:layout_height="@dimen/bottom_panel_height"
-			android:gravity="bottom">
-
-			<ImageButton
-				android:id="@+id/take_onoff_btn"
-				android:layout_width="@dimen/bottom_panel_height"
-				android:layout_height="@dimen/bottom_panel_height"
-				android:layout_centerHorizontal="true"
-				android:background="@null"
-				android:scaleType="fitCenter"
-				android:src="?attr/flightdemo_icon_takeoff"/>
-
-			<ImageButton
-				android:id="@+id/emergency_btn"
-				android:layout_width="@dimen/bottom_panel_height"
-				android:layout_height="@dimen/bottom_panel_height"
-				android:layout_alignParentRight="true"
-				android:layout_marginRight="@dimen/quater_padding"
-				android:background="@null"
-				android:scaleType="fitXY"
-				android:src="?attr/flightdemo_icon_emergency"/>
-
-			<TextView
-				android:id="@+id/time_label"
-				android:layout_width="100sp"
-				android:layout_height="wrap_content"
-				android:layout_alignParentLeft="true"
-				android:layout_centerVertical="true"
-				android:text="###:##"
-				android:textSize="@dimen/text_sz_button"
-				android:textColor="@color/WHITE"/>
-
-			<FrameLayout
-				android:id="@+id/record_btn_frame"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_alignParentLeft="true"
-				android:layout_marginLeft="120dp"
-				android:background="@null">
-
-				<ImageButton
-					android:id="@+id/record_btn"
-					android:layout_width="@dimen/bottom_panel_height"
-					android:layout_height="@dimen/bottom_panel_height"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_rec" />
-
-				<TextView
-					android:id="@+id/record_label"
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_gravity="center_horizontal|bottom"
-					android:gravity="fill_horizontal|fill"
-					android:text="@string/action_record"
-					android:textSize="@dimen/text_sz_on_image_button"/>
-			</FrameLayout>
-
-			<FrameLayout
-				android:id="@+id/load_btn_frame"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_toEndOf="@+id/record_btn_frame"
-				android:layout_toRightOf="@+id/record_btn_frame"
-				android:background="@null">
-
-				<ImageButton
-					android:id="@+id/load_btn"
-					android:layout_width="@dimen/bottom_panel_height"
-					android:layout_height="@dimen/bottom_panel_height"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_folder"/>
-
-				<TextView
-					android:layout_width="wrap_content"
-					android:layout_height="wrap_content"
-					android:layout_gravity="center_horizontal|bottom"
-					android:gravity="fill_horizontal|fill"
-					android:text="@string/action_load"
-					android:textSize="@dimen/text_sz_on_image_button"/>
-			</FrameLayout>
-
-		</RelativeLayout>
+		<ImageButton
+			android:id="@+id/trace_btn"
+			android:layout_width="@dimen/btn_size_action"
+			android:layout_height="@dimen/btn_size_action"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_plane"/>
 
 	</LinearLayout>
+
+	<RelativeLayout
+		android:id="@+id/top_panel"
+		android:layout_width="match_parent"
+		android:layout_height="@dimen/top_panel_height"
+		android:gravity="top"
+		android:background="@drawable/top_frame"
+		android:layout_alignParentTop="true">
+
+		<TextView
+			android:id="@+id/keymap_stick_left_button"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentStart="true"
+			android:layout_centerVertical="true"
+			android:text="@string/battery"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:textColor="@color/DARKVIOLET"/>
+
+		<TextView
+			android:id="@+id/batteryLabel"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerVertical="true"
+			android:layout_toEndOf="@+id/keymap_stick_left_button"
+			android:layout_toRightOf="@+id/keymap_stick_left_button"
+			android:text="XXX%"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:textColor="@color/DARKVIOLET"/>
+
+		<ImageButton
+			android:id="@+id/flat_trim_btn"
+			android:layout_width="@dimen/top_panel_height"
+			android:layout_height="@dimen/top_panel_height"
+			android:layout_centerInParent="true"
+			android:background="@null"
+			android:scaleType="centerCrop"
+			android:src="?attr/flightdemo_icon_trim"/>
+
+		<TextView
+			android:id="@+id/alert_message"
+			android:layout_width="wrap_content"
+			android:layout_height="@dimen/top_panel_height"
+			android:layout_centerVertical="true"
+			android:layout_toLeftOf="@+id/config_show_btn"
+			android:layout_toRightOf="@+id/flat_trim_btn"
+			android:layout_toStartOf="@+id/config_show_btn"
+			android:gravity="center_vertical"
+			android:text="message"
+			android:textColor="#ffff0000"
+			android:textSize="@dimen/text_sz_message"
+			android:visibility="invisible"/>
+
+		<ImageButton
+			android:id="@+id/config_show_btn"
+			android:layout_width="@dimen/top_panel_height"
+			android:layout_height="@dimen/top_panel_height"
+			android:layout_alignParentEnd="true"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentTop="true"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_settings"/>
+
+	</RelativeLayout>
+
+	<RelativeLayout
+		android:id="@+id/bottom_panel"
+		android:layout_width="match_parent"
+		android:layout_height="@dimen/bottom_panel_height"
+		android:gravity="bottom"
+		android:layout_alignParentBottom="true">
+
+		<ImageButton
+			android:id="@+id/take_onoff_btn"
+			android:layout_width="@dimen/bottom_panel_height"
+			android:layout_height="@dimen/bottom_panel_height"
+			android:layout_centerHorizontal="true"
+			android:background="@null"
+			android:scaleType="fitCenter"
+			android:src="?attr/flightdemo_icon_takeoff"/>
+
+		<ImageButton
+			android:id="@+id/emergency_btn"
+			android:layout_width="@dimen/bottom_panel_height"
+			android:layout_height="@dimen/bottom_panel_height"
+			android:layout_alignParentRight="true"
+			android:layout_marginRight="@dimen/quater_padding"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_emergency"/>
+
+		<TextView
+			android:id="@+id/time_label"
+			android:layout_width="100sp"
+			android:layout_height="wrap_content"
+			android:layout_alignParentLeft="true"
+			android:layout_centerVertical="true"
+			android:text="###:##"
+			android:textSize="@dimen/text_sz_button"
+			android:textColor="@color/WHITE"/>
+
+		<FrameLayout
+			android:id="@+id/record_btn_frame"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentLeft="true"
+			android:layout_marginLeft="120dp"
+			android:background="@null">
+
+			<ImageButton
+				android:id="@+id/record_btn"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:background="@null"
+				android:scaleType="fitXY"
+				android:src="?attr/flightdemo_icon_rec" />
+
+			<TextView
+				android:id="@+id/record_label"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal|bottom"
+				android:gravity="fill_horizontal|fill"
+				android:text="@string/action_record"
+				android:textSize="@dimen/text_sz_on_image_button"/>
+		</FrameLayout>
+
+		<FrameLayout
+			android:id="@+id/load_btn_frame"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_toEndOf="@+id/record_btn_frame"
+			android:layout_toRightOf="@+id/record_btn_frame"
+			android:background="@null">
+
+			<ImageButton
+				android:id="@+id/load_btn"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:background="@null"
+				android:scaleType="fitXY"
+				android:src="?attr/flightdemo_icon_folder"/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal|bottom"
+				android:gravity="fill_horizontal|fill"
+				android:text="@string/action_load"
+				android:textSize="@dimen/text_sz_on_image_button"/>
+		</FrameLayout>
+
+	</RelativeLayout>
 
 </RelativeLayout>

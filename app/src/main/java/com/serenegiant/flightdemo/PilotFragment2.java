@@ -44,6 +44,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.serenegiant.flightdemo.AppConst.*;
+
 public class PilotFragment2 extends BasePilotFragment {
 //	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = PilotFragment2.class.getSimpleName();
@@ -322,7 +324,7 @@ public class PilotFragment2 extends BasePilotFragment {
 			((ICameraController)mController).sendCameraOrientation(0, 0);
 		}
 		final SharedPreferences pref = getActivity().getPreferences(0);
-		final int color = pref.getInt(ConfigFragment.KEY_COLOR, getResources().getColor(R.color.RED));
+		final int color = pref.getInt(KEY_COLOR, getResources().getColor(R.color.RED));
 		TextureHelper.genTexture(getActivity(), model, color);
 		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 		mModelView.setModel(model, ctrl);

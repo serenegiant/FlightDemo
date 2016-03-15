@@ -12,7 +12,7 @@ import android.widget.Switch;
 
 import com.serenegiant.widget.ColorPickerView;
 import com.serenegiant.widget.RelativeRadioGroup;
-
+import static com.serenegiant.flightdemo.AppConst.*;
 
 public class ConfigAppFragment extends BaseFragment {
 
@@ -43,7 +43,7 @@ public class ConfigAppFragment extends BaseFragment {
      	final View rootView = local_inflater.inflate(R.layout.fragment_config_app, container, false);
 		final RelativeRadioGroup group = (RelativeRadioGroup)rootView.findViewById(R.id.icon_radiogroup);
 
-		switch (mPref.getInt(ConfigFragment.KEY_ICON_TYPE, 100)) {
+		switch (mPref.getInt(KEY_ICON_TYPE, 100)) {
 		case 1:		// 001
 			group.check(R.id.icon_001_radiobutton);
 			break;
@@ -57,13 +57,13 @@ public class ConfigAppFragment extends BaseFragment {
 		}
 		group.setOnCheckedChangeListener(mOnRadioButtonCheckedChangeListener);
 // 機体色設定
-		mColor = mPref.getInt(ConfigFragment.KEY_COLOR, getResources().getColor(R.color.RED));
+		mColor = mPref.getInt(KEY_COLOR, getResources().getColor(R.color.RED));
 		final ColorPickerView picker = (ColorPickerView)rootView.findViewById(R.id.color_picker);
 		picker.setColor(mColor);
 		picker.showAlpha(false);
 		picker.setColorPickerListener(mColorPickerListener);
 // アイコンを自動的に隠す設定
-		mAutoHide = mPref.getBoolean(ConfigFragment.KEY_AUTO_HIDE, false);
+		mAutoHide = mPref.getBoolean(KEY_AUTO_HIDE, false);
 		final Switch sw = (Switch)rootView.findViewById(R.id.icon_auto_hide_switch);
 		sw.setChecked(mAutoHide);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
@@ -77,13 +77,13 @@ public class ConfigAppFragment extends BaseFragment {
 		public void onCheckedChanged(final RelativeRadioGroup group, final int checkedId) {
 			switch (checkedId) {
 			case R.id.icon_000_radiobutton:
-				mPref.edit().putInt(ConfigFragment.KEY_ICON_TYPE, 0).apply();
+				mPref.edit().putInt(KEY_ICON_TYPE, 0).apply();
 				break;
 			case R.id.icon_001_radiobutton:
-				mPref.edit().putInt(ConfigFragment.KEY_ICON_TYPE, 1).apply();
+				mPref.edit().putInt(KEY_ICON_TYPE, 1).apply();
 				break;
 			case R.id.icon_002_radiobutton:
-				mPref.edit().putInt(ConfigFragment.KEY_ICON_TYPE, 2).apply();
+				mPref.edit().putInt(KEY_ICON_TYPE, 2).apply();
 				break;
 			}
 		}
@@ -95,7 +95,7 @@ public class ConfigAppFragment extends BaseFragment {
 		public void onColorChanged(final ColorPickerView view, final int color) {
 			if (mColor != color) {
 				mColor = color;
-				mPref.edit().putInt(ConfigFragment.KEY_COLOR, color).apply();
+				mPref.edit().putInt(KEY_COLOR, color).apply();
 				TextureHelper.clearTexture(getActivity());
 			}
 		}
@@ -110,7 +110,7 @@ public class ConfigAppFragment extends BaseFragment {
 			{
 				if (mAutoHide != isChecked) {
 					mAutoHide = isChecked;
-					mPref.edit().putBoolean(ConfigFragment.KEY_AUTO_HIDE, isChecked).apply();
+					mPref.edit().putBoolean(KEY_AUTO_HIDE, isChecked).apply();
 				}
 				break;
 			}
