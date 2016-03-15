@@ -7,5 +7,33 @@
 		android:orientation="vertical"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content">
+		<!-- 飛行姿勢(yaw) -->
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/trace_config_flight_attitude_yaw"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:id="@+id/trace_flight_attitude_yaw_textview"
+			android:textColor="@color/trace_config"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/trace_flight_attitude_yaw_seekbar"
+			android:layout_gravity="center_horizontal"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 飛行速度 -->
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/trace_config_flight_speed"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:id="@+id/trace_flight_speed_textview"
+			android:textColor="@color/trace_config"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/trace_flight_speed_seekbar"
+			android:layout_gravity="center_horizontal"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
 	</LinearLayout>
 </ScrollView>

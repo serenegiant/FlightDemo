@@ -129,11 +129,11 @@
 	<string name="trace_white_blance">ホワイトバランス</string>
 	<string name="trace_white_blance_auto">自動</string>
 	<string name="trace_white_blance_manual">手動</string>
-	<string name="trace_use_exposure">露出</string>
-	<string name="trace_use_saturation">彩度</string>
-	<string name="trace_use_brightness">明るさ</string>
-	<string name="trace_use_posterize">ポスタライズ</string>
-	<string name="trace_binarize_threshold">二値化閾値</string>
+	<string name="trace_use_exposure">露出: %5.2f</string>
+	<string name="trace_use_saturation">彩度: %5.2f</string>
+	<string name="trace_use_brightness">明るさ: %5.2f</string>
+	<string name="trace_use_posterize">ポスタライズ: %5.2f</string>
+	<string name="trace_binarize_threshold">二値化閾値: %5.2f</string>
 	<!-- 検出設定 -->
 	<string name="trace_config_title_detect">ライン検出設定</string>
 	<string name="trace_smooth">平滑化</string>
@@ -150,4 +150,6 @@
 	<string name="trace_reset_extraction_color">抽出色リセット</string>
 	<!-- 飛行制御設定 -->
 	<string name="trace_config_title_auto_pilot">飛行制御設定</string>
+	<string name="trace_config_flight_attitude_yaw">飛行姿勢(yaw): %4.0f</string>
+	<string name="trace_config_flight_speed">飛行速度: %4.0f</string>
 </resources>

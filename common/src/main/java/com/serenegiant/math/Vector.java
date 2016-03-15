@@ -386,6 +386,9 @@ public class Vector implements Serializable, Cloneable {
 	 * @return
 	 */
 	public Vector limit(final float scalar) {
+		x = x >= scalar ? scalar : (x < -scalar ? -scalar : x);
+		y = y >= scalar ? scalar : (y < -scalar ? -scalar : y);
+		z = z >= scalar ? scalar : (z < -scalar ? -scalar : z);
 		while (x >= scalar) x -= scalar;
 		while (x < -scalar) x += scalar;
 		while (y >= scalar) y -= scalar;
@@ -395,13 +398,16 @@ public class Vector implements Serializable, Cloneable {
 		return this;
 	}
 
+	/**
+	 * x,y,z各成分を指定した値[lower, upper]に収まるように制限する
+	 * @param lower
+	 * @param upper
+	 * @return
+	 */
 	public Vector limit(final float lower, final float upper) {
-		while (x >= upper) x -= upper;
-		while (x < -lower) x += lower;
-		while (y >= upper) y -= upper;
-		while (y < -lower) y += lower;
-		while (z >= upper) z -= upper;
-		while (z < -lower) z += lower;
+		x = x >= upper ? upper : (x < lower ? lower : x);
+		y = y >= upper ? upper : (y < lower ? lower : y);
+		z = z >= upper ? upper : (z < lower ? lower : z);
 		return this;
 	}
 

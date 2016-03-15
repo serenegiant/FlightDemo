@@ -128,11 +128,11 @@
 	<string name="trace_white_blance">White blance</string>
 	<string name="trace_white_blance_auto">auto</string>
 	<string name="trace_white_blance_manual">manual</string>
-	<string name="trace_use_exposure">Exposure</string>
-	<string name="trace_use_saturation">Saturation</string>
-	<string name="trace_use_brightness">Brightness</string>
-	<string name="trace_use_posterize">Posterize</string>
-	<string name="trace_binarize_threshold">Binarize threshold</string>
+	<string name="trace_use_exposure">Exposure: %5.2f</string>
+	<string name="trace_use_saturation">Saturation: %5.2f</string>
+	<string name="trace_use_brightness">Brightness: %5.2f</string>
+	<string name="trace_use_posterize">Posterize: %5.2f</string>
+	<string name="trace_binarize_threshold">Binarize threshold: %5.2f</string>
 	<!-- 検出設定 -->
 	<string name="trace_config_title_detect">ライン検出設定</string>
 	<string name="trace_smooth">Smooth</string>
@@ -149,6 +149,8 @@
 	<string name="trace_reset_extraction_color">Reset extraction color</string>
 	<!-- 飛行制御設定 -->
 	<string name="trace_config_title_auto_pilot">Auto trace settings</string>
+	<string name="trace_config_flight_attitude_yaw">Attitude(yaw): %4.0f</string>
+	<string name="trace_config_flight_speed">Flight speed: %4.0f</string>
 
 	<array name="trace_smooth_entries">
 		<item>@string/trace_smooth_non</item>

@@ -130,6 +130,26 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 	@Override
 	protected View internalCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState, final int layout_id) {
+		// パラメータの読み込み
+		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, true);
+		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
+		mSaturation = mPref.getFloat(KEY_SATURATION, 0.0f);
+		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, 0.0f);
+		mPosterize = mPref.getFloat(KEY_POSTERIZE, 10);
+		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
+		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRETHOLD, 0.5f);
+		//
+		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
+		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
+		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, false);
+		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
+		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
+		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
+		//
+		mFlightAttitudeYaw = mPref.getFloat(KEY_TRACE_FLIGHT_ATTITUDE_YAW, 0.0f);
+		mFlightSpeed = mPref.getFloat(KEY_TRACE_FLIGHT_SPEED, 100.0f);
+
+		// Viewの取得・初期化
 		mActionViews.clear();
 
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
@@ -569,6 +589,13 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	}
 
 	private void onStopAutoPilot(final boolean isError) {
+		if (DEBUG) Log.v(TAG, "onStopAutoPilot:");
+		post(new Runnable() {
+			@Override
+			public void run() {
+				stopImageProcessor();
+			}
+		}, 0);
 	}
 
 	private static class LineRec {
@@ -598,7 +625,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			}
 			mIsRunning = mReqUpdateParams = true;
 			mAutoPilot = false;
-			float angle = 0;	// カメラの上方向に対する移動方向の角度
+			float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
+			float flightSpeed = 100.0f;		// 前進速度(負なら後進)
 			float maxControlValue = (float)mMaxControlValue;
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 			float scaleR = (float)mScaleR;
@@ -613,6 +641,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				synchronized (mParamSync) {
 					if (mReqUpdateParams) {
 						mReqUpdateParams = false;
+						flightAngleYaw = mFlightAttitudeYaw;
+						flightSpeed = mFlightSpeed;
 						maxControlValue = (float)mMaxControlValue;
 						scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 						scaleR = (float)mScaleR;
@@ -639,15 +669,20 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 						work.set(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT).div(2.0f).sub(rec.mLinePos);
 						msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f)", work.x, work.y, work.len(), rec.mAngle);
 						// 制御量を計算
-						final float pilotAngle = Math.round(rec.mAngle * scaleR * 5) * 5;
+						final float pilotAngle = Math.round((rec.mAngle - flightAngleYaw) * scaleR * 5) * 5;
 						work.div(320.0f, 184.0f, 1.0f).mult(maxControlValue).mult(scale);
-						mPilotValue.set(0.f, 100.0f);	// 前進
+						mPilotValue.set(0.f, flightSpeed);	// 前進
 						// 前回の位置とコマンドから想定する現在位置とラインの位置が大きく違う時は制限をする
 						prev.sub(rec.mLinePos);
-						if (prev.len() > 200) {
-							factor.mult(1.0f, 0.8f).limit(0.1f, 2.0f);
+						if (prev.lenSquared() > 20000) {
+							factor.mult(
+								Math.abs(prev.x) > 150 ? 0.9f : 1.0f,
+								Math.abs(prev.y) > 92 ? 0.9f : 1.0f,
+								Math.abs(prev.z) > 100 ? 0.9f : 1.0f)
+							.limit(0.1f, 2.0f);
 						}
-						mPilotValue.sub(work.x, -work.y).mult(factor).rotate(0, 0, angle);	// カメラの向きに合わせて進行方向をあわせる。z軸周りに回転
+						mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor).rotate(0, 0, flightAngleYaw);	// カメラの向きに合わせて進行方向をあわせる。z軸周りに回転
+						mPilotValue.limit(-100.0f, +100.0f);
 						if (mAutoPilot) {
 							// 制御コマンド送信
 							mFlightController.requestAnimationsCap((int)pilotAngle);
@@ -737,7 +772,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				}
 				rec.type = type;
 				// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
-				rec.mLinePos.set(result[0], result[1]);
+				rec.mLinePos.set(result[0], result[1], 0.0f);
 				// ラインの長さ(長軸長さ=length)
 				rec.mLineLen = result[2];
 				// ライン幅(短軸長さ)
@@ -894,12 +929,13 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			if (!fromUser) return;
 			switch (seekBar.getId()) {
 			case R.id.exposure_seekbar:
-				final float exposure = (progress - 100) / 10.0f;	// [0,200] => [-10.0f, +10.0f]
+				final float exposure = (progress - 1000) / 100.0f;	// [0,2000] => [-10.0f, +10.0f]
 				if (mExposure != exposure) {
 					mExposure = exposure;
 					if (mImageProcessor != null) {
 						mImageProcessor.setExposure(exposure);
 					}
+					updateExposure(exposure);
 				}
 				break;
 			case R.id.saturation_seekbar:
@@ -909,6 +945,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					if (mImageProcessor != null) {
 						mImageProcessor.setSaturation(saturation);
 					}
+					updateSaturation(saturation);
 				}
 				break;
 			case R.id.brightness_seekbar:
@@ -918,6 +955,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					if (mImageProcessor != null) {
 						mImageProcessor.setBrightness(brightness);
 					}
+					updateBrightness(brightness);
 				}
 				break;
 			case R.id.posterize_seekbar:
@@ -927,6 +965,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					if (mImageProcessor != null) {
 						mImageProcessor.setPosterize(posterize);
 					}
+					updatePosterize(posterize);
 				}
 				break;
 			case R.id.binarize_threshold_seekbar:
@@ -936,6 +975,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					if (mImageProcessor != null) {
 						mImageProcessor.setBinarizeThreshold(threshold);
 					}
+					updateBinarizeThreshold(threshold);
 				}
 				break;
 			case R.id.max_altitude_seekbar:
@@ -956,23 +996,45 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				break;
 			case R.id.max_control_value_seekbar:	// -500〜+500
 				final float max_control_value = progress - SCALE_OFFSET;
-				updateAutopilotMaxControlValue(max_control_value);
+				if (mMaxControlValue != max_control_value) {
+					updateAutopilotMaxControlValue(max_control_value);
+				}
 				break;
 			case R.id.scale_seekbar_x:
 				final float scale_x = (progress - SCALE_OFFSET) / SCALE_FACTOR;
-				updateAutopilotScaleX(scale_x);
+				if ((float)mScaleX != scale_x) {
+					updateAutopilotScaleX(scale_x);
+				}
 				break;
 			case R.id.scale_seekbar_y:
 				final float scale_y = (progress - SCALE_OFFSET) / SCALE_FACTOR;
-				updateAutopilotScaleY(scale_y);
+				if ((float)mScaleY != scale_y) {
+					updateAutopilotScaleY(scale_y);
+			}
 				break;
 			case R.id.scale_seekbar_z:
 				final float scale_z = (progress - SCALE_OFFSET) / SCALE_FACTOR;
-				updateAutopilotScaleZ(scale_z);
+				if ((float)mScaleZ != scale_z) {
+					updateAutopilotScaleZ(scale_z);
+				}
 				break;
 			case R.id.scale_seekbar_r:
 				final float scale_r = (progress - SCALE_OFFSET) / SCALE_FACTOR;
-				updateAutopilotScaleR(scale_r);
+				if ((float)mScaleR != scale_r) {
+					updateAutopilotScaleR(scale_r);
+				}
+				break;
+			case R.id.trace_flight_attitude_yaw_seekbar:
+				final float attitude_yaw = progress - 90;
+				if (mFlightAttitudeYaw != attitude_yaw) {
+					updateFlightAttitudeYaw(attitude_yaw);
+				}
+				break;
+			case R.id.trace_flight_speed_seekbar:
+				final float speed = progress - 100;
+				if (mFlightSpeed != speed) {
+					updateFlightSpeed(speed);
+				}
 				break;
 			}
 		}
@@ -1084,11 +1146,41 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					}
 				}
 				break;
+			case R.id.trace_flight_attitude_yaw_seekbar:
+				final float attitude_yaw = seekBar.getProgress() - 90;
+				if (attitude_yaw != mFlightAttitudeYaw) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mFlightAttitudeYaw = attitude_yaw;
+						mPref.edit().putFloat(KEY_TRACE_FLIGHT_ATTITUDE_YAW, attitude_yaw).apply();
+					}
+				}
+				break;
+			case R.id.trace_flight_speed_seekbar:
+				final float speed = seekBar.getProgress() - 100;
+				if (speed != mFlightSpeed) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mFlightSpeed = speed;
+						mPref.edit().putFloat(KEY_TRACE_FLIGHT_SPEED, speed).apply();
+					}
+				}
+				break;
 			}
 		}
 	};
 
 //--------------------------------------------------------------------------------
+	private String mExposureFormat;
+	private String mSaturationFormat;
+	private String mBrightnessFormat;
+	private String mPosterizeFormat;
+	private String mBinarizeThresholdFormat;
+	private TextView mExposureLabel;
+	private TextView mSaturationLabel;
+	private TextView mBrightnessLabel;
+	private TextView mPosterizeLabel;
+	private TextView mBinarizeThresholdLabel;
 	/** ホワイトバランス */
 	protected boolean mAutoWhiteBlance;
 	/** 露出 */
@@ -1102,7 +1194,14 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	protected float mPosterize;
 	/** 2値化閾値 */
 	protected float mBinarizeThreshold;
+
 	private void initPreprocess(final View rootView) {
+		mExposureFormat = getString(R.string.trace_use_exposure);
+		mSaturationFormat = getString(R.string.trace_use_saturation);
+		mBrightnessFormat = getString(R.string.trace_use_brightness);
+		mPosterizeFormat = getString(R.string.trace_use_posterize);
+		mBinarizeThresholdFormat = getString(R.string.trace_binarize_threshold);
+
 		Switch sw;
 		SeekBar sb;
 		Button btn;
@@ -1114,24 +1213,31 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		mAutoWhiteBlanceSw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// 露出
 		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
+		mExposureLabel = (TextView)rootView.findViewById(R.id.exposure_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
-		sb.setMax(200);
-		sb.setProgress((int)(mExposure * 10.0f) + 100);	// [-10,+ 10] => [0, 200]
+		sb.setMax(2000);
+		sb.setProgress((int)(mExposure * 100.0f) + 1000);	// [-10,+ 10] => [0, 2000]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateExposure(mExposure);
 		// 彩度
 		mSaturation = mPref.getFloat(KEY_SATURATION, 0.0f);
+		mSaturationLabel = (TextView)rootView.findViewById(R.id.saturation_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.saturation_seekbar);
 		sb.setMax(200);
 		sb.setProgress((int)(mSaturation * 100.0f) + 100);	// [-1.0f, +1.0f] => [0, 200]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateSaturation(mSaturation);
 		// 明るさ
 		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, 0.0f);
+		mBrightnessLabel = (TextView)rootView.findViewById(R.id.brightness_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.brightness_seekbar);
 		sb.setMax(200);
-		sb.setProgress((int)(mBrightness * 10.0f) + 100);	// [-1.0f, +1.0f] => [0, 100]
+		sb.setProgress((int)(mBrightness * 100.0f) + 100);	// [-1.0f, +1.0f] => [0, 200]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateBrightness(mBrightness);
 		// ポスタライズ
 		mPosterize = mPref.getFloat(KEY_POSTERIZE, 10);
+		mPosterizeLabel = (TextView)rootView.findViewById(R.id.posterize_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.posterize_seekbar);
 		sb.setMax(255);
 		sb.setProgress((int)(mPosterize - 1));	// [1, 256] => [0, 255]
@@ -1140,14 +1246,46 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sw = (Switch)rootView.findViewById(R.id.use_posterize_sw);
 		sw.setChecked(mEnablePosterize);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		updatePosterize(mPosterize);
 		// 二値化閾値
 		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRETHOLD, 0.5f);
+		mBinarizeThresholdLabel = (TextView)rootView.findViewById(R.id.binarize_threshold_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.binarize_threshold_seekbar);
 		sb.setMax(100);
 		sb.setProgress((int)(mBinarizeThreshold * 100.0f));	// [0.0f, +1.0f] => [0, 100]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateBinarizeThreshold(mBinarizeThreshold);
 	}
 
+	private void updateExposure(final float exposure) {
+		if (mExposureLabel != null) {
+			mExposureLabel.setText(String.format(mExposureFormat, exposure));
+		}
+	}
+
+	private void updateSaturation(final float saturation) {
+		if (mSaturationLabel != null) {
+			mSaturationLabel.setText(String.format(mSaturationFormat, saturation));
+		}
+	}
+
+	private void updateBrightness(final float brightness) {
+		if (mBrightnessLabel != null) {
+			mBrightnessLabel.setText(String.format(mBrightnessFormat, brightness));
+		}
+	}
+
+	private void updatePosterize(final float posterize) {
+		if (mPosterizeLabel != null) {
+			mPosterizeLabel.setText(String.format(mPosterizeFormat, posterize));
+		}
+	}
+
+	private void updateBinarizeThreshold(final float threshold) {
+		if (mBinarizeThresholdLabel != null) {
+			mBinarizeThresholdLabel.setText(String.format(mBinarizeThresholdFormat, threshold));
+		}
+	}
 //--------------------------------------------------------------------------------
 	/** OpenGL|ESで色抽出を行うかどうか  */
 	protected boolean mEnableGLESExtraction = false;
@@ -1163,6 +1301,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	protected int mNativeSmoothType = 0;
 	/** native側のエッジ検出(Canny)を使うかどうか */
 	protected boolean mEnableNativeCanny = true;
+
 	private void initDetect(final View rootView) {
 		Switch sw;
 		Button btn;
@@ -1206,7 +1345,46 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	}
 
 //--------------------------------------------------------------------------------
+	private TextView mFlightAttitudeYawLabel;
+	private TextView mFlightSpeedLabel;
+	private String mFlightAttitudeYawFormat;
+	private String mFlightSpeedFormat;
+	private float mFlightAttitudeYaw = 0;
+	private float mFlightSpeed = 100;
+
 	private void initAutoTrace(final View rootView) {
+		SeekBar sb;
+		//
+		mFlightAttitudeYawFormat = getString(R.string.trace_config_flight_attitude_yaw);
+		mFlightSpeedFormat = getString(R.string.trace_config_flight_speed);
+		// 飛行姿勢(yaw)
+		mFlightAttitudeYaw = mPref.getFloat(KEY_TRACE_FLIGHT_ATTITUDE_YAW, 0.0f);
+		mFlightAttitudeYawLabel = (TextView)rootView.findViewById(R.id.trace_flight_attitude_yaw_textview);
+		sb =(SeekBar)rootView.findViewById(R.id.trace_flight_attitude_yaw_seekbar);
+		sb.setMax(180);
+		sb.setProgress((int)(mFlightAttitudeYaw + 90));	// [-90,+90] => [0, 180]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateFlightAttitudeYaw(mFlightAttitudeYaw);
+		// 飛行速度
+		mFlightSpeed = mPref.getFloat(KEY_TRACE_FLIGHT_SPEED, 100.0f);
+		mFlightSpeedLabel = (TextView)rootView.findViewById(R.id.trace_flight_speed_textview);
+		sb =(SeekBar)rootView.findViewById(R.id.trace_flight_speed_seekbar);
+		sb.setMax(200);
+		sb.setProgress((int)(mFlightSpeed + 100));	// [-100,+100] => [0, 200]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateFlightSpeed(mFlightSpeed);
+	}
+
+	private void updateFlightAttitudeYaw(final float attitude_yaw) {
+		if (mFlightAttitudeYawLabel != null) {
+			mFlightAttitudeYawLabel.setText(String.format(mFlightAttitudeYawFormat, attitude_yaw));
+		}
+	}
+
+	private void updateFlightSpeed(final float speed) {
+		if (mFlightSpeedLabel != null) {
+			mFlightSpeedLabel.setText(String.format(mFlightSpeedFormat, speed));
+		}
 	}
 
 //--------------------------------------------------------------------------------
@@ -1334,11 +1512,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private TextView mAutopilotScaleZLabel;
 	private TextView mAutopilotScaleRLabel;
 	private TextView mAutopilotMaxControlValueLabel;
-//	private float mAutopilotMaxControlValue;
-//	private float mAutopilotScaleX;
-//	private float mAutopilotScaleY;
-//	private float mAutopilotScaleZ;
-//	private float mAutopilotScaleR;
 	private String mAutopilotScaleXFormat;
 	private String mAutopilotScaleYFormat;
 	private String mAutopilotScaleZFormat;
@@ -1539,7 +1712,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 		@Override
 		public synchronized Object instantiateItem(final ViewGroup container, final int position) {
-			if (DEBUG) Log.v(TAG, "instantiateItem:position=" + position);
+//			if (DEBUG) Log.v(TAG, "instantiateItem:position=" + position);
 			View view = null;
 			final int n = mConfigs != null ? mConfigs.length : 0;
 			if ((position >= 0) && (position < n)) {
@@ -1555,7 +1728,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 		@Override
 		public synchronized void destroyItem(final ViewGroup container, final int position, final Object object) {
-			if (DEBUG) Log.v(TAG, "destroyItem:position=" + position);
+//			if (DEBUG) Log.v(TAG, "destroyItem:position=" + position);
 			if (object instanceof View) {
 				container.removeView((View)object);
 			}
@@ -1573,7 +1746,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 		@Override
 		public CharSequence getPageTitle(final int position) {
-			if (DEBUG) Log.v(TAG, "getPageTitle:position=" + position);
+//			if (DEBUG) Log.v(TAG, "getPageTitle:position=" + position);
 			CharSequence result = null;
 			final int n = mConfigs != null ? mConfigs.length : 0;
 			if ((position >= 0) && (position < n)) {

@@ -20,6 +20,7 @@
 			android:id="@+id/white_balance_sw"/>
 		<!-- 露出 -->
 		<TextView
+			android:id="@+id/exposure_textview"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:textColor="@color/trace_config"
@@ -33,6 +34,7 @@
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 		<!-- 彩度 -->
 		<TextView
+			android:id="@+id/saturation_textview"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:textColor="@color/trace_config"
@@ -46,6 +48,7 @@
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 		<!-- 明るさ -->
 		<TextView
+			android:id="@+id/brightness_textview"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:textColor="@color/trace_config"
@@ -65,6 +68,14 @@
 			android:text="@string/trace_use_posterize"
 			android:visibility="gone"
 			android:id="@+id/use_posterize_sw"/>
+		<TextView
+			android:id="@+id/posterize_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_use_brightness"
+			android:visibility="gone" />
 		<SeekBar
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
@@ -74,6 +85,7 @@
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 		<!-- 二値化閾値  -->
 		<TextView
+			android:id="@+id/binarize_threshold_textview"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:textColor="@color/trace_config"

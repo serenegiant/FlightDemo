@@ -110,7 +110,7 @@
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:layout_gravity="top"
-				android:textColor="@color/BLUEVIOLET"
+				android:textColor="@color/trace_config"
 				android:textSize="@dimen/text_sz_trace_config_title"
 				android:paddingTop="10dp"
 				android:paddingBottom="@dimen/half_padding"/>

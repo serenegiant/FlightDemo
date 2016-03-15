@@ -41,5 +41,7 @@ public class AppConst {
 	public static final String KEY_NATIVE_SMOOTH_TYPE = "KEY_NATIVE_SMOOTH_TYPE";
 	public static final String KEY_ENABLE_EDGE_DETECTION = "KEY_ENABLE_EDGE_DETECTION";
 	public static final String KEY_ENABLE_NATIVE_EDGE_DETECTION = "KEY_ENABLE_NATIVE_EDGE_DETECTION";
+	public static final String KEY_TRACE_FLIGHT_ATTITUDE_YAW = "KEY_TRACE_FLIGHT_ATTITUDE_YAW";
+	public static final String KEY_TRACE_FLIGHT_SPEED = "KEY_TRACE_FLIGHT_SPEED";
 
 }
