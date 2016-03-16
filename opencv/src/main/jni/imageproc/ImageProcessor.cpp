@@ -804,7 +804,7 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 //	if (param.show_detects) {
 //		cv::drawContours(result, contours, -1, COLOR_YELLOW);
 //	}
-	std::vector< cv::Point > approx;		// 近似輪郭
+	std::vector< cv::Point > approx, approx2;		// 近似輪郭
 	cv::Point2f vertices[4];
 	const float ww = src.cols - 20;
 	const float hh = src.rows - 20;
@@ -846,7 +846,7 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		}
 		// 輪郭の面積を計算
 		float area = (float)cv::contourArea(*contour);
-		// 面積が小さすぎるのはスキップ
+		// 面積が小さすぎるのはスキップfx
 		if (area < 1000.0f) continue;
 		// 中に開いた穴の面積を除外
 		for (int i = hierarchy[idx][2]; i >= 0; ) {
@@ -865,7 +865,17 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		// 凸包の面積を計算
 		const float area_approx = (float)cv::contourArea(approx);
 		// 凸包面積が25%以上元の輪郭面積より大きければスキップ=凹凸が激しい
-		if (area_approx / area > 1.25f) continue;
+		if (area_approx / area > 1.25f) {
+			// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
+			const double epsilon = param.mApproxType == APPROX_RELATIVE
+				? param.mApproxFactor * cv::arcLength(approx, true)	// 周長に対する比
+				: param.mApproxFactor;								// 絶対値
+			// 輪郭を近似する
+			cv::approxPolyDP(*contour, approx2, epsilon, true);	// 閉曲線にする
+			const float rate = (float)cv::contourArea(approx2) / area;
+			if ((rate < 0.77f) || (rate > 1.3f))
+				continue;
+		}
 		if (param.show_detects) {
 			cv::polylines(result, approx, true, COLOR_GREEN);
 //			draw_rect(result, area_rect, COLOR_GREEN);

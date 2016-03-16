@@ -588,6 +588,10 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		setColorFilter(mTraceButton, 0, 0);
 	}
 
+	/**
+	 * TraceTaskが停止するときのコールバック
+	 * @param isError
+	 */
 	private void onStopAutoPilot(final boolean isError) {
 		if (DEBUG) Log.v(TAG, "onStopAutoPilot:");
 		post(new Runnable() {
@@ -598,21 +602,29 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		}, 0);
 	}
 
+	/** 解析データレコード */
 	private static class LineRec {
 		public int type;
 		public final Vector mLinePos = new Vector();
 		public float mLineLen, mLineWidth, mAngle, mAreaRate, mCurvature;
 	}
-
+	/** 解析データキューの最大サイズ */
 	private static final int MAX_QUEUE = 4;
+	/** 解析データレコードの再利用のためのプール */
 	private final List<LineRec> mPool = new ArrayList<LineRec>();
+	/** 解析データキュー */
 	private final List<LineRec> mQueue = new ArrayList<LineRec>();
 	private volatile boolean mIsRunning;
+	/** トレース飛行中 */
 	private volatile boolean mAutoPilot;
+	/** パラメータ変更指示 */
 	private boolean mReqUpdateParams;
+	/** パラメータの排他制御用 */
 	private final Object mParamSync = new Object();
 
+	/** トレース飛行タスク */
 	private class TraceTask implements Runnable {
+		private static final float EPS_CURVATURE = 1.0e-4f;
 		public TraceTask() {
 		}
 
@@ -627,7 +639,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			mAutoPilot = false;
 			float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
 			float flightSpeed = 100.0f;		// 前進速度(負なら後進)
-			float maxControlValue = (float)mMaxControlValue;
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 			float scaleR = (float)mScaleR;
 			final Vector factor = new Vector(1.0f, 1.0f, 1.0f);
@@ -635,21 +646,23 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			long lostTime = -1;
 			final Vector work = new Vector();
 			final Vector prev = new Vector();
-			final Vector mPilotValue = new Vector();	// roll/pitch制御量
+			float pilotAngle = 0.0f;
+			final Vector mPilotValue = new Vector();		// roll,pitch,gaz制御量
+			final Vector mPrevPilotValue = new Vector();	// roll,pitch,gazの前回制御量
 			LineRec rec = null;
 			for ( ; mIsRunning ; ) {
 				synchronized (mParamSync) {
-					if (mReqUpdateParams) {
+					if (mReqUpdateParams) {	// パラメータ変更指示?
 						mReqUpdateParams = false;
 						flightAngleYaw = mFlightAttitudeYaw;
-						flightSpeed = mFlightSpeed;
-						maxControlValue = (float)mMaxControlValue;
+						flightSpeed = mFlightSpeed * (float)(mMaxControlValue / 100.0);
 						scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 						scaleR = (float)mScaleR;
 					}
 				}
 				synchronized (mQueue) {
 					try {
+						// 解析データ待ち
 						mQueue.wait(500);
 					} catch (InterruptedException e) {
 						break;
@@ -660,53 +673,86 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					}
 				}
 				if (rec != null) {
+					// 解析データを取得できた＼(^o^)／
 					final String msg1;
 					if (rec.type >= 0) {	// 0:TYPE_LINE, 1:TYPE_CIRCLE, 2:TYPE_CORNER
 						// ラインを検出出来た時
 						lostTime = -1;
-						factor.mult(1.1f).limit(0.1f, 2.0f);
-						// 画像中心からの距離
-						work.set(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT).div(2.0f).sub(rec.mLinePos);
-						msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f)", work.x, work.y, work.len(), rec.mAngle);
-						// 制御量を計算
-						final float pilotAngle = Math.round((rec.mAngle - flightAngleYaw) * scaleR * 5) * 5;
-						work.div(320.0f, 184.0f, 1.0f).mult(maxControlValue).mult(scale);
-						mPilotValue.set(0.f, flightSpeed);	// 前進
+						//--------------------------------------------------------------------------------
 						// 前回の位置とコマンドから想定する現在位置とラインの位置が大きく違う時は制限をする
+						//--------------------------------------------------------------------------------
 						prev.sub(rec.mLinePos);
-						if (prev.lenSquared() > 20000) {
-							factor.mult(
-								Math.abs(prev.x) > 150 ? 0.9f : 1.0f,
-								Math.abs(prev.y) > 92 ? 0.9f : 1.0f,
-								Math.abs(prev.z) > 100 ? 0.9f : 1.0f)
+						final boolean limited = prev.lenSquared() > 20000;
+						factor.mult(
+							limited ? (Math.abs(prev.x) > 150 ? 0.9f : 1.0f) : 1.1f,
+							limited ? (Math.abs(prev.y) > 92 ? 0.9f : 1.0f) : 1.1f,
+							limited ? (Math.abs(prev.z) > 100 ? 0.9f : 1.0f) : 1.1f)
 							.limit(0.1f, 2.0f);
-						}
-						mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor).rotate(0, 0, flightAngleYaw);	// カメラの向きに合わせて進行方向をあわせる。z軸周りに回転
+						//--------------------------------------------------------------------------------
+						// 制御量を計算
+						// 機体からの角度はカメラ映像の真上が0で反時計回りが負、時計回りが正(Bebopのyaw軸回転角と同じ)
+						// 解析画像のラインに対する角度は機体が時計回りすれば正
+						// この時機体自体のラインに対する角度は符号反転
+						// mCurvatureがゼロでない時にmAngleが正ならラインは左へ曲がっている、mAngleが負なら右へ曲がっている
+						// Vectorクラスは反時計回りが正, 時計回りが負
+						//--------------------------------------------------------------------------------
+						// 画像中心からの距離を計算
+						work.set(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT).div(2.0f).sub(rec.mLinePos);
+						// 解析データ(画像中心からのオフセット,距離,回転角)
+						msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f,r=%6.4e)", work.x, work.y, work.len(), rec.mAngle, rec.mCurvature);
+						// 機体の進行方向に対する回転の補正
+						work.rotate(0.0f, 0.0f, flightAngleYaw);
+						// 前進速度に機体の進行方向に対する回転の補正
+						mPilotValue.set(0.f, flightSpeed).rotate(0, 0, flightAngleYaw);
+						mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor).mult(scale);	// カメラの向きに合わせて進行方向をあわせる。z軸周りに回転
 						mPilotValue.limit(-100.0f, +100.0f);
-						if (mAutoPilot) {
-							// 制御コマンド送信
-							mFlightController.requestAnimationsCap((int)pilotAngle);
-							mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0);
+						// 機体のyaw角を計算, 機体の進行方向の傾きを差し引く, 一定角度以下は0に丸める
+						pilotAngle = (-rec.mAngle + flightAngleYaw);
+						// 曲率による機体yaw角の補正
+						if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
+							// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
+							pilotAngle += -rec.mAngle * 0.1f;
 						}
+						pilotAngle = (pilotAngle < -3.0f) || (pilotAngle > 3.0f) ? pilotAngle : 0.0f;
 						// 今回の位置を保存
 						prev.set(rec.mLinePos);
 					} else {
 						// ラインを見失った時
 						msg1 = null;
 						factor.clear(0.1f);
-						mPilotValue.clear(0.0f);
+						pilotAngle = 0.0f;
 						rec.mAngle = 0;
 						if (mAutoPilot) {
 							if (lostTime < 0) {
 								lostTime = System.currentTimeMillis();
 							}
-							if (System.currentTimeMillis() - lostTime > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
+							final long t = System.currentTimeMillis() - lostTime;
+							if (t < 500) {
+								// 一定時間は逆向きに動かす
+								mPilotValue.set(mPrevPilotValue).mult(-1.0f);
+							} else {
+								// 一定時間以上ラインを見失ったらその場で静止
+								mPilotValue.clear(0.0f);
+							}
+							if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
 								onStopAutoPilot(true);
 								mAutoPilot = false;
 							}
+						} else {
+							mPilotValue.clear(0.0f);
 						}
 					}
-					final String msg2 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, 0.0f, -rec.mAngle);
+					//--------------------------------------------------------------------------------
+					// トレース飛行中なら制御コマンド送信
+					//--------------------------------------------------------------------------------
+					if (mAutoPilot) {
+						// 制御コマンド送信
+						mFlightController.requestAnimationsCap((int)pilotAngle);
+						mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0);	// FIXME 高度は制御しない
+						// 今回の制御量を保存
+						mPrevPilotValue.set(mPilotValue);
+					}
+					final String msg2 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, 0.0f, pilotAngle);
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
@@ -795,6 +841,9 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 
 	};
 
+//================================================================================
+// ここから下はパラメータ関係
+//================================================================================
 	private int getInt(final SharedPreferences pref, final String key, final int default_value) {
 		int result = default_value;
 		try {
@@ -996,45 +1045,31 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				break;
 			case R.id.max_control_value_seekbar:	// -500〜+500
 				final float max_control_value = progress - SCALE_OFFSET;
-				if (mMaxControlValue != max_control_value) {
-					updateAutopilotMaxControlValue(max_control_value);
-				}
+				updateAutopilotMaxControlValue(max_control_value);
 				break;
 			case R.id.scale_seekbar_x:
 				final float scale_x = (progress - SCALE_OFFSET) / SCALE_FACTOR;
-				if ((float)mScaleX != scale_x) {
-					updateAutopilotScaleX(scale_x);
-				}
+				updateAutopilotScaleX(scale_x);
 				break;
 			case R.id.scale_seekbar_y:
 				final float scale_y = (progress - SCALE_OFFSET) / SCALE_FACTOR;
-				if ((float)mScaleY != scale_y) {
-					updateAutopilotScaleY(scale_y);
-			}
+				updateAutopilotScaleY(scale_y);
 				break;
 			case R.id.scale_seekbar_z:
 				final float scale_z = (progress - SCALE_OFFSET) / SCALE_FACTOR;
-				if ((float)mScaleZ != scale_z) {
-					updateAutopilotScaleZ(scale_z);
-				}
+				updateAutopilotScaleZ(scale_z);
 				break;
 			case R.id.scale_seekbar_r:
 				final float scale_r = (progress - SCALE_OFFSET) / SCALE_FACTOR;
-				if ((float)mScaleR != scale_r) {
-					updateAutopilotScaleR(scale_r);
-				}
+				updateAutopilotScaleR(scale_r);
 				break;
 			case R.id.trace_flight_attitude_yaw_seekbar:
 				final float attitude_yaw = progress - 90;
-				if (mFlightAttitudeYaw != attitude_yaw) {
-					updateFlightAttitudeYaw(attitude_yaw);
-				}
+				updateFlightAttitudeYaw(attitude_yaw);
 				break;
 			case R.id.trace_flight_speed_seekbar:
 				final float speed = progress - 100;
-				if (mFlightSpeed != speed) {
-					updateFlightSpeed(speed);
-				}
+				updateFlightSpeed(speed);
 				break;
 			}
 		}
@@ -1102,8 +1137,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					synchronized (mParamSync) {
 						mReqUpdateParams = true;
 						mMaxControlValue = max_control_value;
-						mPref.edit().putFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, max_control_value).apply();
 					}
+					mPref.edit().putFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, max_control_value).apply();
 				}
 				break;
 			case R.id.scale_seekbar_x:
@@ -1112,8 +1147,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					synchronized (mParamSync) {
 						mReqUpdateParams = true;
 						mScaleX = scale_x;
-						mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_X, scale_x).apply();
 					}
+					mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_X, scale_x).apply();
 				}
 				break;
 			case R.id.scale_seekbar_y:
@@ -1122,8 +1157,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					synchronized (mParamSync) {
 						mReqUpdateParams = true;
 						mScaleY = scale_y;
-						mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_Y, scale_y).apply();
 					}
+					mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_Y, scale_y).apply();
 				}
 				break;
 			case R.id.scale_seekbar_z:
@@ -1132,8 +1167,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					synchronized (mParamSync) {
 						mReqUpdateParams = true;
 						mScaleZ = scale_z;
-						mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_Z, scale_z).apply();
 					}
+					mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_Z, scale_z).apply();
 				}
 				break;
 			case R.id.scale_seekbar_r:
@@ -1142,8 +1177,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					synchronized (mParamSync) {
 						mReqUpdateParams = true;
 						mScaleR = scale_r;
-						mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_R, scale_r).apply();
 					}
+					mPref.edit().putFloat(KEY_AUTOPILOT_SCALE_R, scale_r).apply();
 				}
 				break;
 			case R.id.trace_flight_attitude_yaw_seekbar:
@@ -1152,8 +1187,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					synchronized (mParamSync) {
 						mReqUpdateParams = true;
 						mFlightAttitudeYaw = attitude_yaw;
-						mPref.edit().putFloat(KEY_TRACE_FLIGHT_ATTITUDE_YAW, attitude_yaw).apply();
 					}
+					mPref.edit().putFloat(KEY_TRACE_FLIGHT_ATTITUDE_YAW, attitude_yaw).apply();
 				}
 				break;
 			case R.id.trace_flight_speed_seekbar:
@@ -1162,8 +1197,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					synchronized (mParamSync) {
 						mReqUpdateParams = true;
 						mFlightSpeed = speed;
-						mPref.edit().putFloat(KEY_TRACE_FLIGHT_SPEED, speed).apply();
 					}
+					mPref.edit().putFloat(KEY_TRACE_FLIGHT_SPEED, speed).apply();
 				}
 				break;
 			}
