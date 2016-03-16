@@ -978,7 +978,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			if (!fromUser) return;
 			switch (seekBar.getId()) {
 			case R.id.exposure_seekbar:
-				final float exposure = (progress - 1000) / 100.0f;	// [0,2000] => [-10.0f, +10.0f]
+				final float exposure = progressToExposure(progress);	// [0,2000] => [-10.0f, +10.0f]
 				if (mExposure != exposure) {
 					mExposure = exposure;
 					if (mImageProcessor != null) {
@@ -1251,7 +1251,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		mExposureLabel = (TextView)rootView.findViewById(R.id.exposure_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
 		sb.setMax(2000);
-		sb.setProgress((int)(mExposure * 100.0f) + 1000);	// [-10,+ 10] => [0, 2000]
+		sb.setProgress(exposureToProgress(mExposure));	// [-10,+ 10] => [0, 2000]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateExposure(mExposure);
 		// 彩度
@@ -1290,6 +1290,15 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sb.setProgress((int)(mBinarizeThreshold * 100.0f));	// [0.0f, +1.0f] => [0, 100]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateBinarizeThreshold(mBinarizeThreshold);
+	}
+
+	private int exposureToProgress(final float exposure) {
+		return (int)(Math.signum(exposure) * (Math.sqrt(Math.abs(exposure * 100000)))) + 1000;
+	}
+
+	private float progressToExposure(final int progress) {
+		final int p = progress - 1000;
+		return Math.signum(p) * (p * p / 100000.0f);
 	}
 
 	private void updateExposure(final float exposure) {

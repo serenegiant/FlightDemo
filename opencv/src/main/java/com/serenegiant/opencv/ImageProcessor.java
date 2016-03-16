@@ -62,7 +62,13 @@ public class ImageProcessor {
 	private int mSmoothType = 0;
 	private float mBinarizeThreshold = 0.5f;
 	private boolean mEnableCanny;
-	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
+	private static final int[][] COLOR_RANGES = {
+		{0, 180, 0, 50, 120, 255},		// 白色
+		{25, 35, 120, 130, 180, 200},	// 黄色...蛍光色はこれだとだめみたい
+	};
+	private int COLOR_RANGE_IX = 0;
+	protected final int[] EXTRACT_COLOR_HSV_LIMIT = COLOR_RANGES[COLOR_RANGE_IX];
+
 
 	private volatile boolean requestUpdateExtractionColor;
 
@@ -412,12 +418,7 @@ public class ImageProcessor {
 	 */
 	public void resetExtractionColor() {
 		synchronized (mSync) {
-			EXTRACT_COLOR_HSV_LIMIT[0] = 0;
-			EXTRACT_COLOR_HSV_LIMIT[1] = 180;
-			EXTRACT_COLOR_HSV_LIMIT[2] = 0;
-			EXTRACT_COLOR_HSV_LIMIT[3] = 50;
-			EXTRACT_COLOR_HSV_LIMIT[4] = 120;
-			EXTRACT_COLOR_HSV_LIMIT[5] = 255;
+			System.arraycopy(COLOR_RANGES[COLOR_RANGE_IX], 0, EXTRACT_COLOR_HSV_LIMIT, 0, 6);
 			applyExtractionColor();
 		}
 	}
@@ -828,7 +829,7 @@ public class ImageProcessor {
 			final int[] s_cnt = new int[256];	// 0..255
 			final int[] v_cnt = new int[256];	// 0..255
 			for (int i = 0; i < sz; i += 4) {
-				rgb2hsv(rgba[i], rgba[i+1], rgba[i+2], hsv);	// RGBAの順
+				rgb2hsv(rgba[i], rgba[i+1], rgba[i+2], hsv);	// RGBAの順 => h[0,360], s[0,1], v[0,1]
 				h_cnt[(int)(hsv[0] / 360f * 255) % 256]++;
 				s_cnt[(int)(hsv[1] * 255) % 256]++;
 				v_cnt[(int)(hsv[2] * 255) % 256]++;
@@ -862,7 +863,7 @@ public class ImageProcessor {
 			EXTRACT_COLOR_HSV_LIMIT[5] = sat((int)((v + v_sd)), 0, 255);
 			applyExtractionColor();
 			if (DEBUG) Log.v(TAG, String.format("AVE(%f,%f,%f),SD(%f,%f,%f)",
-				h, s, v, h_sd, s_sd, v_sd));
+				h / 250 * 180, s, v, h_sd  / 250 * 180, s_sd, v_sd));
 
 			if (DEBUG) Log.v(TAG, String.format("HSV(%d,%d,%d,%d,%d,%d)",
 				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
