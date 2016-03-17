@@ -522,6 +522,17 @@ public class ImageProcessor {
 		return result != 0;
 	}
 
+	public void trapeziumRate(final double trapeziumRate) {
+		final int result = nativeSetTrapeziumRate(mNativePtr,
+			trapeziumRate < -0.01 ? trapeziumRate : (trapeziumRate > 0.01 ? trapeziumRate : 0.0));
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetTrapeziumRate:result=" + result);
+		}
+	}
+
+	public double trapeziumRate() {
+		return nativeGetTrapeziumRate(mNativePtr);
+	}
 //================================================================================
 	/**
 	 * native側からの結果コールバック
@@ -974,4 +985,6 @@ public class ImageProcessor {
 	private static native int nativeGetSmooth(final long id_native);
 	private static native int nativeSetEnableCanny(final long id_native, final int enable);
 	private static native int nativeGetEnableCanny(final long id_native);
+	private static native int nativeSetTrapeziumRate(final long id_native, final double trapeziumRate);
+	private static native double nativeGetTrapeziumRate(final long id_native);
 }

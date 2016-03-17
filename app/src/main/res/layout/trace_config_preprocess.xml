@@ -97,5 +97,19 @@
 			android:paddingBottom="@dimen/quater_padding"
 			android:id="@+id/binarize_threshold_seekbar"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 台形補正係数  -->
+		<TextView
+			android:id="@+id/trapezium_rate_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_trapezium_rate"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/quater_padding"
+			android:id="@+id/trapezium_rate_seekbar"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
 	</LinearLayout>
 </ScrollView>

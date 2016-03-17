@@ -75,10 +75,12 @@ public:
 	double mCannythreshold2;
 	float mMaxAnalogous;
 	int extractColorHSV[6];	// 抽出色(HSV上下限)
+	double mTrapeziumRate;	// 台形歪率, 0:歪なし, 正:下辺が長い, 負:上限が長い
 	// これより下は内部計算
 	bool needs_result;	// これは内部計算
 	bool show_src;		// これは内部計算
 	bool show_detects;	// これは内部計算
+	cv::Mat perspectiveTransform;	// 透視変換行列, 台形歪補正用, 内部計算
 
 	/** 値をセットして更新, src#changed=trueの時のみ */
 	void set(const DetectParam_t &src) {
@@ -92,6 +94,8 @@ public:
 		mCannythreshold2 = src.mCannythreshold2;
 		mMaxAnalogous = src.mMaxAnalogous;
 		memcpy(extractColorHSV, src.extractColorHSV, sizeof(int) * 6);
+		mTrapeziumRate = src.mTrapeziumRate;
+		perspectiveTransform = src.perspectiveTransform;
 		// 計算
 		needs_result = mResultFrameType != RESULT_FRAME_TYPE_NON;
 		show_src = (mResultFrameType == RESULT_FRAME_TYPE_SRC) || (mResultFrameType == RESULT_FRAME_TYPE_SRC_LINE);
@@ -161,9 +165,12 @@ public:
 	void setEnableExtract(const int &enable);
 	inline const int getEnableExtract() const { return mParam.mEnableExtract ? 1 : 0; };
 	void setEnableSmooth(const SmoothType_t &smooth_type);
-	inline const SmoothType_t getEnableSmooth() const { return mParam.mSmoothType; };
+	inline const SmoothType_t &getEnableSmooth() const { return mParam.mSmoothType; };
 	void setEnableCanny(const int &enable);
 	inline const int getEnableCanny() const { return mParam.mEnableCanny ? 1 : 0; };
 	/** 抽出色の上下限をHSVで設定 */
 	int setExtractionColor(const int lower[], const int upper[]);
+	/** 台形歪係数を設定 */
+	int setTrapeziumRate(const double &trapezium_rate);
+	inline const double getTrapeziumRate() const { return mParam.mTrapeziumRate;  };
 };

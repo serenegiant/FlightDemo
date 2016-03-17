@@ -89,7 +89,8 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	mParam.extractColorHSV[4] = 10;		// S上限
 	mParam.extractColorHSV[5] = 255;	// V上限
 	mParam.changed = true;
-
+	// 台形補正
+	mParam.mTrapeziumRate = 0.0;
 #if USE_PBO
 	pbo[0] = pbo[1] = 0;
 #endif
@@ -238,6 +239,31 @@ int ImageProcessor::setExtractionColor(const int lower[], const int upper[]) {
 	memcpy(&mParam.extractColorHSV[0], &lower[0], sizeof(int) * 3);
 	memcpy(&mParam.extractColorHSV[3], &upper[0], sizeof(int) * 3);
 	mParam.changed = true;
+
+	RETURN(0, int);
+}
+
+	/** 台形歪係数を設定 */
+int ImageProcessor::setTrapeziumRate(const double &trapezium_rate) {
+	ENTER();
+
+	if (mParam.mTrapeziumRate != trapezium_rate) {
+
+		cv::Point2f src[4] = { cv::Point2f(0.0f, 0.0f), cv::Point2f(0.0f, 368.0f), cv::Point2f(640.0f, 368.0f), cv::Point2f(640.0f, 0.0f)};
+		cv::Point2f dst[4] = {
+			cv::Point2f((trapezium_rate < 0 ? -trapezium_rate * 150.0f : 0.0f) + 0.0f, 0.0f),
+			cv::Point2f((trapezium_rate >= 0 ?  trapezium_rate * 150.0f : 0.0f) + 0.0f, 368.0f),
+			cv::Point2f((trapezium_rate >= 0 ?  -trapezium_rate * 150.0f : 0.0f) + 640.0f, 368.0f),
+			cv::Point2f((trapezium_rate < 0 ?  trapezium_rate * 150.0f : 0.0f) + 640.0f, 0.0f)};
+		cv::Mat perspectiveTransform = cv::getPerspectiveTransform(src, dst);
+		mMutex.lock();
+		{
+			mParam.mTrapeziumRate = trapezium_rate;
+			mParam.perspectiveTransform = perspectiveTransform;
+			mParam.changed = true;
+		}
+		mMutex.unlock();
+	}
 
 	RETURN(0, int);
 }
@@ -682,6 +708,13 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 //	cv::threshold(src, src, 125, 255, cv::THRESH_BINARY);
 //	cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
 
+	// 台形補正
+	if (param.mTrapeziumRate) {
+		cv::warpPerspective(src, src, param.perspectiveTransform, cv::Size(src.cols, src.rows));
+		if (param.show_src) {
+			cv::warpPerspective(frame, frame, param.perspectiveTransform, cv::Size(src.cols, src.rows));
+		}
+	}
 	// 表示用にカラー画像に戻す
 	if (param.needs_result) {
 		if (param.show_src) {
@@ -1285,6 +1318,35 @@ static jint nativeGetEnableCanny(JNIEnv *env, jobject thiz,
 	RETURN(result, jint);
 }
 
+static jint nativeSetTrapeziumRate(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jdouble trapezium_rate) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		processor->setTrapeziumRate(trapezium_rate);
+		result = 0;
+	}
+
+	RETURN(result, jint);
+}
+
+static jdouble nativeGetTrapeziumRate(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native) {
+
+	ENTER();
+
+	jdouble result = 0.0;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->getTrapeziumRate();
+	}
+
+	RETURN(result, jdouble);
+}
+
 //================================================================================
 //================================================================================
 static JNINativeMethod methods[] = {
@@ -1303,6 +1365,9 @@ static JNINativeMethod methods[] = {
 	{ "nativeGetSmooth",			"(J)I", (void *) nativeGetSmooth },
 	{ "nativeSetEnableCanny",		"(JI)I", (void *) nativeSetEnableCanny },
 	{ "nativeGetEnableCanny",		"(J)I", (void *) nativeGetEnableCanny },
+	{ "nativeSetTrapeziumRate",		"(JD)I", (void *) nativeSetTrapeziumRate },
+	{ "nativeGetTrapeziumRate",		"(J)D", (void *) nativeGetTrapeziumRate },
+
 };
 
 

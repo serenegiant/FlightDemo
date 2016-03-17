@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+		<!-- 色抽出(OpenGL|ES) -->
+		<Switch
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingTop="@dimen/quater_padding"
+			android:paddingBottom="@dimen/quater_padding"
+			android:textColor="@color/trace_config"
+			android:text="@string/trace_use_extraction"
+			android:id="@+id/use_extract_sw"/>
+		<!-- 色抽出(OpenCV) -->
+		<Switch
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingTop="@dimen/quater_padding"
+			android:paddingBottom="@dimen/quater_padding"
+			android:textColor="@color/trace_config"
+			android:text="@string/trace_use_native_extraction"
+			android:id="@+id/use_native_extract_sw"/>
+		<!-- 抽出色更新 -->
+		<Button
+			style="?android:attr/buttonStyleSmall"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:textColor="@color/BLACK"
+			android:text="@string/trace_update_extraction_color"
+			android:id="@+id/update_extraction_color_btn"/>
+		<!-- 抽出色リセット -->
+		<Button
+			style="?android:attr/buttonStyleSmall"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:textColor="@color/BLACK"
+			android:text="@string/trace_reset_extraction_color"
+			android:id="@+id/reset_extraction_color_btn"/>
+	</LinearLayout>
+</ScrollView>

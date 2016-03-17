@@ -131,13 +131,15 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	@Override
 	protected View internalCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState, final int layout_id) {
 		// パラメータの読み込み
-		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, true);
+		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, false);
 		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
 		mSaturation = mPref.getFloat(KEY_SATURATION, 0.0f);
 		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, 0.0f);
 		mPosterize = mPref.getFloat(KEY_POSTERIZE, 10);
 		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
-		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRETHOLD, 0.5f);
+		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRESHOLD, 0.5f);
+		mTrapeziumRate = Double.parseDouble(mPref.getString(KEY_TRAPEZIUM_RATE, "0.0"));
+		if (Math.abs(mTrapeziumRate) < 0.01) mTrapeziumRate = 0.0;
 		//
 		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
 		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
@@ -562,6 +564,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			mImageProcessor.enableExtraction(mEnableGLESExtraction);
 			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
 			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
+			mImageProcessor.trapeziumRate(mTrapeziumRate);
 			mImageProcessor.start();
 			final Surface surface = mImageProcessor.getSurface();
 			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
@@ -1027,6 +1030,16 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					updateBinarizeThreshold(threshold);
 				}
 				break;
+			case R.id.trapezium_rate_seekbar:
+				final double trapezium_rate = progressToTrapeziumRate(progress);
+				if (mTrapeziumRate != trapezium_rate) {
+					mTrapeziumRate = trapezium_rate;
+					if (mImageProcessor != null) {
+						mImageProcessor.trapeziumRate(trapezium_rate);
+					}
+					updateTrapeziumRate(trapezium_rate);
+				}
+				break;
 			case R.id.max_altitude_seekbar:
 				final float altitude = (int) (progress / 100f * (mMaxAltitude.max() - mMaxAltitude.min())) / 10f + mMaxAltitude.min();
 				updateMaxAltitude(altitude);
@@ -1103,7 +1116,12 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				break;
 			case R.id.binarize_threshold_seekbar:
 				if (mPref != null) {
-					mPref.edit().putFloat(KEY_BINARIZE_THRETHOLD, mBinarizeThreshold).apply();
+					mPref.edit().putFloat(KEY_BINARIZE_THRESHOLD, mBinarizeThreshold).apply();
+				}
+				break;
+			case R.id.trapezium_rate_seekbar:
+				if (mPref != null) {
+					mPref.edit().putString(KEY_TRAPEZIUM_RATE, Double.toString(mTrapeziumRate)).apply();
 				}
 				break;
 			case R.id.max_altitude_seekbar:
@@ -1211,11 +1229,13 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private String mBrightnessFormat;
 	private String mPosterizeFormat;
 	private String mBinarizeThresholdFormat;
+	private String mTrapeziumRateFormat;
 	private TextView mExposureLabel;
 	private TextView mSaturationLabel;
 	private TextView mBrightnessLabel;
 	private TextView mPosterizeLabel;
 	private TextView mBinarizeThresholdLabel;
+	private TextView mTrapeziumRateLabel;
 	/** ホワイトバランス */
 	protected boolean mAutoWhiteBlance;
 	/** 露出 */
@@ -1229,6 +1249,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	protected float mPosterize;
 	/** 2値化閾値 */
 	protected float mBinarizeThreshold;
+	/** 台形補正係数 */
+	protected double mTrapeziumRate;
 
 	private void initPreprocess(final View rootView) {
 		mExposureFormat = getString(R.string.trace_use_exposure);
@@ -1236,6 +1258,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		mBrightnessFormat = getString(R.string.trace_use_brightness);
 		mPosterizeFormat = getString(R.string.trace_use_posterize);
 		mBinarizeThresholdFormat = getString(R.string.trace_binarize_threshold);
+		mTrapeziumRateFormat = getString(R.string.trace_trapezium_rate);
 
 		Switch sw;
 		SeekBar sb;
@@ -1283,13 +1306,22 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		updatePosterize(mPosterize);
 		// 二値化閾値
-		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRETHOLD, 0.5f);
+		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRESHOLD, 0.5f);
 		mBinarizeThresholdLabel = (TextView)rootView.findViewById(R.id.binarize_threshold_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.binarize_threshold_seekbar);
 		sb.setMax(100);
 		sb.setProgress((int)(mBinarizeThreshold * 100.0f));	// [0.0f, +1.0f] => [0, 100]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateBinarizeThreshold(mBinarizeThreshold);
+		// 台形補正係数
+		mTrapeziumRate = Double.parseDouble(mPref.getString(KEY_TRAPEZIUM_RATE, "0.0"));
+		if (Math.abs(mTrapeziumRate) < 0.01) mTrapeziumRate = 0.0;
+		mTrapeziumRateLabel = (TextView)rootView.findViewById(R.id.trapezium_rate_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.trapezium_rate_seekbar);
+		sb.setMax(4000);
+		sb.setProgress(trapeziumRateToProgress(mTrapeziumRate));	// [-2.0f, +2.0f] => [0, 4000]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateTrapeziumRate(mTrapeziumRate);
 	}
 
 	private int exposureToProgress(final float exposure) {
@@ -1330,17 +1362,57 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			mBinarizeThresholdLabel.setText(String.format(mBinarizeThresholdFormat, threshold));
 		}
 	}
+
+	private int trapeziumRateToProgress(final double trapezium_rate) {
+		return (int)(trapezium_rate * 1000.0) + 2000;
+	}
+
+	private double progressToTrapeziumRate(final int progress) {
+		double trapezium_rate = (progress - 2000) / 1000.0;
+		if (Math.abs(trapezium_rate) < 0.01) trapezium_rate = 0.0;
+		return trapezium_rate;
+	}
+
+	private void updateTrapeziumRate(final double trapezium_rate) {
+		if (mTrapeziumRateLabel != null) {
+			mTrapeziumRateLabel.setText(String.format(mTrapeziumRateFormat, trapezium_rate));
+		}
+	}
+
 //--------------------------------------------------------------------------------
 	/** OpenGL|ESで色抽出を行うかどうか  */
 	protected boolean mEnableGLESExtraction = false;
-	/** OpenGL|ESでのエッジ検出前平滑化 */
-	protected int mGLESSmoothType = 0;
-	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
-	protected boolean mEnableGLESCanny = false;
 	/** 色抽出範囲設定(HSV上下限) */
 	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
 	/** native側の色抽出を使うかどうか */
 	protected boolean mEnableNativeExtraction = false;
+
+	private void initColorExtraction(final View rootView) {
+		Switch sw;
+		Button btn;
+		// OpenGL|ESで色抽出を使うかどうか
+		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
+		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
+		sw.setChecked(mEnableGLESExtraction);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// Native側の色抽出を使うかどうか
+		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
+		sw = (Switch)rootView.findViewById(R.id.use_native_extract_sw);
+		sw.setChecked(mEnableNativeExtraction);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// 抽出色取得
+		btn = (Button)rootView.findViewById(R.id.update_extraction_color_btn);
+		btn.setOnClickListener(mOnClickListener);
+		// 抽出色リセット
+		btn = (Button)rootView.findViewById(R.id.reset_extraction_color_btn);
+		btn.setOnClickListener(mOnClickListener);
+	}
+
+//--------------------------------------------------------------------------------
+	/** OpenGL|ESでのエッジ検出前平滑化 */
+	protected int mGLESSmoothType = 0;
+	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
+	protected boolean mEnableGLESCanny = false;
 	/** native側のエッジ検出前平滑化 */
 	protected int mNativeSmoothType = 0;
 	/** native側のエッジ検出(Canny)を使うかどうか */
@@ -1350,11 +1422,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		Switch sw;
 		Button btn;
 		Spinner spinner;
-		// OpenGL|ESで色抽出を使うかどうか
-		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
-		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
-		sw.setChecked(mEnableGLESExtraction);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// OpenGL|ESのエッジ検出前平滑化
 		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
 		spinner = (Spinner)rootView.findViewById(R.id.use_smooth_spinner);
@@ -1365,22 +1432,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sw = (Switch)rootView.findViewById(R.id.use_canny_sw);
 		sw.setChecked(mEnableGLESCanny);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// Native側の色抽出を使うかどうか
-		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
-		sw = (Switch)rootView.findViewById(R.id.use_native_extract_sw);
-		sw.setChecked(mEnableNativeExtraction);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// Native側のCannyを使うかどうか
 		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
 		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
 		sw.setChecked(mEnableNativeCanny);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// 抽出色取得
-		btn = (Button)rootView.findViewById(R.id.update_extraction_color_btn);
-		btn.setOnClickListener(mOnClickListener);
-		// 抽出色リセット
-		btn = (Button)rootView.findViewById(R.id.reset_extraction_color_btn);
-		btn.setOnClickListener(mOnClickListener);
 		// native側のエッジ検出前フィルタ
 		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
 		spinner = (Spinner)rootView.findViewById(R.id.use_native_smooth_spinner);
@@ -1709,32 +1765,38 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private static PagerAdapterConfig[] PAGER_CONFIG_TRACE;
 	static {
 		//
-		PAGER_CONFIG_TRACE = new PagerAdapterConfig[5];
+		PAGER_CONFIG_TRACE = new PagerAdapterConfig[6];
 		PAGER_CONFIG_TRACE[0] = new PagerAdapterConfig(R.string.trace_config_title_preprocess, R.layout.trace_config_preprocess, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initPreprocess(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[1] = new PagerAdapterConfig(R.string.trace_config_title_detect, R.layout.trace_config_detect, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[1] = new PagerAdapterConfig(R.string.trace_config_title_color_extract, R.layout.trace_config_color_extraction, new AdapterItemHandler() {
+			@Override
+			public void initialize(final AutoPilotFragment2 parent, final View view) {
+				parent.initColorExtraction(view);
+			}
+		});
+		PAGER_CONFIG_TRACE[2] = new PagerAdapterConfig(R.string.trace_config_title_detect, R.layout.trace_config_detect, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initDetect(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[2] = new PagerAdapterConfig(R.string.trace_config_title_auto_pilot, R.layout.trace_config_auto_trace, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[3] = new PagerAdapterConfig(R.string.trace_config_title_auto_pilot, R.layout.trace_config_auto_trace, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initAutoTrace(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[3] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.trace_config_flight, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[4] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.trace_config_flight, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initConfigFlight(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[4] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.trace_config_autopilot, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[5] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.trace_config_autopilot, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initConfigAutopilot(view);

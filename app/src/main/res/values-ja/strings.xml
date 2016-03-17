@@ -134,6 +134,13 @@
 	<string name="trace_use_brightness">明るさ: %5.2f</string>
 	<string name="trace_use_posterize">ポスタライズ: %5.2f</string>
 	<string name="trace_binarize_threshold">二値化閾値: %5.2f</string>
+	<string name="trace_trapezium_rate">台形歪補正: %6.3f</string>
+	<!-- 色抽出設定-->
+	<string name="trace_config_title_color_extract">色抽出設定</string>
+	<string name="trace_use_native_extraction">色抽出OpenCV</string>
+	<string name="trace_use_extraction">色抽出OpenGL|ES</string>
+	<string name="trace_update_extraction_color">抽出色取得</string>
+	<string name="trace_reset_extraction_color">抽出色リセット</string>
 	<!-- 検出設定 -->
 	<string name="trace_config_title_detect">ライン検出設定</string>
 	<string name="trace_smooth">平滑化</string>
@@ -142,12 +149,8 @@
 	<string name="trace_smooth_median">メディアン</string>
 	<string name="trace_smooth_blur">ブラー</string>
 	<string name="trace_smooth_dilation">ダイレーション</string>
-	<string name="trace_use_native_extraction">色抽出OpenCV</string>
 	<string name="trace_use_native_canny">エッジ検出(Canny)OpenCV</string>
-	<string name="trace_use_extraction">色抽出OpenGL|ES</string>
 	<string name="trace_use_canny">エッジ検出(Canny)OpenGL|ES</string>
-	<string name="trace_update_extraction_color">抽出色取得</string>
-	<string name="trace_reset_extraction_color">抽出色リセット</string>
 	<!-- 飛行制御設定 -->
 	<string name="trace_config_title_auto_pilot">飛行制御設定</string>
 	<string name="trace_config_flight_attitude_yaw">飛行姿勢(yaw): %4.0f</string>

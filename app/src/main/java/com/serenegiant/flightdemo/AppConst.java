@@ -34,7 +34,8 @@ public class AppConst {
 	public static final String KEY_BRIGHTNESS = "KEY_BRIGHTNESS";
 	public static final String KEY_ENABLE_POSTERIZE = "KEY_ENABLE_POSTERIZE";
 	public static final String KEY_POSTERIZE = "KEY_POSTERIZE";
-	public static final String KEY_BINARIZE_THRETHOLD = "KEY_BINARIZE_THRETHOLD";
+	public static final String KEY_BINARIZE_THRESHOLD = "KEY_BINARIZE_THRESHOLD";
+	public static final String KEY_TRAPEZIUM_RATE = "KEY_TRAPEZIUM_RATE";
 	public static final String KEY_SMOOTH_TYPE = "KEY_SMOOTH_TYPE";
 	public static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
 	public static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";
