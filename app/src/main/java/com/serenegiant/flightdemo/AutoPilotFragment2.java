@@ -257,7 +257,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				// 読み込みボタンの処理
 				setColorFilter((ImageView)view);
 				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", false);
-				SelectFileDialogFragment.showDialog(AutoPilotFragment2.this, root.getAbsolutePath(), false, "fcr");
+				try {
+					SelectFileDialogFragment.showDialog(AutoPilotFragment2.this, root.getAbsolutePath(), false, "fcr");
+				} catch (final NullPointerException e) {
+					Log.w(TAG, e);
+				}
 				break;
 			case R.id.record_btn:
 				// 操縦記録ボタンの処理
@@ -491,7 +495,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			final boolean can_load = is_connected && !is_playing && !is_recording && !mTouchMoveRunning;
 			final boolean can_fly = can_record && (alarm_state == DroneStatus.ALARM_NON);
 			final boolean can_flattrim = can_fly && (state == IFlightController.STATE_STARTED);
-			final boolean can_config = can_flattrim;
 			final boolean can_clear = is_connected && !is_recording && !is_playing && !mScriptRunning && !mTouchMoveRunning && mTouchFlight.isPrepared();
 			final boolean can_move = is_connected && !is_recording && !is_playing && !mScriptRunning && (mTouchFlight.isPrepared() || mTouchFlight.isPlaying()) && (alarm_state == DroneStatus.ALARM_NON);
 			final boolean is_battery_alarm
@@ -501,8 +504,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			mTopPanel.setEnabled(is_connected);
 			mFlatTrimBtn.setEnabled(can_flattrim);	// フラットトリム
 			mBatteryLabel.setTextColor(is_battery_alarm ? 0xffff0000 : 0xff9400d3);
-			mConfigShowBtn.setEnabled(can_config);
-			mConfigShowBtn.setColorFilter(can_config ? 0 : DISABLE_COLOR);
+			mConfigShowBtn.setEnabled(can_flattrim);
+			mConfigShowBtn.setColorFilter(can_flattrim ? 0 : DISABLE_COLOR);
 
 			// 下パネル
 			mBottomPanel.setEnabled(is_connected);
@@ -612,12 +615,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		}, 0);
 	}
 
-	/** 解析データレコード */
-	private static class LineRec {
-		public int type;
-		public final Vector mLinePos = new Vector();
-		public float mLineLen, mLineWidth, mAngle, mAreaRate, mCurvature;
-	}
 	/** 解析データキューの最大サイズ */
 	private static final int MAX_QUEUE = 4;
 	/** 解析データレコードの再利用のためのプール */
@@ -650,7 +647,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			mIsRunning = mReqUpdateParams = true;
 			mAutoPilot = false;
 			float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
-			float flightSpeed = 100.0f;		// 前進速度(負なら後進)
+			float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 			float scaleR = (float)mScaleR;
 			final Vector factor = new Vector(1.0f, 1.0f, 1.0f);
@@ -667,7 +664,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					if (mReqUpdateParams) {	// パラメータ変更指示?
 						mReqUpdateParams = false;
 						flightAngleYaw = mFlightAttitudeYaw;
-						flightSpeed = mFlightSpeed * (float)(mMaxControlValue / 100.0);
+						// factorが最大で2になるのでmFlightSpeedは[-100,+100]なのを[-50,+50]にする
+						flightSpeed = mFlightSpeed / 2.0f * (float)(mMaxControlValue / 100.0);
 						scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 						scaleR = (float)mScaleR;
 					}
@@ -696,10 +694,10 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 						prev.sub(rec.mLinePos);
 						final boolean limited = prev.lenSquared() > 20000;
 						factor.mult(
-							limited ? (Math.abs(prev.x) > 150 ? 0.9f : 1.0f) : 1.1f,
-							limited ? (Math.abs(prev.y) > 92 ? 0.9f : 1.0f) : 1.1f,
-							limited ? (Math.abs(prev.z) > 100 ? 0.9f : 1.0f) : 1.1f)
-							.limit(0.1f, 2.0f);
+							limited ? (Math.abs(prev.x) > 150 ? 0.9f : 1.0f) : 1.01f,
+							limited ? (Math.abs(prev.y) > 92 ? 0.9f : 1.0f) : 1.011f,
+							limited ? (Math.abs(prev.z) > 100 ? 0.9f : 1.0f) : 1.011f)
+							.limit(0.1f, 2.0f);	// 最小0.1, 最大2.0に制限
 						//--------------------------------------------------------------------------------
 						// 制御量を計算
 						// 機体からの角度はカメラ映像の真上が0で反時計回りが負、時計回りが正(Bebopのyaw軸回転角と同じ)
@@ -712,21 +710,28 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 						work.set(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT).div(2.0f).sub(rec.mLinePos);
 						// 解析データ(画像中心からのオフセット,距離,回転角)
 						msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f,r=%6.4e)", work.x, work.y, work.len(), rec.mAngle, rec.mCurvature);
-						// 機体の進行方向に対する回転の補正
-						work.rotate(0.0f, 0.0f, flightAngleYaw);
-						// 前進速度に機体の進行方向に対する回転の補正
-						mPilotValue.set(0.f, flightSpeed).rotate(0, 0, flightAngleYaw);
-						mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor).mult(scale);	// カメラの向きに合わせて進行方向をあわせる。z軸周りに回転
+						// カメラ映像の真上に向かって進む, 高度制御無し
+						mPilotValue.set(0.f, flightSpeed, 0.0f);
+						mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor);
+						// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
+						mPilotValue.rotate(0, 0, flightAngleYaw);
+						// 自走操縦スケールを適用
+						mPilotValue.mult(scale);
+						// 最大最小値を制限
 						mPilotValue.limit(-100.0f, +100.0f);
-						// 機体のyaw角を計算, 機体の進行方向の傾きを差し引く, 一定角度以下は0に丸める
+						//--------------------------------------------------------------------------------
+						// 機体のyaw角を計算, MAX_PILOT_ANGLE以上は一度に回転させない
 						pilotAngle = -(rec.mAngle < -MAX_PILOT_ANGLE ? -MAX_PILOT_ANGLE : (rec.mAngle > MAX_PILOT_ANGLE ? MAX_PILOT_ANGLE : rec.mAngle));
 						// 曲率による機体yaw角の補正
 						if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
 							// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
 							pilotAngle *= 1.05f; // 5%上乗せする
 						}
+						// 機体の進行方向の傾きを差し引く
 						pilotAngle += flightAngleYaw;
+						// 一定角度以下は0に丸める
 						pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
+						//--------------------------------------------------------------------------------
 						// 今回の位置を保存
 						prev.set(rec.mLinePos);
 					} else {
@@ -761,7 +766,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					if (mAutoPilot) {
 						// 制御コマンド送信
 						mFlightController.requestAnimationsCap((int)pilotAngle);
-						mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0);	// FIXME 高度は制御しない
+						mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0.0f);	// FIXME 高度は制御しない
 						// 今回の制御量を保存
 						mPrevPilotValue.set(mPilotValue);
 					}
@@ -1951,7 +1956,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				parent.initDetect(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[4] = new PagerAdapterConfig(R.string.trace_config_title_auto_trase, R.layout.trace_config_auto_trace, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[4] = new PagerAdapterConfig(R.string.trace_config_title_auto_trace, R.layout.trace_config_auto_trace, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initAutoTrace(view);

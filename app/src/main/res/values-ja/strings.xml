@@ -158,7 +158,7 @@
 	<string name="trace_area_err_limit2">輪郭検出時の面積誤差2: %5.2f</string>
 	<string name="trace_aspect_limit_min">ライン検出時の最小アスペクト比: %5.1f</string>
 	<!-- 飛行制御設定 -->
-	<string name="trace_config_title_auto_trase">トレース飛行制御設定</string>
+	<string name="trace_config_title_auto_trace">トレース飛行制御設定</string>
 	<string name="trace_config_flight_attitude_yaw">飛行姿勢(yaw): %4.0f</string>
 	<string name="trace_config_flight_speed">飛行速度: %4.0f</string>
 </resources>
