@@ -147,6 +147,10 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
 		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
 		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
+		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, 1000.0f);
+		mAspectLimitMin = mPref.getFloat(KEY_ASPECT_LIMIT_MIN, 3.0f);
+		mAreaErrLimit1 = mPref.getFloat(KEY_AREA_ERR_LIMIT1, 1.25f);
+		mAreaErrLimit2 = mPref.getFloat(KEY_AREA_ERR_LIMIT2, 1.3f);
 		//
 		mFlightAttitudeYaw = mPref.getFloat(KEY_TRACE_FLIGHT_ATTITUDE_YAW, 0.0f);
 		mFlightSpeed = mPref.getFloat(KEY_TRACE_FLIGHT_SPEED, 100.0f);
@@ -565,6 +569,9 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
 			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
 			mImageProcessor.trapeziumRate(mTrapeziumRate);
+			mImageProcessor.setAreaLimit(mAreaLimitMin, AREA_LIMIT_MAX);
+			mImageProcessor.setAreaErrLimit(mAreaErrLimit1, mAreaErrLimit2);
+			mImageProcessor.setAspectLimit(mAspectLimitMin);
 			mImageProcessor.start();
 			final Surface surface = mImageProcessor.getSurface();
 			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
@@ -628,6 +635,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	/** トレース飛行タスク */
 	private class TraceTask implements Runnable {
 		private static final float EPS_CURVATURE = 1.0e-4f;
+		private static final float MAX_PILOT_ANGLE = 45.0f;	// 一度に修正するyaw角の最大絶対値
+		private static final float MIN_PILOT_ANGLE = 3.0f;	// 0とみなすyaw角のずれの絶対値
 		public TraceTask() {
 		}
 
@@ -710,13 +719,14 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 						mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor).mult(scale);	// カメラの向きに合わせて進行方向をあわせる。z軸周りに回転
 						mPilotValue.limit(-100.0f, +100.0f);
 						// 機体のyaw角を計算, 機体の進行方向の傾きを差し引く, 一定角度以下は0に丸める
-						pilotAngle = (-rec.mAngle + flightAngleYaw);
+						pilotAngle = -(rec.mAngle < -MAX_PILOT_ANGLE ? -MAX_PILOT_ANGLE : (rec.mAngle > MAX_PILOT_ANGLE ? MAX_PILOT_ANGLE : rec.mAngle));
 						// 曲率による機体yaw角の補正
 						if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
 							// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
-							pilotAngle += -rec.mAngle * 0.1f;
+							pilotAngle *= 1.05f; // 5%上乗せする
 						}
-						pilotAngle = (pilotAngle < -3.0f) || (pilotAngle > 3.0f) ? pilotAngle : 0.0f;
+						pilotAngle += flightAngleYaw;
+						pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
 						// 今回の位置を保存
 						prev.set(rec.mLinePos);
 					} else {
@@ -1040,6 +1050,46 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					updateTrapeziumRate(trapezium_rate);
 				}
 				break;
+			case R.id.area_limit_min_seekbar:
+				final float area_limit_min = progressToAreaLimitMin(progress);
+				if (mAreaLimitMin != area_limit_min) {
+					mAreaLimitMin = area_limit_min;
+					if (mImageProcessor != null) {
+						mImageProcessor.setAreaLimit(area_limit_min, AREA_LIMIT_MAX);
+					}
+					updateAreaLimitMin(area_limit_min);
+				}
+				break;
+			case R.id.area_err_limit1_seekbar:
+				final float area_err_limit1 = (progress / 100.0f) + 1.0f;
+				if (mAreaErrLimit1 != area_err_limit1) {
+					mAreaErrLimit1 = area_err_limit1;
+					if (mImageProcessor != null) {
+						mImageProcessor.setAreaErrLimit(area_err_limit1, mAreaErrLimit2);
+					}
+					updateAreaErrLimit1(area_err_limit1);
+				}
+				break;
+			case R.id.area_err_limit2_seekbar:
+				final float area_err_limit2 = (progress / 100.0f) + 1.0f;
+				if (mAreaErrLimit2 != area_err_limit2) {
+					mAreaErrLimit2 = area_err_limit2;
+					if (mImageProcessor != null) {
+						mImageProcessor.setAreaErrLimit(mAreaErrLimit1, area_err_limit2);
+					}
+					updateAreaErrLimit2(area_err_limit2);
+				}
+				break;
+			case R.id.aspect_limit_min_seekbar:
+				final float aspect = (progress / 10.0f) + 1.0f;
+				if (mAspectLimitMin != aspect) {
+					mAspectLimitMin = aspect;
+					if (mImageProcessor != null) {
+						mImageProcessor.setAspectLimit(aspect);
+					}
+					updateAspectLimitMin(aspect);
+				}
+				break;
 			case R.id.max_altitude_seekbar:
 				final float altitude = (int) (progress / 100f * (mMaxAltitude.max() - mMaxAltitude.min())) / 10f + mMaxAltitude.min();
 				updateMaxAltitude(altitude);
@@ -1122,6 +1172,26 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			case R.id.trapezium_rate_seekbar:
 				if (mPref != null) {
 					mPref.edit().putString(KEY_TRAPEZIUM_RATE, Double.toString(mTrapeziumRate)).apply();
+				}
+				break;
+			case R.id.area_limit_min_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_AREA_LIMIT_MIN, mAreaLimitMin).apply();
+				}
+				break;
+			case R.id.area_err_limit1_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_AREA_ERR_LIMIT1, mAreaErrLimit1).apply();
+				}
+				break;
+			case R.id.area_err_limit2_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_AREA_ERR_LIMIT2, mAreaErrLimit2).apply();
+				}
+				break;
+			case R.id.aspect_limit_min_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_ASPECT_LIMIT_MIN, mAspectLimitMin).apply();
 				}
 				break;
 			case R.id.max_altitude_seekbar:
@@ -1263,7 +1333,6 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		Switch sw;
 		SeekBar sb;
 		Button btn;
-		Spinner spinner;
 		// ホワイトバランス
 		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, true);
 		mAutoWhiteBlanceSw = (Switch)rootView.findViewById(R.id.white_balance_sw);
@@ -1380,6 +1449,41 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	}
 
 //--------------------------------------------------------------------------------
+	/** OpenGL|ESでのエッジ検出前平滑化 */
+	protected int mGLESSmoothType = 0;
+	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
+	protected boolean mEnableGLESCanny = false;
+	/** native側のエッジ検出前平滑化 */
+	protected int mNativeSmoothType = 0;
+	/** native側のエッジ検出(Canny)を使うかどうか */
+	protected boolean mEnableNativeCanny = true;
+	private void initPreprocess2(final View rootView) {
+		Switch sw;
+		Spinner spinner;
+
+		// OpenGL|ESのエッジ検出前平滑化
+		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
+		spinner = (Spinner)rootView.findViewById(R.id.use_smooth_spinner);
+		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
+		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
+		// OpenGL|ESでエッジ検出を行うかどうか
+		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, false);
+		sw = (Switch)rootView.findViewById(R.id.use_canny_sw);
+		sw.setChecked(mEnableGLESCanny);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// Native側のCannyを使うかどうか
+		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
+		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
+		sw.setChecked(mEnableNativeCanny);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// native側のエッジ検出前フィルタ
+		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
+		spinner = (Spinner)rootView.findViewById(R.id.use_native_smooth_spinner);
+		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
+		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
+	}
+
+//--------------------------------------------------------------------------------
 	/** OpenGL|ESで色抽出を行うかどうか  */
 	protected boolean mEnableGLESExtraction = false;
 	/** 色抽出範囲設定(HSV上下限) */
@@ -1406,44 +1510,101 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		// 抽出色リセット
 		btn = (Button)rootView.findViewById(R.id.reset_extraction_color_btn);
 		btn.setOnClickListener(mOnClickListener);
+
 	}
 
 //--------------------------------------------------------------------------------
-	/** OpenGL|ESでのエッジ検出前平滑化 */
-	protected int mGLESSmoothType = 0;
-	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
-	protected boolean mEnableGLESCanny = false;
-	/** native側のエッジ検出前平滑化 */
-	protected int mNativeSmoothType = 0;
-	/** native側のエッジ検出(Canny)を使うかどうか */
-	protected boolean mEnableNativeCanny = true;
+	private String mAreaLimitMinFormat;
+	private String mAspectLimitMinFormat;
+	private String mAreaErrLimit1Format;
+	private String mAreaErrLimit2Format;
+	private TextView mAreaLimitMinLabel;
+	private TextView mAspectLimitMinLabel;
+	private TextView mAreaErrLimit1Label;
+	private TextView mAreaErrLimit2Label;
+	/** 輪郭検出時の最小面積 */
+	protected float mAreaLimitMin = 1000.0f;
+	protected static final float AREA_LIMIT_MAX = 120000.0f;
+	// ラインe検出時の最小アスペクト比
+	protected float mAspectLimitMin = 3.0f;
+	// 輪郭検出時の面積誤差1, 2
+	protected float mAreaErrLimit1 = 1.25f;
+	protected float mAreaErrLimit2 = 1.3f;
 
 	private void initDetect(final View rootView) {
-		Switch sw;
 		Button btn;
-		Spinner spinner;
-		// OpenGL|ESのエッジ検出前平滑化
-		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
-		spinner = (Spinner)rootView.findViewById(R.id.use_smooth_spinner);
-		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
-		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
-		// OpenGL|ESでエッジ検出を行うかどうか
-		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, false);
-		sw = (Switch)rootView.findViewById(R.id.use_canny_sw);
-		sw.setChecked(mEnableGLESCanny);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// Native側のCannyを使うかどうか
-		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
-		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
-		sw.setChecked(mEnableNativeCanny);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// native側のエッジ検出前フィルタ
-		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
-		spinner = (Spinner)rootView.findViewById(R.id.use_native_smooth_spinner);
-		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
-		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
+		SeekBar sb;
+
+		mAreaLimitMinFormat = getString(R.string.trace_area_limit_min);
+		mAspectLimitMinFormat = getString(R.string.trace_aspect_limit_min);
+		mAreaErrLimit1Format = getString(R.string.trace_area_err_limit1);
+		mAreaErrLimit2Format = getString(R.string.trace_area_err_limit2);
+
+		// 輪郭検出時の最小面積
+		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, 1000.0f);
+		mAreaLimitMinLabel = (TextView)rootView.findViewById(R.id.area_limit_min_textview);
+		sb =(SeekBar)rootView.findViewById(R.id.area_limit_min_seekbar);
+		sb.setMax(9700);
+		sb.setProgress(areaLimitMinToProgress(mAreaLimitMin)); 	   // [300,10000] => [0, 9700]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateAreaLimitMin(mAreaLimitMin);
+		// ライン検出時の面積誤差1
+		mAreaErrLimit1 = mPref.getFloat(KEY_AREA_ERR_LIMIT1, 1.25f);
+		mAreaErrLimit1Label = (TextView)rootView.findViewById(R.id.area_err_limit1_textview);
+		sb =(SeekBar)rootView.findViewById(R.id.area_err_limit1_seekbar);
+		sb.setMax(100);
+		sb.setProgress((int)((mAreaErrLimit1 - 1.0f) * 100.0f)); 	   // [1,2] => [0, 100]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateAreaErrLimit1(mAreaErrLimit1);
+		// ライン検出時の面積誤差2
+		mAreaErrLimit2 = mPref.getFloat(KEY_AREA_ERR_LIMIT2, 1.30f);
+		mAreaErrLimit2Label = (TextView)rootView.findViewById(R.id.area_err_limit2_textview);
+		sb =(SeekBar)rootView.findViewById(R.id.area_err_limit2_seekbar);
+		sb.setMax(100);
+		sb.setProgress((int)((mAreaErrLimit2 - 1.0f) * 100.0f)); 	   // [1,2] => [0, 100]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateAreaErrLimit2(mAreaErrLimit2);
+		// ライン検出時の最小アスペクト比
+		mAspectLimitMin = mPref.getFloat(KEY_ASPECT_LIMIT_MIN, 3.0f);
+		mAspectLimitMinLabel = (TextView)rootView.findViewById(R.id.aspect_limit_min_textview);
+		sb =(SeekBar)rootView.findViewById(R.id.aspect_limit_min_seekbar);
+		sb.setMax(190);
+		sb.setProgress((int)((mAspectLimitMin - 1.0f) * 10)); 	   // [1,20] => [0, 190]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateAspectLimitMin(mAspectLimitMin);
 	}
 
+	private int areaLimitMinToProgress(final float area_limit_min) {
+		return (int)(area_limit_min - 300);
+	}
+
+	private float progressToAreaLimitMin(final int progress) {
+		return progress + 300;
+	}
+
+	private void updateAreaLimitMin(final float area_limit_min) {
+		if (mAreaLimitMinLabel != null) {
+			mAreaLimitMinLabel.setText(String.format(mAreaLimitMinFormat, area_limit_min));
+		}
+	}
+
+	private void updateAspectLimitMin(final float aspect) {
+		if (mAspectLimitMinLabel != null) {
+			mAspectLimitMinLabel.setText(String.format(mAspectLimitMinFormat, aspect));
+		}
+	}
+
+	private void updateAreaErrLimit1(final float limit) {
+		if (mAreaErrLimit1Label != null) {
+			mAreaErrLimit1Label.setText(String.format(mAreaErrLimit1Format, limit));
+		}
+	}
+
+	private void updateAreaErrLimit2(final float limit) {
+		if (mAreaErrLimit2Label != null) {
+			mAreaErrLimit2Label.setText(String.format(mAreaErrLimit2Format, limit));
+		}
+	}
 //--------------------------------------------------------------------------------
 	private TextView mFlightAttitudeYawLabel;
 	private TextView mFlightSpeedLabel;
@@ -1765,38 +1926,44 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private static PagerAdapterConfig[] PAGER_CONFIG_TRACE;
 	static {
 		//
-		PAGER_CONFIG_TRACE = new PagerAdapterConfig[6];
+		PAGER_CONFIG_TRACE = new PagerAdapterConfig[7];
 		PAGER_CONFIG_TRACE[0] = new PagerAdapterConfig(R.string.trace_config_title_preprocess, R.layout.trace_config_preprocess, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initPreprocess(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[1] = new PagerAdapterConfig(R.string.trace_config_title_color_extract, R.layout.trace_config_color_extraction, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[1] = new PagerAdapterConfig(R.string.trace_config_title_preprocess2, R.layout.trace_config_preprocess2, new AdapterItemHandler() {
+			@Override
+			public void initialize(final AutoPilotFragment2 parent, final View view) {
+				parent.initPreprocess2(view);
+			}
+		});
+		PAGER_CONFIG_TRACE[2] = new PagerAdapterConfig(R.string.trace_config_title_color_extract, R.layout.trace_config_color_extraction, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initColorExtraction(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[2] = new PagerAdapterConfig(R.string.trace_config_title_detect, R.layout.trace_config_detect, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[3] = new PagerAdapterConfig(R.string.trace_config_title_detect, R.layout.trace_config_detect, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initDetect(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[3] = new PagerAdapterConfig(R.string.trace_config_title_auto_pilot, R.layout.trace_config_auto_trace, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[4] = new PagerAdapterConfig(R.string.trace_config_title_auto_trase, R.layout.trace_config_auto_trace, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initAutoTrace(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[4] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.trace_config_flight, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[5] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.trace_config_flight, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initConfigFlight(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[5] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.trace_config_autopilot, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[6] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.trace_config_autopilot, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initConfigAutopilot(view);

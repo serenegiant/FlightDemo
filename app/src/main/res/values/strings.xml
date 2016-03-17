@@ -123,8 +123,8 @@
 	<string name="anim_boost">Boost</string>
 
 	<!-- ライントレース画面の文字列 -->
-	<!-- プリプロセス設定 -->
-	<string name="trace_config_title_preprocess">Preprocess settings</string>
+	<!-- 映像処理1 -->
+	<string name="trace_config_title_preprocess">Preprocess settings1</string>
 	<string name="trace_white_blance">White blance</string>
 	<string name="trace_white_blance_auto">auto</string>
 	<string name="trace_white_blance_manual">manual</string>
@@ -134,14 +134,8 @@
 	<string name="trace_use_posterize">Posterize: %5.2f</string>
 	<string name="trace_binarize_threshold">Binarize threshold: %5.2f</string>
 	<string name="trace_trapezium_rate">Trapezium correction: %6.3f</string>
-	<!-- 色抽出設定-->
-	<string name="trace_config_title_color_extract">Color extraction settings</string>
-	<string name="trace_use_native_extraction">Color extraction on OpenCV</string>
-	<string name="trace_use_extraction">Color extraction on OpenGL|ES</string>
-	<string name="trace_update_extraction_color">Update extraction color</string>
-	<string name="trace_reset_extraction_color">Reset extraction color</string>
-	<!-- 検出設定 -->
-	<string name="trace_config_title_detect">Detect settings</string>
+	<!-- 映像処理2 -->
+	<string name="trace_config_title_preprocess2">Preprocess settings2</string>
 	<string name="trace_smooth">Smooth</string>
 	<string name="trace_smooth_non">Non</string>
 	<string name="trace_smooth_gaussian">Gaussian</string>
@@ -150,8 +144,20 @@
 	<string name="trace_smooth_dilation">Dilation</string>
 	<string name="trace_use_native_canny">Edge detection(Canny) on OpenCV</string>
 	<string name="trace_use_canny">>Edge detection(Canny) on OpenGL|ES</string>
+	<!-- 色抽出設定-->
+	<string name="trace_config_title_color_extract">Color extraction settings</string>
+	<string name="trace_use_native_extraction">Color extraction on OpenCV</string>
+	<string name="trace_use_extraction">Color extraction on OpenGL|ES</string>
+	<string name="trace_update_extraction_color">Update extraction color</string>
+	<string name="trace_reset_extraction_color">Reset extraction color</string>
+	<!-- 検出設定 -->
+	<string name="trace_config_title_detect">Detect settings</string>
+	<string name="trace_area_limit_min">Min area when detect contour: %5.0f</string>
+	<string name="trace_area_err_limit1">Max area err1 on detect contour: %5.2f</string>
+	<string name="trace_area_err_limit2">Max area err2 on detect contour: %5.2f</string>
+	<string name="trace_aspect_limit_min">Min aspect when detect line: %5.1f</string>
 	<!-- 飛行制御設定 -->
-	<string name="trace_config_title_auto_pilot">Auto trace settings</string>
+	<string name="trace_config_title_auto_trace">Auto trace settings</string>
 	<string name="trace_config_flight_attitude_yaw">Attitude(yaw): %4.0f</string>
 	<string name="trace_config_flight_speed">Flight speed: %4.0f</string>
 

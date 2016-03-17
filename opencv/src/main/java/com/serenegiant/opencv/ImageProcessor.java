@@ -533,6 +533,28 @@ public class ImageProcessor {
 	public double trapeziumRate() {
 		return nativeGetTrapeziumRate(mNativePtr);
 	}
+
+	public void setAreaLimit(final float min, final float max) {
+		final int result = nativeSetAreaLimit(mNativePtr, min, max);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetAreaLimit:result=" + result);
+		}
+	}
+
+	public void setAspectLimit(final float min) {
+		final int result = nativeSetAspectLimit(mNativePtr, min);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetAspectLimit:result=" + result);
+		}
+	}
+
+	public void setAreaErrLimit(final float limit1, final float limit2) {
+		final int result = nativeSetAreaErrLimit(mNativePtr, limit1, limit2);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetAreaErrLimit:result=" + result);
+		}
+	}
+
 //================================================================================
 	/**
 	 * native側からの結果コールバック
@@ -987,4 +1009,7 @@ public class ImageProcessor {
 	private static native int nativeGetEnableCanny(final long id_native);
 	private static native int nativeSetTrapeziumRate(final long id_native, final double trapeziumRate);
 	private static native double nativeGetTrapeziumRate(final long id_native);
+	private static native int nativeSetAreaLimit(final long id_native, final float min, final float max);
+	private static native int nativeSetAspectLimit(final long id_native, final float min);
+	private static native int nativeSetAreaErrLimit(final long id_native, final float limit1, final float limit2);
 }

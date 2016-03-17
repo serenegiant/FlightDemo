@@ -91,6 +91,14 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	mParam.changed = true;
 	// 台形補正
 	mParam.mTrapeziumRate = 0.0;
+	// 輪郭検出時の最小/最大面積
+	mParam.mAreaLimitMin = 1000.0f;
+	mParam.mAreaLimitMax = 120000.0f;
+	// 輪郭検出時の面積誤差
+	mParam.mAreaErrLimit1 = 1.25f;
+	mParam.mAreaErrLimit2 = 1.3f;
+	// ライン検出時の最小アスペクト比
+	mParam.mMinLineAspect = 3.0f;
 #if USE_PBO
 	pbo[0] = pbo[1] = 0;
 #endif
@@ -243,7 +251,7 @@ int ImageProcessor::setExtractionColor(const int lower[], const int upper[]) {
 	RETURN(0, int);
 }
 
-	/** 台形歪係数を設定 */
+/** 台形歪補正係数を設定 */
 int ImageProcessor::setTrapeziumRate(const double &trapezium_rate) {
 	ENTER();
 
@@ -260,6 +268,54 @@ int ImageProcessor::setTrapeziumRate(const double &trapezium_rate) {
 		{
 			mParam.mTrapeziumRate = trapezium_rate;
 			mParam.perspectiveTransform = perspectiveTransform;
+			mParam.changed = true;
+		}
+		mMutex.unlock();
+	}
+
+	RETURN(0, int);
+}
+
+/** ライン検出時の面積の上下限をセット */
+int ImageProcessor::setAreaLimit(const float &min, const float &max) {
+	ENTER();
+
+	if ((min != max) && ((mParam.mAreaLimitMin != min) || (mParam.mAreaLimitMax != max))) {
+		mMutex.lock();
+		{
+			mParam.mAreaLimitMin = fmin(min, max);
+			mParam.mAreaLimitMax = fmax(min, max);
+			mParam.changed = true;
+		}
+		mMutex.unlock();
+	}
+
+	RETURN(0, int);
+}
+
+int ImageProcessor::setAspectLimit(const float &min) {
+	ENTER();
+
+	if ((min > 0.0f) && (mParam.mMinLineAspect != min)) {
+		mMutex.lock();
+		{
+			mParam.mMinLineAspect = min;
+			mParam.changed = true;
+		}
+		mMutex.unlock();
+	}
+
+	RETURN(0, int);
+}
+
+int ImageProcessor::setAreaErrLimit(const float &limit1, const float &limit2) {
+	ENTER();
+
+	if ((limit1 >= 1.0f) && (limit2 >= 1.0f) && ((mParam.mAreaErrLimit1 != limit1) || (mParam.mAreaErrLimit2 != limit2))) {
+		mMutex.lock();
+		{
+			mParam.mAreaErrLimit1 = limit1;
+			mParam.mAreaErrLimit2 = limit2;
 			mParam.changed = true;
 		}
 		mMutex.unlock();
@@ -862,7 +918,9 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		// 常に横長として幅と高さを取得
 		const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
 		const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
-		if (((w > 620) && (h > 350)) || (w * h < 1000.0f)) continue;		// 外周線または最小矩形が小さすぎる
+		const float a = w * h;
+		// 外周線または最小矩形が小さすぎるか大きすぎるのはスキップ
+		if (((w > 620) && (h > 350)) || (a < param.mAreaLimitMin) || (a > param.mAreaLimitMax)) continue;
 //		area_rect.points(vertices);	// 四隅の座標を取得
 //		int cnt = 0;
 //		for (int i = 0; i < 3; i++) {
@@ -879,8 +937,8 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		}
 		// 輪郭の面積を計算
 		float area = (float)cv::contourArea(*contour);
-		// 面積が小さすぎるのはスキップfx
-		if (area < 1000.0f) continue;
+		// 面積が小さすぎるのと大きすぎるのはスキップ
+		if ((area < param.mAreaLimitMin) || (area > param.mAreaLimitMax)) continue;
 		// 中に開いた穴の面積を除外
 		for (int i = hierarchy[idx][2]; i >= 0; ) {
 			if (hierarchy[i][3] == idx) {
@@ -892,13 +950,13 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 			i = hierarchy[i][0];	// 次の子
 		}
 		// 面積が小さすぎるのはスキップ
-		if (area < 1000.0f) continue;
+		if (area < param.mAreaLimitMin) continue;
 		// 最小矩形の面積の半分未満ならスキップ
 		if (w * h / area > 2.0f) continue;
 		// 凸包の面積を計算
 		const float area_approx = (float)cv::contourArea(approx);
 		// 凸包面積が25%以上元の輪郭面積より大きければスキップ=凹凸が激しい
-		if (area_approx / area > 1.25f) {
+		if (area_approx / area > param.mAreaErrLimit1) {
 			// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
 			const double epsilon = param.mApproxType == APPROX_RELATIVE
 				? param.mApproxFactor * cv::arcLength(approx, true)	// 周長に対する比
@@ -906,7 +964,7 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 			// 輪郭を近似する
 			cv::approxPolyDP(*contour, approx2, epsilon, true);	// 閉曲線にする
 			const float rate = (float)cv::contourArea(approx2) / area;
-			if ((rate < 0.77f) || (rate > 1.3f))
+			if ((rate < (1 / param.mAreaErrLimit2)) || (rate > param.mAreaErrLimit2))
 				continue;
 		}
 		if (param.show_detects) {
@@ -984,7 +1042,7 @@ int ImageProcessor::detect_line(
 		// 輪郭を内包する最小矩形(回転あり)を取得
 		cv::RotatedRect area_rect = approx.area_rect;
 		// アスペクト比が正方形に近いものはスキップ
-		if (LIKELY(approx.aspect < 3.0f)) continue;
+		if (LIKELY(approx.aspect < param.mMinLineAspect)) continue;
 		if (param.show_detects) {
 			cv::polylines(result_frame, approx.contour, true, COLOR_ORANGE, 2);
 //			draw_rect(result_frame, area_rect, COLOR_ORANGE);
@@ -1326,8 +1384,7 @@ static jint nativeSetTrapeziumRate(JNIEnv *env, jobject thiz,
 	jint result = -1;
 	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
 	if (LIKELY(processor)) {
-		processor->setTrapeziumRate(trapezium_rate);
-		result = 0;
+		result = processor->setTrapeziumRate(trapezium_rate);
 	}
 
 	RETURN(result, jint);
@@ -1345,6 +1402,48 @@ static jdouble nativeGetTrapeziumRate(JNIEnv *env, jobject thiz,
 	}
 
 	RETURN(result, jdouble);
+}
+
+static jint nativeSetAreaLimit(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jfloat min, jfloat max) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->setAreaLimit(min, max);
+	}
+
+	RETURN(result, jint);
+}
+
+static jint nativeSetAspectLimit(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jfloat min) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->setAspectLimit(min);
+	}
+
+	RETURN(result, jint);
+}
+
+static jint nativeSetAreaErrLimit(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jfloat limit1, jfloat limit2) {
+
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->setAreaErrLimit(limit1, limit2);
+	}
+
+	RETURN(result, jint);
 }
 
 //================================================================================
@@ -1367,7 +1466,9 @@ static JNINativeMethod methods[] = {
 	{ "nativeGetEnableCanny",		"(J)I", (void *) nativeGetEnableCanny },
 	{ "nativeSetTrapeziumRate",		"(JD)I", (void *) nativeSetTrapeziumRate },
 	{ "nativeGetTrapeziumRate",		"(J)D", (void *) nativeGetTrapeziumRate },
-
+	{ "nativeSetAreaLimit",			"(JFF)I", (void *) nativeSetAreaLimit },
+	{ "nativeSetAspectLimit",		"(JF)I", (void *) nativeSetAspectLimit },
+	{ "nativeSetAreaErrLimit",		"(JFF)I", (void *) nativeSetAreaErrLimit },
 };
 
 

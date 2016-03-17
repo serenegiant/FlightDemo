@@ -1,57 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
-	<LinearLayout
-		android:orientation="vertical"
+	<!-- ライン検出時の最小面積 -->
+	<TextView
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content">
-		<!-- 平滑化(OpenGL|ES) -->
-		<TextView
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:textColor="@color/trace_config"
-			android:textSize="@dimen/text_sz_trace_config_list"
-			android:text="@string/trace_smooth"/>
-		<Spinner
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:paddingTop="@dimen/quater_padding"
-			android:paddingBottom="@dimen/quater_padding"
-			android:id="@+id/use_smooth_spinner"
-			android:textColor="@color/trace_config"
-			android:layout_gravity="center_horizontal"/>
-		<!-- エッジ検出(OpenGL|ES,Canny) -->
-		<Switch
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:paddingTop="@dimen/quater_padding"
-			android:paddingBottom="@dimen/quater_padding"
-			android:textColor="@color/trace_config"
-			android:text="@string/trace_use_canny"
-			android:id="@+id/use_canny_sw"/>
-		<!-- 平滑化(OpenCV) -->
-		<TextView
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:textColor="@color/trace_config"
-			android:textSize="@dimen/text_sz_trace_config_list"
-			android:text="@string/trace_smooth"/>
-		<Spinner
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:id="@+id/use_native_smooth_spinner"
-			android:textColor="@color/trace_config"
-			android:layout_gravity="center_horizontal"/>
-		<!-- エッジ検出(OpenCV,Canny) -->
-		<Switch
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:paddingTop="@dimen/quater_padding"
-			android:paddingBottom="@dimen/quater_padding"
-			android:textColor="@color/trace_config"
-			android:text="@string/trace_use_native_canny"
-			android:id="@+id/use_native_canny_sw"/>
-	</LinearLayout>
-</ScrollView>
+		android:layout_height="wrap_content"
+		android:text="@string/trace_area_limit_min"
+		android:textSize="@dimen/text_sz_trace_config_list"
+		android:textColor="@color/trace_config"
+		android:id="@+id/area_limit_min_textview"/>
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/area_limit_min_seekbar"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+	<!-- ライン検出時の最大面積誤差1 -->
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/trace_area_err_limit1"
+		android:textSize="@dimen/text_sz_trace_config_list"
+		android:textColor="@color/trace_config"
+		android:id="@+id/area_err_limit1_textview"/>
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/area_err_limit1_seekbar"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+	<!-- ライン検出時の最大面積誤差1 -->
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/trace_area_err_limit2"
+		android:textSize="@dimen/text_sz_trace_config_list"
+		android:textColor="@color/trace_config"
+		android:id="@+id/area_err_limit2_textview"/>
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/area_err_limit2_seekbar"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+	<!-- ライン検出時の最小アスペクト比 -->
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/trace_aspect_limit_min"
+		android:textSize="@dimen/text_sz_trace_config_list"
+		android:textColor="@color/trace_config"
+		android:id="@+id/aspect_limit_min_textview"/>
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/aspect_limit_min_seekbar"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+</LinearLayout>

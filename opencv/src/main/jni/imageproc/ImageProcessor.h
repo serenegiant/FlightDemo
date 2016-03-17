@@ -76,6 +76,11 @@ public:
 	float mMaxAnalogous;
 	int extractColorHSV[6];	// 抽出色(HSV上下限)
 	double mTrapeziumRate;	// 台形歪率, 0:歪なし, 正:下辺が長い, 負:上限が長い
+	float mAreaLimitMin;	// 輪郭検出時の最小面積
+	float mAreaLimitMax;	// 輪郭検出時の最大面積
+	float mAreaErrLimit1;	// 輪郭検出時の面積誤差1
+	float mAreaErrLimit2;	// 輪郭検出時の面積誤差2
+	float mMinLineAspect;	// ライン検出時の最小アスペクト比
 	// これより下は内部計算
 	bool needs_result;	// これは内部計算
 	bool show_src;		// これは内部計算
@@ -94,6 +99,11 @@ public:
 		mCannythreshold2 = src.mCannythreshold2;
 		mMaxAnalogous = src.mMaxAnalogous;
 		memcpy(extractColorHSV, src.extractColorHSV, sizeof(int) * 6);
+		mAreaLimitMin = src.mAreaLimitMin;
+		mAreaLimitMax = src.mAreaLimitMax;
+		mAreaErrLimit1 = src.mAreaErrLimit1;
+		mAreaErrLimit2 = src.mAreaErrLimit2;
+		mMinLineAspect = src.mMinLineAspect;
 		mTrapeziumRate = src.mTrapeziumRate;
 		perspectiveTransform = src.perspectiveTransform;
 		// 計算
@@ -173,4 +183,7 @@ public:
 	/** 台形歪係数を設定 */
 	int setTrapeziumRate(const double &trapezium_rate);
 	inline const double getTrapeziumRate() const { return mParam.mTrapeziumRate;  };
+	int setAreaLimit(const float &min, const float &max);
+	int setAspectLimit(const float &min);
+	int setAreaErrLimit(const float &limit1, const float &limit2);
 };

@@ -124,8 +124,8 @@
 	<string name="anim_boost">ブースト</string>
 
 	<!-- ライントレース画面の文字列 -->
-	<!-- プリプロセス設定 -->
-	<string name="trace_config_title_preprocess">プリプロセス設定</string>
+	<!-- 映像処理1設定 -->
+	<string name="trace_config_title_preprocess">映像処理設定1</string>
 	<string name="trace_white_blance">ホワイトバランス</string>
 	<string name="trace_white_blance_auto">自動</string>
 	<string name="trace_white_blance_manual">手動</string>
@@ -135,14 +135,8 @@
 	<string name="trace_use_posterize">ポスタライズ: %5.2f</string>
 	<string name="trace_binarize_threshold">二値化閾値: %5.2f</string>
 	<string name="trace_trapezium_rate">台形歪補正: %6.3f</string>
-	<!-- 色抽出設定-->
-	<string name="trace_config_title_color_extract">色抽出設定</string>
-	<string name="trace_use_native_extraction">色抽出OpenCV</string>
-	<string name="trace_use_extraction">色抽出OpenGL|ES</string>
-	<string name="trace_update_extraction_color">抽出色取得</string>
-	<string name="trace_reset_extraction_color">抽出色リセット</string>
-	<!-- 検出設定 -->
-	<string name="trace_config_title_detect">ライン検出設定</string>
+	<!-- 映像処理2 -->
+	<string name="trace_config_title_preprocess2">映像処理設定2</string>
 	<string name="trace_smooth">平滑化</string>
 	<string name="trace_smooth_non">無し</string>
 	<string name="trace_smooth_gaussian">ガウシアン</string>
@@ -151,8 +145,20 @@
 	<string name="trace_smooth_dilation">ダイレーション</string>
 	<string name="trace_use_native_canny">エッジ検出(Canny)OpenCV</string>
 	<string name="trace_use_canny">エッジ検出(Canny)OpenGL|ES</string>
+	<!-- 色抽出設定-->
+	<string name="trace_config_title_color_extract">色抽出設定</string>
+	<string name="trace_use_native_extraction">色抽出OpenCV</string>
+	<string name="trace_use_extraction">色抽出OpenGL|ES</string>
+	<string name="trace_update_extraction_color">抽出色取得</string>
+	<string name="trace_reset_extraction_color">抽出色リセット</string>
+	<!-- 検出設定 -->
+	<string name="trace_config_title_detect">検出設定</string>
+	<string name="trace_area_limit_min">輪郭検出時の最小面積: %5.0f</string>
+	<string name="trace_area_err_limit1">輪郭検出時の面積誤差1: %5.2f</string>
+	<string name="trace_area_err_limit2">輪郭検出時の面積誤差2: %5.2f</string>
+	<string name="trace_aspect_limit_min">ライン検出時の最小アスペクト比: %5.1f</string>
 	<!-- 飛行制御設定 -->
-	<string name="trace_config_title_auto_pilot">飛行制御設定</string>
+	<string name="trace_config_title_auto_trase">トレース飛行制御設定</string>
 	<string name="trace_config_flight_attitude_yaw">飛行姿勢(yaw): %4.0f</string>
 	<string name="trace_config_flight_speed">飛行速度: %4.0f</string>
 </resources>
