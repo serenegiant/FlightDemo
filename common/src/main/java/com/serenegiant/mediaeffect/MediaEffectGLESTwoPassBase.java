@@ -1,30 +1,33 @@
 package com.serenegiant.mediaeffect;
 
-import android.opengl.GLES20;
-
-import com.serenegiant.glutils.FullFrameRect;
-import com.serenegiant.glutils.Texture2dProgram;
 import com.serenegiant.glutils.TextureOffscreen;
 
 public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 
-	protected FullFrameRect mDrawer2;
+	protected final MediaEffectKernelDrawer mDrawer2;
 	protected TextureOffscreen mOutputOffscreen2;
 
-	public MediaEffectGLESTwoPassBase(final String shader) {
-		super(shader);
+	public MediaEffectGLESTwoPassBase(final boolean isOES, final String fss) {
+		super(isOES, fss);
 		mDrawer2 = null;
 	}
 
 	public MediaEffectGLESTwoPassBase(final String vss, final String fss) {
-		super(vss, fss);
+		super(false, vss, fss);
 		mDrawer2 = null;
 	}
 
-	public MediaEffectGLESTwoPassBase(final String vss1, final String fss1, final String vss2, final String fss2) {
-		super(vss1, fss1);
+	public MediaEffectGLESTwoPassBase(final boolean isOES, final String vss, final String fss) {
+		super(isOES, vss, fss);
+		mDrawer2 = null;
+	}
+
+	public MediaEffectGLESTwoPassBase(final boolean isOES, final String vss1, final String fss1, final String vss2, final String fss2) {
+		super(isOES, vss1, fss1);
 		if (!vss1.equals(vss2) || !fss1.equals(fss2)) {
-			mDrawer2 = new FullFrameRect(new Texture2dProgram(GLES20.GL_TEXTURE_2D, vss2, fss2));
+			mDrawer2 = new MediaEffectKernelDrawer(isOES, vss2, fss2);
+		} else {
+			mDrawer2 = null;
 		}
 	}
 
@@ -32,7 +35,6 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 	public void release() {
 		if (mDrawer2 != null) {
 			mDrawer2.release();
-			mDrawer2 = null;
 		}
 		if (mOutputOffscreen2 != null) {
 			mOutputOffscreen2.release();
@@ -51,7 +53,7 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 			mOutputOffscreen2 = new TextureOffscreen(width, height, false);
 		}
 		if (mDrawer2 != null) {
-			mDrawer2.getProgram().setTexSize(width, height);
+			mDrawer2.setTexSize(width, height);
 		}
 		return this;
 	}
@@ -67,17 +69,18 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 	@Override
 	public void apply(final int [] src_tex_ids, final int width, final int height, final int out_tex_id) {
 		if (!mEnabled) return;
-
+		// パス1
 		if (mOutputOffscreen == null) {
 			mOutputOffscreen = new TextureOffscreen(width, height, false);
 		}
 		mOutputOffscreen.bind();
-		mDrawer.draw(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
+		internal_apply(mDrawer, src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
 		mOutputOffscreen.unbind();
 
 		if (mOutputOffscreen2 == null) {
 			mOutputOffscreen2 = new TextureOffscreen(width, height, false);
 		}
+		// パス2
 		if ((out_tex_id != mOutputOffscreen2.getTexture())
 			|| (width != mOutputOffscreen2.getWidth())
 			|| (height != mOutputOffscreen2.getHeight())) {
@@ -85,9 +88,9 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 		}
 		mOutputOffscreen2.bind();
 		if (mDrawer2 != null) {
-			mDrawer2.draw(mOutputOffscreen.getTexture(), mOutputOffscreen2.getTexMatrix(), 0);
+			internal_apply(mDrawer2, mOutputOffscreen.getTexture(), mOutputOffscreen2.getTexMatrix(), 0);
 		} else {
-			mDrawer.draw(mOutputOffscreen.getTexture(), mOutputOffscreen2.getTexMatrix(), 0);
+			internal_apply(mDrawer, mOutputOffscreen.getTexture(), mOutputOffscreen2.getTexMatrix(), 0);
 		}
 		mOutputOffscreen2.unbind();
 	}
@@ -100,18 +103,19 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 			final int[] src_tex_ids = src.getSourceTexId();
 			final int width = src.getWidth();
 			final int height = src.getHeight();
+			// パス1
 			if (mOutputOffscreen == null) {
 				mOutputOffscreen = new TextureOffscreen(width, height, false);
 			}
 			mOutputOffscreen.bind();
-			mDrawer.draw(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
+			internal_apply(mDrawer, src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
 			mOutputOffscreen.unbind();
-
+			// パス2
 			output_tex.bind();
 			if (mDrawer2 != null) {
-				mDrawer2.draw(mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
+				internal_apply(mDrawer2, mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
 			} else {
-				mDrawer.draw(mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
+				internal_apply(mDrawer, mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
 			}
 			output_tex.unbind();
 		} else {

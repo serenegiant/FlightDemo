@@ -17,19 +17,13 @@ package com.serenegiant.mediaeffect;
  *  limitations under the License.
 */
 
-import android.opengl.GLES20;
-import android.util.Log;
-
-import com.serenegiant.glutils.FullFrameRect;
-import com.serenegiant.glutils.Texture2dProgram;
-import com.serenegiant.glutils.TextureOffscreen;
 
 /** 明るさ調整([-1.0f,+1.0f], RGB各成分に単純加算), 0だと無調整 */
 public class MediaEffectBrightness extends MediaEffectGLESBase {
 	private static final boolean DEBUG = false;
 	private static final String TAG = "MediaEffectBrightness";
 
-	private static final String FRAGMENT_SHADER_BASE = Texture2dProgram.SHADER_VERSION +
+	private static final String FRAGMENT_SHADER_BASE = MediaEffectDrawer.SHADER_VERSION +
 		"%s" +
 		"precision highp float;\n" +
 		"varying       vec2 vTextureCoord;\n" +
@@ -40,17 +34,17 @@ public class MediaEffectBrightness extends MediaEffectGLESBase {
 		"    gl_FragColor = vec4(tex.rgb + vec3(uColorAdjust, uColorAdjust, uColorAdjust), tex.w);\n" +
 		"}\n";
 	private static final String FRAGMENT_SHADER
-		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_2D, Texture2dProgram.SAMPLER_2D);
+		= String.format(FRAGMENT_SHADER_BASE, MediaEffectDrawer.HEADER_2D, MediaEffectDrawer.SAMPLER_2D);
 	private static final String FRAGMENT_SHADER_EXT
-		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_OES, Texture2dProgram.SAMPLER_OES);
+		= String.format(FRAGMENT_SHADER_BASE, MediaEffectDrawer.HEADER_OES, MediaEffectDrawer.SAMPLER_OES);
 
 	public MediaEffectBrightness() {
 		this(0.0f);
 	}
 
-	public MediaEffectBrightness(final float exposure) {
-		super(FRAGMENT_SHADER);
-		setParameter(exposure);
+	public MediaEffectBrightness(final float brightness) {
+		super(new MediaEffectColorAdjustDrawer(FRAGMENT_SHADER));
+		setParameter(brightness);
 	}
 
 	/**
@@ -59,7 +53,9 @@ public class MediaEffectBrightness extends MediaEffectGLESBase {
 	 * @return
 	 */
 	public MediaEffectBrightness setParameter(final float brightness) {
-		mDrawer.getProgram().setColorAdjust(brightness);
+		synchronized (mSync) {
+			((MediaEffectColorAdjustDrawer)mDrawer).setColorAdjust(brightness);
+		}
 		return this;
 	}
 }

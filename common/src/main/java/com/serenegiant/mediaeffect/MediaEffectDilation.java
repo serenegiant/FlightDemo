@@ -1,28 +1,7 @@
 package com.serenegiant.mediaeffect;
-/*
- * Copyright (c) 2015 saki t_saki@serenegiant.com
- *
- * File name: MediaEffectKernel.java
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
-*/
-
-import android.util.Log;
-
-import com.serenegiant.glutils.Texture2dProgram;
 
 /** Dilation(膨張)フィルタ */
-public class MediaEffectDilation extends MediaEffectGLESTwoPassBase {
+public class MediaEffectDilation extends MediaEffectGLESBase {
 	private static final boolean DEBUG = true;
 	private static final String TAG = "MediaEffectDilation";
 
@@ -304,17 +283,11 @@ public class MediaEffectDilation extends MediaEffectGLESTwoPassBase {
 	}
 
 	/**
-	 *
+	 * 膨張範囲を指定して生成
 	 * @param radius 1, 2, 3, 4
 	 */
 	public MediaEffectDilation(final int radius) {
-		this(getVertexShader(radius), getFragmentShader(radius));
-		if (DEBUG) Log.v(TAG, "コンストラクタ:");
-	}
-
-	private MediaEffectDilation(final String vss, final String fss) {
-		super(vss, fss);
-		if (DEBUG) Log.v(TAG, "コンストラクタ:");
+		super(false, getVertexShader(radius), getFragmentShader(radius));
 	}
 
 }

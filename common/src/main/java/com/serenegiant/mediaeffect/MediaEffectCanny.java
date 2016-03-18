@@ -116,7 +116,7 @@ public class MediaEffectCanny extends MediaEffectGLESBase {
 		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_OES, Texture2dProgram.SAMPLER_OES);
 
 	public MediaEffectCanny() {
-		super(FRAGMENT_SHADER);
+		super(new MediaEffectKernelDrawer(false, FRAGMENT_SHADER));
 		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 	}
 
@@ -126,7 +126,9 @@ public class MediaEffectCanny extends MediaEffectGLESBase {
 	}
 
 	public MediaEffectCanny setParameter(final float threshold) {
-		mDrawer.getProgram().setColorAdjust(threshold);
+		synchronized (mSync) {
+			((MediaEffectKernelDrawer)mDrawer).setColorAdjust(threshold);
+		}
 		return this;
 	}
 }

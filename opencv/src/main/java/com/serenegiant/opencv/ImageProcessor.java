@@ -21,6 +21,7 @@ import com.serenegiant.mediaeffect.MediaEffectGrayScale;
 import com.serenegiant.mediaeffect.MediaEffectKernel;
 import com.serenegiant.mediaeffect.MediaEffectPosterize;
 import com.serenegiant.mediaeffect.MediaEffectSaturate;
+import com.serenegiant.mediaeffect.MediaEffectTexProjection;
 import com.serenegiant.mediaeffect.MediaSource;
 
 import java.lang.ref.WeakReference;
@@ -523,6 +524,20 @@ public class ImageProcessor {
 	}
 
 	public void trapeziumRate(final double trapeziumRate) {
+		final float[] src = { 0.0f, 0.0f, 0.0f, 368.0f, 640.0f, 368.0f, 640.0f, 0.0f};
+		final float trapezium_rate = 0.5f;
+		final float[] dst = {
+			(trapezium_rate < 0 ? -trapezium_rate * 150.0f : 0.0f) + 0.0f, 0.0f,
+			(trapezium_rate >= 0 ?  trapezium_rate * 150.0f : 0.0f) + 0.0f, 368.0f,
+			(trapezium_rate >= 0 ?  -trapezium_rate * 150.0f : 0.0f) + 640.0f, 368.0f,
+			(trapezium_rate < 0 ?  trapezium_rate * 150.0f : 0.0f) + 640.0f, 0.0f};
+		synchronized (mSync) {
+			for (final IEffect effect: mEffects) {
+				if (effect instanceof MediaEffectTexProjection) {
+					((MediaEffectTexProjection)effect).calcPerspectiveTransform(src, dst);
+				}
+			}
+		}
 		final int result = nativeSetTrapeziumRate(mNativePtr,
 			trapeziumRate < -0.01 ? trapeziumRate : (trapeziumRate > 0.01 ? trapeziumRate : 0.0));
 		if (result != 0) {
@@ -690,6 +705,10 @@ public class ImageProcessor {
 //				final MediaEffectEmboss emboss = new MediaEffectEmboss();
 //				emboss.setParameter(2.0f);
 //				mEffects.add(emboss);
+//				// 台形補正 FIXME これはまだうまく動かない
+//				final MediaEffectTexProjection proj = new MediaEffectTexProjection();
+//				proj.setEnable(true);
+//				mEffects.add(proj);
 //--------------------------------------------------------------------------------
 				// 色抽出とCannyエッジ検出はプレフィルタじゃないよ
 				// 色抽出(白色)

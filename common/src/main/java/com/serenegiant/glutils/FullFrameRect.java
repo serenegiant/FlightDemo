@@ -183,16 +183,16 @@ public class FullFrameRect {
     /**
      * Draws a viewport-filling rect, texturing it with the specified texture object.
      */
-    public void draw(final int textureId, final float[] texMatrix, final int offset) {
+    public void draw(final int textureId, final float[] texMatrix, final int texOffset) {
         // Use the identity matrix for MVP so our 2x2 FULL_RECTANGLE covers the viewport.
         synchronized (mDrawLock) {
             if (mCorrectVerticalVideo && !mScaleToFit && (requestedOrientation == SCREEN_ROTATION.VERTICAL || requestedOrientation == SCREEN_ROTATION.UPSIDEDOWN_VERTICAL)) {
                 Matrix.scaleM(texMatrix, 0, 0.316f, 1.0f, 1f);
             }
-            mProgram.draw(mMvpMatrix, mRectDrawable.getVertexArray(), 0,
+            mProgram.draw(mMvpMatrix, 0, mRectDrawable.getVertexArray(), 0,
                     mRectDrawable.getVertexCount(), mRectDrawable.getCoordsPerVertex(),
                     mRectDrawable.getVertexStride(),
-                    texMatrix, TEX_COORDS_BUF, textureId, TEX_COORDS_STRIDE);
+                    texMatrix, texOffset, TEX_COORDS_BUF, textureId, TEX_COORDS_STRIDE);
         }
     }
 

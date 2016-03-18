@@ -138,6 +138,7 @@ public class GLDrawer2D {
 	public void getMvpMatrix(final float[] matrix, final int offset) {
 		System.arraycopy(mMvpMatrix, 0, matrix, offset, mMvpMatrix.length);
 	}
+
 	/**
 	 * 指定したテクスチャを指定したテクスチャ変換行列を使って描画領域全面に描画するためのヘルパーメソッド
 	 * このクラスインスタンスのモデルビュー変換行列が設定されていればそれも適用された状態で描画する

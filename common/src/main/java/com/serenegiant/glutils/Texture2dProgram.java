@@ -18,7 +18,6 @@ package com.serenegiant.glutils;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
-import android.os.Build;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -422,11 +421,11 @@ public class Texture2dProgram {
     private int mProgramHandle;
     private final int muMVPMatrixLoc;	// モデルビュー変換行列
     private final int muTexMatrixLoc;	// テクスチャ行列
+	private final int maPositionLoc;	//
+	private final int maTextureCoordLoc;//
     private int muKernelLoc;			// カーネル行列(float配列)
     private int muTexOffsetLoc;			// テクスチャオフセット(カーネル行列用)
     private int muColorAdjustLoc;		// 色調整
-	private final int maPositionLoc;	//
-	private final int maTextureCoordLoc;//
     private int muTouchPositionLoc;
 	private int muFlagsLoc;
 
@@ -564,58 +563,16 @@ public class Texture2dProgram {
         if (DEBUG) Log.d(TAG, "Created program " + mProgramHandle + " (" + programType + ")");
 
         // get locations of attributes and uniforms
-
-        maPositionLoc = GLES20.glGetAttribLocation(mProgramHandle, "aPosition");
+		maPositionLoc = GLES20.glGetAttribLocation(mProgramHandle, "aPosition");
 		GLHelper.checkLocation(maPositionLoc, "aPosition");
-        maTextureCoordLoc = GLES20.glGetAttribLocation(mProgramHandle, "aTextureCoord");
+		maTextureCoordLoc = GLES20.glGetAttribLocation(mProgramHandle, "aTextureCoord");
 		GLHelper.checkLocation(maTextureCoordLoc, "aTextureCoord");
-        muMVPMatrixLoc = GLES20.glGetUniformLocation(mProgramHandle, "uMVPMatrix");
+		muMVPMatrixLoc = GLES20.glGetUniformLocation(mProgramHandle, "uMVPMatrix");
 		GLHelper.checkLocation(muMVPMatrixLoc, "uMVPMatrix");
-        muTexMatrixLoc = GLES20.glGetUniformLocation(mProgramHandle, "uTexMatrix");
-		GLHelper.checkLocation(muTexMatrixLoc, "uTexMatrix");
-        muKernelLoc = GLES20.glGetUniformLocation(mProgramHandle, "uKernel");
-        if (muKernelLoc < 0) {
-            // no kernel in this one
-            muKernelLoc = -1;
-            muTexOffsetLoc = -1;
-        } else {
-            // has kernel, must also have tex offset and color adj
-            muTexOffsetLoc = GLES20.glGetUniformLocation(mProgramHandle, "uTexOffset");
-            if (muTexOffsetLoc < 0) {
-				muTexOffsetLoc = -1;
-			}
-//			GLHelper.checkLocation(muTexOffsetLoc, "uTexOffset");	// 未使用だと削除されてしまうのでチェックしない
+		muTexMatrixLoc = GLES20.glGetUniformLocation(mProgramHandle, "uTexMatrix");
+//		GLHelper.checkLocation(muTexMatrixLoc, "uTexMatrix");
+        initLocation(kernel, kernel2);
 
-            // initialize default values
-            if (kernel == null) {
-            	kernel = KERNEL_NULL;
-			}
-            setKernel(kernel, 0f);
-            setTexSize(256, 256);
-        }
-		if (kernel2 != null) {
-			setKernel2(kernel2);
-		}
-
-		muColorAdjustLoc = GLES20.glGetUniformLocation(mProgramHandle, "uColorAdjust");
-		if (muColorAdjustLoc < 0) {
-			muColorAdjustLoc = -1;
-		}
-//		GLHelper.checkLocation(muColorAdjustLoc, "uColorAdjust");	// 未使用だと削除されてしまうのでチェックしない
-
-        muTouchPositionLoc = GLES20.glGetUniformLocation(mProgramHandle, "uPosition");
-        if (muTouchPositionLoc < 0) {
-            // Shader doesn't use position
-            muTouchPositionLoc = -1;
-        } else {
-            // initialize default values
-            //handleTouchEvent(new float[]{0f, 0f});
-        }
-		muFlagsLoc = GLES20.glGetUniformLocation(mProgramHandle, "uFlags");
-		if (muFlagsLoc < 0) {
-			muFlagsLoc = -1;
-		} else {
-		}
     }
 
     /**
@@ -633,6 +590,10 @@ public class Texture2dProgram {
     public ProgramType getProgramType() {
         return mProgramType;
     }
+
+	public int getProgramHandle() {
+		return mProgramHandle;
+	}
 
     /**
      * Creates a texture object suitable for use with this program.
@@ -752,6 +713,7 @@ public class Texture2dProgram {
      * Issues the draw call.  Does the full setup on every call.
      *
      * @param mvpMatrix The 4x4 projection matrix.
+	 * @param mvpMatrixOffset offset of mvpMatrix
      * @param vertexBuffer Buffer with vertex position data.
      * @param firstVertex Index of first vertex to use in vertexBuffer.
      * @param vertexCount Number of vertices in vertexBuffer.
@@ -759,12 +721,13 @@ public class Texture2dProgram {
      * @param vertexStride Width, in bytes, of the position data for each vertex (often
      *        vertexCount * sizeof(float)).
      * @param texMatrix A 4x4 transformation matrix for texture coords.
+	 * @param texMatrixOffset offset of texMatrix
      * @param texBuffer Buffer with vertex texture data.
      * @param texStride Width, in bytes, of the texture data for each vertex.
      */
-    public void draw(final float[] mvpMatrix, final FloatBuffer vertexBuffer, final int firstVertex,
+    public void draw(final float[] mvpMatrix, final int mvpMatrixOffset, final FloatBuffer vertexBuffer, final int firstVertex,
                      final int vertexCount, final int coordsPerVertex, final int vertexStride,
-                     final float[] texMatrix, final FloatBuffer texBuffer, final int textureId, final int texStride) {
+                     final float[] texMatrix, final int texMatrixOffset, final FloatBuffer texBuffer, final int textureId, final int texStride) {
 		GLHelper.checkGlError("draw start");
 
         // シェーダープログラムを選択
@@ -778,12 +741,14 @@ public class Texture2dProgram {
 
 		synchronized (mSync) {
 			// モデルビュー変換行列をセット
-			GLES20.glUniformMatrix4fv(muMVPMatrixLoc, 1, false, mvpMatrix, 0);
+			GLES20.glUniformMatrix4fv(muMVPMatrixLoc, 1, false, mvpMatrix, mvpMatrixOffset);
 			GLHelper.checkGlError("glUniformMatrix4fv");
 
 			// テクスチャ変換行列をセット
-			GLES20.glUniformMatrix4fv(muTexMatrixLoc, 1, false, texMatrix, 0);
-			GLHelper.checkGlError("glUniformMatrix4fv");
+			if (muTexMatrixLoc >= 0) {
+				GLES20.glUniformMatrix4fv(muTexMatrixLoc, 1, false, texMatrix, texMatrixOffset);
+				GLHelper.checkGlError("glUniformMatrix4fv");
+			}
 
 			// 頂点座標バッファを有効にする("aPosition" vertex attribute)
 			GLES20.glEnableVertexAttribArray(maPositionLoc);
@@ -834,6 +799,52 @@ public class Texture2dProgram {
         GLES20.glBindTexture(mTextureTarget, 0);
         GLES20.glUseProgram(0);
     }
+
+	protected void initLocation(float[] kernel, float[] kernel2) {
+		muKernelLoc = GLES20.glGetUniformLocation(mProgramHandle, "uKernel");
+		if (muKernelLoc < 0) {
+			// no kernel in this one
+			muKernelLoc = -1;
+			muTexOffsetLoc = -1;
+		} else {
+			// has kernel, must also have tex offset and color adj
+			muTexOffsetLoc = GLES20.glGetUniformLocation(mProgramHandle, "uTexOffset");
+			if (muTexOffsetLoc < 0) {
+				muTexOffsetLoc = -1;
+			}
+//			GLHelper.checkLocation(muTexOffsetLoc, "uTexOffset");	// 未使用だと削除されてしまうのでチェックしない
+
+			// initialize default values
+			if (kernel == null) {
+				kernel = KERNEL_NULL;
+			}
+			setKernel(kernel, 0f);
+			setTexSize(256, 256);
+			}
+			if (kernel2 != null) {
+				setKernel2(kernel2);
+			}
+
+			muColorAdjustLoc = GLES20.glGetUniformLocation(mProgramHandle, "uColorAdjust");
+			if (muColorAdjustLoc < 0) {
+				muColorAdjustLoc = -1;
+			}
+//			GLHelper.checkLocation(muColorAdjustLoc, "uColorAdjust");	// 未使用だと削除されてしまうのでチェックしない
+
+			muTouchPositionLoc = GLES20.glGetUniformLocation(mProgramHandle, "uPosition");
+			if (muTouchPositionLoc < 0) {
+				// Shader doesn't use position
+				muTouchPositionLoc = -1;
+			} else {
+				// initialize default values
+				//handleTouchEvent(new float[]{0f, 0f});
+			}
+			muFlagsLoc = GLES20.glGetUniformLocation(mProgramHandle, "uFlags");
+			if (muFlagsLoc < 0) {
+				muFlagsLoc = -1;
+			} else {
+		}
+	}
 
     protected void internal_draw(final int firstVertex, final int vertexCount) {
 		// Draw the rect.

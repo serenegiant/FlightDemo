@@ -42,7 +42,7 @@ public class MediaEffectExposure extends MediaEffectGLESBase {
 		= String.format(FRAGMENT_SHADER_BASE, Texture2dProgram.HEADER_OES, Texture2dProgram.SAMPLER_OES);
 
 	public MediaEffectExposure() {
-		super(FRAGMENT_SHADER);
+		super(new MediaEffectColorAdjustDrawer(FRAGMENT_SHADER));
 		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 	}
 
@@ -57,7 +57,9 @@ public class MediaEffectExposure extends MediaEffectGLESBase {
 	 * @return
 	 */
 	public MediaEffectExposure setParameter(final float exposure) {
-		mDrawer.getProgram().setColorAdjust(exposure);
+		synchronized (mSync) {
+			((MediaEffectColorAdjustDrawer)mDrawer).setColorAdjust(exposure);
+		}
 		return this;
 	}
 

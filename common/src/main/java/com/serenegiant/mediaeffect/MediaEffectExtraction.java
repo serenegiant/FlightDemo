@@ -74,13 +74,15 @@ public class MediaEffectExtraction extends MediaEffectGLESBase {
 	private final float[] mLimit = new float[Texture2dProgram.KERNEL_SIZE];
 
 	public MediaEffectExtraction() {
-		super(FRAGMENT_SHADER);
+		super(new MediaEffectKernelDrawer(FRAGMENT_SHADER));
 		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 		mLimit[0] = 0.0f;	mLimit[1] = 1.0f;	// H上下限
 		mLimit[2] = 0.0f;	mLimit[3] = 1.0f;	// S上下限
 		mLimit[4] = 0.0f; 	mLimit[5] = 1.0f;	// V上下限
 		mLimit[6] = 0.0f; 	mLimit[7] = 0.0f;	mLimit[8] = 0.0f;	// 抽出後加算値HSV
-		mDrawer.getProgram().setKernel(mLimit, 0.0f);	// デフォルトは2値化しないのでcolorAdjは0
+		synchronized (mSync) {
+			((MediaEffectKernelDrawer)mDrawer).setKernel(mLimit, 0.0f);	// デフォルトは2値化しないのでcolorAdjは0
+		}
 	}
 
 	/**
@@ -118,7 +120,9 @@ public class MediaEffectExtraction extends MediaEffectGLESBase {
 		mLimit[6] = addH;
 		mLimit[7] = addS;
 		mLimit[8] = addV;
-		mDrawer.getProgram().setKernel(mLimit, color_adjust);
+		synchronized (mSync) {
+			((MediaEffectKernelDrawer)mDrawer).setKernel(mLimit, color_adjust);
+		}
 		return this;
 	}
 
@@ -133,7 +137,9 @@ public class MediaEffectExtraction extends MediaEffectGLESBase {
 			throw new IllegalArgumentException("limit is null or short");
 		}
 		System.arraycopy(limit, 0, mLimit, 0, 6);
-		mDrawer.getProgram().setKernel(mLimit, color_adjust);
+		synchronized (mSync) {
+			((MediaEffectKernelDrawer)mDrawer).setKernel(mLimit, color_adjust);
+		}
 		return this;
 	}
 }

@@ -263,7 +263,11 @@ int ImageProcessor::setTrapeziumRate(const double &trapezium_rate) {
 			cv::Point2f((trapezium_rate >= 0 ?  trapezium_rate * 150.0f : 0.0f) + 0.0f, 368.0f),
 			cv::Point2f((trapezium_rate >= 0 ?  -trapezium_rate * 150.0f : 0.0f) + 640.0f, 368.0f),
 			cv::Point2f((trapezium_rate < 0 ?  trapezium_rate * 150.0f : 0.0f) + 640.0f, 0.0f)};
-		cv::Mat perspectiveTransform = cv::getPerspectiveTransform(src, dst);
+		cv::Mat_<double> perspectiveTransform = cv::getPerspectiveTransform(src, dst);
+		int ix = 0;
+		for (auto iter = perspectiveTransform.begin(); iter != perspectiveTransform.end() ;iter++) {
+			LOGI("%d)%f", ix++, *iter);
+		}
 		mMutex.lock();
 		{
 			mParam.mTrapeziumRate = trapezium_rate;
