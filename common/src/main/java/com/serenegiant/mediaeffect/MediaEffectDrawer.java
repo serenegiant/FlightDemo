@@ -56,6 +56,7 @@ public class MediaEffectDrawer {
 	private static final int VERTEX_NUM = 4;
 	private static final int VERTEX_SZ = VERTEX_NUM * 2;
 
+	protected final Object mSync = new Object();
 	private final int mTexTarget;
 	private final int muMVPMatrixLoc;
 	private final int muTexMatrixLoc;
@@ -146,27 +147,28 @@ public class MediaEffectDrawer {
 
 	/**
 	 * preDraw => draw => postDrawを順に呼び出す
-	 * mSyncはロックされて呼び出される
 	 * @param tex_id texture ID
 	 * @param tex_matrix テクスチャ変換行列、nullならば以前に適用したものが再利用される.領域チェックしていないのでoffsetから16個以上確保しておくこと
 	 * @param offset テクスチャ変換行列のオフセット
 	 */
 	protected void apply(final int tex_id, final float[] tex_matrix, final int offset) {
-		preDraw(tex_id, tex_matrix, offset);
-		draw(tex_id, tex_matrix, offset);
-		postDraw();
+		synchronized (mSync) {
+			GLES20.glUseProgram(hProgram);
+			preDraw(tex_id, tex_matrix, offset);
+			draw(tex_id, tex_matrix, offset);
+			postDraw();
+		}
 	}
 
 	/**
 	 * 描画の前処理
-	 * プログラムを使用可能にしてテクスチャ変換行列/モデルビュー変換行列を代入, テクスチャをbindする
+	 * テクスチャ変換行列/モデルビュー変換行列を代入, テクスチャをbindする
 	 * mSyncはロックされて呼び出される
 	 * @param tex_id texture ID
 	 * @param tex_matrix テクスチャ変換行列、nullならば以前に適用したものが再利用される.領域チェックしていないのでoffsetから16個以上確保しておくこと
 	 * @param offset テクスチャ変換行列のオフセット
 	 */
 	protected void preDraw(final int tex_id, final float[] tex_matrix, final int offset) {
-		GLES20.glUseProgram(hProgram);
 		if ((muTexMatrixLoc >= 0) && (tex_matrix != null)) {
 			GLES20.glUniformMatrix4fv(muTexMatrixLoc, 1, false, tex_matrix, offset);
 		}

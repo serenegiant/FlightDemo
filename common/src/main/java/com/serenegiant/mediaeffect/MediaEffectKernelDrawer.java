@@ -84,7 +84,6 @@ public class MediaEffectKernelDrawer extends MediaEffectColorAdjustDrawer {
 		final float rw = 1.0f / width;
 		final float rh = 1.0f / height;
 
-		// Don't need to create a new array here, but it's syntactically convenient.
 		mTexOffset[0] = -rw;	mTexOffset[1] = -rh;
 		mTexOffset[2] = 0f;		mTexOffset[3] = -rh;
 		mTexOffset[4] = rw;		mTexOffset[5] = -rh;
@@ -97,11 +96,6 @@ public class MediaEffectKernelDrawer extends MediaEffectColorAdjustDrawer {
 		mTexOffset[14] = 0f;	mTexOffset[15] = rh;
 		mTexOffset[16] = rw;	mTexOffset[17] = rh;
 
-/*		mTexOffset = new float[] {
-			-rw, -rh,   0f, -rh,    rw, -rh,
-			-rw, 0f,    0f, 0f,     rw, 0f,
-			-rw, rh,    0f, rh,     rw, rh
-		}; */
 	}
 
 }

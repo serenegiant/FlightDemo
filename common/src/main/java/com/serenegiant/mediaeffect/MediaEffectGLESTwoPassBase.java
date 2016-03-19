@@ -74,7 +74,7 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 			mOutputOffscreen = new TextureOffscreen(width, height, false);
 		}
 		mOutputOffscreen.bind();
-		internal_apply(mDrawer, src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
+		mDrawer.apply(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
 		mOutputOffscreen.unbind();
 
 		if (mOutputOffscreen2 == null) {
@@ -88,9 +88,9 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 		}
 		mOutputOffscreen2.bind();
 		if (mDrawer2 != null) {
-			internal_apply(mDrawer2, mOutputOffscreen.getTexture(), mOutputOffscreen2.getTexMatrix(), 0);
+			mDrawer2.apply(mOutputOffscreen.getTexture(), mOutputOffscreen2.getTexMatrix(), 0);
 		} else {
-			internal_apply(mDrawer, mOutputOffscreen.getTexture(), mOutputOffscreen2.getTexMatrix(), 0);
+			mDrawer.apply(mOutputOffscreen.getTexture(), mOutputOffscreen2.getTexMatrix(), 0);
 		}
 		mOutputOffscreen2.unbind();
 	}
@@ -108,14 +108,14 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 				mOutputOffscreen = new TextureOffscreen(width, height, false);
 			}
 			mOutputOffscreen.bind();
-			internal_apply(mDrawer, src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
+			mDrawer.apply(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
 			mOutputOffscreen.unbind();
 			// パス2
 			output_tex.bind();
 			if (mDrawer2 != null) {
-				internal_apply(mDrawer2, mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
+				mDrawer2.apply(mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
 			} else {
-				internal_apply(mDrawer, mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
+				mDrawer.apply(mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
 			}
 			output_tex.unbind();
 		} else {

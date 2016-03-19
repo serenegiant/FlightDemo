@@ -138,8 +138,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		mPosterize = mPref.getFloat(KEY_POSTERIZE, 10);
 		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
 		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRESHOLD, 0.5f);
-		mTrapeziumRate = Double.parseDouble(mPref.getString(KEY_TRAPEZIUM_RATE, "0.0"));
-		if (Math.abs(mTrapeziumRate) < 0.01) mTrapeziumRate = 0.0;
+		mTrapeziumRate = (float)Double.parseDouble(mPref.getString(KEY_TRAPEZIUM_RATE, "0.0"));
+		if (Math.abs(mTrapeziumRate) < 0.01f) mTrapeziumRate = 0.0f;
 		//
 		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
 		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
@@ -1046,7 +1046,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				}
 				break;
 			case R.id.trapezium_rate_seekbar:
-				final double trapezium_rate = progressToTrapeziumRate(progress);
+				final float trapezium_rate = progressToTrapeziumRate(progress);
 				if (mTrapeziumRate != trapezium_rate) {
 					mTrapeziumRate = trapezium_rate;
 					if (mImageProcessor != null) {
@@ -1325,7 +1325,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	/** 2値化閾値 */
 	protected float mBinarizeThreshold;
 	/** 台形補正係数 */
-	protected double mTrapeziumRate;
+	protected float mTrapeziumRate;
 
 	private void initPreprocess(final View rootView) {
 		mExposureFormat = getString(R.string.trace_use_exposure);
@@ -1388,8 +1388,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateBinarizeThreshold(mBinarizeThreshold);
 		// 台形補正係数
-		mTrapeziumRate = Double.parseDouble(mPref.getString(KEY_TRAPEZIUM_RATE, "0.0"));
-		if (Math.abs(mTrapeziumRate) < 0.01) mTrapeziumRate = 0.0;
+		mTrapeziumRate = (float)Double.parseDouble(mPref.getString(KEY_TRAPEZIUM_RATE, "0.0"));
+		if (Math.abs(mTrapeziumRate) < 0.01f) mTrapeziumRate = 0.0f;
 		mTrapeziumRateLabel = (TextView)rootView.findViewById(R.id.trapezium_rate_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.trapezium_rate_seekbar);
 		sb.setMax(4000);
@@ -1441,9 +1441,9 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		return (int)(trapezium_rate * 1000.0) + 2000;
 	}
 
-	private double progressToTrapeziumRate(final int progress) {
-		double trapezium_rate = (progress - 2000) / 1000.0;
-		if (Math.abs(trapezium_rate) < 0.01) trapezium_rate = 0.0;
+	private float progressToTrapeziumRate(final int progress) {
+		float trapezium_rate = (progress - 2000) / 1000.0f;
+		if (Math.abs(trapezium_rate) < 0.01f) trapezium_rate = 0.0f;
 		return trapezium_rate;
 	}
 

@@ -523,14 +523,13 @@ public class ImageProcessor {
 		return result != 0;
 	}
 
-	public void trapeziumRate(final double trapeziumRate) {
+	public void trapeziumRate(final float trapeziumRate) {
 		final float[] src = { 0.0f, 0.0f, 0.0f, 368.0f, 640.0f, 368.0f, 640.0f, 0.0f};
-		final float trapezium_rate = 0.5f;
 		final float[] dst = {
-			(trapezium_rate < 0 ? -trapezium_rate * 150.0f : 0.0f) + 0.0f, 0.0f,
-			(trapezium_rate >= 0 ?  trapezium_rate * 150.0f : 0.0f) + 0.0f, 368.0f,
-			(trapezium_rate >= 0 ?  -trapezium_rate * 150.0f : 0.0f) + 640.0f, 368.0f,
-			(trapezium_rate < 0 ?  trapezium_rate * 150.0f : 0.0f) + 640.0f, 0.0f};
+			(trapeziumRate < 0 ? -trapeziumRate * 150.0f : 0.0f) + 0.0f, 0.0f,
+			(trapeziumRate >= 0 ?  trapeziumRate * 150.0f : 0.0f) + 0.0f, 368.0f,
+			(trapeziumRate >= 0 ?  -trapeziumRate * 150.0f : 0.0f) + 640.0f, 368.0f,
+			(trapeziumRate < 0 ?  trapeziumRate * 150.0f : 0.0f) + 640.0f, 0.0f};
 		synchronized (mSync) {
 			for (final IEffect effect: mEffects) {
 				if (effect instanceof MediaEffectTexProjection) {
@@ -538,11 +537,11 @@ public class ImageProcessor {
 				}
 			}
 		}
-		final int result = nativeSetTrapeziumRate(mNativePtr,
-			trapeziumRate < -0.01 ? trapeziumRate : (trapeziumRate > 0.01 ? trapeziumRate : 0.0));
-		if (result != 0) {
-			throw new IllegalStateException("nativeSetTrapeziumRate:result=" + result);
-		}
+//		final int result = nativeSetTrapeziumRate(mNativePtr,
+//			trapeziumRate < -0.01 ? trapeziumRate : (trapeziumRate > 0.01 ? trapeziumRate : 0.0));
+//		if (result != 0) {
+//			throw new IllegalStateException("nativeSetTrapeziumRate:result=" + result);
+//		}
 	}
 
 	public double trapeziumRate() {
@@ -705,10 +704,10 @@ public class ImageProcessor {
 //				final MediaEffectEmboss emboss = new MediaEffectEmboss();
 //				emboss.setParameter(2.0f);
 //				mEffects.add(emboss);
-//				// 台形補正 FIXME これはまだうまく動かない
-//				final MediaEffectTexProjection proj = new MediaEffectTexProjection();
-//				proj.setEnable(true);
-//				mEffects.add(proj);
+				// 台形補正 FIXME これはまだうまく動かない
+				final MediaEffectTexProjection proj = new MediaEffectTexProjection();
+				proj.setEnable(true);
+				mEffects.add(proj);
 //--------------------------------------------------------------------------------
 				// 色抽出とCannyエッジ検出はプレフィルタじゃないよ
 				// 色抽出(白色)
