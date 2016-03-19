@@ -8,8 +8,7 @@
 	<Switch
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:paddingTop="@dimen/quater_padding"
-		android:paddingBottom="@dimen/quater_padding"
+		android:paddingBottom="@dimen/min_padding"
 		android:textColor="@color/trace_config"
 		android:text="@string/trace_use_extraction"
 		android:id="@+id/use_extract_sw"/>
@@ -17,8 +16,7 @@
 	<Switch
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:paddingTop="@dimen/quater_padding"
-		android:paddingBottom="@dimen/quater_padding"
+		android:paddingBottom="@dimen/min_padding"
 		android:textColor="@color/trace_config"
 		android:text="@string/trace_use_native_extraction"
 		android:id="@+id/use_native_extract_sw"/>

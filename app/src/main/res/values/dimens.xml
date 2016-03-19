@@ -8,9 +8,10 @@
 	<dimen name="double_padding">32dp</dimen>
 	<dimen name="list_padding">8dp</dimen>
 	<dimen name="quater_padding">4dp</dimen>
+	<dimen name="min_padding">2dp</dimen>
 
-	<dimen name="top_panel_height">48dp</dimen>
-	<dimen name="bottom_panel_height">48dp</dimen>
+	<dimen name="top_panel_height">40dp</dimen>
+	<dimen name="bottom_panel_height">44dp</dimen>
 
 	<dimen name="stick_size">96dp</dimen>
 	<dimen name="stick_frame_width">192dp</dimen>
@@ -23,14 +24,14 @@
 	<dimen name="text_sz_message">32sp</dimen>
 	<dimen name="text_sz_button">16sp</dimen>
 	<dimen name="text_sz_on_image_button">9sp</dimen>
-	<dimen name="text_sz_list">22sp</dimen>
+	<dimen name="text_sz_list">20sp</dimen>
 	<dimen name="text_sz_list_device">28sp</dimen>
 	<dimen name="text_sz_list_scale">18sp</dimen>
 	<dimen name="text_sz_side_menu_item">16sp</dimen>
 	<dimen name="text_sz_progress">24sp</dimen>
 	<dimen name="text_sz_error">24sp</dimen>
 	<dimen name="text_sz_trace_config_title">16sp</dimen>
-	<dimen name="text_sz_trace_config_list">18sp</dimen>
+	<dimen name="text_sz_trace_config_list">16sp</dimen>
 
 	<dimen name="switch_height">64dp</dimen>
 	<dimen name="thumbnail_margin">16dp</dimen>

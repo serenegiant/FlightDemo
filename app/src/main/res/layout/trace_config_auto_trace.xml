@@ -20,6 +20,8 @@
 			android:layout_height="wrap_content"
 			android:id="@+id/trace_flight_attitude_yaw_seekbar"
 			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 		<!-- 飛行速度 -->
 		<TextView
@@ -34,6 +36,8 @@
 			android:layout_height="wrap_content"
 			android:id="@+id/trace_flight_speed_seekbar"
 			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 	</LinearLayout>
 </ScrollView>

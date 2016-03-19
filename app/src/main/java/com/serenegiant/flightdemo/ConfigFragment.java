@@ -323,9 +323,9 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 	 */
 	private void initConfigGamepad(final View root) {
 		// 最大制御値設定
-		final CheckBox checkbox = (CheckBox)root.findViewById(R.id.usb_driver_checkbox);
-		checkbox.setChecked(mPref.getBoolean(KEY_GAMEPAD_USE_DRIVER, false));
-		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
+//		final CheckBox checkbox = (CheckBox)root.findViewById(R.id.usb_driver_checkbox);
+//		checkbox.setChecked(mPref.getBoolean(KEY_GAMEPAD_USE_DRIVER, false));
+//		checkbox.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		mGamepadMaxControlValueLabel = (TextView)root.findViewById(R.id.gamepad_sensitivity_textview);
 		SeekBar seekbar = (SeekBar)root.findViewById(R.id.gamepad_sensitivity_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
@@ -889,8 +889,9 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 			case R.id.operation_touch_checkbox:
 				mPref.edit().putBoolean(KEY_OPERATION_TOUCH, isChecked).apply();
 				break;
-			case R.id.usb_driver_checkbox:
-				mPref.edit().putBoolean(KEY_GAMEPAD_USE_DRIVER, isChecked).apply();
+//			case R.id.usb_driver_checkbox:
+//				mPref.edit().putBoolean(KEY_GAMEPAD_USE_DRIVER, isChecked).apply();
+//				break;
 			}
 		}
 	};

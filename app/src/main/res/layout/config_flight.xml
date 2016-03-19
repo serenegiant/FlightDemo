@@ -17,6 +17,7 @@
 		android:layout_height="wrap_content"
 		android:id="@+id/max_altitude_seekbar"
 		android:layout_gravity="center_horizontal"
+		android:thumb="@drawable/custom_thumb"
 		android:minHeight="@dimen/text_sz_list"/>
 
 	<TextView
@@ -32,6 +33,7 @@
 		android:layout_height="wrap_content"
 		android:id="@+id/max_tilt_seekbar"
 		android:layout_gravity="center_horizontal"
+		android:thumb="@drawable/custom_thumb"
 		android:minHeight="@dimen/text_sz_list"/>
 
 	<TextView
@@ -46,6 +48,7 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:id="@+id/max_vertical_speed_seekbar"
+		android:thumb="@drawable/custom_thumb"
 		android:minHeight="@dimen/text_sz_list"/>
 
 	<TextView
@@ -60,6 +63,7 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:id="@+id/max_rotation_speed_seekbar"
+		android:thumb="@drawable/custom_thumb"
 		android:minHeight="@dimen/text_sz_list"/>
 
 </LinearLayout>

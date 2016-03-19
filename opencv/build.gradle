@@ -2,12 +2,12 @@ apply plugin: 'com.android.library'
 import org.apache.tools.ant.taskdefs.condition.Os
 
 android {
-	compileSdkVersion 23
+	compileSdkVersion 22
 	buildToolsVersion "23.0.2"
 
 	defaultConfig {
 		minSdkVersion 18
-		targetSdkVersion 23
+		targetSdkVersion 22
 		versionCode 1
 		versionName "1.0"
 	}

@@ -13,14 +13,13 @@
 		android:id="@+id/linearLayout"
 		android:weightSum="1">
 
-		<CheckBox
+<!--	<CheckBox
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:text="@string/config_gamepad_use_driver"
 			android:id="@+id/usb_driver_checkbox"
 			android:textSize="@dimen/text_sz_list"
-			android:textColor="@color/WHITE"
-			/>
+			android:textColor="@color/WHITE"/> -->
 
 		<TextView
 			android:layout_width="match_parent"
@@ -34,6 +33,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:id="@+id/gamepad_sensitivity_seekbar"
+			android:thumb="@drawable/custom_thumb"
 			android:layout_gravity="center_horizontal"
 			/>
 
@@ -49,6 +49,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:id="@+id/gamepad_scale_seekbar_x"
+			android:thumb="@drawable/custom_thumb"
 			android:layout_gravity="center_horizontal"
 			/>
 
@@ -63,6 +64,7 @@
 		<SeekBar
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
+			android:thumb="@drawable/custom_thumb"
 			android:id="@+id/gamepad_scale_seekbar_y"
 			/>
 
@@ -77,6 +79,7 @@
 		<SeekBar
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
+			android:thumb="@drawable/custom_thumb"
 			android:id="@+id/gamepad_scale_seekbar_z"
 			/>
 
@@ -91,6 +94,7 @@
 		<SeekBar
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
+			android:thumb="@drawable/custom_thumb"
 			android:id="@+id/gamepad_scale_seekbar_r"
 			/>
 

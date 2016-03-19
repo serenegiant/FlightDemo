@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+	<!-- シークバーが無効の時に表示する画像 -->
+	<item android:state_enabled="false"
+		android:drawable="@mipmap/ic_launcher_small" />
+	<!-- サムが押されているときに表示する画像 -->
+	<item android:state_pressed="true"
+		android:drawable="@mipmap/ic_launcher_small" />
+	<!-- サムにフォーカスが当たった時に表示する画像 -->
+	<item android:state_selected="true"
+		android:drawable="@mipmap/ic_launcher_small" />
+	<!-- フォーカスがない時に表示する画像 -->
+	<item android:drawable="@mipmap/ic_launcher_small" />
+</selector>

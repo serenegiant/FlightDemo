@@ -10,10 +10,10 @@
 	<dimen name="double_padding">104dp</dimen>
 	<dimen name="list_padding">6dp</dimen>
 	<dimen name="quater_padding">13dp</dimen>
-	<dimen name="margin_record_frame_left">120dp</dimen>
+	<dimen name="min_padding">4dp</dimen>
 
-	<dimen name="top_panel_height">84dp</dimen>
-	<dimen name="bottom_panel_height">84dp</dimen>
+	<dimen name="top_panel_height">72dp</dimen>
+	<dimen name="bottom_panel_height">80dp</dimen>
 
 	<dimen name="stick_size">180dp</dimen>
 	<dimen name="stick_frame_width">312dp</dimen>
@@ -25,12 +25,14 @@
 	<dimen name="text_sz_message">34sp</dimen>
 	<dimen name="text_sz_button">22sp</dimen>
 	<dimen name="text_sz_on_image_button">10sp</dimen>
-	<dimen name="text_sz_list">28sp</dimen>
+	<dimen name="text_sz_list">26sp</dimen>
 	<dimen name="text_sz_list_device">32sp</dimen>
 	<dimen name="text_sz_list_scale">16sp</dimen>
 	<dimen name="text_sz_side_menu_item">14sp</dimen>
 	<dimen name="text_sz_progress">22sp</dimen>
 	<dimen name="text_sz_error">22sp</dimen>
+	<dimen name="text_sz_trace_config_title">22sp</dimen>
+	<dimen name="text_sz_trace_config_list">22sp</dimen>
 
 	<dimen name="switch_height">68dp</dimen>
 	<dimen name="thumbnail_margin">12dp</dimen>
@@ -40,4 +42,5 @@
 
 	<dimen name="radiobutton_width_icon_list">120dp</dimen>
 	<dimen name="radiobutton_height_icon_list">76dp</dimen>
+	<dimen name="margin_record_frame_left">120dp</dimen>
 </resources>

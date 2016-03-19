@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
 	compileSdkVersion 22
-	buildToolsVersion '23.0.1'
+	buildToolsVersion '23.0.2'
 	defaultConfig {
 		applicationId "com.serenegiant.flightdemo"
 		minSdkVersion 18
 		targetSdkVersion 22
-		versionCode 23
-		versionName '0.66.10'
+		versionCode 24
+		versionName '0.66.11'
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
 	}
 	signingConfigs {

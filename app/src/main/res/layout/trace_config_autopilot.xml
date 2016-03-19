@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<ScrollView
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:orientation="vertical"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
 
@@ -25,6 +24,8 @@
 			android:layout_height="wrap_content"
 			android:id="@+id/max_control_value_seekbar"
 			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 
 		<TextView
@@ -40,6 +41,8 @@
 			android:layout_height="wrap_content"
 			android:id="@+id/scale_seekbar_x"
 			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 
 		<TextView
@@ -54,6 +57,8 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:id="@+id/scale_seekbar_y"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 
 		<TextView
@@ -68,6 +73,8 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:id="@+id/scale_seekbar_z"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 
 		<TextView
@@ -82,7 +89,9 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:id="@+id/scale_seekbar_r"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 	</LinearLayout>
 
-</RelativeLayout>
+</ScrollView>

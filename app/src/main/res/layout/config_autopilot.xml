@@ -26,6 +26,7 @@
 			android:layout_height="wrap_content"
 			android:id="@+id/max_control_value_seekbar"
 			android:layout_gravity="center_horizontal"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_list"/>
 
 		<TextView
@@ -41,6 +42,7 @@
 			android:layout_height="wrap_content"
 			android:id="@+id/scale_seekbar_x"
 			android:layout_gravity="center_horizontal"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_list"/>
 
 		<TextView
@@ -55,6 +57,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:id="@+id/scale_seekbar_y"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_list"/>
 
 		<TextView
@@ -69,6 +72,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:id="@+id/scale_seekbar_z"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_list"/>
 
 		<TextView
@@ -83,6 +87,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:id="@+id/scale_seekbar_r"
+			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_list"/>
 	</LinearLayout>
 
