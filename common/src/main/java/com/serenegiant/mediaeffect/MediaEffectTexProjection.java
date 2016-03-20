@@ -45,8 +45,9 @@ public class MediaEffectTexProjection extends MediaEffectGLESBase {
 		 * @param matrix
 		 */
 		public void setTexProjection(final float[] matrix) {
-			if (DEBUG) Log.v(TAG, "setTexProjection:");
+//			if (DEBUG) Log.v(TAG, "setTexProjection:");
 			synchronized (mSync) {
+//	 うまく動かない
 				texMatrix2[0] = matrix[0];
 				texMatrix2[1] = matrix[3];
 				texMatrix2[2] = matrix[6];
@@ -56,6 +57,38 @@ public class MediaEffectTexProjection extends MediaEffectGLESBase {
 				texMatrix2[6] = matrix[2];
 				texMatrix2[7] = matrix[5];
 				texMatrix2[8] = matrix[8];
+/*	うまく動かない
+//				System.arraycopy(matrix, 0, texMatrix2, 0, 9); */
+/*	うまく動かない
+				texMatrix2[0] = matrix[6];
+				texMatrix2[1] = matrix[3];
+				texMatrix2[2] = matrix[0];
+				texMatrix2[3] = matrix[7];
+				texMatrix2[4] = matrix[4];
+				texMatrix2[5] = matrix[1];
+				texMatrix2[6] = matrix[8];
+				texMatrix2[7] = matrix[5];
+				texMatrix2[8] = matrix[2]; */
+/* うまく動かない
+				texMatrix2[0] = matrix[8];
+				texMatrix2[1] = matrix[5];
+				texMatrix2[2] = matrix[2];
+				texMatrix2[3] = matrix[7];
+				texMatrix2[4] = matrix[4];
+				texMatrix2[5] = matrix[1];
+				texMatrix2[6] = matrix[6];
+				texMatrix2[7] = matrix[3];
+				texMatrix2[8] = matrix[0]; */
+/*
+				texMatrix2[0] = matrix[8];
+				texMatrix2[1] = matrix[7];
+				texMatrix2[2] = matrix[6];
+				texMatrix2[3] = matrix[5];
+				texMatrix2[4] = matrix[4];
+				texMatrix2[5] = matrix[3];
+				texMatrix2[6] = matrix[2];
+				texMatrix2[7] = matrix[1];
+				texMatrix2[8] = matrix[0]; */
 			}
 		}
 	}
@@ -102,7 +135,7 @@ public class MediaEffectTexProjection extends MediaEffectGLESBase {
 	 * @param dst (x,y) pair, 4 pairs (4 points) = float[8]
 	 */
 	public void calcPerspectiveTransform(final float[] src, final float[] dst) {
-		if (DEBUG) Log.v(TAG, "calcPerspectiveTransform:");
+//		if (DEBUG) Log.v(TAG, "calcPerspectiveTransform:");
 		mat.reset();	// これはいらん?
 		mat.setPolyToPoly(src, 0, dst, 0, 4);
 		mat.getValues(m);

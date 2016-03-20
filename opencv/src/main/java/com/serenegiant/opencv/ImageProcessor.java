@@ -523,13 +523,13 @@ public class ImageProcessor {
 		return result != 0;
 	}
 
-	public void trapeziumRate(final float trapeziumRate) {
-		final float[] src = { 0.0f, 0.0f, 0.0f, 368.0f, 640.0f, 368.0f, 640.0f, 0.0f};
+	public void trapeziumRate(final float trapezium_rate) {
+		final float[] src = { 0.0f, 0.0f, 0.0f, 368.0f, 640.0f, 368.0f, 640.0f, 0.0f, };
 		final float[] dst = {
-			(trapeziumRate < 0 ? -trapeziumRate * 150.0f : 0.0f) + 0.0f, 0.0f,
-			(trapeziumRate >= 0 ?  trapeziumRate * 150.0f : 0.0f) + 0.0f, 368.0f,
-			(trapeziumRate >= 0 ?  -trapeziumRate * 150.0f : 0.0f) + 640.0f, 368.0f,
-			(trapeziumRate < 0 ?  trapeziumRate * 150.0f : 0.0f) + 640.0f, 0.0f};
+			(trapezium_rate < 0 ? -trapezium_rate * 150.0f : 0.0f) + 0.0f, 0.0f,
+			(trapezium_rate >= 0 ?  trapezium_rate * 150.0f : 0.0f) + 0.0f, 368.0f,
+			(trapezium_rate >= 0 ?  -trapezium_rate * 150.0f : 0.0f) + 640.0f, 368.0f,
+			(trapezium_rate < 0 ?  trapezium_rate * 150.0f : 0.0f) + 640.0f, 0.0f};
 		synchronized (mSync) {
 			for (final IEffect effect: mEffects) {
 				if (effect instanceof MediaEffectTexProjection) {
@@ -538,7 +538,7 @@ public class ImageProcessor {
 			}
 		}
 //		final int result = nativeSetTrapeziumRate(mNativePtr,
-//			trapeziumRate < -0.01 ? trapeziumRate : (trapeziumRate > 0.01 ? trapeziumRate : 0.0));
+//			trapezium_rate < -0.01 ? trapezium_rate : (trapezium_rate > 0.01 ? trapezium_rate : 0.0));
 //		if (result != 0) {
 //			throw new IllegalStateException("nativeSetTrapeziumRate:result=" + result);
 //		}
