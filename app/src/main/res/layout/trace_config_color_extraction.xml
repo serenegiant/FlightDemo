@@ -9,6 +9,7 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:paddingBottom="@dimen/min_padding"
+		android:textSize="@dimen/text_sz_trace_config_list"
 		android:textColor="@color/trace_config"
 		android:text="@string/trace_use_extraction"
 		android:id="@+id/use_extract_sw"/>
@@ -17,6 +18,7 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:paddingBottom="@dimen/min_padding"
+		android:textSize="@dimen/text_sz_trace_config_list"
 		android:textColor="@color/trace_config"
 		android:text="@string/trace_use_native_extraction"
 		android:id="@+id/use_native_extract_sw"/>
@@ -25,6 +27,7 @@
 		style="?android:attr/buttonStyleSmall"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
+		android:textSize="@dimen/text_sz_trace_config_list"
 		android:textColor="@color/BLACK"
 		android:text="@string/trace_update_extraction_color"
 		android:id="@+id/update_extraction_color_btn"/>
@@ -33,6 +36,7 @@
 		style="?android:attr/buttonStyleSmall"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
+		android:textSize="@dimen/text_sz_trace_config_list"
 		android:textColor="@color/BLACK"
 		android:text="@string/trace_reset_extraction_color"
 		android:id="@+id/reset_extraction_color_btn"/>
