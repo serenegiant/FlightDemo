@@ -19,6 +19,7 @@
 			android:layout_height="wrap_content"
 			android:paddingBottom="@dimen/min_padding"
 			android:id="@+id/use_smooth_spinner"
+			android:textSize="@dimen/text_sz_trace_config_list"
 			android:textColor="@color/trace_config"
 			android:layout_gravity="center_horizontal"/>
 		<!-- エッジ検出(OpenGL|ES,Canny) -->
@@ -27,6 +28,7 @@
 			android:layout_height="wrap_content"
 			android:paddingBottom="@dimen/min_padding"
 			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
 			android:text="@string/trace_use_canny"
 			android:id="@+id/use_canny_sw"/>
 		<!-- 平滑化(OpenCV) -->
@@ -40,6 +42,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:id="@+id/use_native_smooth_spinner"
+			android:textSize="@dimen/text_sz_trace_config_list"
 			android:textColor="@color/trace_config"
 			android:paddingBottom="@dimen/min_padding"
 			android:layout_gravity="center_horizontal"/>
@@ -48,6 +51,7 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
 			android:text="@string/trace_use_native_canny"
 			android:paddingBottom="@dimen/min_padding"
 			android:id="@+id/use_native_canny_sw"/>
