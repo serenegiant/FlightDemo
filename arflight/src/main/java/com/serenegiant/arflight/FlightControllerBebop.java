@@ -788,6 +788,10 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		}
 	};
 
+	public boolean isGPSFixed() {
+		return mGPS.fixed();
+	}
+
 	/**
 	 * GPSの状態を受信した時
 	 */
@@ -807,10 +811,32 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			case ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_FAILED:
 				// 2: Drone GPS update failed
 				mStatus.setPosition(AttributePosition.INVALID_VALUE, AttributePosition.INVALID_VALUE, AttributePosition.INVALID_VALUE);
+				mGPS.numGpsSatellite(0);
 				break;
 			}
 		}
 	};
+
+	/**
+	 * 捕捉しているGPS衛星の数を受信した時
+	 */
+	private final ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener
+		mDebugGPSDebugStateNbSatelliteChangedListener
+			= new ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener() {
+		/**
+		 * @param nbSatellite Amount of satellite used by gps location
+		 */
+		@Override
+		public void onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate(final byte nbSatellite) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate:nbSatellite=" + nbSatellite);
+			mGPS.numGpsSatellite(nbSatellite);
+		}
+	};
+
+	public int numGpsSatellite() {
+		return mGPS.numGpsSatellite();
+	}
 
 	/**
 	 * 写真撮影のフォーマット<br>
@@ -1130,23 +1156,6 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 
 			if (DEBUG) Log.v(TAG, "onARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedUpdate:drone2BatteryUsed=" + drone2BatteryUsed);
 			// FIXME 未実装
-		}
-	};
-
-	/**
-	 * 捕捉しているGPS衛星の数を受信した時
-	 */
-	private final ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener
-		mDebugGPSDebugStateNbSatelliteChangedListener
-			= new ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener() {
-		/**
-		 * @param nbSatellite Amount of satellite used by gps location
-		 */
-		@Override
-		public void onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate(final byte nbSatellite) {
-
-			if (DEBUG) Log.v(TAG, "onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate:nbSatellite=" + nbSatellite);
-			mGPS.numGpsSatellite = nbSatellite;
 		}
 	};
 
@@ -2167,9 +2176,41 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 					Thread.sleep(t + 5);
 				} catch (InterruptedException e) {
 				}
-				setYaw(0);
 			} finally {
 				// 元の回転速度設定に戻す
+				setYaw(0);
+				setMaxRotationSpeed(current);
+			}
+		}
+		return sentStatus;
+	}
+
+	public boolean requestAnimationsCap(final int degree, final Object sync) {
+
+		final byte d = (byte)(degree > 180 ? 180 : (degree < -180 ? -180 : degree));
+		boolean sentStatus = true;
+
+		if (degree != 0) {
+
+			final AttributeFloat rotation_speed = mSettings.maxRotationSpeed();    // 回転速度[度/秒]
+			final float current = rotation_speed.current();
+			try {
+				try {
+					if (current != rotation_speed.max()) {
+						// 最大回転速度に変更する
+						setMaxRotationSpeed(rotation_speed.max());
+						Thread.sleep(5);
+					}
+					synchronized (sync) {
+						final long t = (long) Math.abs(degree / rotation_speed.max() * 1000);    // 回転時間[ミリ秒]を計算
+						setYaw(degree > 0 ? 100 : -100);
+						sync.wait(t + 5);
+					}
+				} catch (InterruptedException e) {
+				}
+			} finally {
+				// 元の回転速度設定に戻す
+				setYaw(0);
 				setMaxRotationSpeed(current);
 			}
 		}

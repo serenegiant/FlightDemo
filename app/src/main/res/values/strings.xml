@@ -21,6 +21,9 @@
 	<string name="parent_dir">Up‥</string>
 	<string name="file_empty">No file</string>
 
+	<string name="config_sw_on">on</string>
+	<string name="config_sw_off">off</string>
+
 	<string name="confirm_fetch">Do you want to transfer selected file(s)?</string>
 	<string name="confirm_fetch_delete">Transfer completed\nDo you want to delete transfered file?</string>
 	<string name="confirm_delete">Do you want to delete selected file(s)?</string>
@@ -128,7 +131,7 @@
 	<string name="trace_white_blance">White blance</string>
 	<string name="trace_white_blance_auto">auto</string>
 	<string name="trace_white_blance_manual">manual</string>
-	<string name="trace_use_exposure">Exposure: %5.2f</string>
+	<string name="trace_use_exposure">Exposure: %6.3f</string>
 	<string name="trace_use_saturation">Saturation: %5.2f</string>
 	<string name="trace_use_brightness">Brightness: %5.2f</string>
 	<string name="trace_use_posterize">Posterize: %5.2f</string>
@@ -160,6 +163,7 @@
 	<string name="trace_config_title_auto_trace">Auto trace settings</string>
 	<string name="trace_config_flight_attitude_yaw">Attitude(yaw): %4.0f</string>
 	<string name="trace_config_flight_speed">Flight speed: %4.0f</string>
+	<string name="trace_config_trace_curvature">Curvature correction</string>
 
 	<array name="trace_smooth_entries">
 		<item>@string/trace_smooth_non</item>

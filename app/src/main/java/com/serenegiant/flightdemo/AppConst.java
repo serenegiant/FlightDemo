@@ -50,5 +50,5 @@ public class AppConst {
 
 	public static final String KEY_TRACE_FLIGHT_ATTITUDE_YAW = "KEY_TRACE_FLIGHT_ATTITUDE_YAW";
 	public static final String KEY_TRACE_FLIGHT_SPEED = "KEY_TRACE_FLIGHT_SPEED";
-
+	public static final String KEY_TRACE_CURVATURE = "KEY_TRACE_CURVATURE";
 }
