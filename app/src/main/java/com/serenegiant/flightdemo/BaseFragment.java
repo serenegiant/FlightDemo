@@ -33,7 +33,7 @@ public class BaseFragment extends Fragment {
 	private final Handler mUIHandler = new Handler(Looper.getMainLooper());
 	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
 
-	private Handler mHandler;
+	private Handler mAsyncHandler;
 	protected LocalBroadcastManager mLocalBroadcastManager;
 
 	public BaseFragment() {
@@ -53,15 +53,15 @@ public class BaseFragment extends Fragment {
 		loadArguments(savedInstanceState);
 		final HandlerThread thread = new HandlerThread(TAG);
 		thread.start();
-		mHandler = new Handler(thread.getLooper());
+		mAsyncHandler = new Handler(thread.getLooper());
 	}
 
 	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
-		if (mHandler != null) {
-			mHandler.getLooper().quit();
-			mHandler = null;
+		if (mAsyncHandler != null) {
+			mAsyncHandler.getLooper().quit();
+			mAsyncHandler = null;
 		}
 		super.onDestroy();
 	}
@@ -171,8 +171,8 @@ public class BaseFragment extends Fragment {
 	 * @param task
 	 */
 	protected void remove(final Runnable task) {
-		if (mHandler != null) {
-			mHandler.removeCallbacks(task);
+		if (mAsyncHandler != null) {
+			mAsyncHandler.removeCallbacks(task);
 		} else {
 			removeFromUIThread(task);
 		}
@@ -183,11 +183,11 @@ public class BaseFragment extends Fragment {
 	 * @param delay_msec
 	 */
 	protected void post(final Runnable task, final long delay_msec) {
-		if (mHandler != null) {
+		if (mAsyncHandler != null) {
 			if (delay_msec <= 0) {
-				mHandler.post(task);
+				mAsyncHandler.post(task);
 			} else {
-				mHandler.postDelayed(task, delay_msec);
+				mAsyncHandler.postDelayed(task, delay_msec);
 			}
 		} else {
 			runOnUiThread(task, delay_msec);

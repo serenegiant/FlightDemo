@@ -406,10 +406,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					return true;
 				}
 			case R.id.trace_btn:
-				mAutoPilot = true;
 				setColorFilter(mTraceButton, TOUCH_RESPONSE_COLOR, 0);
 				if (!isFlying()) {
 					takeOff();
+					post(new Runnable() {
+						@Override
+						public void run() {
+							mAutoPilot = true;
+						}
+					}, 500);
 					return true;
 				}
 			}
@@ -706,10 +711,10 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 			float scaleR = (float)mScaleR;
-			float curvature = mCurvature;
+			float curvature = 0.0f; // mCurvature;
 			final Vector factor = new Vector(1.0f, 1.0f, 1.0f);
 			//
-			long lostTime = -1;
+			long startTime = -1L, lostTime = -1L;
 			final Vector work = new Vector();
 			final Vector prev = new Vector();
 			float pilotAngle = 0.0f;
@@ -720,12 +725,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				synchronized (mParamSync) {
 					if (mReqUpdateParams) {	// パラメータ変更指示?
 						mReqUpdateParams = false;
-						flightAngleYaw = mFlightAttitudeYaw;
+//						flightAngleYaw = mFlightAttitudeYaw;
 						// factorが最大で2になるのでmFlightSpeedは[-100,+100]なのを[-50,+50]にする
 						flightSpeed = mFlightSpeed / 2.0f * (float)(mMaxControlValue / 100.0);
 						scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 						scaleR = (float)mScaleR;
-						curvature = mCurvature;
+//						curvature = mCurvature;
 					}
 				}
 				synchronized (mQueue) {
@@ -741,108 +746,118 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					}
 				}
 				if (rec != null) {
-					// 解析データを取得できた＼(^o^)／
-					final String msg1;
-					if (rec.type >= 0) {	// 0:TYPE_LINE, 1:TYPE_CIRCLE, 2:TYPE_CORNER
-						// ラインを検出出来た時
-						lostTime = -1;
-						//--------------------------------------------------------------------------------
-						// 前回の位置とコマンドから想定する現在位置とラインの位置が大きく違う時は制限をする
-						//--------------------------------------------------------------------------------
-						prev.sub(rec.mLinePos);
-						final boolean limited = prev.lenSquared() > 20000;
-						factor.mult(
-							limited ? (Math.abs(prev.x) > 150 ? 0.9f : 1.0f) : 1.01f,
-							limited ? (Math.abs(prev.y) > 92 ? 0.9f : 1.0f) : 1.011f,
-							limited ? (Math.abs(prev.z) > 100 ? 0.9f : 1.0f) : 1.011f)
-							.limit(0.1f, 2.0f);	// 最小0.1, 最大2.0に制限
-						//--------------------------------------------------------------------------------
-						// 制御量を計算
-						// 機体からの角度はカメラ映像の真上が0で反時計回りが負、時計回りが正(Bebopのyaw軸回転角と同じ)
-						// 解析画像のラインに対する角度は機体が時計回りすれば正
-						// この時機体自体のラインに対する角度は符号反転
-						// mCurvatureがゼロでない時にmAngleが正ならラインは左へ曲がっている、mAngleが負なら右へ曲がっている
-						// Vectorクラスは反時計回りが正, 時計回りが負
-						//--------------------------------------------------------------------------------
-						// 画像中心からの距離を計算
-						work.set(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT).div(2.0f).sub(rec.mLinePos);
-						// 解析データ(画像中心からのオフセット,距離,回転角)
-						msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f,r=%6.4e)", work.x, work.y, work.len(), rec.mAngle, rec.mCurvature);
-						// カメラ映像の真上に向かって進む, 高度制御無し
-						mPilotValue.set(0.f, flightSpeed, 0.0f);
-						mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor);
-						// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
-						mPilotValue.rotate(0, 0, flightAngleYaw);
-						// 自動操縦スケールを適用
-						mPilotValue.mult(scale);
-						// 最大最小値を制限
-						mPilotValue.limit(-100.0f, +100.0f);
-						//--------------------------------------------------------------------------------
-						// 機体のyaw角を計算, MAX_PILOT_ANGLE以上は一度に回転させない
-						pilotAngle = -(rec.mAngle < -MAX_PILOT_ANGLE ? -MAX_PILOT_ANGLE : (rec.mAngle > MAX_PILOT_ANGLE ? MAX_PILOT_ANGLE : rec.mAngle));
-						if (curvature != 0.0f) {
-							// 曲率による機体yaw角の補正
-							if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
-								// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
-								pilotAngle *= 1.05f; // 5%上乗せする
+					try {
+						// 解析データを取得できた＼(^o^)／
+						final String msg1;
+						if (rec.type >= 0) {	// 0:TYPE_LINE, 1:TYPE_CIRCLE, 2:TYPE_CORNER
+							// ラインを検出出来た時
+							lostTime = -1;
+							//--------------------------------------------------------------------------------
+							// 前回の位置とコマンドから想定する現在位置とラインの位置が大きく違う時は制限をする
+							//--------------------------------------------------------------------------------
+							prev.sub(rec.mLinePos);
+							final boolean limited = prev.lenSquared() > 20000;
+							factor.mult(
+								limited ? (Math.abs(prev.x) > 150 ? 0.9f : 1.0f) : 1.01f,
+								limited ? (Math.abs(prev.y) > 92 ? 0.9f : 1.0f) : 1.011f,
+								limited ? (Math.abs(prev.z) > 100 ? 0.9f : 1.0f) : 1.011f)
+								.limit(0.1f, 2.0f);	// 最小0.1, 最大2.0に制限
+							//--------------------------------------------------------------------------------
+							// 制御量を計算
+							// 機体からの角度はカメラ映像の真上が0で反時計回りが負、時計回りが正(Bebopのyaw軸回転角と同じ)
+							// 解析画像のラインに対する角度は機体が時計回りすれば正
+							// この時機体自体のラインに対する角度は符号反転
+							// mCurvatureがゼロでない時にmAngleが正ならラインは左へ曲がっている、mAngleが負なら右へ曲がっている
+							// Vectorクラスは反時計回りが正, 時計回りが負
+							//--------------------------------------------------------------------------------
+							// 画像中心からの距離を計算
+							work.set(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT).div(2.0f).sub(rec.mLinePos);
+							// 解析データ(画像中心からのオフセット,距離,回転角)
+							msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f,r=%6.4e)", work.x, work.y, work.len(), rec.mAngle, rec.mCurvature);
+							// カメラ映像の真上に向かって進む, 高度制御無し
+							mPilotValue.set(0.f, flightSpeed, 0.0f);
+							mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor);
+							// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
+							mPilotValue.rotate(0, 0, flightAngleYaw);
+							// 自動操縦スケールを適用
+							mPilotValue.mult(scale);
+							// 最大最小値を制限
+							mPilotValue.limit(-100.0f, +100.0f);
+							//--------------------------------------------------------------------------------
+							// 機体のyaw角を計算, MAX_PILOT_ANGLE以上は一度に回転させない
+	//						pilotAngle = -(rec.mAngle < -MAX_PILOT_ANGLE ? -MAX_PILOT_ANGLE : (rec.mAngle > MAX_PILOT_ANGLE ? MAX_PILOT_ANGLE : rec.mAngle));
+							pilotAngle = rec.mAngle * scaleR;
+							if (curvature != 0.0f) {
+								// 曲率による機体yaw角の補正
+								if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
+									// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
+									pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
+								}
+							}
+							// 機体の進行方向の傾きを差し引く
+							pilotAngle -= flightAngleYaw;
+							// 一定角度以下は0に丸める
+							pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
+							//--------------------------------------------------------------------------------
+							// 今回の位置を保存
+							prev.set(rec.mLinePos);
+						} else {
+							// ラインを見失った時
+							mYawControlTask.cancelAll();
+							msg1 = null;
+							factor.clear(0.1f);
+							pilotAngle = 0.0f;
+							mPilotValue.clear(0.0f);
+							rec.mAngle = 0;
+							if (mAutoPilot) {
+								if (lostTime < 0) {
+									lostTime = System.currentTimeMillis();
+								}
+								final long t = System.currentTimeMillis() - lostTime;
+//								if (t < 100) {
+//									// 一定時間は逆向きに動かす
+//									mPilotValue.set(mPrevPilotValue).mult(-1.0f);
+//								} else {
+//									// 一定時間以上ラインを見失ったらその場で静止
+//									mPilotValue.clear(0.0f);
+//								}
+								if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
+									onStopAutoPilot(true);
+									mAutoPilot = false;
+									startTime = -1L;
+								}
 							}
 						}
-						// 機体の進行方向の傾きを差し引く
-						pilotAngle += flightAngleYaw;
-						// 一定角度以下は0に丸める
-						pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
 						//--------------------------------------------------------------------------------
-						// 今回の位置を保存
-						prev.set(rec.mLinePos);
-					} else {
-						// ラインを見失った時
-						mYawControlTask.cancelAll();
-						msg1 = null;
-						factor.clear(0.1f);
-						pilotAngle = 0.0f;
-						rec.mAngle = 0;
+						// トレース飛行中なら制御コマンド送信
+						//--------------------------------------------------------------------------------
 						if (mAutoPilot) {
-							if (lostTime < 0) {
-								lostTime = System.currentTimeMillis();
+							if (startTime < 0) {
+								startTime = System.currentTimeMillis();
+								mYawControlTask.cancelAll();
 							}
-							final long t = System.currentTimeMillis() - lostTime;
-//							if (t < 100) {
-//								// 一定時間は逆向きに動かす
-//								mPilotValue.set(mPrevPilotValue).mult(-1.0f);
-//							} else {
-//								// 一定時間以上ラインを見失ったらその場で静止
-//								mPilotValue.clear(0.0f);
-//							}
-							mPilotValue.clear(0.0f);
-							if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
-								onStopAutoPilot(true);
-								mAutoPilot = false;
+							if (System.currentTimeMillis() - startTime > 500) {
+								// 制御コマンド送信
+								mYawControlTask.rotate((int)pilotAngle); //	mFlightController.requestAnimationsCap((int)pilotAngle);
+								mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0.0f);	// FIXME 高度は制御しない
+								// 今回の制御量を保存
+								mPrevPilotValue.set(mPilotValue);
 							}
 						} else {
-							mPilotValue.clear(0.0f);
+							startTime = -1L;
 						}
-					}
-					//--------------------------------------------------------------------------------
-					// トレース飛行中なら制御コマンド送信
-					//--------------------------------------------------------------------------------
-					if (mAutoPilot) {
-						// 制御コマンド送信
-						mYawControlTask.rotate((int)pilotAngle);
-//						mFlightController.requestAnimationsCap((int)pilotAngle);
-						mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0.0f);	// FIXME 高度は制御しない
-						// 今回の制御量を保存
-						mPrevPilotValue.set(mPilotValue);
-					}
-					final String msg2 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, 0.0f, pilotAngle);
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							mTraceTv1.setText(msg1);
-							mTraceTv2.setText(msg2);
+						final String msg2 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, 0.0f, pilotAngle);
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								mTraceTv1.setText(msg1);
+								mTraceTv2.setText(msg2);
+							}
+						});
+					} finally {
+						synchronized (mQueue) {
+							mPool.add(rec);
 						}
-					});
-					synchronized (mQueue) {
-						mPool.add(rec);
 					}
 				}
 			}	// for ( ; mIsRunning ; )
@@ -862,8 +877,10 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		private volatile boolean mIsRunning;
 
 		public synchronized void rotate(final int angle) {
-			mAngles.add(angle);
-			notifyAll();
+			if (mAutoPilot && (angle != 0)) {
+				mAngles.add(angle);
+				notifyAll();
+			}
 		}
 
 		public synchronized void cancel() {
@@ -889,14 +906,16 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				if (mAngles.isEmpty()) {
 					try {
 						wait(1000);
-					} catch (InterruptedException e) {
+					} catch (final InterruptedException e) {
 						break;
 					}
 				}
 				if (!mIsRunning) break;
 				if (!mAngles.isEmpty()) {
 					angle = mAngles.remove(0);
-					mFlightController.requestAnimationsCap(angle);
+					if (mAutoPilot) {
+						mFlightController.requestAnimationsCap(angle);
+					}
 				}
 			}
 		}
@@ -1962,9 +1981,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private TextView mFlightSpeedLabel;
 	private String mFlightAttitudeYawFormat;
 	private String mFlightSpeedFormat;
-	private float mFlightAttitudeYaw = 0;
-	private float mFlightSpeed = 100;
-	private float mCurvature = 0;
+	private float mFlightAttitudeYaw = 0.0f;
+	private float mFlightSpeed = 100.0f;
+	private float mCurvature = 0.0f;
 
 	private void initAutoTrace(final View rootView) {
 		SeekBar sb;
