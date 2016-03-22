@@ -154,6 +154,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		//
 		mFlightAttitudeYaw = mPref.getFloat(KEY_TRACE_FLIGHT_ATTITUDE_YAW, 0.0f);
 		mFlightSpeed = mPref.getFloat(KEY_TRACE_FLIGHT_SPEED, 100.0f);
+		mCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, 0.0f);
 
 		// Viewの取得・初期化
 		mActionViews.clear();
@@ -634,7 +635,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		private static final float EPS_CURVATURE = 1.0e-4f;
 		private static final float MAX_PILOT_ANGLE = 45.0f;	// 一度に修正するyaw角の最大絶対値
 		private static final float MIN_PILOT_ANGLE = 3.0f;	// 0とみなすyaw角のずれの絶対値
+
+		private final YawControlTask mYawControlTask;
 		public TraceTask() {
+			mYawControlTask = new YawControlTask();
+			new Thread(mYawControlTask).start();
 		}
 
 		@Override
@@ -650,6 +655,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 			float scaleR = (float)mScaleR;
+			float curvature = mCurvature;
 			final Vector factor = new Vector(1.0f, 1.0f, 1.0f);
 			//
 			long lostTime = -1;
@@ -668,6 +674,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 						flightSpeed = mFlightSpeed / 2.0f * (float)(mMaxControlValue / 100.0);
 						scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 						scaleR = (float)mScaleR;
+						curvature = mCurvature;
 					}
 				}
 				synchronized (mQueue) {
@@ -715,17 +722,19 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 						mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor);
 						// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
 						mPilotValue.rotate(0, 0, flightAngleYaw);
-						// 自走操縦スケールを適用
+						// 自動操縦スケールを適用
 						mPilotValue.mult(scale);
 						// 最大最小値を制限
 						mPilotValue.limit(-100.0f, +100.0f);
 						//--------------------------------------------------------------------------------
 						// 機体のyaw角を計算, MAX_PILOT_ANGLE以上は一度に回転させない
 						pilotAngle = -(rec.mAngle < -MAX_PILOT_ANGLE ? -MAX_PILOT_ANGLE : (rec.mAngle > MAX_PILOT_ANGLE ? MAX_PILOT_ANGLE : rec.mAngle));
-						// 曲率による機体yaw角の補正
-						if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
-							// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
-							pilotAngle *= 1.05f; // 5%上乗せする
+						if (curvature != 0) {
+							// 曲率による機体yaw角の補正
+							if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
+								// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
+								pilotAngle *= 1.05f; // 5%上乗せする
+							}
 						}
 						// 機体の進行方向の傾きを差し引く
 						pilotAngle += flightAngleYaw;
@@ -736,6 +745,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 						prev.set(rec.mLinePos);
 					} else {
 						// ラインを見失った時
+						mYawControlTask.cancelAll();
 						msg1 = null;
 						factor.clear(0.1f);
 						pilotAngle = 0.0f;
@@ -745,13 +755,14 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 								lostTime = System.currentTimeMillis();
 							}
 							final long t = System.currentTimeMillis() - lostTime;
-							if (t < 500) {
-								// 一定時間は逆向きに動かす
-								mPilotValue.set(mPrevPilotValue).mult(-1.0f);
-							} else {
-								// 一定時間以上ラインを見失ったらその場で静止
-								mPilotValue.clear(0.0f);
-							}
+//							if (t < 100) {
+//								// 一定時間は逆向きに動かす
+//								mPilotValue.set(mPrevPilotValue).mult(-1.0f);
+//							} else {
+//								// 一定時間以上ラインを見失ったらその場で静止
+//								mPilotValue.clear(0.0f);
+//							}
+							mPilotValue.clear(0.0f);
 							if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
 								onStopAutoPilot(true);
 								mAutoPilot = false;
@@ -765,7 +776,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					//--------------------------------------------------------------------------------
 					if (mAutoPilot) {
 						// 制御コマンド送信
-						mFlightController.requestAnimationsCap((int)pilotAngle);
+						mYawControlTask.rotate((int)pilotAngle);
+//						mFlightController.requestAnimationsCap((int)pilotAngle);
 						mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0.0f);	// FIXME 高度は制御しない
 						// 今回の制御量を保存
 						mPrevPilotValue.set(mPilotValue);
@@ -782,7 +794,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 						mPool.add(rec);
 					}
 				}
-			}
+			}	// for ( ; mIsRunning ; )
+			mYawControlTask.release();
 			onStopAutoPilot(!mAutoPilot);
 			synchronized (mQueue) {
 				mIsRunning = mAutoPilot = false;
@@ -790,6 +803,51 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 				mPool.clear();
 			}
 			System.gc();
+		}
+	}
+
+	private final class YawControlTask implements Runnable {
+		private final List<Integer> mAngles = new ArrayList<Integer>();
+		private volatile boolean mIsRunning;
+
+		public synchronized void rotate(final int angle) {
+			mAngles.add(angle);
+			notifyAll();
+		}
+
+		public synchronized void cancel() {
+			notifyAll();
+		}
+
+		public synchronized void cancelAll() {
+			mAngles.clear();
+			notifyAll();
+		}
+
+		public synchronized void release() {
+			mIsRunning = false;
+			cancelAll();
+		}
+
+		@Override
+		public synchronized void run() {
+			mIsRunning = true;
+			notifyAll();
+			int angle = 0;
+			for ( ; mIsRunning ; ) {
+				if (mAngles.isEmpty()) {
+					try {
+						wait(1000);
+					} catch (InterruptedException e) {
+						break;
+					}
+				}
+				if (!mIsRunning) break;
+				if (!mAngles.isEmpty()) {
+					angle = mAngles.remove(0);
+					mFlightController.requestAnimationsCap(angle);
+				}
+			}
 		}
 	}
 
@@ -985,6 +1043,15 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					mPref.edit().putBoolean(KEY_ENABLE_POSTERIZE, isChecked).apply();
 				}
 				break;
+			case R.id.curvature_sw:
+				synchronized (mParamSync) {
+					mCurvature = isChecked ? 1.0f : 0.0f;
+					mReqUpdateParams = true;
+				}
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_TRACE_CURVATURE, mCurvature).apply();
+				}
+				break;
 			}
 		}
 	};
@@ -996,7 +1063,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			if (!fromUser) return;
 			switch (seekBar.getId()) {
 			case R.id.exposure_seekbar:
-				final float exposure = progressToExposure(progress);	// [0,2000] => [-10.0f, +10.0f]
+				final float exposure = progressToExposure(progress);	// [0,6000] => [-3.0f, +3.0f]
 				if (mExposure != exposure) {
 					mExposure = exposure;
 					if (mImageProcessor != null) {
@@ -1347,8 +1414,8 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
 		mExposureLabel = (TextView)rootView.findViewById(R.id.exposure_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
-		sb.setMax(2000);
-		sb.setProgress(exposureToProgress(mExposure));	// [-10,+ 10] => [0, 2000]
+		sb.setMax(6000);
+		sb.setProgress(exposureToProgress(mExposure));	// [-3,+ 3] => [0, 6000]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateExposure(mExposure);
 		// 彩度
@@ -1399,12 +1466,12 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	}
 
 	private int exposureToProgress(final float exposure) {
-		return (int)(Math.signum(exposure) * (Math.sqrt(Math.abs(exposure * 100000)))) + 1000;
+		return (int)(Math.signum(exposure) * (Math.sqrt(Math.abs(exposure * 3000000)))) + 3000;
 	}
 
 	private float progressToExposure(final int progress) {
-		final int p = progress - 1000;
-		return Math.signum(p) * (p * p / 100000.0f);
+		final int p = progress - 3000;
+		return Math.signum(p) * (p * p / 3000000.0f);
 	}
 
 	private void updateExposure(final float exposure) {
@@ -1617,9 +1684,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 	private String mFlightSpeedFormat;
 	private float mFlightAttitudeYaw = 0;
 	private float mFlightSpeed = 100;
+	private float mCurvature = 0;
 
 	private void initAutoTrace(final View rootView) {
 		SeekBar sb;
+		Switch sw;
 		//
 		mFlightAttitudeYawFormat = getString(R.string.trace_config_flight_attitude_yaw);
 		mFlightSpeedFormat = getString(R.string.trace_config_flight_speed);
@@ -1639,6 +1708,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sb.setProgress((int)(mFlightSpeed + 100));	// [-100,+100] => [0, 200]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateFlightSpeed(mFlightSpeed);
+		// 曲率補正
+		mCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, 0.0f);
+		sw = (Switch)rootView.findViewById(R.id.curvature_sw);
+		sw.setChecked(mCurvature != 0);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
 	private void updateFlightAttitudeYaw(final float attitude_yaw) {

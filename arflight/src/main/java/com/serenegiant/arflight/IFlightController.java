@@ -242,6 +242,7 @@ public interface IFlightController extends IDeviceController {
 	 * @return
 	 */
 	public boolean requestAnimationsCap(final int degree);
+	public boolean requestAnimationsCap(final int degree, final Object sync);
 
 	/**
 	 * 静止画撮影要求

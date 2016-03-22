@@ -907,4 +907,8 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 		return sentStatus;
 	}
 
+	public boolean requestAnimationsCap(final int degree, final Object sync) {
+		// MiniDroneの場合は機体側で制御なのでsyncは無視
+		return requestAnimationsCap(degree);
+	}
 }

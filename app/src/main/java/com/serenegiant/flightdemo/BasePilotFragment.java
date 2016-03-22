@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import com.serenegiant.arflight.AutoFlightListener;
 import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.FlightControllerBebop;
 import com.serenegiant.arflight.FlightControllerMiniDrone;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IAutoFlight;
@@ -566,6 +567,11 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	 * 離陸指示
 	 */
 	protected void takeOff() {
+		// ホーム位置を更新する
+		if ((mFlightController instanceof FlightControllerBebop)
+			&& ((FlightControllerBebop)mFlightController).isGPSFixed()) {
+			((FlightControllerBebop)mFlightController).sendResetHome();
+		}
 		// 離陸指示
 		if (mFlightController != null) {
 			mFlightController.requestTakeoff();
