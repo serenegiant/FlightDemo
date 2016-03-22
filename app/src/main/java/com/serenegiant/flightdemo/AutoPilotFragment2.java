@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -153,7 +154,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
 		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
 		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, false);
-		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
+//		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
 		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
 		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
 		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, 1000.0f);
@@ -356,7 +357,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				}, 0);
 				break;
 			case R.id.select_extraction_color_btn:
-				ColorPickerDialog.show(AutoPilotFragment2.this, 0, Color.HSVToColor(new float[] {mExtractH, mExtractS, mExtractV}));
+				ColorPickerDialog.show(AutoPilotFragment2.this, 0,
+					Color.HSVToColor(new float[] {
+						ImageProcessor.sat(mExtractH * 360.0f, 0, 360.0f),
+						ImageProcessor.sat(mExtractS, 0.0f, 1.0f),
+						ImageProcessor.sat(mExtractV, 0.0f, 1.0f)}
+					)
+				);
 				break;
 			case R.id.reset_extraction_color_btn:
 				// 抽出色をリセット
@@ -367,47 +374,6 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			}
 		}
 	};
-
-	private void extractColorChanged(final int[] limit_hsv) {
-		final float dh = Math.abs(limit_hsv[0] - limit_hsv[1]) / 180.0f;
-		final float h = (limit_hsv[0] + limit_hsv[0]) / 2.0f / 180.0f;
-		final float ds = Math.abs(limit_hsv[2] - limit_hsv[3]) / 255.0f;
-		final float s = (limit_hsv[2] + limit_hsv[3]) / 2.0f / 255.0f;
-		final float dv = Math.abs(limit_hsv[4] - limit_hsv[5]) / 255.0f;
-		final float v = (limit_hsv[4] + limit_hsv[5]) / 2.0f / 255.0f;
-		synchronized (mParamSync) {
-			mExtractH = h;
-			mExtractRangeH = dh;
-			mExtractS = s;
-			mExtractRangeS = ds;
-			mExtractV = v;
-			mExtractRangeV = dv;
-		}
-		// プレファレンスに保存する
-		mPref.edit().putFloat(KEY_EXTRACT_H, h)
-			.putFloat(KEY_EXTRACT_RANGE_H, dh)
-			.putFloat(KEY_EXTRACT_S, s)
-			.putFloat(KEY_EXTRACT_RANGE_S, ds)
-			.putFloat(KEY_EXTRACT_V, v)
-			.putFloat(KEY_EXTRACT_RANGE_V, dv).apply();
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				updateExtractRangeH(dh);
-				if (mExtractRangeHSeekbar != null) {
-					mExtractRangeHSeekbar.setProgress((int)(dh * 100.0f));
-				}
-				updateExtractRangeS(ds);
-				if (mExtractRangeSSeekbar != null) {
-					mExtractRangeSSeekbar.setProgress((int)(ds * 100.0f));
-				}
-				updateExtractRangeV(dv);
-				if (mExtractRangeVSeekbar != null) {
-					mExtractRangeVSeekbar.setProgress((int)(dv * 100.0f));
-				}
-			}
-		});
-	}
 
 	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
 		@Override
@@ -535,10 +501,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		final float[] hsv = new float[3];
 		Color.colorToHSV(color, hsv);
 		synchronized (mParamSync) {
-			mExtractH = hsv[0] / 360.0f;
-			mExtractS = hsv[1];
-			mExtractV = hsv[2];
-			updateExtractRange(mExtractRangeH, mExtractRangeS, mExtractRangeV);
+			// ImageProcessorへ変更を適用
+			applyExtract(hsv[0] / 360.0f, hsv[1], hsv[2]);
 		}
 	}
 
@@ -555,26 +519,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			mExtractH = hsv[0] / 360.0f;
 			mExtractS = hsv[1];
 			mExtractV = hsv[2];
-			updateExtractRange(mExtractRangeH, mExtractRangeS, mExtractRangeV);
+			// ImageProcessorへ変更を適用
+			applyExtract(mExtractH, mExtractS, mExtractV);
 		}
 		// プレファレンスに保存する
-		mPref.edit().putFloat(KEY_EXTRACT_H, hsv[0] / 360.0f)
-			.putFloat(KEY_EXTRACT_S, hsv[1])
-			.putFloat(KEY_EXTRACT_V, hsv[2]).apply();
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				if (mExtractRangeHSeekbar != null) {
-					mExtractRangeHSeekbar.setProgress((int)(hsv[0] / 360.0f * 100.0f));
-				}
-				if (mExtractRangeSSeekbar != null) {
-					mExtractRangeSSeekbar.setProgress((int)(hsv[1] * 100.0f));
-				}
-				if (mExtractRangeVSeekbar != null) {
-					mExtractRangeVSeekbar.setProgress((int)(hsv[2] * 100.0f));
-				}
-			}
-		});
+		mPref.edit().putFloat(KEY_EXTRACT_H, mExtractH)
+			.putFloat(KEY_EXTRACT_S, mExtractS)
+			.putFloat(KEY_EXTRACT_V, mExtractV).apply();
 	}
 
 	/**
@@ -664,13 +615,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			mImageProcessor.setExposure(mExposure);
 			mImageProcessor.setSaturation(mSaturation);
 			mImageProcessor.setBrightness(mBrightness);
-			updateExtractRange(mExtractRangeH, mExtractRangeS, mExtractRangeV);
+			applyExtractRange(mExtractRangeH, mExtractRangeS, mExtractRangeV);
 /*			mImageProcessor.setExtractionColor(
 				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
 				EXTRACT_COLOR_HSV_LIMIT[2], EXTRACT_COLOR_HSV_LIMIT[3],
 				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]); */
 			mImageProcessor.enableExtraction(mEnableGLESExtraction);
-			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
+//			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
 			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
 			mImageProcessor.trapeziumRate(mTrapeziumRate);
 			mImageProcessor.setAreaLimit(mAreaLimitMin, AREA_LIMIT_MAX);
@@ -1116,15 +1067,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					mPref.edit().putBoolean(KEY_ENABLE_EDGE_DETECTION, isChecked).apply();
 				}
 				break;
-			case R.id.use_native_extract_sw:
-				if (mImageProcessor != null) {
-					mEnableNativeExtraction = isChecked;
-					mImageProcessor.enableNativeExtract(isChecked);
-				}
-				if (mPref != null) {
-					mPref.edit().putBoolean(KEY_ENABLE_NATIVE_EXTRACTION, isChecked).apply();
-				}
-				break;
+//			case R.id.use_native_extract_sw:
+//				if (mImageProcessor != null) {
+//					mEnableNativeExtraction = isChecked;
+//					mImageProcessor.enableNativeExtract(isChecked);
+//				}
+//				if (mPref != null) {
+//					mPref.edit().putBoolean(KEY_ENABLE_NATIVE_EXTRACTION, isChecked).apply();
+//				}
+//				break;
 			case R.id.use_native_canny_sw:
 				if (mImageProcessor != null) {
 					mEnableNativeCanny = isChecked;
@@ -1229,6 +1180,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						mExtractRangeH = range_h;
 					}
 					updateExtractRangeH(range_h);
+					applyExtractRange(range_h, mExtractRangeS, mExtractRangeV);
 				}
 				break;
 			case R.id.extract_range_s_seekbar:
@@ -1238,6 +1190,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						mExtractRangeS = range_s;
 					}
 					updateExtractRangeS(range_s);
+					applyExtractRange(mExtractRangeH, range_s, mExtractRangeV);
 				}
 				break;
 			case R.id.extract_range_v_seekbar:
@@ -1247,6 +1200,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						mExtractRangeV = range_v;
 					}
 					updateExtractRangeV(range_v);
+					applyExtractRange(mExtractRangeH, mExtractRangeS, range_v);
 				}
 				break;
 			case R.id.area_limit_min_seekbar:
@@ -1724,7 +1678,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 //	/** 色抽出範囲設定(HSV上下限) */
 //	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
 	/** native側の色抽出を使うかどうか */
-	protected boolean mEnableNativeExtraction = false;
+//	protected boolean mEnableNativeExtraction = false;
 	// 抽出色
 	protected float mExtractH;	// [0.0f, 1.0f] => [0, 180]
 	protected float mExtractS;	// [0.0f, 1.0f] => [0, 255]
@@ -1746,11 +1700,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
 		sw.setChecked(mEnableGLESExtraction);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// Native側の色抽出を使うかどうか
-		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
-		sw = (Switch)rootView.findViewById(R.id.use_native_extract_sw);
-		sw.setChecked(mEnableNativeExtraction);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+//		// Native側の色抽出を使うかどうか
+//		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
+//		sw = (Switch)rootView.findViewById(R.id.use_native_extract_sw);
+//		sw.setChecked(mEnableNativeExtraction);
+//		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// 抽出色取得
 		btn = (Button)rootView.findViewById(R.id.update_extraction_color_btn);
 		btn.setOnClickListener(mOnClickListener);
@@ -1796,14 +1750,53 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mExtractRangeVSeekbar = null;
 	}
 
-	private void updateExtractRange(final float range_h, final float range_s, final float range_v) {
+	/**
+	 * 「抽出色更新」,「抽出色選択」または「抽出色リセット」で抽出色が変更された時の処理
+	 * この時は既にImageProcessor側は更新されている
+	 * @param limit_hsv
+	 */
+	private void extractColorChanged(final int[] limit_hsv) {
+		final float dh = Math.abs(limit_hsv[0] - limit_hsv[1]) / 180.0f;
+		final float h = (limit_hsv[0] + limit_hsv[0]) / 2.0f / 180.0f;
+		final float ds = Math.abs(limit_hsv[2] - limit_hsv[3]) / 255.0f;
+		final float s = (limit_hsv[2] + limit_hsv[3]) / 2.0f / 255.0f;
+		final float dv = Math.abs(limit_hsv[4] - limit_hsv[5]) / 255.0f;
+		final float v = (limit_hsv[4] + limit_hsv[5]) / 2.0f / 255.0f;
+		synchronized (mParamSync) {
+			mExtractH = h;
+			mExtractRangeH = dh;
+			mExtractS = s;
+			mExtractRangeS = ds;
+			mExtractV = v;
+			mExtractRangeV = dv;
+		}
+		// プレファレンスに保存する
+		mPref.edit().putFloat(KEY_EXTRACT_H, h)
+			.putFloat(KEY_EXTRACT_RANGE_H, dh)
+			.putFloat(KEY_EXTRACT_S, s)
+			.putFloat(KEY_EXTRACT_RANGE_S, ds)
+			.putFloat(KEY_EXTRACT_V, v)
+			.putFloat(KEY_EXTRACT_RANGE_V, dv).apply();
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				// ラベル・Seekbarの表示更新
+				updateExtractRangeH(dh);
+				updateExtractRangeS(ds);
+				updateExtractRangeV(dv);
+			}
+		});
+	}
+
+	/** 抽出色が変更された時ImageProcessorへ適用するためのメソッド */
+	private void applyExtract(final float h, final float s, final float v) {
 		if (mImageProcessor != null) {
-			final float h_min = ImageProcessor.sat(mExtractH - range_h / 2.0f, 0.0f, 1.0f);
-			final float h_max = ImageProcessor.sat(mExtractH + range_h / 2.0f, 0.0f, 1.0f);
-			final float s_min = ImageProcessor.sat(mExtractS - range_s / 2.0f, 0.0f, 1.0f);
-			final float s_max = ImageProcessor.sat(mExtractS + range_s / 2.0f, 0.0f, 1.0f);
-			final float v_min = ImageProcessor.sat(mExtractV - range_v / 2.0f, 0.0f, 1.0f);
-			final float v_max = ImageProcessor.sat(mExtractV + range_v / 2.0f, 0.0f, 1.0f);
+			final float h_min = ImageProcessor.sat(h - mExtractRangeH / 2.0f, 0.0f, 1.0f);
+			final float h_max = ImageProcessor.sat(h + mExtractRangeH / 2.0f, 0.0f, 1.0f);
+			final float s_min = ImageProcessor.sat(s - mExtractRangeS / 2.0f, 0.0f, 1.0f);
+			final float s_max = ImageProcessor.sat(s + mExtractRangeS / 2.0f, 0.0f, 1.0f);
+			final float v_min = ImageProcessor.sat(v - mExtractRangeV / 2.0f, 0.0f, 1.0f);
+			final float v_max = ImageProcessor.sat(v + mExtractRangeV / 2.0f, 0.0f, 1.0f);
 			mImageProcessor.setExtractionColor(
 				(int)(h_min * 180.0f),
 				(int)(h_max * 180.0f),
@@ -1815,25 +1808,54 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		}
 	}
 
+	/** 抽出色範囲が変更された時にImageProcessorへ適用するためのメソッド */
+	private void applyExtractRange(final float h_range, final float s_range, final float v_range) {
+		if (mImageProcessor != null) {
+			final float h_min = ImageProcessor.sat(mExtractH - h_range / 2.0f, 0.0f, 1.0f);
+			final float h_max = ImageProcessor.sat(mExtractH + h_range / 2.0f, 0.0f, 1.0f);
+			final float s_min = ImageProcessor.sat(mExtractS - s_range / 2.0f, 0.0f, 1.0f);
+			final float s_max = ImageProcessor.sat(mExtractS + s_range / 2.0f, 0.0f, 1.0f);
+			final float v_min = ImageProcessor.sat(mExtractV - v_range / 2.0f, 0.0f, 1.0f);
+			final float v_max = ImageProcessor.sat(mExtractV + v_range / 2.0f, 0.0f, 1.0f);
+			mImageProcessor.setExtractionColor(
+				(int)(h_min * 180.0f),
+				(int)(h_max * 180.0f),
+				(int)(s_min * 255.0f),
+				(int)(s_max * 255.0f),
+				(int)(v_min * 255.0f),
+				(int)(v_max * 255.0f)
+			);
+		}
+	}
+
+	/** 抽出色範囲(H/色相のラベル,Seekbar更新) */
 	private void updateExtractRangeH(final float range) {
 		if (mExtractRangeHLabel != null) {
 			mExtractRangeHLabel.setText(String.format(mExtractRangeHFormat, range));
 		}
-		updateExtractRange(range, mExtractRangeS, mExtractRangeV);
+		if (mExtractRangeHSeekbar != null) {
+			mExtractRangeHSeekbar.setProgress((int)(range * 100.0f));
+		}
 	}
 
+	/** 抽出色範囲(S/彩度のラベル,Seekbar更新) */
 	private void updateExtractRangeS(final float range) {
 		if (mExtractRangeSLabel != null) {
 			mExtractRangeSLabel.setText(String.format(mExtractRangeSFormat, range));
 		}
-		updateExtractRange(mExtractRangeH, range, mExtractRangeV);
+		if (mExtractRangeSSeekbar != null) {
+			mExtractRangeSSeekbar.setProgress((int)(range * 100.0f));
+		}
 	}
 
+	/** 抽出色範囲(V/明度のラベル,Seekbar更新) */
 	private void updateExtractRangeV(final float range) {
 		if (mExtractRangeVLabel != null) {
 			mExtractRangeVLabel.setText(String.format(mExtractRangeVFormat, range));
 		}
-		updateExtractRange(mExtractRangeH, mExtractRangeS, range);
+		if (mExtractRangeVSeekbar != null) {
+			mExtractRangeVSeekbar.setProgress((int)(range * 100.0f));
+		}
 	}
 
 //--------------------------------------------------------------------------------

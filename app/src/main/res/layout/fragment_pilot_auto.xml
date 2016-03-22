@@ -112,7 +112,7 @@
 				android:layout_gravity="top"
 				android:textColor="@color/trace_config"
 				android:textSize="@dimen/text_sz_trace_config_title"
-				android:paddingTop="@dimen/half_padding"
+				android:paddingTop="@dimen/quater_padding"
 				android:paddingBottom="@dimen/quater_padding"/>
 				<!--<include android:layout="@layout/trace_config_preprocess" /> -->
 		</android.support.v4.view.ViewPager>

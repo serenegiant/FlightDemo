@@ -14,14 +14,14 @@
 		android:text="@string/trace_config_extract_use"
 		android:id="@+id/use_extract_sw"/>
 	<!-- 色抽出(OpenCV) -->
-	<Switch
+<!--<Switch
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:paddingBottom="@dimen/min_padding"
 		android:textSize="@dimen/text_sz_trace_config_list"
 		android:textColor="@color/trace_config"
 		android:text="@string/trace_config_extract_use_opencv"
-		android:id="@+id/use_native_extract_sw"/>
+		android:id="@+id/use_native_extract_sw"/> -->
 	<!-- 抽出色更新 -->
 	<Button
 		style="?android:attr/buttonStyleSmall"

@@ -13,7 +13,7 @@
 	<dimen name="min_padding">4dp</dimen>
 
 	<dimen name="top_panel_height">72dp</dimen>
-	<dimen name="bottom_panel_height">80dp</dimen>
+	<dimen name="bottom_panel_height">72dp</dimen>
 
 	<dimen name="stick_size">180dp</dimen>
 	<dimen name="stick_frame_width">312dp</dimen>
@@ -31,8 +31,8 @@
 	<dimen name="text_sz_side_menu_item">14sp</dimen>
 	<dimen name="text_sz_progress">22sp</dimen>
 	<dimen name="text_sz_error">22sp</dimen>
-	<dimen name="text_sz_trace_config_title">22sp</dimen>
-	<dimen name="text_sz_trace_config_list">22sp</dimen>
+	<dimen name="text_sz_trace_config_title">20sp</dimen>
+	<dimen name="text_sz_trace_config_list">18sp</dimen>
 
 	<dimen name="switch_height">68dp</dimen>
 	<dimen name="thumbnail_margin">12dp</dimen>

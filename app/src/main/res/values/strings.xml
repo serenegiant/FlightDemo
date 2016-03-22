@@ -146,14 +146,14 @@
 	<string name="trace_smooth_blur">Blur</string>
 	<string name="trace_smooth_dilation">Dilation</string>
 	<string name="trace_use_native_canny">Edge detection(Canny) on OpenCV</string>
-	<string name="trace_use_canny">>Edge detection(Canny) on OpenGL|ES</string>
+	<string name="trace_use_canny">Edge detection(Canny) on OpenGL|ES</string>
 	<!-- 色抽出設定-->
 	<string name="trace_config_title_color_extract">Color extraction settings</string>
 	<string name="trace_config_extract_use_opencv">Color extraction on OpenCV</string>
 	<string name="trace_config_extract_use">Color extraction on OpenGL|ES</string>
-	<string name="trace_config_extract_color_update">Update extraction color</string>
-	<string name="trace_config_extract_color_select">Select extraction color</string>
-	<string name="trace_config_extract_color_reset">Reset extraction color</string>
+	<string name="trace_config_extract_color_update">Update color</string>
+	<string name="trace_config_extract_color_select">Select color</string>
+	<string name="trace_config_extract_color_reset">Reset color</string>
 	<string name="trace_config_extract_range_h">Color range(Hue): %5.2f</string>
 	<string name="trace_config_extract_range_s">Color range(Saturation): %5.2f</string>
 	<string name="trace_config_extract_range_v">Color range(Value): %5.2f</string>
