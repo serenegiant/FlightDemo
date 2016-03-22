@@ -11,7 +11,7 @@
 		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_area_limit_min"
+			android:text="@string/trace_config_detect_area_limit_min"
 			android:textSize="@dimen/text_sz_trace_config_list"
 			android:textColor="@color/trace_config"
 			android:id="@+id/area_limit_min_textview"/>
@@ -26,7 +26,7 @@
 		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_area_err_limit1"
+			android:text="@string/trace_config_detect_area_err_limit1"
 			android:textSize="@dimen/text_sz_trace_config_list"
 			android:textColor="@color/trace_config"
 			android:id="@+id/area_err_limit1_textview"/>
@@ -41,7 +41,7 @@
 		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_area_err_limit2"
+			android:text="@string/trace_config_detect_area_err_limit2"
 			android:textSize="@dimen/text_sz_trace_config_list"
 			android:textColor="@color/trace_config"
 			android:id="@+id/area_err_limit2_textview"/>
@@ -56,7 +56,7 @@
 		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_aspect_limit_min"
+			android:text="@string/trace_config_detect_aspect_limit_min"
 			android:textSize="@dimen/text_sz_trace_config_list"
 			android:textColor="@color/trace_config"
 			android:id="@+id/aspect_limit_min_textview"/>

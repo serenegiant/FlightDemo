@@ -1,5 +1,6 @@
 package com.serenegiant.opencv;
 
+import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.media.effect.EffectContext;
 import android.opengl.GLES20;
@@ -406,7 +407,7 @@ public class ImageProcessor {
 			try {
 				mSync.wait();
 				System.arraycopy(EXTRACT_COLOR_HSV_LIMIT, 0, temp, 0, 6);
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 			}
 		}
 		return temp;
@@ -415,11 +416,14 @@ public class ImageProcessor {
 	/**
 	 * 抽出色を初期値にリセット
 	 */
-	public void resetExtractionColor() {
+	public int[] resetExtractionColor() {
+		final int[] temp = new int[6];
 		synchronized (mSync) {
 			System.arraycopy(COLOR_RANGES[COLOR_RANGE_IX], 0, EXTRACT_COLOR_HSV_LIMIT, 0, 6);
 			applyExtractionColor();
+			System.arraycopy(EXTRACT_COLOR_HSV_LIMIT, 0, temp, 0, 6);
 		}
+		return temp;
 	}
 
 	/**
@@ -827,8 +831,11 @@ public class ImageProcessor {
 				// この時点での映像中心部の色をHSVで取得して色抽出に使えるようにする
 				if (requestUpdateExtractionColor) {
 					requestUpdateExtractionColor = false;
-					updateExtractionColor();
-					mSync.notifyAll();
+					try {
+						updateExtractionColor();
+					} finally {
+						mSync.notifyAll();
+					}
 				}
 				// 色抽出処理
 				if (mEnableExtraction) {
@@ -879,7 +886,7 @@ public class ImageProcessor {
 			final int[] s_cnt = new int[256];	// 0..255
 			final int[] v_cnt = new int[256];	// 0..255
 			for (int i = 0; i < sz; i += 4) {
-				rgb2hsv(rgba[i], rgba[i+1], rgba[i+2], hsv);	// RGBAの順 => h[0,360], s[0,1], v[0,1]
+				Color.RGBToHSV(rgba[i] & 0xff, rgba[i + 1] & 0xff, rgba[i + 2] & 0xff, hsv);	// RGBAの順 => h[0,360], s[0,1], v[0,1]
 				h_cnt[(int)(hsv[0] / 360f * 255) % 256]++;
 				s_cnt[(int)(hsv[1] * 255) % 256]++;
 				v_cnt[(int)(hsv[2] * 255) % 256]++;
@@ -900,7 +907,7 @@ public class ImageProcessor {
 				s_sd += (i - s) * (i - s) * s_cnt[i];
 				v_sd += (i - v) * (i - v) * v_cnt[i];
 			}
-			// 標準偏差2σ
+			// 標準偏差で抽出色の範囲を設定する(H=2σ, S=3σ, V=6σ)
 			h_sd = (float)Math.sqrt(h_sd / n); if (h_sd < 0.5f) h_sd= 1;	h_sd *= 2;	// 2σ
 			s_sd = (float)Math.sqrt(s_sd / n); if (s_sd < 0.5f) s_sd= 1;	s_sd *= 3;	// 3σ
 			v_sd = (float)Math.sqrt(v_sd / n); if (v_sd < 0.5f) v_sd= 1;	v_sd *= 6;	// 6σ
@@ -919,28 +926,6 @@ public class ImageProcessor {
 				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
 				EXTRACT_COLOR_HSV_LIMIT[2], EXTRACT_COLOR_HSV_LIMIT[3],
 				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]));
-		}
-
-		private void rgb2hsv(final byte _r, final byte _g, final byte _b, final float[] hsv) {
-			final float b = sat(((_b & 0xff)) / 255.0f, 0, 1);
-			final float g = sat(((_g & 0xff)) / 255.0f, 0, 1);
-			final float r = sat((_r & 0xff) / 255.0f, 0, 1);
-			final float rgb_min = Math.min(Math.min(r, g), b);
-			final float rgb_max = Math.max(Math.max(r, g), b);
-			hsv[0] = hsv[1] = hsv[2] = 0.0f;
-			if (rgb_max != rgb_min) {
-				// 色相Hの計算[0,360]
-				if (rgb_min == b) {
-					hsv[0] = (60 * (g - r) / (rgb_max - rgb_min) + 60);
-				} else if (rgb_min == r) {
-					hsv[0] = (60 * (b - g) / (rgb_max - rgb_min) + 180);
-				} else if (rgb_min == g) {
-					hsv[0] = (60 * (r - b) / (rgb_max - rgb_min) + 300);
-				}
-			}
-			// 彩度S, 明度Vの計算[0.0f,1.0f]
-			hsv[1] = rgb_max - rgb_min;
-			hsv[2] = rgb_max;
 		}
 
 		/**
@@ -985,11 +970,11 @@ public class ImageProcessor {
 		};
 	}
 
-	private static final int sat(final int v, final int min, final int max) {
+	public static final int sat(final int v, final int min, final int max) {
 		return v <= min ? min : (v >= max ? max : v);
 	}
 
-	private static final float sat(final float v, final float min, final float max) {
+	public static final float sat(final float v, final float min, final float max) {
 		return v <= min ? min : (v >= max ? max : v);
 	}
 

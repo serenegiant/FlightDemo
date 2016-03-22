@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
@@ -37,6 +38,7 @@ import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.arflight.attribute.AttributeFloat;
+import com.serenegiant.dialog.ColorPickerDialog;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine1.IModelView;
@@ -50,7 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import static com.serenegiant.flightdemo.AppConst.*;
 
-public class AutoPilotFragment2 extends BasePilotFragment {
+public class AutoPilotFragment2 extends BasePilotFragment implements ColorPickerDialog.OnColorChangedListener {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = AutoPilotFragment2.class.getSimpleName();
 
@@ -73,7 +75,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		return fragment;
 	}
 
-	private ViewGroup mControllerFrame;			// 操作パネル全体
+	private ViewGroup mControllerFrame;		// 操作パネル全体
 
 	// 上パネル
 	private View mTopPanel;
@@ -140,6 +142,13 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRESHOLD, 0.5f);
 		mTrapeziumRate = (float)Double.parseDouble(mPref.getString(KEY_TRAPEZIUM_RATE, "0.0"));
 		if (Math.abs(mTrapeziumRate) < 0.01f) mTrapeziumRate = 0.0f;
+		//
+		mExtractH = mPref.getFloat(KEY_EXTRACT_H, 0.5f);
+		mExtractRangeH = mPref.getFloat(KEY_EXTRACT_RANGE_H, 0.5f);
+		mExtractS = mPref.getFloat(KEY_EXTRACT_S, 0.196f);
+		mExtractRangeS = mPref.getFloat(KEY_EXTRACT_RANGE_S, 0.098f);
+		mExtractV = mPref.getFloat(KEY_EXTRACT_V, 0.7353f);
+		mExtractRangeV = mPref.getFloat(KEY_EXTRACT_RANGE_V, 0.265f);
 		//
 		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
 		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
@@ -341,21 +350,64 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					@Override
 					public void run() {
 						if (mImageProcessor != null) {
-							final int[] result = mImageProcessor.requestUpdateExtractionColor();
-							// FIXME プレファレンスに保存する
+							extractColorChanged(mImageProcessor.requestUpdateExtractionColor());
 						}
 					}
 				}, 0);
 				break;
+			case R.id.select_extraction_color_btn:
+				ColorPickerDialog.show(AutoPilotFragment2.this, 0, Color.HSVToColor(new float[] {mExtractH, mExtractS, mExtractV}));
+				break;
 			case R.id.reset_extraction_color_btn:
 				// 抽出色をリセット
 				if (mImageProcessor != null) {
-					mImageProcessor.resetExtractionColor();
+					extractColorChanged(mImageProcessor.resetExtractionColor());
 				}
 				break;
 			}
 		}
 	};
+
+	private void extractColorChanged(final int[] limit_hsv) {
+		final float dh = Math.abs(limit_hsv[0] - limit_hsv[1]) / 180.0f;
+		final float h = (limit_hsv[0] + limit_hsv[0]) / 2.0f / 180.0f;
+		final float ds = Math.abs(limit_hsv[2] - limit_hsv[3]) / 255.0f;
+		final float s = (limit_hsv[2] + limit_hsv[3]) / 2.0f / 255.0f;
+		final float dv = Math.abs(limit_hsv[4] - limit_hsv[5]) / 255.0f;
+		final float v = (limit_hsv[4] + limit_hsv[5]) / 2.0f / 255.0f;
+		synchronized (mParamSync) {
+			mExtractH = h;
+			mExtractRangeH = dh;
+			mExtractS = s;
+			mExtractRangeS = ds;
+			mExtractV = v;
+			mExtractRangeV = dv;
+		}
+		// プレファレンスに保存する
+		mPref.edit().putFloat(KEY_EXTRACT_H, h)
+			.putFloat(KEY_EXTRACT_RANGE_H, dh)
+			.putFloat(KEY_EXTRACT_S, s)
+			.putFloat(KEY_EXTRACT_RANGE_S, ds)
+			.putFloat(KEY_EXTRACT_V, v)
+			.putFloat(KEY_EXTRACT_RANGE_V, dv).apply();
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				updateExtractRangeH(dh);
+				if (mExtractRangeHSeekbar != null) {
+					mExtractRangeHSeekbar.setProgress((int)(dh * 100.0f));
+				}
+				updateExtractRangeS(ds);
+				if (mExtractRangeSSeekbar != null) {
+					mExtractRangeSSeekbar.setProgress((int)(ds * 100.0f));
+				}
+				updateExtractRangeV(dv);
+				if (mExtractRangeVSeekbar != null) {
+					mExtractRangeVSeekbar.setProgress((int)(dv * 100.0f));
+				}
+			}
+		});
+	}
 
 	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
 		@Override
@@ -478,6 +530,53 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		runOnUiThread(mUpdateButtonsTask);
 	}
 
+	@Override
+	public void onColorChanged(final ColorPickerDialog dialog, final int color) {
+		final float[] hsv = new float[3];
+		Color.colorToHSV(color, hsv);
+		synchronized (mParamSync) {
+			mExtractH = hsv[0] / 360.0f;
+			mExtractS = hsv[1];
+			mExtractV = hsv[2];
+			updateExtractRange(mExtractRangeH, mExtractRangeS, mExtractRangeV);
+		}
+	}
+
+	@Override
+	public void onCancel(final ColorPickerDialog dialog) {
+
+	}
+
+	@Override
+	public void onDismiss(final ColorPickerDialog dialog, final int color) {
+		final float[] hsv = new float[3];
+		Color.colorToHSV(color, hsv);
+		synchronized (mParamSync) {
+			mExtractH = hsv[0] / 360.0f;
+			mExtractS = hsv[1];
+			mExtractV = hsv[2];
+			updateExtractRange(mExtractRangeH, mExtractRangeS, mExtractRangeV);
+		}
+		// プレファレンスに保存する
+		mPref.edit().putFloat(KEY_EXTRACT_H, hsv[0] / 360.0f)
+			.putFloat(KEY_EXTRACT_S, hsv[1])
+			.putFloat(KEY_EXTRACT_V, hsv[2]).apply();
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (mExtractRangeHSeekbar != null) {
+					mExtractRangeHSeekbar.setProgress((int)(hsv[0] / 360.0f * 100.0f));
+				}
+				if (mExtractRangeSSeekbar != null) {
+					mExtractRangeSSeekbar.setProgress((int)(hsv[1] * 100.0f));
+				}
+				if (mExtractRangeVSeekbar != null) {
+					mExtractRangeVSeekbar.setProgress((int)(hsv[2] * 100.0f));
+				}
+			}
+		});
+	}
+
 	/**
 	 *　ボタンの表示更新をUIスレッドで行うためのRunnable
 	 */
@@ -565,10 +664,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			mImageProcessor.setExposure(mExposure);
 			mImageProcessor.setSaturation(mSaturation);
 			mImageProcessor.setBrightness(mBrightness);
-			mImageProcessor.setExtractionColor(
+			updateExtractRange(mExtractRangeH, mExtractRangeS, mExtractRangeV);
+/*			mImageProcessor.setExtractionColor(
 				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
 				EXTRACT_COLOR_HSV_LIMIT[2], EXTRACT_COLOR_HSV_LIMIT[3],
-				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]);
+				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]); */
 			mImageProcessor.enableExtraction(mEnableGLESExtraction);
 			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
 			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
@@ -729,7 +829,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 						//--------------------------------------------------------------------------------
 						// 機体のyaw角を計算, MAX_PILOT_ANGLE以上は一度に回転させない
 						pilotAngle = -(rec.mAngle < -MAX_PILOT_ANGLE ? -MAX_PILOT_ANGLE : (rec.mAngle > MAX_PILOT_ANGLE ? MAX_PILOT_ANGLE : rec.mAngle));
-						if (curvature != 0) {
+						if (curvature != 0.0f) {
 							// 曲率による機体yaw角の補正
 							if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
 								// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
@@ -1122,6 +1222,33 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 					updateTrapeziumRate(trapezium_rate);
 				}
 				break;
+			case R.id.extract_range_h_seekbar:
+				final float range_h = progress / 100.0f;
+				if (mExtractRangeH != range_h) {
+					synchronized (mParamSync) {
+						mExtractRangeH = range_h;
+					}
+					updateExtractRangeH(range_h);
+				}
+				break;
+			case R.id.extract_range_s_seekbar:
+				final float range_s = progress / 100.0f;
+				if (mExtractRangeS != range_s) {
+					synchronized (mParamSync) {
+						mExtractRangeS = range_s;
+					}
+					updateExtractRangeS(range_s);
+				}
+				break;
+			case R.id.extract_range_v_seekbar:
+				final float range_v = progress / 100.0f;
+				if (mExtractRangeV != range_v) {
+					synchronized (mParamSync) {
+						mExtractRangeV = range_v;
+					}
+					updateExtractRangeV(range_v);
+				}
+				break;
 			case R.id.area_limit_min_seekbar:
 				final float area_limit_min = progressToAreaLimitMin(progress);
 				if (mAreaLimitMin != area_limit_min) {
@@ -1244,6 +1371,21 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			case R.id.trapezium_rate_seekbar:
 				if (mPref != null) {
 					mPref.edit().putString(KEY_TRAPEZIUM_RATE, Double.toString(mTrapeziumRate)).apply();
+				}
+				break;
+			case R.id.extract_range_h_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_EXTRACT_RANGE_H, mExtractRangeH).apply();
+				}
+				break;
+			case R.id.extract_range_s_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_EXTRACT_RANGE_S, mExtractRangeS).apply();
+				}
+				break;
+			case R.id.extract_range_v_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_EXTRACT_RANGE_V, mExtractRangeV).apply();
 				}
 				break;
 			case R.id.area_limit_min_seekbar:
@@ -1465,6 +1607,15 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		updateTrapeziumRate(mTrapeziumRate);
 	}
 
+	private void releasePreprocess(final View rootView) {
+		mExposureLabel = null;
+		mSaturationLabel = null;
+		mBrightnessLabel = null;
+		mPosterizeLabel = null;
+		mBinarizeThresholdLabel = null;
+		mTrapeziumRateLabel = null;
+	}
+
 	private int exposureToProgress(final float exposure) {
 		return (int)(Math.signum(exposure) * (Math.sqrt(Math.abs(exposure * 3000000)))) + 3000;
 	}
@@ -1555,17 +1706,41 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
 	}
 
+	private void releasePreprocess2(final View rootView) {
+	}
+
 //--------------------------------------------------------------------------------
+	private String mExtractRangeHFormat;
+	private String mExtractRangeSFormat;
+	private String mExtractRangeVFormat;
+	private TextView mExtractRangeHLabel;
+	private TextView mExtractRangeSLabel;
+	private TextView mExtractRangeVLabel;
+	private SeekBar mExtractRangeHSeekbar;
+	private SeekBar mExtractRangeSSeekbar;
+	private SeekBar mExtractRangeVSeekbar;
 	/** OpenGL|ESで色抽出を行うかどうか  */
 	protected boolean mEnableGLESExtraction = false;
-	/** 色抽出範囲設定(HSV上下限) */
-	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
+//	/** 色抽出範囲設定(HSV上下限) */
+//	protected final int[] EXTRACT_COLOR_HSV_LIMIT = new int[] {0, 180, 0, 50, 120, 255};
 	/** native側の色抽出を使うかどうか */
 	protected boolean mEnableNativeExtraction = false;
+	// 抽出色
+	protected float mExtractH;	// [0.0f, 1.0f] => [0, 180]
+	protected float mExtractS;	// [0.0f, 1.0f] => [0, 255]
+	protected float mExtractV;	// [0.0f, 1.0f] => [0, 255]
+	// 抽出色範囲
+	protected float mExtractRangeH;
+	protected float mExtractRangeS;
+	protected float mExtractRangeV;
 
 	private void initColorExtraction(final View rootView) {
 		Switch sw;
 		Button btn;
+		mExtractRangeHFormat = getString(R.string.trace_config_extract_range_h);
+		mExtractRangeSFormat = getString(R.string.trace_config_extract_range_s);
+		mExtractRangeVFormat = getString(R.string.trace_config_extract_range_v);
+
 		// OpenGL|ESで色抽出を使うかどうか
 		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
 		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
@@ -1579,10 +1754,86 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		// 抽出色取得
 		btn = (Button)rootView.findViewById(R.id.update_extraction_color_btn);
 		btn.setOnClickListener(mOnClickListener);
+		// 抽出色選択
+		btn = (Button)rootView.findViewById(R.id.select_extraction_color_btn);
+		btn.setOnClickListener(mOnClickListener);
 		// 抽出色リセット
 		btn = (Button)rootView.findViewById(R.id.reset_extraction_color_btn);
 		btn.setOnClickListener(mOnClickListener);
+		// 抽出色
+		mExtractH = mPref.getFloat(KEY_EXTRACT_H, 0.5f);
+		mExtractRangeH = mPref.getFloat(KEY_EXTRACT_RANGE_H, 0.5f);
+		mExtractS = mPref.getFloat(KEY_EXTRACT_S, 0.196f);
+		mExtractRangeS = mPref.getFloat(KEY_EXTRACT_RANGE_S, 0.098f);
+		mExtractV = mPref.getFloat(KEY_EXTRACT_V, 0.7353f);
+		mExtractRangeV = mPref.getFloat(KEY_EXTRACT_RANGE_V, 0.265f);
+		mExtractRangeHLabel = (TextView)rootView.findViewById(R.id.extract_range_h_textview);
+		mExtractRangeHSeekbar = (SeekBar)rootView.findViewById(R.id.extract_range_h_seekbar);
+		mExtractRangeHSeekbar.setMax(100);
+		mExtractRangeHSeekbar.setProgress((int)(mExtractRangeH * 100)); 	   // [0.0f, 1.0f] => [0.0f, 100f]
+		mExtractRangeHSeekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateExtractRangeH(mExtractRangeH);
+		mExtractRangeSLabel = (TextView)rootView.findViewById(R.id.extract_range_s_textview);
+		mExtractRangeSSeekbar = (SeekBar)rootView.findViewById(R.id.extract_range_s_seekbar);
+		mExtractRangeSSeekbar.setMax(100);
+		mExtractRangeSSeekbar.setProgress((int)(mExtractRangeS * 100)); 	   // [0.0f, 1.0f] => [0.0f, 100f]
+		mExtractRangeSSeekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateExtractRangeS(mExtractRangeS);
+		mExtractRangeVLabel = (TextView)rootView.findViewById(R.id.extract_range_v_textview);
+		mExtractRangeVSeekbar = (SeekBar)rootView.findViewById(R.id.extract_range_v_seekbar);
+		mExtractRangeVSeekbar.setMax(100);
+		mExtractRangeVSeekbar.setProgress((int)(mExtractRangeV * 100)); 	   // [0.0f, 1.0f] => [0.0f, 100f]
+		mExtractRangeVSeekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateExtractRangeV(mExtractRangeV);
+	}
 
+	private void releaseColorExtraction(final View rootView) {
+		mExtractRangeHLabel = null;
+		mExtractRangeSLabel = null;
+		mExtractRangeVLabel = null;
+		mExtractRangeHSeekbar = null;
+		mExtractRangeSSeekbar = null;
+		mExtractRangeVSeekbar = null;
+	}
+
+	private void updateExtractRange(final float range_h, final float range_s, final float range_v) {
+		if (mImageProcessor != null) {
+			final float h_min = ImageProcessor.sat(mExtractH - range_h / 2.0f, 0.0f, 1.0f);
+			final float h_max = ImageProcessor.sat(mExtractH + range_h / 2.0f, 0.0f, 1.0f);
+			final float s_min = ImageProcessor.sat(mExtractS - range_s / 2.0f, 0.0f, 1.0f);
+			final float s_max = ImageProcessor.sat(mExtractS + range_s / 2.0f, 0.0f, 1.0f);
+			final float v_min = ImageProcessor.sat(mExtractV - range_v / 2.0f, 0.0f, 1.0f);
+			final float v_max = ImageProcessor.sat(mExtractV + range_v / 2.0f, 0.0f, 1.0f);
+			mImageProcessor.setExtractionColor(
+				(int)(h_min * 180.0f),
+				(int)(h_max * 180.0f),
+				(int)(s_min * 255.0f),
+				(int)(s_max * 255.0f),
+				(int)(v_min * 255.0f),
+				(int)(v_max * 255.0f)
+			);
+		}
+	}
+
+	private void updateExtractRangeH(final float range) {
+		if (mExtractRangeHLabel != null) {
+			mExtractRangeHLabel.setText(String.format(mExtractRangeHFormat, range));
+		}
+		updateExtractRange(range, mExtractRangeS, mExtractRangeV);
+	}
+
+	private void updateExtractRangeS(final float range) {
+		if (mExtractRangeSLabel != null) {
+			mExtractRangeSLabel.setText(String.format(mExtractRangeSFormat, range));
+		}
+		updateExtractRange(mExtractRangeH, range, mExtractRangeV);
+	}
+
+	private void updateExtractRangeV(final float range) {
+		if (mExtractRangeVLabel != null) {
+			mExtractRangeVLabel.setText(String.format(mExtractRangeVFormat, range));
+		}
+		updateExtractRange(mExtractRangeH, mExtractRangeS, range);
 	}
 
 //--------------------------------------------------------------------------------
@@ -1607,10 +1858,10 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		Button btn;
 		SeekBar sb;
 
-		mAreaLimitMinFormat = getString(R.string.trace_area_limit_min);
-		mAspectLimitMinFormat = getString(R.string.trace_aspect_limit_min);
-		mAreaErrLimit1Format = getString(R.string.trace_area_err_limit1);
-		mAreaErrLimit2Format = getString(R.string.trace_area_err_limit2);
+		mAreaLimitMinFormat = getString(R.string.trace_config_detect_area_limit_min);
+		mAspectLimitMinFormat = getString(R.string.trace_config_detect_aspect_limit_min);
+		mAreaErrLimit1Format = getString(R.string.trace_config_detect_area_err_limit1);
+		mAreaErrLimit2Format = getString(R.string.trace_config_detect_area_err_limit2);
 
 		// 輪郭検出時の最小面積
 		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, 1000.0f);
@@ -1644,6 +1895,13 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sb.setProgress((int)((mAspectLimitMin - 1.0f) * 10)); 	   // [1,20] => [0, 190]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateAspectLimitMin(mAspectLimitMin);
+	}
+
+	private void releaseDetect(final View rootView) {
+		mAreaLimitMinLabel = null;
+		mAspectLimitMinLabel = null;
+		mAreaErrLimit1Label = null;
+		mAreaErrLimit2Label = null;
 	}
 
 	private int areaLimitMinToProgress(final float area_limit_min) {
@@ -1713,6 +1971,11 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		sw = (Switch)rootView.findViewById(R.id.curvature_sw);
 		sw.setChecked(mCurvature != 0);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+	}
+
+	private void releaseAutoTrace(final View rootView) {
+		mFlightAttitudeYawLabel = null;
+		mFlightSpeedLabel = null;
 	}
 
 	private void updateFlightAttitudeYaw(final float attitude_yaw) {
@@ -1804,6 +2067,13 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		}
 		seekbar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateMaxRotationSpeed(mMaxRotationSpeed.current());
+	}
+
+	private void releaseConfigFlight(final View rootView) {
+		mMaxAltitudeLabel = null;
+		mMaxTiltLabel = null;
+		mMaxVerticalSpeedLabel = null;
+		mMaxRotationSpeedLabel = null;
 	}
 
 	/**
@@ -1934,6 +2204,14 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 		updateAutopilotScaleR(mScaleR);
 	}
 
+	private void releaseConfigAutopilot(final View root) {
+		mAutopilotScaleXLabel = null;
+		mAutopilotScaleYLabel = null;
+		mAutopilotScaleZLabel = null;
+		mAutopilotScaleRLabel = null;
+		mAutopilotMaxControlValueLabel = null;
+	}
+
 	/**
 	 * 自動操縦:最大制御設定値表示を更新
 	 * @param max_control_value
@@ -1988,6 +2266,7 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 //================================================================================
 	private static interface AdapterItemHandler {
 		public void initialize(final AutoPilotFragment2 parent, final View view);
+		public void release(final AutoPilotFragment2 parent, final View view);
 	}
 
 	private static final class PagerAdapterConfig {
@@ -2011,11 +2290,19 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initPreprocess(view);
 			}
+			@Override
+			public void release(final AutoPilotFragment2 parent, final View view) {
+				parent.releasePreprocess(view);
+			}
 		});
 		PAGER_CONFIG_TRACE[1] = new PagerAdapterConfig(R.string.trace_config_title_preprocess2, R.layout.trace_config_preprocess2, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initPreprocess2(view);
+			}
+			@Override
+			public void release(final AutoPilotFragment2 parent, final View view) {
+				parent.releasePreprocess2(view);
 			}
 		});
 		PAGER_CONFIG_TRACE[2] = new PagerAdapterConfig(R.string.trace_config_title_color_extract, R.layout.trace_config_color_extraction, new AdapterItemHandler() {
@@ -2023,11 +2310,19 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initColorExtraction(view);
 			}
+			@Override
+			public void release(final AutoPilotFragment2 parent, final View view) {
+				parent.releaseColorExtraction(view);
+			}
 		});
 		PAGER_CONFIG_TRACE[3] = new PagerAdapterConfig(R.string.trace_config_title_detect, R.layout.trace_config_detect, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initDetect(view);
+			}
+			@Override
+			public void release(final AutoPilotFragment2 parent, final View view) {
+				parent.releaseDetect(view);
 			}
 		});
 		PAGER_CONFIG_TRACE[4] = new PagerAdapterConfig(R.string.trace_config_title_auto_trace, R.layout.trace_config_auto_trace, new AdapterItemHandler() {
@@ -2035,17 +2330,29 @@ public class AutoPilotFragment2 extends BasePilotFragment {
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initAutoTrace(view);
 			}
+			@Override
+			public void release(final AutoPilotFragment2 parent, final View view) {
+				parent.releaseAutoTrace(view);
+			}
 		});
 		PAGER_CONFIG_TRACE[5] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.trace_config_flight, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initConfigFlight(view);
 			}
+			@Override
+			public void release(final AutoPilotFragment2 parent, final View view) {
+				parent.releaseConfigFlight(view);
+			}
 		});
 		PAGER_CONFIG_TRACE[6] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.trace_config_autopilot, new AdapterItemHandler() {
 			@Override
 			public void initialize(final AutoPilotFragment2 parent, final View view) {
 				parent.initConfigAutopilot(view);
+			}
+			@Override
+			public void release(final AutoPilotFragment2 parent, final View view) {
+				parent.releaseConfigAutopilot(view);
 			}
 		});
 	}

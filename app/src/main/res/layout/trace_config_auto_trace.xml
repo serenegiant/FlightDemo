@@ -43,7 +43,7 @@
 		<Switch
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_config_trace_curvature"
+			android:text="@string/trace_config_flight_curvature"
 			android:textColor="@color/trace_config"
 			android:textSize="@dimen/text_sz_trace_config_list"
 			android:textOn="@string/config_sw_on"

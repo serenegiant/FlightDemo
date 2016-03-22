@@ -149,21 +149,25 @@
 	<string name="trace_use_canny">>Edge detection(Canny) on OpenGL|ES</string>
 	<!-- 色抽出設定-->
 	<string name="trace_config_title_color_extract">Color extraction settings</string>
-	<string name="trace_use_native_extraction">Color extraction on OpenCV</string>
-	<string name="trace_use_extraction">Color extraction on OpenGL|ES</string>
-	<string name="trace_update_extraction_color">Update extraction color</string>
-	<string name="trace_reset_extraction_color">Reset extraction color</string>
+	<string name="trace_config_extract_use_opencv">Color extraction on OpenCV</string>
+	<string name="trace_config_extract_use">Color extraction on OpenGL|ES</string>
+	<string name="trace_config_extract_color_update">Update extraction color</string>
+	<string name="trace_config_extract_color_select">Select extraction color</string>
+	<string name="trace_config_extract_color_reset">Reset extraction color</string>
+	<string name="trace_config_extract_range_h">Color range(Hue): %5.2f</string>
+	<string name="trace_config_extract_range_s">Color range(Saturation): %5.2f</string>
+	<string name="trace_config_extract_range_v">Color range(Value): %5.2f</string>
 	<!-- 検出設定 -->
 	<string name="trace_config_title_detect">Detect settings</string>
-	<string name="trace_area_limit_min">Min area when detect contour: %5.0f</string>
-	<string name="trace_area_err_limit1">Max area err1 on detect contour: %5.2f</string>
-	<string name="trace_area_err_limit2">Max area err2 on detect contour: %5.2f</string>
-	<string name="trace_aspect_limit_min">Min aspect when detect line: %5.1f</string>
+	<string name="trace_config_detect_area_limit_min">Min area when detect contour: %5.0f</string>
+	<string name="trace_config_detect_area_err_limit1">Max area err1 on detect contour: %5.2f</string>
+	<string name="trace_config_detect_area_err_limit2">Max area err2 on detect contour: %5.2f</string>
+	<string name="trace_config_detect_aspect_limit_min">Min aspect when detect line: %5.1f</string>
 	<!-- 飛行制御設定 -->
 	<string name="trace_config_title_auto_trace">Auto trace settings</string>
 	<string name="trace_config_flight_attitude_yaw">Attitude(yaw): %4.0f</string>
 	<string name="trace_config_flight_speed">Flight speed: %4.0f</string>
-	<string name="trace_config_trace_curvature">Curvature correction</string>
+	<string name="trace_config_flight_curvature">Curvature correction</string>
 
 	<array name="trace_smooth_entries">
 		<item>@string/trace_smooth_non</item>

@@ -38,8 +38,6 @@ public class AppConst {
 	public static final String KEY_TRAPEZIUM_RATE = "KEY_TRAPEZIUM_RATE";
 
 	public static final String KEY_SMOOTH_TYPE = "KEY_SMOOTH_TYPE";
-	public static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
-	public static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";
 	public static final String KEY_NATIVE_SMOOTH_TYPE = "KEY_NATIVE_SMOOTH_TYPE";
 	public static final String KEY_ENABLE_EDGE_DETECTION = "KEY_ENABLE_EDGE_DETECTION";
 	public static final String KEY_ENABLE_NATIVE_EDGE_DETECTION = "KEY_ENABLE_NATIVE_EDGE_DETECTION";
@@ -47,6 +45,16 @@ public class AppConst {
 	public static final String KEY_ASPECT_LIMIT_MIN = "KEY_ASPECT_LIMIT_MIN";
 	public static final String KEY_AREA_ERR_LIMIT1 = "KEY_AREA_ERR_LIMIT1";
 	public static final String KEY_AREA_ERR_LIMIT2 = "KEY_AREA_ERR_LIMIT2";
+	// 色抽出設定
+	public static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
+	public static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";
+	public static final String KEY_EXTRACT_H = "KEY_ENABLE_EXTRACT_H";
+	public static final String KEY_EXTRACT_S = "KEY_ENABLE_EXTRACT_S";
+	public static final String KEY_EXTRACT_V = "KEY_ENABLE_EXTRACT_V";
+	public static final String KEY_EXTRACT_RANGE_H = "KEY_ENABLE_EXTRACT_RANGE_H";
+	public static final String KEY_EXTRACT_RANGE_S = "KEY_ENABLE_EXTRACT_RANGE_S";
+	public static final String KEY_EXTRACT_RANGE_V = "KEY_ENABLE_EXTRACT_RANGE_V";
+
 
 	public static final String KEY_TRACE_FLIGHT_ATTITUDE_YAW = "KEY_TRACE_FLIGHT_ATTITUDE_YAW";
 	public static final String KEY_TRACE_FLIGHT_SPEED = "KEY_TRACE_FLIGHT_SPEED";
