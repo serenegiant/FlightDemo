@@ -152,9 +152,9 @@
 	<string name="trace_config_title_color_extract">色抽出設定</string>
 	<string name="trace_config_extract_use_opencv">色抽出OpenCV</string>
 	<string name="trace_config_extract_use">色抽出OpenGL|ES</string>
-	<string name="trace_config_extract_color_update">抽出色取得</string>
-	<string name="trace_config_extract_color_select">抽出色選択</string>
-	<string name="trace_config_extract_color_reset">抽出色リセット</string>
+	<string name="trace_config_extract_color_update">取得</string>
+	<string name="trace_config_extract_color_select">選択</string>
+	<string name="trace_config_extract_color_reset">リセット</string>
 	<string name="trace_config_extract_range_h">抽出色範囲(色相): %5.2f</string>
 	<string name="trace_config_extract_range_s">抽出色範囲(彩度): %5.2f</string>
 	<string name="trace_config_extract_range_v">抽出色範囲(明度): %5.2f</string>

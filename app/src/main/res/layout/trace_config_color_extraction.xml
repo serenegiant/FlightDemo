@@ -23,32 +23,41 @@
 		android:text="@string/trace_config_extract_use_opencv"
 		android:id="@+id/use_native_extract_sw"/> -->
 	<!-- 抽出色更新 -->
-	<Button
-		style="?android:attr/buttonStyleSmall"
+	<LinearLayout
+		android:orientation="horizontal"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:textSize="@dimen/text_sz_trace_config_list"
-		android:textColor="@color/BLACK"
-		android:text="@string/trace_config_extract_color_update"
-		android:id="@+id/update_extraction_color_btn"/>
-	<!-- 抽出色選択 -->
-	<Button
-		style="?android:attr/buttonStyleSmall"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:textSize="@dimen/text_sz_trace_config_list"
-		android:textColor="@color/BLACK"
-		android:text="@string/trace_config_extract_color_select"
-		android:id="@+id/select_extraction_color_btn"/>
-	<!-- 抽出色リセット -->
-	<Button
-		style="?android:attr/buttonStyleSmall"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:textSize="@dimen/text_sz_trace_config_list"
-		android:textColor="@color/BLACK"
-		android:text="@string/trace_config_extract_color_reset"
-		android:id="@+id/reset_extraction_color_btn"/>
+		android:layout_height="wrap_content">
+		<Button
+			style="?android:attr/buttonStyleSmall"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:textColor="@color/BLACK"
+			android:text="@string/trace_config_extract_color_update"
+			android:id="@+id/update_extraction_color_btn"
+			android:layout_weight="1"/>
+		<!-- 抽出色選択 -->
+		<Button
+			style="?android:attr/buttonStyleSmall"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:textColor="@color/BLACK"
+			android:text="@string/trace_config_extract_color_select"
+			android:id="@+id/select_extraction_color_btn"
+			android:layout_weight="1"/>
+		<!-- 抽出色リセット -->
+		<Button
+			style="?android:attr/buttonStyleSmall"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:textColor="@color/BLACK"
+			android:text="@string/trace_config_extract_color_reset"
+			android:id="@+id/reset_extraction_color_btn"
+			android:layout_weight="1"/>
+	</LinearLayout>
+
 	<!-- 抽出色の範囲(H) -->
 	<TextView
 		android:layout_width="match_parent"

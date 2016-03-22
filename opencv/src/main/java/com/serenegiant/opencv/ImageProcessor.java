@@ -241,6 +241,9 @@ public class ImageProcessor {
 					if (effect instanceof MediaEffectSaturate) {
 						effect.setEnable(enable);
 					}
+//					if (effect instanceof MediaEffectSaturateGLES) {
+//						effect.setEnable(enable);
+//					}
 				}
 			}
 		}
@@ -263,6 +266,9 @@ public class ImageProcessor {
 					if (effect instanceof MediaEffectSaturate) {
 						((MediaEffectSaturate)effect).setParameter(sat);
 					}
+//					if (effect instanceof MediaEffectSaturateGLES) {
+//						((MediaEffectSaturateGLES)effect).setParameter(sat);
+//					}
 				}
 			}
 		}
@@ -690,6 +696,7 @@ public class ImageProcessor {
 				mEffects.add(exposure);
 				// 彩度調整(-1.0f〜1.0f, -1.0fならグレースケール)
 				final MediaEffectSaturate saturate = new MediaEffectSaturate(mEffectContext, mSaturation);
+//				final MediaEffectSaturateGLES saturate = new MediaEffectSaturateGLES(mSaturation);
 				saturate.setEnable(true);
 				mEffects.add(saturate);
 				// 明るさ調整(0〜, 1.0fなら変化なし)
@@ -929,7 +936,7 @@ public class ImageProcessor {
 		}
 
 		/**
-		 * 製造サイズ変更処理(ワーカースレッド上で実行)
+		 * 映像サイズ変更処理(ワーカースレッド上で実行)
 		 * @param width
 		 * @param height
 		 */
