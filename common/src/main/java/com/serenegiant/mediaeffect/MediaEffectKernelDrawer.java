@@ -71,31 +71,34 @@ public class MediaEffectKernelDrawer extends MediaEffectColorAdjustDrawer {
 		if ((values == null) || (values.length < KERNEL_SIZE)) {
 			throw new IllegalArgumentException("Kernel size is " + (values != null ? values.length : 0) + " vs. " + KERNEL_SIZE);
 		}
-		System.arraycopy(values, 0, mKernel, 0, KERNEL_SIZE);
-		setColorAdjust(colorAdj);
+		synchronized (mSync) {
+			System.arraycopy(values, 0, mKernel, 0, KERNEL_SIZE);
+			setColorAdjust(colorAdj);
+		}
 	}
 
 	/**
 	 * Sets the size of the texture.  This is used to find adjacent texels when filtering.
 	 */
 	public void setTexSize(final int width, final int height) {
-		mTexHeight = height;
-		mTexWidth = width;
-		final float rw = 1.0f / width;
-		final float rh = 1.0f / height;
+		synchronized (mSync) {
+			mTexHeight = height;
+			mTexWidth = width;
+			final float rw = 1.0f / width;
+			final float rh = 1.0f / height;
 
-		mTexOffset[0] = -rw;	mTexOffset[1] = -rh;
-		mTexOffset[2] = 0f;		mTexOffset[3] = -rh;
-		mTexOffset[4] = rw;		mTexOffset[5] = -rh;
+			mTexOffset[0] = -rw;	mTexOffset[1] = -rh;
+			mTexOffset[2] = 0f;		mTexOffset[3] = -rh;
+			mTexOffset[4] = rw;		mTexOffset[5] = -rh;
 
-		mTexOffset[6] = -rw;	mTexOffset[7] = 0f;
-		mTexOffset[8] = 0f;		mTexOffset[9] = 0f;
-		mTexOffset[10] = rw;	mTexOffset[11] = 0f;
+			mTexOffset[6] = -rw;	mTexOffset[7] = 0f;
+			mTexOffset[8] = 0f;		mTexOffset[9] = 0f;
+			mTexOffset[10] = rw;	mTexOffset[11] = 0f;
 
-		mTexOffset[12] = -rw;	mTexOffset[13] = rh;
-		mTexOffset[14] = 0f;	mTexOffset[15] = rh;
-		mTexOffset[16] = rw;	mTexOffset[17] = rh;
-
+			mTexOffset[12] = -rw;	mTexOffset[13] = rh;
+			mTexOffset[14] = 0f;	mTexOffset[15] = rh;
+			mTexOffset[16] = rw;	mTexOffset[17] = rh;
+		}
 	}
 
 }

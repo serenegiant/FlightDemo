@@ -57,9 +57,7 @@ public class MediaEffectExposure extends MediaEffectGLESBase {
 	 * @return
 	 */
 	public MediaEffectExposure setParameter(final float exposure) {
-		synchronized (mSync) {
-			((MediaEffectColorAdjustDrawer)mDrawer).setColorAdjust(exposure);
-		}
+		((MediaEffectColorAdjustDrawer)mDrawer).setColorAdjust(exposure);
 		return this;
 	}
 

@@ -26,24 +26,18 @@ public class MediaEffectKernel extends MediaEffectGLESBase {
 	}
 
 	public void setKernel(final float[] values, final float colorAdj) {
-		synchronized (mSync) {
-			((MediaEffectKernelDrawer)mDrawer).setKernel(values, colorAdj);
-		}
+		((MediaEffectKernelDrawer)mDrawer).setKernel(values, colorAdj);
 	}
 
 	public void setColorAdjust(final float adjust) {
-		synchronized (mSync) {
-			((MediaEffectKernelDrawer)mDrawer).setColorAdjust(adjust);
-		}
+		((MediaEffectKernelDrawer)mDrawer).setColorAdjust(adjust);
 	}
 
 	/**
 	 * Sets the size of the texture.  This is used to find adjacent texels when filtering.
 	 */
 	public void setTexSize(final int width, final int height) {
-		synchronized (mSync) {
-			((MediaEffectKernelDrawer)mDrawer).setTexSize(width, height);
-		}
+		((MediaEffectKernelDrawer)mDrawer).setTexSize(width, height);
 	}
 
 	/**

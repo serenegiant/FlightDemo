@@ -126,9 +126,7 @@ public class MediaEffectCanny extends MediaEffectGLESBase {
 	}
 
 	public MediaEffectCanny setParameter(final float threshold) {
-		synchronized (mSync) {
-			((MediaEffectKernelDrawer)mDrawer).setColorAdjust(threshold);
-		}
+		((MediaEffectKernelDrawer)mDrawer).setColorAdjust(threshold);
 		return this;
 	}
 }

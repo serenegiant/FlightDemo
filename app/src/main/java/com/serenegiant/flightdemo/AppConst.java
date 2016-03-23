@@ -12,10 +12,15 @@ public class AppConst {
 	public static final String KEY_GAMEPAD_SCALE_R = "CONFIG_GAMEPAD_SCALE_R";
 	// 自動操縦
 	public static final String KEY_AUTOPILOT_MAX_CONTROL_VALUE = "CONFIG_AUTOPILOT_MAX_CONTROL_VALUE";
+	public static final float DEFAULT_AUTOPILOT_MAX_CONTROL_VALUE = 100.0f;
 	public static final String KEY_AUTOPILOT_SCALE_X = "CONFIG_AUTOPILOT_SCALE_X";
+	public static final float DEFAULT_AUTOPILOT_SCALE_X = 1.0f;
 	public static final String KEY_AUTOPILOT_SCALE_Y = "CONFIG_AUTOPILOT_SCALE_Y";
+	public static final float DEFAULT_AUTOPILOT_SCALE_Y = 1.0f;
 	public static final String KEY_AUTOPILOT_SCALE_Z = "CONFIG_AUTOPILOT_SCALE_Z";
+	public static final float DEFAULT_AUTOPILOT_SCALE_Z = 1.0f;
 	public static final String KEY_AUTOPILOT_SCALE_R = "CONFIG_AUTOPILOT_SCALE_R";
+	public static final float DEFAULT_AUTOPILOT_SCALE_R = 1.0f;
 	// アイコン
 	public static final String KEY_ICON_TYPE = "ICON_TYPE";
 	// 機体色
@@ -42,7 +47,9 @@ public class AppConst {
 	public static final String KEY_ENABLE_EDGE_DETECTION = "KEY_ENABLE_EDGE_DETECTION";
 	public static final String KEY_ENABLE_NATIVE_EDGE_DETECTION = "KEY_ENABLE_NATIVE_EDGE_DETECTION";
 	public static final String KEY_AREA_LIMIT_MIN = "KEY_AREA_LIMIT_MIN";
+	public static final float DEFAULT_AREA_LIMIT_MIN = 1000.0f;
 	public static final String KEY_ASPECT_LIMIT_MIN = "KEY_ASPECT_LIMIT_MIN";
+	public static final float DEFAULT_ASPECT_LIMIT_MIN = 3.0f;
 	public static final String KEY_AREA_ERR_LIMIT1 = "KEY_AREA_ERR_LIMIT1";
 	public static final String KEY_AREA_ERR_LIMIT2 = "KEY_AREA_ERR_LIMIT2";
 	// 色抽出設定
@@ -56,7 +63,12 @@ public class AppConst {
 	public static final String KEY_EXTRACT_RANGE_V = "KEY_ENABLE_EXTRACT_RANGE_V";
 
 
-	public static final String KEY_TRACE_FLIGHT_ATTITUDE_YAW = "KEY_TRACE_FLIGHT_ATTITUDE_YAW";
-	public static final String KEY_TRACE_FLIGHT_SPEED = "KEY_TRACE_FLIGHT_SPEED";
+	public static final String KEY_TRACE_ATTITUDE_YAW = "KEY_TRACE_FLIGHT_ATTITUDE_YAW";
+	public static final float DEFAULT_TRACE_ATTITUDE_YAW = 0.0f;
+	public static final String KEY_TRACE_SPEED = "KEY_TRACE_FLIGHT_SPEED";
+	public static final float DEFAULT_TRACE_SPEED = 100.0f;
 	public static final String KEY_TRACE_CURVATURE = "KEY_TRACE_CURVATURE";
+	public static final float DEFAULT_TRACE_CURVATURE = 0.0f;
+	public static final String KEY_TRACE_DIR_REVERSE_BIAS = "KEY_TRACE_FLIGHT_DIR_REVERSE_BIAS";
+	public static final float DEFAULT_TRACE_DIR_REVERSE_BIAS = 0.3f;
 }

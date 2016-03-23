@@ -11,7 +11,7 @@
 		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_config_flight_attitude_yaw"
+			android:text="@string/trace_config_trace_attitude_yaw"
 			android:textSize="@dimen/text_sz_trace_config_list"
 			android:id="@+id/trace_flight_attitude_yaw_textview"
 			android:textColor="@color/trace_config"/>
@@ -27,7 +27,7 @@
 		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_config_flight_speed"
+			android:text="@string/trace_config_trace_speed"
 			android:textSize="@dimen/text_sz_trace_config_list"
 			android:id="@+id/trace_flight_speed_textview"
 			android:textColor="@color/trace_config"/>
@@ -39,11 +39,27 @@
 			android:paddingBottom="@dimen/min_padding"
 			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 移動方向逆バイアス -->
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/trace_config_trace_reverse_bias"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:id="@+id/trace_flight_reverse_bias_textview"
+			android:textColor="@color/trace_config"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/trace_flight_reverse_bias_seekbar"
+			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
 		<!-- 曲率補正 -->
 		<Switch
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_config_flight_curvature"
+			android:text="@string/trace_config_trace_curvature"
 			android:textColor="@color/trace_config"
 			android:textSize="@dimen/text_sz_trace_config_list"
 			android:textOn="@string/config_sw_on"

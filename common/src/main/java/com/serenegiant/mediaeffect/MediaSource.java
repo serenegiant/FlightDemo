@@ -86,7 +86,7 @@ public class MediaSource implements ISource {
 			}
 			needSwap = !needSwap;
 //			effect.apply(mSrcTexIds, mOutputScreen.getTexWidth(), mOutputScreen.getTexHeight(), mOutputScreen.getTexture());
-			effect.apply(this); // このメソッド呼び出しは1つ上のコメントしてある行と等価です。
+			effect.apply(this); // このメソッド呼び出しは1つ上のコメントしてある行と結果は等価だけど効率はいい。
 		}
 		return this;
 	}
@@ -116,6 +116,7 @@ public class MediaSource implements ISource {
 		return mOutputScreen.getTexMatrix();
 	}
 
+	@Override
 	public TextureOffscreen getOutputTexture() {
 		return needSwap ? mOutputScreen : mSourceScreen;
 	}

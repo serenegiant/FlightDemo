@@ -157,14 +157,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 //		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
 		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
 		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
-		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, 1000.0f);
-		mAspectLimitMin = mPref.getFloat(KEY_ASPECT_LIMIT_MIN, 3.0f);
+		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, DEFAULT_AREA_LIMIT_MIN);
+		mAspectLimitMin = mPref.getFloat(KEY_ASPECT_LIMIT_MIN, DEFAULT_ASPECT_LIMIT_MIN);
 		mAreaErrLimit1 = mPref.getFloat(KEY_AREA_ERR_LIMIT1, 1.25f);
 		mAreaErrLimit2 = mPref.getFloat(KEY_AREA_ERR_LIMIT2, 1.3f);
 		//
-		mFlightAttitudeYaw = mPref.getFloat(KEY_TRACE_FLIGHT_ATTITUDE_YAW, 0.0f);
-		mFlightSpeed = mPref.getFloat(KEY_TRACE_FLIGHT_SPEED, 100.0f);
-		mCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, 0.0f);
+		mTraceAttitudeYaw = mPref.getFloat(KEY_TRACE_ATTITUDE_YAW, DEFAULT_TRACE_ATTITUDE_YAW);
+		mTraceSpeed = mPref.getFloat(KEY_TRACE_SPEED, DEFAULT_TRACE_SPEED);
+		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
+		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
 
 		// Viewの取得・初期化
 		mActionViews.clear();
@@ -722,8 +723,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 			float scaleR = (float)mScaleR;
-			float additive = 0.3f;
-			float curvature = 0.0f; // mCurvature;
+			float directionalReverseBias = mTraceDirectionalReverseBias;
+			float curvature = 0.0f; // mTraceCurvature;
 			final Vector factor = new Vector(0.5f, 1.0f, 1.0f);
 			//
 			long startTime = -1L, lostTime = -1L;
@@ -739,12 +740,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				synchronized (mParamSync) {
 					if (mReqUpdateParams) {	// パラメータ変更指示?
 						mReqUpdateParams = false;
-						flightAngleYaw = mFlightAttitudeYaw;
+						flightAngleYaw = mTraceAttitudeYaw;
 						// factorが最大で2になるのでmFlightSpeedは[-100,+100]なのを[-50,+50]にする
-						flightSpeed = mFlightSpeed / 2.0f * (float)(mMaxControlValue / 100.0);
+						flightSpeed = mTraceSpeed / 2.0f * (float)(mMaxControlValue / 100.0);
 						scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 						scaleR = (float)mScaleR;
-//						curvature = mCurvature;
+						directionalReverseBias = mTraceDirectionalReverseBias;
+//						curvature = mTraceCurvature;
 					}
 				}
 				synchronized (mQueue) {
@@ -798,15 +800,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// オフセットの符号を取得
 							offset.sign();
 							// 移動方向が変わってなければ50%加算, 変わってれば50%減算
-							if (offset.x != 0) { if (offset.x == work.x) { work.x = additive; } else { work.x = -additive; } } else { offset.x = 0.0f; }
-							if (offset.y != 0) { if (offset.y == work.y) { work.y = additive; } else { work.y = -additive; } } else { offset.y = 0.0f; }
-							if (offset.z != 0) { if (offset.z == work.z) { work.z = additive; } else { work.z = -additive; } } else { offset.z = 0.0f; }
+							if (offset.x != 0) { if (offset.x == work.x) { work.x = directionalReverseBias; } else { work.x = -directionalReverseBias; } } else { offset.x = 0.0f; }
+							if (offset.y != 0) { if (offset.y == work.y) { work.y = directionalReverseBias; } else { work.y = -directionalReverseBias; } } else { offset.y = 0.0f; }
+							if (offset.z != 0) { if (offset.z == work.z) { work.z = directionalReverseBias; } else { work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
 							work.add(1.0f, 1.0f, 1.0f);
 							// 機体のオフセットと反対向き動かすので-1倍, ±1を±100に換算するので100倍, 前進速度を加算
 							// オフセットy(ピッチ, 前後方向)はラインの中心点が中央より前だと負、中央より後ろだと正なので符号反転はしない
 							mPilotValue.mult(work).mult(-50.0f, 50.0f, -50.0f);
-							mPilotValue.add(0.0f, flightSpeed, 0.0f);
 //							// カメラ映像の真上に向かって進む, 高度制御無し
+							mPilotValue.add(0.0f, flightSpeed, 0.0f);
 //							mPilotValue.set(0.f, flightSpeed, 0.0f);
 //							mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor);
 //							// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
@@ -1166,11 +1168,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				break;
 			case R.id.curvature_sw:
 				synchronized (mParamSync) {
-					mCurvature = isChecked ? 1.0f : 0.0f;
+					mTraceCurvature = isChecked ? 1.0f : 0.0f;
 					mReqUpdateParams = true;
 				}
 				if (mPref != null) {
-					mPref.edit().putFloat(KEY_TRACE_CURVATURE, mCurvature).apply();
+					mPref.edit().putFloat(KEY_TRACE_CURVATURE, mTraceCurvature).apply();
 				}
 				break;
 			}
@@ -1351,11 +1353,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				break;
 			case R.id.trace_flight_attitude_yaw_seekbar:
 				final float attitude_yaw = progress - 90;
-				updateFlightAttitudeYaw(attitude_yaw);
+				updateTraceAttitudeYaw(attitude_yaw);
 				break;
 			case R.id.trace_flight_speed_seekbar:
 				final float speed = progress - 100;
-				updateFlightSpeed(speed);
+				updateTraceSpeed(speed);
+				break;
+			case R.id.trace_flight_reverse_bias_seekbar:
+				final float bias = progress / 100.0f;
+				updateTraceDirectionalReverseBias(bias);
 				break;
 			}
 		}
@@ -1509,22 +1515,32 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				break;
 			case R.id.trace_flight_attitude_yaw_seekbar:
 				final float attitude_yaw = seekBar.getProgress() - 90;
-				if (attitude_yaw != mFlightAttitudeYaw) {
+				if (attitude_yaw != mTraceAttitudeYaw) {
 					synchronized (mParamSync) {
 						mReqUpdateParams = true;
-						mFlightAttitudeYaw = attitude_yaw;
+						mTraceAttitudeYaw = attitude_yaw;
 					}
-					mPref.edit().putFloat(KEY_TRACE_FLIGHT_ATTITUDE_YAW, attitude_yaw).apply();
+					mPref.edit().putFloat(KEY_TRACE_ATTITUDE_YAW, attitude_yaw).apply();
 				}
 				break;
 			case R.id.trace_flight_speed_seekbar:
 				final float speed = seekBar.getProgress() - 100;
-				if (speed != mFlightSpeed) {
+				if (speed != mTraceSpeed) {
 					synchronized (mParamSync) {
 						mReqUpdateParams = true;
-						mFlightSpeed = speed;
+						mTraceSpeed = speed;
 					}
-					mPref.edit().putFloat(KEY_TRACE_FLIGHT_SPEED, speed).apply();
+					mPref.edit().putFloat(KEY_TRACE_SPEED, speed).apply();
+				}
+				break;
+			case R.id.trace_flight_reverse_bias_seekbar:
+				final float bias = seekBar.getProgress() / 100.0f;
+				if (bias != mTraceDirectionalReverseBias) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mTraceDirectionalReverseBias = bias;
+					}
+					mPref.edit().putFloat(KEY_TRACE_DIR_REVERSE_BIAS, bias).apply();
 				}
 				break;
 			}
@@ -1956,7 +1972,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mAreaErrLimit2Format = getString(R.string.trace_config_detect_area_err_limit2);
 
 		// 輪郭検出時の最小面積
-		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, 1000.0f);
+		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, DEFAULT_AREA_LIMIT_MIN);
 		mAreaLimitMinLabel = (TextView)rootView.findViewById(R.id.area_limit_min_textview);
 		sb =(SeekBar)rootView.findViewById(R.id.area_limit_min_seekbar);
 		sb.setMax(9700);
@@ -1980,7 +1996,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateAreaErrLimit2(mAreaErrLimit2);
 		// ライン検出時の最小アスペクト比
-		mAspectLimitMin = mPref.getFloat(KEY_ASPECT_LIMIT_MIN, 3.0f);
+		mAspectLimitMin = mPref.getFloat(KEY_ASPECT_LIMIT_MIN, DEFAULT_ASPECT_LIMIT_MIN);
 		mAspectLimitMinLabel = (TextView)rootView.findViewById(R.id.aspect_limit_min_textview);
 		sb =(SeekBar)rootView.findViewById(R.id.aspect_limit_min_seekbar);
 		sb.setMax(190);
@@ -2028,57 +2044,76 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		}
 	}
 //--------------------------------------------------------------------------------
-	private TextView mFlightAttitudeYawLabel;
-	private TextView mFlightSpeedLabel;
-	private String mFlightAttitudeYawFormat;
-	private String mFlightSpeedFormat;
-	private float mFlightAttitudeYaw = 0.0f;
-	private float mFlightSpeed = 100.0f;
-	private float mCurvature = 0.0f;
+	private TextView mTraceAttitudeYawLabel;
+	private TextView mTraceSpeedLabel;
+	private TextView mTraceDirectionalReverseBiasLabel;
+	private String mTraceAttitudeYawFormat;
+	private String mTraceSpeedFormat;
+	private String mTraceDirectionalReverseBiasFormat;
+	private float mTraceAttitudeYaw = 0.0f;
+	private float mTraceSpeed = 100.0f;
+	private float mTraceDirectionalReverseBias = 0.3f;
+	private float mTraceCurvature = 0.0f;
 
 	private void initAutoTrace(final View rootView) {
 		SeekBar sb;
 		Switch sw;
 		//
-		mFlightAttitudeYawFormat = getString(R.string.trace_config_flight_attitude_yaw);
-		mFlightSpeedFormat = getString(R.string.trace_config_flight_speed);
+		mTraceAttitudeYawFormat = getString(R.string.trace_config_trace_attitude_yaw);
+		mTraceSpeedFormat = getString(R.string.trace_config_trace_speed);
+		mTraceDirectionalReverseBiasFormat = getString(R.string.trace_config_trace_reverse_bias);
 		// 飛行姿勢(yaw)
-		mFlightAttitudeYaw = mPref.getFloat(KEY_TRACE_FLIGHT_ATTITUDE_YAW, 0.0f);
-		mFlightAttitudeYawLabel = (TextView)rootView.findViewById(R.id.trace_flight_attitude_yaw_textview);
+		mTraceAttitudeYaw = mPref.getFloat(KEY_TRACE_ATTITUDE_YAW, DEFAULT_TRACE_ATTITUDE_YAW);
+		mTraceAttitudeYawLabel = (TextView)rootView.findViewById(R.id.trace_flight_attitude_yaw_textview);
 		sb =(SeekBar)rootView.findViewById(R.id.trace_flight_attitude_yaw_seekbar);
 		sb.setMax(180);
-		sb.setProgress((int)(mFlightAttitudeYaw + 90));	// [-90,+90] => [0, 180]
+		sb.setProgress((int)(mTraceAttitudeYaw + 90));	// [-90,+90] => [0, 180]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		updateFlightAttitudeYaw(mFlightAttitudeYaw);
+		updateTraceAttitudeYaw(mTraceAttitudeYaw);
 		// 飛行速度
-		mFlightSpeed = mPref.getFloat(KEY_TRACE_FLIGHT_SPEED, 100.0f);
-		mFlightSpeedLabel = (TextView)rootView.findViewById(R.id.trace_flight_speed_textview);
+		mTraceSpeed = mPref.getFloat(KEY_TRACE_SPEED, DEFAULT_TRACE_SPEED);
+		mTraceSpeedLabel = (TextView)rootView.findViewById(R.id.trace_flight_speed_textview);
 		sb =(SeekBar)rootView.findViewById(R.id.trace_flight_speed_seekbar);
 		sb.setMax(200);
-		sb.setProgress((int)(mFlightSpeed + 100));	// [-100,+100] => [0, 200]
+		sb.setProgress((int)(mTraceSpeed + 100));	// [-100,+100] => [0, 200]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		updateFlightSpeed(mFlightSpeed);
+		updateTraceSpeed(mTraceSpeed);
+		// 移動方向逆バイアス
+		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
+		mTraceDirectionalReverseBiasLabel = (TextView)rootView.findViewById(R.id.trace_flight_reverse_bias_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_reverse_bias_seekbar);
+		sb.setMax(200);
+		sb.setProgress((int)(mTraceDirectionalReverseBias * 100));	// [0.0f, 2.0f] => [0, 200]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateTraceDirectionalReverseBias(mTraceDirectionalReverseBias);
 		// 曲率補正
-		mCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, 0.0f);
+		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
 		sw = (Switch)rootView.findViewById(R.id.curvature_sw);
-		sw.setChecked(mCurvature != 0);
+		sw.setChecked(mTraceCurvature != 0);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
 	private void releaseAutoTrace(final View rootView) {
-		mFlightAttitudeYawLabel = null;
-		mFlightSpeedLabel = null;
+		mTraceAttitudeYawLabel = null;
+		mTraceSpeedLabel = null;
+		mTraceDirectionalReverseBiasLabel = null;
 	}
 
-	private void updateFlightAttitudeYaw(final float attitude_yaw) {
-		if (mFlightAttitudeYawLabel != null) {
-			mFlightAttitudeYawLabel.setText(String.format(mFlightAttitudeYawFormat, attitude_yaw));
+	private void updateTraceAttitudeYaw(final float attitude_yaw) {
+		if (mTraceAttitudeYawLabel != null) {
+			mTraceAttitudeYawLabel.setText(String.format(mTraceAttitudeYawFormat, attitude_yaw));
 		}
 	}
 
-	private void updateFlightSpeed(final float speed) {
-		if (mFlightSpeedLabel != null) {
-			mFlightSpeedLabel.setText(String.format(mFlightSpeedFormat, speed));
+	private void updateTraceSpeed(final float speed) {
+		if (mTraceSpeedLabel != null) {
+			mTraceSpeedLabel.setText(String.format(mTraceSpeedFormat, speed));
+		}
+	}
+
+	private void updateTraceDirectionalReverseBias(final float bias) {
+		if (mTraceDirectionalReverseBiasLabel != null) {
+			mTraceDirectionalReverseBiasLabel.setText(String.format(mTraceDirectionalReverseBiasFormat, bias));
 		}
 	}
 
@@ -2234,7 +2269,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		SeekBar seekbar = (SeekBar)root.findViewById(R.id.max_control_value_seekbar);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mMaxControlValue = mPref.getFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
+		mMaxControlValue = mPref.getFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, DEFAULT_AUTOPILOT_MAX_CONTROL_VALUE);
 		try {
 			seekbar.setProgress((int) (mMaxControlValue + SCALE_OFFSET));
 		} catch (final Exception e) {
@@ -2247,7 +2282,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_x);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mScaleX = mPref.getFloat(KEY_AUTOPILOT_SCALE_X, 1.0f);
+		mScaleX = mPref.getFloat(KEY_AUTOPILOT_SCALE_X, DEFAULT_AUTOPILOT_SCALE_X);
 		try {
 			seekbar.setProgress((int) (mScaleX * SCALE_FACTOR + SCALE_OFFSET));
 		} catch (final Exception e) {
@@ -2260,7 +2295,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_y);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mScaleY = mPref.getFloat(KEY_AUTOPILOT_SCALE_Y, 1.0f);
+		mScaleY = mPref.getFloat(KEY_AUTOPILOT_SCALE_Y, DEFAULT_AUTOPILOT_SCALE_Y);
 		try {
 			seekbar.setProgress((int) (mScaleY * SCALE_FACTOR + SCALE_OFFSET));
 		} catch (final Exception e) {
@@ -2273,7 +2308,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_z);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mScaleZ = mPref.getFloat(KEY_AUTOPILOT_SCALE_Z, 1.0f);
+		mScaleZ = mPref.getFloat(KEY_AUTOPILOT_SCALE_Z, DEFAULT_AUTOPILOT_SCALE_Z);
 		try {
 			seekbar.setProgress((int) (mScaleZ * SCALE_FACTOR + SCALE_OFFSET));
 		} catch (final Exception e) {
@@ -2286,7 +2321,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		seekbar = (SeekBar)root.findViewById(R.id.scale_seekbar_r);
 		seekbar.setOnSeekBarChangeListener(null);
 		seekbar.setMax(1000);
-		mScaleR = mPref.getFloat(KEY_AUTOPILOT_SCALE_R, 1.0f);
+		mScaleR = mPref.getFloat(KEY_AUTOPILOT_SCALE_R, DEFAULT_AUTOPILOT_SCALE_R);
 		try {
 			seekbar.setProgress((int) (mScaleR * SCALE_FACTOR + SCALE_OFFSET));
 		} catch (final Exception e) {

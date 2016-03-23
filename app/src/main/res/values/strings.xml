@@ -165,9 +165,10 @@
 	<string name="trace_config_detect_aspect_limit_min">Min aspect when detect line: %5.1f</string>
 	<!-- 飛行制御設定 -->
 	<string name="trace_config_title_auto_trace">Auto trace settings</string>
-	<string name="trace_config_flight_attitude_yaw">Attitude(yaw): %4.0f</string>
-	<string name="trace_config_flight_speed">Flight speed: %4.0f</string>
-	<string name="trace_config_flight_curvature">Curvature correction</string>
+	<string name="trace_config_trace_attitude_yaw">Attitude(yaw): %4.0f</string>
+	<string name="trace_config_trace_speed">Flight speed: %4.0f</string>
+	<string name="trace_config_trace_curvature">Curvature correction</string>
+	<string name="trace_config_trace_reverse_bias">Directional reverse bias rate: %5.2f</string>
 
 	<array name="trace_smooth_entries">
 		<item>@string/trace_smooth_non</item>

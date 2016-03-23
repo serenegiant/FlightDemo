@@ -46,12 +46,14 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 	@Override
 	public MediaEffectGLESBase resize(final int width, final int height) {
 		super.resize(width, height);
-		if ((mOutputOffscreen2 == null) || (width != mOutputOffscreen2.getWidth())
+		// ISourceを使う時は出力用オフスクリーンは不要なのと
+		// ISourceを使わない時は描画時にチェックして生成するのでresize時には生成しないように変更
+/*		if ((mOutputOffscreen2 == null) || (width != mOutputOffscreen2.getWidth())
 			|| (height != mOutputOffscreen2.getHeight())) {
 			if (mOutputOffscreen2 != null)
 				mOutputOffscreen2.release();
 			mOutputOffscreen2 = new TextureOffscreen(width, height, false);
-		}
+		} */
 		if (mDrawer2 != null) {
 			mDrawer2.setTexSize(width, height);
 		}
@@ -98,28 +100,24 @@ public class MediaEffectGLESTwoPassBase extends MediaEffectGLESBase {
 	@Override
 	public void apply(final ISource src) {
 		if (!mEnabled) return;
-		if (src instanceof MediaSource) {
-			final TextureOffscreen output_tex = ((MediaSource)src).getOutputTexture();
-			final int[] src_tex_ids = src.getSourceTexId();
-			final int width = src.getWidth();
-			final int height = src.getHeight();
-			// パス1
-			if (mOutputOffscreen == null) {
-				mOutputOffscreen = new TextureOffscreen(width, height, false);
-			}
-			mOutputOffscreen.bind();
-			mDrawer.apply(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
-			mOutputOffscreen.unbind();
-			// パス2
-			output_tex.bind();
-			if (mDrawer2 != null) {
-				mDrawer2.apply(mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
-			} else {
-				mDrawer.apply(mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
-			}
-			output_tex.unbind();
-		} else {
-			apply(src.getSourceTexId(), src.getWidth(), src.getHeight(), src.getOutputTexId());
+		final TextureOffscreen output_tex = src.getOutputTexture();
+		final int[] src_tex_ids = src.getSourceTexId();
+		final int width = src.getWidth();
+		final int height = src.getHeight();
+		// パス1
+		if (mOutputOffscreen == null) {
+			mOutputOffscreen = new TextureOffscreen(width, height, false);
 		}
+		mOutputOffscreen.bind();
+		mDrawer.apply(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
+		mOutputOffscreen.unbind();
+		// パス2
+		output_tex.bind();
+		if (mDrawer2 != null) {
+			mDrawer2.apply(mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
+		} else {
+			mDrawer.apply(mOutputOffscreen.getTexture(), output_tex.getTexMatrix(), 0);
+		}
+		output_tex.unbind();
 	}
 }

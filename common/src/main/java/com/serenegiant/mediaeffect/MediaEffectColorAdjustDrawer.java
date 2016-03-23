@@ -23,7 +23,9 @@ public class MediaEffectColorAdjustDrawer extends MediaEffectDrawer {
 	}
 
 	public void setColorAdjust(final float adjust) {
-		mColorAdjust = adjust;
+		synchronized (mSync) {
+			mColorAdjust = adjust;
+		}
 	}
 
 	@Override

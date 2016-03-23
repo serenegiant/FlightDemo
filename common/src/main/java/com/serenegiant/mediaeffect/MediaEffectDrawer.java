@@ -127,13 +127,23 @@ public class MediaEffectDrawer {
 	}
 
 	/**
+	 * このクラスでは何もしない, 必要なら下位クラスでオーバーライドすること
+	 * @param width
+	 * @param height
+	 */
+	public void setTexSize(final int width, final int height) {
+	}
+
+	/**
 	 * モデルビュー変換行列に行列を割り当てる
 	 * @param matrix 領域チェックしていないのでoffsetから16個以上必須
 	 * @param offset
 	 * @return
 	 */
 	public void setMvpMatrix(final float[] matrix, final int offset) {
-		System.arraycopy(matrix, offset, mMvpMatrix, 0, mMvpMatrix.length);
+		synchronized (mSync) {
+			System.arraycopy(matrix, offset, mMvpMatrix, 0, mMvpMatrix.length);
+		}
 	}
 
 	/**

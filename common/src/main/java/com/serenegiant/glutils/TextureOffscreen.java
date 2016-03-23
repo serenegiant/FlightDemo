@@ -301,7 +301,7 @@ public class TextureOffscreen {
 			GLES20.glDeleteTextures(1, ids, 0);
 			mFBOTextureId = -1;
 		}
-		// オフスクリーンのカラーバッファ用のテクスチャを破棄
+		// オフスクリーンのフレームバッファーオブジェクトを破棄
 		if (mFrameBufferObj >= 0) {
 			ids[0] = mFrameBufferObj;
 			GLES20.glDeleteFramebuffers(1, ids, 0);

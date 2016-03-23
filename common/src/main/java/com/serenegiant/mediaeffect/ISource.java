@@ -17,6 +17,8 @@ package com.serenegiant.mediaeffect;
  *  limitations under the License.
 */
 
+import com.serenegiant.glutils.TextureOffscreen;
+
 public interface ISource {
 	public ISource reset();
 	public ISource resize(final int width, final int height);
@@ -26,5 +28,6 @@ public interface ISource {
 	public int[] getSourceTexId();
 	public int getOutputTexId();
 	public float[] getTexMatrix();
+	public TextureOffscreen getOutputTexture();
 	public void release();
 }

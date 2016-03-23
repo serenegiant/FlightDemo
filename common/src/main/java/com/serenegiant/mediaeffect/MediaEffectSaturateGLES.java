@@ -56,9 +56,7 @@ public class MediaEffectSaturateGLES extends MediaEffectGLESBase {
 	 * @return
 	 */
 	public MediaEffectSaturateGLES setParameter(final float saturation) {
-		synchronized (mSync) {
-			((MediaEffectColorAdjustDrawer)mDrawer).setColorAdjust(saturation + 1.0f);
-		}
+		((MediaEffectColorAdjustDrawer)mDrawer).setColorAdjust(saturation + 1.0f);
 		return this;
 	}
 }

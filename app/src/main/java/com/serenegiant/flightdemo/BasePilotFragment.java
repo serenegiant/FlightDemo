@@ -100,7 +100,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	// 操縦用
 	protected int mOperationType;				// 操縦スティックのモード
 	protected boolean mOperationTouch;		// タッチ描画で操縦モードかどうか
-	protected double mMaxControlValue = 100.0;
+	protected double mMaxControlValue = DEFAULT_AUTOPILOT_MAX_CONTROL_VALUE;
 	protected double mScaleX, mScaleY, mScaleZ, mScaleR;
 	protected float mGamepadSensitivity = 1.0f;
 	protected float mGamepadScaleX, mGamepadScaleY, mGamepadScaleZ, mGamepadScaleR;
@@ -112,11 +112,11 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 		final SharedPreferences pref = getActivity().getPreferences(0);
 		mOperationTouch = pref.getBoolean(KEY_OPERATION_TOUCH, false);
 		mOperationType = pref.getInt(KEY_OPERATION_TYPE, 0);
-		mMaxControlValue = pref.getFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, 100.0f);
-		mScaleX = pref.getFloat(KEY_AUTOPILOT_SCALE_X, 1.0f);
-		mScaleY = pref.getFloat(KEY_AUTOPILOT_SCALE_Y, 1.0f);
-		mScaleZ = pref.getFloat(KEY_AUTOPILOT_SCALE_Z, 1.0f);
-		mScaleR = pref.getFloat(KEY_AUTOPILOT_SCALE_R, 1.0f);
+		mMaxControlValue = pref.getFloat(KEY_AUTOPILOT_MAX_CONTROL_VALUE, DEFAULT_AUTOPILOT_MAX_CONTROL_VALUE);
+		mScaleX = pref.getFloat(KEY_AUTOPILOT_SCALE_X, DEFAULT_AUTOPILOT_SCALE_X);
+		mScaleY = pref.getFloat(KEY_AUTOPILOT_SCALE_Y, DEFAULT_AUTOPILOT_SCALE_Y);
+		mScaleZ = pref.getFloat(KEY_AUTOPILOT_SCALE_Z, DEFAULT_AUTOPILOT_SCALE_Z);
+		mScaleR = pref.getFloat(KEY_AUTOPILOT_SCALE_R, DEFAULT_AUTOPILOT_SCALE_R);
 		mGamepadSensitivity = pref.getFloat(KEY_GAMEPAD_SENSITIVITY, 1.0f);
 		mGamepadScaleX = pref.getFloat(KEY_GAMEPAD_SCALE_X, 1.0f);
 		mGamepadScaleY = pref.getFloat(KEY_GAMEPAD_SCALE_Y, 1.0f);

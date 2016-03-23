@@ -12,9 +12,7 @@ public class MediaEffectGLESBase implements IEffect {
 	private static final String TAG = "MediaEffectGLESBase";
 
 	protected TextureOffscreen mOutputOffscreen;
-	protected boolean mEnabled = true;
-	/** 描画の排他制御用 */
-	protected final Object mSync = new Object();
+	protected volatile boolean mEnabled = true;
 
 	protected final MediaEffectDrawer mDrawer;
 
@@ -45,7 +43,7 @@ public class MediaEffectGLESBase implements IEffect {
 
 	public MediaEffectGLESBase(final MediaEffectDrawer drawer) {
 		mDrawer = drawer;
-		resize(256, 256);
+//		resize(256, 256);
 	}
 
 	@Override
@@ -88,11 +86,15 @@ public class MediaEffectGLESBase implements IEffect {
 
 	@Override
 	public MediaEffectGLESBase resize(final int width, final int height) {
-		if ((mOutputOffscreen == null) || (width != mOutputOffscreen.getWidth())
+		// ISourceを使う時は出力用オフスクリーンは不要なのと
+		// ISourceを使わない時は描画時にチェックして生成するのでresize時には生成しないように変更
+/*		if ((mOutputOffscreen == null) || (width != mOutputOffscreen.getWidth())
 			|| (height != mOutputOffscreen.getHeight())) {
-			if (mOutputOffscreen != null)
-				mOutputOffscreen.release();
+			mOutputOffscreen.release();
 			mOutputOffscreen = new TextureOffscreen(width, height, false);
+		} */
+		if (mDrawer != null) {
+			mDrawer.setTexSize(width, height);
 		}
 		return this;
 	}
@@ -128,26 +130,22 @@ public class MediaEffectGLESBase implements IEffect {
 			mOutputOffscreen.assignTexture(out_tex_id, width, height);
 		}
 		mOutputOffscreen.bind();
-		synchronized (mSync) {
-			mDrawer.apply(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
-		}
+		mDrawer.apply(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
 		mOutputOffscreen.unbind();
 	}
 
+	/**
+	 * if your source texture comes from ISource, please use this method instead of #apply(final int [], int, int, int)
+	 * @param src
+	 */
 	@Override
 	public void apply(final ISource src) {
 		if (!mEnabled) return;
-		if (src instanceof MediaSource) {
-			final TextureOffscreen output_tex = ((MediaSource)src).getOutputTexture();
-			final int[] src_tex_ids = src.getSourceTexId();
-			output_tex.bind();
-			synchronized (mSync) {
-				mDrawer.apply(src_tex_ids[0], output_tex.getTexMatrix(), 0);
-			}
-			output_tex.unbind();
-		} else {
-			apply(src.getSourceTexId(), src.getWidth(), src.getHeight(), src.getOutputTexId());
-		}
+		final TextureOffscreen output_tex = src.getOutputTexture();
+		final int[] src_tex_ids = src.getSourceTexId();
+		output_tex.bind();
+		mDrawer.apply(src_tex_ids[0], output_tex.getTexMatrix(), 0);
+		output_tex.unbind();
 	}
 
 	protected int getProgram() {
