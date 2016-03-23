@@ -803,7 +803,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							if (offset.z != 0) { if (offset.z == work.z) { work.z = additive; } else { work.z = -additive; } } else { offset.z = 0.0f; }
 							work.add(1.0f, 1.0f, 1.0f);
 							// 機体のオフセットと反対向き動かすので-1倍, ±1を±100に換算するので100倍, 前進速度を加算
-							mPilotValue.mult(work).mult(-50.0f, 50.0f, 50.0f).add(0.0f, flightSpeed, 0.0f);
+							// オフセットy(ピッチ, 前後方向)はラインの中心点が中央より前だと負、中央より後ろだと正なので符号反転はしない
+							mPilotValue.mult(work).mult(-50.0f, 50.0f, -50.0f);
+							mPilotValue.add(0.0f, flightSpeed, 0.0f);
 //							// カメラ映像の真上に向かって進む, 高度制御無し
 //							mPilotValue.set(0.f, flightSpeed, 0.0f);
 //							mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor);
@@ -825,8 +827,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 									pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
 								}
 							}
-							// 機体の進行方向の傾きを差し引く
-							pilotAngle -= flightAngleYaw;
+							// 機体の進行方向の傾きを加算
+							pilotAngle += flightAngleYaw;
 							// 一定角度以下は0に丸める
 							pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
 							//--------------------------------------------------------------------------------
