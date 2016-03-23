@@ -299,19 +299,18 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				setColorFilter((ImageView)view);
 				remove(mAutoPilotOnTask);
 				mAutoPilot = false;	// 自動操縦解除
-				setColorFilter(mTraceButton, 0, 0);
+				updateButtons();
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
-				mAutoPilot = false;
-				setColorFilter(mTraceButton, 0, 0);
+				mAutoPilot = mRequestAutoPilot = false;
 				setColorFilter((ImageView) view);
 				emergencyStop();
+				updateButtons();
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
 				mAutoPilot = false;
-				setColorFilter(mTraceButton, 0, 0);
 				setColorFilter((ImageView)view);
 				if (!isFlying()) {
 //					takeOff();
@@ -392,7 +391,6 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				return true;
 			case R.id.flat_trim_btn:
 				mAutoPilot = false;
-				setColorFilter(mTraceButton, 0, 0);
 				setColorFilter((ImageView)view);
 				if ((mFlightController != null) && (getState() == IFlightController.STATE_STARTED)) {
 					replace(CalibrationFragment.newInstance(getDevice()));
@@ -402,19 +400,19 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			case R.id.take_onoff_btn:
 				// 離陸/着陸ボタンを長押しした時の処理
 				mAutoPilot = false;
-				setColorFilter(mTraceButton, 0, 0);
 				setColorFilter((ImageView)view);
 				if (!isFlying()) {
 					takeOff();
 				} else {
 					landing();
+					mAutoPilot = false;
 				}
 				updateButtons();
 				return true;
 			case R.id.trace_btn:
 				remove(mAutoPilotOnTask);
 				if (!mAutoPilot) {
-					setColorFilter(mTraceButton, TOUCH_RESPONSE_COLOR, 0);
+					mRequestAutoPilot = true;
 					if (!isFlying()) {
 						// 飛行中でなければ離陸指示＆一定時間後に自動トレース開始
 						takeOff();
@@ -424,8 +422,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						mAutoPilot = true;
 					}
 				} else {
-					mAutoPilot = false;
-					setColorFilter(mTraceButton, 0, 0);
+					mAutoPilot = mRequestAutoPilot = false;
 				}
 				updateButtons();
 				return true;
@@ -625,11 +622,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					((ImageView)view).setColorFilter(can_fly ? 0 : DISABLE_COLOR);
 				}
 			}
+			mTraceButton.setEnabled(can_fly);
+			mTraceButton.setColorFilter(!can_fly ? DISABLE_COLOR : ((mAutoPilot || mRequestAutoPilot) ? TOUCH_RESPONSE_COLOR : 0));
 		}
 	};
 
 	private void startImageProcessor() {
-		setColorFilter(mTraceButton, 0, 0);
 		if (mTraceTask == null) {
 			mTraceTask = new TraceTask();
 			new Thread(mTraceTask, TAG).start();
@@ -654,6 +652,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				mVideoStream.addSurface(mImageProcessorSurfaceId, surface);
 			}
 		}
+		updateButtons();
 	}
 
 	private void stopImageProcessor() {
@@ -670,7 +669,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			mIsRunning = false;
 			mQueue.notifyAll();
 		}
-		setColorFilter(mTraceButton, 0, 0);
+		mAutoPilot = mRequestAutoPilot = false;
+		updateButtons();
 	}
 
 	/**
@@ -679,7 +679,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	 */
 	private void onStopAutoPilot(final boolean isError) {
 		if (DEBUG) Log.v(TAG, "onStopAutoPilot:");
-		setColorFilter(mTraceButton, 0, 0);
+		mRequestAutoPilot = mAutoPilot = false;
 		updateButtons();
 	}
 
@@ -691,7 +691,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private final List<LineRec> mQueue = new ArrayList<LineRec>();
 	private volatile boolean mIsRunning;
 	/** トレース飛行中 */
-	private volatile boolean mAutoPilot;
+	private volatile boolean mAutoPilot, mRequestAutoPilot;
 	/** パラメータ変更指示 */
 	private boolean mReqUpdateParams;
 	/** パラメータの排他制御用 */
@@ -722,12 +722,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 			float scaleR = (float)mScaleR;
+			float additive = 0.3f;
 			float curvature = 0.0f; // mCurvature;
 			final Vector factor = new Vector(0.5f, 1.0f, 1.0f);
 			//
 			long startTime = -1L, lostTime = -1L;
+			final Vector offset = new Vector();
 			final Vector work = new Vector();
-			final Vector prev = new Vector();
+			final Vector prevPos = new Vector();
+			final Vector prevOffset = new Vector();
 			float pilotAngle = 0.0f;
 			final Vector mPilotValue = new Vector();		// roll,pitch,gaz制御量
 			final Vector mPrevPilotValue = new Vector();	// roll,pitch,gazの前回制御量
@@ -736,7 +739,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				synchronized (mParamSync) {
 					if (mReqUpdateParams) {	// パラメータ変更指示?
 						mReqUpdateParams = false;
-//						flightAngleYaw = mFlightAttitudeYaw;
+						flightAngleYaw = mFlightAttitudeYaw;
 						// factorが最大で2になるのでmFlightSpeedは[-100,+100]なのを[-50,+50]にする
 						flightSpeed = mFlightSpeed / 2.0f * (float)(mMaxControlValue / 100.0);
 						scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
@@ -766,12 +769,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							//--------------------------------------------------------------------------------
 							// 前回の位置とコマンドから想定する現在位置とラインの位置が大きく違う時は制限をする
 							//--------------------------------------------------------------------------------
-							prev.sub(rec.mLinePos);
+							prevPos.sub(rec.mLinePos);
 //							final boolean limited = prev.lenSquared() > 20000;
 //							factor.mult(
-//								limited ? (Math.abs(prev.x) > 150 ? 0.9f : 1.0f) : 1.01f,
-//								limited ? (Math.abs(prev.y) > 92 ? 0.9f : 1.0f) : 1.011f,
-//								limited ? (Math.abs(prev.z) > 100 ? 0.9f : 1.0f) : 1.011f)
+//								limited ? (Math.abs(prevPos.x) > 150 ? 0.9f : 1.0f) : 1.01f,
+//								limited ? (Math.abs(prevPos.y) > 92 ? 0.9f : 1.0f) : 1.011f,
+//								limited ? (Math.abs(prevPos.z) > 100 ? 0.9f : 1.0f) : 1.011f)
 //								.limit(0.1f, 2.0f);	// 最小0.1, 最大2.0に制限
 							//--------------------------------------------------------------------------------
 							// 制御量を計算
@@ -782,21 +785,37 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// Vectorクラスは反時計回りが正, 時計回りが負
 							//--------------------------------------------------------------------------------
 							// 画像中心からの距離を計算
-							work.set(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT).div(2.0f).sub(rec.mLinePos);
+							offset.set(VideoStream.VIDEO_WIDTH_HALF, VideoStream.VIDEO_HEIGHT_HALF).sub(rec.mLinePos);
 							// 解析データ(画像中心からのオフセット,距離,回転角)
-							msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f,r=%6.4e)", work.x, work.y, work.len(), rec.mAngle, rec.mCurvature);
-							// カメラ映像の真上に向かって進む, 高度制御無し
-							mPilotValue.set(0.f, flightSpeed, 0.0f);
-							mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor);
-							// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
-							mPilotValue.rotate(0, 0, flightAngleYaw);
+							msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f,r=%6.4e)", offset.x, offset.y, offset.len(), rec.mAngle, rec.mCurvature);
+							// 画面の端が-1または+1になるように変換する
+							offset.div(VideoStream.VIDEO_HEIGHT_HALF, VideoStream.VIDEO_HEIGHT_HALF);	// [-320,+320][-184,+184] => [-1,+1][-1,+1]
+							// 移動方向, 前回と同じ方向なら1, 逆なら-1
+							work.set(offset).sub(prevOffset).sign();
+							// オフセットを保存
+							prevOffset.set(offset);
+							mPilotValue.set(offset);
+							// オフセットの符号を取得
+							offset.sign();
+							// 移動方向が変わってなければ50%加算, 変わってれば50%減算
+							if (offset.x != 0) { if (offset.x == work.x) { work.x = additive; } else { work.x = -additive; } } else { offset.x = 0.0f; }
+							if (offset.y != 0) { if (offset.y == work.y) { work.y = additive; } else { work.y = -additive; } } else { offset.y = 0.0f; }
+							if (offset.z != 0) { if (offset.z == work.z) { work.z = additive; } else { work.z = -additive; } } else { offset.z = 0.0f; }
+							work.add(1.0f, 1.0f, 1.0f);
+							// 機体のオフセットと反対向き動かすので-1倍, ±1を±100に換算するので100倍, 前進速度を加算
+							mPilotValue.mult(work).mult(-50.0f, 50.0f, 50.0f).add(0.0f, flightSpeed, 0.0f);
+//							// カメラ映像の真上に向かって進む, 高度制御無し
+//							mPilotValue.set(0.f, flightSpeed, 0.0f);
+//							mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor);
+//							// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
+							mPilotValue.rotate(0, 0, flightAngleYaw - rec.mAngle);
+							// FIXME 高度に応じてスケールを変えないとだめかも
 							// 自動操縦スケールを適用
 							mPilotValue.mult(scale);
 							// 最大最小値を制限
 							mPilotValue.limit(-100.0f, +100.0f);
 							//--------------------------------------------------------------------------------
 							// 機体のyaw角を計算, MAX_PILOT_ANGLE以上は一度に回転させない
-//							pilotAngle = -(rec.mAngle < -MAX_PILOT_ANGLE ? -MAX_PILOT_ANGLE : (rec.mAngle > MAX_PILOT_ANGLE ? MAX_PILOT_ANGLE : rec.mAngle));
 							pilotAngle = -rec.mAngle * scaleR;
 							pilotAngle = ImageProcessor.sat(pilotAngle, -MAX_PILOT_ANGLE, MAX_PILOT_ANGLE);
 							if (curvature != 0.0f) {
@@ -812,7 +831,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
 							//--------------------------------------------------------------------------------
 							// 今回の位置を保存
-							prev.set(rec.mLinePos);
+							prevPos.set(rec.mLinePos);
 						} else {
 							// ラインを見失った時
 							mYawControlTask.cancelAll();
@@ -820,6 +839,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 //							factor.clear(0.1f);
 							pilotAngle = 0.0f;
 							mPilotValue.clear(0.0f);
+							prevOffset.clear(0.0f);
 							rec.mAngle = 0;
 							if (mAutoPilot) {
 								if (lostTime < 0) {

@@ -896,6 +896,17 @@ public class Vector implements Serializable, Cloneable {
 			return (y >= 0 ? Float.MAX_VALUE : Float.MIN_VALUE);
 	}
 
+	/**
+	 * 各成分を負なら-1.0f, ゼロなら0.0f, 正なら1.0fにする
+	 * @return
+	 */
+	public Vector sign() {
+		x = Math.signum(x);
+		y = Math.signum(y);
+		z = Math.signum(z);
+		return this;
+	}
+
 	@Override
 	public String toString() {
 		return String.format(Locale.US, "(%f,%f,%f)", x, y, z);
