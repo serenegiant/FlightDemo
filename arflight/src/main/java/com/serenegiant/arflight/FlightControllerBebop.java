@@ -2196,15 +2196,15 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			final float current = rotation_speed.current();
 			try {
 				try {
-					if (current != rotation_speed.max()) {
-						// 最大回転速度に変更する
-						setMaxRotationSpeed(rotation_speed.max());
-						Thread.sleep(5);
-					}
+					final long t = (long) Math.abs(degree / rotation_speed.max() * 1000);    // 回転時間[ミリ秒]を計算
 					synchronized (sync) {
-						final long t = (long) Math.abs(degree / rotation_speed.max() * 1000);    // 回転時間[ミリ秒]を計算
+						if (current != rotation_speed.max()) {
+							// 最大回転速度に変更する
+							setMaxRotationSpeed(rotation_speed.max());
+							sync.wait(5);
+						}
 						setYaw(degree > 0 ? 100 : -100);
-						sync.wait(t + 5);
+						sync.wait(t);
 					}
 				} catch (InterruptedException e) {
 				}

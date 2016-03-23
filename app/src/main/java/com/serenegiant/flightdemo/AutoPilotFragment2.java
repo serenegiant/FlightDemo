@@ -7,8 +7,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.media.Image;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
@@ -297,6 +297,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			case R.id.trace_btn:
 				// 自動操縦ボタン
 				setColorFilter((ImageView)view);
+				remove(mAutoPilotOnTask);
 				mAutoPilot = false;	// 自動操縦解除
 				setColorFilter(mTraceButton, 0, 0);
 				break;
@@ -379,6 +380,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		@Override
 		public boolean onLongClick(View view) {
 //			if (DEBUG) Log.v(TAG, "onLongClick:" + view);
+			final Vibrator vibrator = (Vibrator)getActivity().getSystemService(Activity.VIBRATOR_SERVICE);
+			vibrator.vibrate(50);
 			switch (view.getId()) {
 			case R.id.record_btn:
 				if (!mFlightRecorder.isRecording()) {
@@ -403,22 +406,38 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				setColorFilter((ImageView)view);
 				if (!isFlying()) {
 					takeOff();
-					return true;
+				} else {
+					landing();
 				}
+				updateButtons();
+				return true;
 			case R.id.trace_btn:
-				setColorFilter(mTraceButton, TOUCH_RESPONSE_COLOR, 0);
-				if (!isFlying()) {
-					takeOff();
-					post(new Runnable() {
-						@Override
-						public void run() {
-							mAutoPilot = true;
-						}
-					}, 500);
-					return true;
+				remove(mAutoPilotOnTask);
+				if (!mAutoPilot) {
+					setColorFilter(mTraceButton, TOUCH_RESPONSE_COLOR, 0);
+					if (!isFlying()) {
+						// 飛行中でなければ離陸指示＆一定時間後に自動トレース開始
+						takeOff();
+						post(mAutoPilotOnTask, 500);
+					} else {
+						// 飛行中ならすぐに自動トレース開始
+						mAutoPilot = true;
+					}
+				} else {
+					mAutoPilot = false;
+					setColorFilter(mTraceButton, 0, 0);
 				}
+				updateButtons();
+				return true;
 			}
 			return false;
+		}
+	};
+
+	private final Runnable mAutoPilotOnTask = new Runnable() {
+		@Override
+		public void run() {
+			mAutoPilot = true;
 		}
 	};
 
@@ -621,10 +640,6 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			mImageProcessor.setSaturation(mSaturation);
 			mImageProcessor.setBrightness(mBrightness);
 			applyExtractRange(mExtractRangeH, mExtractRangeS, mExtractRangeV);
-/*			mImageProcessor.setExtractionColor(
-				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
-				EXTRACT_COLOR_HSV_LIMIT[2], EXTRACT_COLOR_HSV_LIMIT[3],
-				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]); */
 			mImageProcessor.enableExtraction(mEnableGLESExtraction);
 //			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
 			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
@@ -664,12 +679,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	 */
 	private void onStopAutoPilot(final boolean isError) {
 		if (DEBUG) Log.v(TAG, "onStopAutoPilot:");
-		post(new Runnable() {
-			@Override
-			public void run() {
-				stopImageProcessor();
-			}
-		}, 0);
+		setColorFilter(mTraceButton, 0, 0);
+		updateButtons();
 	}
 
 	/** 解析データキューの最大サイズ */
@@ -689,7 +700,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	/** トレース飛行タスク */
 	private class TraceTask implements Runnable {
 		private static final float EPS_CURVATURE = 1.0e-4f;
-		private static final float MAX_PILOT_ANGLE = 45.0f;	// 一度に修正するyaw角の最大絶対値
+		private static final float MAX_PILOT_ANGLE = 80.0f;	// 一度に修正するyaw角の最大絶対値
 		private static final float MIN_PILOT_ANGLE = 3.0f;	// 0とみなすyaw角のずれの絶対値
 
 		private final YawControlTask mYawControlTask;
@@ -712,7 +723,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 			float scaleR = (float)mScaleR;
 			float curvature = 0.0f; // mCurvature;
-			final Vector factor = new Vector(1.0f, 1.0f, 1.0f);
+			final Vector factor = new Vector(0.5f, 1.0f, 1.0f);
 			//
 			long startTime = -1L, lostTime = -1L;
 			final Vector work = new Vector();
@@ -756,12 +767,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// 前回の位置とコマンドから想定する現在位置とラインの位置が大きく違う時は制限をする
 							//--------------------------------------------------------------------------------
 							prev.sub(rec.mLinePos);
-							final boolean limited = prev.lenSquared() > 20000;
-							factor.mult(
-								limited ? (Math.abs(prev.x) > 150 ? 0.9f : 1.0f) : 1.01f,
-								limited ? (Math.abs(prev.y) > 92 ? 0.9f : 1.0f) : 1.011f,
-								limited ? (Math.abs(prev.z) > 100 ? 0.9f : 1.0f) : 1.011f)
-								.limit(0.1f, 2.0f);	// 最小0.1, 最大2.0に制限
+//							final boolean limited = prev.lenSquared() > 20000;
+//							factor.mult(
+//								limited ? (Math.abs(prev.x) > 150 ? 0.9f : 1.0f) : 1.01f,
+//								limited ? (Math.abs(prev.y) > 92 ? 0.9f : 1.0f) : 1.011f,
+//								limited ? (Math.abs(prev.z) > 100 ? 0.9f : 1.0f) : 1.011f)
+//								.limit(0.1f, 2.0f);	// 最小0.1, 最大2.0に制限
 							//--------------------------------------------------------------------------------
 							// 制御量を計算
 							// 機体からの角度はカメラ映像の真上が0で反時計回りが負、時計回りが正(Bebopのyaw軸回転角と同じ)
@@ -785,8 +796,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							mPilotValue.limit(-100.0f, +100.0f);
 							//--------------------------------------------------------------------------------
 							// 機体のyaw角を計算, MAX_PILOT_ANGLE以上は一度に回転させない
-	//						pilotAngle = -(rec.mAngle < -MAX_PILOT_ANGLE ? -MAX_PILOT_ANGLE : (rec.mAngle > MAX_PILOT_ANGLE ? MAX_PILOT_ANGLE : rec.mAngle));
-							pilotAngle = rec.mAngle * scaleR;
+//							pilotAngle = -(rec.mAngle < -MAX_PILOT_ANGLE ? -MAX_PILOT_ANGLE : (rec.mAngle > MAX_PILOT_ANGLE ? MAX_PILOT_ANGLE : rec.mAngle));
+							pilotAngle = -rec.mAngle * scaleR;
+							pilotAngle = ImageProcessor.sat(pilotAngle, -MAX_PILOT_ANGLE, MAX_PILOT_ANGLE);
 							if (curvature != 0.0f) {
 								// 曲率による機体yaw角の補正
 								if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
@@ -805,7 +817,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// ラインを見失った時
 							mYawControlTask.cancelAll();
 							msg1 = null;
-							factor.clear(0.1f);
+//							factor.clear(0.1f);
 							pilotAngle = 0.0f;
 							mPilotValue.clear(0.0f);
 							rec.mAngle = 0;
@@ -823,6 +835,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 //								}
 								if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
 									onStopAutoPilot(true);
+									mYawControlTask.rotate(0);
 									mAutoPilot = false;
 									startTime = -1L;
 								}
@@ -838,7 +851,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							}
 							if (System.currentTimeMillis() - startTime > 500) {
 								// 制御コマンド送信
-								mYawControlTask.rotate((int)pilotAngle); //	mFlightController.requestAnimationsCap((int)pilotAngle);
+								mYawControlTask.rotate((int)pilotAngle);
 								mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0.0f);	// FIXME 高度は制御しない
 								// 今回の制御量を保存
 								mPrevPilotValue.set(mPilotValue);
@@ -874,50 +887,66 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 
 	private final class YawControlTask implements Runnable {
 		private final List<Integer> mAngles = new ArrayList<Integer>();
-		private volatile boolean mIsRunning;
+		private volatile boolean isRunning;
+		private int prevAngle = 0;
 
 		public synchronized void rotate(final int angle) {
-			if (mAutoPilot && (angle != 0)) {
+//			if (DEBUG) Log.v(TAG, "YawControlTask:rotate" + angle);
+			if (mAutoPilot && (prevAngle != angle)) {
+				prevAngle = angle;
 				mAngles.add(angle);
 				notifyAll();
 			}
 		}
 
 		public synchronized void cancel() {
+			prevAngle = 0;
+			mAngles.add(0);
 			notifyAll();
+			mFlightController.setYaw(0);
 		}
 
 		public synchronized void cancelAll() {
+			prevAngle = 0;
 			mAngles.clear();
+			mAngles.add(0);
 			notifyAll();
 		}
 
 		public synchronized void release() {
-			mIsRunning = false;
+			isRunning = false;
 			cancelAll();
 		}
 
 		@Override
 		public synchronized void run() {
-			mIsRunning = true;
+			isRunning = true;
 			notifyAll();
 			int angle = 0;
-			for ( ; mIsRunning ; ) {
+			boolean autoPilot = mAutoPilot;
+			if (DEBUG) Log.v(TAG, "YawControlTask:start");
+			for ( ; isRunning ; ) {
 				if (mAngles.isEmpty()) {
 					try {
-						wait(1000);
+						wait(100);
 					} catch (final InterruptedException e) {
 						break;
 					}
 				}
-				if (!mIsRunning) break;
-				if (!mAngles.isEmpty()) {
+				if (isRunning && !mAngles.isEmpty()) {
 					angle = mAngles.remove(0);
-					if (mAutoPilot) {
-						mFlightController.requestAnimationsCap(angle);
+					if (autoPilot) {
+						if (!mAutoPilot) {
+							// 自動トレースがonからoffに変わるとき
+							angle = 0;
+						}
+						mFlightController.setYaw(angle);
 					}
 				}
+				autoPilot = mAutoPilot;
 			}
+			mFlightController.setYaw(0);
+			if (DEBUG) Log.v(TAG, "YawControlTask:finished");
 		}
 	}
 

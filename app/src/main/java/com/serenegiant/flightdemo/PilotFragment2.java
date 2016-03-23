@@ -1,8 +1,10 @@
 package com.serenegiant.flightdemo;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -692,6 +694,8 @@ public class PilotFragment2 extends BasePilotFragment {
 		@Override
 		public boolean onLongClick(View view) {
 //			if (DEBUG) Log.v(TAG, "onLongClick:" + view);
+			final Vibrator vibrator = (Vibrator)getActivity().getSystemService(Activity.VIBRATOR_SERVICE);
+			vibrator.vibrate(50);
 			switch (view.getId()) {
 			case R.id.record_btn:
 				if (!mFlightRecorder.isRecording()) {
