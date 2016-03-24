@@ -123,7 +123,7 @@ public class MediaEffectTexProjection extends MediaEffectGLESBase {
 
 	private static final String FRAGMENT_SHADER_BASE = MediaEffectDrawer.SHADER_VERSION +
 		"%s" +
-		"#define KERNEL_SIZE " + MediaEffectKernelDrawer.KERNEL_SIZE + "\n" +
+		"#define KERNEL_SIZE " + MediaEffectKernel3x3Drawer.KERNEL_SIZE + "\n" +
 		"precision highp float;\n" +
 		"varying       vec2 vTextureCoord;\n" +
 		"uniform %s    sTexture;\n" +

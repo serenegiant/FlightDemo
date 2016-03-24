@@ -4,7 +4,7 @@ import android.opengl.GLES20;
 
 import com.serenegiant.glutils.GLHelper;
 
-public class MediaEffectKernelDrawer extends MediaEffectColorAdjustDrawer {
+public class MediaEffectKernel3x3Drawer extends MediaEffectColorAdjustDrawer {
 
 	public static final int KERNEL_SIZE = 9;
 	public static final float[] KERNEL_NULL = { 0f, 0f, 0f,  0f, 1f, 0f,  0f, 0f, 0f};
@@ -27,15 +27,15 @@ public class MediaEffectKernelDrawer extends MediaEffectColorAdjustDrawer {
 	private float mTexWidth;
 	private float mTexHeight;
 
-	public MediaEffectKernelDrawer(final String fss) {
+	public MediaEffectKernel3x3Drawer(final String fss) {
 		this(false, VERTEX_SHADER, fss);
 	}
 
-	public MediaEffectKernelDrawer(final boolean isOES, final String fss) {
+	public MediaEffectKernel3x3Drawer(final boolean isOES, final String fss) {
 		this(isOES, VERTEX_SHADER, fss);
 	}
 
-	public MediaEffectKernelDrawer(final boolean isOES, final String vss, final String fss) {
+	public MediaEffectKernel3x3Drawer(final boolean isOES, final String vss, final String fss) {
 		super(isOES, vss, fss);
 		muKernelLoc = GLES20.glGetUniformLocation(getProgram(), "uKernel");
 		if (muKernelLoc < 0) {

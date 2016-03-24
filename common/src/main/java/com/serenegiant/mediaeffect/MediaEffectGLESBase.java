@@ -130,8 +130,11 @@ public class MediaEffectGLESBase implements IEffect {
 			mOutputOffscreen.assignTexture(out_tex_id, width, height);
 		}
 		mOutputOffscreen.bind();
-		mDrawer.apply(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
-		mOutputOffscreen.unbind();
+		try {
+			mDrawer.apply(src_tex_ids[0], mOutputOffscreen.getTexMatrix(), 0);
+		} finally {
+			mOutputOffscreen.unbind();
+		}
 	}
 
 	/**
@@ -144,8 +147,11 @@ public class MediaEffectGLESBase implements IEffect {
 		final TextureOffscreen output_tex = src.getOutputTexture();
 		final int[] src_tex_ids = src.getSourceTexId();
 		output_tex.bind();
-		mDrawer.apply(src_tex_ids[0], output_tex.getTexMatrix(), 0);
-		output_tex.unbind();
+		try {
+			mDrawer.apply(src_tex_ids[0], output_tex.getTexMatrix(), 0);
+		} finally {
+			output_tex.unbind();
+		}
 	}
 
 	protected int getProgram() {

@@ -141,29 +141,30 @@ public class RendererHolder {
 	private static final int REQUEST_ADD_SURFACE = 3;
 	private static final int REQUEST_REMOVE_SURFACE = 4;
 
-	/** 描画用スレッドの実行部(EglTask Runnable) */
-	private static final class RendererTask extends EglTask {
+	/** 描画先Surfaceと関連リソース保持用 */
+	private static final class RendererSurfaceRec {
+		private Object mSurface;
+		private EGLBase.EglSurface mTargetSurface;
+		private final float[] mMvpMatrix = new float[16];
 
-		private final class RendererSurfaceRec {
-			private Object mSurface;
-			private EGLBase.EglSurface mTargetSurface;
-			final float[] mMvpMatrix = new float[16];
-
-			public RendererSurfaceRec(final EGLBase egl, final Object surface) {
-				mSurface = surface;
-				mTargetSurface = new EGLBase.EglSurface(egl, surface);
-				Matrix.setIdentityM(mMvpMatrix, 0);
-			}
-
-			public void release() {
-				if (mTargetSurface != null) {
-					mTargetSurface.release();
-					mTargetSurface = null;
-				}
-				mSurface = null;
-			}
+		public RendererSurfaceRec(final EGLBase egl, final Object surface) {
+			mSurface = surface;
+			mTargetSurface = new EGLBase.EglSurface(egl, surface);
+			Matrix.setIdentityM(mMvpMatrix, 0);
 		}
 
+		public void release() {
+			if (mTargetSurface != null) {
+				mTargetSurface.release();
+				mTargetSurface = null;
+			}
+			mSurface = null;
+		}
+	}
+
+	/** 描画用スレッドの実行部(EglTask Runnable) */
+	private static final class RendererTask extends EglTask {
+		private final Object mParentSync;
 		private final Object mClientSync = new Object();
 		private final SparseArray<RendererSurfaceRec> mClients = new SparseArray<RendererSurfaceRec>();
 		private final RendererHolder mParent;
@@ -177,6 +178,7 @@ public class RendererHolder {
 		public RendererTask(final RendererHolder parent, final int width, final int height) {
 			super(null, EglTask.EGL_FLAG_RECORDABLE);
 			mParent = parent;
+			mParentSync = parent.mSync;
 			mVideoWidth = width;
 			mVideoHeight = height;
 		}
@@ -193,9 +195,9 @@ public class RendererHolder {
 			if (mParent.mCallback != null) {
 				mParent.mCallback.onCreate(mMasterSurface);
 			}
-			synchronized (mParent.mSync) {
+			synchronized (mParentSync) {
 				mParent.isRunning = true;
-				mParent.mSync.notifyAll();
+				mParentSync.notifyAll();
 			}
 //			if (DEBUG) Log.v(TAG, "onStart:finished");
 		}
@@ -203,9 +205,9 @@ public class RendererHolder {
 		@Override
 		protected void onStop() {
 //			if (DEBUG) Log.v(TAG, "onStop");
-			synchronized (mParent.mSync) {
+			synchronized (mParentSync) {
 				mParent.isRunning = false;
-				mParent.mSync.notifyAll();
+				mParentSync.notifyAll();
 			}
 			if (mParent.mCallback != null) {
 				mParent.mCallback.onDestroy();
@@ -323,9 +325,9 @@ public class RendererHolder {
 				Log.e(TAG, "draw:thread id =" + Thread.currentThread().getId(), e);
 				return;
 			}
-			synchronized (mParent.mCaptureTask) {
+			synchronized (mParentSync) {
 				// キャプチャタスクに映像が更新されたことを通知
-				mParent.mCaptureTask.notify();
+				mParentSync.notify();
 			}
 			// 各Surfaceへ描画する
 			synchronized (mClientSync) {
@@ -482,7 +484,7 @@ public class RendererHolder {
 					if (captureFile == null) {
 						if (mCaptureFile == null) {
 							try {
-								mSync.wait();
+								mSync.wait(1000);
 							} catch (final InterruptedException e) {
 								break;
 							}

@@ -86,19 +86,19 @@ public class MediaSource implements ISource {
 			}
 			needSwap = !needSwap;
 //			effect.apply(mSrcTexIds, mOutputScreen.getTexWidth(), mOutputScreen.getTexHeight(), mOutputScreen.getTexture());
-			effect.apply(this); // このメソッド呼び出しは1つ上のコメントしてある行と結果は等価だけど効率はいい。
+			effect.apply(this); // このメソッド呼び出しは1つ上のコメントアウトしてある行と結果は等価だけど効率はいい。
 		}
 		return this;
 	}
 
 	@Override
 	public int getWidth() {
-		return mOutputScreen.getTexWidth();
+		return mWidth;
 	}
 
 	@Override
 	public int getHeight() {
-		return mOutputScreen.getTexHeight();
+		return mHeight;
 	}
 
 	@Override
@@ -123,6 +123,7 @@ public class MediaSource implements ISource {
 
 	@Override
 	public void release() {
+		mSrcTexIds[0] = -1;
 		if (mSourceScreen != null) {
 			mSourceScreen.release();
 			mSourceScreen = null;
@@ -144,6 +145,13 @@ public class MediaSource implements ISource {
 		return this;
 	}
 
+	/**
+	 * 入力用オフスクリーンに映像をセット
+	 * @param drawer オフスクリーン描画用FullFrameRect
+	 * @param tex_id
+	 * @param tex_matrix
+	 * @return
+	 */
 	public MediaSource setSource(final FullFrameRect drawer, final int tex_id, final float[] tex_matrix) {
 		mSourceScreen.bind();
 		try {
