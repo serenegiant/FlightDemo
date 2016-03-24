@@ -135,21 +135,21 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	protected View internalCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState, final int layout_id) {
 		// パラメータの読み込み
 		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, false);
-		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
-		mSaturation = mPref.getFloat(KEY_SATURATION, 0.0f);
-		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, 0.0f);
-		mPosterize = mPref.getFloat(KEY_POSTERIZE, 10);
+		mExposure = mPref.getFloat(KEY_EXPOSURE, DEFAULT_EXPOSURE);
+		mSaturation = mPref.getFloat(KEY_SATURATION, DEFAULT_SATURATION);
+		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, DEFAULT_BRIGHTNESS);
+		mPosterize = mPref.getFloat(KEY_POSTERIZE, DEFAULT_POSTERIZE);
 		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
-		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRESHOLD, 0.5f);
+		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRESHOLD, DEFAULT_BINARIZE_THRESHOLD);
 		mTrapeziumRate = (float)Double.parseDouble(mPref.getString(KEY_TRAPEZIUM_RATE, "0.0"));
 		if (Math.abs(mTrapeziumRate) < 0.01f) mTrapeziumRate = 0.0f;
 		//
-		mExtractH = mPref.getFloat(KEY_EXTRACT_H, 0.5f);
-		mExtractRangeH = mPref.getFloat(KEY_EXTRACT_RANGE_H, 0.5f);
-		mExtractS = mPref.getFloat(KEY_EXTRACT_S, 0.196f);
-		mExtractRangeS = mPref.getFloat(KEY_EXTRACT_RANGE_S, 0.098f);
-		mExtractV = mPref.getFloat(KEY_EXTRACT_V, 0.7353f);
-		mExtractRangeV = mPref.getFloat(KEY_EXTRACT_RANGE_V, 0.265f);
+		mExtractH = mPref.getFloat(KEY_EXTRACT_H, DEFAULT_EXTRACT_H);
+		mExtractRangeH = mPref.getFloat(KEY_EXTRACT_RANGE_H, DEFAULT_EXTRACT_RANGE_H);
+		mExtractS = mPref.getFloat(KEY_EXTRACT_S, DEFAULT_EXTRACT_S);
+		mExtractRangeS = mPref.getFloat(KEY_EXTRACT_RANGE_S, DEFAULT_EXTRACT_RANGE_S);
+		mExtractV = mPref.getFloat(KEY_EXTRACT_V, DEFAULT_EXTRACT_V);
+		mExtractRangeV = mPref.getFloat(KEY_EXTRACT_RANGE_V, DEFAULT_EXTRACT_RANGE_V);
 		//
 		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
 		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
@@ -159,8 +159,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
 		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, DEFAULT_AREA_LIMIT_MIN);
 		mAspectLimitMin = mPref.getFloat(KEY_ASPECT_LIMIT_MIN, DEFAULT_ASPECT_LIMIT_MIN);
-		mAreaErrLimit1 = mPref.getFloat(KEY_AREA_ERR_LIMIT1, 1.25f);
-		mAreaErrLimit2 = mPref.getFloat(KEY_AREA_ERR_LIMIT2, 1.3f);
+		mAreaErrLimit1 = mPref.getFloat(KEY_AREA_ERR_LIMIT1, DEFAULT_AREA_ERR_LIMIT1);
+		mAreaErrLimit2 = mPref.getFloat(KEY_AREA_ERR_LIMIT2, DEFAULT_AREA_ERR_LIMIT2);
 		//
 		mTraceAttitudeYaw = mPref.getFloat(KEY_TRACE_ATTITUDE_YAW, DEFAULT_TRACE_ATTITUDE_YAW);
 		mTraceSpeed = mPref.getFloat(KEY_TRACE_SPEED, DEFAULT_TRACE_SPEED);
@@ -1594,7 +1594,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mAutoWhiteBlanceSw.setChecked(mAutoWhiteBlance);
 		mAutoWhiteBlanceSw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// 露出
-		mExposure = mPref.getFloat(KEY_EXPOSURE, 0.0f);
+		mExposure = mPref.getFloat(KEY_EXPOSURE, DEFAULT_EXPOSURE);
 		mExposureLabel = (TextView)rootView.findViewById(R.id.exposure_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.exposure_seekbar);
 		sb.setMax(6000);
@@ -1602,7 +1602,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateExposure(mExposure);
 		// 彩度
-		mSaturation = mPref.getFloat(KEY_SATURATION, 0.0f);
+		mSaturation = mPref.getFloat(KEY_SATURATION, DEFAULT_SATURATION);
 		mSaturationLabel = (TextView)rootView.findViewById(R.id.saturation_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.saturation_seekbar);
 		sb.setMax(200);
@@ -1610,7 +1610,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateSaturation(mSaturation);
 		// 明るさ
-		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, 0.0f);
+		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, DEFAULT_BRIGHTNESS);
 		mBrightnessLabel = (TextView)rootView.findViewById(R.id.brightness_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.brightness_seekbar);
 		sb.setMax(200);
@@ -1618,7 +1618,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateBrightness(mBrightness);
 		// ポスタライズ
-		mPosterize = mPref.getFloat(KEY_POSTERIZE, 10);
+		mPosterize = mPref.getFloat(KEY_POSTERIZE, DEFAULT_POSTERIZE);
 		mPosterizeLabel = (TextView)rootView.findViewById(R.id.posterize_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.posterize_seekbar);
 		sb.setMax(255);
@@ -1630,7 +1630,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		updatePosterize(mPosterize);
 		// 二値化閾値
-		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRESHOLD, 0.5f);
+		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRESHOLD, DEFAULT_BINARIZE_THRESHOLD);
 		mBinarizeThresholdLabel = (TextView)rootView.findViewById(R.id.binarize_threshold_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.binarize_threshold_seekbar);
 		sb.setMax(100);
@@ -1802,12 +1802,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		btn = (Button)rootView.findViewById(R.id.reset_extraction_color_btn);
 		btn.setOnClickListener(mOnClickListener);
 		// 抽出色
-		mExtractH = mPref.getFloat(KEY_EXTRACT_H, 0.5f);
-		mExtractRangeH = mPref.getFloat(KEY_EXTRACT_RANGE_H, 0.5f);
-		mExtractS = mPref.getFloat(KEY_EXTRACT_S, 0.196f);
-		mExtractRangeS = mPref.getFloat(KEY_EXTRACT_RANGE_S, 0.098f);
-		mExtractV = mPref.getFloat(KEY_EXTRACT_V, 0.7353f);
-		mExtractRangeV = mPref.getFloat(KEY_EXTRACT_RANGE_V, 0.265f);
+		mExtractH = mPref.getFloat(KEY_EXTRACT_H, DEFAULT_EXTRACT_H);
+		mExtractRangeH = mPref.getFloat(KEY_EXTRACT_RANGE_H, DEFAULT_EXTRACT_RANGE_H);
+		mExtractS = mPref.getFloat(KEY_EXTRACT_S, DEFAULT_EXTRACT_S);
+		mExtractRangeS = mPref.getFloat(KEY_EXTRACT_RANGE_S, DEFAULT_EXTRACT_RANGE_S);
+		mExtractV = mPref.getFloat(KEY_EXTRACT_V, DEFAULT_EXTRACT_V);
+		mExtractRangeV = mPref.getFloat(KEY_EXTRACT_RANGE_V, DEFAULT_EXTRACT_RANGE_V);
 		mExtractRangeHLabel = (TextView)rootView.findViewById(R.id.extract_range_h_textview);
 		mExtractRangeHSeekbar = (SeekBar)rootView.findViewById(R.id.extract_range_h_seekbar);
 		mExtractRangeHSeekbar.setMax(100);
@@ -1981,7 +1981,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateAreaLimitMin(mAreaLimitMin);
 		// ライン検出時の面積誤差1
-		mAreaErrLimit1 = mPref.getFloat(KEY_AREA_ERR_LIMIT1, 1.25f);
+		mAreaErrLimit1 = mPref.getFloat(KEY_AREA_ERR_LIMIT1, DEFAULT_AREA_ERR_LIMIT1);
 		mAreaErrLimit1Label = (TextView)rootView.findViewById(R.id.area_err_limit1_textview);
 		sb =(SeekBar)rootView.findViewById(R.id.area_err_limit1_seekbar);
 		sb.setMax(100);
@@ -1989,7 +1989,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateAreaErrLimit1(mAreaErrLimit1);
 		// ライン検出時の面積誤差2
-		mAreaErrLimit2 = mPref.getFloat(KEY_AREA_ERR_LIMIT2, 1.30f);
+		mAreaErrLimit2 = mPref.getFloat(KEY_AREA_ERR_LIMIT2, DEFAULT_AREA_ERR_LIMIT2);
 		mAreaErrLimit2Label = (TextView)rootView.findViewById(R.id.area_err_limit2_textview);
 		sb =(SeekBar)rootView.findViewById(R.id.area_err_limit2_seekbar);
 		sb.setMax(100);

@@ -35,11 +35,16 @@ public class AppConst {
 	public static final String KEY_PREF_NAME_AUTOPILOT = "KEY_PREF_NAME_AUTOPILOT";
 	public static final String KEY_AUTO_WHITE_BLANCE = "KEY_AUTO_WHITE_BLANCE";
 	public static final String KEY_EXPOSURE = "KEY_EXPOSURE";
+	public static final float DEFAULT_EXPOSURE = 0.0f;
 	public static final String KEY_SATURATION = "KEY_SATURATION";
+	public static final float DEFAULT_SATURATION = 0.0f;
 	public static final String KEY_BRIGHTNESS = "KEY_BRIGHTNESS";
+	public static final float DEFAULT_BRIGHTNESS = 0.0f;
 	public static final String KEY_ENABLE_POSTERIZE = "KEY_ENABLE_POSTERIZE";
 	public static final String KEY_POSTERIZE = "KEY_POSTERIZE";
+	public static final float DEFAULT_POSTERIZE = 10.0f;
 	public static final String KEY_BINARIZE_THRESHOLD = "KEY_BINARIZE_THRESHOLD";
+	public static final float DEFAULT_BINARIZE_THRESHOLD = 0.5f;
 	public static final String KEY_TRAPEZIUM_RATE = "KEY_TRAPEZIUM_RATE";
 
 	public static final String KEY_SMOOTH_TYPE = "KEY_SMOOTH_TYPE";
@@ -51,18 +56,26 @@ public class AppConst {
 	public static final String KEY_ASPECT_LIMIT_MIN = "KEY_ASPECT_LIMIT_MIN";
 	public static final float DEFAULT_ASPECT_LIMIT_MIN = 3.0f;
 	public static final String KEY_AREA_ERR_LIMIT1 = "KEY_AREA_ERR_LIMIT1";
+	public static final float DEFAULT_AREA_ERR_LIMIT1 = 1.25f;
 	public static final String KEY_AREA_ERR_LIMIT2 = "KEY_AREA_ERR_LIMIT2";
+	public static final float DEFAULT_AREA_ERR_LIMIT2 = 1.30f;
 	// 色抽出設定
 	public static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
 	public static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";
 	public static final String KEY_EXTRACT_H = "KEY_ENABLE_EXTRACT_H";
+	public static final float DEFAULT_EXTRACT_H = 0.5f;
 	public static final String KEY_EXTRACT_S = "KEY_ENABLE_EXTRACT_S";
+	public static final float DEFAULT_EXTRACT_S = 0.196f;
 	public static final String KEY_EXTRACT_V = "KEY_ENABLE_EXTRACT_V";
+	public static final float DEFAULT_EXTRACT_V = 0.7353f;
 	public static final String KEY_EXTRACT_RANGE_H = "KEY_ENABLE_EXTRACT_RANGE_H";
+	public static final float DEFAULT_EXTRACT_RANGE_H = 0.5f;
 	public static final String KEY_EXTRACT_RANGE_S = "KEY_ENABLE_EXTRACT_RANGE_S";
+	public static final float DEFAULT_EXTRACT_RANGE_S = 0.098f;
 	public static final String KEY_EXTRACT_RANGE_V = "KEY_ENABLE_EXTRACT_RANGE_V";
+	public static final float DEFAULT_EXTRACT_RANGE_V = 0.265f;
 
-
+	// 自動トレース設定
 	public static final String KEY_TRACE_ATTITUDE_YAW = "KEY_TRACE_FLIGHT_ATTITUDE_YAW";
 	public static final float DEFAULT_TRACE_ATTITUDE_YAW = 0.0f;
 	public static final String KEY_TRACE_SPEED = "KEY_TRACE_FLIGHT_SPEED";
