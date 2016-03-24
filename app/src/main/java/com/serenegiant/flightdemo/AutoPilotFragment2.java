@@ -704,10 +704,10 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		private static final float MAX_PILOT_ANGLE = 80.0f;	// 一度に修正するyaw角の最大絶対値
 		private static final float MIN_PILOT_ANGLE = 3.0f;	// 0とみなすyaw角のずれの絶対値
 
-		private final YawControlTask mYawControlTask;
+//		private final YawControlTask mYawControlTask;
 		public TraceTask() {
-			mYawControlTask = new YawControlTask();
-			new Thread(mYawControlTask).start();
+//			mYawControlTask = new YawControlTask();
+//			new Thread(mYawControlTask).start();
 		}
 
 		@Override
@@ -838,7 +838,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							prevPos.set(rec.mLinePos);
 						} else {
 							// ラインを見失った時
-							mYawControlTask.cancelAll();
+//							mYawControlTask.cancelAll();
 							msg1 = null;
 //							factor.clear(0.1f);
 							pilotAngle = 0.0f;
@@ -859,7 +859,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 //								}
 								if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
 									onStopAutoPilot(true);
-									mYawControlTask.rotate(0);
+//									mYawControlTask.rotate(0);
 									mAutoPilot = false;
 									startTime = -1L;
 								}
@@ -871,11 +871,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						if (mAutoPilot) {
 							if (startTime < 0) {
 								startTime = System.currentTimeMillis();
-								mYawControlTask.cancelAll();
+//								mYawControlTask.cancelAll();
 							}
 							if (System.currentTimeMillis() - startTime > 500) {
 								// 制御コマンド送信
-								mYawControlTask.rotate((int)pilotAngle);
+//								mYawControlTask.rotate((int)pilotAngle);
+								mFlightController.setYaw((int)pilotAngle);
 								mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0.0f);	// FIXME 高度は制御しない
 								// 今回の制御量を保存
 								mPrevPilotValue.set(mPilotValue);
@@ -898,7 +899,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					}
 				}
 			}	// for ( ; mIsRunning ; )
-			mYawControlTask.release();
+//			mYawControlTask.release();
 			onStopAutoPilot(!mAutoPilot);
 			synchronized (mQueue) {
 				mIsRunning = mAutoPilot = false;
@@ -909,7 +910,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		}
 	}
 
-	private final class YawControlTask implements Runnable {
+/*	private final class YawControlTask implements Runnable {
 		private final List<Integer> mAngles = new ArrayList<Integer>();
 		private volatile boolean isRunning;
 		private int prevAngle = 0;
@@ -972,7 +973,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			mFlightController.setYaw(0);
 			if (DEBUG) Log.v(TAG, "YawControlTask:finished");
 		}
-	}
+	} */
 
 	/** ImageProcessorからのコールバックリスナー */
 	private final ImageProcessor.ImageProcessorCallback mImageProcessorCallback
