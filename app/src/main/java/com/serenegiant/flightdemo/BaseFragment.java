@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.Vibrator;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -35,6 +36,7 @@ public class BaseFragment extends Fragment {
 
 	private Handler mAsyncHandler;
 	protected LocalBroadcastManager mLocalBroadcastManager;
+	protected Vibrator mVibrator;
 
 	public BaseFragment() {
 		super();
@@ -45,6 +47,7 @@ public class BaseFragment extends Fragment {
 	public void onAttach(final Activity activity) {
 		super.onAttach(activity);
 		mLocalBroadcastManager = LocalBroadcastManager.getInstance(activity);
+		mVibrator = (Vibrator)getActivity().getSystemService(Activity.VIBRATOR_SERVICE);
 	}
 
 	@Override
@@ -69,6 +72,7 @@ public class BaseFragment extends Fragment {
 	@Override
 	public void onDetach() {
 		mLocalBroadcastManager = null;
+		mVibrator = null;
 		super.onDetach();
 	}
 

@@ -574,11 +574,11 @@ public class Vector implements Serializable, Cloneable {
 		final float cos = (float)Math.cos(rad);
 		final float sin = (float)Math.sin(rad);
 
-		final float newX = this.x * cos - this.y * sin;
-		final float newY = this.x * sin + this.y * cos;
+		final float newX = x * cos - y * sin;
+		final float newY = x * sin + y * cos;
 
-		this.x = newX;
-		this.y = newY;
+		x = newX;
+		y = newY;
 
 		return this;
 	}
@@ -591,11 +591,11 @@ public class Vector implements Serializable, Cloneable {
 		final float cos = (float)Math.cos(rad);
 		final float sin = (float)Math.sin(rad);
 
-		final float newX = this.x * cos - this.z * sin;
-		final float newZ = this.x * sin + this.z * cos;
+		final float newX = x * cos - z * sin;
+		final float newZ = x * sin + z * cos;
 
-		this.x = newX;
-		this.z = newZ;
+		x = newX;
+		z = newZ;
 
 		return this;
 	}
@@ -608,11 +608,11 @@ public class Vector implements Serializable, Cloneable {
 		final float cos = (float)Math.cos(rad);
 		final float sin = (float)Math.sin(rad);
 
-		final float newY = this.y * cos - this.z * sin;
-		final float newZ = this.y * sin + this.z * cos;
+		final float newY = y * cos - z * sin;
+		final float newZ = y * sin + z * cos;
 
-		this.y = newY;
-		this.z = newZ;
+		y = newY;
+		z = newZ;
 
 		return this;
 	}

@@ -251,6 +251,7 @@ public class ConnectionFragment extends BaseFragment {
 			case R.id.download_button:
 			case R.id.gallery_button:
 			case R.id.script_button:
+				mVibrator.vibrate(50);
 				final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 				final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
 				final String itemValue = adapter.getItemName(mDeviceListView.getCheckedItemPosition());

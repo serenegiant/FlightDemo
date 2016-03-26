@@ -39,6 +39,22 @@
 			android:paddingBottom="@dimen/min_padding"
 			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 飛行高度 -->
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/trace_config_trace_altitude"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:id="@+id/trace_flight_altitude_textview"
+			android:textColor="@color/trace_config"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/trace_flight_altitude_seekbar"
+			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
 		<!-- 移動方向逆バイアス -->
 		<TextView
 			android:layout_width="match_parent"

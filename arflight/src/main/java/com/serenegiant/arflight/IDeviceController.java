@@ -1,10 +1,5 @@
 package com.serenegiant.arflight;
 
-import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.parrot.arsdk.arnetwork.ARNetworkManager;
-import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
-import com.serenegiant.arflight.configs.ARNetworkConfig;
-
 import java.sql.Date;
 
 /**

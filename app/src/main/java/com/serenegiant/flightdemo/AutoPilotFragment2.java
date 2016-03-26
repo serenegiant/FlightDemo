@@ -8,7 +8,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
@@ -164,6 +163,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		//
 		mTraceAttitudeYaw = mPref.getFloat(KEY_TRACE_ATTITUDE_YAW, DEFAULT_TRACE_ATTITUDE_YAW);
 		mTraceSpeed = mPref.getFloat(KEY_TRACE_SPEED, DEFAULT_TRACE_SPEED);
+		mTraceAltitude = Math.min(mPref.getFloat(KEY_TRACE_ALTITUDE, DEFAULT_TRACE_ALTITUDE), mFlightController.getMaxAltitude().current());
 		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
 		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
 
@@ -380,8 +380,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		@Override
 		public boolean onLongClick(View view) {
 //			if (DEBUG) Log.v(TAG, "onLongClick:" + view);
-			final Vibrator vibrator = (Vibrator)getActivity().getSystemService(Activity.VIBRATOR_SERVICE);
-			vibrator.vibrate(50);
+			mVibrator.vibrate(50);
 			switch (view.getId()) {
 			case R.id.record_btn:
 				if (!mFlightRecorder.isRecording()) {
@@ -413,7 +412,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			case R.id.trace_btn:
 				remove(mAutoPilotOnTask);
 				if (!mAutoPilot) {
-					mRequestAutoPilot = true;
+					synchronized (mParamSync) {
+						mRequestAutoPilot = mReqUpdateParams = true;
+					}
 					if (!isFlying()) {
 						// 飛行中でなければ離陸指示＆一定時間後に自動トレース開始
 						takeOff();
@@ -435,7 +436,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private final Runnable mAutoPilotOnTask = new Runnable() {
 		@Override
 		public void run() {
-			mAutoPilot = true;
+			synchronized (mParamSync) {
+				mAutoPilot = mReqUpdateParams = true;
+			}
 		}
 	};
 
@@ -450,6 +453,10 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			((ICameraController)controller).sendAutoWhiteBalance(mAutoWhiteBlance ? 0 : -1);	// 自動ホワイトバランス
 		} else {
 			mAutoWhiteBlanceSw.setVisibility(View.GONE);
+		}
+		mTraceAltitude = Math.min(mPref.getFloat(KEY_TRACE_ALTITUDE, DEFAULT_TRACE_ALTITUDE), mFlightController.getMaxAltitude().current());
+		synchronized (mParamSync) {
+			mReqUpdateParams = true;
 		}
 	}
 
@@ -717,6 +724,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			mIsRunning = mReqUpdateParams = true;
 			mAutoPilot = false;
 			float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
+			float flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
 			float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 			float scaleR = (float)mScaleR;
@@ -726,6 +734,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			//
 			long startTime = -1L, lostTime = -1L;
 			final Vector offset = new Vector();
+			final Vector dir = new Vector(0.0f, flightSpeed, 0.0f).rotate(0.0f, 0.0f, flightAngleYaw);
 			final Vector work = new Vector();
 			final Vector prevOffset = new Vector();
 			float pilotAngle = 0.0f;
@@ -737,10 +746,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					if (mReqUpdateParams) {	// パラメータ変更指示?
 						mReqUpdateParams = false;
 						flightAngleYaw = mTraceAttitudeYaw;
-						// factorが最大で2になるのでmFlightSpeedは[-100,+100]なのを[-50,+50]にする
+						flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
+						if (flightAltitude < 0.5f) {
+							flightAltitude = 0.5f;
+						}
+						// scaleが最大で±2になるのでmFlightSpeedは[-100,+100]なのを[-50,+50]にする
 						flightSpeed = mTraceSpeed / 2.0f * (float)(mMaxControlValue / 100.0);
 						scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 						scaleR = (float)mScaleR;
+						dir.set(0.0f, flightSpeed, 0.0f).rotateXY(flightAngleYaw);
 						directionalReverseBias = mTraceDirectionalReverseBias;
 //						curvature = mTraceCurvature;
 					}
@@ -773,14 +787,23 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// Vectorクラスは反時計回りが正, 時計回りが負
 							//--------------------------------------------------------------------------------
 							// ライン角に機体の進行方向の傾きを補正
-							final float angle = rec.mAngle - flightAngleYaw;
+							final float theta = rec.mAngle - flightAngleYaw;
+							float angle = -theta;
+							if ((angle > 90.0f) || (angle < -90.0f)) {
+								if (theta < 0.0f) {
+									angle -= 180.0f;
+								} else {
+									angle += 180.0f;
+								}
+							}
+							//--------------------------------------------------------------------------------
 							// 画像中心からの距離を計算
-							offset.set(VideoStream.VIDEO_WIDTH_HALF, VideoStream.VIDEO_HEIGHT_HALF).sub(rec.mLinePos);
+							offset.set(VideoStream.VIDEO_WIDTH_HALF, VideoStream.VIDEO_HEIGHT_HALF, flightAltitude).sub(rec.mLinePos);
 							// 解析データ(画像中心からのオフセット,距離,回転角)
-							msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f(%5.2f),r=%6.4e)", offset.x, offset.y, offset.len(), rec.mAngle, angle, rec.mCurvature);
+							msg1 = String.format("v(%5.2f,%5.2f,%5.2f),θ=%5.2f(%5.2f),r=%6.4e)", offset.x, offset.y, offset.z, rec.mAngle, angle, rec.mCurvature);
 							//--------------------------------------------------------------------------------
 							// 画面の端が-1または+1になるように変換する
-							offset.div(VideoStream.VIDEO_HEIGHT_HALF, VideoStream.VIDEO_HEIGHT_HALF);	// [-320,+320][-184,+184] => [-1,+1][-1,+1]
+							offset.div(VideoStream.VIDEO_HEIGHT_HALF, VideoStream.VIDEO_HEIGHT_HALF, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
 							// 移動方向, 前回と同じ方向なら1, 逆なら-1
 							work.set(offset).sub(prevOffset).sign();
 							// オフセットを保存
@@ -789,33 +812,25 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// オフセットの符号を取得
 							offset.sign();
 							// 移動方向が変わってなければバイアス加算, 変わってればバイアス減算
-							if (offset.x != 0) { if (offset.x == work.x) { work.x = directionalReverseBias; } else { work.x = -directionalReverseBias; } } else { offset.x = 0.0f; }
-							if (offset.y != 0) { if (offset.y == work.y) { work.y = directionalReverseBias; } else { work.y = -directionalReverseBias; } } else { offset.y = 0.0f; }
-							if (offset.z != 0) { if (offset.z == work.z) { work.z = directionalReverseBias; } else { work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
+							if (offset.x != 0.0f) { if (offset.x == work.x) { work.x = directionalReverseBias; } else { work.x = -directionalReverseBias; } } else { offset.x = 0.0f; }
+							if (offset.y != 0.0f) { if (offset.y == work.y) { work.y = directionalReverseBias; } else { work.y = -directionalReverseBias; } } else { offset.y = 0.0f; }
+							if (offset.z != 0.0f) { if (offset.z == work.z) { work.z = directionalReverseBias; } else { work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
 							work.add(1.0f, 1.0f, 1.0f);	// この時点でworkの各成分は1.0f±directionalReverseBias
 							// 機体のオフセットと反対向き動かすので-1倍, ±1を±50に換算するので50倍, 前進速度を加算
 							// オフセットy(ピッチ, 前後方向)はラインの中心点が中央より前だと負、中央より後ろだと正なので符号反転はしない
-							mPilotValue.mult(work).mult(-50.0f, 50.0f, -50.0f);
-//							// カメラ映像の真上に向かって進む, 高度制御無し
-							work.set(0.0f, flightSpeed, 0.0f);
-							mPilotValue.add(work);
+							mPilotValue.mult(work).mult(-50.0f, 50.0f, 50.0f);
 //							// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
-							mPilotValue.rotate(0, 0, -flightAngleYaw);
+//							mPilotValue.rotateXY(-angle);
 							// FIXME 高度に応じてスケールを変えないとだめかも
 							// 自動操縦スケールを適用
 							mPilotValue.mult(scale);
+							// 飛行速度を加算
+							mPilotValue.add(dir);
 							// 最大最小値を制限
 							mPilotValue.limit(-100.0f, +100.0f);
 							//--------------------------------------------------------------------------------
 							// 機体のyaw角を計算
-							pilotAngle = -angle;
-							if ((pilotAngle > 90.0f) || (pilotAngle < -90.0f)) {
-								if (angle < 0) {
-									pilotAngle -= 180.0f;
-								} else {
-									pilotAngle += 180.0f;
-								}
-							}
+							pilotAngle = angle;
 							if (curvature != 0.0f) {
 								// 曲率による機体yaw角の補正
 								if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
@@ -829,13 +844,10 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
 						} else {
 							// ラインを見失った時
-//							mYawControlTask.cancelAll();
 							msg1 = null;
-//							factor.clear(0.1f);
 							pilotAngle = 0.0f;
 							mPilotValue.clear(0.0f);
 							prevOffset.clear(0.0f);
-							rec.mAngle = 0;
 							if (mAutoPilot) {
 								if (lostTime < 0) {
 									lostTime = System.currentTimeMillis();
@@ -856,17 +868,22 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 								startTime = System.currentTimeMillis();
 //								mYawControlTask.cancelAll();
 							}
-							if (System.currentTimeMillis() - startTime > 500) {
+							final boolean b = Math.abs(rec.mLinePos.z - flightAltitude) < 0.1f;	// 10センチ以内
+							if (b || (System.currentTimeMillis() - startTime > 5000)) {
 								// 制御コマンド送信
 								mFlightController.setYaw((int)pilotAngle);
-								mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0.0f);	// FIXME 高度は制御しない
+								mFlightController.setMove(mPilotValue.x, mPilotValue.y, mPilotValue.z);
 								// 今回の制御量を保存
 								mPrevPilotValue.set(mPilotValue);
+							} else {
+								// 制御コマンド送信
+								mFlightController.setGaz(mPilotValue.z);
+								mPrevPilotValue.set(0.0f, 0.0f, mPilotValue.z);
 							}
 						} else {
 							startTime = -1L;
 						}
-						final String msg2 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, 0.0f, pilotAngle);
+						final String msg2 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
 						runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
@@ -881,6 +898,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					}
 				}
 			}	// for ( ; mIsRunning ; )
+			mFlightController.setMove(0.0f, 0.0f, 0.0f, 0.0f);
 			onStopAutoPilot(!mAutoPilot);
 			synchronized (mQueue) {
 				mIsRunning = mAutoPilot = false;
@@ -934,7 +952,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				}
 				rec.type = type;
 				// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
-				rec.mLinePos.set(result[0], result[1], 0.0f);
+				rec.mLinePos.set(result[0], result[1], mFlightController.getAltitude());
 				// ラインの長さ(長軸長さ=length)
 				rec.mLineLen = result[2];
 				// ライン幅(短軸長さ)
@@ -1276,6 +1294,10 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				final float speed = progress - 100;
 				updateTraceSpeed(speed);
 				break;
+			case R.id.trace_flight_altitude_seekbar:
+				final float trace_altitude = progress / 10.0f + 0.5f;
+				updateTraceAltitude(trace_altitude);
+				break;
 			case R.id.trace_flight_reverse_bias_seekbar:
 				final float bias = progress / 100.0f;
 				updateTraceDirectionalReverseBias(bias);
@@ -1448,6 +1470,16 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						mTraceSpeed = speed;
 					}
 					mPref.edit().putFloat(KEY_TRACE_SPEED, speed).apply();
+				}
+				break;
+			case R.id.trace_flight_altitude_seekbar:
+				final float trace_altitude = seekBar.getProgress() / 10.0f + 0.5f;
+				if (trace_altitude != mTraceAltitude) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mTraceAltitude = trace_altitude;
+					}
+					mPref.edit().putFloat(KEY_TRACE_ALTITUDE, trace_altitude).apply();
 				}
 				break;
 			case R.id.trace_flight_reverse_bias_seekbar:
@@ -1963,12 +1995,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 //--------------------------------------------------------------------------------
 	private TextView mTraceAttitudeYawLabel;
 	private TextView mTraceSpeedLabel;
+	private TextView mTraceAltitudeLabel;
 	private TextView mTraceDirectionalReverseBiasLabel;
 	private String mTraceAttitudeYawFormat;
 	private String mTraceSpeedFormat;
+	private String mTraceAltitudeFormat;
 	private String mTraceDirectionalReverseBiasFormat;
 	private float mTraceAttitudeYaw = 0.0f;
 	private float mTraceSpeed = 100.0f;
+	private float mTraceAltitude = 0.6f;
 	private float mTraceDirectionalReverseBias = 0.3f;
 	private float mTraceCurvature = 0.0f;
 
@@ -1978,6 +2013,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		//
 		mTraceAttitudeYawFormat = getString(R.string.trace_config_trace_attitude_yaw);
 		mTraceSpeedFormat = getString(R.string.trace_config_trace_speed);
+		mTraceAltitudeFormat = getString(R.string.trace_config_trace_altitude);
 		mTraceDirectionalReverseBiasFormat = getString(R.string.trace_config_trace_reverse_bias);
 		// 飛行姿勢(yaw)
 		mTraceAttitudeYaw = mPref.getFloat(KEY_TRACE_ATTITUDE_YAW, DEFAULT_TRACE_ATTITUDE_YAW);
@@ -1995,6 +2031,14 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setProgress((int)(mTraceSpeed + 100));	// [-100,+100] => [0, 200]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateTraceSpeed(mTraceSpeed);
+		// 飛行高度
+		mTraceAltitude = Math.min(mPref.getFloat(KEY_TRACE_ALTITUDE, DEFAULT_TRACE_ALTITUDE), mFlightController.getMaxAltitude().current());
+		mTraceAltitudeLabel = (TextView)rootView.findViewById(R.id.trace_flight_altitude_textview);
+		sb =(SeekBar)rootView.findViewById(R.id.trace_flight_altitude_seekbar);
+		sb.setMax(45);
+		sb.setProgress((int)((mTraceAltitude - 0.5f) * 10.0f));	// [0.5,+5.0] => [0, 45]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateTraceAltitude(mTraceAltitude);
 		// 移動方向逆バイアス
 		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
 		mTraceDirectionalReverseBiasLabel = (TextView)rootView.findViewById(R.id.trace_flight_reverse_bias_textview);
@@ -2025,6 +2069,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private void updateTraceSpeed(final float speed) {
 		if (mTraceSpeedLabel != null) {
 			mTraceSpeedLabel.setText(String.format(mTraceSpeedFormat, speed));
+		}
+	}
+
+	private void updateTraceAltitude(final float altitude) {
+		if (mTraceAltitudeLabel != null) {
+			mTraceAltitudeLabel.setText(String.format(mTraceAltitudeFormat, altitude));
 		}
 	}
 

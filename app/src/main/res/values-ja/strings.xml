@@ -168,6 +168,7 @@
 	<string name="trace_config_title_auto_trace">トレース飛行制御設定</string>
 	<string name="trace_config_trace_attitude_yaw">飛行姿勢(yaw): %4.0f</string>
 	<string name="trace_config_trace_speed">飛行速度: %4.0f</string>
+	<string name="trace_config_trace_altitude">飛行高度: %5.1f</string>
 	<string name="trace_config_trace_curvature">曲率補正</string>
 	<string name="trace_config_trace_reverse_bias">移動方向逆バイアス率: %5.2f</string>
 </resources>
