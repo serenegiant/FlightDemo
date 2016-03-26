@@ -786,10 +786,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// mCurvatureがゼロでない時にmAngleが正ならラインは左へ曲がっている、mAngleが負なら右へ曲がっている
 							// Vectorクラスは反時計回りが正, 時計回りが負
 							//--------------------------------------------------------------------------------
+							// ライン角に機体の進行方向の傾きを補正
+							final float angle = rec.mAngle - flightAngleYaw;
 							// 画像中心からの距離を計算
 							offset.set(VideoStream.VIDEO_WIDTH_HALF, VideoStream.VIDEO_HEIGHT_HALF).sub(rec.mLinePos);
 							// 解析データ(画像中心からのオフセット,距離,回転角)
-							msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f,r=%6.4e)", offset.x, offset.y, offset.len(), rec.mAngle, rec.mCurvature);
+							msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f(%5.2f),r=%6.4e)", offset.x, offset.y, offset.len(), rec.mAngle, angle, rec.mCurvature);
 							// 画面の端が-1または+1になるように変換する
 							offset.div(VideoStream.VIDEO_HEIGHT_HALF, VideoStream.VIDEO_HEIGHT_HALF);	// [-320,+320][-184,+184] => [-1,+1][-1,+1]
 							// 移動方向, 前回と同じ方向なら1, 逆なら-1
@@ -802,7 +804,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// 移動方向が変わってなければ50%加算, 変わってれば50%減算
 							if (offset.x != 0) { if (offset.x == work.x) { work.x = directionalReverseBias; } else { work.x = -directionalReverseBias; } } else { offset.x = 0.0f; }
 							if (offset.y != 0) { if (offset.y == work.y) { work.y = directionalReverseBias; } else { work.y = -directionalReverseBias; } } else { offset.y = 0.0f; }
-							if (offset.z != 0) { if (offset.z == work.z) { work.z = directionalReverseBias; } else { work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
+							if (offset.z != 0) { if (offset.z == work.z) { work.z = directionalReverseBias; } else {
+								work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
 							work.add(1.0f, 1.0f, 1.0f);
 							// 機体のオフセットと反対向き動かすので-1倍, ±1を±100に換算するので100倍, 前進速度を加算
 							// オフセットy(ピッチ, 前後方向)はラインの中心点が中央より前だと負、中央より後ろだと正なので符号反転はしない
@@ -812,16 +815,22 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 //							mPilotValue.set(0.f, flightSpeed, 0.0f);
 //							mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor);
 //							// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
-							mPilotValue.rotate(0, 0, flightAngleYaw - rec.mAngle);
+							mPilotValue.rotate(0, 0, -angle);
 							// FIXME 高度に応じてスケールを変えないとだめかも
 							// 自動操縦スケールを適用
 							mPilotValue.mult(scale);
 							// 最大最小値を制限
 							mPilotValue.limit(-100.0f, +100.0f);
 							//--------------------------------------------------------------------------------
-							// 機体のyaw角を計算, MAX_PILOT_ANGLE以上は一度に回転させない
-							pilotAngle = -rec.mAngle * scaleR;
-							pilotAngle = ImageProcessor.sat(pilotAngle, -MAX_PILOT_ANGLE, MAX_PILOT_ANGLE);
+							// 機体のyaw角を計算
+							pilotAngle = -angle;
+							if ((pilotAngle > 90.0f) || (pilotAngle < -90.0f)) {
+								if (angle < 0) {
+									pilotAngle -= 180.0f;
+								} else {
+									pilotAngle += 180.0f;
+								}
+							}
 							if (curvature != 0.0f) {
 								// 曲率による機体yaw角の補正
 								if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
@@ -829,8 +838,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 									pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
 								}
 							}
-							// 機体の進行方向の傾きを加算
-							pilotAngle += flightAngleYaw;
+							// 自動操縦スケールを適用
+							pilotAngle *= scaleR;
 							// 一定角度以下は0に丸める
 							pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
 							//--------------------------------------------------------------------------------
