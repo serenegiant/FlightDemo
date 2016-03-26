@@ -704,10 +704,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		private static final float MAX_PILOT_ANGLE = 80.0f;	// 一度に修正するyaw角の最大絶対値
 		private static final float MIN_PILOT_ANGLE = 3.0f;	// 0とみなすyaw角のずれの絶対値
 
-//		private final YawControlTask mYawControlTask;
 		public TraceTask() {
-//			mYawControlTask = new YawControlTask();
-//			new Thread(mYawControlTask).start();
 		}
 
 		@Override
@@ -730,7 +727,6 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			long startTime = -1L, lostTime = -1L;
 			final Vector offset = new Vector();
 			final Vector work = new Vector();
-			final Vector prevPos = new Vector();
 			final Vector prevOffset = new Vector();
 			float pilotAngle = 0.0f;
 			final Vector mPilotValue = new Vector();		// roll,pitch,gaz制御量
@@ -769,16 +765,6 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// ラインを検出出来た時
 							lostTime = -1;
 							//--------------------------------------------------------------------------------
-							// 前回の位置とコマンドから想定する現在位置とラインの位置が大きく違う時は制限をする
-							//--------------------------------------------------------------------------------
-							prevPos.sub(rec.mLinePos);
-//							final boolean limited = prev.lenSquared() > 20000;
-//							factor.mult(
-//								limited ? (Math.abs(prevPos.x) > 150 ? 0.9f : 1.0f) : 1.01f,
-//								limited ? (Math.abs(prevPos.y) > 92 ? 0.9f : 1.0f) : 1.011f,
-//								limited ? (Math.abs(prevPos.z) > 100 ? 0.9f : 1.0f) : 1.011f)
-//								.limit(0.1f, 2.0f);	// 最小0.1, 最大2.0に制限
-							//--------------------------------------------------------------------------------
 							// 制御量を計算
 							// 機体からの角度はカメラ映像の真上が0で反時計回りが負、時計回りが正(Bebopのyaw軸回転角と同じ)
 							// 解析画像のラインに対する角度は機体が時計回りすれば正
@@ -792,30 +778,29 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							offset.set(VideoStream.VIDEO_WIDTH_HALF, VideoStream.VIDEO_HEIGHT_HALF).sub(rec.mLinePos);
 							// 解析データ(画像中心からのオフセット,距離,回転角)
 							msg1 = String.format("v(%5.2f,%5.2f)=%5.1f,θ=%5.2f(%5.2f),r=%6.4e)", offset.x, offset.y, offset.len(), rec.mAngle, angle, rec.mCurvature);
+							//--------------------------------------------------------------------------------
 							// 画面の端が-1または+1になるように変換する
 							offset.div(VideoStream.VIDEO_HEIGHT_HALF, VideoStream.VIDEO_HEIGHT_HALF);	// [-320,+320][-184,+184] => [-1,+1][-1,+1]
 							// 移動方向, 前回と同じ方向なら1, 逆なら-1
 							work.set(offset).sub(prevOffset).sign();
 							// オフセットを保存
 							prevOffset.set(offset);
-							mPilotValue.set(offset);
+							mPilotValue.set(offset);	// これは画面座標での画面中央とライン中央のオフセット値
 							// オフセットの符号を取得
 							offset.sign();
-							// 移動方向が変わってなければ50%加算, 変わってれば50%減算
+							// 移動方向が変わってなければバイアス加算, 変わってればバイアス減算
 							if (offset.x != 0) { if (offset.x == work.x) { work.x = directionalReverseBias; } else { work.x = -directionalReverseBias; } } else { offset.x = 0.0f; }
 							if (offset.y != 0) { if (offset.y == work.y) { work.y = directionalReverseBias; } else { work.y = -directionalReverseBias; } } else { offset.y = 0.0f; }
-							if (offset.z != 0) { if (offset.z == work.z) { work.z = directionalReverseBias; } else {
-								work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
-							work.add(1.0f, 1.0f, 1.0f);
-							// 機体のオフセットと反対向き動かすので-1倍, ±1を±100に換算するので100倍, 前進速度を加算
+							if (offset.z != 0) { if (offset.z == work.z) { work.z = directionalReverseBias; } else { work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
+							work.add(1.0f, 1.0f, 1.0f);	// この時点でworkの各成分は1.0f±directionalReverseBias
+							// 機体のオフセットと反対向き動かすので-1倍, ±1を±50に換算するので50倍, 前進速度を加算
 							// オフセットy(ピッチ, 前後方向)はラインの中心点が中央より前だと負、中央より後ろだと正なので符号反転はしない
 							mPilotValue.mult(work).mult(-50.0f, 50.0f, -50.0f);
 //							// カメラ映像の真上に向かって進む, 高度制御無し
-							mPilotValue.add(0.0f, flightSpeed, 0.0f);
-//							mPilotValue.set(0.f, flightSpeed, 0.0f);
-//							mPilotValue.sub(work.x, -work.y, 0.0f).mult(factor);
+							work.set(0.0f, flightSpeed, 0.0f);
+							mPilotValue.add(work);
 //							// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
-							mPilotValue.rotate(0, 0, -angle);
+							mPilotValue.rotate(0, 0, -flightAngleYaw);
 							// FIXME 高度に応じてスケールを変えないとだめかも
 							// 自動操縦スケールを適用
 							mPilotValue.mult(scale);
@@ -842,9 +827,6 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							pilotAngle *= scaleR;
 							// 一定角度以下は0に丸める
 							pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
-							//--------------------------------------------------------------------------------
-							// 今回の位置を保存
-							prevPos.set(rec.mLinePos);
 						} else {
 							// ラインを見失った時
 //							mYawControlTask.cancelAll();
@@ -859,16 +841,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 									lostTime = System.currentTimeMillis();
 								}
 								final long t = System.currentTimeMillis() - lostTime;
-//								if (t < 100) {
-//									// 一定時間は逆向きに動かす
-//									mPilotValue.set(mPrevPilotValue).mult(-1.0f);
-//								} else {
-//									// 一定時間以上ラインを見失ったらその場で静止
-//									mPilotValue.clear(0.0f);
-//								}
 								if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
 									onStopAutoPilot(true);
-//									mYawControlTask.rotate(0);
 									mAutoPilot = false;
 									startTime = -1L;
 								}
@@ -884,7 +858,6 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							}
 							if (System.currentTimeMillis() - startTime > 500) {
 								// 制御コマンド送信
-//								mYawControlTask.rotate((int)pilotAngle);
 								mFlightController.setYaw((int)pilotAngle);
 								mFlightController.setMove(mPilotValue.x, mPilotValue.y, 0.0f);	// FIXME 高度は制御しない
 								// 今回の制御量を保存
@@ -908,7 +881,6 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					}
 				}
 			}	// for ( ; mIsRunning ; )
-//			mYawControlTask.release();
 			onStopAutoPilot(!mAutoPilot);
 			synchronized (mQueue) {
 				mIsRunning = mAutoPilot = false;
@@ -918,71 +890,6 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			System.gc();
 		}
 	}
-
-/*	private final class YawControlTask implements Runnable {
-		private final List<Integer> mAngles = new ArrayList<Integer>();
-		private volatile boolean isRunning;
-		private int prevAngle = 0;
-
-		public synchronized void rotate(final int angle) {
-//			if (DEBUG) Log.v(TAG, "YawControlTask:rotate" + angle);
-			if (mAutoPilot && (prevAngle != angle)) {
-				prevAngle = angle;
-				mAngles.add(angle);
-				notifyAll();
-			}
-		}
-
-		public synchronized void cancel() {
-			prevAngle = 0;
-			mAngles.add(0);
-			notifyAll();
-			mFlightController.setYaw(0);
-		}
-
-		public synchronized void cancelAll() {
-			prevAngle = 0;
-			mAngles.clear();
-			mAngles.add(0);
-			notifyAll();
-		}
-
-		public synchronized void release() {
-			isRunning = false;
-			cancelAll();
-		}
-
-		@Override
-		public synchronized void run() {
-			isRunning = true;
-			notifyAll();
-			int angle = 0;
-			boolean autoPilot = mAutoPilot;
-			if (DEBUG) Log.v(TAG, "YawControlTask:start");
-			for ( ; isRunning ; ) {
-				if (mAngles.isEmpty()) {
-					try {
-						wait(100);
-					} catch (final InterruptedException e) {
-						break;
-					}
-				}
-				if (isRunning && !mAngles.isEmpty()) {
-					angle = mAngles.remove(0);
-					if (autoPilot) {
-						if (!mAutoPilot) {
-							// 自動トレースがonからoffに変わるとき
-							angle = 0;
-						}
-						mFlightController.setYaw(angle);
-					}
-				}
-				autoPilot = mAutoPilot;
-			}
-			mFlightController.setYaw(0);
-			if (DEBUG) Log.v(TAG, "YawControlTask:finished");
-		}
-	} */
 
 	/** ImageProcessorからのコールバックリスナー */
 	private final ImageProcessor.ImageProcessorCallback mImageProcessorCallback
