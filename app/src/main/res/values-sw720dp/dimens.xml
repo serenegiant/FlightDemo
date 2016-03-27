@@ -33,6 +33,7 @@
 	<dimen name="text_sz_error">26sp</dimen>
 	<dimen name="text_sz_trace_config_title">26sp</dimen>
 	<dimen name="text_sz_trace_config_list">22sp</dimen>
+	<dimen name="text_sz_cpu_load">40sp</dimen>
 
 	<dimen name="switch_height">84dp</dimen>
 	<dimen name="thumbnail_margin">16dp</dimen>

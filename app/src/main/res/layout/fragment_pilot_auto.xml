@@ -13,7 +13,8 @@
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		android:foreground="?android:windowContentOverlay"
-		android:orientation="vertical">
+		android:orientation="vertical"
+		android:background="@drawable/blue_gradient">
 
 		<RelativeLayout
 			android:layout_width="match_parent"
@@ -27,11 +28,22 @@
 
 	</LinearLayout>
 
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="@dimen/bottom_panel_height"
+		android:layout_marginLeft="@dimen/padding"
+		android:text="cpu:"
+		android:id="@+id/cpu_load_textview"
+		android:layout_alignParentBottom="true"
+		android:layout_toEndOf="@id/take_onoff_btn"
+		android:gravity="center_vertical"
+		android:textSize="@dimen/text_sz_cpu_load"/>
+
 	<LinearLayout
 		android:orientation="horizontal"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		android:background="@drawable/blue_gradient">
+		android:background="@null">
 
 		<LinearLayout
 			android:orientation="vertical"
@@ -223,31 +235,35 @@
 
 	</RelativeLayout>
 
+	<ImageButton
+		android:id="@+id/take_onoff_btn"
+		android:layout_width="@dimen/bottom_panel_height"
+		android:layout_height="@dimen/bottom_panel_height"
+		android:layout_centerHorizontal="true"
+		android:layout_alignParentBottom="true"
+		android:background="@null"
+		android:scaleType="fitCenter"
+		android:src="?attr/flightdemo_icon_takeoff"/>
+
+	<ImageButton
+		android:id="@+id/emergency_btn"
+		android:layout_width="@dimen/bottom_panel_height"
+		android:layout_height="@dimen/bottom_panel_height"
+		android:layout_alignParentRight="true"
+		android:layout_alignParentBottom="true"
+		android:layout_marginRight="@dimen/quater_padding"
+		android:background="@null"
+		android:scaleType="fitXY"
+		android:src="?attr/flightdemo_icon_emergency"/>
+
 	<RelativeLayout
 		android:id="@+id/bottom_panel"
 		android:layout_width="match_parent"
 		android:layout_height="@dimen/bottom_panel_height"
 		android:gravity="bottom"
-		android:layout_alignParentBottom="true">
+		android:layout_alignParentBottom="true"
+		android:layout_toStartOf="@+id/take_onoff_btn">
 
-		<ImageButton
-			android:id="@+id/take_onoff_btn"
-			android:layout_width="@dimen/bottom_panel_height"
-			android:layout_height="@dimen/bottom_panel_height"
-			android:layout_centerHorizontal="true"
-			android:background="@null"
-			android:scaleType="fitCenter"
-			android:src="?attr/flightdemo_icon_takeoff"/>
-
-		<ImageButton
-			android:id="@+id/emergency_btn"
-			android:layout_width="@dimen/bottom_panel_height"
-			android:layout_height="@dimen/bottom_panel_height"
-			android:layout_alignParentRight="true"
-			android:layout_marginRight="@dimen/quater_padding"
-			android:background="@null"
-			android:scaleType="fitXY"
-			android:src="?attr/flightdemo_icon_emergency"/>
 
 		<TextView
 			android:id="@+id/time_label"

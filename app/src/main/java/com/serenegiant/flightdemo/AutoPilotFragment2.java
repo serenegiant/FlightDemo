@@ -44,6 +44,7 @@ import com.serenegiant.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine1.IModelView;
 import com.serenegiant.math.Vector;
 import com.serenegiant.opencv.ImageProcessor;
+import com.serenegiant.utils.CpuMonitor;
 import com.serenegiant.utils.FileUtils;
 
 import java.io.File;
@@ -106,10 +107,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	protected TraceTask mTraceTask;
 	protected Switch mAutoWhiteBlanceSw;
 	private TextView mTraceTv1, mTraceTv2;
+	private TextView mCpuLoadTv;
 
 	// 設定
 	protected String mPrefName;
 	protected SharedPreferences mPref;
+
+	private final CpuMonitor cpuMonitor = new CpuMonitor();
 
 	public AutoPilotFragment2() {
 		super();
@@ -128,6 +132,18 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		if (DEBUG) Log.v(TAG, "onDetach");
 		mPref = null;
 		super.onDetach();
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		runOnUiThread(mCPUMonitorTask, 1000);
+	}
+
+	@Override
+	public void onPause() {
+		removeFromUIThread(mCPUMonitorTask);
+		super.onPause();
 	}
 
 	@Override
@@ -249,6 +265,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		//
 		mTraceTv1 = (TextView)rootView.findViewById(R.id.trace1_tv);
 		mTraceTv2 = (TextView)rootView.findViewById(R.id.trace2_tv);
+		//
+		mCpuLoadTv = (TextView)rootView.findViewById(R.id.cpu_load_textview);
 
 		return rootView;
 	}
@@ -2508,4 +2526,20 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			return result;
 		}
 	}
+
+	private final StringBuilder sb = new StringBuilder();
+	private final Runnable mCPUMonitorTask = new Runnable() {
+		@Override
+		public void run() {
+			if (cpuMonitor.sampleCpuUtilization()) {
+				sb.setLength(0);
+				sb.append("CPU%: ")
+					.append(cpuMonitor.getCpuCurrent()).append("/")
+					.append(cpuMonitor.getCpuAvg3()).append("/")
+					.append(cpuMonitor.getCpuAvgAll());
+			}
+			mCpuLoadTv.setText(sb.toString());
+			runOnUiThread(this, 1000);
+		}
+	};
 }
