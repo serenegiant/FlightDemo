@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ImageProcessor {
-	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+//	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = ImageProcessor.class.getSimpleName();
 
 	private static final int VIDEO_WIDTH = 640;
@@ -76,7 +76,7 @@ public class ImageProcessor {
 	private long mNativePtr;
 
 	public ImageProcessor(final ImageProcessorCallback callback) {
-		if (DEBUG) Log.v(TAG, "コンストラクタ");
+//		if (DEBUG) Log.v(TAG, "コンストラクタ");
 		if (callback == null) {
 			throw new NullPointerException("callback should not be null");
 		}
@@ -85,7 +85,7 @@ public class ImageProcessor {
 	}
 
 	public void start() {
-		if (DEBUG) Log.v(TAG, "start:");
+//		if (DEBUG) Log.v(TAG, "start:");
 		if (mProcessingTask == null) {
 			mProcessingTask = new ProcessingTask(this);
 			new Thread(mProcessingTask, "VideoStream$rendererTask").start();
@@ -103,7 +103,7 @@ public class ImageProcessor {
 	}
 
 	public void stop() {
-		if (DEBUG) Log.v(TAG, "stop:");
+//		if (DEBUG) Log.v(TAG, "stop:");
 		final ProcessingTask task = mProcessingTask;
 		mProcessingTask = null;
 		if (task != null) {
@@ -119,10 +119,10 @@ public class ImageProcessor {
 	 * 関連するリソースをすべて破棄する
 	 */
 	public void release() {
-		if (DEBUG) Log.v(TAG, "release");
+//		if (DEBUG) Log.v(TAG, "release");
 		stop();
 		nativeRelease(mNativePtr);
-		if (DEBUG) Log.v(TAG, "release:finished");
+//		if (DEBUG) Log.v(TAG, "release:finished");
 	}
 
 	/** 映像受け取り用Surfaceを取得 */
@@ -280,7 +280,7 @@ public class ImageProcessor {
 
 	public void enablePosterize(final boolean enable) {
 		if (mEnablePosterize != enable) {
-			if (DEBUG) Log.v(TAG, "enablePosterize:" + enable);
+//			if (DEBUG) Log.v(TAG, "enablePosterize:" + enable);
 			mEnablePosterize = enable;
 			synchronized (mSync) {
 				for (final IEffect effect: mEffects) {
@@ -324,7 +324,7 @@ public class ImageProcessor {
 	 */
 	public void enableExtraction(final boolean enable) {
 		if (mEnableExtraction != enable) {
-			if (DEBUG) Log.v(TAG, "setExtraction:" + enable);
+//			if (DEBUG) Log.v(TAG, "setExtraction:" + enable);
 			synchronized (mSync) {
 				mEnableExtraction = enable;
 			}
@@ -337,7 +337,7 @@ public class ImageProcessor {
 
 	public void setBinarizeThreshold(final float binarize_threshold) {
 		if (mBinarizeThreshold != binarize_threshold) {
-			if (DEBUG) Log.v(TAG, "setBinarizeThreshold:" + binarize_threshold);
+//			if (DEBUG) Log.v(TAG, "setBinarizeThreshold:" + binarize_threshold);
 			synchronized (mSync) {
 				mBinarizeThreshold = binarize_threshold;
 				applyExtractionColor();
@@ -390,7 +390,7 @@ public class ImageProcessor {
 	 */
 	public void enableCanny(final boolean enable) {
 		if (mEnableCanny != enable) {
-			if (DEBUG) Log.v(TAG, "enableCanny:" + enable);
+//			if (DEBUG) Log.v(TAG, "enableCanny:" + enable);
 			synchronized (mSync) {
 				mEnableCanny = enable;
 			}
@@ -406,7 +406,7 @@ public class ImageProcessor {
 	 * @return
 	 */
 	public int[] requestUpdateExtractionColor() {
-		if (DEBUG) Log.v(TAG, "requestUpdateExtractionColor:");
+//		if (DEBUG) Log.v(TAG, "requestUpdateExtractionColor:");
 		final int[] temp = new int[6];
 		synchronized (mSync) {
 			requestUpdateExtractionColor = true;
@@ -593,6 +593,20 @@ public class ImageProcessor {
 		}
 	}
 
+	public boolean getFillInnerContour() {
+		final int result = nativeGetFillInnerContour(mNativePtr);
+		if (result < 0) {
+			throw new IllegalStateException("nativeGetFillInnerContour:result=" + result);
+		}
+		return result != 0;
+	}
+
+	public void setFillInnerContour(final boolean fill) {
+		final int result = nativeSetFillInnerContour(mNativePtr, fill);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetFillInnerContour:result=" + result);
+		}
+	}
 //================================================================================
 	/**
 	 * native側からの結果コールバック
@@ -668,19 +682,19 @@ public class ImageProcessor {
 
 		/** 映像受け取り用Surfaceを取得 */
 		public Surface getSurface() {
-			if (DEBUG) Log.v(TAG, "getSurface:" + mSourceSurface);
+//			if (DEBUG) Log.v(TAG, "getSurface:" + mSourceSurface);
 			return mSourceSurface;
 		}
 
 		/** 映像受け取り用SurfaceTextureを取得 */
 		public SurfaceTexture getSurfaceTexture() {
-			if (DEBUG) Log.v(TAG, "ProcessingTask:getSurfaceTexture:" + mSourceTexture);
+//			if (DEBUG) Log.v(TAG, "ProcessingTask:getSurfaceTexture:" + mSourceTexture);
 			return mSourceTexture;
 		}
 
 		@Override
 		protected void onStart() {
-			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:");
+//			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:");
 			// ソース映像の描画用
 			mSrcDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3));
 			mSrcDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
@@ -755,12 +769,12 @@ public class ImageProcessor {
 				isProcessingRunning = true;
 				mSync.notifyAll();
 			}
-			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:finished");
+//			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:finished");
 		}
 
 		@Override
 		protected void onStop() {
-			if (DEBUG) Log.v(TAG, "ProcessingTask#onStop");
+//			if (DEBUG) Log.v(TAG, "ProcessingTask#onStop");
 			synchronized (mSync) {
 				isProcessingRunning = false;
 				mSync.notifyAll();
@@ -806,7 +820,7 @@ public class ImageProcessor {
 				mSrcDrawer.release();
 				mSrcDrawer = null;
 			}
-			if (DEBUG) Log.v(TAG, "ProcessingTask#onStop:finished");
+//			if (DEBUG) Log.v(TAG, "ProcessingTask#onStop:finished");
 		}
 
 		@Override
@@ -824,7 +838,7 @@ public class ImageProcessor {
 
 		@Override
 		protected boolean onError(final Exception e) {
-			if (DEBUG) Log.w(TAG, e);
+			Log.w(TAG, e);
 			return true;
 		}
 
@@ -941,13 +955,13 @@ public class ImageProcessor {
 			EXTRACT_COLOR_HSV_LIMIT[4] = sat((int)((v - v_sd)), 0, 255);
 			EXTRACT_COLOR_HSV_LIMIT[5] = sat((int)((v + v_sd)), 0, 255);
 			applyExtractionColor();
-			if (DEBUG) Log.v(TAG, String.format("AVE(%f,%f,%f),SD(%f,%f,%f)",
-				h / 250 * 180, s, v, h_sd  / 250 * 180, s_sd, v_sd));
+//			if (DEBUG) Log.v(TAG, String.format("AVE(%f,%f,%f),SD(%f,%f,%f)",
+//				h / 250 * 180, s, v, h_sd  / 250 * 180, s_sd, v_sd));
 
-			if (DEBUG) Log.v(TAG, String.format("HSV(%d,%d,%d,%d,%d,%d)",
-				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
-				EXTRACT_COLOR_HSV_LIMIT[2], EXTRACT_COLOR_HSV_LIMIT[3],
-				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]));
+//			if (DEBUG) Log.v(TAG, String.format("HSV(%d,%d,%d,%d,%d,%d)",
+//				EXTRACT_COLOR_HSV_LIMIT[0], EXTRACT_COLOR_HSV_LIMIT[1],
+//				EXTRACT_COLOR_HSV_LIMIT[2], EXTRACT_COLOR_HSV_LIMIT[3],
+//				EXTRACT_COLOR_HSV_LIMIT[4], EXTRACT_COLOR_HSV_LIMIT[5]));
 		}
 
 		/**
@@ -956,7 +970,7 @@ public class ImageProcessor {
 		 * @param height
 		 */
 		private void handleResize(final int width, final int height) {
-			if (DEBUG) Log.v(TAG, String.format("ProcessingTask#handleResize:(%d,%d)", width, height));
+//			if (DEBUG) Log.v(TAG, String.format("ProcessingTask#handleResize:(%d,%d)", width, height));
 			mVideoWidth = width;
 			mVideoHeight = height;
 			mSourceTexture.setDefaultBufferSize(width, height);
@@ -1038,4 +1052,6 @@ public class ImageProcessor {
 	private static native int nativeSetAreaErrLimit(final long id_native, final float limit1, final float limit2);
 	private static native int nativeGetMaxThinningLoop(final long id_native);
 	private static native int nativeSetMaxThinningLoop(final long id_native, final int max_loop);
+	private static native int nativeGetFillInnerContour(final long id_native);
+	private static native int nativeSetFillInnerContour(final long id_native, final boolean fill);
 }

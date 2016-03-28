@@ -48,9 +48,15 @@ public class AppConst {
 	public static final String KEY_TRAPEZIUM_RATE = "KEY_TRAPEZIUM_RATE";
 
 	public static final String KEY_SMOOTH_TYPE = "KEY_SMOOTH_TYPE";
+	public static final int DEFAULT_SMOOTH_TYPE = 0;
 	public static final String KEY_NATIVE_SMOOTH_TYPE = "KEY_NATIVE_SMOOTH_TYPE";
+	public static final int DEFAULT_NATIVE_SMOOTH_TYPE = 0;
 	public static final String KEY_ENABLE_EDGE_DETECTION = "KEY_ENABLE_EDGE_DETECTION";
+	public static final boolean DEFAULT_ENABLE_EDGE_DETECTION = false;
+	public static final String KEY_FILL_INNER_CONTOUR = "KEY_FILL_INNER_CONTOUR";
+	public static final boolean DEFAULT_FILL_INNER_CONTOUR = false;
 	public static final String KEY_ENABLE_NATIVE_EDGE_DETECTION = "KEY_ENABLE_NATIVE_EDGE_DETECTION";
+	public static final boolean DEFAULT_ENABLE_NATIVE_EDGE_DETECTION = false;
 	public static final String KEY_AREA_LIMIT_MIN = "KEY_AREA_LIMIT_MIN";
 	public static final float DEFAULT_AREA_LIMIT_MIN = 1000.0f;
 	public static final String KEY_ASPECT_LIMIT_MIN = "KEY_ASPECT_LIMIT_MIN";
@@ -63,6 +69,7 @@ public class AppConst {
 	public static final int DEFAULT_NATIVE_MAX_THINNING_LOOP = 0;
 	// 色抽出設定
 	public static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
+	public static final boolean DEFAULT_ENABLE_EXTRACTION = true;
 	public static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";
 	public static final String KEY_EXTRACT_H = "KEY_ENABLE_EXTRACT_H";
 	public static final float DEFAULT_EXTRACT_H = 0.5f;

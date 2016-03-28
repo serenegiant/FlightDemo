@@ -7,6 +7,15 @@
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:orientation="vertical">
+		<!-- 輪郭内塗りつぶし -->
+		<Switch
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/min_padding"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_fill_contour"
+			android:id="@+id/use_fill_contour_sw"/>
 		<!-- 平滑化(OpenGL|ES) -->
 		<TextView
 			android:layout_width="wrap_content"
@@ -23,21 +32,21 @@
 			android:textColor="@color/trace_config"
 			android:layout_gravity="center_horizontal"/>
 		<!-- エッジ検出(OpenGL|ES,Canny) -->
-		<Switch
+<!--	<Switch
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:paddingBottom="@dimen/min_padding"
 			android:textColor="@color/trace_config"
 			android:textSize="@dimen/text_sz_trace_config_list"
 			android:text="@string/trace_use_canny"
-			android:id="@+id/use_canny_sw"/>
+			android:id="@+id/use_canny_sw"/> -->
 		<!-- 平滑化(OpenCV) -->
 		<TextView
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:textColor="@color/trace_config"
 			android:textSize="@dimen/text_sz_trace_config_list"
-			android:text="@string/trace_smooth"/>
+			android:text="@string/trace_smooth_opencv"/>
 		<Spinner
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
@@ -53,7 +62,7 @@
 			android:layout_height="wrap_content"
 			android:textColor="@color/trace_config"
 			android:textSize="@dimen/text_sz_trace_config_list"
-			android:text="@string/trace_thinning"/>
+			android:text="@string/trace_max_thinning_loop"/>
 		<SeekBar
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"

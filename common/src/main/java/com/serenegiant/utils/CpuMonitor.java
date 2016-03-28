@@ -61,239 +61,245 @@ import java.util.Scanner;
  *      jumping up and back down we might create faulty CPU load readings.
  */
 
-public class CpuMonitor {
-  private static final int SAMPLE_SAVE_NUMBER = 10;  // Assumed to be >= 3.
-  private int[] percentVec = new int[SAMPLE_SAVE_NUMBER];
-  private int sum3 = 0;
-  private int sum10 = 0;
-  private static final String TAG = "CpuMonitor";
-  private long[] cpuFreq;
-  private int cpusPresent;
-  private double lastPercentFreq = -1;
-  private int cpuCurrent;
-  private int cpuAvg3;
-  private int cpuAvgAll;
-  private boolean initialized = false;
-  private String[] maxPath;
-  private String[] curPath;
-  ProcStat lastProcStat;
+public final class CpuMonitor {
+	private static final String TAG = "CpuMonitor";
+	private static final int SAMPLE_SAVE_NUMBER = 10;  // Assumed to be >= 3.
 
-  private class ProcStat {
-    final long runTime;
-    final long idleTime;
+	private int[] percentVec = new int[SAMPLE_SAVE_NUMBER];
+	private int sum3 = 0;
+	private int sum10 = 0;
+	private long[] cpuFreq;
+	private int cpusPresent;
+	private double lastPercentFreq = -1;
+	private int cpuCurrent;
+	private int cpuAvg3;
+	private int cpuAvgAll;
+	private boolean initialized = false;
+	private String[] maxPath;
+	private String[] curPath;
+	private final ProcStat lastProcStat = new ProcStat(0L, 0L);
 
-    ProcStat(long aRunTime, long aIdleTime) {
-      runTime = aRunTime;
-      idleTime = aIdleTime;
-    }
-  }
+	private static final class ProcStat {
+		private long runTime;
+		private long idleTime;
 
-  private void init() {
-    try {
-      FileReader fin = new FileReader("/sys/devices/system/cpu/present");
-      try {
-        BufferedReader rdr = new BufferedReader(fin);
-        Scanner scanner = new Scanner(rdr).useDelimiter("[-\n]");
-        scanner.nextInt();  // Skip leading number 0.
-        cpusPresent = 1 + scanner.nextInt();
-        scanner.close();
-      } catch (Exception e) {
-        Log.e(TAG, "Cannot do CPU stats due to /sys/devices/system/cpu/present parsing problem");
-      } finally {
-        fin.close();
-      }
-    } catch (FileNotFoundException e) {
-      Log.e(TAG, "Cannot do CPU stats since /sys/devices/system/cpu/present is missing");
-    } catch (IOException e) {
-      Log.e(TAG, "Error closing file");
-    }
+		private ProcStat(final long aRunTime, final long aIdleTime) {
+			runTime = aRunTime;
+			idleTime = aIdleTime;
+		}
 
-    cpuFreq = new long [cpusPresent];
-    maxPath = new String [cpusPresent];
-    curPath = new String [cpusPresent];
-    for (int i = 0; i < cpusPresent; i++) {
-      cpuFreq[i] = 0;  // Frequency "not yet determined".
-      maxPath[i] = "/sys/devices/system/cpu/cpu" + i + "/cpufreq/cpuinfo_max_freq";
-      curPath[i] = "/sys/devices/system/cpu/cpu" + i + "/cpufreq/scaling_cur_freq";
-    }
+		private void set(final long aRunTime, final long aIdleTime) {
+			runTime = aRunTime;
+			idleTime = aIdleTime;
+		}
 
-    lastProcStat = new ProcStat(0, 0);
+		private void set(final ProcStat other) {
+			runTime = other.runTime;
+			idleTime = other.idleTime;
+		}
+	}
 
-    initialized = true;
-  }
+	private void init() {
+		try {
+			final FileReader fin = new FileReader("/sys/devices/system/cpu/present");
+			try {
+				final BufferedReader rdr = new BufferedReader(fin);
+				final Scanner scanner = new Scanner(rdr).useDelimiter("[-\n]");
+				scanner.nextInt();  // Skip leading number 0.
+				cpusPresent = 1 + scanner.nextInt();
+				scanner.close();
+			} catch (final Exception e) {
+				Log.e(TAG, "Cannot do CPU stats due to /sys/devices/system/cpu/present parsing problem");
+			} finally {
+				fin.close();
+			}
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "Cannot do CPU stats since /sys/devices/system/cpu/present is missing");
+		} catch (IOException e) {
+			Log.e(TAG, "Error closing file");
+		}
 
-  /**
-   * Re-measure CPU use.  Call this method at an interval of around 1/s.
-   * This method returns true on success.  The fields
-   * cpuCurrent, cpuAvg3, and cpuAvgAll are updated on success, and represents:
-   * cpuCurrent: The CPU use since the last sampleCpuUtilization call.
-   * cpuAvg3: The average CPU over the last 3 calls.
-   * cpuAvgAll: The average CPU over the last SAMPLE_SAVE_NUMBER calls.
-   */
-  public boolean sampleCpuUtilization() {
-    long lastSeenMaxFreq = 0;
-    long cpufreqCurSum = 0;
-    long cpufreqMaxSum = 0;
+		cpuFreq = new long [cpusPresent];
+		maxPath = new String [cpusPresent];
+		curPath = new String [cpusPresent];
+		for (int i = 0; i < cpusPresent; i++) {
+			cpuFreq[i] = 0;  // Frequency "not yet determined".
+			maxPath[i] = "/sys/devices/system/cpu/cpu" + i + "/cpufreq/cpuinfo_max_freq";
+			curPath[i] = "/sys/devices/system/cpu/cpu" + i + "/cpufreq/scaling_cur_freq";
+		}
 
-    if (!initialized) {
-      init();
-    }
+		lastProcStat.set(0, 0);
 
-    for (int i = 0; i < cpusPresent; i++) {
-      /*
-       * For each CPU, attempt to first read its max frequency, then its
-       * current frequency.  Once as the max frequency for a CPU is found,
-       * save it in cpuFreq[].
-       */
+		initialized = true;
+	}
 
-      if (cpuFreq[i] == 0) {
-        // We have never found this CPU's max frequency.  Attempt to read it.
-        long cpufreqMax = readFreqFromFile(maxPath[i]);
-        if (cpufreqMax > 0) {
-          lastSeenMaxFreq = cpufreqMax;
-          cpuFreq[i] = cpufreqMax;
-          maxPath[i] = null;  // Kill path to free its memory.
-        }
-      } else {
-        lastSeenMaxFreq = cpuFreq[i];  // A valid, previously read value.
-      }
+	/**
+	 * Re-measure CPU use.  Call this method at an interval of around 1/s.
+	 * This method returns true on success.  The fields
+	 * cpuCurrent, cpuAvg3, and cpuAvgAll are updated on success, and represents:
+	 * cpuCurrent: The CPU use since the last sampleCpuUtilization call.
+	 * cpuAvg3: The average CPU over the last 3 calls.
+	 * cpuAvgAll: The average CPU over the last SAMPLE_SAVE_NUMBER calls.
+	 */
+	public boolean sampleCpuUtilization() {
+		long lastSeenMaxFreq = 0;
+		long cpufreqCurSum = 0;
+		long cpufreqMaxSum = 0;
 
-      long cpufreqCur = readFreqFromFile(curPath[i]);
-      cpufreqCurSum += cpufreqCur;
+		if (!initialized) {
+			init();
+		}
 
-      /* Here, lastSeenMaxFreq might come from
-       * 1. cpuFreq[i], or
-       * 2. a previous iteration, or
-       * 3. a newly read value, or
-       * 4. hypothetically from the pre-loop dummy.
-       */
-      cpufreqMaxSum += lastSeenMaxFreq;
-    }
+		for (int i = 0; i < cpusPresent; i++) {
+			/*
+			 * For each CPU, attempt to first read its max frequency, then its
+			 * current frequency.  Once as the max frequency for a CPU is found,
+			 * save it in cpuFreq[].
+			 */
 
-    if (cpufreqMaxSum == 0) {
-      Log.e(TAG, "Could not read max frequency for any CPU");
-      return false;
-    }
+			if (cpuFreq[i] == 0) {
+				// We have never found this CPU's max frequency.  Attempt to read it.
+				long cpufreqMax = readFreqFromFile(maxPath[i]);
+				if (cpufreqMax > 0) {
+					lastSeenMaxFreq = cpufreqMax;
+					cpuFreq[i] = cpufreqMax;
+					maxPath[i] = null;  // Kill path to free its memory.
+				}
+			} else {
+				lastSeenMaxFreq = cpuFreq[i];  // A valid, previously read value.
+			}
 
-    /*
-     * Since the cycle counts are for the period between the last invocation
-     * and this present one, we average the percentual CPU frequencies between
-     * now and the beginning of the measurement period.  This is significantly
-     * incorrect only if the frequencies have peeked or dropped in between the
-     * invocations.
-     */
-    double newPercentFreq = 100.0 * cpufreqCurSum / cpufreqMaxSum;
-    double percentFreq;
-    if (lastPercentFreq > 0) {
-      percentFreq = (lastPercentFreq + newPercentFreq) * 0.5;
-    } else {
-      percentFreq = newPercentFreq;
-    }
-    lastPercentFreq = newPercentFreq;
+			long cpufreqCur = readFreqFromFile(curPath[i]);
+			cpufreqCurSum += cpufreqCur;
 
-    ProcStat procStat = readIdleAndRunTime();
-    if (procStat == null) {
-      return false;
-    }
+			/* Here, lastSeenMaxFreq might come from
+			 * 1. cpuFreq[i], or
+			 * 2. a previous iteration, or
+			 * 3. a newly read value, or
+			 * 4. hypothetically from the pre-loop dummy.
+			 */
+			cpufreqMaxSum += lastSeenMaxFreq;
+		}
 
-    long diffRunTime = procStat.runTime - lastProcStat.runTime;
-    long diffIdleTime = procStat.idleTime - lastProcStat.idleTime;
+		if (cpufreqMaxSum == 0) {
+			Log.e(TAG, "Could not read max frequency for any CPU");
+			return false;
+		}
 
-    // Save new measurements for next round's deltas.
-    lastProcStat = procStat;
+		/*
+		 * Since the cycle counts are for the period between the last invocation
+		 * and this present one, we average the percentual CPU frequencies between
+		 * now and the beginning of the measurement period.  This is significantly
+		 * incorrect only if the frequencies have peeked or dropped in between the
+		 * invocations.
+		 */
+		final double newPercentFreq = 100.0 * cpufreqCurSum / cpufreqMaxSum;
+		final double percentFreq = lastPercentFreq > 0 ? (lastPercentFreq + newPercentFreq) * 0.5 : newPercentFreq;
+		lastPercentFreq = newPercentFreq;
 
-    long allTime = diffRunTime + diffIdleTime;
-    int percent = allTime == 0 ? 0 : (int) Math.round(percentFreq * diffRunTime / allTime);
-    percent = Math.max(0, Math.min(percent, 100));
+		final ProcStat procStat = readIdleAndRunTime();
+		if (procStat == null) {
+			return false;
+		}
 
-    // Subtract old relevant measurement, add newest.
-    sum3 += percent - percentVec[2];
-    // Subtract oldest measurement, add newest.
-    sum10 += percent - percentVec[SAMPLE_SAVE_NUMBER - 1];
+		final long diffRunTime = procStat.runTime - lastProcStat.runTime;
+		final long diffIdleTime = procStat.idleTime - lastProcStat.idleTime;
 
-    // Rotate saved percent values, save new measurement in vacated spot.
-    for (int i = SAMPLE_SAVE_NUMBER - 1; i > 0; i--) {
-      percentVec[i] = percentVec[i - 1];
-    }
-    percentVec[0] = percent;
+		// Save new measurements for next round's deltas.
+		lastProcStat.set(procStat);
 
-    cpuCurrent = percent;
-    cpuAvg3 = sum3 / 3;
-    cpuAvgAll = sum10 / SAMPLE_SAVE_NUMBER;
+		final long allTime = diffRunTime + diffIdleTime;
+		int percent = allTime == 0 ? 0 : (int) Math.round(percentFreq * diffRunTime / allTime);
+		percent = Math.max(0, Math.min(percent, 100));
 
-    return true;
-  }
+		// Subtract old relevant measurement, add newest.
+		sum3 += percent - percentVec[2];
+		// Subtract oldest measurement, add newest.
+		sum10 += percent - percentVec[SAMPLE_SAVE_NUMBER - 1];
 
-  public int getCpuCurrent() {
-    return cpuCurrent;
-  }
+		// Rotate saved percent values, save new measurement in vacated spot.
+		for (int i = SAMPLE_SAVE_NUMBER - 1; i > 0; i--) {
+			percentVec[i] = percentVec[i - 1];
+		}
+		percentVec[0] = percent;
 
-  public int getCpuAvg3() {
-    return cpuAvg3;
-  }
+		cpuCurrent = percent;
+		cpuAvg3 = sum3 / 3;
+		cpuAvgAll = sum10 / SAMPLE_SAVE_NUMBER;
 
-  public int getCpuAvgAll() {
-    return cpuAvgAll;
-  }
+		return true;
+	}
 
-  /**
-   * Read a single integer value from the named file.  Return the read value
-   * or if an error occurs return 0.
-   */
-  private long readFreqFromFile(String fileName) {
-    long number = 0;
-    try {
-      FileReader fin = new FileReader(fileName);
-      try {
-        BufferedReader rdr = new BufferedReader(fin);
-        Scanner scannerC = new Scanner(rdr);
-        number = scannerC.nextLong();
-        scannerC.close();
-      } catch (Exception e) {
-        // CPU presumably got offline just after we opened file.
-      } finally {
-        fin.close();
-      }
-    } catch (FileNotFoundException e) {
-      // CPU is offline, not an error.
-    } catch (IOException e) {
-      Log.e(TAG, "Error closing file");
-    }
-    return number;
-  }
+	public int getCpuCurrent() {
+		return cpuCurrent;
+	}
 
-  /*
-   * Read the current utilization of all CPUs using the cumulative first line
-   * of /proc/stat.
-   */
-  private ProcStat readIdleAndRunTime() {
-    long runTime = 0;
-    long idleTime = 0;
-    try {
-      FileReader fin = new FileReader("/proc/stat");
-      try {
-        BufferedReader rdr = new BufferedReader(fin);
-        Scanner scanner = new Scanner(rdr);
-        scanner.next();
-        long user = scanner.nextLong();
-        long nice = scanner.nextLong();
-        long sys = scanner.nextLong();
-        runTime = user + nice + sys;
-        idleTime = scanner.nextLong();
-        scanner.close();
-      } catch (Exception e) {
-        Log.e(TAG, "Problems parsing /proc/stat");
-        return null;
-      } finally {
-        fin.close();
-      }
-    } catch (FileNotFoundException e) {
-      Log.e(TAG, "Cannot open /proc/stat for reading");
-      return null;
-    } catch (IOException e) {
-      Log.e(TAG, "Problems reading /proc/stat");
-      return null;
-    }
-    return new ProcStat(runTime, idleTime);
-  }
+	public int getCpuAvg3() {
+		return cpuAvg3;
+	}
+
+	public int getCpuAvgAll() {
+		return cpuAvgAll;
+	}
+
+	/**
+	 * Read a single integer value from the named file.  Return the read value
+	 * or if an error occurs return 0.
+	 */
+	private long readFreqFromFile(String fileName) {
+		long number = 0;
+		try {
+			final FileReader fin = new FileReader(fileName);
+			try {
+				final BufferedReader rdr = new BufferedReader(fin);
+				final Scanner scannerC = new Scanner(rdr);
+				number = scannerC.nextLong();
+				scannerC.close();
+			} catch (final Exception e) {
+				// CPU presumably got offline just after we opened file.
+			} finally {
+				fin.close();
+			}
+		} catch (final FileNotFoundException e) {
+			// CPU is offline, not an error.
+		} catch (final IOException e) {
+			Log.e(TAG, "Error closing file");
+		}
+		return number;
+	}
+
+	/*
+	 * Read the current utilization of all CPUs using the cumulative first line
+	 * of /proc/stat.
+	 */
+	private ProcStat readIdleAndRunTime() {
+		long runTime = 0;
+		long idleTime = 0;
+		try {
+			final FileReader fin = new FileReader("/proc/stat");
+			try {
+				final BufferedReader rdr = new BufferedReader(fin);
+				final Scanner scanner = new Scanner(rdr);
+				scanner.next();
+				long user = scanner.nextLong();
+				long nice = scanner.nextLong();
+				long sys = scanner.nextLong();
+				runTime = user + nice + sys;
+				idleTime = scanner.nextLong();
+				scanner.close();
+			} catch (final Exception e) {
+				Log.e(TAG, "Problems parsing /proc/stat");
+				return null;
+			} finally {
+				fin.close();
+			}
+		} catch (final FileNotFoundException e) {
+			Log.e(TAG, "Cannot open /proc/stat for reading");
+			return null;
+		} catch (final IOException e) {
+			Log.e(TAG, "Problems reading /proc/stat");
+			return null;
+		}
+		return new ProcStat(runTime, idleTime);
+	}
 }

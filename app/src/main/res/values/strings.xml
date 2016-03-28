@@ -139,7 +139,9 @@
 	<string name="trace_trapezium_rate">Trapezium correction: %6.3f</string>
 	<!-- 映像処理2 -->
 	<string name="trace_config_title_preprocess2">Preprocess settings2</string>
+	<string name="trace_fill_contour">Fill contour(OpenCV)</string>
 	<string name="trace_smooth">Smooth</string>
+	<string name="trace_smooth_opencv">Smooth(OpenCV)</string>
 	<string name="trace_smooth_non">Non</string>
 	<string name="trace_smooth_gaussian">Gaussian</string>
 	<string name="trace_smooth_median">Median</string>

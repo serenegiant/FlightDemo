@@ -82,7 +82,8 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	mParam.mCannythreshold2 = 200.0;
 	// 細線化
 	mParam.mMaxThinningLoop = 0;
-
+	// 検出輪郭の内部空隙を塗りつぶすかどうか
+	mParam.mFillInnerContour = false;
 	// 基準図形との類似性の最大値
 	mParam.mMaxAnalogous = 200.0;
 	// H(色相)は制限なし, S(彩度)は0-約5%, 2:V(明度)は約80-100%
@@ -346,6 +347,20 @@ int ImageProcessor::setMaxThinningLoop(const int &max_loop) {
 		mMutex.unlock();
 	}
 
+	RETURN(0, int);
+}
+
+int ImageProcessor::setFillInnerContour(const bool &fill) {
+	ENTER();
+
+	if (mParam.mFillInnerContour != fill) {
+		mMutex.lock();
+		{
+			mParam.mFillInnerContour = fill;
+			mParam.changed = true;
+		}
+		mMutex.unlock();
+	}
 	RETURN(0, int);
 }
 
@@ -760,6 +775,23 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 			cv::warpPerspective(frame, frame, param.perspectiveTransform, cv::Size(src.cols, src.rows));
 		}
 	}
+	// 輪郭内の塗りつぶし(色抽出してなければ全面塗りつぶされる)
+	if (param.mFillInnerContour) {
+		std::vector<std::vector< cv::Point>> contours;
+		// 一回り大きな画像を用意,黒で塗りつぶす
+		cv::Mat new_src = cv::Mat::zeros(cv::Size(src.cols + 16, src.rows + 16), CV_8UC3);
+		// 移動行列(8ピクセルずつずらす)
+		cv::Mat affine = (cv::Mat_<double>(2,3)<<1.0, 0.0, 8, 0.0, 1.0, 8);
+		cv::warpAffine(src, new_src, affine, new_src.size(), CV_INTER_LINEAR, cv::BORDER_TRANSPARENT);
+		// ROI領域
+		cv::Rect roi_rect(8, 8, src.cols, src.rows); // x,y,w,h
+		src = new_src(roi_rect);
+		cv::findContours(src, contours,
+			cv::RETR_EXTERNAL, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
+			cv::CHAIN_APPROX_NONE);	// 輪郭データ近似方法, CHAIN_APPROX_NONE:無し,  CHAIN_APPROX_SIMPLE:直線は頂点のみにする,  CHAIN_APPROX_TC89_L1, CHAIN_APPROX_TC89_KCOS
+		// 見つかった輪郭を塗りつぶす
+		cv::drawContours(src, contours, -1, COLOR_WHITE, cv::FILLED);
+	}
 	// 平滑化
 //	cv::Sobel(src, src, CV_32F, 1, 1);
 //	cv::convertScaleAbs(src, src, 1, 0);
@@ -793,6 +825,7 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 //	cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
 	// 細線化
 	if (param.mMaxThinningLoop) {
+		cv::threshold(src, src, 10, 255, CV_THRESH_BINARY);
 		mThinning.apply(src, src, param.mMaxThinningLoop);
 	}
 	// エッジ検出(Cannyの結果は2値化されてる)
@@ -968,15 +1001,17 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		float area = (float)cv::contourArea(*contour);
 		// 面積が小さすぎるのと大きすぎるのはスキップ
 		if ((area < param.mAreaLimitMin) || (area > param.mAreaLimitMax)) continue;
-		// 中に開いた穴の面積を除外
-		for (int i = hierarchy[idx][2]; i >= 0; ) {
-			if (hierarchy[i][3] == idx) {
-				area -= (float)cv::contourArea(contours[i]);
-				if (param.show_detects) {
-					cv::drawContours(result, contours, i, COLOR_WHITE, -1);
+		if (!param.mFillInnerContour) {
+			// 中に開いた穴の面積を除外
+			for (int i = hierarchy[idx][2]; i >= 0; ) {
+				if (hierarchy[i][3] == idx) {
+					area -= (float)cv::contourArea(contours[i]);
+					if (param.show_detects) {
+						cv::drawContours(result, contours, i, COLOR_WHITE, -1);
+					}
 				}
+				i = hierarchy[i][0];	// 次の子
 			}
-			i = hierarchy[i][0];	// 次の子
 		}
 		// 面積が小さすぎるのはスキップ
 		if (area < param.mAreaLimitMin) continue;
@@ -1501,6 +1536,32 @@ static jint nativeSetMaxThinningLoop(JNIEnv *env, jobject thiz,
 	RETURN(result, jint);
 }
 
+static jint nativeGetFillInnerContour(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native) {
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->getFillInnerContour() ? 1 : 0;
+	}
+
+	RETURN(result, jint);
+}
+
+static jint nativeSetFillInnerContour(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jboolean fill) {
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->setFillInnerContour(fill);
+	}
+
+	RETURN(result, jint);
+}
+
 //================================================================================
 //================================================================================
 static JNINativeMethod methods[] = {
@@ -1526,6 +1587,8 @@ static JNINativeMethod methods[] = {
 	{ "nativeSetAreaErrLimit",		"(JFF)I", (void *) nativeSetAreaErrLimit },
 	{ "nativeGetMaxThinningLoop",	"(J)I", (void *) nativeGetMaxThinningLoop },
 	{ "nativeSetMaxThinningLoop",	"(JI)I", (void *) nativeSetMaxThinningLoop },
+	{ "nativeGetFillInnerContour",	"(J)I", (void *) nativeGetFillInnerContour },
+	{ "nativeSetFillInnerContour",	"(JZ)I", (void *) nativeSetFillInnerContour },
 };
 
 

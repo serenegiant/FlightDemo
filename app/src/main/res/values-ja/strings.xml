@@ -140,7 +140,9 @@
 	<string name="trace_trapezium_rate">台形歪補正: %6.3f</string>
 	<!-- 映像処理2 -->
 	<string name="trace_config_title_preprocess2">映像処理設定2</string>
+	<string name="trace_fill_contour">輪郭内塗りつぶし(OpenCV)</string>
 	<string name="trace_smooth">平滑化</string>
+	<string name="trace_smooth_opencv">平滑化(OpenCV)</string>
 	<string name="trace_smooth_non">無し</string>
 	<string name="trace_smooth_gaussian">ガウシアン</string>
 	<string name="trace_smooth_median">メディアン</string>

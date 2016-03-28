@@ -166,12 +166,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mExtractV = mPref.getFloat(KEY_EXTRACT_V, DEFAULT_EXTRACT_V);
 		mExtractRangeV = mPref.getFloat(KEY_EXTRACT_RANGE_V, DEFAULT_EXTRACT_RANGE_V);
 		//
-		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
-		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
-		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, false);
+		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, DEFAULT_ENABLE_EXTRACTION);
+		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, DEFAULT_SMOOTH_TYPE);
+//		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, DEFAULT_ENABLE_EDGE_DETECTION);
+		mFillContour = mPref.getBoolean(KEY_FILL_INNER_CONTOUR, DEFAULT_FILL_INNER_CONTOUR);
 //		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
-		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
-		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
+		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, DEFAULT_ENABLE_NATIVE_EDGE_DETECTION);
+		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, DEFAULT_NATIVE_SMOOTH_TYPE);
 		mMaxThinningLoop = getInt(mPref, KEY_NATIVE_MAX_THINNING_LOOP, DEFAULT_NATIVE_MAX_THINNING_LOOP);
 		//
 		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, DEFAULT_AREA_LIMIT_MIN);
@@ -673,6 +674,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			mImageProcessor.setAreaLimit(mAreaLimitMin, AREA_LIMIT_MAX);
 			mImageProcessor.setAreaErrLimit(mAreaErrLimit1, mAreaErrLimit2);
 			mImageProcessor.setAspectLimit(mAspectLimitMin);
+			mImageProcessor.setMaxThinningLoop(mMaxThinningLoop);
+			mImageProcessor.setFillInnerContour(mFillContour);
 			mImageProcessor.start();
 			final Surface surface = mImageProcessor.getSurface();
 			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
@@ -1085,15 +1088,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					mPref.edit().putBoolean(KEY_ENABLE_EXTRACTION, isChecked).apply();
 				}
 				break;
-			case R.id.use_canny_sw:
-				if (mImageProcessor != null) {
-					mEnableGLESCanny = isChecked;
-					mImageProcessor.enableCanny(isChecked);
-				}
-				if (mPref != null) {
-					mPref.edit().putBoolean(KEY_ENABLE_EDGE_DETECTION, isChecked).apply();
-				}
-				break;
+//			case R.id.use_canny_sw:
+//				if (mImageProcessor != null) {
+//					mEnableGLESCanny = isChecked;
+//					mImageProcessor.enableCanny(isChecked);
+//				}
+//				if (mPref != null) {
+//					mPref.edit().putBoolean(KEY_ENABLE_EDGE_DETECTION, isChecked).apply();
+//				}
+//				break;
 //			case R.id.use_native_extract_sw:
 //				if (mImageProcessor != null) {
 //					mEnableNativeExtraction = isChecked;
@@ -1103,6 +1106,14 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 //					mPref.edit().putBoolean(KEY_ENABLE_NATIVE_EXTRACTION, isChecked).apply();
 //				}
 //				break;
+			case R.id.use_fill_contour_sw:
+				if (mImageProcessor != null) {
+					mImageProcessor.setFillInnerContour(isChecked);
+				}
+				if (mPref != null) {
+					mPref.edit().putBoolean(KEY_FILL_INNER_CONTOUR, isChecked).apply();
+				}
+				break;
 			case R.id.use_native_canny_sw:
 				if (mImageProcessor != null) {
 					mEnableNativeCanny = isChecked;
@@ -1700,7 +1711,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	/** OpenGL|ESでのエッジ検出前平滑化 */
 	protected int mGLESSmoothType = 0;
 	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
-	protected boolean mEnableGLESCanny = false;
+//	protected boolean mEnableGLESCanny = false;
+	/** 輪郭内を塗り潰すかどうか */
+	protected boolean mFillContour = false;
 	/** native側のエッジ検出前平滑化 */
 	protected int mNativeSmoothType = 0;
 	/** native側のエッジ検出(Canny)を使うかどうか */
@@ -1715,27 +1728,33 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 
 		mMaxThinningLoopFormat = getString(R.string.trace_max_thinning_loop);
 		// OpenGL|ESのエッジ検出前平滑化
-		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
+		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, DEFAULT_SMOOTH_TYPE);
 		spinner = (Spinner)rootView.findViewById(R.id.use_smooth_spinner);
 		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
 		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
-		// OpenGL|ESでエッジ検出を行うかどうか
-		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, false);
-		sw = (Switch)rootView.findViewById(R.id.use_canny_sw);
-		sw.setChecked(mEnableGLESCanny);
+//		// OpenGL|ESでエッジ検出を行うかどうか
+//		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, DEFAULT_ENABLE_EDGE_DETECTION);
+//		sw = (Switch)rootView.findViewById(R.id.use_canny_sw);
+//		sw.setChecked(mEnableGLESCanny);
+//		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// 輪郭内を塗りつぶすかどうか
+		mFillContour = mPref.getBoolean(KEY_FILL_INNER_CONTOUR, DEFAULT_FILL_INNER_CONTOUR);
+		sw = (Switch)rootView.findViewById(R.id.use_fill_contour_sw);
+		sw.setChecked(mFillContour);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// Native側のCannyを使うかどうか
-		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
+		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, DEFAULT_ENABLE_NATIVE_EDGE_DETECTION);
 		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
 		sw.setChecked(mEnableNativeCanny);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// native側のエッジ検出前フィルタ
-		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
+		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, DEFAULT_NATIVE_SMOOTH_TYPE);
 		spinner = (Spinner)rootView.findViewById(R.id.use_native_smooth_spinner);
 		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
 		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
 		// native側の細線化処理
 		mMaxThinningLoop = getInt(mPref, KEY_NATIVE_MAX_THINNING_LOOP, DEFAULT_NATIVE_MAX_THINNING_LOOP);
+		mMaxThinningLoopLabel = (TextView)rootView.findViewById(R.id.max_thinning_loop_textview);
 		sb = (SeekBar)rootView.findViewById(R.id.max_thinning_loop_seekbar);
 		sb.setMax(20);
 		sb.setProgress(mMaxThinningLoop);
@@ -1786,7 +1805,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mExtractRangeVFormat = getString(R.string.trace_config_extract_range_v);
 
 		// OpenGL|ESで色抽出を使うかどうか
-		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, true);
+		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, DEFAULT_ENABLE_EXTRACTION);
 		sw = (Switch)rootView.findViewById(R.id.use_extract_sw);
 		sw.setChecked(mEnableGLESExtraction);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
@@ -1979,8 +1998,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, DEFAULT_AREA_LIMIT_MIN);
 		mAreaLimitMinLabel = (TextView)rootView.findViewById(R.id.area_limit_min_textview);
 		sb =(SeekBar)rootView.findViewById(R.id.area_limit_min_seekbar);
-		sb.setMax(9700);
-		sb.setProgress(areaLimitMinToProgress(mAreaLimitMin)); 	   // [300,10000] => [0, 9700]
+		sb.setMax(10000);
+		sb.setProgress(areaLimitMinToProgress(mAreaLimitMin)); 	   // [0,10000] => [0, 10000]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateAreaLimitMin(mAreaLimitMin);
 		// ライン検出時の面積誤差1
@@ -2017,11 +2036,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	}
 
 	private int areaLimitMinToProgress(final float area_limit_min) {
-		return (int)(area_limit_min - 300);
+		return (int)(area_limit_min);
 	}
 
 	private float progressToAreaLimitMin(final int progress) {
-		return progress + 300;
+		return progress;
 	}
 
 	private void updateAreaLimitMin(final float area_limit_min) {

@@ -71,6 +71,7 @@ public:
 	SmoothType_t mSmoothType;
 	bool mEnableCanny;
 	int mMaxThinningLoop;
+	bool mFillInnerContour;	// 大きな輪郭内の空隙を塗りつぶす
 	ApproxType_t mApproxType;
 	double mApproxFactor;
 	double mCannythreshold1;
@@ -96,6 +97,7 @@ public:
 		mSmoothType = src.mSmoothType;
 		mEnableCanny = src.mEnableCanny;
 		mMaxThinningLoop = src.mMaxThinningLoop;
+		mFillInnerContour = src.mFillInnerContour;
 		mApproxType = src.mApproxType;
 		mApproxFactor = src.mApproxFactor;
 		mCannythreshold1 = src.mCannythreshold1;
@@ -192,4 +194,6 @@ public:
 	int setAreaErrLimit(const float &limit1, const float &limit2);
 	int setMaxThinningLoop(const int &max_loop);
 	inline const int getMaxThinningLoop() const { return mParam.mMaxThinningLoop; };
+	int setFillInnerContour(const bool &fill);
+	inline const int getFillInnerContour() const  { return mParam.mFillInnerContour; };
 };

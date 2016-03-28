@@ -8,14 +8,17 @@
 #include <stdio.h>
 #include "opencv2/opencv.hpp"
 
+#define USE_FILTER2D 0
+
 class Thinning {
 private:
-	cv::Mat *kpb;
-	cv::Mat *kpw;
+#if USE_FILTER2D
+	cv::Mat kpb[8];
+	cv::Mat kpw[8];
 	cv::Mat src_w;
 	cv::Mat src_b;
 	cv::Mat src_f;
-	void init(const int &width, const int &height);
+#endif
 protected:
 public:
 	Thinning(const int &width, const int &height);
