@@ -148,6 +148,7 @@
 	<string name="trace_smooth_dilation">ダイレーション</string>
 	<string name="trace_use_native_canny">エッジ検出(Canny)OpenCV</string>
 	<string name="trace_use_canny">エッジ検出(Canny)OpenGL|ES</string>
+	<string name="trace_max_thinning_loop">細線化(OpenCV): %3d</string>
 	<!-- 色抽出設定-->
 	<string name="trace_config_title_color_extract">色抽出設定</string>
 	<string name="trace_config_extract_use_opencv">色抽出OpenCV</string>

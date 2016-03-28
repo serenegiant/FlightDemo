@@ -59,6 +59,8 @@ public class AppConst {
 	public static final float DEFAULT_AREA_ERR_LIMIT1 = 1.25f;
 	public static final String KEY_AREA_ERR_LIMIT2 = "KEY_AREA_ERR_LIMIT2";
 	public static final float DEFAULT_AREA_ERR_LIMIT2 = 1.30f;
+	public static final String KEY_NATIVE_MAX_THINNING_LOOP = "KEY_NATIVE_MAX_THINNING_LOOP";
+	public static final int DEFAULT_NATIVE_MAX_THINNING_LOOP = 0;
 	// 色抽出設定
 	public static final String KEY_ENABLE_EXTRACTION = "KEY_ENABLE_EXTRACTION";
 	public static final String KEY_ENABLE_NATIVE_EXTRACTION = "KEY_ENABLE_NATIVE_EXTRACTION";

@@ -45,6 +45,7 @@ LOCAL_SHARED_LIBRARIES += common
 
 LOCAL_SRC_FILES := \
 	ImageProcessor.cpp \
+	thinning.cpp \
 
 LOCAL_ARM_MODE := arm
 LOCAL_MODULE := imageproc

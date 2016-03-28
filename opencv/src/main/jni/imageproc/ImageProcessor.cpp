@@ -59,6 +59,7 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 :	mWeakThiz(env->NewGlobalRef(weak_thiz_obj)),
 	mClazz((jclass)env->NewGlobalRef(clazz)),
 	mIsRunning(false),
+	mThinning(640, 368),
 	pbo_ix(0)
 {
 	// 結果形式
@@ -79,6 +80,9 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	mParam.mEnableCanny = true;
 	mParam.mCannythreshold1 = 50.0;	// エッジ検出する際のしきい値
 	mParam.mCannythreshold2 = 200.0;
+	// 細線化
+	mParam.mMaxThinningLoop = 0;
+
 	// 基準図形との類似性の最大値
 	mParam.mMaxAnalogous = 200.0;
 	// H(色相)は制限なし, S(彩度)は0-約5%, 2:V(明度)は約80-100%
@@ -88,7 +92,6 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	mParam.extractColorHSV[3] = 180;	// H下限
 	mParam.extractColorHSV[4] = 10;		// S上限
 	mParam.extractColorHSV[5] = 255;	// V上限
-	mParam.changed = true;
 	// 台形補正
 	mParam.mTrapeziumRate = 0.0;
 	// 輪郭検出時の最小/最大面積
@@ -99,6 +102,7 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 	mParam.mAreaErrLimit2 = 1.3f;
 	// ライン検出時の最小アスペクト比
 	mParam.mMinLineAspect = 3.0f;
+	mParam.changed = true;
 #if USE_PBO
 	pbo[0] = pbo[1] = 0;
 #endif
@@ -322,6 +326,21 @@ int ImageProcessor::setAreaErrLimit(const float &limit1, const float &limit2) {
 		{
 			mParam.mAreaErrLimit1 = limit1;
 			mParam.mAreaErrLimit2 = limit2;
+			mParam.changed = true;
+		}
+		mMutex.unlock();
+	}
+
+	RETURN(0, int);
+}
+
+int ImageProcessor::setMaxThinningLoop(const int &max_loop) {
+	ENTER();
+
+	if (mParam.mMaxThinningLoop != max_loop) {
+		mMutex.lock();
+		{
+			mParam.mMaxThinningLoop = max_loop;
 			mParam.changed = true;
 		}
 		mMutex.unlock();
@@ -734,6 +753,13 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 	}
 	// グレースケールに変換(RGBA->Y)
 	cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
+	// 台形補正
+	if (param.mTrapeziumRate) {
+		cv::warpPerspective(src, src, param.perspectiveTransform, cv::Size(src.cols, src.rows));
+		if (param.show_src) {
+			cv::warpPerspective(frame, frame, param.perspectiveTransform, cv::Size(src.cols, src.rows));
+		}
+	}
 	// 平滑化
 //	cv::Sobel(src, src, CV_32F, 1, 1);
 //	cv::convertScaleAbs(src, src, 1, 0);
@@ -762,21 +788,18 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 //		// 2値化
 //		cv::adaptiveThreshold(src, src, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, 7, 0);
 //	}
+	// 2値化
+//	cv::threshold(src, src, 125, 255, cv::THRESH_BINARY);
+//	cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
+	// 細線化
+	if (param.mMaxThinningLoop) {
+		mThinning.apply(src, src, param.mMaxThinningLoop);
+	}
 	// エッジ検出(Cannyの結果は2値化されてる)
 	if (param.mEnableCanny) {
 		cv::Canny(src, src, param.mCannythreshold1, param.mCannythreshold2);
 	}
-	// 2値化
-//	cv::threshold(src, src, 125, 255, cv::THRESH_BINARY);
-//	cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
 
-	// 台形補正
-	if (param.mTrapeziumRate) {
-		cv::warpPerspective(src, src, param.perspectiveTransform, cv::Size(src.cols, src.rows));
-		if (param.show_src) {
-			cv::warpPerspective(frame, frame, param.perspectiveTransform, cv::Size(src.cols, src.rows));
-		}
-	}
 	// 表示用にカラー画像に戻す
 	if (param.needs_result) {
 		if (param.show_src) {
@@ -1452,6 +1475,32 @@ static jint nativeSetAreaErrLimit(JNIEnv *env, jobject thiz,
 	RETURN(result, jint);
 }
 
+static jint nativeGetMaxThinningLoop(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native) {
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->getMaxThinningLoop();
+	}
+
+	RETURN(result, jint);
+}
+
+static jint nativeSetMaxThinningLoop(JNIEnv *env, jobject thiz,
+	ID_TYPE id_native, jint max_loop) {
+	ENTER();
+
+	jint result = -1;
+	ImageProcessor *processor = reinterpret_cast<ImageProcessor *>(id_native);
+	if (LIKELY(processor)) {
+		result = processor->setMaxThinningLoop(max_loop);
+	}
+
+	RETURN(result, jint);
+}
+
 //================================================================================
 //================================================================================
 static JNINativeMethod methods[] = {
@@ -1475,6 +1524,8 @@ static JNINativeMethod methods[] = {
 	{ "nativeSetAreaLimit",			"(JFF)I", (void *) nativeSetAreaLimit },
 	{ "nativeSetAspectLimit",		"(JF)I", (void *) nativeSetAspectLimit },
 	{ "nativeSetAreaErrLimit",		"(JFF)I", (void *) nativeSetAreaErrLimit },
+	{ "nativeGetMaxThinningLoop",	"(J)I", (void *) nativeGetMaxThinningLoop },
+	{ "nativeSetMaxThinningLoop",	"(JI)I", (void *) nativeSetMaxThinningLoop },
 };
 
 

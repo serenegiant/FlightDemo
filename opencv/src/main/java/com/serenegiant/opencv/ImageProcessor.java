@@ -578,6 +578,21 @@ public class ImageProcessor {
 		}
 	}
 
+	public int getMaxThinningLoop() {
+		final int result = nativeGetMaxThinningLoop(mNativePtr);
+		if (result < 0) {
+			throw new IllegalStateException("nativeGetMaxThinningLoop:result=" + result);
+		}
+		return result;
+	}
+
+	public void setMaxThinningLoop(final int max_loop) {
+		final int result = nativeSetMaxThinningLoop(mNativePtr, max_loop);
+		if (result != 0) {
+			throw new IllegalStateException("nativeSetMaxThinningLoop:result=" + result);
+		}
+	}
+
 //================================================================================
 	/**
 	 * native側からの結果コールバック
@@ -1021,4 +1036,6 @@ public class ImageProcessor {
 	private static native int nativeSetAreaLimit(final long id_native, final float min, final float max);
 	private static native int nativeSetAspectLimit(final long id_native, final float min);
 	private static native int nativeSetAreaErrLimit(final long id_native, final float limit1, final float limit2);
+	private static native int nativeGetMaxThinningLoop(final long id_native);
+	private static native int nativeSetMaxThinningLoop(final long id_native, final int max_loop);
 }

@@ -12,6 +12,7 @@
 #include "Mutex.h"
 #include "Condition.h"
 #include "opencv2/opencv.hpp"
+#include "Thinning.h"
 
 using namespace android;
 
@@ -69,6 +70,7 @@ public:
 	bool mEnableExtract;
 	SmoothType_t mSmoothType;
 	bool mEnableCanny;
+	int mMaxThinningLoop;
 	ApproxType_t mApproxType;
 	double mApproxFactor;
 	double mCannythreshold1;
@@ -93,6 +95,7 @@ public:
 		mEnableExtract = src.mEnableExtract;
 		mSmoothType = src.mSmoothType;
 		mEnableCanny = src.mEnableCanny;
+		mMaxThinningLoop = src.mMaxThinningLoop;
 		mApproxType = src.mApproxType;
 		mApproxFactor = src.mApproxFactor;
 		mCannythreshold1 = src.mCannythreshold1;
@@ -120,6 +123,7 @@ private:
 	jclass mClazz;
 	volatile bool mIsRunning;
 	DetectParam_t mParam;
+	Thinning mThinning;
 
 	mutable Mutex mMutex;
 	mutable Mutex mPoolMutex;
@@ -186,4 +190,6 @@ public:
 	int setAreaLimit(const float &min, const float &max);
 	int setAspectLimit(const float &min);
 	int setAreaErrLimit(const float &limit1, const float &limit2);
+	int setMaxThinningLoop(const int &max_loop);
+	inline const int getMaxThinningLoop() const { return mParam.mMaxThinningLoop; };
 };

@@ -172,6 +172,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 //		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
 		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, false);
 		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, 0);
+		mMaxThinningLoop = getInt(mPref, KEY_NATIVE_MAX_THINNING_LOOP, DEFAULT_NATIVE_MAX_THINNING_LOOP);
+		//
 		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, DEFAULT_AREA_LIMIT_MIN);
 		mAspectLimitMin = mPref.getFloat(KEY_ASPECT_LIMIT_MIN, DEFAULT_ASPECT_LIMIT_MIN);
 		mAreaErrLimit1 = mPref.getFloat(KEY_AREA_ERR_LIMIT1, DEFAULT_AREA_ERR_LIMIT1);
@@ -1198,6 +1200,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					updateTrapeziumRate(trapezium_rate);
 				}
 				break;
+			case R.id.max_thinning_loop_seekbar:
+				if (mMaxThinningLoop != progress) {
+					mMaxThinningLoop = progress;
+					if (mImageProcessor != null) {
+						mImageProcessor.setMaxThinningLoop(progress);
+					}
+					updateMaxThinningLoop(progress);
+				}
+				break;
 			case R.id.extract_range_h_seekbar:
 				final float range_h = progress / 100.0f;
 				if (mExtractRangeH != range_h) {
@@ -1358,6 +1369,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			case R.id.trapezium_rate_seekbar:
 				if (mPref != null) {
 					mPref.edit().putString(KEY_TRAPEZIUM_RATE, Double.toString(mTrapeziumRate)).apply();
+				}
+				break;
+			case R.id.max_thinning_loop_seekbar:
+				if (mPref != null) {
+					mPref.edit().putInt(KEY_NATIVE_MAX_THINNING_LOOP, mMaxThinningLoop).apply();
 				}
 				break;
 			case R.id.extract_range_h_seekbar:
@@ -1679,6 +1695,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	}
 
 //--------------------------------------------------------------------------------
+	private String mMaxThinningLoopFormat;
+	private TextView mMaxThinningLoopLabel;
 	/** OpenGL|ESでのエッジ検出前平滑化 */
 	protected int mGLESSmoothType = 0;
 	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
@@ -1687,10 +1705,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	protected int mNativeSmoothType = 0;
 	/** native側のエッジ検出(Canny)を使うかどうか */
 	protected boolean mEnableNativeCanny = true;
+	/** native側の細線化処理のループ回数(0なら無効) */
+	protected int mMaxThinningLoop;
+
 	private void initPreprocess2(final View rootView) {
 		Switch sw;
 		Spinner spinner;
+		SeekBar sb;
 
+		mMaxThinningLoopFormat = getString(R.string.trace_max_thinning_loop);
 		// OpenGL|ESのエッジ検出前平滑化
 		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, 0);
 		spinner = (Spinner)rootView.findViewById(R.id.use_smooth_spinner);
@@ -1711,9 +1734,23 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		spinner = (Spinner)rootView.findViewById(R.id.use_native_smooth_spinner);
 		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
 		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
+		// native側の細線化処理
+		mMaxThinningLoop = getInt(mPref, KEY_NATIVE_MAX_THINNING_LOOP, DEFAULT_NATIVE_MAX_THINNING_LOOP);
+		sb = (SeekBar)rootView.findViewById(R.id.max_thinning_loop_seekbar);
+		sb.setMax(20);
+		sb.setProgress(mMaxThinningLoop);
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateMaxThinningLoop(mMaxThinningLoop);
 	}
 
 	private void releasePreprocess2(final View rootView) {
+		mMaxThinningLoopLabel = null;
+	}
+
+	private void updateMaxThinningLoop(final int max_loop) {
+		if (mMaxThinningLoopLabel != null) {
+			mMaxThinningLoopLabel.setText(String.format(mMaxThinningLoopFormat, max_loop));
+		}
 	}
 
 //--------------------------------------------------------------------------------
