@@ -998,9 +998,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				rec.mAngle = result[4];
 				// 最小矩形面積に対する輪郭面積の比
 				rec.mAreaRate = result[5];
-				// 円フィッティングの曲率
+				// 楕円フィッティングの曲率
 				rec.mCurvature = result[6];
-				// キュー内に最大数入っていたらプールに戻す
+				// 近似楕円の中心座標, mCurvature==0の時は無効(0,0)
+				rec.mEclipsePos.set(result[7], result[8], 0.0f);
+				// キュー内に最大数入っていたら先頭(一番古いもの)をプールに戻す
 				for ( ; mQueue.size() > MAX_QUEUE ; ) {
 					mPool.add(mQueue.remove(0));
 				}
