@@ -108,12 +108,12 @@ public class MediaSource implements ISource {
 
 	@Override
 	public int getOutputTexId() {
-		return mOutputScreen.getTexture();
+		return needSwap ? mOutputScreen.getTexture() : mSourceScreen.getTexture();
 	}
 
 	@Override
 	public float[] getTexMatrix() {
-		return mOutputScreen.getTexMatrix();
+		return needSwap ? mOutputScreen.getTexMatrix() : mSourceScreen.getTexMatrix();
 	}
 
 	@Override
@@ -134,12 +134,12 @@ public class MediaSource implements ISource {
 		}
 	}
 
-	public MediaSource bind(final int index) {
+	public MediaSource bind() {
 		mSourceScreen.bind();
 		return this;
 	}
 
-	public MediaSource unbind(final int index) {
+	public MediaSource unbind() {
 		mSourceScreen.unbind();
 		reset();
 		return this;

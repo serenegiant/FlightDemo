@@ -760,6 +760,7 @@ public class ImageProcessor {
 				// ノイズ除去(平滑化)
 				mSmooth = new MediaEffectKernel();
 				mSmooth.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
+				// 膨張
 				mDilation = new MediaEffectDilation(4);
 				// グレースケール
 				mGray = new MediaEffectGrayScale(mEffectContext);
@@ -784,10 +785,10 @@ public class ImageProcessor {
 				isProcessingRunning = false;
 				mSync.notifyAll();
 			}
+			makeCurrent();
 			// native側の処理を停止させる
 			nativeStop(mNativePtr);
 			// 破棄処理
-			makeCurrent();
 			mSourceSurface = null;
 			if (mSourceTexture != null) {
 				mSourceTexture.release();
@@ -992,6 +993,7 @@ public class ImageProcessor {
 			mExtraction.resize(width, height);
 			mSmooth.resize(width, height);
 			mGray.resize(width, height);
+			mDilation.resize(width, height);
 			mEdgeDetection.resize(width, height);
 		}
 

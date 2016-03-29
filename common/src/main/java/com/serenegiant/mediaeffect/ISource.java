@@ -22,6 +22,11 @@ import com.serenegiant.glutils.TextureOffscreen;
 public interface ISource {
 	public ISource reset();
 	public ISource resize(final int width, final int height);
+	/**
+	 * IEffectを適用する。1回呼び出す毎に入力と出力のオフスクリーン(テクスチャ)が入れ替わる
+	 * @param effect
+	 * @return
+	 */
 	public ISource apply(IEffect effect);
 	public int getWidth();
 	public int getHeight();

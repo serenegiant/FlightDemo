@@ -71,30 +71,32 @@ public final class GLHelper {
 	}
 
 	/**
-	 * テクスチャ名を生成
+	 * テクスチャ名を生成, テクスチャユニットはGL_TEXTURE0, クランプ方法はGL_CLAMP_TO_EDGE
 	 * @param texTarget
-	 * @param filter_param テクスチャの補完方法を指定, min/mag共に同じ値, GL_LINEARとかGL_NEAREST
+	 * @param filter_param テクスチャの補完方法を指定, min/mag共に同じ値になる, GL_LINEARとかGL_NEAREST
 	 * @return
 	 */
 	public static int initTex(final int texTarget, final int filter_param) {
-		return initTex(texTarget, filter_param, filter_param, GLES20.GL_CLAMP_TO_EDGE);
+		return initTex(texTarget, GLES20.GL_TEXTURE0, filter_param, filter_param, GLES20.GL_CLAMP_TO_EDGE);
 	}
 
 	/**
 	 * テクスチャ名を生成(GL_TEXTURE0のみ)
 	 * @param texTarget
-	 * @param min_filter テクスチャの補間方法を指定 GL_LINEARとかGL_NEAREST
-	 * @param mag_filter テクスチャの補間方法を指定 GL_LINEARとかGL_NEAREST
+	 * @param texUnit テクスチャユニット, GL_TEXTURE0...GL_TEXTURE31
+	 * @param min_filter テクスチャの補間方法を指定, GL_LINEARとかGL_NEAREST
+	 * @param mag_filter テクスチャの補間方法を指定, GL_LINEARとかGL_NEAREST
+	 * @param wrap テクスチャのクランプ方法, GL_CLAMP_TO_EDGE
 	 * @return
 	 */
-	public static int initTex(final int texTarget, final int min_filter, final int mag_filter, final int wrap) {
+	public static int initTex(final int texTarget, final int texUnit, final int min_filter, final int mag_filter, final int wrap) {
 //		if (DEBUG) Log.v(TAG, "initTex:target=" + texTarget);
 		final int[] tex = new int[1];
-		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+		GLES20.glActiveTexture(texUnit);
 		GLES20.glGenTextures(1, tex, 0);
 		GLES20.glBindTexture(texTarget, tex[0]);
-		GLES20.glTexParameteri(texTarget, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
-		GLES20.glTexParameteri(texTarget, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+		GLES20.glTexParameteri(texTarget, GLES20.GL_TEXTURE_WRAP_S, wrap);
+		GLES20.glTexParameteri(texTarget, GLES20.GL_TEXTURE_WRAP_T, wrap);
 		GLES20.glTexParameteri(texTarget, GLES20.GL_TEXTURE_MIN_FILTER, min_filter);
 		GLES20.glTexParameteri(texTarget, GLES20.GL_TEXTURE_MAG_FILTER, mag_filter);
 		return tex[0];
@@ -189,7 +191,7 @@ public final class GLHelper {
 		// draw the text centered
 		canvas.drawText(text, 16, 112, textPaint);
 
-		final int texture = initTex(GLES20.GL_TEXTURE_2D, GLES20.GL_NEAREST, GLES20.GL_LINEAR, GLES20.GL_REPEAT);
+		final int texture = initTex(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE0, GLES20.GL_NEAREST, GLES20.GL_LINEAR, GLES20.GL_REPEAT);
 
 		// Alpha blending
 		// GLES20.glEnable(GLES20.GL_BLEND);
