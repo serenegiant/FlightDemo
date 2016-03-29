@@ -64,8 +64,10 @@ public class MediaSource implements ISource {
 				mOutputScreen = null;
 			}
 			if ((width > 0) && (height > 0)) {
-				mSourceScreen = new TextureOffscreen(width, height, false);
-				mOutputScreen = new TextureOffscreen(width, height, false);
+				// FIXME フィルタ処理自体は大丈夫そうなんだけどImageProcessorの処理がおかしくなるので今は2の乗数には丸めない
+				// 代わりにImageProcessorの縦横のサイズ自体を2の乗数にする
+				mSourceScreen = new TextureOffscreen(width, height, false, false);
+				mOutputScreen = new TextureOffscreen(width, height, false, false);
 				mWidth = width;
 				mHeight = height;
 				mSrcTexIds[0] = mSourceScreen.getTexture();

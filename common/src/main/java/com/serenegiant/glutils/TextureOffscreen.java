@@ -31,6 +31,8 @@ public class TextureOffscreen {
 	private static final boolean DEBUG = false;
 	private static final String TAG = "TextureOffscreen";
 
+	private static final boolean DEFAULT_ADJUST_POWER2 = false;
+
 	private final int TEX_TARGET;
 	private final boolean mHasDepthBuffer, mAdjustPower2;
 	private int mWidth, mHeight;							// 描画領域サイズ
@@ -45,7 +47,7 @@ public class TextureOffscreen {
 	 * @param height
 	 */
 	public TextureOffscreen(final int width, final int height) {
-		this(GLES20.GL_TEXTURE_2D, width, height, false, false);
+		this(GLES20.GL_TEXTURE_2D, width, height, false, DEFAULT_ADJUST_POWER2);
 	}
 
 	/**
@@ -55,7 +57,7 @@ public class TextureOffscreen {
 	 * @param use_depth_buffer set true if you use depth buffer. the depth is fixed as 16bits
 	 */
 	public TextureOffscreen(final int width, final int height, final boolean use_depth_buffer) {
-		this(GLES20.GL_TEXTURE_2D, width, height, use_depth_buffer, false);
+		this(GLES20.GL_TEXTURE_2D, width, height, use_depth_buffer, DEFAULT_ADJUST_POWER2);
 	}
 
 	/**
@@ -94,7 +96,7 @@ public class TextureOffscreen {
 	 * @param height
 	 */
 	public TextureOffscreen(final int tex_id, final int width, final int height) {
-		this(GLES20.GL_TEXTURE_2D, tex_id, width, height, false, false);
+		this(GLES20.GL_TEXTURE_2D, tex_id, width, height, false, DEFAULT_ADJUST_POWER2);
 	}
 
 	/**
@@ -105,7 +107,7 @@ public class TextureOffscreen {
 	 * @param use_depth_buffer
 	 */
 	public TextureOffscreen(final int tex_id, final int width, final int height, final boolean use_depth_buffer) {
-		this(GLES20.GL_TEXTURE_2D, tex_id, width, height, use_depth_buffer, false);
+		this(GLES20.GL_TEXTURE_2D, tex_id, width, height, use_depth_buffer, DEFAULT_ADJUST_POWER2);
 	}
 
 	/**

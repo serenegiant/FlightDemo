@@ -72,6 +72,12 @@ public class ImageProcessor {
 	/** native側のインスタンスポインタ, 名前を変えたりしちゃダメ */
 	private long mNativePtr;
 
+	/**
+	 * コンストラクタ
+	 * @param src_width ソース映像サイズ
+	 * @param src_height  ソース映像サイズ
+	 * @param callback
+	 */
 	public ImageProcessor(final int src_width, final int src_height, final ImageProcessorCallback callback) {
 //		if (DEBUG) Log.v(TAG, "コンストラクタ");
 		if (callback == null) {
@@ -83,6 +89,11 @@ public class ImageProcessor {
 		mNativePtr = nativeCreate(new WeakReference<ImageProcessor>(this));
 	}
 
+	/**
+	 * ImageProcessorの処理スレッドを開始。処理スレッドが実際に処理を始めるまで戻らない
+	 * @param width 処理画像サイズ
+	 * @param height 処理画像サイズ
+	 */
 	public void start(final int width, final int height) {
 //		if (DEBUG) Log.v(TAG, "start:");
 		if (mProcessingTask == null) {
@@ -753,7 +764,7 @@ public class ImageProcessor {
 //				proj.setEnable(true);
 //				mEffects.add(proj);
 //--------------------------------------------------------------------------------
-				// 色抽出とCannyエッジ検出はプレフィルタじゃないよ
+				// ここから下はプレフィルタじゃないよ
 				// 色抽出(白色)
 				mExtraction = new MediaEffectExtraction();
 				applyExtractionColor();
