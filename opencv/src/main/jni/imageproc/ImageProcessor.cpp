@@ -606,8 +606,11 @@ int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv
 		detected[4] = (detect_result.area_rect.size.width <= detect_result.area_rect.size.height ? 0.0f : -90.0f) - detect_result.area_rect.angle;
 		// 最小矩形面積に対する輪郭面積の比
 		detected[5] = detect_result.area_rate;
-		// 円フィッティングの曲率
+		// 楕円フィッティングの曲率
 		detected[6] = detect_result.curvature;
+		// 楕円の中心座標
+		detected[7] = detect_result.ex;
+		detected[8] = detect_result.ey;
 		//
 		jfloatArray detected_array = env->NewFloatArray(RESULT_NUM);
 		env->SetFloatArrayRegion(detected_array, 0, RESULT_NUM, detected);
@@ -757,12 +760,34 @@ static bool comp_line_priority(const DetectRec &left, const DetectRec &right) {
 		|| (b2);					// 類似性が良い
 }
 
+std::vector<std::vector< cv::Point>> ImageProcessor::findOutlines(cv::Mat &src) {
+	ENTER();
+
+	std::vector<std::vector< cv::Point>> contours;
+	// 一回り大きな画像を用意,黒で塗りつぶす
+	cv::Mat new_src = cv::Mat::zeros(cv::Size(src.cols + 16, src.rows + 16), CV_8UC3);
+	// 移動行列(8ピクセルずつずらす)
+	cv::Mat affine = (cv::Mat_<double>(2,3)<<1.0, 0.0, 8, 0.0, 1.0, 8);
+	cv::warpAffine(src, new_src, affine, new_src.size(), CV_INTER_LINEAR, cv::BORDER_TRANSPARENT);
+	// ROI領域
+	cv::Rect roi_rect(8, 8, src.cols, src.rows); // x,y,w,h
+	src = new_src(roi_rect);
+	cv::findContours(src, contours,
+		cv::RETR_EXTERNAL, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
+		cv::CHAIN_APPROX_NONE);	// 輪郭データ近似方法, CHAIN_APPROX_NONE:無し,  CHAIN_APPROX_SIMPLE:直線は頂点のみにする,  CHAIN_APPROX_TC89_L1, CHAIN_APPROX_TC89_KCOS
+
+	RET(contours);
+}
+
 /** 映像の前処理 */
 /*protected*/
 int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result, cv::Mat &result,
 	const DetectParam_t &param) {
 
 	ENTER();
+
+	// 輪郭抽出結果(最外形輪郭)
+	std::vector<std::vector< cv::Point>> outlines;
 
 	// RGBAのままだとHSVに変換できないので一旦BGRに変える
 	cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
@@ -782,20 +807,20 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 	}
 	// 輪郭内の塗りつぶし(色抽出してなければ全面塗りつぶされる)
 	if (param.mFillInnerContour) {
-		std::vector<std::vector< cv::Point>> contours;
-		// 一回り大きな画像を用意,黒で塗りつぶす
-		cv::Mat new_src = cv::Mat::zeros(cv::Size(src.cols + 16, src.rows + 16), CV_8UC3);
-		// 移動行列(8ピクセルずつずらす)
-		cv::Mat affine = (cv::Mat_<double>(2,3)<<1.0, 0.0, 8, 0.0, 1.0, 8);
-		cv::warpAffine(src, new_src, affine, new_src.size(), CV_INTER_LINEAR, cv::BORDER_TRANSPARENT);
-		// ROI領域
-		cv::Rect roi_rect(8, 8, src.cols, src.rows); // x,y,w,h
-		src = new_src(roi_rect);
-		cv::findContours(src, contours,
-			cv::RETR_EXTERNAL, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
-			cv::CHAIN_APPROX_NONE);	// 輪郭データ近似方法, CHAIN_APPROX_NONE:無し,  CHAIN_APPROX_SIMPLE:直線は頂点のみにする,  CHAIN_APPROX_TC89_L1, CHAIN_APPROX_TC89_KCOS
+//		// 一回り大きな画像を用意,黒で塗りつぶす
+//		cv::Mat new_src = cv::Mat::zeros(cv::Size(src.cols + 16, src.rows + 16), CV_8UC3);
+//		// 移動行列(8ピクセルずつずらす)
+//		cv::Mat affine = (cv::Mat_<double>(2,3)<<1.0, 0.0, 8, 0.0, 1.0, 8);
+//		cv::warpAffine(src, new_src, affine, new_src.size(), CV_INTER_LINEAR, cv::BORDER_TRANSPARENT);
+//		// ROI領域
+//		cv::Rect roi_rect(8, 8, src.cols, src.rows); // x,y,w,h
+//		src = new_src(roi_rect);
+//		cv::findContours(src, contours,
+//			cv::RETR_EXTERNAL, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
+//			cv::CHAIN_APPROX_NONE);	// 輪郭データ近似方法, CHAIN_APPROX_NONE:無し,  CHAIN_APPROX_SIMPLE:直線は頂点のみにする,  CHAIN_APPROX_TC89_L1, CHAIN_APPROX_TC89_KCOS
+		outlines = findOutlines(src);
 		// 見つかった輪郭を塗りつぶす
-		cv::drawContours(src, contours, -1, COLOR_WHITE, cv::FILLED);
+		cv::drawContours(src, outlines, -1, COLOR_WHITE, cv::FILLED);
 	}
 	// 平滑化
 //	cv::Sobel(src, src, CV_32F, 1, 1);
@@ -830,8 +855,18 @@ int ImageProcessor::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result
 //	cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
 	// 細線化
 	if (param.mMaxThinningLoop) {
+		if (outlines.empty()) {
+			outlines = findOutlines(src);
+		}
 		cv::threshold(src, src, 10, 255, CV_THRESH_BINARY);
-		mThinning.apply(src, src, param.mMaxThinningLoop);
+		for (auto outline = outlines.begin(); outline != outlines.end(); outline++) {
+			// 外接四角を取得
+			cv::Rect bounds = cv::boundingRect(*outline);
+			// ROIを作成
+			cv::Mat roi = src(bounds);
+			// ROIに対して細線化
+			mThinning.apply(roi, roi, param.mMaxThinningLoop);
+		}
 	}
 	// エッジ検出(Cannyの結果は2値化されてる)
 	if (param.mEnableCanny) {
@@ -949,9 +984,6 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 	// ROI領域
 	cv::Rect roi_rect(8, 8, src.cols, src.rows); // x,y,w,h
 	src = new_src(roi_rect);
-//	// 外周に四角を描いておく。でないと画面の外にはみ出した部分が有る形状を閉曲線として検出出来ない
-//	// ただしこれを描くとRETR_EXTERNALにした時に必ず外周枠がかかったそれより内側が検出されない
-//	cv:rectangle(src, cv::Rect(4, 4, src.cols - 8, src.rows - 8), COLOR_WHITE, 8);
 	// 輪郭を求める
 	cv::findContours(src, contours, hierarchy,
 		cv::RETR_CCOMP, 		// RETR_EXTERNAL:輪郭検出方法は外形のみ, RETR_LIST:階層なし, RETR_CCOMP:2階層, RETR_TREE:階層
@@ -977,7 +1009,7 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 //			? param.mApproxFactor * cv::arcLength(approx, true)	// 周長に対する比
 //			: param.mApproxFactor;								// 絶対値
 //		// 輪郭を近似する
-//		cv::approxPolyDP(approx, approx, epsilon, true);	// 閉曲線にする
+//		cv::approxPolyDP(*contour, approx, epsilon, true);	// 閉曲線にする
 		const size_t num_vertex = approx.size();
 		if (LIKELY(num_vertex < 4)) continue;	// 3角形はスキップ
 		// 輪郭を内包する最小矩形(回転あり)を取得
@@ -1021,7 +1053,7 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 		// 面積が小さすぎるのはスキップ
 		if (area < param.mAreaLimitMin) continue;
 		// 最小矩形の面積の半分未満ならスキップ
-		if (w * h / area > 2.0f) continue;
+//		if (w * h / area > 2.0f) continue;	// XXX これを入れると(楕)円弧やコーナーを検出できなくなる
 		// 凸包の面積を計算
 		const float area_approx = (float)cv::contourArea(approx);
 		// 凸包面積が25%以上元の輪郭面積より大きければスキップ=凹凸が激しい
@@ -1041,7 +1073,7 @@ int ImageProcessor::findContours(cv::Mat &src, cv::Mat &result,
 //			draw_rect(result, area_rect, COLOR_GREEN);
 		}
 		possible.type = TYPE_NON;
-		possible.contour.assign(approx.begin(), approx.end());
+		possible.contour.assign((*contour).begin(), (*contour).end());	// 凸包図形から輪郭に変更
 		possible.area_rect = area_rect;	// 最小矩形
 		possible.area = area;				// 近似輪郭の面積
 		possible.area_rate = w * h / area;	// 近似輪郭の面積に対する最小矩形の面積比
@@ -1107,44 +1139,44 @@ int ImageProcessor::detect_line(
 
 	// 検出した輪郭の数分ループする
 	for (auto iter = contours.begin(); iter != contours.end(); iter++) {
-		DetectRec_t approx = *iter;		// 近似輪郭
+		DetectRec_t rec = *iter;		// 輪郭レコード
 		// 輪郭を内包する最小矩形(回転あり)を取得
-		cv::RotatedRect area_rect = approx.area_rect;
+		cv::RotatedRect area_rect = rec.area_rect;
 		// アスペクト比が正方形に近いものはスキップ
-		if (LIKELY(approx.aspect < param.mMinLineAspect)) continue;
+		if (LIKELY(rec.aspect < param.mMinLineAspect)) continue;
 		if (param.show_detects) {
-			cv::polylines(result_frame, approx.contour, true, COLOR_ORANGE, 2);
+			cv::polylines(result_frame, rec.contour, true, COLOR_ORANGE, 2);
 //			draw_rect(result_frame, area_rect, COLOR_ORANGE);
 		}
 		// 最小矩形と元輪郭の面積比が大き過ぎる場合スキップ
-		if ((approx.area_rate < 0.67f) && (approx.area_rate > 1.5f)) continue;	// ±50%以上ずれている時はスキップ
-//		if ((approx.area_rate < 0.5f) && (approx.area_rate > 2.0f)) continue;	// ±100%以上ずれている時はスキップ
-		const float area_vertex = approx.area / approx.contour.size();
+		if ((rec.area_rate < 0.67f) && (rec.area_rate > 1.5f)) continue;	// ±50%以上ずれている時はスキップ
+//		if ((rec.area_rate < 0.5f) && (rec.area_rate > 2.0f)) continue;	// ±100%以上ずれている時はスキップ
+		const float area_vertex = rec.area / rec.contour.size();
 		// 面積の割に頂点が多いものもスキップ これを入れるとエッジがギザギザの時に検出できなくなる
 //		if (area_vertex < 200.0f) continue;		// 1頂点あたり200ピクセルよりも小さい
 		if (param.show_detects) {
-			cv::polylines(result_frame, approx.contour, true, COLOR_ACUA, 2);
+			cv::polylines(result_frame, rec.contour, true, COLOR_ACUA, 2);
 //			draw_rect(result_frame, area_rect, COLOR_ACUA);
 		}
 		// 輪郭のHu momentを計算
-		cv::HuMoments(cv::moments(approx.contour), hu_moments);
+		cv::HuMoments(cv::moments(rec.contour), hu_moments);
 		// 基準値と比較, メソッド1は時々一致しない, メソッド2,3だとほとんど一致しない, 完全一致なら0が返る
 		const float analogous = (float)compHuMoments(hu_moments, 1);
 		// Hu momentsが基準値との差が大きい時はスキップ
 //		if (analogous < param.mMaxAnalogous) {
 			// ラインの可能性が高い輪郭を追加
 			possible.type = TYPE_LINE;
-			possible.contour.assign(approx.contour.begin(), approx.contour.end());
-			possible.area_rect = approx.area_rect;
-			possible.area = approx.area;
-			possible.area_rate = approx.area_rate;
-			possible.aspect = approx.aspect;
-			possible.length = approx.length;	// 長軸長さ
-			possible.width = approx.width;		// 短軸長さ
+			possible.contour.assign(rec.contour.begin(), rec.contour.end());
+			possible.area_rect = rec.area_rect;
+			possible.area = rec.area;
+			possible.area_rate = rec.area_rate;
+			possible.aspect = rec.aspect;
+			possible.length = rec.length;	// 長軸長さ
+			possible.width = rec.width;		// 短軸長さ
 			possible.analogous = analogous;
 			possibles.push_back(possible);
 			if (param.show_detects) {
-				cv::polylines(result_frame, approx.contour, true, COLOR_BLUE, 2);
+				cv::polylines(result_frame, rec.contour, true, COLOR_BLUE, 2);
 //				draw_rect(result_frame, area_rect, COLOR_BLUE);
 			}
 //		}
@@ -1155,16 +1187,21 @@ int ImageProcessor::detect_line(
 		std::sort(possibles.begin(), possibles.end(), comp_line_priority);
 		possible = *possibles.begin();	// 先頭=優先度が最高
 		possible.type = TYPE_LINE;
-		possible.curvature = 0;
+		possible.curvature = possible.ex = possible.ey = 0.0f;
 		// 近似輪郭の面積と最小矩形の面積の比が大きい時は曲がっているかもしれないので楕円フィッティングして曲率を計算してみる
-		if ((possible.area_rate > 1.2f) && (possible.contour.size() > 6)) {	// 5点以上あれば楕円フィッティング出来る
+		if ((possible.area_rate > 1.2f) && (possible.contour.size() > 6)) {	// 5点以上あれば楕円フィッティング出来るけど7点以上にする
 			try {
 				cv::RotatedRect ellipse = cv::fitEllipse(possible.contour);
+				// 長軸/短軸長さなので1/2にして半径相当の値にする
+				ellipse.size.width /= 2.0f;
+				ellipse.size.height /= 2.0f;
 //				LOGI("fit ellipse:(%f,%f),%f", ellipse.size.width, ellipse.size.height, ellipse.angle);
 				const double a = fmax(ellipse.size.width, ellipse.size.height);
 				if (a > 0) {
 					const double b = fmin(ellipse.size.width, ellipse.size.height);
 					possible.curvature = (float)(b / a / a);
+					possible.ex = ellipse.center.x;
+					possible.ey = ellipse.center.y;
 //					LOGI("fit ellipse:(%f,%f),%f,%f", ellipse.size.width, ellipse.size.height, ellipse.angle, possible.curvature);
 					if (param.show_detects) {
 						cv::ellipse(result_frame, ellipse.center, ellipse.size, ellipse.angle, 0, 360, COLOR_RED);

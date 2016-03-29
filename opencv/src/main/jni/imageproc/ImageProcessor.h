@@ -60,6 +60,7 @@ typedef struct DetectRec {
 	float length;				// 長軸長さ
 	float width;				// 短軸長さ
 	float curvature;			// 曲率
+	float ex, ey;				// 楕円の中心
 } DetectRec_t;
 
 typedef struct DetectParam DetectParam_t;
@@ -70,7 +71,7 @@ public:
 	bool mEnableExtract;
 	SmoothType_t mSmoothType;
 	bool mEnableCanny;
-	int mMaxThinningLoop;
+	int mMaxThinningLoop;	// 画像全体に対して細線化
 	bool mFillInnerContour;	// 大きな輪郭内の空隙を塗りつぶす
 	ApproxType_t mApproxType;
 	double mApproxFactor;
@@ -148,6 +149,7 @@ private:
 	int callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv::Mat &result, const DetectParam_t &param);
 protected:
 	int pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &bk_result, cv::Mat &result, const DetectParam_t &param);
+	std::vector<std::vector< cv::Point>> findOutlines(cv::Mat &src);
 	int findContours(cv::Mat &src, cv::Mat &result,
 		std::vector<std::vector< cv::Point>> &contours,	// 輪郭データ
 		std::vector<DetectRec_t> &approxes,	// 近似輪郭

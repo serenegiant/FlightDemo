@@ -491,7 +491,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	@Override
 	protected void startVideoStreaming() {
 		super.startVideoStreaming();
-		startImageProcessor(512/*VideoStream.VIDEO_HEIGHT >>> 1*/, 256/*VideoStream.VIDEO_HEIGHT*/);
+		startImageProcessor(
+			512, 256
+//			VideoStream.VIDEO_HEIGHT >>> 1, VideoStream.VIDEO_HEIGHT
+//			VideoStream.VIDEO_HEIGHT, VideoStream.VIDEO_HEIGHT
+		);
 	}
 
 	@Override
