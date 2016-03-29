@@ -139,6 +139,14 @@ static void thinningIteration(cv::Mat &im, int iter) {
 	im &= ~marker;
 }
 
+void Thinning::resize(const int &width, const int &height) {
+#if USE_FILTER2D
+	src_w.create(height, width, CV_32FC1);
+	src_b.create(height, width, CV_32FC1);
+	src_f.create(height, width, CV_32FC1);
+#endif
+}
+
 int Thinning::apply(cv::Mat &src, cv::Mat &dst, const int &max_loop) {
 	ENTER();
 

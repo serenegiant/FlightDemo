@@ -77,7 +77,7 @@ public:
 	double mCannythreshold1;
 	double mCannythreshold2;
 	float mMaxAnalogous;
-	int extractColorHSV[6];	// 抽出色(HSV上下限)
+	int extractColorHSV[6];	// 抽出色(HSV上下限, 0,1,2: HSV下限, 3,4,5:HSV上限)
 	double mTrapeziumRate;	// 台形歪率, 0:歪なし, 正:下辺が長い, 負:上限が長い
 	float mAreaLimitMin;	// 輪郭検出時の最小面積
 	float mAreaLimitMax;	// 輪郭検出時の最大面積
@@ -89,6 +89,8 @@ public:
 	bool show_src;		// これは内部計算
 	bool show_detects;	// これは内部計算
 	cv::Mat perspectiveTransform;	// 透視変換行列, 台形歪補正用, 内部計算
+	// 幅と高さはchangedにかかわらず毎フレーム更新
+	int width, height;
 
 	/** 値をセットして更新, src#changed=trueの時のみ */
 	void set(const DetectParam_t &src) {
@@ -135,10 +137,11 @@ private:
 	std::vector<cv::Mat> mPool;
 	// フレームキュー
 	std::queue<cv::Mat> mFrames;
-//	int mExtractColorHSV[6];	// 0,1,2: HSV下限, 3,4,5:HSV上限
 	// glReadPixelsを呼ぶ際のピンポンバッファに使うPBOのバッファ名
 	GLuint pbo[2];
 	int pbo_ix;
+	int pbo_width, pbo_height;
+	GLsizeiptr pbo_size;
 	// 処理スレッドの実行関数
 	static void *processor_thread_func(void *vptr_args);
 	void do_process(JNIEnv *env);
@@ -174,7 +177,7 @@ public:
 	void release(JNIEnv *env);
 	int start(const int &width, const int &height);	// これはJava側の描画スレッド内から呼ばれる(EGLContextが有る)
 	int stop();		// これはJava側の描画スレッド内から呼ばれる(EGLContextが有る)
-	int handleFrame(const int &width, const int &height, const int &unused = 0);
+	int handleFrame(const int &, const int &, const int &unused = 0);
 	inline const bool isRunning() const { return mIsRunning; };
 	void setResultFrameType(const int &result_frame_type);
 	inline const int getResultFrameType() const { return mParam.mResultFrameType; };

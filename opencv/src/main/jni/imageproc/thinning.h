@@ -23,6 +23,7 @@ protected:
 public:
 	Thinning(const int &width, const int &height);
 	virtual ~Thinning();
+	void resize(const int &width, const int &height);
 	int apply(cv::Mat &src, cv::Mat &dst, const int &max_loop);
 };
 #endif //FLIGHTDEMO_THINNING_H

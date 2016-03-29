@@ -59,8 +59,8 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz)
 :	mWeakThiz(env->NewGlobalRef(weak_thiz_obj)),
 	mClazz((jclass)env->NewGlobalRef(clazz)),
 	mIsRunning(false),
-	mThinning(640, 368),
-	pbo_ix(0)
+	mThinning(2, 2),
+	pbo_ix(0), pbo_width(0), pbo_height(0), pbo_size(0)
 {
 	// 結果形式
 	mParam.mResultFrameType = RESULT_FRAME_TYPE_DST_LINE;
@@ -142,9 +142,12 @@ int ImageProcessor::start(const int &width, const int &height) {
 	if (!isRunning()) {
 		mMutex.lock();
 		{
+			mThinning.resize(width, height);
 #if USE_PBO
 			// glReadPixelsに使うピンポンバッファ用PBOの準備
-			const GLsizeiptr pbo_size = (GLsizeiptr)width * height * 4;
+			pbo_width = width;
+			pbo_height = height;
+			pbo_size = (GLsizeiptr)width * height * 4;
 			// バッファ名を2つ生成
 			glGenBuffers(2, pbo);
 			GLCHECK("glGenBuffers");
@@ -192,6 +195,8 @@ int ImageProcessor::stop() {
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		glDeleteBuffers(2, pbo);
 		pbo[0] = pbo[1] = 0;
+		pbo_width = pbo_height = 0;
+		pbo_size = 0;
 #endif
 	}
 	clearFrames();
@@ -262,12 +267,12 @@ int ImageProcessor::setTrapeziumRate(const double &trapezium_rate) {
 
 	if (mParam.mTrapeziumRate != trapezium_rate) {
 
-		cv::Point2f src[4] = { cv::Point2f(0.0f, 0.0f), cv::Point2f(0.0f, 368.0f), cv::Point2f(640.0f, 368.0f), cv::Point2f(640.0f, 0.0f)};
+		cv::Point2f src[4] = { cv::Point2f(0.0f, 0.0f), cv::Point2f(0.0f, (float)pbo_height), cv::Point2f((float)pbo_width, (float)pbo_height), cv::Point2f((float)pbo_width, 0.0f)};
 		cv::Point2f dst[4] = {
 			cv::Point2f((trapezium_rate < 0 ? -trapezium_rate * 150.0f : 0.0f) + 0.0f, 0.0f),
-			cv::Point2f((trapezium_rate >= 0 ?  trapezium_rate * 150.0f : 0.0f) + 0.0f, 368.0f),
-			cv::Point2f((trapezium_rate >= 0 ?  -trapezium_rate * 150.0f : 0.0f) + 640.0f, 368.0f),
-			cv::Point2f((trapezium_rate < 0 ?  trapezium_rate * 150.0f : 0.0f) + 640.0f, 0.0f)};
+			cv::Point2f((trapezium_rate >= 0 ?  trapezium_rate * 150.0f : 0.0f) + 0.0f, (float)pbo_height),
+			cv::Point2f((trapezium_rate >= 0 ?  -trapezium_rate * 150.0f : 0.0f) + (float)pbo_width, (float)pbo_height),
+			cv::Point2f((trapezium_rate < 0 ?  trapezium_rate * 150.0f : 0.0f) + (float)pbo_width, 0.0f)};
 		cv::Mat_<double> perspectiveTransform = cv::getPerspectiveTransform(src, dst);
 		auto iter = perspectiveTransform.begin();
 		LOGI("%f,%f,%f,%f,%f,%f,%f,%f", *(iter++), *(iter++), *(iter++), *(iter++), *(iter++), *(iter++), *(iter++), *(iter++));
@@ -367,21 +372,21 @@ int ImageProcessor::setFillInnerContour(const bool &fill) {
 //================================================================================
 //
 //================================================================================
-int ImageProcessor::handleFrame(const int &width, const int &height, const int &unused) {
+int ImageProcessor::handleFrame(const int &, const int &, const int &) {
 	ENTER();
 
-	if (!canAddFrame()) RETURN(1, int);;	// dropped
+	if (UNLIKELY(!canAddFrame() || !pbo_width || !pbo_height)) RETURN(1, int);;	// dropped
 
 	// OpenGLのフレームバッファをMatに読み込んでキューする
-	cv::Mat mat = obtainFromPool(width, height);
+	cv::Mat mat = obtainFromPool(pbo_width, pbo_height);
 #if USE_PBO
 	const int read_ix = pbo_ix; // 今回読み込むPBOのインデックス
 	const int next_read_ix = pbo_ix = (pbo_ix + 1) % 2;	// 読み込み要求するPBOのインデックス
-	const GLsizeiptr pbo_size = (GLsizeiptr)width * height * 4;
+//	const GLsizeiptr pbo_size = (GLsizeiptr)width * height * 4;
 	//　読み込み要求を行うPBOをbind
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[next_read_ix]);
 	// 非同期でPBOへ読み込み要求
-	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glReadPixels(0, 0, pbo_width, pbo_height, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	// 実際にデータを取得するPBOをbind
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo[read_ix]);
 	// PBO内のデータにアクセスできるようにマップする
@@ -393,7 +398,7 @@ int ImageProcessor::handleFrame(const int &width, const int &height, const int &
 	}
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 #else
-	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, mat.data);
+	glReadPixels(0, 0, pbo_width, pbo_height, GL_RGBA, GL_UNSIGNED_BYTE, mat.data);
 #endif
 	addFrame(mat);
 
@@ -1173,7 +1178,7 @@ int ImageProcessor::detect_line(
 			// ラインとして検出した輪郭線を赤で描画する
 			cv::polylines(result_frame, possible.contour, true, COLOR_RED, 2);	// 赤色
 			// 中央から検出したオブジェクトの中心に向かって線を引く
-			cv::line(result_frame, cv::Point(320, 184), possible.area_rect.center, COLOR_RED, 8, 8);
+			cv::line(result_frame, cv::Point(pbo_width >> 1, pbo_height >> 1), possible.area_rect.center, COLOR_RED, 8, 8);
 		}
 	} else {
 		possible.type = TYPE_NON;

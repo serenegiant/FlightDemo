@@ -491,7 +491,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	@Override
 	protected void startVideoStreaming() {
 		super.startVideoStreaming();
-		startImageProcessor();
+		startImageProcessor(512/*VideoStream.VIDEO_HEIGHT >>> 1*/, VideoStream.VIDEO_HEIGHT);
 	}
 
 	@Override
@@ -656,13 +656,14 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		}
 	};
 
-	private void startImageProcessor() {
+	private void startImageProcessor(final int processing_width, final int processing_height) {
 		if (mTraceTask == null) {
-			mTraceTask = new TraceTask();
+			mTraceTask = new TraceTask(processing_width, processing_height);
 			new Thread(mTraceTask, TAG).start();
 		}
 		if (mImageProcessor == null) {
-			mImageProcessor = new ImageProcessor(mImageProcessorCallback);
+			mImageProcessor = new ImageProcessor(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT,	// こっちは元映像のサイズ
+				new MyImageProcessorCallback(processing_width, processing_height));	// こっちは処理サイズ
 			mImageProcessor.setExposure(mExposure);
 			mImageProcessor.setSaturation(mSaturation);
 			mImageProcessor.setBrightness(mBrightness);
@@ -676,7 +677,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			mImageProcessor.setAspectLimit(mAspectLimitMin);
 			mImageProcessor.setMaxThinningLoop(mMaxThinningLoop);
 			mImageProcessor.setFillInnerContour(mFillContour);
-			mImageProcessor.start();
+			mImageProcessor.start(processing_width, processing_height);	// これも処理サイズ
 			final Surface surface = mImageProcessor.getSurface();
 			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
 			if (mImageProcessorSurfaceId != 0) {
@@ -734,7 +735,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		private static final float MAX_PILOT_ANGLE = 80.0f;	// 一度に修正するyaw角の最大絶対値
 		private static final float MIN_PILOT_ANGLE = 3.0f;	// 0とみなすyaw角のずれの絶対値
 
-		public TraceTask() {
+		private final int width, height;
+		private final int cx, cy;
+		public TraceTask(final int processing_width, final int processing_height) {
+			width = processing_width;
+			height = processing_height;
+			cx = processing_width >>> 1;
+			cy = processing_height >>> 1;
 		}
 
 		@Override
@@ -821,12 +828,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							}
 							//--------------------------------------------------------------------------------
 							// 画像中心からの距離を計算
-							offset.set(VideoStream.VIDEO_WIDTH_HALF, VideoStream.VIDEO_HEIGHT_HALF, flightAltitude).sub(rec.mLinePos);
+							offset.set(cx, cy, flightAltitude).sub(rec.mLinePos);
 							// 解析データ(画像中心からのオフセット,距離,回転角)
 							msg1 = String.format("v(%5.2f,%5.2f,%5.2f),θ=%5.2f(%5.2f),r=%6.4e)", offset.x, offset.y, offset.z, rec.mAngle, angle, rec.mCurvature);
 							//--------------------------------------------------------------------------------
 							// 画面の端が-1または+1になるように変換する
-							offset.div(VideoStream.VIDEO_HEIGHT_HALF, VideoStream.VIDEO_HEIGHT_HALF, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
+							offset.div(cx, cy, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
 							// 移動方向, 前回と同じ方向なら1, 逆なら-1
 							work.set(offset).sub(prevOffset).sign();
 							// オフセットを保存
@@ -932,21 +939,24 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		}
 	}
 
-	/** ImageProcessorからのコールバックリスナー */
-	private final ImageProcessor.ImageProcessorCallback mImageProcessorCallback
-		= new ImageProcessor.ImageProcessorCallback() {
-
-		private Bitmap mFrame;
+	private class MyImageProcessorCallback implements ImageProcessor.ImageProcessorCallback {
+		private final int width, height;
 		private final Matrix matrix = new Matrix();
+		private Bitmap mFrame;
+		private MyImageProcessorCallback(final int processing_width, final int processing_height) {
+			width = processing_width;
+			height = processing_height;
+		}
+
 		@Override
 		public void onFrame(final ByteBuffer frame) {
 			if (mDetectView != null) {
 				final SurfaceHolder holder = mDetectView.getHolder();
 				if ((holder == null) || (holder.getSurface() == null)) return;
 				if (mFrame == null) {
-					mFrame = Bitmap.createBitmap(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT, Bitmap.Config.ARGB_8888);
-					final float scaleX = mDetectView.getWidth() / (float)VideoStream.VIDEO_WIDTH;
-					final float scaleY = mDetectView.getHeight() / (float)VideoStream.VIDEO_HEIGHT;
+					mFrame = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+					final float scaleX = mDetectView.getWidth() / (float)width;
+					final float scaleY = mDetectView.getHeight() / (float)height;
 					matrix.reset();
 					matrix.postScale(scaleX, scaleY);
 				}

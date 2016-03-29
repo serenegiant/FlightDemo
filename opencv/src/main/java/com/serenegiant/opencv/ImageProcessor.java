@@ -33,9 +33,6 @@ public class ImageProcessor {
 //	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = ImageProcessor.class.getSimpleName();
 
-	private static final int VIDEO_WIDTH = 640;
-	private static final int VIDEO_HEIGHT = 368;
-
 	private static final int REQUEST_DRAW = 1;
 	private static final int REQUEST_UPDATE_SIZE = 2;
 
@@ -69,25 +66,27 @@ public class ImageProcessor {
 	private int COLOR_RANGE_IX = 0;
 	protected final int[] EXTRACT_COLOR_HSV_LIMIT = COLOR_RANGES[COLOR_RANGE_IX];
 
-
+	private final int mSrcWidth, mSrcHeight;
 	private volatile boolean requestUpdateExtractionColor;
 
 	/** native側のインスタンスポインタ, 名前を変えたりしちゃダメ */
 	private long mNativePtr;
 
-	public ImageProcessor(final ImageProcessorCallback callback) {
+	public ImageProcessor(final int src_width, final int src_height, final ImageProcessorCallback callback) {
 //		if (DEBUG) Log.v(TAG, "コンストラクタ");
 		if (callback == null) {
 			throw new NullPointerException("callback should not be null");
 		}
+		mSrcWidth = src_width;
+		mSrcHeight = src_height;
 		mCallback = callback;
 		mNativePtr = nativeCreate(new WeakReference<ImageProcessor>(this));
 	}
 
-	public void start() {
+	public void start(final int width, final int height) {
 //		if (DEBUG) Log.v(TAG, "start:");
 		if (mProcessingTask == null) {
-			mProcessingTask = new ProcessingTask(this);
+			mProcessingTask = new ProcessingTask(this, mSrcWidth, mSrcHeight, width, height);
 			new Thread(mProcessingTask, "VideoStream$rendererTask").start();
 			mProcessingTask.waitReady();
 			synchronized (mSync) {
@@ -371,7 +370,7 @@ public class ImageProcessor {
 				// FIXME 未実装
 				break;
 			case 4:	// ダイレーション
-				// これはmProcessingTask.mSmootを使わないのでここでは何もしない
+				// これはmProcessingTask.mSmoothを使わないのでここでは何もしない
 				break;
 			default:
 				mProcessingTask.mSmooth.setParameter(Texture2dProgram.KERNEL_NULL, 0.0f);
@@ -615,7 +614,8 @@ public class ImageProcessor {
 	 * @param frame
 	 * @param result
 	 */
-	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf, final int type, final ByteBuffer frame, final float[] result) {
+	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf,
+		final int type, final ByteBuffer frame, final float[] result) {
 //		if (DEBUG) Log.v(TAG, "callFromNative");
 		final ImageProcessor self = weakSelf != null ? weakSelf.get() : null;
 		if (self != null) {
@@ -661,6 +661,8 @@ public class ImageProcessor {
 		final float[] mTexMatrix = new float[16];
 		/** 映像を受け取るためのSurfaceTextureから取得したSurface */
 		private Surface mSourceSurface;
+		/** ソース映像サイズ */
+		private final int WIDTH, HEIGHT;
 		/** 映像サイズ */
 		private int mVideoWidth, mVideoHeight;
 		// プレフィルタ処理用
@@ -674,10 +676,12 @@ public class ImageProcessor {
 		// 映像受け取り用
 		private MediaSource mMediaSource;
 
-		public ProcessingTask(final ImageProcessor parent) {
+		public ProcessingTask(final ImageProcessor parent, final int src_width, final int src_height, final int video_width, final int video_height) {
 			super(null, 0);
-			mVideoWidth = VIDEO_WIDTH;
-			mVideoHeight = VIDEO_HEIGHT;
+			WIDTH = src_width;
+			HEIGHT = src_height;
+			mVideoWidth = video_width;
+			mVideoHeight = video_height;
 		}
 
 		/** 映像受け取り用Surfaceを取得 */
@@ -697,7 +701,7 @@ public class ImageProcessor {
 //			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:");
 			// ソース映像の描画用
 			mSrcDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3));
-			mSrcDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
+			mSrcDrawer.getProgram().setTexSize(WIDTH, HEIGHT);
 			mSrcDrawer.flipMatrix(true);	// 上下入れ替え
 //			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EMBOSS, 0.5f);		// エンボス
 //			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL_H, 0.0f);		// ソ-ベル(エッジ検出, 1次微分)
@@ -710,6 +714,7 @@ public class ImageProcessor {
 //			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, 0.0f);		// ラプラシアン(2次微分)
 			mTexId = mSrcDrawer.createTextureObject();
 			mSourceTexture = new SurfaceTexture(mTexId);
+			mSourceTexture.setDefaultBufferSize(WIDTH, HEIGHT);
 			mSourceSurface = new Surface(mSourceTexture);
 			mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener);
 //--------------------------------------------------------------------------------
@@ -973,8 +978,8 @@ public class ImageProcessor {
 //			if (DEBUG) Log.v(TAG, String.format("ProcessingTask#handleResize:(%d,%d)", width, height));
 			mVideoWidth = width;
 			mVideoHeight = height;
-			mSourceTexture.setDefaultBufferSize(width, height);
-			mSrcDrawer.getProgram().setTexSize(width, height);
+//			mSourceTexture.setDefaultBufferSize(WIDTH, HEIGHT);	// FIXME ここは別扱いにして640x368固定にしとかないとだめかも
+//			mSrcDrawer.getProgram().setTexSize(WIDTH, HEIGHT);	// FIXME ここは別扱いにして640x368固定にしとかないとだめかも
 			// プレフィルタ用
 			if (mMediaSource != null) {
 				mMediaSource.resize(width, height);

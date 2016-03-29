@@ -40,6 +40,15 @@ public class TextureOffscreen {
 	private final float[] mTexMatrix = new float[16];		// テクスチャ座標変換行列
 
 	/**
+	 * コンストラクタ, デプスバッファ無し
+	 * @param width
+	 * @param height
+	 */
+	public TextureOffscreen(final int width, final int height) {
+		this(GLES20.GL_TEXTURE_2D, width, height, false, false);
+	}
+
+	/**
 	 * コンストラクタ
 	 * @param width dimension of offscreen(width)
 	 * @param height dimension of offscreen(height)
@@ -47,6 +56,17 @@ public class TextureOffscreen {
 	 */
 	public TextureOffscreen(final int width, final int height, final boolean use_depth_buffer) {
 		this(GLES20.GL_TEXTURE_2D, width, height, use_depth_buffer, false);
+	}
+
+	/**
+	 * コンストラクタ
+	 * @param width
+	 * @param height
+	 * @param use_depth_buffer
+	 * @param adjust_power2
+	 */
+	public TextureOffscreen(final int width, final int height, final boolean use_depth_buffer, final boolean adjust_power2) {
+		this(GLES20.GL_TEXTURE_2D, width, height, use_depth_buffer, adjust_power2);
 	}
 
 	/**

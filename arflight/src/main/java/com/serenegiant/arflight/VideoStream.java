@@ -31,8 +31,8 @@ public class VideoStream implements IVideoStream {
 	public static final int VIDEO_WIDTH = 640;
 	public static final int VIDEO_HEIGHT = 368;
 
-	public static final int VIDEO_WIDTH_HALF = VIDEO_WIDTH / 2;
-	public static final int VIDEO_HEIGHT_HALF = VIDEO_HEIGHT / 2;
+	public static final int VIDEO_WIDTH_HALF = VIDEO_WIDTH >>> 1;
+	public static final int VIDEO_HEIGHT_HALF = VIDEO_HEIGHT >>> 1;
 
 	private final Object mSync = new Object();
 	private volatile boolean isRendererRunning;
