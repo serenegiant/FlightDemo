@@ -831,10 +831,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 								}
 							}
 							//--------------------------------------------------------------------------------
-							// 画像中心からの距離を計算
-							offset.set(cx, cy, flightAltitude).sub(rec.mLinePos);
-							// 解析データ(画像中心からのオフセット,距離,回転角)
-							msg1 = String.format("%d,v(%5.2f,%5.2f,%5.2f),θ=%5.2f(%5.2f),r=%6.4e)", rec.type, offset.x, offset.y, offset.z, rec.mAngle, angle, rec.mCurvature);
+							// 画像中心からライン重心へのオフセットを計算
+							offset.set(cx, cy, flightAltitude).sub(rec.mCenter);
+							// 解析データ
+							msg1 = String.format("%d,v(%5.2f,%5.2f,%5.2f),θ=%5.2f(%5.2f),r=%6.4e)",
+								rec.type, offset.x, offset.y, offset.z,
+								rec.mAngle, angle, rec.mCurvature);
 							//--------------------------------------------------------------------------------
 							// 画面の端が-1または+1になるように変換する
 							offset.div(cx, cy, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
@@ -1002,6 +1004,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				rec.mCurvature = result[6];
 				// 近似楕円の中心座標, mCurvature==0の時は無効(0,0)
 				rec.mEclipsePos.set(result[7], result[8], 0.0f);
+				// 重心座標
+				rec.mCenter.set(result[9], result[10], 0.0f);
 				// キュー内に最大数入っていたら先頭(一番古いもの)をプールに戻す
 				for ( ; mQueue.size() > MAX_QUEUE ; ) {
 					mPool.add(mQueue.remove(0));

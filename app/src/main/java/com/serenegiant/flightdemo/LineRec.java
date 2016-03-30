@@ -9,4 +9,5 @@ public class LineRec {
 	public float mLineLen, mLineWidth, mAngle, mAreaRate;
 	public float mCurvature;	// 近似楕円の最大曲率
 	public final Vector mEclipsePos = new Vector();	// 近似楕円の中心座標
+	public final Vector mCenter = new Vector();	// ラインの重心座標
 }

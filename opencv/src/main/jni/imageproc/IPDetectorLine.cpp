@@ -89,14 +89,16 @@ int IPDetectorLine::detect(
 		}
 
 		// 最小矩形と元輪郭の面積比が大き過ぎる場合スキップ
-		if ((rec.area_rate < 0.67f) && (rec.area_rate > 1.5f)) continue;	// ±50%以上ずれている時はスキップ
-//		if ((rec.area_rate < 0.5f) && (rec.area_rate > 2.0f)) continue;		// ±100%以上ずれている時はスキップ
+//		if (rec.area_rate > 1.1f) continue;
+//		if (rec.area_rate > 1.5f) continue;
+		if (rec.area_rate > 1.75f) continue;
+//		if (rec.area_rate > 2.0f) continue;
 		if (param.show_detects) {
 			cv::polylines(result_frame, rec.contour, true, COLOR_ACUA, 2);
 		}
 
 		// 輪郭のHu momentを計算
-		cv::HuMoments(cv::moments(rec.contour), hu_moments);
+		cv::HuMoments(rec.moments, hu_moments);
 		// 基準値と比較, メソッド1は時々一致しない, メソッド2,3だとほとんど一致しない, 完全一致なら0が返る
 		const float analogous = (float)compHuMoments(HU_MOMENTS, hu_moments, 1);
 		// Hu momentsが基準値との差が大きい時はスキップ
@@ -117,29 +119,6 @@ int IPDetectorLine::detect(
 		result = *possibles.begin();	// 先頭=優先度が最高
 		result.type = TYPE_LINE;
 		result.curvature = result.ex = result.ey = 0.0f;
-//		// 近似輪郭の面積と最小矩形の面積の比が大きい時は曲がっているかもしれないので楕円フィッティングして曲率を計算してみる
-//		if ((result.area_rate > 1.2f) && (result.contour.size() > 6)) {	// 5点以上あれば楕円フィッティング出来るけど7点以上にする
-//			try {
-//				cv::RotatedRect ellipse = cv::fitEllipse(result.contour);
-//				// 長軸/短軸長さなので1/2にして半径相当の値にする
-//				ellipse.size.width /= 2.0f;
-//				ellipse.size.height /= 2.0f;
-//				LOGI("fit ellipse:(%f,%f),%f", ellipse.size.width, ellipse.size.height, ellipse.angle);
-//				const double a = fmax(ellipse.size.width, ellipse.size.height);
-//				if (a > 0) {
-//					const double b = fmin(ellipse.size.width, ellipse.size.height);
-//					result.curvature = (float)(b / a / a);
-//					result.ex = ellipse.center.x;
-//					result.ey = ellipse.center.y;
-//					LOGI("fit ellipse:(%f,%f),%f,%f", ellipse.size.width, ellipse.size.height, ellipse.angle, result.curvature);
-//					if (param.show_detects) {
-//						cv::ellipse(result_frame, ellipse.center, ellipse.size, ellipse.angle, 0, 360, COLOR_RED);
-//					}
-//				}
-//			} catch (cv::Exception e) {
-//				LOGE("fitEllipse failed:%s", e.msg.c_str());
-//			}
-//		}
 	} else {
 		result.type = TYPE_NON;
 	}

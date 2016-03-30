@@ -413,8 +413,15 @@ void ImageProcessor::do_process(JNIEnv *env) {
 				if (param.show_detects && (possible->type != TYPE_NON)) {
 					// ラインとして検出した輪郭線を赤で描画する
 					cv::polylines(*result, possible->contour, true, COLOR_RED, 2);
-					// 中央から検出したオブジェクトの中心に向かって線を引く
+#if 0
+					// 映像中央から輪郭の最小矩形の中心に向かって線を引く
 					cv::line(*result, cv::Point(width() >> 1, height() >> 1), possible->area_rect.center, COLOR_RED, 8, 8);
+#else
+					// 映像中央から検出したオブジェクトの重心に向かって線を引く
+					if (possible->moments.m00 != 0) {
+						cv::line(*result, cv::Point(width() >> 1, height() >> 1), possible->center, COLOR_RED, 8, 8);
+					}
+#endif
 					if (possible->type == TYPE_CURVE) {
 						cv::ellipse(*result, possible->ellipse.center, possible->ellipse.size, possible->ellipse.angle, 0, 360, COLOR_RED);
 					}
@@ -445,7 +452,7 @@ int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv
 
 	if (LIKELY(mIsRunning && fields.callFromNative && mClazz && mWeakThiz)) {
 		// 解析結果を配列にセットする
-		// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
+		// ラインの最小矩形の中心座標(位置ベクトル,cv::RotatedRect#center)
 		detected[0] = detect_result.area_rect.center.x;
 		detected[1] = detect_result.area_rect.center.y;
 		// ラインの長さ(長軸長さ=length)
@@ -463,6 +470,9 @@ int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv
 		// 楕円の中心座標
 		detected[7] = detect_result.ex;
 		detected[8] = detect_result.ey;
+		// 重心位置
+		detected[9] = detect_result.center.x;
+		detected[10] = detect_result.center.y;
 		//
 		jfloatArray detected_array = env->NewFloatArray(RESULT_NUM);
 		env->SetFloatArrayRegion(detected_array, 0, RESULT_NUM, detected);

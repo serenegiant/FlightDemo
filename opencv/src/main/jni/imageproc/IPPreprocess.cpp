@@ -147,6 +147,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 	std::vector<cv::Vec4i> hierarchy;
 	std::vector< cv::Point > approx, approx2;		// 近似輪郭
 	cv::Point2f vertices[4];
+	const float areaErrLimit2Min = 1.0f / param.mAreaErrLimit2;
 
 	contours.clear();
 	approxes.clear();
@@ -158,7 +159,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
 		idx++;
 		if (hierarchy[idx][3] != -1) continue;	// 一番外側じゃない時
-		// 凸包頂点にする
+		// 凸包図形にする
 		approx.clear();
 		cv::convexHull(*contour, approx);
 //		// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
@@ -179,8 +180,6 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		if (((w > 620) && (h > 350)) || (a < param.mAreaLimitMin) || (a > param.mAreaLimitMax)) continue;
 		if (param.show_detects) {
 			cv::drawContours(result, contours, idx, COLOR_YELLOW);	// 輪郭
-//			cv::polylines(result, approx, true, COLOR_YELLOW);		// 近似輪郭
-//			draw_rect(result, area_rect, COLOR_YELLOW);				// 最小矩形
 		}
 		// 輪郭の面積を計算
 		float area = (float)cv::contourArea(*contour);
@@ -204,7 +203,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 //		if (w * h / area > 2.0f) continue;	// XXX これを入れると(楕)円弧やコーナーを検出できなくなる
 		// 凸包図形の面積を計算
 		const float area_approx = (float)cv::contourArea(approx);
-		// 凸包図形の面積面積が25%以上元の輪郭面積より大きければスキップ=凹凸が激しい
+		// 凸包図形の面積面積が指定値以上輪郭面積より大きければスキップ=凹凸が激しい
 		if (area_approx / area > param.mAreaErrLimit1) {
 			// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
 			const double epsilon = param.mApproxType == APPROX_RELATIVE
@@ -213,13 +212,20 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 			// 輪郭を近似する
 			cv::approxPolyDP(*contour, approx2, epsilon, true);	// 閉曲線にする
 			const float rate = (float)cv::contourArea(approx2) / area;
-			if ((rate < (1 / param.mAreaErrLimit2)) || (rate > param.mAreaErrLimit2))
+			if ((rate < areaErrLimit2Min) || (rate > param.mAreaErrLimit2))
 				continue;
 		}
 		if (param.show_detects) {
 			cv::polylines(result, approx, true, COLOR_GREEN);
 		}
 		possible.type = TYPE_NON;
+		possible.moments = cv::moments(*contour);
+		if (possible.moments.m00 != 0) {
+			possible.center.x = possible.moments.m10 / possible.moments.m00;
+			possible.center.y = possible.moments.m01 / possible.moments.m00;
+		} else {
+			possible.center.x = possible.center.y = 0.0f;
+		}
 		possible.contour.assign((*contour).begin(), (*contour).end());	// 凸包図形から輪郭に変更
 		possible.area_rect = area_rect;	// 最小矩形
 		possible.area = area;				// 近似輪郭の面積
