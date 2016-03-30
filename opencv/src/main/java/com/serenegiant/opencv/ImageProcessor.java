@@ -902,7 +902,7 @@ public class ImageProcessor {
 				if (mEnableExtraction) {
 					mMediaSource.apply(mExtraction);
 					// 収縮処理
-					mMediaSource.apply(mErosion);
+//					mMediaSource.apply(mErosion);
 					// 膨張処理
 					mMediaSource.apply(mDilation);
 					// 収縮処理
