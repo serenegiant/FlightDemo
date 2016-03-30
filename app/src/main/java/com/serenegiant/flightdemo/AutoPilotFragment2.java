@@ -739,13 +739,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		private static final float MAX_PILOT_ANGLE = 80.0f;	// 一度に修正するyaw角の最大絶対値
 		private static final float MIN_PILOT_ANGLE = 3.0f;	// 0とみなすyaw角のずれの絶対値
 
-		private final int width, height;
-		private final int cx, cy;
+		private final int WIDTH, HEIGHT;
+		private final int CX, CY;
 		public TraceTask(final int processing_width, final int processing_height) {
-			width = processing_width;
-			height = processing_height;
-			cx = processing_width >>> 1;
-			cy = processing_height >>> 1;
+			WIDTH = processing_width;
+			HEIGHT = processing_height;
+			CX = processing_width >>> 1;
+			CY = processing_height >>> 1;
 		}
 
 		@Override
@@ -832,19 +832,19 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							}
 							//--------------------------------------------------------------------------------
 							// 画像中心からライン重心へのオフセットを計算
-							offset.set(cx, cy, flightAltitude).sub(rec.mCenter);
+							offset.set(CX, CY, flightAltitude).sub(rec.mCenter);
 							// 解析データ
 							msg1 = String.format("%d,v(%5.2f,%5.2f,%5.2f),θ=%5.2f(%5.2f),r=%6.4e)",
 								rec.type, offset.x, offset.y, offset.z,
 								rec.mAngle, angle, rec.mCurvature);
 							//--------------------------------------------------------------------------------
 							// 画面の端が-1または+1になるように変換する
-							offset.div(cx, cy, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
+							offset.div(CX, CY, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
 							// 移動方向, 前回と同じ方向なら1, 逆なら-1
 							work.set(offset).sub(prevOffset).sign();
 							// オフセットを保存
 							prevOffset.set(offset);
-							mPilotValue.set(offset);	// これは画面座標での画面中央とライン中央のオフセット値
+							mPilotValue.set(offset);	// これは画面座標での画面中央とライン重心のオフセット値
 							// オフセットの符号を取得
 							offset.sign();
 							// 移動方向が変わってなければバイアス加算, 変わってればバイアス減算

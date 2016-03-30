@@ -29,11 +29,11 @@ public class MediaEffectSaturateGLES extends MediaEffectGLESBase {
 		"varying       vec2 vTextureCoord;\n" +
 		"uniform %s    sTexture;\n" +
 		"uniform float uColorAdjust;\n" +
-		"const highp vec3 luminanceWeighting = vec3(0.2125, 0.7154, 0.0721);\n" +
+		MediaEffectDrawer.GET_INTENSITY +
 		"void main() {\n" +
 		"    highp vec4 tex = texture2D(sTexture, vTextureCoord);\n" +
-		"    highp float luminance = dot(tex.rgb, luminanceWeighting);\n" +
-		"    highp vec3 greyScaleColor = vec3(luminance, luminance, luminance);\n" +
+		"    highp float intensity = getIntensity(tex.rgb);\n" +
+		"    highp vec3 greyScaleColor = vec3(intensity, intensity, intensity);\n" +
 		"    gl_FragColor = vec4(mix(greyScaleColor, tex.rgb, uColorAdjust), tex.w);\n" +
 		"}\n";
 	private static final String FRAGMENT_SHADER

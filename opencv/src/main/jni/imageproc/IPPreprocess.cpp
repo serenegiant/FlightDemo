@@ -185,20 +185,20 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		float area = (float)cv::contourArea(*contour);
 		// 面積が小さすぎるのと大きすぎるのはスキップ
 		if ((area < param.mAreaLimitMin) || (area > param.mAreaLimitMax)) continue;
-		if (!param.mFillInnerContour) {
-			// 中に開いた穴の面積を除外
-			for (int i = hierarchy[idx][2]; i >= 0; ) {
-				if (hierarchy[i][3] == idx) {
-					area -= (float)cv::contourArea(contours[i]);
-					if (param.show_detects) {
-						cv::drawContours(result, contours, i, COLOR_WHITE, -1);
-					}
-				}
-				i = hierarchy[i][0];	// 次の子
-			}
-		}
-		// 面積が小さすぎるのはスキップ
-		if (area < param.mAreaLimitMin) continue;
+//		if (!param.mFillInnerContour) {
+//			// 中に開いた穴の面積を除外
+//			for (int i = hierarchy[idx][2]; i >= 0; ) {
+//				if (hierarchy[i][3] == idx) {
+//					area -= (float)cv::contourArea(contours[i]);
+//					if (param.show_detects) {
+//						cv::drawContours(result, contours, i, COLOR_WHITE, -1);
+//					}
+//				}
+//				i = hierarchy[i][0];	// 次の子
+//			}
+//		}
+//		// 面積が小さすぎるのはスキップ
+//		if (area < param.mAreaLimitMin) continue;
 		// 最小矩形の面積の半分未満ならスキップ
 //		if (w * h / area > 2.0f) continue;	// XXX これを入れると(楕)円弧やコーナーを検出できなくなる
 		// 凸包図形の面積を計算

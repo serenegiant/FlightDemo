@@ -27,6 +27,33 @@ public class MediaEffectKernel3x3Drawer extends MediaEffectColorAdjustDrawer {
 	private float mTexWidth;
 	private float mTexHeight;
 
+	private static final String FRAGMENT_SHADER_FILT3x3_BASE = SHADER_VERSION +
+		"%s" +
+		"#define KERNEL_SIZE " + KERNEL_SIZE + "\n" +
+		"precision highp float;\n" +
+		"varying       vec2 vTextureCoord;\n" +
+		"uniform %s    sTexture;\n" +
+		"uniform float uKernel[18];\n" +
+		"uniform vec2  uTexOffset[KERNEL_SIZE];\n" +
+		"uniform float uColorAdjust;\n" +
+		"void main() {\n" +
+		"    vec4 sum = vec4(0.0);\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[0]) * uKernel[0];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[1]) * uKernel[1];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[2]) * uKernel[2];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[3]) * uKernel[3];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[4]) * uKernel[4];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[5]) * uKernel[5];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[6]) * uKernel[6];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[7]) * uKernel[7];\n" +
+		"    sum += texture2D(sTexture, vTextureCoord + uTexOffset[8]) * uKernel[8];\n" +
+		"    gl_FragColor = sum + uColorAdjust;\n" +
+		"}\n";
+	private static final String FRAGMENT_SHADER_FILT3x3
+		= String.format(FRAGMENT_SHADER_FILT3x3_BASE, HEADER_2D, SAMPLER_2D);
+	private static final String FRAGMENT_SHADER_EXT_FILT3x3
+		= String.format(FRAGMENT_SHADER_FILT3x3_BASE, HEADER_OES, SAMPLER_OES);
+
 	public MediaEffectKernel3x3Drawer(final String fss) {
 		this(false, VERTEX_SHADER, fss);
 	}
@@ -62,7 +89,7 @@ public class MediaEffectKernel3x3Drawer extends MediaEffectColorAdjustDrawer {
 			GLHelper.checkGlError("set kernel");
 		}
 		// テクセルオフセット
-		if ((muTexOffsetLoc >= 0) && (mTexOffset != null)) {
+		if (muTexOffsetLoc >= 0) {
 			GLES20.glUniform2fv(muTexOffsetLoc, KERNEL_SIZE, mTexOffset, 0);
 		}
 	}
@@ -82,22 +109,24 @@ public class MediaEffectKernel3x3Drawer extends MediaEffectColorAdjustDrawer {
 	 */
 	public void setTexSize(final int width, final int height) {
 		synchronized (mSync) {
-			mTexHeight = height;
-			mTexWidth = width;
-			final float rw = 1.0f / width;
-			final float rh = 1.0f / height;
+			if ((mTexWidth != width) || (mTexHeight != height)) {
+				mTexHeight = height;
+				mTexWidth = width;
+				final float rw = 1.0f / width;
+				final float rh = 1.0f / height;
 
-			mTexOffset[0] = -rw;	mTexOffset[1] = -rh;
-			mTexOffset[2] = 0f;		mTexOffset[3] = -rh;
-			mTexOffset[4] = rw;		mTexOffset[5] = -rh;
+				mTexOffset[0] = -rw;	mTexOffset[1] = -rh;
+				mTexOffset[2] = 0f;		mTexOffset[3] = -rh;
+				mTexOffset[4] = rw;		mTexOffset[5] = -rh;
 
-			mTexOffset[6] = -rw;	mTexOffset[7] = 0f;
-			mTexOffset[8] = 0f;		mTexOffset[9] = 0f;
-			mTexOffset[10] = rw;	mTexOffset[11] = 0f;
+				mTexOffset[6] = -rw;	mTexOffset[7] = 0f;
+				mTexOffset[8] = 0f;		mTexOffset[9] = 0f;
+				mTexOffset[10] = rw;	mTexOffset[11] = 0f;
 
-			mTexOffset[12] = -rw;	mTexOffset[13] = rh;
-			mTexOffset[14] = 0f;	mTexOffset[15] = rh;
-			mTexOffset[16] = rw;	mTexOffset[17] = rh;
+				mTexOffset[12] = -rw;	mTexOffset[13] = rh;
+				mTexOffset[14] = 0f;	mTexOffset[15] = rh;
+				mTexOffset[16] = rw;	mTexOffset[17] = rh;
+			}
 		}
 	}
 

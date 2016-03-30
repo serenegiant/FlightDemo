@@ -15,6 +15,7 @@ import com.serenegiant.mediaeffect.MediaEffectAutoFix;
 import com.serenegiant.mediaeffect.MediaEffectBrightness;
 import com.serenegiant.mediaeffect.MediaEffectCanny;
 import com.serenegiant.mediaeffect.MediaEffectDilation;
+import com.serenegiant.mediaeffect.MediaEffectErosion;
 import com.serenegiant.mediaeffect.MediaEffectExposure;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
 import com.serenegiant.mediaeffect.MediaEffectGrayScale;
@@ -682,6 +683,7 @@ public class ImageProcessor {
 		private MediaEffectExtraction mExtraction;
 		private MediaEffectKernel mSmooth;
 		private MediaEffectDilation mDilation;
+		private MediaEffectErosion mErosion;
 		private MediaEffectGrayScale mGray;
 		private MediaEffectCanny mEdgeDetection;
 		// 映像受け取り用
@@ -765,7 +767,7 @@ public class ImageProcessor {
 //				mEffects.add(proj);
 //--------------------------------------------------------------------------------
 				// ここから下はプレフィルタじゃないよ
-				// 色抽出(白色)
+				// 色抽出
 				mExtraction = new MediaEffectExtraction();
 				applyExtractionColor();
 				// ノイズ除去(平滑化)
@@ -773,6 +775,8 @@ public class ImageProcessor {
 				mSmooth.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
 				// 膨張
 				mDilation = new MediaEffectDilation(4);
+				// 縮小
+				mErosion = new MediaEffectErosion(1);
 				// グレースケール
 				mGray = new MediaEffectGrayScale(mEffectContext);
 				// Cannyエッジ検出フィルタ
@@ -816,6 +820,10 @@ public class ImageProcessor {
 			if (mDilation != null) {
 				mDilation.release();
 				mDilation = null;
+			}
+			if (mErosion != null) {
+				mErosion.release();
+				mErosion = null;
 			}
 			if (mGray != null) {
 				mGray.release();
@@ -893,12 +901,22 @@ public class ImageProcessor {
 				// 色抽出処理
 				if (mEnableExtraction) {
 					mMediaSource.apply(mExtraction);
+					// 収縮処理
+					mMediaSource.apply(mErosion);
+					// 膨張処理
+					mMediaSource.apply(mDilation);
+					// 収縮処理
+					mMediaSource.apply(mErosion);
 				}
 				// 平滑化処理
-				if (mSmoothType == 4) {
+				switch (mSmoothType) {
+				case 0: break;
+				case 4:
 					mMediaSource.apply(mDilation);
-				} else if (mSmoothType != 0) {
+					break;
+				default:
 					mMediaSource.apply(mSmooth);
+					break;
 				}
 				// エッジ検出処理
 				if (mEnableCanny) {
@@ -1005,6 +1023,7 @@ public class ImageProcessor {
 			mSmooth.resize(width, height);
 			mGray.resize(width, height);
 			mDilation.resize(width, height);
+			mErosion.resize(width, height);
 			mEdgeDetection.resize(width, height);
 		}
 

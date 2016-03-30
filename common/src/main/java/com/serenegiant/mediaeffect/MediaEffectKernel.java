@@ -5,7 +5,7 @@ public class MediaEffectKernel extends MediaEffectGLESBase {
 	private static final String TAG = "MediaEffectKernel";
 
 	public MediaEffectKernel() {
-		super(new MediaEffectKernel3x3Drawer(false, MediaEffectDrawer.VERTEX_SHADER, MediaEffectDrawer.FRAGMENT_SHADER_2D));
+		super(new MediaEffectKernel3x3Drawer(false, MediaEffectKernel3x3Drawer.VERTEX_SHADER, MediaEffectKernel3x3Drawer.FRAGMENT_SHADER_2D));
 	}
 
 	public MediaEffectKernel(final float[] kernel) {
@@ -19,7 +19,7 @@ public class MediaEffectKernel extends MediaEffectGLESBase {
 	}
 
 	@Override
-	public MediaEffectGLESBase resize(final int width, final int height) {
+	public MediaEffectKernel resize(final int width, final int height) {
 		super.resize(width, height);
 		setTexSize(width, height);
 		return this;
@@ -37,7 +37,7 @@ public class MediaEffectKernel extends MediaEffectGLESBase {
 	 * Sets the size of the texture.  This is used to find adjacent texels when filtering.
 	 */
 	public void setTexSize(final int width, final int height) {
-		((MediaEffectKernel3x3Drawer)mDrawer).setTexSize(width, height);
+		mDrawer.setTexSize(width, height);
 	}
 
 	/**
