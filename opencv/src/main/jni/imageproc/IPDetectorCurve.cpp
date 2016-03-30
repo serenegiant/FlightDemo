@@ -106,7 +106,6 @@ int IPDetectorCurve::detect(
 			cv::polylines(result_frame, rec.contour, true, COLOR_ACUA, 2);
 		}
 		// ラインの可能性が高い輪郭を追加
-		rec.type = TYPE_CURVE;
 		possibles.push_back(rec);
 		if (param.show_detects) {
 			cv::polylines(result_frame, rec.contour, true, COLOR_BLUE, 2);

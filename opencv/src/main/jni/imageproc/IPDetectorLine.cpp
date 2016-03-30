@@ -104,7 +104,6 @@ int IPDetectorLine::detect(
 		// Hu momentsが基準値との差が大きい時はスキップ
 //		if (analogous < param.mMaxAnalogous) {
 			// ラインの可能性が高い輪郭を追加
-			rec.type = TYPE_LINE;
 			result.analogous = analogous;
 			possibles.push_back(rec);
 			if (param.show_detects) {
