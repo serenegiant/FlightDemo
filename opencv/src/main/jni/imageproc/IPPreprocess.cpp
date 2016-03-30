@@ -220,7 +220,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		}
 		possible.type = TYPE_NON;
 		possible.moments = cv::moments(*contour);
-		if (possible.moments.m00 != 0) {
+		if (possible.moments.m00 != 0.0f) {
 			possible.center.x = possible.moments.m10 / possible.moments.m00;
 			possible.center.y = possible.moments.m01 / possible.moments.m00;
 		} else {
@@ -228,12 +228,15 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		}
 		possible.contour.assign((*contour).begin(), (*contour).end());	// 凸包図形から輪郭に変更
 		possible.area_rect = area_rect;	// 最小矩形
+		possible.ellipse.center.x = possible.ellipse.center.y = 0.0f;
 		possible.area = area;				// 近似輪郭の面積
 		possible.area_rate = w * h / area;	// 近似輪郭の面積に対する最小矩形の面積比
 		possible.area_approx = area_approx;	// 凸包図形の面積
-		possible.aspect = w / h;			// 最小矩形のアスペクト比
+		possible.aspect = h != 0.0f ? w / h : 0.0f;		// 最小矩形のアスペクト比
 		possible.length = w;				// 最小矩形の長軸長さ
 		possible.width = h;					// 最小矩形の短軸長さ
+		possible.analogous = 0.0f;
+		possible.curvature = possible.ex = possible.ey = 0.0f;
 		approxes.push_back(possible);
 	}
 

@@ -27,8 +27,6 @@ static double HU_MOMENTS[] = {
 // 検出したオブジェクトの優先度の判定
 // 第1引数が第2引数よりも小さい(=前にある=優先度が高い)時に真(正)を返す
 static bool comp_priority(const DetectRec &left, const DetectRec &right) {
-//	// 頂点1つあたりの面積の比較(大きい方)
-//	const bool b1 = left.area_vertex > right.area_vertex;
 	// 類似性(小さい方, 曲線だと大きくなってしまう)
 	const bool b2 = left.analogous < right.analogous;
 	// 近似輪郭と実輪郭の面積比(小さい方, 曲線だと大きくなってしまう)
@@ -113,8 +111,10 @@ int IPDetectorLine::detect(
 	}
 	// 優先度の最も高いものを選択する
 	if (possibles.size() > 0) {
-		// 優先度の降順にソートする
-		std::sort(possibles.begin(), possibles.end(), comp_priority);
+		if (possibles.size() > 1) {
+			// 優先度の降順にソートする
+			std::sort(possibles.begin(), possibles.end(), comp_priority);
+		}
 		result = *possibles.begin();	// 先頭=優先度が最高
 		result.type = TYPE_LINE;
 		result.curvature = result.ex = result.ey = 0.0f;
