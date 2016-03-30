@@ -2,6 +2,18 @@
 // Created by saki on 16/03/30.
 //
 
+#if 0	// デバッグ情報を出さない時は1
+	#ifndef LOG_NDEBUG
+		#define	LOG_NDEBUG		// LOGV/LOGD/MARKを出力しない時
+	#endif
+	#undef USE_LOGALL			// 指定したLOGxだけを出力
+#else
+//	#define USE_LOGALL
+	#define USE_LOGD
+	#undef LOG_NDEBUG
+	#undef NDEBUG
+#endif
+
 #include "utilbase.h"
 
 #include "IPFrame.h"
@@ -62,6 +74,7 @@ void IPFrame::initFrame(const int &width, const int &height) {
 void IPFrame::releaseFrame() {
 	ENTER();
 
+	LOGI("");
 #if USE_PBO
 	mPboMutex.lock();
 	{
@@ -79,6 +92,8 @@ void IPFrame::releaseFrame() {
 		mFrameSync.broadcast();
 	}
 	mFrameMutex.unlock();
+
+	LOGI("finished");
 
 	EXIT();
 }
@@ -195,10 +210,12 @@ cv::Mat IPFrame::obtainFromPool(const int &width, const int &height) {
 void IPFrame::recycle(cv::Mat &frame) {
 	ENTER();
 
-	Mutex::Autolock lock(mPoolMutex);
+	if (LIKELY(!frame.empty())) {
+		Mutex::Autolock lock(mPoolMutex);
 
-	if (mPool.size() < MAX_POOL_SIZE) {
-		mPool.push_back(frame);
+		if (mPool.size() < MAX_POOL_SIZE) {
+			mPool.push_back(frame);
+		}
 	}
 
 	EXIT();
@@ -224,7 +241,7 @@ int IPFrame::addFrame(cv::Mat &frame) {
 	}
 	mFrameMutex.unlock();
 
-	if (temp) {
+	if (UNLIKELY(temp)) {
 		recycle(*temp);
 		result = -1;
 	}

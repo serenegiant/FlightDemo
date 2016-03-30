@@ -38,10 +38,12 @@ typedef enum SmoothType {
 typedef struct DetectRec {
 	std::vector< cv::Point > contour;	// 近似輪郭
 	cv::RotatedRect area_rect;	// 内包する最小矩形
+	cv::RotatedRect ellipse;
 	DetectType_t type;
-	float area_rate;			// 近似輪郭の面積に対する近似輪郭を内包する最小矩形の面積の比...基本的に1以上のはず
+	float area_rate;			// 近似輪郭の面積に対する近似輪郭を内包する最小矩形の面積の比...基本的に1以上のはず, w * h / area
 	float area_vertex;			// 頂点1つあたりの面積, 大きい方が角数が少ない
-	float area;
+	float area;					// 近似輪郭の面積(内部にある空隙は減算済)
+	float area_approx;			// 凸包図形の面積
 	float aspect;
 	float analogous;			// 100-基準図形のHu momentsとの差の絶対値,
 	float length;				// 長軸長さ

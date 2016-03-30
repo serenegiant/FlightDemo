@@ -141,11 +141,13 @@ int ImageProcessor::stop() {
 
 	bool b = isRunning();
 	if (LIKELY(b)) {
+		// XXX releaseFrame内でgetFrame待ちが一旦解除されて抜けて
+		// 再度getFrame待ちに入ってハングアップしてしまうので先にmIsRunningを落とさないとダメ
+		mIsRunning = false;
 		releaseFrame();
 		mMutex.lock();
 		{
 			MARK("signal to processor thread");
-			mIsRunning = false;
 			mSync.broadcast();
 		}
 		mMutex.unlock();
@@ -348,8 +350,8 @@ void *ImageProcessor::processor_thread_func(void *vptr_args) {
 void ImageProcessor::do_process(JNIEnv *env) {
 	ENTER();
 
-	DetectRec_t possible;
-	cv::Mat src, bk_result, result;
+	DetectRec_t line, curve, corner, *possible;
+	cv::Mat src, bk_result, result_line, result_curve, result_corner, *result;
 	std::vector<std::vector< cv::Point>> contours;	// 輪郭データ
 	std::vector<DetectRec_t> approxes;	// 近似輪郭
 	DetectParam_t param;
@@ -357,50 +359,77 @@ void ImageProcessor::do_process(JNIEnv *env) {
 	for ( ; mIsRunning ; ) {
 		// フレームデータの取得待ち
 		cv::Mat frame = getFrame();
-		if (!mIsRunning) break;
-		try {
+		if (UNLIKELY(!mIsRunning)) break;
+		if (LIKELY(!frame.empty())) {
+			try {
 //================================================================================
 // フラグ更新
-			mMutex.lock();
-			{
-				if (UNLIKELY(mParam.changed)) {
-					param.set(mParam);
-					mParam.changed = false;
+				mMutex.lock();
+				{
+					if (UNLIKELY(mParam.changed)) {
+						param.set(mParam);
+						mParam.changed = false;
+					}
 				}
-			}
-			mMutex.unlock();
+				mMutex.unlock();
 //--------------------------------------------------------------------------------
 // 前処理
-			pre_process(frame, src, bk_result, param);
+				pre_process(frame, src, bk_result, param);
+				if (UNLIKELY(!mIsRunning)) break;
 //--------------------------------------------------------------------------------
 // 輪郭の検出処理
 // 最大で直線・円弧・コーナーの3つの処理が走るので近似輪郭検出と最低限のチェック(面積とか)は1回だけ先に済ましておく
-			findPossibleContours(src, bk_result, contours, approxes, param);
+				findPossibleContours(src, bk_result, contours, approxes, param);
+				if (UNLIKELY(!mIsRunning)) break;
 //--------------------------------------------------------------------------------
 // 直線ラインの検出処理
-			result = bk_result;	// 結果用画像を初期化
-			mLineDetector.detect(approxes, result, possible, param);
-			if (UNLIKELY(possible.type == TYPE_NON)) {
+				result_line = bk_result;	// 結果用画像を初期化
+				mLineDetector.detect(approxes, result_line, line, param);
+				if (UNLIKELY(!mIsRunning)) break;
 // 円弧の検出処理
-				result = bk_result;	// 結果用画像を初期化
-				mCurveDetector.detect(approxes, result, possible, param);
-			}
-			if (UNLIKELY(possible.type == TYPE_NON)) {
+				result_curve = bk_result;	// 結果用画像を初期化
+				mCurveDetector.detect(approxes, result_curve, curve, param);
+				if (UNLIKELY(!mIsRunning)) break;
 // コーナーの検出処理
-				result = bk_result;	// 結果用画像を初期化
-				mCornerDetector.detect(approxes, result, possible, param);
-			}
+				result_corner = bk_result;	// 結果用画像を初期化
+				mCornerDetector.detect(approxes, result_corner, corner, param);
+				if (UNLIKELY(!mIsRunning)) break;
 //================================================================================
-			// Java側のコールバックメソッドを呼び出す
-			callJavaCallback(env, possible, result, param);
-		} catch (cv::Exception e) {
-			LOGE("do_process failed:%s", e.msg.c_str());
-			continue;
-		} catch (...) {
-			LOGE("do_process unknown exception:");
-			break;
+				// 面積の大きい方を選択する FIXME 得点化してソート
+				const float a = line.type != TYPE_NON ? line.area : 0.0f;
+				const float b = curve.type != TYPE_NON ? curve.area : 0.0f;
+				const float c = corner.type != TYPE_NON ? corner.area : 0.0f;
+				possible = &line;
+				result = &result_line;
+				if (a < b) {
+					if (b > c) {
+						possible = &curve;
+						result = &result_curve;
+					} else {
+						possible = &corner;
+						result = &result_corner;
+					}
+				}
+				if (param.show_detects && (possible->type != TYPE_NON)) {
+					// ラインとして検出した輪郭線を赤で描画する
+					cv::polylines(*result, possible->contour, true, COLOR_RED, 2);
+					// 中央から検出したオブジェクトの中心に向かって線を引く
+					cv::line(*result, cv::Point(width() >> 1, height() >> 1), possible->area_rect.center, COLOR_RED, 8, 8);
+					if (possible->type == TYPE_CURVE) {
+						cv::ellipse(*result, possible->ellipse.center, possible->ellipse.size, possible->ellipse.angle, 0, 360, COLOR_RED);
+					}
+				}
+				// Java側のコールバックメソッドを呼び出す
+				callJavaCallback(env, *possible, *result, param);
+			} catch (cv::Exception e) {
+				LOGE("do_process failed:%s", e.msg.c_str());
+				continue;
+			} catch (...) {
+				LOGE("do_process unknown exception:");
+				break;
+			}
+			recycle(frame);
 		}
-		recycle(frame);
 	}
 
 	EXIT();

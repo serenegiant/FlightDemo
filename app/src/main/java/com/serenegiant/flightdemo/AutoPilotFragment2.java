@@ -834,7 +834,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// 画像中心からの距離を計算
 							offset.set(cx, cy, flightAltitude).sub(rec.mLinePos);
 							// 解析データ(画像中心からのオフセット,距離,回転角)
-							msg1 = String.format("v(%5.2f,%5.2f,%5.2f),θ=%5.2f(%5.2f),r=%6.4e)", offset.x, offset.y, offset.z, rec.mAngle, angle, rec.mCurvature);
+							msg1 = String.format("%d,v(%5.2f,%5.2f,%5.2f),θ=%5.2f(%5.2f),r=%6.4e)", rec.type, offset.x, offset.y, offset.z, rec.mAngle, angle, rec.mCurvature);
 							//--------------------------------------------------------------------------------
 							// 画面の端が-1または+1になるように変換する
 							offset.div(cx, cy, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]

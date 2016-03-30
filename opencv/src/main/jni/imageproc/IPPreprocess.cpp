@@ -1,6 +1,19 @@
 //
 // Created by saki on 16/03/30.
 //
+
+#if 0	// デバッグ情報を出さない時は1
+	#ifndef LOG_NDEBUG
+		#define	LOG_NDEBUG		// LOGV/LOGD/MARKを出力しない時
+	#endif
+	#undef USE_LOGALL			// 指定したLOGxだけを出力
+#else
+//	#define USE_LOGALL
+	#define USE_LOGD
+	#undef LOG_NDEBUG
+	#undef NDEBUG
+#endif
+
 #include "utilbase.h"
 
 #include "IPPreprocess.h"
@@ -127,27 +140,26 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 	std::vector<std::vector< cv::Point>> &contours,	// 輪郭データ
 	std::vector<DetectRec_t> &approxes,	// 近似輪郭
 	const DetectParam_t &param) {
+
 	ENTER();
 
 	DetectRec_t possible;
 	std::vector<cv::Vec4i> hierarchy;
+	std::vector< cv::Point > approx, approx2;		// 近似輪郭
+	cv::Point2f vertices[4];
 
 	contours.clear();
 	approxes.clear();
 
 	// 輪郭を求める
 	findContours(src, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
-	std::vector< cv::Point > approx, approx2;		// 近似輪郭
-	cv::Point2f vertices[4];
-	const float ww = src.cols - 20;
-	const float hh = src.rows - 20;
 	// 検出した輪郭の数分ループする
 	int idx = -1;
 	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
-		approx.clear();
 		idx++;
 		if (hierarchy[idx][3] != -1) continue;	// 一番外側じゃない時
 		// 凸包頂点にする
+		approx.clear();
 		cv::convexHull(*contour, approx);
 //		// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
 //		const double epsilon = param.mApproxType == APPROX_RELATIVE
@@ -165,15 +177,6 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		const float a = w * h;
 		// 外周線または最小矩形が小さすぎるか大きすぎるのはスキップ
 		if (((w > 620) && (h > 350)) || (a < param.mAreaLimitMin) || (a > param.mAreaLimitMax)) continue;
-//		area_rect.points(vertices);	// 四隅の座標を取得
-//		int cnt = 0;
-//		for (int i = 0; i < 3; i++) {
-//			cnt += (vertices[i].x < 12) && (vertices[i].y < 12) ? 1 : 0;
-//			cnt += (vertices[i].x > ww) && (vertices[i].y < 12) ? 1 : 0;
-//			cnt += (vertices[i].x < 12) && (vertices[i].y > hh) ? 1 : 0;
-//			cnt += (vertices[i].x > ww) && (vertices[i].y > hh) ? 1 : 0;
-//		}
-//		if (cnt > 2) continue;
 		if (param.show_detects) {
 			cv::drawContours(result, contours, idx, COLOR_YELLOW);	// 輪郭
 //			cv::polylines(result, approx, true, COLOR_YELLOW);		// 近似輪郭
@@ -199,9 +202,9 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		if (area < param.mAreaLimitMin) continue;
 		// 最小矩形の面積の半分未満ならスキップ
 //		if (w * h / area > 2.0f) continue;	// XXX これを入れると(楕)円弧やコーナーを検出できなくなる
-		// 凸包の面積を計算
+		// 凸包図形の面積を計算
 		const float area_approx = (float)cv::contourArea(approx);
-		// 凸包面積が25%以上元の輪郭面積より大きければスキップ=凹凸が激しい
+		// 凸包図形の面積面積が25%以上元の輪郭面積より大きければスキップ=凹凸が激しい
 		if (area_approx / area > param.mAreaErrLimit1) {
 			// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
 			const double epsilon = param.mApproxType == APPROX_RELATIVE
@@ -215,16 +218,16 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		}
 		if (param.show_detects) {
 			cv::polylines(result, approx, true, COLOR_GREEN);
-//			draw_rect(result, area_rect, COLOR_GREEN);
 		}
 		possible.type = TYPE_NON;
 		possible.contour.assign((*contour).begin(), (*contour).end());	// 凸包図形から輪郭に変更
 		possible.area_rect = area_rect;	// 最小矩形
 		possible.area = area;				// 近似輪郭の面積
 		possible.area_rate = w * h / area;	// 近似輪郭の面積に対する最小矩形の面積比
-		possible.aspect = w / h;	// 最小矩形のアスペクト比
-		possible.length = w;		// 最小矩形の長軸長さ
-		possible.width = h;			// 最小矩形の短軸長さ
+		possible.area_approx = area_approx;	// 凸包図形の面積
+		possible.aspect = w / h;			// 最小矩形のアスペクト比
+		possible.length = w;				// 最小矩形の長軸長さ
+		possible.width = h;					// 最小矩形の短軸長さ
 		approxes.push_back(possible);
 	}
 
