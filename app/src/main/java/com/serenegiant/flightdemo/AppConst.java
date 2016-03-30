@@ -54,13 +54,13 @@ public class AppConst {
 	public static final String KEY_ENABLE_EDGE_DETECTION = "KEY_ENABLE_EDGE_DETECTION";
 	public static final boolean DEFAULT_ENABLE_EDGE_DETECTION = false;
 	public static final String KEY_FILL_INNER_CONTOUR = "KEY_FILL_INNER_CONTOUR";
-	public static final boolean DEFAULT_FILL_INNER_CONTOUR = true;
+	public static final boolean DEFAULT_FILL_INNER_CONTOUR = false;
 	public static final String KEY_ENABLE_NATIVE_EDGE_DETECTION = "KEY_ENABLE_NATIVE_EDGE_DETECTION";
 	public static final boolean DEFAULT_ENABLE_NATIVE_EDGE_DETECTION = false;
 	public static final String KEY_AREA_LIMIT_MIN = "KEY_AREA_LIMIT_MIN";
-	public static final float DEFAULT_AREA_LIMIT_MIN = 1000.0f;
+	public static final float DEFAULT_AREA_LIMIT_MIN = 500.0f;
 	public static final String KEY_ASPECT_LIMIT_MIN = "KEY_ASPECT_LIMIT_MIN";
-	public static final float DEFAULT_ASPECT_LIMIT_MIN = 3.0f;
+	public static final float DEFAULT_ASPECT_LIMIT_MIN = 2.0f;
 	public static final String KEY_AREA_ERR_LIMIT1 = "KEY_AREA_ERR_LIMIT1";
 	public static final float DEFAULT_AREA_ERR_LIMIT1 = 1.25f;
 	public static final String KEY_AREA_ERR_LIMIT2 = "KEY_AREA_ERR_LIMIT2";

@@ -102,7 +102,7 @@ int IPDetectorLine::detect(
 		// Hu momentsが基準値との差が大きい時はスキップ
 //		if (analogous < param.mMaxAnalogous) {
 			// ラインの可能性が高い輪郭を追加
-			result.analogous = analogous;
+			rec.analogous = analogous;
 			possibles.push_back(rec);
 			if (param.show_detects) {
 				cv::polylines(result_frame, rec.contour, true, COLOR_BLUE, 2);

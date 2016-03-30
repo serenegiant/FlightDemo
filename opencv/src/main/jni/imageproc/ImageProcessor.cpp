@@ -351,7 +351,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 	ENTER();
 
 	DetectRec_t line, curve, corner, *possible;
-	cv::Mat src, bk_result, result_line, result_curve, result_corner, *result;
+	cv::Mat src, bk_result, result;
 	std::vector<std::vector< cv::Point>> contours;	// 輪郭データ
 	std::vector<DetectRec_t> approxes;	// 近似輪郭
 	DetectParam_t param;
@@ -383,16 +383,14 @@ void ImageProcessor::do_process(JNIEnv *env) {
 				if (UNLIKELY(!mIsRunning)) break;
 //--------------------------------------------------------------------------------
 // 直線ラインの検出処理
-				result_line = bk_result;	// 結果用画像を初期化
-				mLineDetector.detect(approxes, result_line, line, param);
+				result = bk_result;	// 結果用画像を初期化
+				mLineDetector.detect(approxes, result, line, param);
 				if (UNLIKELY(!mIsRunning)) break;
 // 円弧の検出処理
-				result_curve = bk_result;	// 結果用画像を初期化
-				mCurveDetector.detect(approxes, result_curve, curve, param);
+				mCurveDetector.detect(approxes, result, curve, param);
 				if (UNLIKELY(!mIsRunning)) break;
 // コーナーの検出処理
-				result_corner = bk_result;	// 結果用画像を初期化
-				mCornerDetector.detect(approxes, result_corner, corner, param);
+				mCornerDetector.detect(approxes, result, corner, param);
 				if (UNLIKELY(!mIsRunning)) break;
 //================================================================================
 				// 面積の大きい方を選択する FIXME 得点化してソート
@@ -400,34 +398,31 @@ void ImageProcessor::do_process(JNIEnv *env) {
 				const float b = curve.type != TYPE_NON ? curve.area : 0.0f;
 				const float c = corner.type != TYPE_NON ? corner.area : 0.0f;
 				possible = &line;
-				result = &result_line;
 				if (a < b) {
 					if (b > c) {
 						possible = &curve;
-						result = &result_curve;
 					} else {
 						possible = &corner;
-						result = &result_corner;
 					}
 				}
 				if (param.show_detects && (possible->type != TYPE_NON)) {
 					// ラインとして検出した輪郭線を赤で描画する
-					cv::polylines(*result, possible->contour, true, COLOR_RED, 2);
+					cv::polylines(result, possible->contour, true, COLOR_RED, 2);
 #if 0
 					// 映像中央から輪郭の最小矩形の中心に向かって線を引く
-					cv::line(*result, cv::Point(width() >> 1, height() >> 1), possible->area_rect.center, COLOR_RED, 8, 8);
+					cv::line(result, cv::Point(width() >> 1, height() >> 1), possible->area_rect.center, COLOR_RED, 8, 8);
 #else
 					// 映像中央から検出したオブジェクトの重心に向かって線を引く
 					if (possible->moments.m00 != 0) {
-						cv::line(*result, cv::Point(width() >> 1, height() >> 1), possible->center, COLOR_RED, 8, 8);
+						cv::line(result, cv::Point(width() >> 1, height() >> 1), possible->center, COLOR_RED, 8, 8);
 					}
 #endif
 					if (possible->type == TYPE_CURVE) {
-						cv::ellipse(*result, possible->ellipse.center, possible->ellipse.size, possible->ellipse.angle, 0, 360, COLOR_RED);
+						cv::ellipse(result, possible->ellipse.center, possible->ellipse.size, possible->ellipse.angle, 0, 360, COLOR_RED);
 					}
 				}
 				// Java側のコールバックメソッドを呼び出す
-				callJavaCallback(env, *possible, *result, param);
+				callJavaCallback(env, *possible, result, param);
 			} catch (cv::Exception e) {
 				LOGE("do_process failed:%s", e.msg.c_str());
 				continue;

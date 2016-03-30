@@ -69,7 +69,6 @@ int IPDetectorCurve::detect(
 	ENTER();
 
 	std::vector<DetectRec_t> possibles;		// 可能性のある輪郭
-	DetectRec_t possible;
 	double hu_moments[8];
 
 	// 検出した輪郭の数分ループする

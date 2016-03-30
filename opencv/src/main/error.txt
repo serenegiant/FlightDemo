@@ -1,17 +1,18 @@
-03-30 23:29:53.838 190-190/? A/DEBUG: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
-03-30 23:29:53.838 190-190/? A/DEBUG: Build fingerprint: 'google/razor/flo:6.0.1/MMB29V/2554798:user/release-keys'
-03-30 23:29:53.838 190-190/? A/DEBUG: Revision: '0'
-03-30 23:29:53.839 190-190/? A/DEBUG: ABI: 'arm'
-03-30 23:29:53.839 190-190/? A/DEBUG: pid: 24017, tid: 24322, name: Thread-3608  >>> com.serenegiant.flightdemo <<<
-03-30 23:29:53.839 190-190/? A/DEBUG: signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x99d800b4
-03-30 23:29:53.873 190-190/? A/DEBUG:     r0 00000001  r1 00000000  r2 00000000  r3 99d80200
-03-30 23:29:53.873 190-190/? A/DEBUG:     r4 99d7ffa0  r5 99d6fa60  r6 99d70fc0  r7 00000006
-03-30 23:29:53.873 190-190/? A/DEBUG:     r8 9c390c6c  r9 99d6fb90  sl 99d6fa60  fp 99d70fc0
-03-30 23:29:53.873 190-190/? A/DEBUG:     ip 00000001  sp 9954af88  lr 00000001  pc 9c3925b8  cpsr 000d0010
-03-30 23:29:53.881 190-190/? A/DEBUG:     #00 pc 000105b8  /data/app/com.serenegiant.flightdemo-1/lib/arm/libimageproc.so
-03-30 23:29:53.881 190-190/? A/DEBUG:     #01 pc 000106fc  /data/app/com.serenegiant.flightdemo-1/lib/arm/libimageproc.so
-03-30 23:29:53.881 190-190/? A/DEBUG:     #02 pc 00010ed4  /data/app/com.serenegiant.flightdemo-1/lib/arm/libimageproc.so (IPDetectorLine::detect(std::vector<DetectRec, std::allocator<DetectRec> >&, cv::Mat&, DetectRec&, DetectParam const&)+1620)
-03-30 23:29:53.881 190-190/? A/DEBUG:     #03 pc 00015d50  /data/app/com.serenegiant.flightdemo-1/lib/arm/libimageproc.so (ImageProcessor::do_process(_JNIEnv*)+1552)
-03-30 23:29:53.882 190-190/? A/DEBUG:     #04 pc 00016fd8  /data/app/com.serenegiant.flightdemo-1/lib/arm/libimageproc.so (ImageProcessor::processor_thread_func(void*)+88)
-03-30 23:29:53.882 190-190/? A/DEBUG:     #05 pc 0003f45f  /system/lib/libc.so (__pthread_start(void*)+30)
-03-30 23:29:53.882 190-190/? A/DEBUG:     #06 pc 00019b43  /system/lib/libc.so (__start_thread+6)
+3-31 00:33:57.905 5326-5426/? A/libc: Fatal signal 11 (SIGSEGV), code 1, fault addr 0x11c in tid 5426 (Thread-3730)
+03-31 00:33:57.957 190-190/? A/DEBUG: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+03-31 00:33:57.957 190-190/? A/DEBUG: Build fingerprint: 'google/razor/flo:6.0.1/MMB29V/2554798:user/release-keys'
+03-31 00:33:57.957 190-190/? A/DEBUG: Revision: '0'
+03-31 00:33:57.957 190-190/? A/DEBUG: ABI: 'arm'
+03-31 00:33:57.958 190-190/? A/DEBUG: pid: 5326, tid: 5426, name: Thread-3730  >>> com.serenegiant.flightdemo <<<
+03-31 00:33:57.958 190-190/? A/DEBUG: signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x11c
+03-31 00:33:57.986 190-190/? A/DEBUG:     r0 0000000c  r1 982e9258  r2 982e9258  r3 982e9260
+03-31 00:33:57.986 190-190/? A/DEBUG:     r4 982e9208  r5 982e925c  r6 00000000  r7 00000000
+03-31 00:33:57.986 190-190/? A/DEBUG:     r8 00000001  r9 00000000  sl 00000000  fp 00000005
+03-31 00:33:57.986 190-190/? A/DEBUG:     ip 00000001  sp 9978b130  lr 00000001  pc 9a105d90  cpsr 000d0010
+03-31 00:33:57.995 190-190/? A/DEBUG:     #00 pc 0000ed90  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so
+03-31 00:33:57.995 190-190/? A/DEBUG:     #01 pc 0000f008  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so
+03-31 00:33:57.995 190-190/? A/DEBUG:     #02 pc 0000f46c  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (IPDetectorLine::detect(std::vector<DetectRec, std::allocator<DetectRec> >&, cv::Mat&, DetectRec&, DetectParam const&)+372)
+03-31 00:33:57.995 190-190/? A/DEBUG:     #03 pc 00013a08  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::do_process(_JNIEnv*)+1320)
+03-31 00:33:57.995 190-190/? A/DEBUG:     #04 pc 00014848  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::processor_thread_func(void*)+88)
+03-31 00:33:57.995 190-190/? A/DEBUG:     #05 pc 0003f45f  /system/lib/libc.so (__pthread_start(void*)+30)
+03-31 00:33:57.995 190-190/? A/DEBUG:     #06 pc 00019b43  /system/lib/libc.so (__start_thread+6)
