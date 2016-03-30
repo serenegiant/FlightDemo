@@ -44,6 +44,12 @@ LOCAL_LDLIBS += -lEGL -lGLESv3				# OpenGL|ES 2.0|ES 3ライブラリ
 LOCAL_SHARED_LIBRARIES += common
 
 LOCAL_SRC_FILES := \
+	IPBase.cpp \
+	IPPreprocess.cpp \
+	IPFrame.cpp \
+	IPDetectorLine.cpp \
+	IPDetectorCurve.cpp \
+	IPDetectorCorner.cpp \
 	ImageProcessor.cpp \
 	thinning.cpp \
 

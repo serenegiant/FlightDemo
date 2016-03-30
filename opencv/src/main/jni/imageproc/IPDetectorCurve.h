@@ -1,0 +1,17 @@
+//
+// Created by saki on 16/03/30.
+//
+
+#ifndef FLIGHTDEMO_IPLINEDETECTOR_H
+#define FLIGHTDEMO_IPLINEDETECTOR_H
+
+#include "IPDetector.h"
+
+class IPDetectorCurve : public IPDetector {
+public:
+	IPDetectorCurve();
+	virtual ~IPDetectorCurve();
+	virtual int detect(std::vector<DetectRec_t> &contours,
+		cv::Mat &result_frame, DetectRec_t &possible, const DetectParam_t &param);
+};
+#endif //FLIGHTDEMO_IPLINEDETECTOR_H
