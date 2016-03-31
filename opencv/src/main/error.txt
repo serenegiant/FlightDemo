@@ -1,18 +1,35 @@
-3-31 00:33:57.905 5326-5426/? A/libc: Fatal signal 11 (SIGSEGV), code 1, fault addr 0x11c in tid 5426 (Thread-3730)
-03-31 00:33:57.957 190-190/? A/DEBUG: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
-03-31 00:33:57.957 190-190/? A/DEBUG: Build fingerprint: 'google/razor/flo:6.0.1/MMB29V/2554798:user/release-keys'
-03-31 00:33:57.957 190-190/? A/DEBUG: Revision: '0'
-03-31 00:33:57.957 190-190/? A/DEBUG: ABI: 'arm'
-03-31 00:33:57.958 190-190/? A/DEBUG: pid: 5326, tid: 5426, name: Thread-3730  >>> com.serenegiant.flightdemo <<<
-03-31 00:33:57.958 190-190/? A/DEBUG: signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x11c
-03-31 00:33:57.986 190-190/? A/DEBUG:     r0 0000000c  r1 982e9258  r2 982e9258  r3 982e9260
-03-31 00:33:57.986 190-190/? A/DEBUG:     r4 982e9208  r5 982e925c  r6 00000000  r7 00000000
-03-31 00:33:57.986 190-190/? A/DEBUG:     r8 00000001  r9 00000000  sl 00000000  fp 00000005
-03-31 00:33:57.986 190-190/? A/DEBUG:     ip 00000001  sp 9978b130  lr 00000001  pc 9a105d90  cpsr 000d0010
-03-31 00:33:57.995 190-190/? A/DEBUG:     #00 pc 0000ed90  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so
-03-31 00:33:57.995 190-190/? A/DEBUG:     #01 pc 0000f008  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so
-03-31 00:33:57.995 190-190/? A/DEBUG:     #02 pc 0000f46c  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (IPDetectorLine::detect(std::vector<DetectRec, std::allocator<DetectRec> >&, cv::Mat&, DetectRec&, DetectParam const&)+372)
-03-31 00:33:57.995 190-190/? A/DEBUG:     #03 pc 00013a08  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::do_process(_JNIEnv*)+1320)
-03-31 00:33:57.995 190-190/? A/DEBUG:     #04 pc 00014848  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::processor_thread_func(void*)+88)
-03-31 00:33:57.995 190-190/? A/DEBUG:     #05 pc 0003f45f  /system/lib/libc.so (__pthread_start(void*)+30)
-03-31 00:33:57.995 190-190/? A/DEBUG:     #06 pc 00019b43  /system/lib/libc.so (__start_thread+6)
+03-31 13:18:16.264 26176-26278/? A/libc: Fatal signal 8 (SIGFPE), code -6, fault addr 0x6640 in tid 26278 (Thread-4227)
+03-31 13:18:16.315 190-190/? A/DEBUG: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+03-31 13:18:16.316 190-190/? A/DEBUG: Build fingerprint: 'google/razor/flo:6.0.1/MMB29V/2554798:user/release-keys'
+03-31 13:18:16.316 190-190/? A/DEBUG: Revision: '0'
+03-31 13:18:16.316 190-190/? A/DEBUG: ABI: 'arm'
+03-31 13:18:16.316 190-190/? A/DEBUG: pid: 26176, tid: 26278, name: Thread-4227  >>> com.serenegiant.flightdemo <<<
+03-31 13:18:16.316 190-190/? A/DEBUG: signal 8 (SIGFPE), code -6 (SI_TKILL), fault addr 0x6640
+03-31 13:18:16.339 190-190/? A/DEBUG:     r0 00000000  r1 000066a6  r2 00000008  r3 9874b978
+03-31 13:18:16.339 190-190/? A/DEBUG:     r4 9874b980  r5 9874b930  r6 00000000  r7 0000010c
+03-31 13:18:16.339 190-190/? A/DEBUG:     r8 9e41cda8  r9 00000007  sl 9e96af78  fp 9874acc0
+03-31 13:18:16.339 190-190/? A/DEBUG:     ip 00000008  sp 9874ab98  lr b6caeb61  pc b6cb0f50  cpsr 400f0010
+03-31 13:18:16.350 190-190/? A/DEBUG:     #00 pc 00041f50  /system/lib/libc.so (tgkill+12)
+03-31 13:18:16.350 190-190/? A/DEBUG:     #01 pc 0003fb5d  /system/lib/libc.so (pthread_kill+32)
+03-31 13:18:16.350 190-190/? A/DEBUG:     #02 pc 0001c30f  /system/lib/libc.so (raise+10)
+03-31 13:18:16.350 190-190/? A/DEBUG:     #03 pc 0001b434  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (__aeabi_idiv0+8)
+03-31 13:18:16.350 190-190/? A/DEBUG:     #04 pc 00010880  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (CubicSpline<cv::Point_<int> >::init(bool const&)+2412)
+03-31 13:18:16.351 190-190/? A/DEBUG:     #05 pc 00013bd8  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (IPDetectorLine::detect(cv::Mat&, std::vector<DetectRec, std::allocator<DetectRec> >&, cv::Mat&, DetectRec&, DetectParam const&)+4460)
+03-31 13:18:16.351 190-190/? A/DEBUG:     #06 pc 00018a64  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::do_process(_JNIEnv*)+1332)
+03-31 13:18:16.351 190-190/? A/DEBUG:     #07 pc 000198b8  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::processor_thread_func(void*)+88)
+03-31 13:18:16.351 190-190/? A/DEBUG:     #08 pc 0003f45f  /system/lib/libc.so (__pthread_start(void*)+30)
+03-31 13:18:16.351 190-190/? A/DEBUG:     #09 pc 00019b43  /system/lib/libc.so (__start_thread+6)
+03-31 13:18:17.421 620-26289/? W/ActivityManager:   Force finishing activity com.serenegiant.flightdemo/.MainActivity
+03-31 13:18:17.426 190-190/? E/DEBUG: AM write failed: Broken pipe
+03-31 13:18:17.427 620-675/? I/BootReceiver: Copying /data/tombstones/tombstone_00 to DropBox (SYSTEM_TOMBSTONE)
+03-31 13:18:17.433 26176-26176/? I/Choreographer: Skipped 66 frames!  The application may be doing too much work on its main thread.
+03-31 13:18:17.436 26176-26270/? I/ARSTREAM_Reader: 13:18:17:436 | ARSTREAM_Reader_RunDataThread:455 - Missed 1 frames !
+03-31 13:18:17.507 620-3548/? D/GraphicsStats: Buffer count: 3
+03-31 13:18:17.509 192-192/? E/OMXNodeInstance: !!! Observer died. Quickly, do something, ... anything...
+03-31 13:18:17.510 620-3102/? I/WindowState: WIN DEATH: Window{faab94f u0 SurfaceView}
+03-31 13:18:17.511 620-3548/? I/WindowState: WIN DEATH: Window{2c28a4e u0 com.serenegiant.flightdemo/com.serenegiant.flightdemo.MainActivity}
+03-31 13:18:17.513 26053-26292/? I/AKMD2: AKMD_Release: Memory free.
+03-31 13:18:17.535 620-984/? E/qcom_sensors_hal: hal_process_report_ind: Bad item quality: 11 
+03-31 13:18:17.587 620-629/? I/art: Background partial concurrent mark sweep GC freed 32391(2MB) AllocSpace objects, 10(868KB) LOS objects, 33% free, 23MB/35MB, paused 2.044ms total 130.279ms
+03-31 13:18:17.607 205-205/? I/Zygote: Process 26176 exited due to signal (8)
+03-31 13:18:17.667 620-669/? I/ActivityManager: Process com.serenegiant.flightdemo (pid 26176) has died

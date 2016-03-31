@@ -61,6 +61,7 @@ IPDetectorCurve::~IPDetectorCurve() {
 }
 
 int IPDetectorCurve::detect(
+	cv::Mat &src,						// 解析画像
 	std::vector<DetectRec_t> &contours,	// 近似輪郭
 	cv::Mat &result_frame,				// 結果書き込み用Mat
 	DetectRec_t &result,				// 結果
@@ -70,6 +71,10 @@ int IPDetectorCurve::detect(
 
 	std::vector<DetectRec_t> possibles;		// 可能性のある輪郭
 	double hu_moments[8];
+
+	cv::Mat work;
+	src.copyTo(work);
+	cv::threshold(work, work, 10, 255, CV_THRESH_BINARY);
 
 	// 検出した輪郭の数分ループする
 	for (auto iter = contours.begin(); iter != contours.end(); iter++) {
@@ -102,6 +107,13 @@ int IPDetectorCurve::detect(
 		if (param.show_detects) {
 			cv::polylines(result_frame, rec.contour, true, COLOR_ACUA, 2);
 		}
+#if CALC_COEFFS
+		// 細線化して3次スプライン近似
+		if (calcCoeffs(work, rec.contour, rec.coeffs)) continue;
+		if (param.show_detects) {
+			drawSpline(result_frame);
+		}
+#endif
 		// ラインの可能性が高い輪郭を追加
 		possibles.push_back(rec);
 		if (param.show_detects) {

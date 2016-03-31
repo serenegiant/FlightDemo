@@ -384,13 +384,13 @@ void ImageProcessor::do_process(JNIEnv *env) {
 //--------------------------------------------------------------------------------
 // 直線ラインの検出処理
 				result = bk_result;	// 結果用画像を初期化
-				mLineDetector.detect(approxes, result, line, param);
+				mLineDetector.detect(src, approxes, result, line, param);
 				if (UNLIKELY(!mIsRunning)) break;
 // 円弧の検出処理
-				mCurveDetector.detect(approxes, result, curve, param);
+				mCurveDetector.detect(src, approxes, result, curve, param);
 				if (UNLIKELY(!mIsRunning)) break;
 // コーナーの検出処理
-				mCornerDetector.detect(approxes, result, corner, param);
+				mCornerDetector.detect(src, approxes, result, corner, param);
 				if (UNLIKELY(!mIsRunning)) break;
 //================================================================================
 				// 面積の大きい方を選択する FIXME 得点化してソート
@@ -419,6 +419,8 @@ void ImageProcessor::do_process(JNIEnv *env) {
 #endif
 					if (possible->type == TYPE_CURVE) {
 						cv::ellipse(result, possible->ellipse.center, possible->ellipse.size, possible->ellipse.angle, 0, 360, COLOR_RED);
+					}
+					if (possible->coeffs.size() > 0) {
 					}
 				}
 				// Java側のコールバックメソッドを呼び出す
@@ -465,9 +467,14 @@ int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv
 		// 楕円の中心座標
 		detected[7] = detect_result.ex;
 		detected[8] = detect_result.ey;
+		// 楕円の長軸と短軸の長さ
+		detected[9] = detect_result.ellipse.size.width;
+		detected[10] = detect_result.ellipse.size.height;
+		// 楕円の傾き
+		detected[11] = detect_result.ellipse.angle;
 		// 重心位置
-		detected[9] = detect_result.center.x;
-		detected[10] = detect_result.center.y;
+		detected[12] = detect_result.center.x;
+		detected[13] = detect_result.center.y;
 		//
 		jfloatArray detected_array = env->NewFloatArray(RESULT_NUM);
 		env->SetFloatArrayRegion(detected_array, 0, RESULT_NUM, detected);

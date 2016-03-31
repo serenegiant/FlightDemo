@@ -106,7 +106,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	protected ImageProcessor mImageProcessor;
 	protected TraceTask mTraceTask;
 	protected Switch mAutoWhiteBlanceSw;
-	private TextView mTraceTv1, mTraceTv2;
+	private TextView mTraceTv1, mTraceTv2, mTraceTv3;
 	private TextView mCpuLoadTv;
 
 	// 設定
@@ -268,6 +268,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		//
 		mTraceTv1 = (TextView)rootView.findViewById(R.id.trace1_tv);
 		mTraceTv2 = (TextView)rootView.findViewById(R.id.trace2_tv);
+		mTraceTv3 = (TextView)rootView.findViewById(R.id.trace3_tv);
 		//
 		mCpuLoadTv = (TextView)rootView.findViewById(R.id.cpu_load_textview);
 
@@ -808,7 +809,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				if (rec != null) {
 					try {
 						// 解析データを取得できた＼(^o^)／
-						final String msg1;
+						String msg1 = null, msg2 = null;
 						if (rec.type >= 0) {	// 0:TYPE_LINE, 1:TYPE_CIRCLE, 2:TYPE_CORNER
 							// ラインを検出出来た時
 							lostTime = -1;
@@ -822,12 +823,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							//--------------------------------------------------------------------------------
 							// ライン角に機体の進行方向の傾きを補正
 							final float theta = rec.mAngle - flightAngleYaw;
-							float angle = -theta;
-							if ((angle > 90.0f) || (angle < -90.0f)) {
+							float line_angle = -theta;
+							if ((line_angle > 90.0f) || (line_angle < -90.0f)) {
 								if (theta < 0.0f) {
-									angle -= 180.0f;
+									line_angle -= 180.0f;
 								} else {
-									angle += 180.0f;
+									line_angle += 180.0f;
 								}
 							}
 							//--------------------------------------------------------------------------------
@@ -836,7 +837,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// 解析データ
 							msg1 = String.format("%d,v(%5.2f,%5.2f,%5.2f),θ=%5.2f(%5.2f),r=%6.4e)",
 								rec.type, offset.x, offset.y, offset.z,
-								rec.mAngle, angle, rec.mCurvature);
+								rec.mAngle, line_angle, rec.mCurvature);
 							//--------------------------------------------------------------------------------
 							// 画面の端が-1または+1になるように変換する
 							offset.div(CX, CY, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
@@ -866,13 +867,37 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							mPilotValue.limit(-100.0f, +100.0f);
 							//--------------------------------------------------------------------------------
 							// 機体のyaw角を計算
-							pilotAngle = angle;
-							if (curvature != 0.0f) {
-								// 曲率による機体yaw角の補正
-								if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
-									// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
-									pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
+							switch (rec.type) {
+							case 0: // TYPE_LINE
+							{
+								pilotAngle = line_angle;
+								if (curvature != 0.0f) {
+									// 曲率による機体yaw角の補正
+									if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
+										// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
+										pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
+									}
 								}
+								break;
+							}
+							case 1:	// TYPE_CIRCLE
+							{
+								offset.set(rec.mEllipsePos).sub(rec.mCenter);
+								msg2 = String.format("e(%5.2f,%5.2f,%5.2f),θ=%5.2f", offset.x, offset.y, offset.z, (offset.angleXY() + 90.0f) % 360.0f)  ;
+								pilotAngle = line_angle;
+								if (curvature != 0.0f) {
+									// 曲率による機体yaw角の補正
+									if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
+										// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
+										pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
+									}
+								}
+								break;
+							}
+							case 2: // TYPE_CORNER
+							{
+								break;
+							}
 							}
 							// 自動操縦スケールを適用
 							pilotAngle *= scaleR;
@@ -919,12 +944,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						} else {
 							startTime = -1L;
 						}
-						final String msg2 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
+						final String msg3 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
+						final String m1 = msg1;
+						final String m2 = msg2;
 						runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
-								mTraceTv1.setText(msg1);
-								mTraceTv2.setText(msg2);
+								mTraceTv1.setText(m1);
+								mTraceTv2.setText(m2);
+								mTraceTv3.setText(msg3);
 							}
 						});
 					} finally {
@@ -1003,9 +1031,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				// 楕円フィッティングの曲率
 				rec.mCurvature = result[6];
 				// 近似楕円の中心座標, mCurvature==0の時は無効(0,0)
-				rec.mEclipsePos.set(result[7], result[8], 0.0f);
+				rec.mEllipsePos.set(result[7], result[8], 0.0f);
+				rec.mEllipseA = result[9];		// 楕円の幅
+				rec.mEllipseB = result[10];		// 楕円の高さ
+				rec.mEllipseAngle = result[11];	// 楕円の回転角
 				// 重心座標
-				rec.mCenter.set(result[9], result[10], 0.0f);
+				rec.mCenter.set(result[12], result[13], 0.0f);
 				// キュー内に最大数入っていたら先頭(一番古いもの)をプールに戻す
 				for ( ; mQueue.size() > MAX_QUEUE ; ) {
 					mPool.add(mQueue.remove(0));

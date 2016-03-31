@@ -54,7 +54,7 @@ static bool comp_priority(const DetectRec &left, const DetectRec &right) {
 
 //********************************************************************************
 //********************************************************************************
-IPDetectorLine::IPDetectorLine() {
+IPDetectorLine::IPDetectorLine() : IPDetector() {
 	ENTER();
 
 	EXIT();
@@ -67,6 +67,7 @@ IPDetectorLine::~IPDetectorLine() {
 }
 
 int IPDetectorLine::detect(
+	cv::Mat &src,						// 解析画像
 	std::vector<DetectRec_t> &contours,	// 近似輪郭
 	cv::Mat &result_frame,				// 結果書き込み用Mat
 	DetectRec_t &result,				// 結果
@@ -76,6 +77,10 @@ int IPDetectorLine::detect(
 
 	std::vector<DetectRec_t> possibles;		// 可能性のある輪郭
 	double hu_moments[8];
+
+	cv::Mat work;
+	src.copyTo(work);
+	cv::threshold(work, work, 10, 255, CV_THRESH_BINARY);
 
 	// 検出した輪郭の数分ループする
 	for (auto iter = contours.begin(); iter != contours.end(); iter++) {
@@ -94,7 +99,13 @@ int IPDetectorLine::detect(
 		if (param.show_detects) {
 			cv::polylines(result_frame, rec.contour, true, COLOR_ACUA, 2);
 		}
-
+#if CALC_COEFFS
+		// 細線化して3次スプライン近似
+		if (calcCoeffs(work, rec.contour, rec.coeffs)) continue;
+		if (param.show_detects) {
+			drawSpline(result_frame);
+		}
+#endif
 		// 輪郭のHu momentを計算
 		cv::HuMoments(rec.moments, hu_moments);
 		// 基準値と比較, メソッド1は時々一致しない, メソッド2,3だとほとんど一致しない, 完全一致なら0が返る

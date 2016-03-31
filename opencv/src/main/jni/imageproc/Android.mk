@@ -47,6 +47,7 @@ LOCAL_SRC_FILES := \
 	IPBase.cpp \
 	IPPreprocess.cpp \
 	IPFrame.cpp \
+	IPDetector.cpp \
 	IPDetectorLine.cpp \
 	IPDetectorCurve.cpp \
 	IPDetectorCorner.cpp \

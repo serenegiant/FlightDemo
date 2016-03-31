@@ -15,6 +15,12 @@
 #define RESULT_FRAME_TYPE_DST_LINE 4
 #define RESULT_FRAME_TYPE_MAX 5
 
+typedef struct Coeff4 {
+	float a, b, c, d;
+} Coeff4_t;
+
+#define EPS 1e-8
+
 typedef enum DetectType {
 	TYPE_NON = -1,
 	TYPE_LINE = 0,
@@ -41,6 +47,7 @@ typedef struct DetectRec {
 	cv::RotatedRect ellipse;
 	cv::Moments moments;
 	cv::Point center;			// 重心
+	std::vector<Coeff4_t> coeffs;
 	DetectType_t type;
 	float area_rate;			// 輪郭面積に対する輪郭を内包する最小矩形の面積の比...基本的に1以上のはず, w * h / area
 	float area;					// 輪郭の面積(内部にある空隙は減算済)

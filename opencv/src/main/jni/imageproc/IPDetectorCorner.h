@@ -11,7 +11,7 @@ class IPDetectorCorner : public IPDetector {
 public:
 	IPDetectorCorner();
 	virtual ~IPDetectorCorner();
-	virtual int detect(std::vector<DetectRec_t> &contours,
+	virtual int detect(cv::Mat &src, std::vector<DetectRec_t> &contours,
 		cv::Mat &result_frame, DetectRec_t &possible, const DetectParam_t &param);
 };
 #endif //FLIGHTDEMO_IPDETECTORCORNER_H

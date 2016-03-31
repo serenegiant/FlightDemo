@@ -11,7 +11,7 @@ class IPDetectorCurve : public IPDetector {
 public:
 	IPDetectorCurve();
 	virtual ~IPDetectorCurve();
-	virtual int detect(std::vector<DetectRec_t> &contours,
+	virtual int detect(cv::Mat &src, std::vector<DetectRec_t> &contours,
 		cv::Mat &result_frame, DetectRec_t &possible, const DetectParam_t &param);
 };
 #endif //FLIGHTDEMO_IPLINEDETECTOR_H
