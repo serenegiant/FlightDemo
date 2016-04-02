@@ -764,7 +764,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 			float scaleR = (float)mScaleR;
 			float directionalReverseBias = mTraceDirectionalReverseBias;
-			float curvature = 0.0f; // mTraceCurvature;
+//			float curvature = 0.0f; // mTraceCurvature;
 			final Vector factor = new Vector(0.5f, 1.0f, 1.0f);
 			//
 			long startTime = -1L, lostTime = -1L;
@@ -835,9 +835,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// 画像中心からライン重心へのオフセットを計算
 							offset.set(CX, CY, flightAltitude).sub(rec.mCenter);
 							// 解析データ
-							msg1 = String.format("%d,v(%5.2f,%5.2f,%5.2f),θ=%5.2f(%5.2f),r=%6.4e)",
-								rec.type, offset.x, offset.y, offset.z,
-								rec.mAngle, line_angle, rec.mCurvature);
+							msg1 = String.format("%d,v(%5.2f,%5.2f,%5.2f,%5.2f),θ=%5.2f,r=%6.4e)",
+								rec.type, offset.x, offset.y, offset.z, rec.mAngle,
+								line_angle, rec.mCurvature);
 							//--------------------------------------------------------------------------------
 							// 画面の端が-1または+1になるように変換する
 							offset.div(CX, CY, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
@@ -871,27 +871,53 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							case 0: // TYPE_LINE
 							{
 								pilotAngle = line_angle;
-								if (curvature != 0.0f) {
-									// 曲率による機体yaw角の補正
-									if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
-										// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
-										pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
-									}
-								}
+//								if (curvature != 0.0f) {
+//									// 曲率による機体yaw角の補正
+//									if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
+//										// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
+//										pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
+//									}
+//								}
 								break;
 							}
 							case 1:	// TYPE_CIRCLE
 							{
-								offset.set(rec.mEllipsePos).sub(rec.mCenter);
-								msg2 = String.format("e(%5.2f,%5.2f,%5.2f),θ=%5.2f", offset.x, offset.y, offset.z, (offset.angleXY() + 90.0f) % 360.0f)  ;
-								pilotAngle = line_angle;
-								if (curvature != 0.0f) {
-									// 曲率による機体yaw角の補正
-									if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
-										// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
-										pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
-									}
+								// 楕円の中心とライン重心を通る線分と楕円の交点座標での接線の傾きを求める
+								// 楕円の中心からライン重心へ向かうベクトルを計算
+								offset.set(rec.mCenter).sub(rec.mEllipsePos);
+								// 楕円の回転角を補正
+								offset.rotateXY(-rec.mEllipseAngle);
+								// 楕円の中心とライン重心を通る線分の傾きを取得
+								final float c = offset.y / offset.x;	// FIXME x=0の時の処理が必要,
+								//  楕円: x^2 / a^2 + y^2 / b^2 = 1との交点を計算
+								final float a = rec.mEllipseA / 2.0f;
+								final float b = rec.mEllipseB / 2.0f;
+								final float w = 1.0f - (a * a * b * b) / (b * b + a * a * c * c);
+								final float x1 = (float)Math.sqrt(w);
+								work.set(x1, c * x1);
+								final float d = Math.abs(work.getAngle(offset));
+								if (d > 5) {
+									// ライン重心と反対側の交点だったので符号を反転
+									work.mult(-1.0f);
 								}
+								// この時点でworkには楕円の中心とライン重心を通る線分と楕円の交点座標が入っている
+								//  楕円: x^2 / a^2 + y^2 / b^2 = 1上の点(x0,y0)の接線の方程式は
+								// x0・x / a^2 + y0・y / b^2 = 1, 式変形してy = b^2 / y - (x0・b^2) / (a^2・y0)・x
+								// なので傾きは- (x0・b^2) / (a^2・y0)
+								final float slope = - work.x * b * b / (a * a * work.y);
+								// 接線がx軸となす角を計算, 楕円の傾きを加算
+								final float slope_angle = (float)Math.toDegrees(Math.atan(slope)) + rec.mEllipseAngle;
+								msg2 = String.format("  e(%5.2f,%5.2f,%5.2f,%5.2f),θ=%5.2f",
+									offset.x, offset.y, offset.z, rec.mEllipseAngle,
+									slope_angle);
+								pilotAngle = line_angle;
+//								if (curvature != 0.0f) {
+//									// 曲率による機体yaw角の補正
+//									if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
+//										// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
+//										pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
+//									}
+//								}
 								break;
 							}
 							case 2: // TYPE_CORNER
