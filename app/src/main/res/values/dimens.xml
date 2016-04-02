@@ -10,14 +10,14 @@
 	<dimen name="quater_padding">4dp</dimen>
 	<dimen name="min_padding">2dp</dimen>
 
-	<dimen name="top_panel_height">40dp</dimen>
-	<dimen name="bottom_panel_height">42dp</dimen>
+	<dimen name="top_panel_height">34dp</dimen>
+	<dimen name="bottom_panel_height">40dp</dimen>
 
 	<dimen name="stick_size">96dp</dimen>
 	<dimen name="stick_frame_width">192dp</dimen>
 	<dimen name="stick_frame_height">144dp</dimen>
 
-	<dimen name="btn_sz_bottom">36dp</dimen>
+	<dimen name="btn_sz_bottom">34dp</dimen>
 	<dimen name="btn_size_action">38dp</dimen>
 	<dimen name="btn_sz_connection">64dp</dimen>
 

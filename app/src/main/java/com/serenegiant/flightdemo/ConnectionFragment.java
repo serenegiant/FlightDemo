@@ -265,16 +265,16 @@ public class ConnectionFragment extends BaseFragment {
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 						switch (id) {
 						case R.id.pilot_button:
-							fragment = AutoPilotFragment2.newInstance(device, "test001");
+							fragment = AutoPilotFragment2.newInstance(device, "test001", AutoPilotFragment2.MODE_TRACE);
 							break;
 						case R.id.download_button:
-							fragment = AutoPilotFragment2.newInstance(device, "test002");
+							fragment = AutoPilotFragment2.newInstance(device, "test002", AutoPilotFragment2.MODE_TRACE);
 							break;
 						case R.id.gallery_button:
-							fragment = AutoPilotFragment2.newInstance(device, "test003");
+							fragment = AutoPilotFragment2.newInstance(device, "test003", AutoPilotFragment2.MODE_TRACE);
 							break;
 						case R.id.script_button:
-							fragment = AutoPilotFragment2.newInstance(device, "test004");
+							fragment = AutoPilotFragment2.newInstance(device, "test004", AutoPilotFragment2.MODE_TRACKING);
 							break;
 						}
 					}

@@ -33,6 +33,7 @@ public class AppConst {
 
 // ライントレース
 	public static final String KEY_PREF_NAME_AUTOPILOT = "KEY_PREF_NAME_AUTOPILOT";
+	public static final String KEY_AUTOPILOT_MODE = "KEY_AUTOPILOT_MODE";
 	public static final String KEY_AUTO_WHITE_BLANCE = "KEY_AUTO_WHITE_BLANCE";
 	public static final String KEY_EXPOSURE = "KEY_EXPOSURE";
 	public static final float DEFAULT_EXPOSURE = 0.0f;
@@ -54,7 +55,7 @@ public class AppConst {
 	public static final String KEY_ENABLE_EDGE_DETECTION = "KEY_ENABLE_EDGE_DETECTION";
 	public static final boolean DEFAULT_ENABLE_EDGE_DETECTION = false;
 	public static final String KEY_FILL_INNER_CONTOUR = "KEY_FILL_INNER_CONTOUR";
-	public static final boolean DEFAULT_FILL_INNER_CONTOUR = false;
+	public static final boolean DEFAULT_FILL_INNER_CONTOUR = true;
 	public static final String KEY_ENABLE_NATIVE_EDGE_DETECTION = "KEY_ENABLE_NATIVE_EDGE_DETECTION";
 	public static final boolean DEFAULT_ENABLE_NATIVE_EDGE_DETECTION = false;
 	public static final String KEY_AREA_LIMIT_MIN = "KEY_AREA_LIMIT_MIN";

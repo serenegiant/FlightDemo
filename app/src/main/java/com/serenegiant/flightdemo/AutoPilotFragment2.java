@@ -1,6 +1,5 @@
 package com.serenegiant.flightdemo;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -57,25 +56,33 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = AutoPilotFragment2.class.getSimpleName();
 
-	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device, final String pref_name) {
+	public static final int MODE_TRACE = 0;
+	public static final int MODE_TRACKING = 1;
+
+	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device, final String pref_name, final int mode) {
 
 		final AutoPilotFragment2 fragment = new AutoPilotFragment2();
 		final Bundle args = fragment.setDevice(device);
 		fragment.mPrefName =  TextUtils.isEmpty(pref_name) ? TAG : pref_name;
+		fragment.mMode = mode;
 		args.putString(KEY_PREF_NAME_AUTOPILOT, fragment.mPrefName);
+		args.putInt(KEY_AUTOPILOT_MODE, fragment.mMode);
 		return fragment;
 	}
 
-	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final String pref_name) {
+	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final String pref_name, final int mode) {
 
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final AutoPilotFragment2 fragment = new AutoPilotFragment2();
 		final Bundle args = fragment.setBridge(device, info);
 		fragment.mPrefName =  TextUtils.isEmpty(pref_name) ? TAG : pref_name;
+		fragment.mMode = mode;
 		args.putString(KEY_PREF_NAME_AUTOPILOT, fragment.mPrefName);
+		args.putInt(KEY_AUTOPILOT_MODE, fragment.mMode);
 		return fragment;
 	}
 
+	private int mMode;
 	private ViewGroup mControllerFrame;		// 操作パネル全体
 
 	// 上パネル
@@ -120,12 +127,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		// デフォルトコンストラクタが必要
 	}
 
-	@Override
-	public void onAttach(final Activity activity) {
-		super.onAttach(activity);
-		if (DEBUG) Log.v(TAG, "onAttach");
-		mPref = activity.getSharedPreferences(mPrefName, 0);
-	}
+//	@Override
+//	public void onAttach(final Activity activity) {
+//		super.onAttach(activity);
+//		if (DEBUG) Log.v(TAG, "onAttach");
+//	}
 
 	@Override
 	public void onDetach() {
@@ -148,6 +154,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 
 	@Override
 	protected View internalCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState, final int layout_id) {
+		Bundle args = savedInstanceState;
+		if (args == null) {
+			args = getArguments();
+		}
+		mPrefName = args.getString(KEY_PREF_NAME_AUTOPILOT, mPrefName);
+		mMode = args.getInt(KEY_AUTOPILOT_MODE, mMode);
+		mPref = getActivity().getSharedPreferences(mPrefName, 0);
 		// パラメータの読み込み
 		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, false);
 		mExposure = mPref.getFloat(KEY_EXPOSURE, DEFAULT_EXPOSURE);
@@ -474,7 +487,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			((ICameraController)controller).sendCameraOrientation(-100, 0);
 			((ICameraController)controller).sendAutoWhiteBalance(mAutoWhiteBlance ? 0 : -1);	// 自動ホワイトバランス
 		} else {
-			mAutoWhiteBlanceSw.setVisibility(View.GONE);
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					mAutoWhiteBlanceSw.setVisibility(View.GONE);
+				}
+			});
 		}
 		mTraceAltitude = Math.min(mPref.getFloat(KEY_TRACE_ALTITUDE, DEFAULT_TRACE_ALTITUDE), mFlightController.getMaxAltitude().current());
 		synchronized (mParamSync) {
@@ -862,7 +880,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// 自動操縦スケールを適用
 							mPilotValue.mult(scale);
 							// 飛行速度を加算
-							mPilotValue.add(dir);
+							switch (mMode) {
+							case MODE_TRACE:
+								mPilotValue.add(dir);
+								break;
+							case MODE_TRACKING:
+								break;
+							}
 							// 最大最小値を制限
 							mPilotValue.limit(-100.0f, +100.0f);
 							//--------------------------------------------------------------------------------
