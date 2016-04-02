@@ -765,12 +765,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			float scaleR = (float)mScaleR;
 			float directionalReverseBias = mTraceDirectionalReverseBias;
 //			float curvature = 0.0f; // mTraceCurvature;
-			final Vector factor = new Vector(0.5f, 1.0f, 1.0f);
 			//
 			long startTime = -1L, lostTime = -1L;
-			final Vector offset = new Vector();
 			final Vector dir = new Vector(0.0f, flightSpeed, 0.0f).rotate(0.0f, 0.0f, flightAngleYaw);
+			final Vector offset = new Vector();
 			final Vector work = new Vector();
+			final Vector work2 = new Vector();
 			final Vector prevOffset = new Vector();
 			float pilotAngle = 0.0f;
 			final Vector mPilotValue = new Vector();		// roll,pitch,gaz制御量
@@ -883,34 +883,60 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							case 1:	// TYPE_CIRCLE
 							{
 								// 楕円の中心とライン重心を通る線分と楕円の交点座標での接線の傾きを求める
+								final float ellipse_angle = rec.mEllipseAngle <= 90.0f ? rec.mEllipseAngle : -180.0f + rec.mEllipseAngle;
 								// 楕円の中心からライン重心へ向かうベクトルを計算
 								offset.set(rec.mCenter).sub(rec.mEllipsePos);
-								// 楕円の回転角を補正
-								offset.rotateXY(-rec.mEllipseAngle);
-								// 楕円の中心とライン重心を通る線分の傾きを取得
-								final float c = offset.y / offset.x;	// FIXME x=0の時の処理が必要,
-								//  楕円: x^2 / a^2 + y^2 / b^2 = 1との交点を計算
+								// 楕円の回転角を補正, 楕円の回転角はline_angleと大体同じみたい,範囲が違うけど, [0-180]
+								offset.rotateXY(-ellipse_angle);
+								// 長軸半径・短軸半径
 								final float a = rec.mEllipseA / 2.0f;
 								final float b = rec.mEllipseB / 2.0f;
-								final float w = 1.0f - (a * a * b * b) / (b * b + a * a * c * c);
-								final float x1 = (float)Math.sqrt(w);
-								work.set(x1, c * x1);
-								final float d = Math.abs(work.getAngle(offset));
-								if (d > 5) {
-									// ライン重心と反対側の交点だったので符号を反転
-									work.mult(-1.0f);
+								final float c;	// 楕円の中心とライン重心を通る線分の傾き
+								// 楕円の中心とライン重心を通る線分の傾きを取得
+								final float slope, slope_angle;
+								if (offset.x != 0) {
+									c = offset.y / offset.x;	// FIXME x=0の時の処理が必要,
+									//  楕円: x^2 / a^2 + y^2 / b^2 = 1との交点を計算
+									final float w = (a * a * b * b) / (b * b + a * a * c * c);
+									final float x1 = (float)Math.sqrt(w);
+									work.set(x1, c * x1);
+									final float d = Math.abs(work.getAngle(offset));
+									if (d > 5) {
+										// ライン重心と反対側の交点だったので符号を反転
+										work.mult(-1.0f);
+									}
+									// この時点でworkには楕円の中心とライン重心を通る線分と楕円の交点座標が入っている
+									//  楕円: x^2 / a^2 + y^2 / b^2 = 1上の点(x0,y0)の接線の方程式は
+									// x0・x / a^2 + y0・y / b^2 = 1, 式変形してy = b^2 / y - (x0・b^2) / (a^2・y0)・x
+									// なので傾きは -(x0・b^2) / (a^2・y0)
+									slope = - work.x * b * b / (a * a * work.y);
+									// 接線がx軸となす角を計算, 楕円の傾きを加算
+									slope_angle = (float)Math.toDegrees(Math.atan(slope)) + ellipse_angle;
+								} else {
+									c = slope = 0.0f;
+									slope_angle = ellipse_angle;
+									if (DEBUG) Log.v(TAG, "offset.x == 0");
 								}
-								// この時点でworkには楕円の中心とライン重心を通る線分と楕円の交点座標が入っている
-								//  楕円: x^2 / a^2 + y^2 / b^2 = 1上の点(x0,y0)の接線の方程式は
-								// x0・x / a^2 + y0・y / b^2 = 1, 式変形してy = b^2 / y - (x0・b^2) / (a^2・y0)・x
-								// なので傾きは- (x0・b^2) / (a^2・y0)
-								final float slope = - work.x * b * b / (a * a * work.y);
-								// 接線がx軸となす角を計算, 楕円の傾きを加算
-								final float slope_angle = (float)Math.toDegrees(Math.atan(slope)) + rec.mEllipseAngle;
-								msg2 = String.format("  e(%5.2f,%5.2f,%5.2f,%5.2f),θ=%5.2f",
-									offset.x, offset.y, offset.z, rec.mEllipseAngle,
+
+								msg2 = String.format("e(%5.2f,%5.2f,%5.2f),θ=%5.2f,s=%5.2f",
+									offset.x, offset.y, rec.mEllipseAngle, ellipse_angle,
 									slope_angle);
-								pilotAngle = line_angle;
+//								work.set(rec.mEllipsePos).sub(rec.mCenter);
+//								work2.set(CX, CY).sub(rec.mCenter);
+//								final float wa = work.getAngle(work2);
+//								if ((wa < -90.0) || (wa > 90.0f)) {
+//									// 楕円中心と画面中心が反対側にある=楕円の外側に画面中心がある?
+//									if (DEBUG) Log.v(TAG, "外側");
+//								} else {
+//									// 楕円中心と画面中心が同じ側にある=楕円の内側に画面中心がある?
+//									if (DEBUG) Log.v(TAG, "内側");
+//								}
+								pilotAngle = slope_angle;
+								if (pilotAngle < -90.0f) pilotAngle += 90.0f;
+								if (pilotAngle > +90.0f) pilotAngle -= 90.0f;
+								if (Math.abs(pilotAngle - ellipse_angle) > 10.0f) {
+									pilotAngle = ellipse_angle;
+								}
 //								if (curvature != 0.0f) {
 //									// 曲率による機体yaw角の補正
 //									if (Math.abs(rec.mCurvature) > EPS_CURVATURE) {
