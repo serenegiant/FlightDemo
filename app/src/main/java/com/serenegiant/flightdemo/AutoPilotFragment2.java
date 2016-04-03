@@ -115,6 +115,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	protected Switch mAutoWhiteBlanceSw;
 	private TextView mTraceTv1, mTraceTv2, mTraceTv3;
 	private TextView mCpuLoadTv;
+	private TextView mFpsSrcTv, mFpsResultTv;
 
 	// 設定
 	protected String mPrefName;
@@ -144,10 +145,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	public void onResume() {
 		super.onResume();
 		runOnUiThread(mCPUMonitorTask, 1000);
+		runOnUiThread(mFpsTask, 1000);
 	}
 
 	@Override
 	public void onPause() {
+		removeFromUIThread(mFpsTask);
 		removeFromUIThread(mCPUMonitorTask);
 		super.onPause();
 	}
@@ -284,6 +287,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mTraceTv3 = (TextView)rootView.findViewById(R.id.trace3_tv);
 		//
 		mCpuLoadTv = (TextView)rootView.findViewById(R.id.cpu_load_textview);
+		//
+		mFpsSrcTv = (TextView)rootView.findViewById(R.id.fps_src_textview);
+		mFpsSrcTv.setText(null);
+		mFpsResultTv = (TextView)rootView.findViewById(R.id.fps_result_textview);
+		mFpsResultTv.setText(null);
 
 		return rootView;
 	}
@@ -2722,6 +2730,24 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					.append(cpuMonitor.getCpuAvgAll());
 			}
 			mCpuLoadTv.setText(sb.toString());
+			runOnUiThread(this, 1000);
+		}
+	};
+
+	private final Runnable mFpsTask = new Runnable() {
+		@Override
+		public void run() {
+			if (mVideoStream != null) {
+				mFpsSrcTv.setText(String.format("%5.1f", mVideoStream.updateFps().getFps()));
+			} else {
+				mFpsSrcTv.setText(null);
+			}
+			if (mImageProcessor != null) {
+				mImageProcessor.updateFps();
+				mFpsResultTv.setText(String.format("%5.1f", mImageProcessor.getFps()));
+			} else {
+				mFpsResultTv.setText(null);
+			}
 			runOnUiThread(this, 1000);
 		}
 	};

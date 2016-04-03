@@ -111,7 +111,7 @@ int IPDetectorCurve::detect(
 		// 細線化して3次スプライン近似
 		if (calcCoeffs(work, rec.contour, rec.coeffs)) continue;
 		if (param.show_detects) {
-			drawSpline(result_frame);
+//			drawSpline(result_frame);
 		}
 #endif
 		// ラインの可能性が高い輪郭を追加

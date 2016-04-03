@@ -32,7 +32,7 @@
 		android:layout_width="wrap_content"
 		android:layout_height="@dimen/bottom_panel_height"
 		android:layout_marginLeft="@dimen/half_padding"
-		android:text="cpu:"
+		android:text="cpu:100/100/100"
 		android:id="@+id/cpu_load_textview"
 		android:layout_alignParentBottom="true"
 		android:layout_toEndOf="@id/take_onoff_btn"
@@ -148,6 +148,23 @@
 		android:orientation="vertical"
 		android:layout_alignParentRight="true"
 		android:layout_centerVertical="true">
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="15.3"
+			android:id="@+id/fps_src_textview"
+			android:textSize="@dimen/text_sz_fps"
+			android:gravity="center_horizontal"
+			android:textColor="@color/GRAY"/>
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="15.3"
+			android:id="@+id/fps_result_textview"
+			android:textSize="@dimen/text_sz_fps"
+			android:gravity="center_horizontal"
+			android:textColor="@color/GRAY"/>
 
 		<ImageButton
 			android:id="@+id/still_capture_btn"

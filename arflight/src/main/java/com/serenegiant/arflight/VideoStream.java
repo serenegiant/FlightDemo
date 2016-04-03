@@ -17,6 +17,7 @@ import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.GLDrawer2D;
 import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.glutils.Texture2dProgram;
+import com.serenegiant.utils.FpsCounter;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -40,6 +41,7 @@ public class VideoStream implements IVideoStream {
 
 	private final RendererTask mRendererTask;
 	private final DecodeTask mDecodeTask;
+	private final FpsCounter mFps = new FpsCounter();
 
 	public VideoStream() {
 		if (DEBUG) Log.v(TAG, "VideoStream:コンストラクタ");
@@ -104,6 +106,18 @@ public class VideoStream implements IVideoStream {
 		Log.w(TAG, "onFrameTimeout");
 	}
 
+	public VideoStream updateFps() {
+		mFps.update();
+		return this;
+	}
+
+	public float getFps() {
+		return mFps.getFps();
+	}
+
+	public float getTotalFps() {
+		return mFps.getTotalFps();
+	}
 //--------------------------------------------------------------------------------
 // ARStream2ReceiverListenerのメソッド
 // 受信したフレームをDecoderTaskでMediaCodecへ投入する代わりに直接MediaCodecを操作する
@@ -423,6 +437,7 @@ public class VideoStream implements IVideoStream {
 				mParent.isRendererRunning = true;
 				mParent.mSync.notifyAll();
 			}
+			mParent.mFps.reset();
 			if (DEBUG) Log.v(TAG, "onStart:finished");
 		}
 
@@ -529,6 +544,7 @@ public class VideoStream implements IVideoStream {
 		 */
 		private void handleDraw() {
 //			if (DEBUG) Log.v(TAG, "handleDraw:");
+			mParent.mFps.count();
 			try {
 				makeCurrent();
 				mMasterTexture.updateTexImage();

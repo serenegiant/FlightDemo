@@ -1,9 +1,14 @@
 package com.serenegiant.opencv;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.media.effect.EffectContext;
 import android.opengl.GLES20;
+import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 
@@ -23,6 +28,8 @@ import com.serenegiant.mediaeffect.MediaEffectKernel;
 import com.serenegiant.mediaeffect.MediaEffectPosterize;
 import com.serenegiant.mediaeffect.MediaEffectSaturate;
 import com.serenegiant.mediaeffect.MediaSource;
+import com.serenegiant.utils.BuildCheck;
+import com.serenegiant.utils.FpsCounter;
 
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
@@ -47,6 +54,7 @@ public class ImageProcessor {
 	private List<IEffect> mEffects = new ArrayList<IEffect>();
 	private volatile boolean isProcessingRunning;
 	private ProcessingTask mProcessingTask;
+	private Handler mAsyncHandler;
 
 	private boolean mEnableExposure;
 	private float mExposure;
@@ -69,6 +77,7 @@ public class ImageProcessor {
 
 	private final int mSrcWidth, mSrcHeight;
 	private volatile boolean requestUpdateExtractionColor;
+	private final FpsCounter mResultFps = new FpsCounter();
 
 	/** native側のインスタンスポインタ, 名前を変えたりしちゃダメ */
 	private long mNativePtr;
@@ -98,6 +107,9 @@ public class ImageProcessor {
 	public void start(final int width, final int height) {
 //		if (DEBUG) Log.v(TAG, "start:");
 		if (mProcessingTask == null) {
+			final HandlerThread thread = new HandlerThread("OnFrameAvailable");
+			thread.start();
+			mAsyncHandler = new Handler(thread.getLooper());
 			mProcessingTask = new ProcessingTask(this, mSrcWidth, mSrcHeight, width, height);
 			new Thread(mProcessingTask, "VideoStream$rendererTask").start();
 			mProcessingTask.waitReady();
@@ -124,6 +136,13 @@ public class ImageProcessor {
 			}
 			task.release();
 		}
+		if (mAsyncHandler != null) {
+			try {
+				mAsyncHandler.getLooper().quit();
+			} catch (final Exception e) {
+			}
+			mAsyncHandler = null;
+		}
 	}
 
 	/**
@@ -146,6 +165,17 @@ public class ImageProcessor {
 		return mProcessingTask.getSurfaceTexture();
 	}
 
+	public void updateFps() {
+		mResultFps.update();
+	}
+
+	public float getFps() {
+		return mResultFps.getFps();
+	}
+
+	public float getTotalFps() {
+		return mResultFps.getTotalFps();
+	}
 //================================================================================
 	public static final int RESULT_FRAME_TYPE_SRC = 0;
 	public static final int RESULT_FRAME_TYPE_DST = 1;
@@ -649,6 +679,7 @@ public class ImageProcessor {
 	 */
 	private void handleResult(final int type, final float[] result) {
 //		if (DEBUG) Log.v(TAG, "handleResult");
+		mResultFps.count();
 		try {
 			mCallback.onResult(type, result);
 		} catch (final Exception e) {
@@ -709,6 +740,7 @@ public class ImageProcessor {
 			return mSourceTexture;
 		}
 
+		@SuppressLint("NewApi")
 		@Override
 		protected void onStart() {
 //			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:");
@@ -729,7 +761,11 @@ public class ImageProcessor {
 			mSourceTexture = new SurfaceTexture(mTexId);
 			mSourceTexture.setDefaultBufferSize(WIDTH, HEIGHT);
 			mSourceSurface = new Surface(mSourceTexture);
-			mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener);
+			if (BuildCheck.isLollipop()) {
+				mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener, mAsyncHandler);
+			} else {
+				mSourceTexture.setOnFrameAvailableListener(mOnFrameAvailableListener);
+			}
 //--------------------------------------------------------------------------------
 			// プレフィルタの準備
 			mEffectContext = EffectContext.createWithCurrentGlContext();
@@ -790,6 +826,7 @@ public class ImageProcessor {
 				isProcessingRunning = true;
 				mSync.notifyAll();
 			}
+			mResultFps.reset();
 //			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:finished");
 		}
 

@@ -33,6 +33,7 @@
 	<dimen name="text_sz_trace_config_title">16sp</dimen>
 	<dimen name="text_sz_trace_config_list">14sp</dimen>
 	<dimen name="text_sz_cpu_load">20sp</dimen>
+	<dimen name="text_sz_fps">16sp</dimen>
 
 	<dimen name="switch_height">64dp</dimen>
 	<dimen name="thumbnail_margin">16dp</dimen>
