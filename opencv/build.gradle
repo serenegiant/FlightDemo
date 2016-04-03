@@ -3,7 +3,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 android {
 	compileSdkVersion 22
-	buildToolsVersion "23.0.2"
+	buildToolsVersion "23.0.3"
 
 	defaultConfig {
 		minSdkVersion 18

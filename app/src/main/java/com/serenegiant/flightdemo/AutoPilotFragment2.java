@@ -2128,7 +2128,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private TextView mAreaErrLimit1Label;
 	private TextView mAreaErrLimit2Label;
 	/** 輪郭検出時の最小面積 */
-	protected float mAreaLimitMin = 1000.0f;
+	protected float mAreaLimitMin = DEFAULT_AREA_LIMIT_MIN;
 	protected static final float AREA_LIMIT_MAX = 120000.0f;
 	// ラインe検出時の最小アスペクト比
 	protected float mAspectLimitMin = 3.0f;
@@ -2149,8 +2149,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mAreaLimitMin = mPref.getFloat(KEY_AREA_LIMIT_MIN, DEFAULT_AREA_LIMIT_MIN);
 		mAreaLimitMinLabel = (TextView)rootView.findViewById(R.id.area_limit_min_textview);
 		sb =(SeekBar)rootView.findViewById(R.id.area_limit_min_seekbar);
-		sb.setMax(10000);
-		sb.setProgress(areaLimitMinToProgress(mAreaLimitMin)); 	   // [0,10000] => [0, 10000]
+		sb.setMax(9500);
+		sb.setProgress(areaLimitMinToProgress(mAreaLimitMin - 500)); 	   // [0,10000] => [0, 10000]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateAreaLimitMin(mAreaLimitMin);
 		// ライン検出時の面積誤差1
@@ -2191,7 +2191,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	}
 
 	private float progressToAreaLimitMin(final int progress) {
-		return progress;
+		return progress + 500;
 	}
 
 	private void updateAreaLimitMin(final float area_limit_min) {

@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 #include <sys/types.h>
-#include <sys/atomics.h>
+#include "atomics.h" // <sys/atomics.h>
 #include <time.h>
 
 #if defined(HAVE_PTHREADS)

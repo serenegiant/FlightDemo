@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "SharedBuffer.h"	//#include <utils/SharedBuffer.h>
-#include <sys/atomics.h>	//#include <utils/Atomic.h>
+#include "atomics.h" //#include <sys/atomics.h>	//#include <utils/Atomic.h>
 
 
 // ---------------------------------------------------------------------------

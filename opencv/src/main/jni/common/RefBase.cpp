@@ -30,36 +30,10 @@
 
 #include "utilbase.h"		//#include <utils/Log.h>
 #include "RefBase.h"		//#include <utils/RefBase.h>
-#include <sys/atomics.h>	//#include <utils/Atomic.h>
+#include "atomics.h" // <sys/atomics.h>
+//#include <sys/atomics.h>	//#include <utils/Atomic.h>
 							//#include <utils/CallStack.h>
 							//#include <utils/threads.h>
-
-__ATOMIC_INLINE__ int
-__atomic_add(int add, volatile int *ptr) {
-	return __sync_fetch_and_add(ptr, add);
-}
-
-__ATOMIC_INLINE__ int
-__atomic_sub(int sub, volatile int *ptr) {
-	return __sync_fetch_and_sub(ptr, sub);
-}
-
-__ATOMIC_INLINE__ int
-__atomic_or(int value, volatile int *ptr) {
-/*	int32_t prev, tmp, status;
-//	android_memory_barrier();
-	do {
-        __asm__ __volatile__ ("ldrex %0, [%4]\n"
-                              "orr %1, %0, %5\n"
-                              "strex %2, %1, [%4]"
-                              : "=&r" (prev), "=&r" (tmp),
-                                "=&r" (status), "+m" (*ptr)
-                              : "r" (ptr), "Ir" (value)
-                              : "cc");
-    } while (__builtin_expect(status != 0, 0));
-    return prev; */
-	return __sync_fetch_and_or(ptr, value);
-}
 
 // compile with refcounting debugging enabled
 #define DEBUG_REFS                      0

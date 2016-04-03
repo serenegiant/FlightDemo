@@ -35,6 +35,7 @@ IPDetectorCorner::~IPDetectorCorner() {
 int IPDetectorCorner::detect(
 	cv::Mat &src,						// 解析画像
 	std::vector<DetectRec_t> &contours,	// 近似輪郭
+	std::vector<const DetectRec_t *> &possibles,	// ワーク用
 	cv::Mat &result_frame,				// 結果書き込み用Mat
 	DetectRec_t &possible,				// 結果
 	const DetectParam_t &param) {		// パラメータ

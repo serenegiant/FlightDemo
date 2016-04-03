@@ -40,10 +40,15 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 
 	int res = 0;
 	// 輪郭抽出結果(最外形輪郭)
-	std::vector<std::vector< cv::Point>> outlines;
+	std::vector<std::vector< cv::Point>> outlines;	// これも上位から渡さないかんかなぁ
 
-	// RGBAのままだとHSVに変換できないので一旦BGRに変える
 	try {
+		// 台形補正
+		if (param.mTrapeziumRate) {
+			cv::warpPerspective(frame, frame, param.perspectiveTransform, cv::Size(src.cols, src.rows));
+//			cv::warpPerspective(src, src, param.perspectiveTransform, cv::Size(src.cols, src.rows));
+		}
+		// RGBAのままだとHSVに変換できないので一旦BGRに変える
 		cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
 //		cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
 		// 色抽出処理
@@ -52,13 +57,6 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 		}
 		// グレースケールに変換(RGBA->Y)
 		cv::cvtColor(src, src, cv::COLOR_BGR2GRAY, 1);
-		// 台形補正
-		if (param.mTrapeziumRate) {
-			cv::warpPerspective(src, src, param.perspectiveTransform, cv::Size(src.cols, src.rows));
-			if (param.show_src) {
-				cv::warpPerspective(frame, frame, param.perspectiveTransform, cv::Size(src.cols, src.rows));
-			}
-		}
 		// 輪郭内の塗りつぶし(色抽出してなければ全面塗りつぶされる)
 		if (param.mFillInnerContour) {
 			findContours(src, outlines, cv::RETR_EXTERNAL);
@@ -131,8 +129,13 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 		LOGE("pre_process failed:%s", e.msg.c_str());
 		res = -1;
 	}
+	outlines.clear();
+
     RETURN(res, int);
 }
+
+// 最大輪郭数
+#define MAX_CONTOURS 30
 
 /** 輪郭線を検出 */
 /*protected*/
@@ -156,7 +159,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 //	findContours(src, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
 	findContours(src, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 	// 検出した輪郭の数分ループする
-	int idx = -1;
+	int idx = -1, cnt = 0;
 	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
 		idx++;
 //		if (hierarchy[idx][3] != -1) continue;	// 一番外側じゃない時
@@ -219,6 +222,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		if (param.show_detects) {
 			cv::polylines(result, approx, true, COLOR_GREEN);
 		}
+		if (UNLIKELY(++cnt > MAX_CONTOURS)) break;
 		possible.type = TYPE_NON;
 		possible.moments = cv::moments(*contour);
 		if (possible.moments.m00 != 0.0f) {

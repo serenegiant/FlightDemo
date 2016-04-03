@@ -353,6 +353,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 	DetectRec_t line, curve, corner, *possible;
 	cv::Mat src, bk_result, result;
 	std::vector<std::vector< cv::Point>> contours;	// 輪郭データ
+	std::vector<const DetectRec_t *> work;	// ワーク用
 	std::vector<DetectRec_t> approxes;	// 近似輪郭
 	DetectParam_t param;
 
@@ -384,13 +385,13 @@ void ImageProcessor::do_process(JNIEnv *env) {
 //--------------------------------------------------------------------------------
 // 直線ラインの検出処理
 				result = bk_result;	// 結果用画像を初期化
-				mLineDetector.detect(src, approxes, result, line, param);
+				mLineDetector.detect(src, approxes, work, result, line, param);
 				if (UNLIKELY(!mIsRunning)) break;
 // 円弧の検出処理
-				mCurveDetector.detect(src, approxes, result, curve, param);
+				mCurveDetector.detect(src, approxes, work, result, curve, param);
 				if (UNLIKELY(!mIsRunning)) break;
 // コーナーの検出処理
-				mCornerDetector.detect(src, approxes, result, corner, param);
+				mCornerDetector.detect(src, approxes, work,result, corner, param);
 				if (UNLIKELY(!mIsRunning)) break;
 //================================================================================
 				// 面積の大きい方を選択する FIXME 得点化してソート

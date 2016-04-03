@@ -69,6 +69,7 @@ IPDetectorLine::~IPDetectorLine() {
 int IPDetectorLine::detect(
 	cv::Mat &src,						// 解析画像
 	std::vector<DetectRec_t> &contours,	// 近似輪郭
+	std::vector<const DetectRec_t *> &possibles,	// ワーク用
 	cv::Mat &result_frame,				// 結果書き込み用Mat
 	DetectRec_t &result,				// 結果
 	const DetectParam_t &param) {		// パラメータ
@@ -76,8 +77,8 @@ int IPDetectorLine::detect(
 	ENTER();
 
 	double hu_moments[8];
-	std::vector<const DetectRec_t *> possibles;		// 可能性のある輪郭
-	possibles.reserve(contours.size());
+//	std::vector<const DetectRec_t *> possibles;		// 可能性のある輪郭
+	possibles.clear();
 
 #if CALC_COEFFS
 	cv::Mat work = src;
@@ -133,6 +134,7 @@ int IPDetectorLine::detect(
 	} else {
 		result.type = TYPE_NON;
 	}
+	possibles.clear();
 
 	RETURN(0, int);
 }

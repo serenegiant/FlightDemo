@@ -31,7 +31,7 @@ public:
 	IPDetector();
 	virtual ~IPDetector();
 	void resize(const int &width, const int &height);
-	virtual int detect(cv::Mat &src, std::vector<DetectRec_t> &contours,
+	virtual int detect(cv::Mat &src, std::vector<DetectRec_t> &contours, std::vector<const DetectRec_t *> &possibles_work,
 		cv::Mat &result_frame, DetectRec_t &possible, const DetectParam_t &param) = 0;
 };
 #endif //FLIGHTDEMO_IPDETECTOR_H
