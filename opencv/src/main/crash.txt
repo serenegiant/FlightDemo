@@ -1,14 +1,11 @@
 ********** Crash dump: **********
-Build fingerprint: 'google/razor/flo:6.0.1/MMB29V/2554798:user/release-keys'
-pid: 26176, tid: 26278, name: Thread-4227  >>> com.serenegiant.flightdemo <<<
-signal 8 (SIGFPE), code -6 (SI_TKILL), fault addr 0x6640
-Stack frame #00 pc 00041f50  /system/lib/libc.so (tgkill+12)
-Stack frame #01 pc 0003fb5d  /system/lib/libc.so (pthread_kill+32)
-Stack frame #02 pc 0001c30f  /system/lib/libc.so (raise+10)
-Stack frame #03 pc 0001b434  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (__aeabi_idiv0+8): Routine __aeabi_idiv0 at /s/ndk-toolchain/src/build/../gcc/gcc-4.9/libgcc/config/arm/lib1funcs.S:1337
-Stack frame #04 pc 00010880  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (CubicSpline<cv::Point_<int> >::init(bool const&)+2412): Routine CubicSpline<cv::Point_<int> >::init(bool const&) at /Users/saki/projects/FlightDemo/opencv/src/main/jni/imageproc/CubicSpline.h:96
-Stack frame #05 pc 00013bd8  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (IPDetectorLine::detect(cv::Mat&, std::vector<DetectRec, std::allocator<DetectRec> >&, cv::Mat&, DetectRec&, DetectParam const&)+4460): Routine CubicSpline<cv::Point_<int> >::reset(std::vector<cv::Point_<int>, std::allocator<cv::Point_<int> > > const&, bool const&) at /Users/saki/projects/FlightDemo/opencv/src/main/jni/imageproc/CubicSpline.h:128
-Stack frame #06 pc 00018a64  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::do_process(_JNIEnv*)+1332): Routine ImageProcessor::do_process(_JNIEnv*) at /Users/saki/projects/FlightDemo/opencv/src/main/jni/imageproc/ImageProcessor.cpp:387
-Stack frame #07 pc 000198b8  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::processor_thread_func(void*)+88): Routine ImageProcessor::processor_thread_func(void*) at /Users/saki/projects/FlightDemo/opencv/src/main/jni/imageproc/ImageProcessor.cpp:338
-Stack frame #08 pc 0003f45f  /system/lib/libc.so (__pthread_start(void*)+30)
-Stack frame #09 pc 00019b43  /system/lib/libc.so (__start_thread+6)
+Build fingerprint: 'google/angler/angler:6.0.1/MHC19I/2590160:user/release-keys'
+pid: 12213, tid: 12831, name: Thread-650  >>> com.serenegiant.flightdemo <<<
+signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x65700104
+Stack frame #00 pc 000556fe  /system/lib/libc.so (ifree+49)
+Stack frame #01 pc 0005867b  /system/lib/libc.so (je_free+374)
+Stack frame #02 pc 00012858  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (IPDetectorLine::detect(cv::Mat&, std::vector<DetectRec, std::allocator<DetectRec> >&, cv::Mat&, DetectRec&, DetectParam const&)+3400): Routine __gnu_cxx::new_allocator<Coeff4>::deallocate(Coeff4*, unsigned int) at /Users/saki/android-ndks/sources/cxx-stl/gnu-libstdc++/4.9/include/ext/new_allocator.h:116
+Stack frame #03 pc 00016fe0  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::do_process(_JNIEnv*)+1336): Routine ImageProcessor::do_process(_JNIEnv*) at /Users/saki/projects/FlightDemo/opencv/src/main/jni/imageproc/ImageProcessor.cpp:387
+Stack frame #04 pc 00017ee8  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::processor_thread_func(void*)+88): Routine ImageProcessor::processor_thread_func(void*) at /Users/saki/projects/FlightDemo/opencv/src/main/jni/imageproc/ImageProcessor.cpp:338
+Stack frame #05 pc 0003f883  /system/lib/libc.so (__pthread_start(void*)+30)
+Stack frame #06 pc 00019f75  /system/lib/libc.so (__start_thread+6)

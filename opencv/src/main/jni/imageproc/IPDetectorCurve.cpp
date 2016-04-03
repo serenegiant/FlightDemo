@@ -20,15 +20,15 @@
 
 // 検出したオブジェクトの優先度の判定
 // 第1引数が第2引数よりも小さい(=前にある=優先度が高い)時に真(正)を返す
-static bool comp_priority(const DetectRec &left, const DetectRec &right) {
+static bool comp_priority(const DetectRec_t *left, const DetectRec_t *right) {
 	// 類似性(小さい方, 曲線だと大きくなってしまう)
-	const bool b2 = left.analogous > right.analogous;
+	const bool b2 = left->analogous > right->analogous;
 	// 近似輪郭と実輪郭の面積比(小さい方, 曲線だと大きくなってしまう)
-	const bool b3 = left.area_rate > right.area_rate;
+	const bool b3 = left->area_rate > right->area_rate;
 	// アスペクト比の比較(大きい方)
-	const bool b4 = left.aspect > right.aspect;
+	const bool b4 = left->aspect > right->aspect;
 	// 長さの比較(大きい方)
-	const bool b5 = left.length > right.length;
+	const bool b5 = left->length > right->length;
 	return
 		(b5 && b4)					// 長くてアスペクト比が大きい
 		|| (b5 && b4 && b3 && b2)	// 長くてアスペクト比が大きくて面積比が小さくて類似性が良い
@@ -69,8 +69,9 @@ int IPDetectorCurve::detect(
 
 	ENTER();
 
-	std::vector<DetectRec_t> possibles;		// 可能性のある輪郭
 	double hu_moments[8];
+	std::vector<const DetectRec_t *> possibles;		// 可能性のある輪郭
+	possibles.reserve(contours.size());
 
 	cv::Mat work;
 	src.copyTo(work);
@@ -78,25 +79,25 @@ int IPDetectorCurve::detect(
 
 	// 検出した輪郭の数分ループする
 	for (auto iter = contours.begin(); iter != contours.end(); iter++) {
-		DetectRec_t rec = *iter;		// 輪郭レコード
-//		if (LIKELY(rec.aspect > param.mMinLineAspect)) continue;
+		DetectRec_t *rec = &(*iter);		// 輪郭レコード
+//		if (LIKELY(rec->aspect > param.mMinLineAspect)) continue;
 		if (param.show_detects) {
-			cv::polylines(result_frame, rec.contour, true, COLOR_ORANGE, 2);
+			cv::polylines(result_frame, rec->contour, true, COLOR_ORANGE, 2);
 		}
 		// 近似輪郭の面積と最小矩形の面積の比が大きい時は曲がっているかもしれない
-		if ((rec.area_rate < 1.2f) || (rec.contour.size() < 7)) continue;
-		rec.curvature = rec.ex = rec.ey = 0.0f;
+		if ((rec->area_rate < 1.2f) || (rec->contour.size() < 7)) continue;
+		rec->curvature = rec->ex = rec->ey = 0.0f;
 		try {
-			rec.ellipse = cv::fitEllipse(rec.contour);
+			rec->ellipse = cv::fitEllipse(rec->contour);
 			// 長軸/短軸長さなので1/2にして半径相当の値にする
-			rec.ellipse.size.width /= 2.0f;
-			rec.ellipse.size.height /= 2.0f;
-			const double a = fmax(rec.ellipse.size.width, rec.ellipse.size.height);
+			rec->ellipse.size.width /= 2.0f;
+			rec->ellipse.size.height /= 2.0f;
+			const double a = fmax(rec->ellipse.size.width, rec->ellipse.size.height);
 			if (a > 0) {
-				const double b = fmin(rec.ellipse.size.width, rec.ellipse.size.height);
-				rec.curvature = (float)(b / a / a);
-				rec.ex = rec.ellipse.center.x;
-				rec.ey = rec.ellipse.center.y;
+				const double b = fmin(rec->ellipse.size.width, rec->ellipse.size.height);
+				rec->curvature = (float)(b / a / a);
+				rec->ex = rec->ellipse.center.x;
+				rec->ey = rec->ellipse.center.y;
 			} else {
 				continue;
 			}
@@ -105,11 +106,11 @@ int IPDetectorCurve::detect(
 			continue;
 		}
 		if (param.show_detects) {
-			cv::polylines(result_frame, rec.contour, true, COLOR_ACUA, 2);
+			cv::polylines(result_frame, rec->contour, true, COLOR_ACUA, 2);
 		}
 #if CALC_COEFFS
 		// 細線化して3次スプライン近似
-		if (calcCoeffs(work, rec.contour, rec.coeffs)) continue;
+		if (calcCoeffs(work, rec->contour, rec->coeffs)) continue;
 		if (param.show_detects) {
 //			drawSpline(result_frame);
 		}
@@ -117,7 +118,7 @@ int IPDetectorCurve::detect(
 		// ラインの可能性が高い輪郭を追加
 		possibles.push_back(rec);
 		if (param.show_detects) {
-			cv::polylines(result_frame, rec.contour, true, COLOR_BLUE, 2);
+			cv::polylines(result_frame, rec->contour, true, COLOR_BLUE, 2);
 		}
 	}
 	// 優先度の最も高いものを選択する
@@ -126,7 +127,7 @@ int IPDetectorCurve::detect(
 			// 優先度の降順にソートする
 			std::sort(possibles.begin(), possibles.end(), comp_priority);
 		}
-		result = *possibles.begin();	// 先頭=優先度が最高
+		result = *(*possibles.begin());	// 先頭=優先度が最高
 		result.type = TYPE_CURVE;
 	} else {
 		result.type = TYPE_NON;

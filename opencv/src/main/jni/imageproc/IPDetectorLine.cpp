@@ -26,15 +26,15 @@ static double HU_MOMENTS[] = {
 
 // 検出したオブジェクトの優先度の判定
 // 第1引数が第2引数よりも小さい(=前にある=優先度が高い)時に真(正)を返す
-static bool comp_priority(const DetectRec &left, const DetectRec &right) {
+static bool comp_priority(const DetectRec_t *left, const DetectRec_t *right) {
 	// 類似性(小さい方, 曲線だと大きくなってしまう)
-	const bool b2 = left.analogous < right.analogous;
+	const bool b2 = left->analogous < right->analogous;
 	// 近似輪郭と実輪郭の面積比(小さい方, 曲線だと大きくなってしまう)
-	const bool b3 = left.area_rate < right.area_rate;
+	const bool b3 = left->area_rate < right->area_rate;
 	// アスペクト比の比較(大きい方)
-	const bool b4 = left.aspect > right.aspect;
+	const bool b4 = left->aspect > right->aspect;
 	// 長さの比較(大きい方)
-	const bool b5 = left.length > right.length;
+	const bool b5 = left->length > right->length;
 	return
 		(b5 && b4)					// 長くてアスペクト比が大きい
 		|| (b5 && b4 && b3 && b2)	// 長くてアスペクト比が大きくて面積比が小さくて類似性が良い
@@ -75,8 +75,9 @@ int IPDetectorLine::detect(
 
 	ENTER();
 
-	std::vector<DetectRec_t> possibles;		// 可能性のある輪郭
 	double hu_moments[8];
+	std::vector<const DetectRec_t *> possibles;		// 可能性のある輪郭
+	possibles.reserve(contours.size());
 
 	cv::Mat work;
 	src.copyTo(work);
@@ -84,39 +85,39 @@ int IPDetectorLine::detect(
 
 	// 検出した輪郭の数分ループする
 	for (auto iter = contours.begin(); iter != contours.end(); iter++) {
-		DetectRec_t rec = *iter;		// 輪郭レコード
+		DetectRec_t *rec = &(*iter);		// 輪郭レコード
 		// アスペクト比が正方形に近いものはスキップ
-		if (LIKELY(rec.aspect < param.mMinLineAspect)) continue;
+		if (LIKELY(rec->aspect < param.mMinLineAspect)) continue;
 		if (param.show_detects) {
-			cv::polylines(result_frame, rec.contour, true, COLOR_ORANGE, 2);
+			cv::polylines(result_frame, rec->contour, true, COLOR_ORANGE, 2);
 		}
 
 		// 最小矩形と元輪郭の面積比が大き過ぎる場合スキップ
-//		if (rec.area_rate > 1.1f) continue;
-//		if (rec.area_rate > 1.5f) continue;
-		if (rec.area_rate > 1.75f) continue;
-//		if (rec.area_rate > 2.0f) continue;
+//		if (rec->area_rate > 1.1f) continue;
+//		if (rec->area_rate > 1.5f) continue;
+		if (rec->area_rate > 1.75f) continue;
+//		if (rec->area_rate > 2.0f) continue;
 		if (param.show_detects) {
-			cv::polylines(result_frame, rec.contour, true, COLOR_ACUA, 2);
+			cv::polylines(result_frame, rec->contour, true, COLOR_ACUA, 2);
 		}
 #if CALC_COEFFS
 		// 細線化して3次スプライン近似
-		if (calcCoeffs(work, rec.contour, rec.coeffs)) continue;
+		if (calcCoeffs(work, rec->contour, rec->coeffs)) continue;
 		if (param.show_detects) {
 			drawSpline(result_frame);
 		}
 #endif
 		// 輪郭のHu momentを計算
-		cv::HuMoments(rec.moments, hu_moments);
+		cv::HuMoments(rec->moments, hu_moments);
 		// 基準値と比較, メソッド1は時々一致しない, メソッド2,3だとほとんど一致しない, 完全一致なら0が返る
 		const float analogous = (float)compHuMoments(HU_MOMENTS, hu_moments, 1);
 		// Hu momentsが基準値との差が大きい時はスキップ
 //		if (analogous < param.mMaxAnalogous) {
 			// ラインの可能性が高い輪郭を追加
-			rec.analogous = analogous;
+			rec->analogous = analogous;
 			possibles.push_back(rec);
 			if (param.show_detects) {
-				cv::polylines(result_frame, rec.contour, true, COLOR_BLUE, 2);
+				cv::polylines(result_frame, rec->contour, true, COLOR_BLUE, 2);
 			}
 //		}
 	}
@@ -126,7 +127,7 @@ int IPDetectorLine::detect(
 			// 優先度の降順にソートする
 			std::sort(possibles.begin(), possibles.end(), comp_priority);
 		}
-		result = *possibles.begin();	// 先頭=優先度が最高
+		result = *(*possibles.begin());	// 先頭=優先度が最高
 		result.type = TYPE_LINE;
 		result.curvature = result.ex = result.ey = 0.0f;
 	} else {

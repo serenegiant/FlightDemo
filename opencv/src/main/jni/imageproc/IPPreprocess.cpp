@@ -45,7 +45,7 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 	// RGBAのままだとHSVに変換できないので一旦BGRに変える
 	try {
 		cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
-	//	cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
+//		cv::normalize(src, src, 0, 255, cv::NORM_MINMAX);
 		// 色抽出処理
 		if (param.mEnableExtract) {
 			colorExtraction(src, &src, cv::COLOR_BGR2HSV, 0, &param.extractColorHSV[0], &param.extractColorHSV[3]);
@@ -66,8 +66,8 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 			cv::drawContours(src, outlines, -1, COLOR_WHITE, cv::FILLED);
 		}
 		// 平滑化
-	//	cv::Sobel(src, src, CV_32F, 1, 1);
-	//	cv::convertScaleAbs(src, src, 1, 0);
+//		cv::Sobel(src, src, CV_32F, 1, 1);
+//		cv::convertScaleAbs(src, src, 1, 0);
 		if (param.mSmoothType) {
 			static const double sigma = 3.0;	// FIXME これはパラメータにする?
 			const int ksize = (int)(sigma * 5) | 1;	// カーネルサイズ, 正の奇数かゼロでないとだめ(ゼロの時はsigmaから内部計算)
@@ -89,13 +89,13 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 			}
 		}
 		// FIXME 平滑化後に2値化が必要?
-	//	if (param.mSmoothType) {
-	//		// 2値化
-	//		cv::adaptiveThreshold(src, src, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, 7, 0);
-	//	}
+//		if (param.mSmoothType) {
+//		// 2値化
+//			cv::adaptiveThreshold(src, src, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, 7, 0);
+//		}
 		// 2値化
-	//	cv::threshold(src, src, 125, 255, cv::THRESH_BINARY);
-	//	cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
+//		cv::threshold(src, src, 125, 255, cv::THRESH_BINARY);
+//		cv::threshold(src, src, 200, 255, cv::THRESH_BINARY_INV);
 		// 細線化
 		if (param.mMaxThinningLoop) {
 			mThinning.resize(src.cols, src.rows);
@@ -138,27 +138,28 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 /*protected*/
 int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 	std::vector<std::vector< cv::Point>> &contours,	// 輪郭データ
-	std::vector<DetectRec_t> &approxes,	// 近似輪郭
+	std::vector<DetectRec_t> &approxes,	// 近似輪郭データ
 	const DetectParam_t &param) {
 
 	ENTER();
 
 	DetectRec_t possible;
-	std::vector<cv::Vec4i> hierarchy;
+//	std::vector<cv::Vec4i> hierarchy;
 	std::vector< cv::Point > approx, approx2;		// 近似輪郭
 	cv::Point2f vertices[4];
 	const float areaErrLimit2Min = 1.0f / param.mAreaErrLimit2;
 
-	contours.clear();
-	approxes.clear();
+	contours.clear(); contours.reserve(100);
+	approxes.clear(); approxes.reserve(100);
 
 	// 輪郭を求める
-	findContours(src, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
+//	findContours(src, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
+	findContours(src, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 	// 検出した輪郭の数分ループする
 	int idx = -1;
 	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
 		idx++;
-		if (hierarchy[idx][3] != -1) continue;	// 一番外側じゃない時
+//		if (hierarchy[idx][3] != -1) continue;	// 一番外側じゃない時
 		// 凸包図形にする
 		approx.clear();
 		cv::convexHull(*contour, approx);
