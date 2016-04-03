@@ -65,9 +65,9 @@ public class ImageProcessor {
 	private boolean mEnablePosterize;
 	private float mPosterize;	// [1,256], デフォルト10
 	private boolean mEnableExtraction;
-	private int mSmoothType = 0;
+//	private int mSmoothType = 0;
 	private float mBinarizeThreshold = 0.5f;
-	private boolean mEnableCanny;
+//	private boolean mEnableCanny;
 	private static final int[][] COLOR_RANGES = {
 		{0, 180, 0, 50, 120, 255},		// 白色
 		{25, 35, 120, 130, 180, 200},	// 黄色...蛍光色はこれだとだめみたい
@@ -390,57 +390,56 @@ public class ImageProcessor {
 		return mBinarizeThreshold;
 	}
 
-	public void smoothType(final int smooth_type) {
-		if (mSmoothType != smooth_type) {
-			synchronized (mSync) {
-				mSmoothType = smooth_type;
-				applySmooth(smooth_type);
-			}
-		}
-	}
+//	public void smoothType(final int smooth_type) {
+//		if (mSmoothType != smooth_type) {
+//			synchronized (mSync) {
+//				mSmoothType = smooth_type;
+//				applySmooth(smooth_type);
+//			}
+//		}
+//	}
+//
+//	private void applySmooth(final int smooth_type) {
+//		if ((mProcessingTask != null) && (mProcessingTask.mSmooth != null)) {
+//			switch (smooth_type) {
+//			case 1:	// ガウシアン
+//				mProcessingTask.mSmooth.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
+//				break;
+//			case 2:	// メディアン
+//				// FIXME 未実装
+//				break;
+//			case 3:	// ブラー
+//				// FIXME 未実装
+//				break;
+//			case 4:	// ダイレーション
+//				// これはmProcessingTask.mSmoothを使わないのでここでは何もしない
+//				break;
+//			default:
+//				mProcessingTask.mSmooth.setParameter(Texture2dProgram.KERNEL_NULL, 0.0f);
+//				break;
+//			}
+//		}
+//	}
+//
+//	public int smoothType() {
+//		return mSmoothType;
+//	}
 
-	private void applySmooth(final int smooth_type) {
-		if ((mProcessingTask != null) && (mProcessingTask.mSmooth != null)) {
-			switch (smooth_type) {
-			case 1:	// ガウシアン
-				mProcessingTask.mSmooth.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
-				break;
-			case 2:	// メディアン
-				// FIXME 未実装
-				break;
-			case 3:	// ブラー
-				// FIXME 未実装
-				break;
-			case 4:	// ダイレーション
-				// これはmProcessingTask.mSmoothを使わないのでここでは何もしない
-				break;
-			default:
-				mProcessingTask.mSmooth.setParameter(Texture2dProgram.KERNEL_NULL, 0.0f);
-				break;
-			}
-		}
-	}
-
-	public int smoothType() {
-		return mSmoothType;
-	}
-
-	/**
-	 * OpenGL|ESでのCannyエッジ検出の有効/無効を切り替え
-	 * @param enable
-	 */
-	public void enableCanny(final boolean enable) {
-		if (mEnableCanny != enable) {
-//			if (DEBUG) Log.v(TAG, "enableCanny:" + enable);
-			synchronized (mSync) {
-				mEnableCanny = enable;
-			}
-		}
-	}
-
-	public boolean enableCanny() {
-		return mEnableCanny;
-	}
+//	/**
+//	 * OpenGL|ESでのCannyエッジ検出の有効/無効を切り替え
+//	 * @param enable
+//	 */
+//	public void enableCanny(final boolean enable) {
+//		if (mEnableCanny != enable) {
+//			synchronized (mSync) {
+//				mEnableCanny = enable;
+//			}
+//		}
+//	}
+//
+//	public boolean enableCanny() {
+//		return mEnableCanny;
+//	}
 
 	/**
 	 * 抽出色を映像中央部から取得して適用
@@ -712,11 +711,11 @@ public class ImageProcessor {
 		private EffectContext mEffectContext;
 		private FullFrameRect mSrcDrawer;
 		private MediaEffectExtraction mExtraction;
-		private MediaEffectKernel mSmooth;
+//		private MediaEffectKernel mSmooth;
 		private MediaEffectDilation mDilation;
 		private MediaEffectErosion mErosion;
-		private MediaEffectGrayScale mGray;
-		private MediaEffectCanny mEdgeDetection;
+//		private MediaEffectGrayScale mGray;
+//		private MediaEffectCanny mEdgeDetection;
 		// 映像受け取り用
 		private MediaSource mMediaSource;
 
@@ -806,17 +805,17 @@ public class ImageProcessor {
 				// 色抽出
 				mExtraction = new MediaEffectExtraction();
 				applyExtractionColor();
-				// ノイズ除去(平滑化)
-				mSmooth = new MediaEffectKernel();
-				mSmooth.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
+//				// ノイズ除去(平滑化)
+//				mSmooth = new MediaEffectKernel();
+//				mSmooth.setParameter(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);
 				// 膨張
 				mDilation = new MediaEffectDilation(4);
 				// 縮小
 				mErosion = new MediaEffectErosion(1);
-				// グレースケール
-				mGray = new MediaEffectGrayScale(mEffectContext);
-				// Cannyエッジ検出フィルタ
-				mEdgeDetection = new MediaEffectCanny();
+//				// グレースケール
+//				mGray = new MediaEffectGrayScale(mEffectContext);
+//				// Cannyエッジ検出フィルタ
+//				mEdgeDetection = new MediaEffectCanny();
 			}	// synchronized (mSync)
 //--------------------------------------------------------------------------------
 			handleResize(mVideoWidth, mVideoHeight);
@@ -850,10 +849,10 @@ public class ImageProcessor {
 				mExtraction.release();
 				mExtraction = null;
 			}
-			if (mSmooth != null) {
-				mSmooth.release();
-				mSmooth = null;
-			}
+//			if (mSmooth != null) {
+//				mSmooth.release();
+//				mSmooth = null;
+//			}
 			if (mDilation != null) {
 				mDilation.release();
 				mDilation = null;
@@ -862,14 +861,14 @@ public class ImageProcessor {
 				mErosion.release();
 				mErosion = null;
 			}
-			if (mGray != null) {
-				mGray.release();
-				mGray = null;
-			}
-			if (mEdgeDetection != null) {
-				mEdgeDetection.release();
-				mEdgeDetection = null;
-			}
+//			if (mGray != null) {
+//				mGray.release();
+//				mGray = null;
+//			}
+//			if (mEdgeDetection != null) {
+//				mEdgeDetection.release();
+//				mEdgeDetection = null;
+//			}
 			for (final IEffect effect: mEffects) {
 				effect.release();
 			}
@@ -945,23 +944,23 @@ public class ImageProcessor {
 					// 収縮処理
 					mMediaSource.apply(mErosion);
 				}
-				// 平滑化処理
-				switch (mSmoothType) {
-				case 0: break;
-				case 4:
-					mMediaSource.apply(mDilation);
-					break;
-				default:
-					mMediaSource.apply(mSmooth);
-					break;
-				}
-				// エッジ検出処理
-				if (mEnableCanny) {
-					if (!mEnableExtraction || (mBinarizeThreshold == 0)) {
-						mMediaSource.apply(mGray);
-					}
-					mMediaSource.apply(mEdgeDetection);
-				}
+//				// 平滑化処理
+//				switch (mSmoothType) {
+//				case 0: break;
+//				case 4:
+//					mMediaSource.apply(mDilation);
+//					break;
+//				default:
+//					mMediaSource.apply(mSmooth);
+//					break;
+//				}
+//				// エッジ検出処理
+//				if (mEnableCanny) {
+//					if (!mEnableExtraction || (mBinarizeThreshold == 0)) {
+//						mMediaSource.apply(mGray);
+//					}
+//					mMediaSource.apply(mEdgeDetection);
+//				}
 			}
 			// プレフィルター処理後の画像をNative側へ送る
 			mMediaSource.getOutputTexture().bind();
@@ -1057,11 +1056,11 @@ public class ImageProcessor {
 				effect.resize(width, height);
 			}
 			mExtraction.resize(width, height);
-			mSmooth.resize(width, height);
-			mGray.resize(width, height);
+//			mSmooth.resize(width, height);
+//			mGray.resize(width, height);
 			mDilation.resize(width, height);
 			mErosion.resize(width, height);
-			mEdgeDetection.resize(width, height);
+//			mEdgeDetection.resize(width, height);
 		}
 
 		/**

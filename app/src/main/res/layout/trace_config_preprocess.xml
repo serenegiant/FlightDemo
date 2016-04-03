@@ -64,7 +64,7 @@
 			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
 		<!-- ポスタライズ  -->
-		<Switch
+<!--	<Switch
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:textColor="@color/trace_config"
@@ -88,7 +88,7 @@
 			android:id="@+id/posterize_seekbar"
 			android:paddingBottom="@dimen/min_padding"
 			android:thumb="@drawable/custom_thumb"
-			android:minHeight="@dimen/text_sz_trace_config_list"/>
+			android:minHeight="@dimen/text_sz_trace_config_list"/> -->
 		<!-- 二値化閾値  -->
 		<TextView
 			android:id="@+id/binarize_threshold_textview"

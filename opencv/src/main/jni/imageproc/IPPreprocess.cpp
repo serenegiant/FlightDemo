@@ -149,8 +149,8 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 	cv::Point2f vertices[4];
 	const float areaErrLimit2Min = 1.0f / param.mAreaErrLimit2;
 
-	contours.clear(); contours.reserve(100);
-	approxes.clear(); approxes.reserve(100);
+	contours.clear();
+	approxes.clear();
 
 	// 輪郭を求める
 //	findContours(src, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
@@ -227,9 +227,12 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		} else {
 			possible.center.x = possible.center.y = 0.0f;
 		}
-		possible.contour.assign((*contour).begin(), (*contour).end());	// 凸包図形から輪郭に変更
+		possible.clear();
+		possible = *contour;
+//		possible.contour.assign((*contour).begin(), (*contour).end());	// 凸包図形から輪郭に変更
+		possible.coeffs.clear();
 		possible.area_rect = area_rect;	// 最小矩形
-		possible.ellipse.center.x = possible.ellipse.center.y = 0.0f;
+		possible.ellipse.center.x = possible.ellipse.center.y = possible.ex = possible.ey = 0.0f;
 		possible.area = area;				// 近似輪郭の面積
 		possible.area_rate = w * h / area;	// 近似輪郭の面積に対する最小矩形の面積比
 		possible.area_approx = area_approx;	// 凸包図形の面積

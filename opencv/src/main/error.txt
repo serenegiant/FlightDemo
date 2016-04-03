@@ -1,17 +1,18 @@
-04-03 14:30:22.597 3838-3838/? A/DEBUG: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
-04-03 14:30:22.597 3838-3838/? A/DEBUG: Build fingerprint: 'google/angler/angler:6.0.1/MHC19I/2590160:user/release-keys'
-04-03 14:30:22.597 3838-3838/? A/DEBUG: Revision: '0'
-04-03 14:30:22.597 3838-3838/? A/DEBUG: ABI: 'arm'
-04-03 14:30:22.597 3838-3838/? A/DEBUG: pid: 12213, tid: 12831, name: Thread-650  >>> com.serenegiant.flightdemo <<<
-04-03 14:30:22.597 3838-3838/? A/DEBUG: signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x65700104
-04-03 14:30:22.634 3838-3838/? A/DEBUG:     r0 00000002  r1 00000034  r2 ffffffd0  r3 f72b82f0
-04-03 14:30:22.634 3838-3838/? A/DEBUG:     r4 f72b82e8  r5 65736168  r6 d8b5f000  r7 65700000
-04-03 14:30:22.635 3838-3838/? A/DEBUG:     r8 d8b1e008  r9 f72ab594  sl 00000001  fp d9e0d820
-04-03 14:30:22.635 3838-3838/? A/DEBUG:     ip 657000d0  sp d89fefe0  lr f728d67f  pc f728a6fe  cpsr 200f0030
-04-03 14:30:22.641 3838-3838/? A/DEBUG:     #00 pc 000556fe  /system/lib/libc.so (ifree+49)
-04-03 14:30:22.641 3838-3838/? A/DEBUG:     #01 pc 0005867b  /system/lib/libc.so (je_free+374)
-04-03 14:30:22.642 3838-3838/? A/DEBUG:     #02 pc 00012858  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (IPDetectorLine::detect(cv::Mat&, std::vector<DetectRec, std::allocator<DetectRec> >&, cv::Mat&, DetectRec&, DetectParam const&)+3400)
-04-03 14:30:22.642 3838-3838/? A/DEBUG:     #03 pc 00016fe0  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::do_process(_JNIEnv*)+1336)
-04-03 14:30:22.642 3838-3838/? A/DEBUG:     #04 pc 00017ee8  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::processor_thread_func(void*)+88)
-04-03 14:30:22.642 3838-3838/? A/DEBUG:     #05 pc 0003f883  /system/lib/libc.so (__pthread_start(void*)+30)
-04-03 14:30:22.642 3838-3838/? A/DEBUG:     #06 pc 00019f75  /system/lib/libc.so (__start_thread+6)
+04-03 15:07:35.634 3838-3838/? A/DEBUG: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+04-03 15:07:35.635 3838-3838/? A/DEBUG: Build fingerprint: 'google/angler/angler:6.0.1/MHC19I/2590160:user/release-keys'
+04-03 15:07:35.635 3838-3838/? A/DEBUG: Revision: '0'
+04-03 15:07:35.635 3838-3838/? A/DEBUG: ABI: 'arm'
+04-03 15:07:35.636 3838-3838/? A/DEBUG: pid: 20739, tid: 23674, name: Thread-743  >>> com.serenegiant.flightdemo <<<
+04-03 15:07:35.636 3838-3838/? A/DEBUG: signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0
+04-03 15:07:35.666 3838-3838/? A/DEBUG:     r0 00000000  r1 f53852c0  r2 00000000  r3 f72b82a8
+04-03 15:07:35.666 3838-3838/? A/DEBUG:     r4 f72b82e8  r5 43280000  r6 dbdbf000  r7 43280000
+04-03 15:07:35.667 3838-3838/? A/DEBUG:     r8 dd13f348  r9 f72ab594  sl 00000001  fp dd69ced8
+04-03 15:07:35.667 3838-3838/? A/DEBUG:     ip 00000001  sp d9a74fd0  lr f7289aa5  pc f7289aa4  cpsr 600f0030
+04-03 15:07:35.671 3838-3838/? A/DEBUG:     #00 pc 00054aa4  /system/lib/libc.so (je_huge_salloc+5)
+04-03 15:07:35.671 3838-3838/? A/DEBUG:     #01 pc 00055721  /system/lib/libc.so (ifree+84)
+04-03 15:07:35.671 3838-3838/? A/DEBUG:     #02 pc 0005867b  /system/lib/libc.so (je_free+374)
+04-03 15:07:35.672 3838-3838/? A/DEBUG:     #03 pc 00012170  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (IPDetectorLine::detect(cv::Mat&, std::vector<DetectRec, std::allocator<DetectRec> >&, cv::Mat&, DetectRec&, DetectParam const&)+1632)
+04-03 15:07:35.672 3838-3838/? A/DEBUG:     #04 pc 00016fe0  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::do_process(_JNIEnv*)+1336)
+04-03 15:07:35.672 3838-3838/? A/DEBUG:     #05 pc 00017ee8  /data/app/com.serenegiant.flightdemo-2/lib/arm/libimageproc.so (ImageProcessor::processor_thread_func(void*)+88)
+04-03 15:07:35.672 3838-3838/? A/DEBUG:     #06 pc 0003f883  /system/lib/libc.so (__pthread_start(void*)+30)
+04-03 15:07:35.672 3838-3838/? A/DEBUG:     #07 pc 00019f75  /system/lib/libc.so (__start_thread+6)

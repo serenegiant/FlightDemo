@@ -39,6 +39,17 @@
 			android:paddingBottom="@dimen/min_padding"
 			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 高度制御 -->
+		<Switch
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/trace_config_trace_altitude_enable"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:textOn="@string/config_sw_on"
+			android:textOff="@string/config_sw_off"
+			android:paddingBottom="@dimen/min_padding"
+			android:id="@+id/trace_flight_altitude_enable_switch"/>
 		<!-- 飛行高度 -->
 		<TextView
 			android:layout_width="match_parent"

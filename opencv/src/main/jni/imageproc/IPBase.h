@@ -41,7 +41,8 @@ typedef enum SmoothType {
 	SMOOTH_DILATION,
 } SmoothType_t;
 
-typedef struct DetectRec {
+typedef struct DetectRec DetectRec_t;
+struct DetectRec {
 	std::vector< cv::Point > contour;	// 近似輪郭
 	cv::RotatedRect area_rect;	// 内包する最小矩形
 	cv::RotatedRect ellipse;
@@ -58,7 +59,87 @@ typedef struct DetectRec {
 	float width;				// 短軸長さ
 	float curvature;			// 曲率
 	float ex, ey;				// 楕円の中心
-} DetectRec_t;
+
+	DetectRec() {
+		type = TYPE_NON;
+		area_rate = area = area_approx = aspect = analogous = length = width = curvature = ex = ey = 0.0f;
+	}
+
+	DetectRec(const DetectRec_t &src)
+	:	contour(src.contour),
+		area_rect(src.area_rect),
+		ellipse(src.ellipse),
+		moments(src.moments),
+		center(src.center),
+		coeffs(src.coeffs) {
+
+		type = src.type;
+		area_rate = src.area_rate;
+		area = src.area;
+		area_approx = src.area_approx;
+		aspect = src.aspect;
+		analogous = src.analogous;
+		length = src.length;
+		width = src.width;
+		curvature = src.curvature;
+		ex = src.ey;
+		ey = src.ey;
+	}
+
+	DetectRec_t clear() {
+		type = TYPE_NON;
+		contour.clear();
+		coeffs.clear();
+		area_rate = area = area_approx = aspect = analogous = length = width = curvature = ex = ey = 0.0f;
+		return *this;
+	}
+
+	DetectRec_t assign(const std::vector< cv::Point > &src) {
+		if (src.size()) {
+			contour.assign(src.begin(), src.end());
+		} else {
+			contour.clear();
+		}
+		return *this;
+	}
+
+	DetectRec_t assign(const DetectRec_t &src) {
+		if (src.contour.size()) {
+			contour.assign(src.contour.begin(), src.contour.end());
+		} else {
+			contour.clear();
+		}
+		area_rect = src.area_rect;
+		ellipse = src.ellipse;
+		moments = src.moments;
+		center = src.center;
+		if (src.coeffs.size()) {
+			coeffs.assign(src.coeffs.begin(), src.coeffs.end());
+		} else {
+			coeffs.clear();
+		}
+		type = src.type;
+		area_rate = src.area_rate;
+		area = src.area;
+		area_approx = src.area_approx;
+		aspect = src.aspect;
+		analogous = src.analogous;
+		length = src.length;
+		width = src.width;
+		curvature = src.curvature;
+		ex = src.ey;
+		ey = src.ey;
+		return *this;
+	}
+
+	DetectRec_t operator =(const std::vector< cv::Point > &src) {
+		return assign(src);
+	}
+
+	DetectRec_t operator =(const DetectRec_t &src) {
+		return assign(src);
+	}
+};
 
 typedef struct DetectParam DetectParam_t;
 struct DetectParam {

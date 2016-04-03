@@ -169,8 +169,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mExposure = mPref.getFloat(KEY_EXPOSURE, DEFAULT_EXPOSURE);
 		mSaturation = mPref.getFloat(KEY_SATURATION, DEFAULT_SATURATION);
 		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, DEFAULT_BRIGHTNESS);
-		mPosterize = mPref.getFloat(KEY_POSTERIZE, DEFAULT_POSTERIZE);
-		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
+//		mPosterize = mPref.getFloat(KEY_POSTERIZE, DEFAULT_POSTERIZE);
+//		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
 		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRESHOLD, DEFAULT_BINARIZE_THRESHOLD);
 		mTrapeziumRate = (float)Double.parseDouble(mPref.getString(KEY_TRAPEZIUM_RATE, "0.0"));
 		if (Math.abs(mTrapeziumRate) < 0.01f) mTrapeziumRate = 0.0f;
@@ -183,11 +183,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mExtractRangeV = mPref.getFloat(KEY_EXTRACT_RANGE_V, DEFAULT_EXTRACT_RANGE_V);
 		//
 		mEnableGLESExtraction = mPref.getBoolean(KEY_ENABLE_EXTRACTION, DEFAULT_ENABLE_EXTRACTION);
-		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, DEFAULT_SMOOTH_TYPE);
+//		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, DEFAULT_SMOOTH_TYPE);
 //		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, DEFAULT_ENABLE_EDGE_DETECTION);
 		mFillContour = mPref.getBoolean(KEY_FILL_INNER_CONTOUR, DEFAULT_FILL_INNER_CONTOUR);
 //		mEnableNativeExtraction = mPref.getBoolean(KEY_ENABLE_NATIVE_EXTRACTION, false);
-		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, DEFAULT_ENABLE_NATIVE_EDGE_DETECTION);
+//		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, DEFAULT_ENABLE_NATIVE_EDGE_DETECTION);
 		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, DEFAULT_NATIVE_SMOOTH_TYPE);
 		mMaxThinningLoop = getInt(mPref, KEY_NATIVE_MAX_THINNING_LOOP, DEFAULT_NATIVE_MAX_THINNING_LOOP);
 		//
@@ -198,6 +198,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		//
 		mTraceAttitudeYaw = mPref.getFloat(KEY_TRACE_ATTITUDE_YAW, DEFAULT_TRACE_ATTITUDE_YAW);
 		mTraceSpeed = mPref.getFloat(KEY_TRACE_SPEED, DEFAULT_TRACE_SPEED);
+		mTraceAltitudeEnabled = mPref.getBoolean(KEY_TRACE_ALTITUDE_ENABLED, DEFAULT_TRACE_ALTITUDE_ENABLED);
 		mTraceAltitude = Math.min(mPref.getFloat(KEY_TRACE_ALTITUDE, DEFAULT_TRACE_ALTITUDE), mFlightController.getMaxAltitude().current());
 		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
 		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
@@ -701,7 +702,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			applyExtractRange(mExtractRangeH, mExtractRangeS, mExtractRangeV);
 			mImageProcessor.enableExtraction(mEnableGLESExtraction);
 //			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
-			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
+//			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
 			mImageProcessor.trapeziumRate(mTrapeziumRate);
 			mImageProcessor.setAreaLimit(mAreaLimitMin, AREA_LIMIT_MAX);
 			mImageProcessor.setAreaErrLimit(mAreaErrLimit1, mAreaErrLimit2);
@@ -742,6 +743,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	 */
 	private void onStopAutoPilot(final boolean isError) {
 		if (DEBUG) Log.v(TAG, "onStopAutoPilot:");
+		mVibrator.vibrate(100);
 		mRequestAutoPilot = mAutoPilot = false;
 		updateButtons();
 	}
@@ -785,6 +787,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			mIsRunning = mReqUpdateParams = true;
 			mAutoPilot = false;
 			float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
+			boolean altitudeControl = mTraceAltitudeEnabled;
 			float flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
 			float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
 			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
@@ -807,6 +810,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					if (mReqUpdateParams) {	// パラメータ変更指示?
 						mReqUpdateParams = false;
 						flightAngleYaw = mTraceAttitudeYaw;
+						altitudeControl = mTraceAltitudeEnabled;
 						flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
 						if (flightAltitude < 0.5f) {
 							flightAltitude = 0.5f;
@@ -861,9 +865,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							// 画像中心からライン重心へのオフセットを計算
 							offset.set(CX, CY, flightAltitude).sub(rec.mCenter);
 							// 解析データ
-							msg1 = String.format("%d,v(%5.2f,%5.2f,%5.2f,%5.2f),θ=%5.2f,r=%6.4e)",
-								rec.type, offset.x, offset.y, offset.z, rec.mAngle,
-								line_angle, rec.mCurvature);
+							msg1 = String.format("%d,v(%3.0f,%3.0f,%5.1f,%5.2f),θ=%5.2f)",
+								rec.type, offset.x, offset.y, offset.z, rec.mAngle, line_angle);
 							//--------------------------------------------------------------------------------
 							// 画面の端が-1または+1になるように変換する
 							offset.div(CX, CY, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
@@ -996,12 +999,14 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							if (mAutoPilot) {
 								if (lostTime < 0) {
 									lostTime = System.currentTimeMillis();
+									mFlightController.setMove(0.0f, 0.0f, 0.0f, 0.0f);
 								}
 								final long t = System.currentTimeMillis() - lostTime;
 								if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
 									onStopAutoPilot(true);
 									mAutoPilot = false;
 									startTime = -1L;
+									mFlightController.setMove(0.0f, 0.0f, 0.0f, 0.0f);
 								}
 							}
 						}
@@ -1011,9 +1016,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						if (mAutoPilot) {
 							if (startTime < 0) {
 								startTime = System.currentTimeMillis();
-//								mYawControlTask.cancelAll();
 							}
-							final boolean b = Math.abs(rec.mLinePos.z - flightAltitude) < 0.1f;	// 10センチ以内
+							if (!altitudeControl) {
+								mPilotValue.z = 0.0f;
+							}
+							final boolean b = !altitudeControl || Math.abs(rec.mLinePos.z - flightAltitude) < 0.1f;	// 10センチ以内
 							if (b || (System.currentTimeMillis() - startTime > 5000)) {
 								// 制御コマンド送信
 								mFlightController.setYaw((int)pilotAngle);
@@ -1249,22 +1256,31 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					mPref.edit().putBoolean(KEY_FILL_INNER_CONTOUR, isChecked).apply();
 				}
 				break;
-			case R.id.use_native_canny_sw:
-				if (mImageProcessor != null) {
-					mEnableNativeCanny = isChecked;
-					mImageProcessor.enableNativeCanny(isChecked);
+//			case R.id.use_native_canny_sw:
+//				if (mImageProcessor != null) {
+//					mEnableNativeCanny = isChecked;
+//					mImageProcessor.enableNativeCanny(isChecked);
+//				}
+//				if (mPref != null) {
+//					mPref.edit().putBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, isChecked).apply();
+//				}
+//				break;
+//			case R.id.use_posterize_sw:
+//				if (mImageProcessor != null) {
+//					mEnablePosterize = isChecked;
+//					mImageProcessor.enablePosterize(isChecked);
+//				}
+//				if (mPref != null) {
+//					mPref.edit().putBoolean(KEY_ENABLE_POSTERIZE, isChecked).apply();
+//				}
+//				break;
+			case R.id.trace_flight_altitude_enable_switch:
+				synchronized (mParamSync) {
+					mTraceAltitudeEnabled = isChecked;
+					mReqUpdateParams = true;
 				}
 				if (mPref != null) {
-					mPref.edit().putBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, isChecked).apply();
-				}
-				break;
-			case R.id.use_posterize_sw:
-				if (mImageProcessor != null) {
-					mEnablePosterize = isChecked;
-					mImageProcessor.enablePosterize(isChecked);
-				}
-				if (mPref != null) {
-					mPref.edit().putBoolean(KEY_ENABLE_POSTERIZE, isChecked).apply();
+					mPref.edit().putBoolean(KEY_TRACE_ALTITUDE_ENABLED, mTraceAltitudeEnabled).apply();
 				}
 				break;
 			case R.id.curvature_sw:
@@ -1316,16 +1332,16 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					updateBrightness(brightness);
 				}
 				break;
-			case R.id.posterize_seekbar:
-				final float posterize = progress + 1;
-				if (mPosterize != posterize) {
-					mPosterize = posterize;
-					if (mImageProcessor != null) {
-						mImageProcessor.setPosterize(posterize);
-					}
-					updatePosterize(posterize);
-				}
-				break;
+//			case R.id.posterize_seekbar:
+//				final float posterize = progress + 1;
+//				if (mPosterize != posterize) {
+//					mPosterize = posterize;
+//					if (mImageProcessor != null) {
+//						mImageProcessor.setPosterize(posterize);
+//					}
+//					updatePosterize(posterize);
+//				}
+//				break;
 			case R.id.binarize_threshold_seekbar:
 				final float threshold = progress / 100.0f;
 				if (mBinarizeThreshold != threshold) {
@@ -1502,11 +1518,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					mPref.edit().putFloat(KEY_BRIGHTNESS, mBrightness).apply();
 				}
 				break;
-			case R.id.posterize_seekbar:
-				if (mPref != null) {
-					mPref.edit().putFloat(KEY_POSTERIZE, mPosterize).apply();
-				}
-				break;
+//			case R.id.posterize_seekbar:
+//				if (mPref != null) {
+//					mPref.edit().putFloat(KEY_POSTERIZE, mPosterize).apply();
+//				}
+//				break;
 			case R.id.binarize_threshold_seekbar:
 				if (mPref != null) {
 					mPref.edit().putFloat(KEY_BINARIZE_THRESHOLD, mBinarizeThreshold).apply();
@@ -1680,13 +1696,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private String mExposureFormat;
 	private String mSaturationFormat;
 	private String mBrightnessFormat;
-	private String mPosterizeFormat;
+//	private String mPosterizeFormat;
 	private String mBinarizeThresholdFormat;
 	private String mTrapeziumRateFormat;
 	private TextView mExposureLabel;
 	private TextView mSaturationLabel;
 	private TextView mBrightnessLabel;
-	private TextView mPosterizeLabel;
+//	private TextView mPosterizeLabel;
 	private TextView mBinarizeThresholdLabel;
 	private TextView mTrapeziumRateLabel;
 	/** ホワイトバランス */
@@ -1697,9 +1713,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	protected float mSaturation;
 	/** 明るさ */
 	protected float mBrightness;
-	/** ポスタライズ */
-	protected boolean mEnablePosterize;
-	protected float mPosterize;
+//	/** ポスタライズ */
+//	protected boolean mEnablePosterize;
+//	protected float mPosterize;
 	/** 2値化閾値 */
 	protected float mBinarizeThreshold;
 	/** 台形補正係数 */
@@ -1709,7 +1725,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mExposureFormat = getString(R.string.trace_use_exposure);
 		mSaturationFormat = getString(R.string.trace_use_saturation);
 		mBrightnessFormat = getString(R.string.trace_use_brightness);
-		mPosterizeFormat = getString(R.string.trace_use_posterize);
+//		mPosterizeFormat = getString(R.string.trace_use_posterize);
 		mBinarizeThresholdFormat = getString(R.string.trace_binarize_threshold);
 		mTrapeziumRateFormat = getString(R.string.trace_trapezium_rate);
 
@@ -1745,18 +1761,18 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setProgress((int)(mBrightness * 100.0f) + 100);	// [-1.0f, +1.0f] => [0, 200]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateBrightness(mBrightness);
-		// ポスタライズ
-		mPosterize = mPref.getFloat(KEY_POSTERIZE, DEFAULT_POSTERIZE);
-		mPosterizeLabel = (TextView)rootView.findViewById(R.id.posterize_textview);
-		sb = (SeekBar)rootView.findViewById(R.id.posterize_seekbar);
-		sb.setMax(255);
-		sb.setProgress((int)(mPosterize - 1));	// [1, 256] => [0, 255]
-		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
-		sw = (Switch)rootView.findViewById(R.id.use_posterize_sw);
-		sw.setChecked(mEnablePosterize);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		updatePosterize(mPosterize);
+//		// ポスタライズ
+//		mPosterize = mPref.getFloat(KEY_POSTERIZE, DEFAULT_POSTERIZE);
+//		mPosterizeLabel = (TextView)rootView.findViewById(R.id.posterize_textview);
+//		sb = (SeekBar)rootView.findViewById(R.id.posterize_seekbar);
+//		sb.setMax(255);
+//		sb.setProgress((int)(mPosterize - 1));	// [1, 256] => [0, 255]
+//		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+//		mEnablePosterize = mPref.getBoolean(KEY_ENABLE_POSTERIZE, false);
+//		sw = (Switch)rootView.findViewById(R.id.use_posterize_sw);
+//		sw.setChecked(mEnablePosterize);
+//		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+//		updatePosterize(mPosterize);
 		// 二値化閾値
 		mBinarizeThreshold = mPref.getFloat(KEY_BINARIZE_THRESHOLD, DEFAULT_BINARIZE_THRESHOLD);
 		mBinarizeThresholdLabel = (TextView)rootView.findViewById(R.id.binarize_threshold_textview);
@@ -1780,7 +1796,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mExposureLabel = null;
 		mSaturationLabel = null;
 		mBrightnessLabel = null;
-		mPosterizeLabel = null;
+//		mPosterizeLabel = null;
 		mBinarizeThresholdLabel = null;
 		mTrapeziumRateLabel = null;
 	}
@@ -1812,11 +1828,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		}
 	}
 
-	private void updatePosterize(final float posterize) {
-		if (mPosterizeLabel != null) {
-			mPosterizeLabel.setText(String.format(mPosterizeFormat, posterize));
-		}
-	}
+//	private void updatePosterize(final float posterize) {
+//		if (mPosterizeLabel != null) {
+//			mPosterizeLabel.setText(String.format(mPosterizeFormat, posterize));
+//		}
+//	}
 
 	private void updateBinarizeThreshold(final float threshold) {
 		if (mBinarizeThresholdLabel != null) {
@@ -1843,16 +1859,16 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 //--------------------------------------------------------------------------------
 	private String mMaxThinningLoopFormat;
 	private TextView mMaxThinningLoopLabel;
-	/** OpenGL|ESでのエッジ検出前平滑化 */
-	protected int mGLESSmoothType = 0;
+//	/** OpenGL|ESでのエッジ検出前平滑化 */
+//	protected int mGLESSmoothType = 0;
 	/** OpenGL|ESでエッジ検出(Canny)を行うかどうか */
 //	protected boolean mEnableGLESCanny = false;
 	/** 輪郭内を塗り潰すかどうか */
 	protected boolean mFillContour = false;
 	/** native側のエッジ検出前平滑化 */
 	protected int mNativeSmoothType = 0;
-	/** native側のエッジ検出(Canny)を使うかどうか */
-	protected boolean mEnableNativeCanny = true;
+//	/** native側のエッジ検出(Canny)を使うかどうか */
+//	protected boolean mEnableNativeCanny = true;
 	/** native側の細線化処理のループ回数(0なら無効) */
 	protected int mMaxThinningLoop;
 
@@ -1863,10 +1879,10 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 
 		mMaxThinningLoopFormat = getString(R.string.trace_max_thinning_loop);
 		// OpenGL|ESのエッジ検出前平滑化
-		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, DEFAULT_SMOOTH_TYPE);
-		spinner = (Spinner)rootView.findViewById(R.id.use_smooth_spinner);
-		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
-		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
+//		mGLESSmoothType = getInt(mPref, KEY_SMOOTH_TYPE, DEFAULT_SMOOTH_TYPE);
+//		spinner = (Spinner)rootView.findViewById(R.id.use_smooth_spinner);
+//		spinner.setAdapter(new SmoothTypeAdapter(getActivity()));
+//		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
 //		// OpenGL|ESでエッジ検出を行うかどうか
 //		mEnableGLESCanny = mPref.getBoolean(KEY_ENABLE_EDGE_DETECTION, DEFAULT_ENABLE_EDGE_DETECTION);
 //		sw = (Switch)rootView.findViewById(R.id.use_canny_sw);
@@ -1877,11 +1893,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sw = (Switch)rootView.findViewById(R.id.use_fill_contour_sw);
 		sw.setChecked(mFillContour);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		// Native側のCannyを使うかどうか
-		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, DEFAULT_ENABLE_NATIVE_EDGE_DETECTION);
-		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
-		sw.setChecked(mEnableNativeCanny);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+//		// Native側のCannyを使うかどうか
+//		mEnableNativeCanny = mPref.getBoolean(KEY_ENABLE_NATIVE_EDGE_DETECTION, DEFAULT_ENABLE_NATIVE_EDGE_DETECTION);
+//		sw = (Switch)rootView.findViewById(R.id.use_native_canny_sw);
+//		sw.setChecked(mEnableNativeCanny);
+//		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// native側のエッジ検出前フィルタ
 		mNativeSmoothType = getInt(mPref, KEY_NATIVE_SMOOTH_TYPE, DEFAULT_NATIVE_SMOOTH_TYPE);
 		spinner = (Spinner)rootView.findViewById(R.id.use_native_smooth_spinner);
@@ -2212,6 +2228,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private String mTraceDirectionalReverseBiasFormat;
 	private float mTraceAttitudeYaw = 0.0f;
 	private float mTraceSpeed = 100.0f;
+	private boolean mTraceAltitudeEnabled = true;
 	private float mTraceAltitude = 0.6f;
 	private float mTraceDirectionalReverseBias = 0.3f;
 	private float mTraceCurvature = 0.0f;
@@ -2240,6 +2257,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setProgress((int)(mTraceSpeed + 100));	// [-100,+100] => [0, 200]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateTraceSpeed(mTraceSpeed);
+		// 高度制御
+		mTraceAltitudeEnabled = mPref.getBoolean(KEY_TRACE_ALTITUDE_ENABLED, DEFAULT_TRACE_ALTITUDE_ENABLED);
+		sw = (Switch)rootView.findViewById(R.id.trace_flight_altitude_enable_switch);
+		sw.setChecked(mTraceAltitudeEnabled);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// 飛行高度
 		mTraceAltitude = Math.min(mPref.getFloat(KEY_TRACE_ALTITUDE, DEFAULT_TRACE_ALTITUDE), mFlightController.getMaxAltitude().current());
 		mTraceAltitudeLabel = (TextView)rootView.findViewById(R.id.trace_flight_altitude_textview);

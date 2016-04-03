@@ -73,10 +73,10 @@ int IPDetectorCurve::detect(
 	std::vector<const DetectRec_t *> possibles;		// 可能性のある輪郭
 	possibles.reserve(contours.size());
 
-	cv::Mat work;
-	src.copyTo(work);
+#if CALC_COEFFS
+	cv::Mat work = src;
 	cv::threshold(work, work, 10, 255, CV_THRESH_BINARY);
-
+#endif
 	// 検出した輪郭の数分ループする
 	for (auto iter = contours.begin(); iter != contours.end(); iter++) {
 		DetectRec_t *rec = &(*iter);		// 輪郭レコード

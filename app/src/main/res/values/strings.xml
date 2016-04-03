@@ -170,6 +170,7 @@
 	<string name="trace_config_title_auto_trace">Auto trace settings</string>
 	<string name="trace_config_trace_attitude_yaw">Attitude(yaw): %4.0f</string>
 	<string name="trace_config_trace_speed">Flight speed: %4.0f</string>
+	<string name="trace_config_trace_altitude_enable">Control altitude</string>
 	<string name="trace_config_trace_altitude">Flight altitude: %5.1f</string>
 	<string name="trace_config_trace_curvature">Curvature correction</string>
 	<string name="trace_config_trace_reverse_bias">Directional reverse bias rate: %5.2f</string>
