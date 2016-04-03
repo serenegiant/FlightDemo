@@ -223,6 +223,8 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 			cv::polylines(result, approx, true, COLOR_GREEN);
 		}
 		if (UNLIKELY(++cnt > MAX_CONTOURS)) break;
+
+		possible.clear();
 		possible.type = TYPE_NON;
 		possible.moments = cv::moments(*contour);
 		if (possible.moments.m00 != 0.0f) {
@@ -231,7 +233,6 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		} else {
 			possible.center.x = possible.center.y = 0.0f;
 		}
-		possible.clear();
 		possible = *contour;
 //		possible.contour.assign((*contour).begin(), (*contour).end());	// 凸包図形から輪郭に変更
 		possible.coeffs.clear();
