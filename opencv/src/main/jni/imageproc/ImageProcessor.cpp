@@ -392,14 +392,22 @@ void ImageProcessor::do_process(JNIEnv *env) {
 				mCornerDetector.detect(src, approxes, work,result, corner, param);
 				if (UNLIKELY(!mIsRunning)) break;
 //================================================================================
+				{	// vectorの余分なメモリーを開放する
+					std::vector<std::vector< cv::Point>> temp1;
+					std::vector<const DetectRec_t *> temp2;
+					std::vector<DetectRec_t> temp3;
+					contours.swap(temp1);
+					work.swap(temp2);
+					approxes.swap(temp3);
+				}
 				// 面積の大きい方を選択する FIXME 得点化してソート
-				const float a = line.type != TYPE_NON ? line.area : 0.0f;
-				const float b = curve.type != TYPE_NON ? curve.area : 0.0f;
+				const float a = curve.type != TYPE_NON ? curve.area : 0.0f;
+				const float b = line.type != TYPE_NON ? line.area : 0.0f;
 				const float c = corner.type != TYPE_NON ? corner.area : 0.0f;
-				possible = &line;
+				possible = &curve;
 				if (a < b) {
 					if (b > c) {
-						possible = &curve;
+						possible = &line;
 					} else {
 						possible = &corner;
 					}

@@ -145,9 +145,9 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 
 	ENTER();
 
-//	std::stringstream ss;
+	std::stringstream ss;
 	DetectRec_t possible;
-//	std::vector<cv::Vec4i> hierarchy;
+	std::vector<cv::Vec4i> hierarchy;
 	std::vector< cv::Point > convex, approx;		// 近似輪郭
 	cv::Point2f vertices[4];
 	const float areaErrLimit2Min = 1.0f / param.mAreaErrLimit2;
@@ -156,13 +156,13 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 	approxes.clear();
 
 	// 輪郭を求める
-//	findContours(src, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
-	findContours(src, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+	findContours(src, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
+//	findContours(src, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
 	// 検出した輪郭の数分ループする
 	int idx = -1, cnt = 0;
 	for (auto contour = contours.begin(); contour != contours.end(); contour++) {
 		idx++;
-//		if (hierarchy[idx][3] != -1) continue;	// 一番外側じゃない時
+		if (hierarchy[idx][3] != -1) continue;	// 一番外側じゃない時
 		// 凸包図形にする
 		convex.clear();
 		approx.clear();
@@ -174,7 +174,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		// 常に横長として幅と高さを取得
 		const float w = fmax(area_rect.size.width, area_rect.size.height);	// 最小矩形の幅=長軸長さ
 		const float h = fmin(area_rect.size.width, area_rect.size.height);	// 最小矩形の高さ=短軸長さ
-		const float a = w * h;
+		const float a = w * h;	// 最小矩形の面積
 		// 外周線または最小矩形が小さすぎるか大きすぎるのはスキップ
 		if (((w > 620) && (h > 350)) || (a < param.mAreaLimitMin) || (a > param.mAreaLimitMax)) continue;
 		if (param.show_detects) {
@@ -195,17 +195,17 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		cv::approxPolyDP(*contour, approx, epsilon, true);	// 閉曲線にする
 		// 最小矩形の面積が凸包図形面積より指定値以上大きければスキップ=凹凸が激しい
 		if (a / area_convex > param.mAreaErrLimit1) {
-//			const float rate = (float)cv::contourArea(approx) / area;
-//			if ((rate < areaErrLimit2Min) || (rate > param.mAreaErrLimit2))
+			// 輪郭の面積を計算・・・XXX 輪郭が画面の左端または上端からはみ出していると正しく計算出来ないみたい
+			const float area = (float)cv::contourArea(approx);
+			if (param.show_detects) {
+				clear_stringstream(ss);
+				ss << std::setw(5) << (int)a << ':' << std::setw(5) << (int)area;
+				cv::putText(result, ss.str(), area_rect.center, cv::FONT_HERSHEY_SIMPLEX, 0.5f, COLOR_GREEN);
+			}
+			const float rate = a / area;
+			if ((rate < areaErrLimit2Min) || (rate > param.mAreaErrLimit2))
 				continue;
 		}
-//		// 輪郭の面積を計算・・・XXX 輪郭が画面の左端または上端からはみ出していると正しく計算出来ないみたい
-//		const float area = (float)cv::contourArea(approx);
-//		if (param.show_detects) {
-//			clear_stringstream(ss);
-//			ss << std::setw(5) << (int)area_convex << ':' << std::setw(5) << (int)area;
-//			cv::putText(result, ss.str(), area_rect.center, cv::FONT_HERSHEY_SIMPLEX, 1, COLOR_GREEN);
-//		}
 		if (param.show_detects) {
 			cv::polylines(result, approx, true, COLOR_YELLOW, 2);
 		}

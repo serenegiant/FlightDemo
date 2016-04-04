@@ -63,9 +63,9 @@ public class AppConst {
 	public static final String KEY_ASPECT_LIMIT_MIN = "KEY_ASPECT_LIMIT_MIN";
 	public static final float DEFAULT_ASPECT_LIMIT_MIN = 2.0f;
 	public static final String KEY_AREA_ERR_LIMIT1 = "KEY_AREA_ERR_LIMIT1";
-	public static final float DEFAULT_AREA_ERR_LIMIT1 = 1.25f;
+	public static final float DEFAULT_AREA_ERR_LIMIT1 = 1.5f;
 	public static final String KEY_AREA_ERR_LIMIT2 = "KEY_AREA_ERR_LIMIT2";
-	public static final float DEFAULT_AREA_ERR_LIMIT2 = 1.30f;
+	public static final float DEFAULT_AREA_ERR_LIMIT2 = 1.65f;
 	public static final String KEY_NATIVE_MAX_THINNING_LOOP = "KEY_NATIVE_MAX_THINNING_LOOP";
 	public static final int DEFAULT_NATIVE_MAX_THINNING_LOOP = 0;
 	// 色抽出設定

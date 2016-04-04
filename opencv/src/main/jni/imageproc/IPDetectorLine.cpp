@@ -88,15 +88,15 @@ int IPDetectorLine::detect(
 	for (auto iter = contours.begin(); iter != contours.end(); iter++) {
 		DetectRec_t *rec = &(*iter);		// 輪郭レコード
 		// アスペクト比が正方形に近いものはスキップ
-		if (LIKELY(rec->aspect < param.mMinLineAspect)) continue;
+		if ((rec->aspect < param.mMinLineAspect) && (rec->area_rate > 1.2f)) continue;
 		if (param.show_detects) {
 			cv::polylines(result_frame, rec->contour, true, COLOR_ORANGE, 2);
 		}
 
 		// 最小矩形と元輪郭の面積比が大き過ぎる場合スキップ
-//		if (rec->area_rate > 1.1f) continue;
+		if ((rec->area_rate > 1.2f) && (rec->contour.size() > 6)) continue;
 //		if (rec->area_rate > 1.5f) continue;
-		if (rec->area_rate > 1.75f) continue;
+//		if (rec->area_rate > 1.75f) continue;
 //		if (rec->area_rate > 2.0f) continue;
 		if (param.show_detects) {
 			cv::polylines(result_frame, rec->contour, true, COLOR_ACUA, 2);
