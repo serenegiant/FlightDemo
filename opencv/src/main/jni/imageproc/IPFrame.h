@@ -17,9 +17,9 @@
 #include "Condition.h"
 
 // キューに入れることができる最大フレーム数
-#define MAX_QUEUED_FRAMES 8
+#define MAX_QUEUED_FRAMES 1
 // フレームプール中の最大フレーム数
-#define MAX_POOL_SIZE 8
+#define MAX_POOL_SIZE 2
 
 using namespace android;
 

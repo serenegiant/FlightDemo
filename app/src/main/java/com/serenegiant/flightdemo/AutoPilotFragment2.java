@@ -6,7 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.os.Bundle;
+import android.os.*;
+import android.os.Process;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
@@ -112,6 +113,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	protected SurfaceView mDetectView;
 	protected ImageProcessor mImageProcessor;
 	protected TraceTask mTraceTask;
+	protected ControlTask mControlTask;
 	protected Switch mAutoWhiteBlanceSw;
 	private TextView mTraceTv1, mTraceTv2, mTraceTv3;
 	private TextView mCpuLoadTv;
@@ -689,9 +691,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	};
 
 	private void startImageProcessor(final int processing_width, final int processing_height) {
+		if (mControlTask == null) {
+			mControlTask = new ControlTask(mFlightController);
+			new Thread(mControlTask, "Ctrl").start();
+		}
 		if (mTraceTask == null) {
 			mTraceTask = new TraceTask(processing_width, processing_height);
-			new Thread(mTraceTask, TAG).start();
+			new Thread(mTraceTask, "Trace").start();
 		}
 		if (mImageProcessor == null) {
 			mImageProcessor = new ImageProcessor(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT,	// こっちは元映像のサイズ
@@ -732,6 +738,10 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		synchronized (mQueue) {
 			mIsRunning = false;
 			mQueue.notifyAll();
+		}
+		if (mControlTask != null) {
+			mControlTask.release();
+			mControlTask = null;
 		}
 		mAutoPilot = mRequestAutoPilot = false;
 		updateButtons();
@@ -995,18 +1005,18 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							msg1 = null;
 							pilotAngle = 0.0f;
 							mPilotValue.clear(0.0f);
-							prevOffset.clear(0.0f);
+//							prevOffset.clear(0.0f);
 							if (mAutoPilot) {
 								if (lostTime < 0) {
 									lostTime = System.currentTimeMillis();
-									mFlightController.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+									mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
 								}
 								final long t = System.currentTimeMillis() - lostTime;
 								if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
 									onStopAutoPilot(true);
 									mAutoPilot = false;
 									startTime = -1L;
-									mFlightController.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+									mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
 								}
 							}
 						}
@@ -1023,13 +1033,14 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							final boolean b = !altitudeControl || Math.abs(rec.mLinePos.z - flightAltitude) < 0.1f;	// 10センチ以内
 							if (b || (System.currentTimeMillis() - startTime > 5000)) {
 								// 制御コマンド送信
-								mFlightController.setYaw((int)pilotAngle);
-								mFlightController.setMove(mPilotValue.x, mPilotValue.y, mPilotValue.z);
+								mControlTask.setMove(mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
 								// 今回の制御量を保存
-								mPrevPilotValue.set(mPilotValue);
+								if ((lostTime < 0) || (System.currentTimeMillis() - lostTime < 50)) {	// ラインを見失っても50ミリ秒以内なら保持する
+									mPrevPilotValue.set(mPilotValue);
+								}
 							} else {
 								// 制御コマンド送信
-								mFlightController.setGaz(mPilotValue.z);
+								mControlTask.setMove(0.0f, 0.0f, mPilotValue.z, 0.0f);
 								mPrevPilotValue.set(0.0f, 0.0f, mPilotValue.z);
 							}
 						} else {
@@ -1053,7 +1064,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					}
 				}
 			}	// for ( ; mIsRunning ; )
-			mFlightController.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+			mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
 			onStopAutoPilot(!mAutoPilot);
 			synchronized (mQueue) {
 				mIsRunning = mAutoPilot = false;
@@ -1063,6 +1074,71 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			System.gc();
 		}
 	}
+
+	private class ControlTask implements Runnable {
+		private final IFlightController mController;
+		private boolean requested;
+		private float roll, pitch, gaz, yaw;
+		public ControlTask(final IFlightController controller) {
+			mController = controller;
+			requested = false;
+		}
+
+		public void release() {
+			mIsRunning = false;
+			synchronized (this) {
+				this.notifyAll();
+			}
+		}
+
+		public void setMove(final float roll, final float pitch, final float gaz, final float yaw) {
+			synchronized (this) {
+				this.roll = roll;
+				this.pitch = pitch;
+				this.gaz = gaz;
+				this.yaw = yaw;
+				requested = true;
+			}
+		}
+
+		@Override
+		public void run() {
+			float local_roll, local_pitch, local_gaz, local_yaw;
+			// 少しスレッドの優先順位を上げる
+			android.os.Process.setThreadPriority(android.os.Process. THREAD_PRIORITY_DISPLAY);	// -4
+			for (; mIsRunning ; ) {
+				synchronized (this) {
+					try {
+						wait(75);
+					} catch (final InterruptedException e) {
+						break;
+					}
+					if (!mIsRunning) break;
+					if (requested && mAutoPilot) {
+						local_roll = roll;
+						local_pitch = pitch;
+						local_gaz = gaz;
+						local_yaw = yaw;
+					} else {
+						local_roll = local_pitch = local_gaz = local_yaw = 0.0f;
+					}
+					requested = false;
+				}
+				try {
+					mController.setMove(local_roll, local_pitch, local_gaz, local_yaw);
+				} catch (final Exception e) {
+					break;
+				}
+			} // for (; mIsRunning ; )
+			android.os.Process.setThreadPriority(Process. THREAD_PRIORITY_DEFAULT);	// 0
+			mIsRunning = false;
+			try {
+				mController.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+			} catch (final Exception e) {
+				// ignore
+			}
+		}
+	};
 
 	private class MyImageProcessorCallback implements ImageProcessor.ImageProcessorCallback {
 		private final int width, height;
