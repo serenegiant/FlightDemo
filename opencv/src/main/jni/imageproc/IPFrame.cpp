@@ -19,6 +19,7 @@
 #include "IPFrame.h"
 
 #include "glutils.h"
+#include "common_utils.h"
 
 #define USE_PBO 1
 
@@ -170,7 +171,7 @@ void IPFrame::clearFrames() {
 
 /** フレームキューからフレームを取得, フレームキューが空ならブロックする */
 /*protected*/
-cv::Mat IPFrame::getFrame() {
+cv::Mat IPFrame::getFrame(long &last_queued_ms) {
 	ENTER();
 
 	cv::Mat result;
@@ -183,6 +184,7 @@ cv::Mat IPFrame::getFrame() {
 	if (pbo_size && !mFrames.empty()) {
 		result = mFrames.front();
 		mFrames.pop();
+		last_queued_ms = last_queued_time_ms;
 	}
 
 	RET(result);
@@ -231,7 +233,8 @@ int IPFrame::addFrame(cv::Mat &frame) {
 
 	mFrameMutex.lock();
 	{
-		if (UNLIKELY(mFrames.size() >= MAX_QUEUED_FRAMES)) {
+		last_queued_time_ms = getTimeMilliseconds();
+		if (mFrames.size() >= MAX_QUEUED_FRAMES) {
 			// キュー中のフレーム数が最大数を超えたので先頭をプールに返却する
 			temp = &mFrames.front();
 			mFrames.pop();

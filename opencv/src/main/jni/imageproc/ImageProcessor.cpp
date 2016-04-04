@@ -356,10 +356,11 @@ void ImageProcessor::do_process(JNIEnv *env) {
 	std::vector<const DetectRec_t *> work;	// ワーク用
 	std::vector<DetectRec_t> approxes;	// 近似輪郭
 	DetectParam_t param;
+	long last_queued_time_ms;
 
 	for ( ; mIsRunning ; ) {
 		// フレームデータの取得待ち
-		cv::Mat frame = getFrame();
+		cv::Mat frame = getFrame(last_queued_time_ms);
 		if (UNLIKELY(!mIsRunning)) break;
 		if (LIKELY(!frame.empty())) {
 			try {
@@ -425,7 +426,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 					}
 				}
 				// Java側のコールバックメソッドを呼び出す
-				callJavaCallback(env, *possible, result, param);
+				callJavaCallback(env, *possible, result, last_queued_time_ms, param);
 			} catch (cv::Exception e) {
 				LOGE("do_process failed:%s", e.msg.c_str());
 				continue;
@@ -443,7 +444,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 #define RESULT_NUM 20
 
 /*private*/
-int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv::Mat &result, const DetectParam_t &param) {
+int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv::Mat &result, const long &last_queued_time_ms, const DetectParam_t &param) {
 	ENTER();
 
 	float detected[RESULT_NUM];
@@ -476,6 +477,8 @@ int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv
 		// 重心位置
 		detected[12] = detect_result.center.x;
 		detected[13] = detect_result.center.y;
+		// 概算処理時間
+		detected[19] = (float)(getTimeMilliseconds() - last_queued_time_ms);
 		//
 		jfloatArray detected_array = env->NewFloatArray(RESULT_NUM);
 		env->SetFloatArrayRegion(detected_array, 0, RESULT_NUM, detected);

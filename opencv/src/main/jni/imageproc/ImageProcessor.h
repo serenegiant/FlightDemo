@@ -33,7 +33,7 @@ private:
 	// 処理スレッドの実行関数
 	static void *processor_thread_func(void *vptr_args);
 	void do_process(JNIEnv *env);
-	int callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv::Mat &result, const DetectParam_t &param);
+	int callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv::Mat &result, const long &last_queued_time_ms, const DetectParam_t &param);
 protected:
 public:
 	ImageProcessor(JNIEnv* env, jobject weak_thiz_obj, jclass clazz);

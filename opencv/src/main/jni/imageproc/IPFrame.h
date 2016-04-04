@@ -33,6 +33,7 @@ private:
 	std::vector<cv::Mat> mPool;
 	// フレームキュー
 	std::queue<cv::Mat> mFrames;
+	long last_queued_time_ms;
 	// glReadPixelsを呼ぶ際のピンポンバッファに使うPBOのバッファ名
 	GLuint pbo[2];
 	int pbo_ix;
@@ -44,7 +45,7 @@ protected:
 	void initFrame(const int &width, const int &height);
 	void releaseFrame();
 	// フレームプール・フレームキュー関係
-	cv::Mat getFrame();
+	cv::Mat getFrame(long &last_queued_ms);
 	cv::Mat obtainFromPool(const int &width, const int &height);
 	void recycle(cv::Mat &frame);
 	inline const bool canAddFrame() { Mutex::Autolock lock(mFrameMutex);  return mFrames.size() < MAX_QUEUED_FRAMES; };
