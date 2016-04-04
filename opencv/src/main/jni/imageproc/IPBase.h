@@ -6,6 +6,10 @@
 #define FLIGHTDEMO_IPBASE_H
 
 #include <vector>
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 #include "opencv2/opencv.hpp"
 
 #define RESULT_FRAME_TYPE_NON 0			// 数値のみ返す
@@ -44,15 +48,14 @@ typedef enum SmoothType {
 typedef struct DetectRec DetectRec_t;
 struct DetectRec {
 	std::vector< cv::Point > contour;	// 近似輪郭
-	cv::RotatedRect area_rect;	// 内包する最小矩形
+	cv::RotatedRect area_rect;			// 内包する最小矩形
 	cv::RotatedRect ellipse;
 	cv::Moments moments;
 	cv::Point center;			// 重心
 	std::vector<Coeff4_t> coeffs;
 	DetectType_t type;
-	float area_rate;			// 輪郭面積に対する輪郭を内包する最小矩形の面積の比...基本的に1以上のはず, w * h / area
-	float area;					// 輪郭の面積(内部にある空隙は減算済)
-	float area_approx;			// 凸包図形の面積
+	float area_rate;			// 凸包図形面積に対する最小矩形の面積の比...基本的に1以上のはず, w * h / area
+	float area;					// 凸包図形面積
 	float aspect;
 	float analogous;			// 100-基準図形のHu momentsとの差の絶対値,
 	float length;				// 長軸長さ
@@ -62,7 +65,7 @@ struct DetectRec {
 
 	DetectRec() {
 		type = TYPE_NON;
-		area_rate = area = area_approx = aspect = analogous = length = width = curvature = ex = ey = 0.0f;
+		area_rate = area = aspect = analogous = length = width = curvature = ex = ey = 0.0f;
 	}
 
 	DetectRec(const DetectRec_t &src)
@@ -76,7 +79,6 @@ struct DetectRec {
 		type = src.type;
 		area_rate = src.area_rate;
 		area = src.area;
-		area_approx = src.area_approx;
 		aspect = src.aspect;
 		analogous = src.analogous;
 		length = src.length;
@@ -90,7 +92,7 @@ struct DetectRec {
 		type = TYPE_NON;
 		contour.clear();
 		coeffs.clear();
-		area_rate = area = area_approx = aspect = analogous = length = width = curvature = ex = ey = 0.0f;
+		area_rate = area = aspect = analogous = length = width = curvature = ex = ey = 0.0f;
 		return *this;
 	}
 
@@ -121,7 +123,6 @@ struct DetectRec {
 		type = src.type;
 		area_rate = src.area_rate;
 		area = src.area;
-		area_approx = src.area_approx;
 		aspect = src.aspect;
 		analogous = src.analogous;
 		length = src.length;

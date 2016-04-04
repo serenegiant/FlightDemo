@@ -14,7 +14,9 @@ public class LineRec {
 	public float curvature;
 	/** 近似楕円の中心座標 */
 	public final Vector ellipsePos = new Vector();
+	/** 近似楕円の長軸/短軸半径 */
 	public float ellipseA, ellipseB;
+	/** 近似楕円の傾き */
 	public float ellipseAngle;
 	/** ラインの重心座標 */
 	public final Vector center = new Vector();

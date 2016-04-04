@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <algorithm>
+#include <iomanip>
 
 #include "Thinning.h"
 #include "CubicSpline.h"

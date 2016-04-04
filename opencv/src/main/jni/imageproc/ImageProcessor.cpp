@@ -17,9 +17,6 @@
 #include <jni.h>
 #include <stdlib.h>
 #include <algorithm>
-#include <string>
-#include <vector>
-#include <sstream>
 
 #include "utilbase.h"
 #include "common_utils.h"
@@ -410,7 +407,7 @@ void ImageProcessor::do_process(JNIEnv *env) {
 				if (param.show_detects && (possible->type != TYPE_NON)) {
 					// ラインとして検出した輪郭線を赤で描画する
 					cv::polylines(result, possible->contour, true, COLOR_RED, 2);
-#if 0
+#if 1
 					// 映像中央から輪郭の最小矩形の中心に向かって線を引く
 					cv::line(result, cv::Point(width() >> 1, height() >> 1), possible->area_rect.center, COLOR_RED, 8, 8);
 #else
@@ -469,7 +466,7 @@ int ImageProcessor::callJavaCallback(JNIEnv *env, DetectRec_t &detect_result, cv
 		// 楕円の中心座標
 		detected[7] = detect_result.ex;
 		detected[8] = detect_result.ey;
-		// 楕円の長軸と短軸の長さ
+		// 楕円の長軸/短軸半径
 		detected[9] = detect_result.ellipse.size.width;
 		detected[10] = detect_result.ellipse.size.height;
 		// 楕円の傾き

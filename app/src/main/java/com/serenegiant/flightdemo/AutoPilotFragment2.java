@@ -759,7 +759,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	}
 
 	/** 解析データキューの最大サイズ */
-	private static final int MAX_QUEUE = 4;
+	private static final int MAX_QUEUE = 1;
 	/** 解析データレコードの再利用のためのプール */
 	private final List<LineRec> mPool = new ArrayList<LineRec>();
 	/** 解析データキュー */
@@ -872,8 +872,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 								}
 							}
 							//--------------------------------------------------------------------------------
-							// 画像中心からライン重心へのオフセットを計算
-							offset.set(CX, CY, flightAltitude).sub(rec.center);
+							// 画像中心からライン最小矩形の中心へのオフセットを計算
+							offset.set(CX, CY, flightAltitude).sub(rec.linePos);
 							// 解析データ
 							msg1 = String.format("%d,v(%3.0f,%3.0f,%5.1f,%5.2f),θ=%5.2f)",
 								rec.type, offset.x, offset.y, offset.z, rec.angle, line_angle);
@@ -916,26 +916,19 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							case 0: // TYPE_LINE
 							{
 								pilotAngle = line_angle;
-//								if (curvature != 0.0f) {
-//									// 曲率による機体yaw角の補正
-//									if (Math.abs(rec.curvature) > EPS_CURVATURE) {
-//										// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
-//										pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
-//									}
-//								}
 								break;
 							}
 							case 1:	// TYPE_CIRCLE
 							{
 								// 楕円の中心とライン重心を通る線分と楕円の交点座標での接線の傾きを求める
 								final float ellipse_angle = rec.ellipseAngle <= 90.0f ? rec.ellipseAngle : -180.0f + rec.ellipseAngle;
-								// 楕円の中心からライン重心へ向かうベクトルを計算
-								offset.set(rec.center).sub(rec.ellipsePos);
+								// 楕円の中心からライン最小句形の中旬へ向かうベクトルを計算
+								offset.set(rec.linePos).sub(rec.ellipsePos);
 								// 楕円の回転角を補正, 楕円の回転角はline_angleと大体同じみたい,範囲が違うけど, [0-180]
 								offset.rotateXY(-ellipse_angle);
 								// 長軸半径・短軸半径
-								final float a = rec.ellipseA / 2.0f;
-								final float b = rec.ellipseB / 2.0f;
+								final float a = rec.ellipseA;
+								final float b = rec.ellipseB;
 								final float c;	// 楕円の中心とライン重心を通る線分の傾き
 								// 楕円の中心とライン重心を通る線分の傾きを取得
 								final float slope, slope_angle;
@@ -966,29 +959,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 								msg2 = String.format("e(%5.2f,%5.2f,%5.2f),θ=%5.2f,s=%5.2f",
 									offset.x, offset.y, rec.ellipseAngle, ellipse_angle,
 									slope_angle);
-//								work.set(rec.ellipsePos).sub(rec.center);
-//								work2.set(CX, CY).sub(rec.center);
-//								final float wa = work.getAngle(work2);
-//								if ((wa < -90.0) || (wa > 90.0f)) {
-//									// 楕円中心と画面中心が反対側にある=楕円の外側に画面中心がある?
-//									if (DEBUG) Log.v(TAG, "外側");
-//								} else {
-//									// 楕円中心と画面中心が同じ側にある=楕円の内側に画面中心がある?
-//									if (DEBUG) Log.v(TAG, "内側");
-//								}
 								pilotAngle = slope_angle;
 								if (pilotAngle < -90.0f) pilotAngle += 90.0f;
 								if (pilotAngle > +90.0f) pilotAngle -= 90.0f;
 								if (Math.abs(pilotAngle - ellipse_angle) > 10.0f) {
 									pilotAngle = ellipse_angle;
 								}
-//								if (curvature != 0.0f) {
-//									// 曲率による機体yaw角の補正
-//									if (Math.abs(rec.curvature) > EPS_CURVATURE) {
-//										// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
-//										pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
-//									}
-//								}
 								break;
 							}
 							case 2: // TYPE_CORNER
@@ -996,6 +972,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 								break;
 							}
 							}
+//							if (curvature != 0.0f) {
+//								// 曲率による機体yaw角の補正
+//								if (Math.abs(rec.curvature) > EPS_CURVATURE) {
+//									// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
+//									pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
+//								}
+//							}
 							// 自動操縦スケールを適用
 							pilotAngle *= scaleR;
 							// 一定角度以下は0に丸める
@@ -1046,7 +1029,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						} else {
 							startTime = -1L;
 						}
-						final String msg3 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
+						final String m3 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
 						final String m1 = msg1;
 						final String m2 = msg2;
 						runOnUiThread(new Runnable() {
@@ -1054,7 +1037,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							public void run() {
 								mTraceTv1.setText(m1);
 								mTraceTv2.setText(m2);
-								mTraceTv3.setText(msg3);
+								mTraceTv3.setText(m3);
 							}
 						});
 					} finally {
@@ -1064,7 +1047,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					}
 				}
 			}	// for ( ; mIsRunning ; )
-			mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+			try {
+				mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+			} catch (final Exception e) {
+				// ignore
+			}
 			onStopAutoPilot(!mAutoPilot);
 			synchronized (mQueue) {
 				mIsRunning = mAutoPilot = false;
@@ -1185,7 +1172,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					rec = new LineRec();
 				}
 				rec.type = type;
-				// ラインの中心座標(位置ベクトル,cv::RotatedRect#center)
+				// ライン最小矩形の中心座標(位置ベクトル,cv::RotatedRect#center)
 				rec.linePos.set(result[0], result[1], mFlightController.getAltitude());
 				// ラインの長さ(長軸長さ=length)
 				rec.lineLen = result[2];
