@@ -110,6 +110,7 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 				mThinning.apply(roi, roi, param.mMaxThinningLoop);
 			}
 		}
+		outlines.clear();
 		// エッジ検出(Cannyの結果は2値化されてる)
 		if (param.mEnableCanny) {
 			cv::Canny(src, src, param.mCannyThreshold1, param.mCannyThreshold2);
@@ -144,7 +145,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 
 	ENTER();
 
-	std::stringstream ss;
+//	std::stringstream ss;
 	DetectRec_t possible;
 //	std::vector<cv::Vec4i> hierarchy;
 	std::vector< cv::Point > convex, approx;		// 近似輪郭
