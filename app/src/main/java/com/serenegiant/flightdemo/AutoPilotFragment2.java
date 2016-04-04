@@ -344,20 +344,19 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			case R.id.trace_btn:
 				// 自動操縦ボタン
 				setColorFilter((ImageView)view);
-				remove(mAutoPilotOnTask);
-				mAutoPilot = false;	// 自動操縦解除
+				clearAutoPilot();	// 自動操縦解除
 				updateButtons();
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
-				mAutoPilot = mRequestAutoPilot = false;
+				clearAutoPilot();	// 自動操縦解除
 				setColorFilter((ImageView) view);
 				emergencyStop();
 				updateButtons();
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
-				mAutoPilot = false;
+				clearAutoPilot();	// 自動操縦解除
 				setColorFilter((ImageView)view);
 				if (!isFlying()) {
 //					takeOff();
@@ -436,7 +435,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				}
 				return true;
 			case R.id.flat_trim_btn:
-				mAutoPilot = false;
+				clearAutoPilot();	// 自動操縦解除
 				setColorFilter((ImageView)view);
 				if ((mFlightController != null) && (getState() == IFlightController.STATE_STARTED)) {
 					replace(CalibrationFragment.newInstance(getDevice()));
@@ -445,18 +444,17 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸/着陸ボタンを長押しした時の処理
-				mAutoPilot = false;
+				clearAutoPilot();	// 自動操縦解除
 				setColorFilter((ImageView)view);
 				if (!isFlying()) {
 					takeOff();
 				} else {
 					landing();
-					mAutoPilot = false;
 				}
 				updateButtons();
 				return true;
 			case R.id.trace_btn:
-				remove(mAutoPilotOnTask);
+				clearAutoPilot();	// 自動操縦解除
 				if (!mAutoPilot) {
 					synchronized (mParamSync) {
 						mRequestAutoPilot = mReqUpdateParams = true;
@@ -478,6 +476,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			return false;
 		}
 	};
+
+	/** 自動操縦解除 */
+	private void clearAutoPilot() {
+		mAutoPilot = mRequestAutoPilot = false;
+		remove(mAutoPilotOnTask);
+	}
 
 	private final Runnable mAutoPilotOnTask = new Runnable() {
 		@Override
@@ -514,6 +518,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onDisconnect");
+		clearAutoPilot();	// 自動操縦解除
 		stopImageProcessor();
 		super.onDisconnect(controller);
 	}
@@ -530,6 +535,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 
 	@Override
 	protected void stopVideoStreaming() {
+		clearAutoPilot();	// 自動操縦解除
 		stopImageProcessor();
 		super.stopVideoStreaming();
 	}
@@ -559,6 +565,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			break;
 		}
 		mAlertMessage.setVisibility(alarm != 0 ? View.VISIBLE : View.INVISIBLE);
+		if (alarm != DroneStatus.ALARM_NON) {
+			clearAutoPilot();	// 自動操縦解除
+		}
 	}
 
 	@Override
@@ -685,6 +694,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					((ImageView)view).setColorFilter(can_fly ? 0 : DISABLE_COLOR);
 				}
 			}
+			if (!can_fly && (mAutoPilot || mRequestAutoPilot)) {
+				clearAutoPilot();	// 自動操縦解除
+			}
 			mTraceButton.setEnabled(can_fly);
 			mTraceButton.setColorFilter(!can_fly ? DISABLE_COLOR : ((mAutoPilot || mRequestAutoPilot) ? TOUCH_RESPONSE_COLOR : 0));
 		}
@@ -743,7 +755,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			mControlTask.release();
 			mControlTask = null;
 		}
-		mAutoPilot = mRequestAutoPilot = false;
+		clearAutoPilot();	// 自動操縦解除
 		updateButtons();
 	}
 
@@ -754,7 +766,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private void onStopAutoPilot(final boolean isError) {
 		if (DEBUG) Log.v(TAG, "onStopAutoPilot:");
 		mVibrator.vibrate(100);
-		mRequestAutoPilot = mAutoPilot = false;
+		clearAutoPilot();	// 自動操縦解除
 		updateButtons();
 	}
 
