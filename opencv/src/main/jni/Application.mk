@@ -1,8 +1,6 @@
 NDK_TOOLCHAIN_VERSION := 4.9
 #OpenGL|ES3を使うため API>=18とする
 APP_PLATFORM := android-18
-#64ビット版でコンパイルするために API>=21とする...でも64ビットはパロットのSDKが対応してない(´・ω・｀)
-#APP_PLATFORM := android-21
 
 # Cコンパイラオプション
 APP_CFLAGS += -DHAVE_PTHREADS
@@ -36,8 +34,6 @@ APP_CPPFLAGS += -Wno-multichar
 #APP_ABI := armeabi armeabi-v7a arm64-v8a
 #APP_ABI := x86
 APP_ABI := armeabi-v7a x86
-# 64ビットはパロットのSDKが対応してない(´・ω・｀)
-#APP_ABI := armeabi-v7a arm64-v8a x86 x86_64
 #APP_ABI := armeabi armeabi-v7a x86
 #APP_ABI := arm64-v8a armeabi-v7a
 #APP_ABI := all

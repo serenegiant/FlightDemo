@@ -72,6 +72,7 @@ int IPDetectorCurve::detect(
 
 	double hu_moments[8];
 //	std::vector<const DetectRec_t *> possibles;		// 可能性のある輪郭
+	possibles.clear();
 	possibles.reserve(contours.size() / 2 + 2);
 
 #if CALC_COEFFS

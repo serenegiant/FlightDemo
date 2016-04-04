@@ -82,7 +82,7 @@ struct DetectRec {
 		length = src.length;
 		width = src.width;
 		curvature = src.curvature;
-		ex = src.ey;
+		ex = src.ex;
 		ey = src.ey;
 	}
 
@@ -127,7 +127,7 @@ struct DetectRec {
 		length = src.length;
 		width = src.width;
 		curvature = src.curvature;
-		ex = src.ey;
+		ex = src.ex;
 		ey = src.ey;
 		return *this;
 	}

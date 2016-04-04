@@ -46,7 +46,6 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 		// 台形補正
 		if (param.mTrapeziumRate) {
 			cv::warpPerspective(frame, frame, param.perspectiveTransform, cv::Size(src.cols, src.rows));
-//			cv::warpPerspective(src, src, param.perspectiveTransform, cv::Size(src.cols, src.rows));
 		}
 		// RGBAのままだとHSVに変換できないので一旦BGRに変える
 		cv::cvtColor(frame, src, cv::COLOR_RGBA2BGR, 1);
@@ -129,13 +128,12 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 		LOGE("pre_process failed:%s", e.msg.c_str());
 		res = -1;
 	}
-	outlines.clear();
 
     RETURN(res, int);
 }
 
 // 最大輪郭数
-#define MAX_CONTOURS 30
+#define MAX_CONTOURS 1000
 
 /** 輪郭線を検出 */
 /*protected*/
@@ -165,6 +163,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 //		if (hierarchy[idx][3] != -1) continue;	// 一番外側じゃない時
 		// 凸包図形にする
 		approx.clear();
+		approx2.clear();
 		cv::convexHull(*contour, approx);
 //		// 輪郭近似精度(元の輪郭と近似曲線との最大距離)を計算
 //		const double epsilon = param.mApproxType == APPROX_RELATIVE
@@ -183,7 +182,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		// 外周線または最小矩形が小さすぎるか大きすぎるのはスキップ
 		if (((w > 620) && (h > 350)) || (a < param.mAreaLimitMin) || (a > param.mAreaLimitMax)) continue;
 		if (param.show_detects) {
-			cv::drawContours(result, contours, idx, COLOR_YELLOW);	// 輪郭
+			cv::drawContours(result, contours, idx, COLOR_YELLOW, 2);	// 輪郭
 		}
 		// 輪郭の面積を計算
 		float area = (float)cv::contourArea(*contour);
@@ -235,7 +234,7 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 		}
 		possible = *contour;
 //		possible.contour.assign((*contour).begin(), (*contour).end());	// 凸包図形から輪郭に変更
-		possible.coeffs.clear();
+//		possible.coeffs.clear();
 		possible.area_rect = area_rect;	// 最小矩形
 		possible.ellipse.center.x = possible.ellipse.center.y = possible.ex = possible.ey = 0.0f;
 		possible.area = area;				// 近似輪郭の面積
