@@ -28,7 +28,7 @@ import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageInfoRema
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageInfoStateListChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageStateListChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateSensorsStatesListChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandCommonControllerStateIsPilotingChangedListener;
+//import com.parrot.arsdk.arcommands.ARCommandCommonControllerStateIsPilotingChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonDebugStatsEventSendPacketListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonHeadlightsIntensityListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonHeadlightsStateIntensityChangedListener;
@@ -187,8 +187,8 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 		ARCommand.setCommonOverHeatStateOverHeatChangedListener(mARCommandCommonOverHeatStateOverHeatChangedListener);
 		ARCommand.setCommonOverHeatStateOverHeatRegulationChangedListener(mARCommandCommonOverHeatStateOverHeatRegulationChangedListener);
-
-		ARCommand.setCommonControllerStateIsPilotingChangedListener(mARCommandCommonControllerStateIsPilotingChangedListener);
+		// 廃止になったみたい
+//		ARCommand.setCommonControllerStateIsPilotingChangedListener(mARCommandCommonControllerStateIsPilotingChangedListener);
 
 		ARCommand.setCommonWifiSettingsStateOutdoorSettingsChangedListener(mARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener);
 
@@ -239,8 +239,8 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 		ARCommand.setCommonOverHeatStateOverHeatChangedListener(null);
 		ARCommand.setCommonOverHeatStateOverHeatRegulationChangedListener(null);
-
-		ARCommand.setCommonControllerStateIsPilotingChangedListener(null);
+		// 廃止になったみたい
+//		ARCommand.setCommonControllerStateIsPilotingChangedListener(null);
 
 		ARCommand.setCommonWifiSettingsStateOutdoorSettingsChangedListener(null);
 
@@ -382,20 +382,20 @@ public abstract class FlightController extends DeviceController implements IFlig
 		}
 	};
 
-	/**
-	 * アプリがHUDモードで操縦しているかどうかが変更された
-	 */
-	private final ARCommandCommonControllerStateIsPilotingChangedListener
-		mARCommandCommonControllerStateIsPilotingChangedListener
-			= new ARCommandCommonControllerStateIsPilotingChangedListener() {
-		/**
-		 * @param piloting 0 when the application is not in the piloting HUD, 1 when it enters the HUD.
-		 */
-		@Override
-		public void onCommonControllerStateIsPilotingChangedUpdate(final byte piloting) {
-			// XXX
-		}
-	};
+//	/**
+//	 * アプリがHUDモードで操縦しているかどうかが変更された。廃止になったみたい。
+//	 */
+//	private final ARCommandCommonControllerStateIsPilotingChangedListener
+//		mARCommandCommonControllerStateIsPilotingChangedListener
+//			= new ARCommandCommonControllerStateIsPilotingChangedListener() {
+//		/**
+//		 * @param piloting 0 when the application is not in the piloting HUD, 1 when it enters the HUD.
+//		 */
+//		@Override
+//		public void onCommonControllerStateIsPilotingChangedUpdate(final byte piloting) {
+//			// XXX
+//		}
+//	};
 
 	/**
 	 * WiFiの室内/室外モードが変更された時
@@ -827,27 +827,27 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	protected abstract boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading);
 
-	/**
-	 * アプリがHUDモードで操縦しているかどうかを設定
-	 * @param inHUD
-	 * @return
-	 */
-	public boolean sendPilotingHUD(final boolean inHUD) {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonControllerStateIsPilotingChanged((byte) (inHUD ? 1 : 0));
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "sendPilotingHUD　Failed");
-		}
-
-		return sentStatus;
-	}
+//	/**
+//	 * アプリがHUDモードで操縦しているかどうかを設定。廃止になったみたい。
+//	 * @param inHUD
+//	 * @return
+//	 */
+//	public boolean sendPilotingHUD(final boolean inHUD) {
+//		boolean sentStatus = true;
+//		final ARCommand cmd = new ARCommand();
+//		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonControllerStateIsPilotingChanged((byte) (inHUD ? 1 : 0));
+//		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+//			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+//				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_RETRY, null);
+//			cmd.dispose();
+//		}
+//
+//		if (!sentStatus) {
+//			Log.e(TAG, "sendPilotingHUD　Failed");
+//		}
+//
+//		return sentStatus;
+//	}
 
 	/**
 	 * キャリブレーション開始/キャンセル要求
