@@ -1037,6 +1037,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							public void run() {
 								mTraceTv1.setText(m1);
 								mTraceTv2.setText(m2);
+								mTraceTv3.setTextColor(mAutoPilot ? Color.RED : Color.GREEN);
 								mTraceTv3.setText(m3);
 							}
 						});

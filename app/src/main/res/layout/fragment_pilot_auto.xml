@@ -96,7 +96,7 @@
 					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
 					android:id="@+id/trace1_tv"
-					android:textColor="@color/RED"
+					android:textColor="@color/GREEN"
 					android:typeface="monospace"/>
 
 				<TextView
@@ -104,14 +104,14 @@
 					android:layout_height="wrap_content"
 					android:layout_below="@id/trace1_tv"
 					android:id="@+id/trace2_tv"
-					android:textColor="@color/RED"
+					android:textColor="@color/GREEN"
 					android:typeface="monospace"/>
 				<TextView
 					android:layout_width="match_parent"
 					android:layout_height="wrap_content"
 					android:layout_below="@id/trace2_tv"
 					android:id="@+id/trace3_tv"
-					android:textColor="@color/RED"
+					android:textColor="@color/GREEN"
 					android:typeface="monospace"/>
 			</RelativeLayout>
 
