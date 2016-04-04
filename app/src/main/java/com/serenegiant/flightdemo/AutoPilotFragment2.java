@@ -1096,7 +1096,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			for (; mIsRunning ; ) {
 				synchronized (this) {
 					try {
-						wait(75);
+						wait(70);
 					} catch (final InterruptedException e) {
 						break;
 					}
