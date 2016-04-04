@@ -783,6 +783,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private boolean mReqUpdateParams;
 	/** パラメータの排他制御用 */
 	private final Object mParamSync = new Object();
+	private volatile int mLostCnt;
 
 	/** トレース飛行タスク */
 	private class TraceTask implements Runnable {
@@ -808,6 +809,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			}
 			mIsRunning = mReqUpdateParams = true;
 			mAutoPilot = false;
+			mLostCnt = 0;
 			float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
 			boolean altitudeControl = mTraceAltitudeEnabled;
 			float flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
@@ -997,10 +999,10 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
 						} else {
 							// ラインを見失った時
+							mLostCnt++;
 							msg1 = null;
 							pilotAngle = 0.0f;
 							mPilotValue.clear(0.0f);
-//							prevOffset.clear(0.0f);
 							if (mAutoPilot) {
 								if (lostTime < 0) {
 									lostTime = System.currentTimeMillis();
@@ -1011,6 +1013,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 									onStopAutoPilot(true);
 									mAutoPilot = false;
 									startTime = -1L;
+									mLostCnt = 0;
 									mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
 								}
 							}
@@ -1021,6 +1024,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						if (mAutoPilot) {
 							if (startTime < 0) {
 								startTime = System.currentTimeMillis();
+								mLostCnt = 0;
 							}
 							if (!altitudeControl) {
 								mPilotValue.z = 0.0f;
