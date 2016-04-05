@@ -1174,6 +1174,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 */
 	@Override
 	protected boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading) {
+//		if (DEBUG) Log.v(TAG, String.format("sendPCMD:%d,%d,%d,%d,%d,%d", flag, roll, pitch, yaw, gaz, heading));
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 

@@ -7,8 +7,8 @@ android {
 		applicationId "com.serenegiant.flightdemo"
 		minSdkVersion 18
 		targetSdkVersion 22
-		versionCode 38
-		versionName '0.67.9'
+		versionCode 39
+		versionName '0.67.10'
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
 	}
 	signingConfigs {

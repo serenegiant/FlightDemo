@@ -23,7 +23,7 @@
 	<dimen name="btn_size_action">84dp</dimen>
 	<dimen name="btn_sz_connection">160dp</dimen>
 
-	<dimen name="text_sz_message">34sp</dimen>
+	<dimen name="text_sz_message">30sp</dimen>
 	<dimen name="text_sz_button">22sp</dimen>
 	<dimen name="text_sz_on_image_button">10sp</dimen>
 	<dimen name="text_sz_list">26sp</dimen>

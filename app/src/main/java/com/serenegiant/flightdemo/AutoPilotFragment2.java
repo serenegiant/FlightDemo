@@ -703,6 +703,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	};
 
 	private void startImageProcessor(final int processing_width, final int processing_height) {
+		mIsRunning = true;
 		if (mControlTask == null) {
 			mControlTask = new ControlTask(mFlightController);
 			new Thread(mControlTask, "Ctrl").start();
@@ -916,10 +917,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							mPilotValue.mult(scale);
 							// 飛行速度を加算
 							switch (mMode) {
-							case MODE_TRACE:
+							case MODE_TRACE:	// 通常(トレース)
 								mPilotValue.add(dir);
 								break;
-							case MODE_TRACKING:
+							case MODE_TRACKING:	// トラッキング
+								// 飛行速度の加算なし
 								break;
 							}
 							// 最大最小値を制限
@@ -934,7 +936,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							}
 							case 1:	// TYPE_CIRCLE
 							{
-								// 楕円の中心とライン重心を通る線分と楕円の交点座標での接線の傾きを求める
+								// 楕円の中心とライン中心を通る線分と楕円の交点座標での接線の傾きを求める
 								final float ellipse_angle = rec.ellipseAngle <= 90.0f ? rec.ellipseAngle : -180.0f + rec.ellipseAngle;
 								// 楕円の中心からライン最小句形の中旬へ向かうベクトルを計算
 								offset.set(rec.linePos).sub(rec.ellipsePos);
@@ -947,7 +949,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 								// 楕円の中心とライン重心を通る線分の傾きを取得
 								final float slope, slope_angle;
 								if (offset.x != 0) {
-									c = offset.y / offset.x;	// FIXME x=0の時の処理が必要,
+									c = offset.y / offset.x;
 									//  楕円: x^2 / a^2 + y^2 / b^2 = 1との交点を計算
 									final float w = (a * a * b * b) / (b * b + a * a * c * c);
 									final float x1 = (float)Math.sqrt(w);
@@ -1096,17 +1098,20 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		}
 
 		public void setMove(final float roll, final float pitch, final float gaz, final float yaw) {
+//			if (DEBUG) Log.v(TAG, String.format("ControlTask#setMove:%f,%f,%f,%f", roll, pitch, gaz, yaw));
 			synchronized (this) {
 				this.roll = roll;
 				this.pitch = pitch;
 				this.gaz = gaz;
 				this.yaw = yaw;
 				requested = true;
+				this.notify();
 			}
 		}
 
 		@Override
 		public void run() {
+			if (DEBUG) Log.v(TAG, "ControlTask#run:start");
 			float local_roll, local_pitch, local_gaz, local_yaw;
 			// 少しスレッドの優先順位を上げる
 			android.os.Process.setThreadPriority(android.os.Process. THREAD_PRIORITY_DISPLAY);	// -4
@@ -1128,9 +1133,11 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					}
 					requested = false;
 				}
+//				if (DEBUG) Log.v(TAG, String.format("ControlTask#run:%f,%f,%f,%f", local_roll, local_pitch, local_gaz, local_yaw));
 				try {
 					mController.setMove(local_roll, local_pitch, local_gaz, local_yaw);
 				} catch (final Exception e) {
+					Log.w(TAG, e);
 					break;
 				}
 			} // for (; mIsRunning ; )
@@ -1141,8 +1148,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 			} catch (final Exception e) {
 				// ignore
 			}
+			if (DEBUG) Log.v(TAG, "ControlTask#run:finished");
 		}
-	};
+	}
 
 	private class MyImageProcessorCallback implements ImageProcessor.ImageProcessorCallback {
 		private final int width, height;

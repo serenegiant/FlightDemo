@@ -134,7 +134,7 @@ int IPPreprocess::pre_process(cv::Mat &frame, cv::Mat &src, cv::Mat &result, con
 }
 
 // 最大輪郭数
-#define MAX_CONTOURS 1000
+#define MAX_CONTOURS 100
 
 /** 輪郭線を検出 */
 /*protected*/

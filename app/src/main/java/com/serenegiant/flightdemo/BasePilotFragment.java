@@ -1037,6 +1037,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 		}
 	};
 
+	/** 自動操縦中(スクリプト/再生)の時刻表示更新 */
 	protected abstract void updateTimeOnUIThread(final int minutes, final int seconds);
 
 	private final Runnable mUpdateTimeTask = new Runnable() {
@@ -1210,28 +1211,29 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 					gamepad_normal();
 					break;
 				}
-	//			KeyGamePad.KEY_LEFT_CENTER:		// = 0;
-	//			KeyGamePad.KEY_LEFT_UP:			// = 1;
-	//			KeyGamePad.KEY_LEFT_RIGHT:		// = 2;
-	//			KeyGamePad.KEY_LEFT_DOWN:		// = 3;
-	//			KeyGamePad.KEY_LEFT_LEFT:		// = 4;
-	//			KeyGamePad.KEY_RIGHT_CENTER:	// = 5;
-	//			KeyGamePad.KEY_RIGHT_UP:		// = 6;
-	//			KeyGamePad.KEY_RIGHT_RIGHT:		// = 7;
-	//			KeyGamePad.KEY_RIGHT_DOWN:		// = 8;
-	//			KeyGamePad.KEY_RIGHT_LEFT:		// = 9;
-	//			KeyGamePad.KEY_LEFT_1:			// = 10;	// 左上前
-	//			KeyGamePad.KEY_LEFT_2:			// = 11;	// 左上後
-	//			KeyGamePad.KEY_CENTER_LEFT:		// = 12;	// 中央左
-	//			KeyGamePad.KEY_RIGHT_1:			// = 13;	// 右上前
-	//			KeyGamePad.KEY_RIGHT_2:			// = 14;	// 右上後
-	//			KeyGamePad.KEY_CENTER_RIGHT:	// = 15;	// 中央右
+//				KeyGamePad.KEY_LEFT_CENTER:		// = 0;
+//				KeyGamePad.KEY_LEFT_UP:			// = 1;
+//				KeyGamePad.KEY_LEFT_RIGHT:		// = 2;
+//				KeyGamePad.KEY_LEFT_DOWN:		// = 3;
+//				KeyGamePad.KEY_LEFT_LEFT:		// = 4;
+//				KeyGamePad.KEY_RIGHT_CENTER:	// = 5;
+//				KeyGamePad.KEY_RIGHT_UP:		// = 6;
+//				KeyGamePad.KEY_RIGHT_RIGHT:		// = 7;
+//				KeyGamePad.KEY_RIGHT_DOWN:		// = 8;
+//				KeyGamePad.KEY_RIGHT_LEFT:		// = 9;
+//				KeyGamePad.KEY_LEFT_1:			// = 10;	// 左上前
+//				KeyGamePad.KEY_LEFT_2:			// = 11;	// 左上後
+//				KeyGamePad.KEY_CENTER_LEFT:		// = 12;	// 中央左
+//				KeyGamePad.KEY_RIGHT_1:			// = 13;	// 右上前
+//				KeyGamePad.KEY_RIGHT_2:			// = 14;	// 右上後
+//				KeyGamePad.KEY_CENTER_RIGHT:	// = 15;	// 中央右
 			} finally {
 				handler.postDelayed(this, interval);
 			}
 		}
 	};
 
+	private static final float DEAD_ZONE = 2.0f;
 	/**
 	 * ゲームパッド操作時の実際の移動コマンド発行処理
 	 * @param roll
@@ -1239,18 +1241,22 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	 * @param gaz
 	 * @param yaw
 	 */
-	private void gamepad_move(final float roll, final float pitch, final float gaz, final float yaw) {
-		if ((roll != 0) || (pitch != 0) || (gaz != 0) || (yaw != 0)) {
+	protected void gamepad_move(final float roll, final float pitch, final float gaz, final float yaw) {
+		final int r = (int)(Math.abs(roll) > DEAD_ZONE ? roll : 0.0f);
+		final int p = (int)(Math.abs(pitch) > DEAD_ZONE ? pitch : 0.0f);
+		final int g = (int)(Math.abs(gaz) > DEAD_ZONE ? gaz : 0.0f);
+		final int y = (int)(Math.abs(yaw) > DEAD_ZONE ? yaw : 0.0f);
+		if ((r != 0) || (p != 0) || (g != 0) || (y != 0)) {
 //			if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", roll, pitch, gaz, yaw));
 			if (mFlightController != null) {
 				moved = true;
-				mFlightController.setMove((int) roll, (int) pitch, (int) gaz, (int) yaw);
-				mFlightRecorder.record(FlightRecorder.CMD_MOVE4, (int)roll, (int)pitch, (int)gaz, (int)yaw);
+				mFlightController.setMove(r, p, g, y);
+				mFlightRecorder.record(FlightRecorder.CMD_MOVE4, r, p, g, y);
 			}
 		} else if (moved) {
 			if (mFlightController != null) {
 				mFlightController.setMove(0, 0, 0, 0, 0);
-				mFlightRecorder.record(FlightRecorder.CMD_MOVE4, (int) 0, (int) 0, (int) 0, (int) 0);
+				mFlightRecorder.record(FlightRecorder.CMD_MOVE4, 0, 0, 0, 0);
 			}
 			moved = false;
 //			if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", 0f, 0f, 0f, 0f));
