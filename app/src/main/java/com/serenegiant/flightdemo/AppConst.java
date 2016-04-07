@@ -98,6 +98,6 @@ public class AppConst {
 //	public static final float DEFAULT_TRACE_CURVATURE = 0.0f;
 	public static final String KEY_TRACE_DIR_REVERSE_BIAS = "KEY_TRACE_FLIGHT_DIR_REVERSE_BIAS";
 	public static final float DEFAULT_TRACE_DIR_REVERSE_BIAS = 0.3f;
-	public static final String KEY_TRACE_MOVING_AVE_NOTCH = "KEY_TRACE_MOVING_AVE_NOTCH";
-	public static final int DEFAULT_TRACE_MOVING_AVE_NOTCH = 5;
+	public static final String KEY_TRACE_MOVING_AVE_TAP = "KEY_TRACE_MOVING_AVE_NOTCH";
+	public static final int DEFAULT_TRACE_MOVING_AVE_TAP = 5;
 }

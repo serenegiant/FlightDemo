@@ -204,7 +204,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mTraceAltitude = Math.min(mPref.getFloat(KEY_TRACE_ALTITUDE, DEFAULT_TRACE_ALTITUDE), mFlightController.getMaxAltitude().current());
 //		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
 		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
-		mTraceMovingAveNotch = mPref.getInt(KEY_TRACE_MOVING_AVE_NOTCH, DEFAULT_TRACE_MOVING_AVE_NOTCH);
+		mTraceMovingAveTap = mPref.getInt(KEY_TRACE_MOVING_AVE_TAP, DEFAULT_TRACE_MOVING_AVE_TAP);
 
 		// Viewの取得・初期化
 		mActionViews.clear();
@@ -795,7 +795,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 
 		private final int WIDTH, HEIGHT;
 		private final int CX, CY;
-		private int mMovingAveNotch = 0;
+		private int mMovingAveTap = 0;
 		private final Vector mMovingAve = new Vector();			// オフセットの移動平均
 		private Vector[] mOffsets;
 		private int mOffsetIx;
@@ -823,7 +823,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					}
 				}
 				mOffsets = temp;
-				mMovingAveNotch = notch;
+				mMovingAveTap = notch;
 				clearMovingAve();
 			}
 		}
@@ -833,7 +833,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		 */
 		private void clearMovingAve() {
 			mOffsetIx = -1;
-			for (int i = 0; i < mMovingAveNotch; i++) {
+			for (int i = 0; i < mMovingAveTap; i++) {
 				mOffsets[i].clear(0.0f);
 			}
 			mMovingAve.clear(0.0f);
@@ -845,13 +845,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		 * @return
 		 */
 		private Vector updateMovingAve(final Vector offset) {
-			mOffsetIx = (++mOffsetIx) % mMovingAveNotch;
+			mOffsetIx = (++mOffsetIx) % mMovingAveTap;
 			mOffsets[mOffsetIx].set(offset);
 			mMovingAve.clear(0.0f);
-			for (int i = 0; i < mMovingAveNotch; i++) {
+			for (int i = 0; i < mMovingAveTap; i++) {
 				mMovingAve.add(mOffsets[i]);
 			}
-			mMovingAve.div((float)mMovingAveNotch);
+			mMovingAve.div((float)mMovingAveTap);
 			return mMovingAve;
 		}
 
@@ -901,8 +901,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						dir.set(0.0f, flightSpeed, 0.0f).rotateXY(flightAngleYaw);
 						directionalReverseBias = mTraceDirectionalReverseBias;
 //						curvature = mTraceCurvature;
-						if (mMovingAveNotch != mTraceMovingAveNotch) {
-							createMovingAve(mTraceMovingAveNotch);
+						if (mMovingAveTap != mTraceMovingAveTap) {
+							createMovingAve(mTraceMovingAveTap);
 						}
 					}
 				}
@@ -1642,8 +1642,8 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				final float bias = progress / 100.0f;
 				updateTraceDirectionalReverseBias(bias);
 				break;
-			case R.id.trace_flight_moving_ave_notch_seekbar:
-				updateTraceMovingAveNotch(progress + 1);
+			case R.id.trace_flight_moving_ave_tap_seekbar:
+				updateTraceMovingAveTap(progress + 1);
 				break;
 			}
 		}
@@ -1840,14 +1840,14 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					mPref.edit().putFloat(KEY_TRACE_DIR_REVERSE_BIAS, bias).apply();
 				}
 				break;
-			case R.id.trace_flight_moving_ave_notch_seekbar:
+			case R.id.trace_flight_moving_ave_tap_seekbar:
 				final int notch = seekBar.getProgress() + 1;
-				if (notch != mTraceMovingAveNotch) {
+				if (notch != mTraceMovingAveTap) {
 					synchronized (mParamSync) {
 						mReqUpdateParams = true;
-						mTraceMovingAveNotch = notch;
+						mTraceMovingAveTap = notch;
 					}
-					mPref.edit().putFloat(KEY_TRACE_MOVING_AVE_NOTCH, notch).apply();
+					mPref.edit().putFloat(KEY_TRACE_MOVING_AVE_TAP, notch).apply();
 				}
 				break;
 			}
@@ -2384,19 +2384,19 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private TextView mTraceSpeedLabel;
 	private TextView mTraceAltitudeLabel;
 	private TextView mTraceDirectionalReverseBiasLabel;
-	private TextView mTraceMovingAveNotchLabel;
+	private TextView mTraceMovingAveTapLabel;
 	private String mTraceAttitudeYawFormat;
 	private String mTraceSpeedFormat;
 	private String mTraceAltitudeFormat;
 	private String mTraceDirectionalReverseBiasFormat;
-	private String mTraceMovingAveNotchFormat;
+	private String mTraceMovingAveTapFormat;
 	private float mTraceAttitudeYaw = 0.0f;
 	private float mTraceSpeed = 100.0f;
 	private boolean mTraceAltitudeEnabled = true;
 	private float mTraceAltitude = 0.6f;
 	private float mTraceDirectionalReverseBias = 0.3f;
 //	private float mTraceCurvature = 0.0f;
-	private int mTraceMovingAveNotch = DEFAULT_TRACE_MOVING_AVE_NOTCH;
+	private int mTraceMovingAveTap = DEFAULT_TRACE_MOVING_AVE_TAP;
 
 	private void initAutoTrace(final View rootView) {
 		SeekBar sb;
@@ -2406,7 +2406,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mTraceSpeedFormat = getString(R.string.trace_config_trace_speed);
 		mTraceAltitudeFormat = getString(R.string.trace_config_trace_altitude);
 		mTraceDirectionalReverseBiasFormat = getString(R.string.trace_config_trace_reverse_bias);
-		mTraceMovingAveNotchFormat = getString(R.string.trace_config_moving_ave_notch);
+		mTraceMovingAveTapFormat = getString(R.string.trace_config_moving_ave_tap);
 		// 飛行姿勢(yaw)
 		mTraceAttitudeYaw = mPref.getFloat(KEY_TRACE_ATTITUDE_YAW, DEFAULT_TRACE_ATTITUDE_YAW);
 		mTraceAttitudeYawLabel = (TextView)rootView.findViewById(R.id.trace_flight_attitude_yaw_textview);
@@ -2444,14 +2444,14 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setProgress((int)(mTraceDirectionalReverseBias * 100));	// [0.0f, 2.0f] => [0, 200]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateTraceDirectionalReverseBias(mTraceDirectionalReverseBias);
-		// 移動平均数
-		mTraceMovingAveNotch = mPref.getInt(KEY_TRACE_MOVING_AVE_NOTCH, DEFAULT_TRACE_MOVING_AVE_NOTCH);
-		mTraceMovingAveNotchLabel = (TextView)rootView.findViewById(R.id.trace_flight_moving_ave_notch_textview);
-		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_moving_ave_notch_seekbar);
+		// 移動平均タップ数
+		mTraceMovingAveTap = mPref.getInt(KEY_TRACE_MOVING_AVE_TAP, DEFAULT_TRACE_MOVING_AVE_TAP);
+		mTraceMovingAveTapLabel = (TextView)rootView.findViewById(R.id.trace_flight_moving_ave_tap_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_moving_ave_tap_seekbar);
 		sb.setMax(19);
-		sb.setProgress(mTraceMovingAveNotch - 1);	// [1, 20] => [0, 19]
+		sb.setProgress(mTraceMovingAveTap - 1);	// [1, 20] => [0, 19]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		updateTraceMovingAveNotch(mTraceMovingAveNotch);
+		updateTraceMovingAveTap(mTraceMovingAveTap);
 //		// 曲率補正
 //		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
 //		sw = (Switch)rootView.findViewById(R.id.curvature_sw);
@@ -2489,9 +2489,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		}
 	}
 
-	private void updateTraceMovingAveNotch(final int notch) {
-		if (mTraceMovingAveNotchLabel != null) {
-			mTraceMovingAveNotchLabel.setText(String.format(mTraceMovingAveNotchFormat, notch));
+	private void updateTraceMovingAveTap(final int notch) {
+		if (mTraceMovingAveTapLabel != null) {
+			mTraceMovingAveTapLabel.setText(String.format(mTraceMovingAveTapFormat, notch));
 		}
 	}
 

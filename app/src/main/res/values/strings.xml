@@ -174,7 +174,7 @@
 	<string name="trace_config_trace_altitude">Flight altitude: %5.1f</string>
 	<string name="trace_config_trace_curvature">Curvature correction</string>
 	<string name="trace_config_trace_reverse_bias">Directional reverse bias rate: %5.2f</string>
-	<string name="trace_config_moving_ave_notch">Moving average notch: %d</string>
+	<string name="trace_config_moving_ave_tap">Moving average tap: %d</string>
 
 	<array name="trace_smooth_entries">
 		<item>@string/trace_smooth_non</item>
