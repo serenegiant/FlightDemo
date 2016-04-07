@@ -94,8 +94,10 @@ public class AppConst {
 	public static final boolean DEFAULT_TRACE_ALTITUDE_ENABLED = true;
 	public static final String KEY_TRACE_ALTITUDE = "KEY_TRACE_ALTITUDE";
 	public static final float DEFAULT_TRACE_ALTITUDE = 0.6f;
-	public static final String KEY_TRACE_CURVATURE = "KEY_TRACE_CURVATURE";
-	public static final float DEFAULT_TRACE_CURVATURE = 0.0f;
+//	public static final String KEY_TRACE_CURVATURE = "KEY_TRACE_CURVATURE";
+//	public static final float DEFAULT_TRACE_CURVATURE = 0.0f;
 	public static final String KEY_TRACE_DIR_REVERSE_BIAS = "KEY_TRACE_FLIGHT_DIR_REVERSE_BIAS";
 	public static final float DEFAULT_TRACE_DIR_REVERSE_BIAS = 0.3f;
+	public static final String KEY_TRACE_MOVING_AVE_NOTCH = "KEY_TRACE_MOVING_AVE_NOTCH";
+	public static final int DEFAULT_TRACE_MOVING_AVE_NOTCH = 5;
 }

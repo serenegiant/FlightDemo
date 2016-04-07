@@ -202,8 +202,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mTraceSpeed = mPref.getFloat(KEY_TRACE_SPEED, DEFAULT_TRACE_SPEED);
 		mTraceAltitudeEnabled = mPref.getBoolean(KEY_TRACE_ALTITUDE_ENABLED, DEFAULT_TRACE_ALTITUDE_ENABLED);
 		mTraceAltitude = Math.min(mPref.getFloat(KEY_TRACE_ALTITUDE, DEFAULT_TRACE_ALTITUDE), mFlightController.getMaxAltitude().current());
-		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
+//		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
 		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
+		mTraceMovingAveNotch = mPref.getInt(KEY_TRACE_MOVING_AVE_NOTCH, DEFAULT_TRACE_MOVING_AVE_NOTCH);
 
 		// Viewの取得・初期化
 		mActionViews.clear();
@@ -794,11 +795,64 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 
 		private final int WIDTH, HEIGHT;
 		private final int CX, CY;
+		private int mMovingAveNotch = 0;
+		private final Vector mMovingAve = new Vector();			// オフセットの移動平均
+		private Vector[] mOffsets;
+		private int mOffsetIx;
 		public TraceTask(final int processing_width, final int processing_height) {
 			WIDTH = processing_width;
 			HEIGHT = processing_height;
 			CX = processing_width >>> 1;
 			CY = processing_height >>> 1;
+		}
+
+		/**
+		 * オフセットの移動平均計算用ワーク変数を生成
+		 * @param notch
+		 */
+		private void createMovingAve(final int notch) {
+			if ((mOffsets == null) || (mOffsets.length != notch)) {
+				final Vector[] temp = new Vector[notch];
+				final int n = mOffsets != null ? mOffsets.length : 0;
+				for (int i = 0; i < notch; i++) {
+					if (i < n) {
+						temp[i] = mOffsets[i];
+					}
+					if (temp[i] == null) {
+						temp[i] = new Vector();
+					}
+				}
+				mOffsets = temp;
+				mMovingAveNotch = notch;
+				clearMovingAve();
+			}
+		}
+
+		/***
+		 * 移動平均計算用ワークをクリア
+		 */
+		private void clearMovingAve() {
+			mOffsetIx = -1;
+			for (int i = 0; i < mMovingAveNotch; i++) {
+				mOffsets[i].clear(0.0f);
+			}
+			mMovingAve.clear(0.0f);
+		}
+
+		/**
+		 * 移動平均を計算
+		 * @param offset
+		 * @return
+		 */
+		private Vector updateMovingAve(final Vector offset) {
+			mOffsetIx = (++mOffsetIx) % mMovingAveNotch;
+			mOffsets[mOffsetIx].set(offset);
+			mMovingAve.clear(0.0f);
+			for (int i = 0; i < mMovingAveNotch; i++) {
+				mMovingAve.add(mOffsets[i]);
+			}
+			mMovingAve.div((float)mMovingAveNotch);
+			return mMovingAve;
 		}
 
 		@Override
@@ -847,6 +901,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						dir.set(0.0f, flightSpeed, 0.0f).rotateXY(flightAngleYaw);
 						directionalReverseBias = mTraceDirectionalReverseBias;
 //						curvature = mTraceCurvature;
+						if (mMovingAveNotch != mTraceMovingAveNotch) {
+							createMovingAve(mTraceMovingAveNotch);
+						}
 					}
 				}
 				synchronized (mQueue) {
@@ -895,12 +952,13 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							//--------------------------------------------------------------------------------
 							// 画面の端が-1または+1になるように変換する
 							offset.div(CX, CY, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
+							offset.set(updateMovingAve(offset));	// オフセットの移動平均を取得
 							// 移動方向, 前回と同じ方向なら1, 逆なら-1
 							work.set(offset).sub(prevOffset).sign();
 							// オフセットを保存
 							prevOffset.set(offset);
 							mPilotValue.set(offset);	// これは画面座標での画面中央とライン重心のオフセット値
-							// オフセットの符号を取得
+							// オフセットの移動平均の符号を取得
 							offset.sign();
 							// 移動方向が変わってなければバイアス加算, 変わってればバイアス減算
 							if (offset.x != 0.0f) { if (offset.x == work.x) { work.x = directionalReverseBias; } else { work.x = -directionalReverseBias; } } else { offset.x = 0.0f; }
@@ -987,7 +1045,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 							{
 								break;
 							}
-							}
+							}	// switch (rec.type)
 //							if (curvature != 0.0f) {
 //								// 曲率による機体yaw角の補正
 //								if (Math.abs(rec.curvature) > EPS_CURVATURE) {
@@ -1009,6 +1067,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 								if (lostTime < 0) {
 									lostTime = System.currentTimeMillis();
 									mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+									clearMovingAve();	// オフセットの移動平均をクリア
 								}
 								final long t = System.currentTimeMillis() - lostTime;
 								if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
@@ -1373,15 +1432,15 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 					mPref.edit().putBoolean(KEY_TRACE_ALTITUDE_ENABLED, mTraceAltitudeEnabled).apply();
 				}
 				break;
-			case R.id.curvature_sw:
-				synchronized (mParamSync) {
-					mTraceCurvature = isChecked ? 1.0f : 0.0f;
-					mReqUpdateParams = true;
-				}
-				if (mPref != null) {
-					mPref.edit().putFloat(KEY_TRACE_CURVATURE, mTraceCurvature).apply();
-				}
-				break;
+//			case R.id.curvature_sw:
+//				synchronized (mParamSync) {
+//					mTraceCurvature = isChecked ? 1.0f : 0.0f;
+//					mReqUpdateParams = true;
+//				}
+//				if (mPref != null) {
+//					mPref.edit().putFloat(KEY_TRACE_CURVATURE, mTraceCurvature).apply();
+//				}
+//				break;
 			}
 		}
 	};
@@ -1583,6 +1642,9 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 				final float bias = progress / 100.0f;
 				updateTraceDirectionalReverseBias(bias);
 				break;
+			case R.id.trace_flight_moving_ave_notch_seekbar:
+				updateTraceMovingAveNotch(progress + 1);
+				break;
 			}
 		}
 
@@ -1776,6 +1838,16 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 						mTraceDirectionalReverseBias = bias;
 					}
 					mPref.edit().putFloat(KEY_TRACE_DIR_REVERSE_BIAS, bias).apply();
+				}
+				break;
+			case R.id.trace_flight_moving_ave_notch_seekbar:
+				final int notch = seekBar.getProgress() + 1;
+				if (notch != mTraceMovingAveNotch) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mTraceMovingAveNotch = notch;
+					}
+					mPref.edit().putFloat(KEY_TRACE_MOVING_AVE_NOTCH, notch).apply();
 				}
 				break;
 			}
@@ -2312,16 +2384,19 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private TextView mTraceSpeedLabel;
 	private TextView mTraceAltitudeLabel;
 	private TextView mTraceDirectionalReverseBiasLabel;
+	private TextView mTraceMovingAveNotchLabel;
 	private String mTraceAttitudeYawFormat;
 	private String mTraceSpeedFormat;
 	private String mTraceAltitudeFormat;
 	private String mTraceDirectionalReverseBiasFormat;
+	private String mTraceMovingAveNotchFormat;
 	private float mTraceAttitudeYaw = 0.0f;
 	private float mTraceSpeed = 100.0f;
 	private boolean mTraceAltitudeEnabled = true;
 	private float mTraceAltitude = 0.6f;
 	private float mTraceDirectionalReverseBias = 0.3f;
-	private float mTraceCurvature = 0.0f;
+//	private float mTraceCurvature = 0.0f;
+	private int mTraceMovingAveNotch = DEFAULT_TRACE_MOVING_AVE_NOTCH;
 
 	private void initAutoTrace(final View rootView) {
 		SeekBar sb;
@@ -2331,6 +2406,7 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		mTraceSpeedFormat = getString(R.string.trace_config_trace_speed);
 		mTraceAltitudeFormat = getString(R.string.trace_config_trace_altitude);
 		mTraceDirectionalReverseBiasFormat = getString(R.string.trace_config_trace_reverse_bias);
+		mTraceMovingAveNotchFormat = getString(R.string.trace_config_moving_ave_notch);
 		// 飛行姿勢(yaw)
 		mTraceAttitudeYaw = mPref.getFloat(KEY_TRACE_ATTITUDE_YAW, DEFAULT_TRACE_ATTITUDE_YAW);
 		mTraceAttitudeYawLabel = (TextView)rootView.findViewById(R.id.trace_flight_attitude_yaw_textview);
@@ -2368,11 +2444,19 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 		sb.setProgress((int)(mTraceDirectionalReverseBias * 100));	// [0.0f, 2.0f] => [0, 200]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateTraceDirectionalReverseBias(mTraceDirectionalReverseBias);
-		// 曲率補正
-		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
-		sw = (Switch)rootView.findViewById(R.id.curvature_sw);
-		sw.setChecked(mTraceCurvature != 0);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+		// 移動平均数
+		mTraceMovingAveNotch = mPref.getInt(KEY_TRACE_MOVING_AVE_NOTCH, DEFAULT_TRACE_MOVING_AVE_NOTCH);
+		mTraceMovingAveNotchLabel = (TextView)rootView.findViewById(R.id.trace_flight_moving_ave_notch_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_moving_ave_notch_seekbar);
+		sb.setMax(19);
+		sb.setProgress(mTraceMovingAveNotch - 1);	// [1, 20] => [0, 19]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateTraceMovingAveNotch(mTraceMovingAveNotch);
+//		// 曲率補正
+//		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
+//		sw = (Switch)rootView.findViewById(R.id.curvature_sw);
+//		sw.setChecked(mTraceCurvature != 0);
+//		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
 	private void releaseAutoTrace(final View rootView) {
@@ -2402,6 +2486,12 @@ public class AutoPilotFragment2 extends BasePilotFragment implements ColorPicker
 	private void updateTraceDirectionalReverseBias(final float bias) {
 		if (mTraceDirectionalReverseBiasLabel != null) {
 			mTraceDirectionalReverseBiasLabel.setText(String.format(mTraceDirectionalReverseBiasFormat, bias));
+		}
+	}
+
+	private void updateTraceMovingAveNotch(final int notch) {
+		if (mTraceMovingAveNotchLabel != null) {
+			mTraceMovingAveNotchLabel.setText(String.format(mTraceMovingAveNotchFormat, notch));
 		}
 	}
 
