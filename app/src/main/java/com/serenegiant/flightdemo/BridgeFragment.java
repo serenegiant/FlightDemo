@@ -27,8 +27,8 @@ import com.serenegiant.arflight.ARDeviceInfoAdapter;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.ManagerFragment;
-import com.serenegiant.arflight.SkyController;
-import com.serenegiant.arflight.SkyControllerListener;
+import com.serenegiant.arflight.Controllers.SkyController;
+import com.serenegiant.arflight.Controllers.SkyControllerListener;
 import com.serenegiant.widget.PlayerTextureView;
 
 

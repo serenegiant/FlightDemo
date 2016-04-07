@@ -1,4 +1,4 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.Controllers;
 
 
 import android.content.Context;
@@ -31,6 +31,9 @@ import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateMaxVertic
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.serenegiant.arflight.DroneSettings;
+import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.IBLEController;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.attribute.AttributeIMU;
 import com.serenegiant.arflight.attribute.AttributeMotor;

@@ -1,4 +1,6 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.Controllers;
+
+import com.serenegiant.arflight.IDeviceController;
 
 public interface DeviceConnectionListener {
 	/**

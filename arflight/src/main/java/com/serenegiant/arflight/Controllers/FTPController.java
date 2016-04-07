@@ -1,4 +1,4 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.Controllers;
 
 import android.bluetooth.BluetoothGatt;
 import android.content.Context;
@@ -26,6 +26,12 @@ import com.parrot.arsdk.arsal.ARSAL_PRINT_LEVEL_ENUM;
 import com.parrot.arsdk.arutils.ARUTILS_ERROR_ENUM;
 import com.parrot.arsdk.arutils.ARUtilsException;
 import com.parrot.arsdk.arutils.ARUtilsManager;
+import com.serenegiant.arflight.IBLEController;
+import com.serenegiant.arflight.ICameraController;
+import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.arflight.IFlightController;
+import com.serenegiant.arflight.IVideoStreamController;
+import com.serenegiant.arflight.IWiFiController;
 import com.serenegiant.utils.ThreadPool;
 
 import java.io.File;

@@ -1,4 +1,4 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.Controllers;
 
 import android.content.Context;
 import android.os.SystemClock;
@@ -38,6 +38,10 @@ import com.parrot.arsdk.arcommands.ARCommandCommonOverHeatStateOverHeatRegulatio
 import com.parrot.arsdk.arcommands.ARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.serenegiant.arflight.DroneSettings;
+import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.IBridgeController;
+import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
@@ -1349,7 +1353,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 			final long sleepTime = (SystemClock.elapsedRealtime() + intervals_ms) - lastTime;
 
 			try {
-				Thread.sleep(sleepTime);
+				sleep(sleepTime);
 			} catch (final InterruptedException e) {
 				// ignore
 			}

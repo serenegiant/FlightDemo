@@ -21,7 +21,7 @@ import android.widget.TextView;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.armedia.ARMediaObject;
 import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.FTPController;
+import com.serenegiant.arflight.Controllers.FTPController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.ConfirmDialog;
 import com.serenegiant.dialog.OnDialogResultIntListener;

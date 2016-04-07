@@ -58,6 +58,10 @@ public class DroneSettings {
 
 	// カメラ設定
 	protected final AttributeCamera mCamera = new AttributeCamera();
+	public AttributeCamera getCamera() {
+		return mCamera;
+	}
+
 	public void setCameraSettings(final float fov, final float panMax, final float panMin, final float tiltMax, final float tiltMin) {
 		mCamera.setSettings(fov, panMax, panMin, tiltMax, tiltMin);
 	}

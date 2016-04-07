@@ -1,4 +1,4 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.Controllers;
 
 import android.content.Context;
 import android.content.Intent;
@@ -86,8 +86,13 @@ import com.parrot.arsdk.arcommands.ARCommandSkyControllerWifiStateWifiSignalChan
 import com.parrot.arsdk.arcommands.ARCommandSkyControllerWifiWifiAuthChannelListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
-import com.parrot.arsdk.arnetwork.ARNetworkManager;
-import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
+import com.serenegiant.arflight.CommonStatus;
+import com.serenegiant.arflight.DeviceInfo;
+import com.serenegiant.arflight.IBridgeController;
+import com.serenegiant.arflight.IVideoStream;
+import com.serenegiant.arflight.IVideoStreamController;
+import com.serenegiant.arflight.IWiFiController;
+import com.serenegiant.arflight.VideoStreamDelegater;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 import com.serenegiant.arflight.configs.ARNetworkConfigBridge;

@@ -23,8 +23,8 @@ import android.widget.Toast;
 
 import com.serenegiant.arflight.AutoFlightListener;
 import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.FlightControllerBebop;
-import com.serenegiant.arflight.FlightControllerMiniDrone;
+import com.serenegiant.arflight.Controllers.FlightControllerBebop;
+import com.serenegiant.arflight.Controllers.FlightControllerMiniDrone;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.ICameraController;

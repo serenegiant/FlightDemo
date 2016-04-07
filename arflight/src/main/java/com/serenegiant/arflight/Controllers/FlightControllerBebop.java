@@ -1,4 +1,4 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.Controllers;
 
 
 import android.content.Context;
@@ -85,6 +85,14 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateMaxVertica
 import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateOutdoorChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.serenegiant.arflight.DroneSettings;
+import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.IBridgeController;
+import com.serenegiant.arflight.ICameraController;
+import com.serenegiant.arflight.IVideoStream;
+import com.serenegiant.arflight.IWiFiController;
+import com.serenegiant.arflight.VideoStreamDelegater;
+import com.serenegiant.arflight.WiFiStatus;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.arflight.attribute.AttributeGPS;
@@ -1094,7 +1102,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			final byte enabled, final byte mass_storage_id) {
 
 //			if (DEBUG) Log.v(TAG, "onARDrone3PictureSettingsStateVideoAutorecordChangedUpdate:enabled=" + enabled + ",mass_storage_id=" + mass_storage_id);
-			mSettings.mCamera.autoRecord(enabled != 0, mass_storage_id);
+			mSettings.getCamera().autoRecord(enabled != 0, mass_storage_id);
 		}
 	};
 
@@ -1113,7 +1121,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			// 0: Video streaming is enabled.
 			// 1: Video streaming is disabled.
 			// 2: Video streaming failed to start.
-			mSettings.mCamera.videoStateState(enabled.getValue());
+			mSettings.getCamera().videoStateState(enabled.getValue());
 		}
 	};
 
@@ -1131,7 +1139,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		public void onARDrone3CameraStateOrientationUpdate(
 			final byte tilt, final byte pan) {
 
-			mSettings.mCamera.pantilt(pan, tilt);
+			mSettings.getCamera().pantilt(pan, tilt);
 			if (mCameraControllerListener != null) {
 				try {
 					mCameraControllerListener.onCameraOrientationChanged(pan, tilt);
@@ -1991,7 +1999,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 
 	@Override
 	public boolean isVideoStreamingEnabled() {
-		return mSettings.mCamera.isVideoStreamingEnabled();
+		return mSettings.getCamera().isVideoStreamingEnabled();
 	}
 
 	/**

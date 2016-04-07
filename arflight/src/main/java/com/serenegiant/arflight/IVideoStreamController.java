@@ -1,5 +1,7 @@
 package com.serenegiant.arflight;
 
+import com.serenegiant.arflight.IVideoStream;
+
 /**
  * Created by saki on 2015/08/24.
  */

@@ -1,4 +1,4 @@
-package com.serenegiant.arflight;
+package com.serenegiant.arflight.Controllers;
 
 import android.content.Context;
 import android.support.v4.content.LocalBroadcastManager;
@@ -35,6 +35,12 @@ import com.parrot.arsdk.arnetwork.ARNetworkManager;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_ERROR_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.parrot.arsdk.arsal.ARNativeData;
+import com.serenegiant.arflight.BuildConfig;
+import com.serenegiant.arflight.CommonStatus;
+import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.IBridgeController;
+import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
@@ -1231,7 +1237,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * @param notificationData
 	 * @return 正常にキューイングできればtrue
 	 */
-	protected boolean sendData(final int bufferId, final ARCommand cmd,
+	public boolean sendData(final int bufferId, final ARCommand cmd,
 		final ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM timeoutPolicy,
 		final NetworkNotificationData notificationData) {
 

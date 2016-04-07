@@ -8,6 +8,11 @@ import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.*;
+import com.serenegiant.arflight.Controllers.FlightControllerBebop;
+import com.serenegiant.arflight.Controllers.FlightControllerBebop2;
+import com.serenegiant.arflight.IBridgeController;
+import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.arflight.IFlightController;
 
 import static com.serenegiant.arflight.ARFlightConst.*;
 
