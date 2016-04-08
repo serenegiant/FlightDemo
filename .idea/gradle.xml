@@ -5,9 +5,31 @@
       <GradleProjectSettings>
         <option name="distributionType" value="LOCAL" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="$APPLICATION_HOME_DIR$/gradle/gradle-2.8" />
+        <option name="gradleHome" value="$APPLICATION_HOME_DIR$/gradle/gradle-2.10" />
         <option name="gradleJvm" value="1.7" />
         <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/animations" />
+            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/arflight" />
+            <option value="$PROJECT_DIR$/common" />
+            <option value="$PROJECT_DIR$/dualshock" />
+            <option value="$PROJECT_DIR$/gamepad" />
+            <option value="$PROJECT_DIR$/gamepaddiag" />
+            <option value="$PROJECT_DIR$/gamepadtest" />
+            <option value="$PROJECT_DIR$/graphics_common" />
+            <option value="$PROJECT_DIR$/icon_buttons" />
+            <option value="$PROJECT_DIR$/icon_buttons001" />
+            <option value="$PROJECT_DIR$/icon_buttons002" />
+            <option value="$PROJECT_DIR$/libraries" />
+            <option value="$PROJECT_DIR$/libraries/ScriptEngine" />
+            <option value="$PROJECT_DIR$/libraries/ScriptEngine/core" />
+            <option value="$PROJECT_DIR$/opencv" />
+            <option value="$PROJECT_DIR$/resource_common" />
+          </set>
+        </option>
+        <option name="myModules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/animations" />

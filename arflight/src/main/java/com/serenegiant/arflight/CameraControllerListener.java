@@ -1,4 +1,4 @@
-package com.serenegiant.arflight.Controllers;
+package com.serenegiant.arflight;
 
 /**
  * Created by saki on 16/02/07.

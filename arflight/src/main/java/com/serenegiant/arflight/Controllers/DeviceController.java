@@ -37,10 +37,12 @@ import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.parrot.arsdk.arsal.ARNativeData;
 import com.serenegiant.arflight.BuildConfig;
 import com.serenegiant.arflight.CommonStatus;
+import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
+import com.serenegiant.arflight.LooperThread;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
@@ -1359,46 +1361,6 @@ public abstract class DeviceController implements IDeviceController {
 			callOnAlarmStateChangedUpdate(DroneStatus.ALARM_DISCONNECTED);
 			callOnDisconnect();
 		}
-	}
-
-	private static int thread_cnt = 0;
-	protected abstract class LooperThread extends Thread {
-		private volatile boolean mIsRunning;
-
-		public LooperThread() {
-			mIsRunning = true;
-		}
-
-		@Override
-		public void run() {
-			onStart();
-
-			for ( ; mIsRunning ; ) {
-				onLoop();
-			}
-
-			mIsRunning = false;
-			onStop();
-		}
-
-		public void stopThread() {
-			mIsRunning = false;
-		}
-
-		public boolean isRunning() {
-			return mIsRunning;
-		}
-
-		protected void onStart() {
-			if (DEBUG) Log.v("LooperThread", "onStart:" + thread_cnt++);
-		}
-
-		protected abstract void onLoop();
-
-		protected void onStop() {
-			if (DEBUG) Log.v("LooperThread", "onStop:" + --thread_cnt);
-		}
-
 	}
 
 	/** 機体との接続処理用スレッド */

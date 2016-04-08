@@ -85,6 +85,7 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateMaxVertica
 import com.parrot.arsdk.arcommands.ARCommandARDrone3SpeedSettingsStateOutdoorChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.serenegiant.arflight.CameraControllerListener;
 import com.serenegiant.arflight.DroneSettings;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.IBridgeController;
@@ -1414,15 +1415,6 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	@Override
 	public boolean canGetAttitude() {
 		return true;
-	}
-
-	/**
-	 * モーターの個数を返す
-	 * @return
-	 */
-	@Override
-	public int getMotorNums() {
-		return 4;
 	}
 
 	/**

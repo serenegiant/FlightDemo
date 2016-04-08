@@ -87,6 +87,7 @@ import com.parrot.arsdk.arcommands.ARCommandSkyControllerWifiWifiAuthChannelList
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 import com.serenegiant.arflight.CommonStatus;
+import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IVideoStream;

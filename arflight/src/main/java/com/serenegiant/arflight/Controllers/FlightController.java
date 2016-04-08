@@ -38,10 +38,13 @@ import com.parrot.arsdk.arcommands.ARCommandCommonOverHeatStateOverHeatRegulatio
 import com.parrot.arsdk.arcommands.ARCommandCommonWifiSettingsStateOutdoorSettingsChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.serenegiant.arflight.DataPCMD;
+import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DroneSettings;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IFlightController;
+import com.serenegiant.arflight.LooperThread;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
@@ -55,7 +58,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 	private static String TAG = FlightController.class.getSimpleName();
 
 	private LooperThread mFlightCMDThread;
-
 
 	private final Object mDataSync = new Object();
 	private final DataPCMD mDataPCMD = new DataPCMD();
@@ -1101,6 +1103,15 @@ public abstract class FlightController extends DeviceController implements IFlig
 		return mSettings.hasGuard();
 	}
 
+	/**
+	 * モーターの個数を返す
+	 * @return
+	 */
+	@Override
+	public int getMotorNums() {
+		return 4;
+	}
+
 	@Override
 	public AttributeMotor getMotor(final int index) {
 		return ((DroneStatus)mStatus).getMotor(index);
@@ -1289,30 +1300,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 		return sentStatus;
 	}
 
-
-	/** 操縦コマンドの値保持用 */
-	protected static final class DataPCMD {
-		public int flag;
-		public float roll;
-		public float pitch;
-		public float yaw;
-		public float gaz;
-		public float heading;
-
-		public DataPCMD() {
-			flag = 0;
-			roll = pitch = yaw = gaz = heading = 0;
-		}
-
-		private void set(final DataPCMD other) {
-			flag = other.flag;
-			roll = other.roll;
-			pitch = other.pitch;
-			yaw = other.yaw;
-			gaz = other.gaz;
-			heading = other.heading;
-		}
-	}
 
 	/**
 	 * 操縦コマンド送信スレッドでのループ内の処理(sendPCMDを呼び出す)

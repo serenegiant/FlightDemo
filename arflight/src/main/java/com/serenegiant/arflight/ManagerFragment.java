@@ -21,7 +21,6 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiver;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiverDelegate;
-import com.serenegiant.arflight.Controllers.DeviceConnectionListener;
 import com.serenegiant.arflight.Controllers.FlightControllerBebop;
 import com.serenegiant.arflight.Controllers.FlightControllerBebop2;
 import com.serenegiant.arflight.Controllers.FlightControllerMiniDrone;

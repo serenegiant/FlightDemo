@@ -1,7 +1,5 @@
 package com.serenegiant.arflight;
 
-import com.serenegiant.arflight.Controllers.CameraControllerListener;
-
 /**
  * Created by saki on 16/02/07.
  */
@@ -11,7 +9,7 @@ public interface ICameraController extends IVideoStreamController {
 
 	/**
 	 * 静止画撮影時の映像フォーマットを設定
-	 * @param pictureFormat 0: Take raw image, 1: Take a 4:3 jpeg photo, 2: Take a 16:9 snapshot from camera
+	 * @param pictureFormat 0: Take raw image, 1: Take a 4:3 jpeg photo, 2: Take a 16:9 snapshot from camera, 3:take jpeg fisheye image only
 	 * @return
 	 */
 	public boolean sendPictureFormat(final int pictureFormat);

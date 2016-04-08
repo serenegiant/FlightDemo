@@ -1,7 +1,5 @@
 package com.serenegiant.arflight;
 
-import com.serenegiant.arflight.Controllers.DeviceConnectionListener;
-
 import java.sql.Date;
 
 /**

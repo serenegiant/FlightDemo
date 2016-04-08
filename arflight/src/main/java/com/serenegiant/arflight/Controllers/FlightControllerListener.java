@@ -1,5 +1,7 @@
 package com.serenegiant.arflight.Controllers;
 
+import com.serenegiant.arflight.DeviceConnectionListener;
+
 public interface FlightControllerListener extends DeviceConnectionListener {
 	/**
 	 * 飛行状態が変化した時のコールバック

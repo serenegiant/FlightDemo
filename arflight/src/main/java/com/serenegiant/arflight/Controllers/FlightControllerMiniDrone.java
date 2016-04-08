@@ -31,6 +31,7 @@ import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateMaxVertic
 import com.parrot.arsdk.arcommands.ARCommandMiniDroneSpeedSettingsStateWheelsChangedListener;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.serenegiant.arflight.DataPCMD;
 import com.serenegiant.arflight.DroneSettings;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.IBLEController;
@@ -634,14 +635,6 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 		return true;
 	}
 
-	/**
-	 * モーターの個数を返す
-	 * @return
-	 */
-	@Override
-	public int getMotorNums() {
-		return 4;
-	}
 	/**
 	 * モーターの自動カット機能のon/off
 	 * @param enabled

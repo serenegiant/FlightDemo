@@ -18,7 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.arflight.Controllers.CameraControllerListener;
+import com.serenegiant.arflight.CameraControllerListener;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.Controllers.FlightControllerBebop;
