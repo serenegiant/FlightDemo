@@ -6,7 +6,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.Controllers.FlightControllerListener;
+import com.serenegiant.arflight.FlightControllerListener;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.IVideoStreamController;

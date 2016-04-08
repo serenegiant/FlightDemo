@@ -42,6 +42,7 @@ import com.serenegiant.arflight.DataPCMD;
 import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DroneSettings;
 import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.FlightControllerListener;
 import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.LooperThread;

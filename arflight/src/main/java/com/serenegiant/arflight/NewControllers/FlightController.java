@@ -5,7 +5,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.arflight.Controllers.FlightControllerListener;
+import com.serenegiant.arflight.FlightControllerListener;
 import com.serenegiant.arflight.DataPCMD;
 import com.serenegiant.arflight.DroneSettings;
 import com.serenegiant.arflight.DroneStatus;
