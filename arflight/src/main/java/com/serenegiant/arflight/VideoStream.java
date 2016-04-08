@@ -10,6 +10,9 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.Surface;
 
+import com.parrot.arsdk.arcontroller.ARCONTROLLER_STREAM_CODEC_TYPE_ENUM;
+import com.parrot.arsdk.arcontroller.ARControllerCodec;
+import com.parrot.arsdk.arsal.ARNativeData;
 import com.parrot.arsdk.arstream2.ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_ENUM;
 import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.EglTask;
@@ -22,7 +25,7 @@ import com.serenegiant.utils.FpsCounter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class VideoStream implements IVideoStream {
+public class VideoStream implements IVideoStreamNew {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = "VideoStream";
 
@@ -96,7 +99,7 @@ public class VideoStream implements IVideoStream {
 	public void onReceiveFrame(final ARFrame frame) {
 		// 映像フレームデータを受信した時の処理
 		// デコーダーへキューイングする
-		mDecodeTask.queueFrame(frame);
+		mDecodeTask.queueFrame(frame, frame.isIFrame());
 	}
 
 	@Override
@@ -106,15 +109,42 @@ public class VideoStream implements IVideoStream {
 		Log.w(TAG, "onFrameTimeout");
 	}
 
+//--------------------------------------------------------------------------------
+// NewAPIを使う時
+	@Override
+	public void configureDecoder(final ARControllerCodec codec) {
+		ByteBuffer sps = null, pps = null;
+		if (codec.getType() == ARCONTROLLER_STREAM_CODEC_TYPE_ENUM.ARCONTROLLER_STREAM_CODEC_TYPE_H264) {
+			final ARControllerCodec.H264 codecH264 = codec.getAsH264();
+
+			sps = ByteBuffer.wrap(codecH264.getSps().getByteData());
+			pps = ByteBuffer.wrap(codecH264.getPps().getByteData());
+		}
+		if (sps != null) {
+			onSpsPpsReady(sps, pps);
+		}
+	}
+
+	@Override
+	public void onReceiveFrame(final com.parrot.arsdk.arcontroller.ARFrame frame) {
+		// 映像フレームデータを受信した時の処理
+		// デコーダーへキューイングする
+		mDecodeTask.queueFrame(frame, false);
+	}
+
+//--------------------------------------------------------------------------------
+	@Override
 	public VideoStream updateFps() {
 		mFps.update();
 		return this;
 	}
 
+	@Override
 	public float getFps() {
 		return mFps.getFps();
 	}
 
+	@Override
 	public float getTotalFps() {
 		return mFps.getTotalFps();
 	}
@@ -160,19 +190,19 @@ public class VideoStream implements IVideoStream {
 			waitForIFrame = true;
 		}
 
-		public void queueFrame(final ARFrame frame) {
+		public void queueFrame(final ARNativeData frame, final boolean isIFrame) {
 //			if (DEBUG) Log.v(TAG, "queueFrame:mediaCodec" + mediaCodec + ",isCodecConfigured=" + isCodecConfigured
 //				+ ",waitForIFrame=" + waitForIFrame + ",isIFrame=" + (frame != null ? frame.isIFrame() : false));
 			if ((mediaCodec != null)) {
-				if (!isCodecConfigured && frame.isIFrame()) {
-					final ByteBuffer csdBuffer = getCSD(frame);
+				if (!isCodecConfigured && isIFrame) {
+					final ByteBuffer csdBuffer = getCSD(frame, isIFrame);
 					if (csdBuffer != null) {
 						configureMediaCodec(csdBuffer, mRendererTask.getSurface());
 					} else {
 						Log.w(TAG, "CSDを取得できなかった");
 					}
 				}
-				if (isCodecConfigured && (!waitForIFrame || frame.isIFrame())) {
+				if (isCodecConfigured && (!waitForIFrame || isIFrame)) {
 					waitForIFrame = false;
 
 					// ここに来るのはIFrameかIFrameから連続してPFrameを受信している時
@@ -193,7 +223,7 @@ public class VideoStream implements IVideoStream {
 							b.clear();
 							b.put(frame.getByteData(), 0, sz);
 							int flag = 0;
-							if (frame.isIFrame()) {
+							if (isIFrame) {
 								flag |= MediaCodec.BUFFER_FLAG_KEY_FRAME; //  | MediaCodec.BUFFER_FLAG_CODEC_CONFIG;
 							}
 							mediaCodec.queueInputBuffer(index, 0, sz, 0, flag);
@@ -313,10 +343,10 @@ public class VideoStream implements IVideoStream {
 			}
 		}
 
-		private ByteBuffer getCSD(final ARFrame frame) {
+		private ByteBuffer getCSD(final ARNativeData frame, final boolean isIFrame) {
 			if (DEBUG) Log.v(TAG, "getCSD:" + frame);
-			int spsSize = -1;
-			if (frame.isIFrame()) {
+			if (isIFrame) {
+				int spsSize = -1;
 				final byte[] data = frame.getByteData();
 				int searchIndex = 0;
 				// we'll need to search the "00 00 00 01" pattern to find each header size
@@ -333,7 +363,7 @@ public class VideoStream implements IVideoStream {
 				spsSize = searchIndex;
 
 				// Search start at index 4 to avoid finding the PPS "00 00 00 01" tag
-				for (searchIndex = spsSize+4; searchIndex <= frame.getDataSize() - 4; searchIndex ++) {
+				for (searchIndex = spsSize + 4; searchIndex <= frame.getDataSize() - 4; searchIndex ++) {
 					if (0 == data[searchIndex  ] &&
 							0 == data[searchIndex+1] &&
 							0 == data[searchIndex+2] &&

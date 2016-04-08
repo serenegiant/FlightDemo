@@ -2,13 +2,9 @@ package com.serenegiant.arflight;
 
 import android.util.Log;
 
-import com.parrot.arsdk.arnetwork.ARNetworkManager;
 import com.parrot.arsdk.arsal.ARNativeData;
-import com.parrot.arsdk.arstream.ARSTREAM_READER_CAUSE_ENUM;
-import com.parrot.arsdk.arstream.ARStreamReader;
 import com.parrot.arsdk.arstream.ARStreamReader2;
 import com.parrot.arsdk.arstream.ARStreamReader2Listener;
-import com.parrot.arsdk.arstream.ARStreamReaderListener;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
 import java.util.ArrayList;

@@ -1,10 +1,5 @@
 package com.serenegiant.arflight;
 
-import com.serenegiant.arflight.IVideoStream;
-
-/**
- * Created by saki on 2015/08/24.
- */
 public interface IVideoStreamController {
 	public static final int DEFAULT_VIDEO_FRAGMENT_SIZE = 1000;
 	public static final int DEFAULT_VIDEO_FRAGMENT_MAXIMUM_NUMBER = 128;
