@@ -129,7 +129,7 @@ public class VideoStream implements IVideoStreamNew {
 	public void onReceiveFrame(final com.parrot.arsdk.arcontroller.ARFrame frame) {
 		// 映像フレームデータを受信した時の処理
 		// デコーダーへキューイングする
-		mDecodeTask.queueFrame(frame, false);
+		mDecodeTask.queueFrame(frame, frame.isIFrame());
 	}
 
 //--------------------------------------------------------------------------------

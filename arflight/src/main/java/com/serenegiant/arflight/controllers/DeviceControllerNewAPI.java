@@ -39,7 +39,7 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 public abstract class DeviceControllerNewAPI implements IDeviceController {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = DeviceControllerNewAPI.class.getSimpleName();
 
 	private final WeakReference<Context> mWeakContext;
@@ -48,6 +48,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	private final ARDiscoveryDeviceService mDeviceService;
 	protected ARDeviceController mARDeviceController;
 
+	/**
+	 * 接続待ちのためのセマフォ
+	 */
+	private final Semaphore connectSent = new Semaphore(0);
+	protected volatile boolean mRequestConnect;
 	/**
 	 * 切断待ちのためのセマフォ
 	 */
@@ -71,11 +76,12 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	private int mState = STATE_STOPPED;
 	protected AttributeDevice mInfo;
 	protected CommonStatus mStatus;
-	private ARCONTROLLER_DEVICE_STATE_ENUM mDeviceState = ARCONTROLLER_DEVICE_STATE_ENUM.eARCONTROLLER_DEVICE_STATE_UNKNOWN_ENUM_VALUE;
+	private ARCONTROLLER_DEVICE_STATE_ENUM mDeviceState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
 
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 
 	public DeviceControllerNewAPI(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
+		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 		mWeakContext = new WeakReference<Context>(context);
 		mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
 		mDeviceService = service;
@@ -84,6 +90,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	@Override
 	public void release() {
+		if (DEBUG) Log.v(TAG, "release:");
 		stop();
 		mLocalBroadcastManager = null;
 	}
@@ -101,6 +108,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 */
 	@Override
 	public void addListener(final DeviceConnectionListener listener) {
+		if (DEBUG) Log.v(TAG, "addListener:" + listener);
 		synchronized (mConnectionListeners) {
 			mConnectionListeners.add(listener);
 			callOnUpdateBattery(getBattery());
@@ -114,6 +122,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 */
 	@Override
 	public void removeListener(final DeviceConnectionListener listener) {
+		if (DEBUG) Log.v(TAG, "removeListener:" + listener);
 		synchronized (mConnectionListeners) {
 			mConnectionListeners.remove(listener);
 		}
@@ -123,6 +132,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 * 接続時のコールバックを呼び出す
 	 */
 	protected void callOnConnect() {
+		if (DEBUG) Log.v(TAG, "callOnConnect:");
 		synchronized (mConnectionListeners) {
 			for (final DeviceConnectionListener listener: mConnectionListeners) {
 				if (listener != null) {
@@ -140,6 +150,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 * 切断時のコールバックを呼び出す
 	 */
 	protected void callOnDisconnect() {
+		if (DEBUG) Log.v(TAG, "callOnDisconnect:");
 		synchronized (mConnectionListeners) {
 			for (final DeviceConnectionListener listener: mConnectionListeners) {
 				if (listener != null) {
@@ -158,6 +169,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 * @param state
 	 */
 	protected void callOnAlarmStateChangedUpdate(final int state) {
+		if (DEBUG) Log.v(TAG, "callOnAlarmStateChangedUpdate:" + state);
 		synchronized (mConnectionListeners) {
 			for (final DeviceConnectionListener listener: mConnectionListeners) {
 				if (listener != null) {
@@ -175,6 +187,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 * バッテリー残量変更コールバックを呼び出す
 	 */
 	protected void callOnUpdateBattery(final int percent) {
+		if (DEBUG) Log.v(TAG, "callOnUpdateBattery:" + percent);
 		synchronized (mConnectionListeners) {
 			for (final DeviceConnectionListener listener: mConnectionListeners) {
 				if (listener != null) {
@@ -281,26 +294,34 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		setAlarm(DroneStatus.ALARM_NON);
 
 		boolean failed = startNetwork();
+		ARCONTROLLER_ERROR_ENUM error = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 
 		if (!failed && (mARDeviceController != null)
-			&& (ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED.equals(mState))) {
+			&& (ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED.equals(mDeviceState))) {
 
-			final ARCONTROLLER_ERROR_ENUM error = mARDeviceController.start();
+			if (DEBUG) Log.v(TAG, "start:ARDeviceController#start");
+			mRequestConnect = true;
+			try {
+				error = mARDeviceController.start();
+				connectSent.acquire();
+			} catch (final InterruptedException e) {
+
+			} finally {
+				mRequestConnect = false;
+			}
 			failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
 			if (!failed) {
 				internal_start();
-
 				synchronized (mStateSync) {
 					mState = STATE_STARTED;
 				}
 				onStarted();
-			} else {
-				if (failed) {
-					Log.w(TAG, "failed to start ARController:err=" + error);
-				}
 			}
 		}
-		if (DEBUG) Log.v(TAG, "start:finished");
+		if (failed) {
+			Log.w(TAG, "failed to start ARController:err=" + error);
+		}
+		if (DEBUG) Log.v(TAG, "start:終了");
 
 		return failed;
 	}
@@ -323,6 +344,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	protected boolean startNetwork() {
+		if (DEBUG) Log.v(TAG, "startNetwork:");
 		boolean failed = false;
 		ARDiscoveryDevice discovery_device;
 		try {
@@ -330,9 +352,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 			final Object device = mDeviceService.getDevice();
 			if (device instanceof ARDiscoveryDeviceNetService) {
+				if (DEBUG) Log.v(TAG, "startNetwork:ARDiscoveryDeviceNetService");
 				final ARDiscoveryDeviceNetService netDeviceService = (ARDiscoveryDeviceNetService)device;
 				discovery_device.initWifi(getProductType(), netDeviceService.getName(), netDeviceService.getIp(), netDeviceService.getPort());
 			} else if (device instanceof ARDiscoveryDeviceBLEService) {
+				if (DEBUG) Log.v(TAG, "startNetwork:ARDiscoveryDeviceBLEService");
 				final ARDiscoveryDeviceBLEService bleDeviceService = (ARDiscoveryDeviceBLEService) device;
 				discovery_device.initBLE(getProductType(), getContext().getApplicationContext(), bleDeviceService.getBluetoothDevice());
 			}
@@ -343,6 +367,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			failed = true;
 		}
 		if (discovery_device != null) {
+			if (DEBUG) Log.v(TAG, "startNetwork:ARDeviceController生成");
 			 try {
 				final ARDeviceController deviceController = new ARDeviceController(discovery_device);
 				deviceController.addListener(mDeviceControllerListener);
@@ -351,7 +376,10 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 				Log.e(TAG, "Exception", e);
 				failed = true;
 			}
+		} else {
+			Log.w(TAG, "startNetwork:ARDiscoveryDeviceを初期化出来なかった");
 		}
+		if (DEBUG) Log.v(TAG, "startNetwork:終了" + failed);
 		return failed;
 	}
 
@@ -372,40 +400,40 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		final Date currentDate = new Date(System.currentTimeMillis());
 		sendDate(currentDate);
 		sendTime(currentDate);
-		isWaitingAllSettings = true;
-		try {
-			if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings");
-			if (requestAllSettings()) {
-				try {
-					if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings:wait");
-					//successful = cmdGetAllSettingsSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
-					cmdGetAllSettingsSent.acquire();
-				} catch (final InterruptedException e) {
-					// ignore
-				}
-			}
-		} finally {
-			if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings:finished");
-			isWaitingAllSettings = false;
-		}
-		isWaitingAllStates = true;
-		try {
-			if (DEBUG) Log.v(TAG, "onStarted:requestAllStates");
-			if (requestAllStates()) {
-				try {
-					if (DEBUG) Log.v(TAG, "onStarted:requestAllStates:wait");
-					//successful = cmdGetAllStatesSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
-					cmdGetAllStatesSent.acquire();
-				} catch (final InterruptedException e) {
-					// ignore
-				}
-			}
-		} finally {
-			if (DEBUG) Log.v(TAG, "onStarted:requestAllStates:finished");
-			isWaitingAllStates = false;
-		}
+//		isWaitingAllSettings = true;
+//		try {
+//			if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings");
+//			if (requestAllSettings()) {
+//				try {
+//					if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings:wait");
+//					//successful = cmdGetAllSettingsSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
+//					cmdGetAllSettingsSent.acquire();
+//				} catch (final InterruptedException e) {
+//					// ignore
+//				}
+//			}
+//		} finally {
+//			if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings:finished");
+//			isWaitingAllSettings = false;
+//		}
+//		isWaitingAllStates = true;
+//		try {
+//			if (DEBUG) Log.v(TAG, "onStarted:requestAllStates");
+//			if (requestAllStates()) {
+//				try {
+//					if (DEBUG) Log.v(TAG, "onStarted:requestAllStates:wait");
+//					//successful = cmdGetAllStatesSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
+//					cmdGetAllStatesSent.acquire();
+//				} catch (final InterruptedException e) {
+//					// ignore
+//				}
+//			}
+//		} finally {
+//			if (DEBUG) Log.v(TAG, "onStarted:requestAllStates:finished");
+//			isWaitingAllStates = false;
+//		}
 		callOnConnect();
-		if (DEBUG) Log.v(TAG, "onStarted:finished");
+		if (DEBUG) Log.v(TAG, "onStarted:終了");
 	}
 
 	/**
@@ -481,7 +509,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		public void onStateChanged(final ARDeviceController deviceController,
 			final ARCONTROLLER_DEVICE_STATE_ENUM newState, final ARCONTROLLER_ERROR_ENUM error) {
 
-			DeviceControllerNewAPI.this.onStateChanged(deviceController, newState, error);
+			try {
+				DeviceControllerNewAPI.this.onStateChanged(deviceController, newState, error);
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
         }
 
 		@Override
@@ -489,7 +521,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			final ARCONTROLLER_DEVICE_STATE_ENUM newState,
 			final ARDISCOVERY_PRODUCT_ENUM product, final String name, final ARCONTROLLER_ERROR_ENUM error) {
 
-			DeviceControllerNewAPI.this.onExtensionStateChanged(deviceController, newState, product, name, error);
+			try {
+				DeviceControllerNewAPI.this.onExtensionStateChanged(deviceController, newState, product, name, error);
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
 		}
 
 		@Override
@@ -499,7 +535,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			if (elementDictionary != null) {
 				final ARControllerArgumentDictionary<Object> args = elementDictionary.get(ARControllerDictionary.ARCONTROLLER_DICTIONARY_SINGLE_KEY);
 				if (args != null) {
-					DeviceControllerNewAPI.this.onCommandReceived(deviceController, commandKey, args);
+					try {
+						DeviceControllerNewAPI.this.onCommandReceived(deviceController, commandKey, args);
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					}
 				}
 			}
 		}
@@ -534,7 +574,9 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	/** onStateChangedの下請け */
 	protected void onConnect() {
 		if (DEBUG) Log.d(TAG, "onConnect:");
-		mARDeviceController.getFeatureARDrone3().sendMediaStreamingVideoEnable((byte) 1);
+		if (mRequestConnect) {
+			connectSent.release();
+		}
 	}
 
 	/** onStateChangedの下請け */
@@ -555,18 +597,21 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	private void dumpArgs(final ARControllerArgumentDictionary<Object> args) {
-		for (final String key: args.keySet()) {
-			final Object obj = args.get(key);
-			if (obj instanceof Integer) {
-				Log.v(TAG, "dumpArgs:Integer arg" + obj);
-			} else if (obj instanceof Long) {
-				Log.v(TAG, "dumpArgs:Long arg" + obj);
-			} else if (obj instanceof Double) {
-				Log.v(TAG, "dumpArgs:Double arg" + obj);
-			} else if (obj instanceof String) {
-				Log.v(TAG, "dumpArgs:String arg" + obj);
-			} else {
-				Log.v(TAG, "dumpArgs:unknown arg" + obj);
+		final Set<String> keys = args.keySet();
+		if ((keys != null) && !keys.isEmpty()) {
+			for (final String key: keys) {
+				final Object obj = args.get(key);
+				if (obj instanceof Integer) {
+					Log.v(TAG, "dumpArgs:Integer arg" + obj);
+				} else if (obj instanceof Long) {
+					Log.v(TAG, "dumpArgs:Long arg" + obj);
+				} else if (obj instanceof Double) {
+					Log.v(TAG, "dumpArgs:Double arg" + obj);
+				} else if (obj instanceof String) {
+					Log.v(TAG, "dumpArgs:String arg" + obj);
+				} else {
+					Log.v(TAG, "dumpArgs:unknown arg" + obj);
+				}
 			}
 		}
 	}
@@ -586,6 +631,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_ALLSETTINGSCHANGED:	// (159, "Key used to define the command <code>AllSettingsChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
 		{	// すべての設定を受信した時
+			if (DEBUG) Log.v(TAG, "ALLSETTINGSCHANGED:");
 			if (isWaitingAllSettings) {
 				cmdGetAllSettingsSent.release();
 			}
@@ -621,6 +667,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_ALLSTATESCHANGED:	// (167, "Key used to define the command <code>AllStatesChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// 全てのステータスを受信した時
+			if (DEBUG) Log.v(TAG, "ALLSTATESCHANGED:");
 			if (isWaitingAllStates) {
 				cmdGetAllStatesSent.release();
 			}
@@ -809,10 +856,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	private static final SimpleDateFormat formattedTime = new SimpleDateFormat("'T'HHmmssZZZ", Locale.getDefault());
 	@Override
 	public boolean sendDate(final Date currentDate) {
+		if (DEBUG) Log.v(TAG, "sendDate:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+//		if (isActive()) {
 			result = mARDeviceController.getFeatureCommon().sendCommonCurrentDate(formattedDate.format(currentDate));
-		}
+//		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#sendDate failed:" + result);
 		}
@@ -821,10 +869,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	@Override
 	public boolean sendTime(final Date currentTime) {
+		if (DEBUG) Log.v(TAG, "sendTime:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+//		if (isActive()) {
 			result = mARDeviceController.getFeatureCommon().sendCommonCurrentTime(formattedTime.format(currentTime));
-		}
+//		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#sendTime failed:" + result);
 		}
@@ -833,10 +882,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	@Override
 	public boolean requestAllSettings() {
+		if (DEBUG) Log.v(TAG, "requestAllSettings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+//		if (isActive()) {
 			result = mARDeviceController.getFeatureCommon().sendSettingsAllSettings();
-		}
+//		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#requestAllSettings failed:" + result);
 		}
@@ -845,10 +895,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	@Override
 	public boolean requestAllStates() {
+		if (DEBUG) Log.v(TAG, "requestAllStates:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+//		if (isActive()) {
 			result = mARDeviceController.getFeatureCommon().sendCommonAllStates();
-		}
+//		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#requestAllStates failed:" + result);
 		}
@@ -860,6 +911,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 * @return
 	 */
 	public boolean sendNetworkDisconnect() {
+		if (DEBUG) Log.v(TAG, "sendNetworkDisconnect:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isActive()) {
 			result = mARDeviceController.getFeatureCommon().sendNetworkDisconnect();
@@ -871,6 +923,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	protected boolean setCountryCode(final String code) {
+		if (DEBUG) Log.v(TAG, "setCountryCode:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isActive()) {
 			result = mARDeviceController.getFeatureCommon().sendSettingsCountry(code);
@@ -882,6 +935,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	protected boolean setAutomaticCountry(final boolean auto) {
+		if (DEBUG) Log.v(TAG, "setAutomaticCountry:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isActive()) {
 			result = mARDeviceController.getFeatureCommon().sendSettingsAutoCountry(auto ? (byte)1 : (byte)0);
