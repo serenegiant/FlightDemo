@@ -23,10 +23,12 @@ public class AttributeCamera {
 	private int mAutoWhiteBalance = WHITE_BALANCE_AUTO;
 	/** 視野角[度] */
 	private float mFov;
-	/** パンコントロール */
-	private AttributeFloat mTilt = new AttributeFloat();
 	/** ティルトコントロール */
+	private AttributeFloat mTilt = new AttributeFloat();
+	private float mTiltDefault;
+	/** パンコントロール */
 	private AttributeFloat mPan = new AttributeFloat();
+	private float mPanDefault;
 
 	/** 自動録画設定 */
 	private boolean enableAutoRecord;
@@ -52,9 +54,21 @@ public class AttributeCamera {
 		}
 	}
 
+	public float tiltDefault() {
+		synchronized (mSync) {
+			return mTiltDefault;
+		}
+	}
+
 	public AttributeFloat pan() {
 		synchronized (mSync) {
 			return mPan;
+		}
+	}
+
+	public float panDefault() {
+		synchronized (mSync) {
+			return mPanDefault;
 		}
 	}
 
@@ -64,6 +78,14 @@ public class AttributeCamera {
 			mTilt.current(tilt);
 		}
 	}
+
+	public void pantiltDefault(final float pan, final float tilt) {
+		synchronized (mSync) {
+			mPanDefault = pan;
+			mTiltDefault = tilt;
+		}
+	}
+
 
 	public void autoWhiteBalance(final int auto_white_balance) {
 		synchronized (mSync) {

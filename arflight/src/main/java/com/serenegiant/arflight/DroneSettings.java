@@ -119,6 +119,7 @@ public class DroneSettings {
 	protected final AttributeFloat mMaxTilt = new AttributeFloat();
 	protected final AttributeFloat mMaxVerticalSpeed = new AttributeFloat();
 	protected final AttributeFloat mMaxRotationSpeed = new AttributeFloat();
+	protected final AttributeFloat mMaxDistance = new AttributeFloat();
 
 	public void setMaxAltitude(final float current, final float min, final float max) {
 		mMaxAltitude.set(current, min, max);
@@ -148,4 +149,10 @@ public class DroneSettings {
 		return mMaxRotationSpeed;
 	}
 
+	public void setMaxDistance(final float current, final float min, final float max) {
+		mMaxDistance.set(current, min, max);
+	}
+	public AttributeFloat maxDistance() {
+		return mMaxDistance;
+	}
 }

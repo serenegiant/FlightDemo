@@ -2,10 +2,13 @@ package com.serenegiant.arflight.controllers;
 
 import android.content.Context;
 
+import com.parrot.arsdk.arcontroller.ARCONTROLLER_DEVICE_STATE_ENUM;
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
 import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
 import com.parrot.arsdk.arcontroller.ARDeviceController;
+import com.parrot.arsdk.arcontroller.ARFeatureSkyController;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.serenegiant.arflight.CommonStatus;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IVideoStream;
@@ -15,11 +18,13 @@ import com.serenegiant.arflight.VideoStreamDelegater;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 import com.serenegiant.arflight.configs.ARNetworkConfigSkyController;
 
-public class SkyControllerNewAPI extends FlightControllerNewAPI implements IBridgeController, IVideoStreamController, IWiFiController {
+public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements IBridgeController, IVideoStreamController, IWiFiController {
 	public SkyControllerNewAPI(final Context context, final ARDiscoveryDeviceService service) {
-		super(context, service, new ARNetworkConfigSkyController());
+		super(context, service);
 	}
 
+	protected CommonStatus mSkyControllerStatus;
+	private ARCONTROLLER_DEVICE_STATE_ENUM mSkyControllerState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
 	@Override
 	protected void onCommandReceived(final ARDeviceController deviceController,
 		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
@@ -79,7 +84,10 @@ public class SkyControllerNewAPI extends FlightControllerNewAPI implements IBrid
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SKYCONTROLLERSTATE_BATTERYCHANGED:	// (132, "Key used to define the command <code>BatteryChanged</code> of class <code>SkyControllerState</code> in project <code>SkyControllerNewAPI</code>"),
-		{	// FIXME 未実装
+		{	// バッテリー残量が変化した時
+			final int percent = (Integer) args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SKYCONTROLLERSTATE_BATTERYCHANGED_PERCENT);
+			mSkyControllerStatus.setBattery(percent);
+			callOnUpdateBattery(percent);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SKYCONTROLLERSTATE_GPSFIXCHANGED:	// (133, "Key used to define the command <code>GpsFixChanged</code> of class <code>SkyControllerState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -192,11 +200,6 @@ public class SkyControllerNewAPI extends FlightControllerNewAPI implements IBrid
 	}
 
 	@Override
-	protected boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading) {
-		return false;
-	}
-
-	@Override
 	public ARNetworkConfig createBridgeNetConfig() {
 		return null;
 	}
@@ -219,130 +222,5 @@ public class SkyControllerNewAPI extends FlightControllerNewAPI implements IBrid
 	@Override
 	public DeviceInfo connectDeviceInfo() {
 		return null;
-	}
-
-	@Override
-	public void setVideoStream(final IVideoStream video_stream) {
-
-	}
-
-	@Override
-	public boolean isVideoStreamingEnabled() {
-		return false;
-	}
-
-	@Override
-	public boolean enableVideoStreaming(final boolean enable) {
-		return false;
-	}
-
-	@Override
-	public boolean requestTakeoff() {
-		return false;
-	}
-
-	@Override
-	public boolean requestLanding() {
-		return false;
-	}
-
-	@Override
-	public boolean requestEmergencyStop() {
-		return false;
-	}
-
-	@Override
-	public boolean requestFlatTrim() {
-		return false;
-	}
-
-	@Override
-	public boolean startCalibration(final boolean start) {
-		return false;
-	}
-
-	@Override
-	public boolean setMaxAltitude(final float altitude) {
-		return false;
-	}
-
-	@Override
-	public boolean setMaxTilt(final float tilt) {
-		return false;
-	}
-
-	@Override
-	public boolean setMaxVerticalSpeed(final float speed) {
-		return false;
-	}
-
-	@Override
-	public boolean setMaxRotationSpeed(final float speed) {
-		return false;
-	}
-
-	@Override
-	public boolean canGetAttitude() {
-		return false;
-	}
-
-	@Override
-	public boolean sendCutOutMode(final boolean enabled) {
-		return false;
-	}
-
-	@Override
-	public boolean sendAutoTakeOffMode(final boolean enable) {
-		return false;
-	}
-
-	@Override
-	public boolean setHasGuard(final boolean has_guard) {
-		return false;
-	}
-
-	@Override
-	public boolean requestAnimationsFlip(final int direction) {
-		return false;
-	}
-
-	@Override
-	public boolean requestAnimationsCap(final int degree) {
-		return false;
-	}
-
-	@Override
-	public boolean requestAnimationsCap(final int degree, final Object sync) {
-		return false;
-	}
-
-	@Override
-	public boolean requestTakePicture(final int mass_storage_id) {
-		return false;
-	}
-
-	@Override
-	public boolean requestTakePicture() {
-		return false;
-	}
-
-	@Override
-	public boolean setHeadlightsIntensity(final int left, final int right) {
-		return false;
-	}
-
-	@Override
-	public boolean startAnimation(final int animation) {
-		return false;
-	}
-
-	@Override
-	public boolean stopAnimation(final int animation) {
-		return false;
-	}
-
-	@Override
-	public boolean stopAllAnimation() {
-		return false;
 	}
 }

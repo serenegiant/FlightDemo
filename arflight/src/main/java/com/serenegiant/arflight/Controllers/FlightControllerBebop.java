@@ -6,6 +6,8 @@ import android.util.Log;
 
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_GPSSETTINGS_HOMETYPE_TYPE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_ERROR_ENUM;
@@ -36,13 +38,17 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORL
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3CameraStateDefaultCameraOrientationListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3CameraStateOrientationListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsHomeTypeListener;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsReturnHomeDelayListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateGPSFixStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateGPSUpdateStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateHomeChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateResetHomeChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSStateHomeTypeChosenChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordEventPictureEventChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordEventVideoEventChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordStatePictureStateChangedListener;
@@ -181,9 +187,13 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		ARCommand.setARDrone3MediaStreamingStateVideoEnableChangedListener(mMediaStreamingStateVideoEnableChangedListener);
 		ARCommand.setARDrone3GPSSettingsStateHomeChangedListener(mGPSSettingsStateHomeChangedListener);
 		ARCommand.setARDrone3GPSSettingsStateResetHomeChangedListener(mGPSSettingsStateResetHomeChangedListener);
+		ARCommand.setARDrone3GPSSettingsHomeTypeListener(mARCommandARDrone3GPSSettingsHomeTypeListener);
+		ARCommand.setARDrone3GPSSettingsReturnHomeDelayListener(mARCommandARDrone3GPSSettingsReturnHomeDelayListener);
 		ARCommand.setARDrone3GPSSettingsStateGPSFixStateChangedListener(mGPSSettingsStateGPSFixStateChangedListener);
 		ARCommand.setARDrone3GPSSettingsStateGPSUpdateStateChangedListener(mGPSSettingsStateGPSUpdateStateChangedListener);
 		ARCommand.setARDrone3CameraStateOrientationListener(mCameraStateOrientationListener);
+		ARCommand.setARDrone3CameraStateDefaultCameraOrientationListener(mARCommandARDrone3CameraStateDefaultCameraOrientationListener);
+		ARCommand.setARDrone3GPSStateHomeTypeChosenChangedListener(mARCommandARDrone3GPSStateHomeTypeChosenChangedListener);
 		ARCommand.setARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener(mDebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener);
 		ARCommand.setARDrone3DebugGPSDebugStateNbSatelliteChangedListener(mDebugGPSDebugStateNbSatelliteChangedListener);
 	}
@@ -234,9 +244,13 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		ARCommand.setARDrone3MediaStreamingStateVideoEnableChangedListener(null);
 		ARCommand.setARDrone3GPSSettingsStateHomeChangedListener(null);
 		ARCommand.setARDrone3GPSSettingsStateResetHomeChangedListener(null);
+		ARCommand.setARDrone3GPSSettingsHomeTypeListener(null);
+		ARCommand.setARDrone3GPSSettingsReturnHomeDelayListener(null);
 		ARCommand.setARDrone3GPSSettingsStateGPSFixStateChangedListener(null);
 		ARCommand.setARDrone3GPSSettingsStateGPSUpdateStateChangedListener(null);
 		ARCommand.setARDrone3CameraStateOrientationListener(null);
+		ARCommand.setARDrone3CameraStateDefaultCameraOrientationListener(null);
+		ARCommand.setARDrone3GPSStateHomeTypeChosenChangedListener(null);
 		ARCommand.setARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener(null);
 		ARCommand.setARDrone3DebugGPSDebugStateNbSatelliteChangedListener(null);
 
@@ -315,7 +329,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 					}
 				}
 			}
-			// FIXME UI側へ異常を通知する
+			// FIXME UI側へ異常を通知する?
 		}
 	};
 
@@ -752,6 +766,32 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	};
 
 	/**
+	 * ホーム位置への戻り方を受信した時
+	 */
+	private final ARCommandARDrone3GPSSettingsHomeTypeListener
+		mARCommandARDrone3GPSSettingsHomeTypeListener
+			= new ARCommandARDrone3GPSSettingsHomeTypeListener() {
+		@Override
+		public void onARDrone3GPSSettingsHomeTypeUpdate(final ARCOMMANDS_ARDRONE3_GPSSETTINGS_HOMETYPE_TYPE_ENUM type) {
+			switch (type) {
+			case ARCOMMANDS_ARDRONE3_GPSSETTINGS_HOMETYPE_TYPE_TAKEOFF:	// (0, "The drone will try to return to the take off position")
+			case ARCOMMANDS_ARDRONE3_GPSSETTINGS_HOMETYPE_TYPE_PILOT: // (1, "The drone will try to return to the pilot position")
+			}
+			// FIXME 未実装
+		}
+
+	};
+
+	private final ARCommandARDrone3GPSSettingsReturnHomeDelayListener
+		mARCommandARDrone3GPSSettingsReturnHomeDelayListener
+			= new ARCommandARDrone3GPSSettingsReturnHomeDelayListener() {
+		@Override
+		public void onARDrone3GPSSettingsReturnHomeDelayUpdate(final short delay) {
+			if (DEBUG) Log.v(TAG, "onARDrone3GPSSettingsReturnHomeDelayUpdate:delay=" + delay);
+			// FIXME 未実装
+		}
+	};
+	/**
 	 * ナビゲーションホーム状態を受信した時
 	 */
 	private final ARCommandARDrone3PilotingStateNavigateHomeStateChangedListener
@@ -846,6 +886,24 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	public int numGpsSatellite() {
 		return mGPS.numGpsSatellite();
 	}
+
+	/** ホーム位置への戻り方の選択が変更された時 */
+	private final ARCommandARDrone3GPSStateHomeTypeChosenChangedListener
+		mARCommandARDrone3GPSStateHomeTypeChosenChangedListener
+			= new ARCommandARDrone3GPSStateHomeTypeChosenChangedListener() {
+		@Override
+		public void onARDrone3GPSStateHomeTypeChosenChangedUpdate(
+			final ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_ENUM type) {
+
+			if (DEBUG) Log.v(TAG, "onARDrone3GPSStateHomeTypeChosenChangedUpdate:" + type);
+			switch (type) {
+			case ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_TAKEOFF: // (0, "The drone will try to return to the take off position"),
+			case ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_PILOT:	// (1, "The drone will try to return to the pilot position"),
+			case ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_FIRST_FIX: // (2, "The drone has not enough information, it will try to return to the first GPS fix"),
+			}
+			// FIXME 未実装
+		}
+	};
 
 	/**
 	 * 写真撮影のフォーマット<br>
@@ -1126,9 +1184,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		}
 	};
 
-	/**
-	 * カメラの向きを受信した時
-	 */
+	/** カメラの向きを受信した時 */
 	private final ARCommandARDrone3CameraStateOrientationListener
 		mCameraStateOrientationListener
 			= new ARCommandARDrone3CameraStateOrientationListener() {
@@ -1148,6 +1204,16 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 					// ignore
 				}
 			}
+		}
+	};
+
+	/** カメラの向きの初期値を受信した時 */
+	private final ARCommandARDrone3CameraStateDefaultCameraOrientationListener
+		mARCommandARDrone3CameraStateDefaultCameraOrientationListener
+			= new ARCommandARDrone3CameraStateDefaultCameraOrientationListener() {
+		@Override
+		public void onARDrone3CameraStateDefaultCameraOrientationUpdate(final byte tilt, final byte pan) {
+			mSettings.getCamera().pantiltDefault(pan, tilt);
 		}
 	};
 

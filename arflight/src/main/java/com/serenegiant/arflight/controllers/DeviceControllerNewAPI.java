@@ -59,19 +59,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 */
 	private final Semaphore disconnectSent = new Semaphore(0);
 	protected volatile boolean mRequestDisconnect;
-//	/**
-//	 * 全ての設定取得待ちのためのセマフォ
-//	 * 初期値は0なのでonCommonSettingsStateAllSettingsChangedUpdateかcancelStart内でreleaseするまでは先に進まない
-//	 */
-//	protected final Semaphore cmdGetAllSettingsSent = new Semaphore(0);
-//	protected boolean isWaitingAllSettings;
-
-//	/**
-//	 * 全てのステータス取得待ちのためのセマフォ
-//	 * 初期値が0なのでonCommonCommonStateAllStatesChangedUpdateかcancelStart内でreleaseするまでは先に進まない
-//	 */
-//	protected final Semaphore cmdGetAllStatesSent = new Semaphore(0);
-//	protected boolean isWaitingAllStates;
 
 	protected final Object mStateSync = new Object();
 	private int mState = STATE_STOPPED;
@@ -344,8 +331,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 				mRequestDisconnect = false;
 			}
 			connectSent.release();
-//			cmdGetAllSettingsSent.release();
-//			cmdGetAllStatesSent.release();
 			//TODO see : reset the semaphores or use signals
 		}
 		if (DEBUG) Log.v(TAG, "cancelStart:finished");
@@ -408,38 +393,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		final Date currentDate = new Date(System.currentTimeMillis());
 		sendDate(currentDate);
 		sendTime(currentDate);
-//		isWaitingAllSettings = true;
-//		try {
-//			if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings");
-//			if (requestAllSettings()) {
-//				try {
-//					if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings:wait");
-//					//successful = cmdGetAllSettingsSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
-//					cmdGetAllSettingsSent.acquire();
-//				} catch (final InterruptedException e) {
-//					// ignore
-//				}
-//			}
-//		} finally {
-//			if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings:finished");
-//			isWaitingAllSettings = false;
-//		}
-//		isWaitingAllStates = true;
-//		try {
-//			if (DEBUG) Log.v(TAG, "onStarted:requestAllStates");
-//			if (requestAllStates()) {
-//				try {
-//					if (DEBUG) Log.v(TAG, "onStarted:requestAllStates:wait");
-//					//successful = cmdGetAllStatesSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
-//					cmdGetAllStatesSent.acquire();
-//				} catch (final InterruptedException e) {
-//					// ignore
-//				}
-//			}
-//		} finally {
-//			if (DEBUG) Log.v(TAG, "onStarted:requestAllStates:finished");
-//			isWaitingAllStates = false;
-//		}
 		callOnConnect();
 		if (DEBUG) Log.v(TAG, "onStarted:終了");
 	}
@@ -634,9 +587,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_ALLSETTINGSCHANGED:	// (159, "Key used to define the command <code>AllSettingsChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
 		{	// すべての設定を受信した時
-//			if (isWaitingAllSettings) {
-//				cmdGetAllSettingsSent.release();
-//			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_RESETCHANGED:	// (160, "Key used to define the command <code>ResetChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
@@ -685,9 +635,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_ALLSTATESCHANGED:	// (167, "Key used to define the command <code>AllStatesChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// 全てのステータスを受信した時
-//			if (isWaitingAllStates) {
-//				cmdGetAllStatesSent.release();
-//			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_BATTERYSTATECHANGED:	// (168, "Key used to define the command <code>BatteryStateChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),

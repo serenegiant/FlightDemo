@@ -1,6 +1,7 @@
 package com.serenegiant.arflight.controllers;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import com.parrot.arsdk.arcommands.*;
@@ -23,6 +24,8 @@ import com.serenegiant.arflight.IWiFiController;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.arflight.attribute.AttributeGPS;
+import com.serenegiant.arflight.attribute.AttributeMotor;
+import com.serenegiant.arflight.attribute.AttributePosition;
 import com.serenegiant.arflight.configs.ARNetworkConfigARDrone3;
 
 public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implements ICameraController, IWiFiController {
@@ -31,6 +34,14 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	private final Object mVideoSync = new Object();
 	private IVideoStreamNew mVideoStream;
+	/**
+	 * 写真撮影のフォーマット<br>
+	 * 0: Take raw image<br>
+	 * 1: Take a 4:3 jpeg photo<br>
+	 * 2: Take a 16:9 snapshot from camera<br>
+	 */
+	private int mPictureFormat;
+	private String mMotorSoftwareVersion;
 
 	public FlightControllerBebopNewAPI(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigARDrone3());
@@ -141,7 +152,10 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3:	// (0, "Key used to define the feature <code>ARDrone3</code>"),
 			break;
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGED:	// (1, "Key used to define the command <code>PictureStateChanged</code> of class <code>MediaRecordState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 写真撮影状態を受信した時
+			final int state = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGED_STATE);
+			final int mass_storage_id = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGED_MASS_STORAGE_ID);
+			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStatePictureStateChangedUpdate:state=" + state + ",mass_storage_id=" + mass_storage_id);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED:	// (2, "Key used to define the command <code>VideoStateChanged</code> of class <code>MediaRecordState</code> in project <code>ARDrone3</code>"),
@@ -149,7 +163,29 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2:	// (3, "Key used to define the command <code>PictureStateChangedV2</code> of class <code>MediaRecordState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 写真撮影状態を受信した時
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_ENUM state
+				= ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_ENUM.getFromValue(
+					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE)
+			);
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR_ENUM error
+				= ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR_ENUM.getFromValue(
+					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_ERROR)
+			);
+			int _state;
+			switch (state) {
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_READY:		// 撮影可能
+				_state = DroneStatus.MEDIA_READY;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_BUSY:			// 撮影中
+				_state = DroneStatus.MEDIA_BUSY;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2_STATE_NOTAVAILABLE:	// 撮影不可
+			default:
+				_state = DroneStatus.MEDIA_UNAVAILABLE;
+				break;
+			}
+			callOnStillCaptureStateChanged(_state);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2:	// (4, "Key used to define the command <code>VideoStateChangedV2</code> of class <code>MediaRecordState</code> in project <code>ARDrone3</code>"),
@@ -157,18 +193,58 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED:	// (5, "Key used to define the command <code>PictureEventChanged</code> of class <code>MediaRecordEvent</code> in project <code>ARDrone3</code>"),
-		{	// 写真を撮影した時の処理 FIXME 未実装
+		{	// 写真撮影イベントを受信した時
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_ENUM event
+				= ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_ENUM.getFromValue(
+					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT)
+			);
 			final ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM error
 				= ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR_ENUM.getFromValue(
-					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR));
+					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_ERROR)
+			);
+			int _state;
+			switch (event) {
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_TAKEN:			// 撮影成功
+				_state = DroneStatus.MEDIA_SUCCESS;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED_EVENT_FAILED:			// 撮影失敗
+			default:
+				_state = DroneStatus.MEDIA_ERROR;
+				break;
+			}
+			callOnStillCaptureStateChanged(_state);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED:	// (6, "Key used to define the command <code>VideoEventChanged</code> of class <code>MediaRecordEvent</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 動画撮影イベントを受信した時
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_ENUM event
+				= ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_ENUM.getFromValue(
+					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT)
+			);
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_ERROR_ENUM error
+				= ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_ERROR_ENUM.getFromValue(
+					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_ERROR)
+			);
+			int _state;
+			switch (event) {
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_START:	// 0
+				_state = DroneStatus.MEDIA_BUSY;
+				// XXX ここはreturnした方がいいかも?
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_STOP:	// 1
+				_state = DroneStatus.MEDIA_SUCCESS;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDEVENT_VIDEOEVENTCHANGED_EVENT_FAILED:	// 2
+			default:
+				_state = DroneStatus.MEDIA_ERROR;
+				break;
+			}
+			callOnVideoRecordingStateChanged(_state);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_FLATTRIMCHANGED:	// (7, "Key used to define the command <code>FlatTrimChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// フラットトリム変更を受信した時
+			callOnFlatTrimChanged();
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED:	// (8, "Key used to define the command <code>FlyingStateChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
@@ -188,27 +264,64 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_NAVIGATEHOMESTATECHANGED:	// (10, "Key used to define the command <code>NavigateHomeStateChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// ナビゲーションホーム状態を受信した時
+			// final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_NAVIGATEHOMESTATECHANGED_STATE_ENUM
+			final int state = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_NAVIGATEHOMESTATECHANGED_STATE);
+			// state=0(available): 利用可能, Navigate home is available
+			// state=1(inProgress): 実行中, Navigate home is in progress
+			// state=2(unavailable): 利用不可, Navigate home is not available
+			// state=3(pending): 中断中, Navigate home has been received, but its process is pending
+
+			// final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_NAVIGATEHOMESTATECHANGED_REASON_ENUM
+			final int reason = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_NAVIGATEHOMESTATECHANGED_REASON);
+			// reason=0: User requested a navigate home (available->inProgress)
+			// reason=1: Connection between controller and product lost (available->inProgress)
+			// reason=2: Low battery occurred (available->inProgress)
+			// reason=3: Navigate home is finished (inProgress->available)
+			// reason=4: Navigate home has been stopped (inProgress->available)
+			// reason=5: Navigate home disabled by product (inProgress->unavailable or available->unavailable)
+			// reason=6: Navigate home enabled by product (unavailable->available)
+
+			// FIXME 未実装
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_POSITIONCHANGED:	// (11, "Key used to define the command <code>PositionChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 機体位置(GPS座標)を受信した時
+			/** GPS緯度[度] (500.0: 不明) */
+			final double latitude = (Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_POSITIONCHANGED_LATITUDE);
+			/** GPS経度[度] (500.0: 不明) */
+			final double longitude = (Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_POSITIONCHANGED_LONGITUDE);
+			/** GPS高度[m](500.0: 不明) */
+			final double altitude = (Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_POSITIONCHANGED_ALTITUDE);
+			mStatus.setPosition(latitude, longitude, altitude);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_SPEEDCHANGED:	// (12, "Key used to define the command <code>SpeedChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 機体の速度を受信した時
+			final float speedX = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_SPEEDCHANGED_SPEEDX);
+			final float speedY = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_SPEEDCHANGED_SPEEDY);
+			final float speedZ = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_SPEEDCHANGED_SPEEDZ);
+			((DroneStatus)mStatus).setSpeed(speedY, speedX, -speedZ);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ATTITUDECHANGED:	// (13, "Key used to define the command <code>AttitudeChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 機体姿勢を受信した時
+			final float roll = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ATTITUDECHANGED_ROLL);
+			final float pitch = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ATTITUDECHANGED_PITCH);
+			final float yaw = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ATTITUDECHANGED_YAW);
+			((DroneStatus)mStatus).setAttitude(roll, pitch, yaw);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_AUTOTAKEOFFMODECHANGED:	// (14, "Key used to define the command <code>AutoTakeOffModeChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 自動離陸モード設定を受信した時
+			final boolean state = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_AUTOTAKEOFFMODECHANGED_STATE) != 0;
+			mSettings.setAutoTakeOffMode(state);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ALTITUDECHANGED:	// (15, "Key used to define the command <code>AltitudeChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 高度を受信した時
+			final float altitude = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ALTITUDECHANGED_ALTITUDE);
+			mStatus.altitude(altitude);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGEVENT_MOVEBYEND:	// (16, "Key used to define the command <code>MoveByEnd</code> of class <code>PilotingEvent</code> in project <code>ARDrone3</code>"),
@@ -228,19 +341,33 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXALTITUDECHANGED:	// (21, "Key used to define the command <code>MaxAltitudeChanged</code> of class <code>PilotingSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 最大高度設定を受信した時
+			final float current = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXALTITUDECHANGED_CURRENT);
+			final float min = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXALTITUDECHANGED_MIN);
+			final float max = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXALTITUDECHANGED_MAX);
+			mSettings.setMaxAltitude(current, min, max);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXTILTCHANGED:	// (22, "Key used to define the command <code>MaxTiltChanged</code> of class <code>PilotingSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 最大傾斜設定を受信した時
+			final float current = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXTILTCHANGED_CURRENT);
+			final float min = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXTILTCHANGED_MIN);
+			final float max = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXTILTCHANGED_MAX);
+			mSettings.setMaxTilt(current, min, max);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_ABSOLUTCONTROLCHANGED:	// (23, "Key used to define the command <code>AbsolutControlChanged</code> of class <code>PilotingSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// AbsoluteControlChanged(ってなんやろ)を受信した時, 機体側で実装されてないみたい
+			final boolean absoluteControl = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_ABSOLUTCONTROLCHANGED_ON) != 0;
+			// FIXME 未実装
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXDISTANCECHANGED:	// (24, "Key used to define the command <code>MaxDistanceChanged</code> of class <code>PilotingSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 最大距離を受信した時
+			final float current = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXDISTANCECHANGED_CURRENT);
+			final float min = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXDISTANCECHANGED_MIN);
+			final float max = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXDISTANCECHANGED_MAX);
+			mSettings.setMaxDistance(current, min, max);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_NOFLYOVERMAXDISTANCECHANGED:	// (25, "Key used to define the command <code>NoFlyOverMaxDistanceChanged</code> of class <code>PilotingSettingsState</code> in project <code>ARDrone3</code>"),
@@ -268,19 +395,31 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_MAXVERTICALSPEEDCHANGED:	// (31, "Key used to define the command <code>MaxVerticalSpeedChanged</code> of class <code>SpeedSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 上昇/降下速度設定を受信した時
+			final float current = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_MAXVERTICALSPEEDCHANGED_CURRENT);
+			final float min = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_MAXVERTICALSPEEDCHANGED_MIN);
+			final float max = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_MAXVERTICALSPEEDCHANGED_MAX);
+			mSettings.setMaxVerticalSpeed(current, min, max);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_MAXROTATIONSPEEDCHANGED:	// (32, "Key used to define the command <code>MaxRotationSpeedChanged</code> of class <code>SpeedSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 最大回転速度設定を受信した時
+			final float current = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_MAXROTATIONSPEEDCHANGED_CURRENT);
+			final float min = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_MAXROTATIONSPEEDCHANGED_MIN);
+			final float max = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_MAXROTATIONSPEEDCHANGED_MAX);
+			mSettings.setMaxRotationSpeed(current, min, max);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_HULLPROTECTIONCHANGED:	// (33, "Key used to define the command <code>HullProtectionChanged</code> of class <code>SpeedSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// ハルの有無設定を受信した時
+			final boolean present = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_HULLPROTECTIONCHANGED_PRESENT) != 0;
+			mSettings.setHasGuard(present);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_OUTDOORCHANGED:	// (34, "Key used to define the command <code>OutdoorChanged</code> of class <code>SpeedSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 室外モードか室内モードを受信した時
+			final boolean outdoor = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SPEEDSETTINGSSTATE_OUTDOORCHANGED_OUTDOOR) != 0;
+			mSettings.outdoorMode(outdoor);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED:	// (35, "Key used to define the command <code>WifiSelectionChanged</code> of class <code>NetworkSettingsState</code> in project <code>ARDrone3</code>"),
@@ -292,27 +431,85 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTMOTORVERSIONLISTCHANGED:	// (37, "Key used to define the command <code>ProductMotorVersionListChanged</code> of class <code>SettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// モーターバージョンを受信した時
+			final int motor = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTMOTORVERSIONLISTCHANGED_MOTOR_NUMBER);
+			final String type = (String)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTMOTORVERSIONLISTCHANGED_TYPE);
+			final String software = (String)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTMOTORVERSIONLISTCHANGED_SOFTWARE);
+			final String hardware = (String)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTMOTORVERSIONLISTCHANGED_HARDWARE);
+			try {
+				final int ix = (motor - 1) % getMotorNums();
+				final AttributeMotor _motor = ((DroneStatus)mStatus).getMotor(ix);
+				if (_motor != null) {
+					_motor.set(type, software, hardware);
+				} else {
+					Log.w(TAG, "モーターNo.が予期したのと違う:" + motor);
+				}
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTGPSVERSIONCHANGED:	// (38, "Key used to define the command <code>ProductGPSVersionChanged</code> of class <code>SettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// GPSのバージョンを受信した時
+			final String software = (String)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTGPSVERSIONCHANGED_SOFTWARE);
+			final String hardware = (String)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTGPSVERSIONCHANGED_HARDWARE);
+
+			mGPS.set(software, hardware);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED:	// (39, "Key used to define the command <code>MotorErrorStateChanged</code> of class <code>SettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// モーターのエラー状態を受信した時
+			final int motorIds = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORIDS);
+			final ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM error
+				= ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM.getFromValue(
+				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR)
+			);
+
+			final int n = getMotorNums();
+			if (!ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM
+				.ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_NOERROR.equals(error)) {
+				final int err = 1 << (error.getValue() - 1);
+				for (int i = 0; i < n; i++) {
+					if ((motorIds & (1 << i)) != 0) {
+						getMotor(i).setError(err);
+					}
+				}
+			} else {
+				for (int i = 0; i < n; i++) {
+					if ((motorIds & (1 << i)) != 0) {
+						getMotor(i).clearError();
+					}
+				}
+			}
+			// FIXME UI側へ異常を通知する?
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORSOFTWAREVERSIONCHANGED:	// (40, "Key used to define the command <code>MotorSoftwareVersionChanged</code> of class <code>SettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// モーターソフトウエアバージョンを受信した時
+			final String version = (String)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORSOFTWAREVERSIONCHANGED_VERSION);
+			mMotorSoftwareVersion = version;
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORFLIGHTSSTATUSCHANGED:	// (41, "Key used to define the command <code>MotorFlightsStatusChanged</code> of class <code>SettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 飛行回数・飛行時間を受信した時
+			/** 飛行回数 */
+			final int nbFlights = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORFLIGHTSSTATUSCHANGED_NBFLIGHTS);
+			/** 最後の飛行時間[秒] */
+			final int lastFlightDuration = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORFLIGHTSSTATUSCHANGED_LASTFLIGHTDURATION);
+			/** 合計飛行時間[秒] */
+			final int totalFlightDuration = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORFLIGHTSSTATUSCHANGED_TOTALFLIGHTDURATION);
+
+			((DroneStatus)mStatus).setFlightDuration(nbFlights, lastFlightDuration, totalFlightDuration);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORERRORLASTERRORCHANGED:	// (42, "Key used to define the command <code>MotorErrorLastErrorChanged</code> of class <code>SettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 最後に起こったモーターエラーを受信した時
+			final ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORLASTERRORCHANGED_MOTORERROR_ENUM error
+				= ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORLASTERRORCHANGED_MOTORERROR_ENUM.getFromValue(
+				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_MOTORERRORLASTERRORCHANGED_MOTORERROR)
+			);
+			if (DEBUG) Log.v(TAG, "onARDrone3SettingsStateMotorErrorLastErrorChangedUpdate:" + error);
+			// FIXME 未実装
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_P7ID:	// (43, "Key used to define the command <code>P7ID</code> of class <code>SettingsState</code> in project <code>ARDrone3</code>"),
@@ -320,27 +517,59 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_PICTUREFORMATCHANGED:	// (44, "Key used to define the command <code>PictureFormatChanged</code> of class <code>PictureSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 写真撮影時のフォーマットを受信した時
+			final int format = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_PICTUREFORMATCHANGED_TYPE);
+			if (DEBUG) Log.v(TAG, "onARDrone3PictureSettingsStatePictureFormatChangedUpdate:" + format);
+			if (mPictureFormat != format) {
+				mPictureFormat = format;
+				// FIXME 未実装
+			}
+
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_AUTOWHITEBALANCECHANGED:	// (45, "Key used to define the command <code>AutoWhiteBalanceChanged</code> of class <code>PictureSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// オートホワイトバランス設定を受信した時
+			final int auto_white_blance = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_AUTOWHITEBALANCECHANGED_TYPE);
+			// 0: 自動 Auto guess of best white balance params
+			// 1: 電球色 Tungsten white balance<br>
+			// 2: 晴天 Daylight white balance<br>
+			// 3: 曇り空 Cloudy white balance<br>
+			// 4: フラシュ撮影用 White balance for a flash
+			mSettings.autoWhiteBalance(auto_white_blance);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_EXPOSITIONCHANGED:	// (46, "Key used to define the command <code>ExpositionChanged</code> of class <code>PictureSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 露出設定を受信した時
+			final float current = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_EXPOSITIONCHANGED_VALUE);
+			final float min = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_EXPOSITIONCHANGED_MIN);
+			final float max = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_EXPOSITIONCHANGED_MAX);
+			mSettings.setExposure(current, min, max);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_SATURATIONCHANGED:	// (47, "Key used to define the command <code>SaturationChanged</code> of class <code>PictureSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 彩度設定を受信した時
+			final float current = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_SATURATIONCHANGED_VALUE);
+			final float min = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_SATURATIONCHANGED_MIN);
+			final float max = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_SATURATIONCHANGED_MAX);
+			mSettings.setExposure(current, min, max);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_TIMELAPSECHANGED:	// (48, "Key used to define the command <code>TimelapseChanged</code> of class <code>PictureSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// タイムラプス設定を受信した時
+			final boolean enabled = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_TIMELAPSECHANGED_ENABLED) != 0;
+			final float interval = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_TIMELAPSECHANGED_INTERVAL);
+			final float minInterval = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_TIMELAPSECHANGED_MININTERVAL);
+			final float maxInterval = (Float)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_TIMELAPSECHANGED_MAXINTERVAL);
+			mSettings.setTimeLapse(enabled, interval, minInterval, maxInterval);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_VIDEOAUTORECORDCHANGED:	// (49, "Key used to define the command <code>VideoAutorecordChanged</code> of class <code>PictureSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 自動録画設定を受信した時
+			final boolean enabled = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_VIDEOAUTORECORDCHANGED_ENABLED) != 0;
+			final int mass_storage_id = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_VIDEOAUTORECORDCHANGED_MASS_STORAGE_ID);
+
+			if (DEBUG) Log.v(TAG, "onARDrone3PictureSettingsStateVideoAutorecordChangedUpdate:enabled=" + enabled + ",mass_storage_id=" + mass_storage_id);
+			mSettings.getCamera().autoRecord(enabled, mass_storage_id);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED:	// (50, "Key used to define the command <code>VideoEnableChanged</code> of class <code>MediaStreamingState</code> in project <code>ARDrone3</code>"),
@@ -355,35 +584,97 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_HOMECHANGED:	// (51, "Key used to define the command <code>HomeChanged</code> of class <code>GPSSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// ホーム位置(GPS座標)を受信した時
+			/** ホーム位置:緯度[度] */
+			final double latitude = (Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_HOMECHANGED_LATITUDE);
+			/** ホーム位置:経度[度] */
+			final double longitude = (Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_HOMECHANGED_LONGITUDE);
+			/** ホーム位置:高度[m] */
+			final double altitude = (Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_HOMECHANGED_ALTITUDE);
+			mStatus.setHome(latitude, longitude, altitude);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_RESETHOMECHANGED:	// (52, "Key used to define the command <code>ResetHomeChanged</code> of class <code>GPSSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// ホーム位置(GPS座標)がリセットされた時
+			/** ホーム位置:緯度[度] */
+			final double latitude = (Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_RESETHOMECHANGED_LATITUDE);
+			/** ホーム位置:経度[度] */
+			final double longitude = (Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_RESETHOMECHANGED_LONGITUDE);
+			/** ホーム位置:高度[m] */
+			final double altitude = (Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_RESETHOMECHANGED_ALTITUDE);
+			mStatus.setHome(latitude, longitude, altitude);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_GPSFIXSTATECHANGED:	// (53, "Key used to define the command <code>GPSFixStateChanged</code> of class <code>GPSSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// GPSで自機位置を確認出来たかどうかを受信した時
+			final boolean fixed = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_GPSFIXSTATECHANGED_FIXED) != 0;
+			mGPS.setFixed(fixed);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED:	// (54, "Key used to define the command <code>GPSUpdateStateChanged</code> of class <code>GPSSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// GPSの状態を受信した時
+			final ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_ENUM state
+				= ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_ENUM.getFromValue(
+					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE)
+			);
+			switch (state) {
+			case ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_UPDATED:	// 1
+				// 0: Drone GPS update succeed
+				break;
+			case ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_INPROGRESS:	// 2
+				// 1: Drone GPS update In progress
+				break;
+			case ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_FAILED:	// 3
+				// 2: Drone GPS update failed
+				mStatus.setPosition(AttributePosition.INVALID_VALUE, AttributePosition.INVALID_VALUE, AttributePosition.INVALID_VALUE);
+				mGPS.numGpsSatellite(0);
+				break;
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_HOMETYPECHANGED:	// (55, "Key used to define the command <code>HomeTypeChanged</code> of class <code>GPSSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// ホーム位置への戻り方を受信した時
+			final ARCOMMANDS_ARDRONE3_GPSSETTINGS_HOMETYPE_TYPE_ENUM type
+				= ARCOMMANDS_ARDRONE3_GPSSETTINGS_HOMETYPE_TYPE_ENUM.getFromValue(
+					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_HOMETYPECHANGED_TYPE)
+			);
+			switch (type) {
+			case ARCOMMANDS_ARDRONE3_GPSSETTINGS_HOMETYPE_TYPE_TAKEOFF:	// (0, "The drone will try to return to the take off position")
+			case ARCOMMANDS_ARDRONE3_GPSSETTINGS_HOMETYPE_TYPE_PILOT: // (1, "The drone will try to return to the pilot position")
+			}
+			// FIXME 未実装
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_RETURNHOMEDELAYCHANGED:	// (56, "Key used to define the command <code>ReturnHomeDelayChanged</code> of class <code>GPSSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// ホーム位置へ戻り始めるまでの遅延時間[秒]
+			final int delay = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_RETURNHOMEDELAYCHANGED_DELAY);
+			if (DEBUG) Log.v(TAG, "onARDrone3GPSSettingsReturnHomeDelayUpdate:delay=" + delay);
+			// FIXME 未実装
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_CAMERASTATE_ORIENTATION:	// (57, "Key used to define the command <code>Orientation</code> of class <code>CameraState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// カメラの向きを受信した時
+			/** Tilt camera consign for the drone [-100;100] */
+			final int tilt = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_CAMERASTATE_ORIENTATION_TILT);
+			/** Pan camera consign for the drone [-100;100] */
+			final int pan = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_CAMERASTATE_ORIENTATION_PAN);
+			mSettings.getCamera().pantilt(pan, tilt);
+			if (mCameraControllerListener != null) {
+				try {
+					mCameraControllerListener.onCameraOrientationChanged(pan, tilt);
+				} catch (final Exception e) {
+					// ignore
+				}
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_CAMERASTATE_DEFAULTCAMERAORIENTATION:	// (58, "Key used to define the command <code>DefaultCameraOrientation</code> of class <code>CameraState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// カメラの向きの初期値を受信した時
+			/** Tilt camera consign for the drone [-100;100] */
+			final int tilt = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_CAMERASTATE_DEFAULTCAMERAORIENTATION_TILT);
+			/** Pan camera consign for the drone [-100;100] */
+			final int pan = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_CAMERASTATE_DEFAULTCAMERAORIENTATION_PAN);
+			mSettings.getCamera().pantiltDefault(pan, tilt);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_ANTIFLICKERINGSTATE_ELECTRICFREQUENCYCHANGED:	// (59, "Key used to define the command <code>ElectricFrequencyChanged</code> of class <code>AntiflickeringState</code> in project <code>ARDrone3</code>"),
@@ -395,7 +686,9 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSTATE_NUMBEROFSATELLITECHANGED:	// (61, "Key used to define the command <code>NumberOfSatelliteChanged</code> of class <code>GPSState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 捕捉しているGPS衛星の数を受信した時
+			final int nbSatellite = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSTATE_NUMBEROFSATELLITECHANGED_NUMBEROFSATELLITE);
+			mGPS.numGpsSatellite(nbSatellite);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSTATE_HOMETYPEAVAILABILITYCHANGED:	// (62, "Key used to define the command <code>HomeTypeAvailabilityChanged</code> of class <code>GPSState</code> in project <code>ARDrone3</code>"),
@@ -403,7 +696,18 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED:	// (63, "Key used to define the command <code>HomeTypeChosenChanged</code> of class <code>GPSState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// ホーム位置への戻り方の選択が変更された時
+			final ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_ENUM type
+				= ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_ENUM.getFromValue(
+				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE)
+			);
+			if (DEBUG) Log.v(TAG, "onARDrone3GPSStateHomeTypeChosenChangedUpdate:" + type);
+			switch (type) {
+			case ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_TAKEOFF: // (0, "The drone will try to return to the take off position"),
+			case ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_PILOT:	// (1, "The drone will try to return to the pilot position"),
+			case ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_FIRST_FIX: // (2, "The drone has not enough information, it will try to return to the first GPS fix"),
+			}
+			// FIXME 未実装
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PROSTATE_FEATURES:	// (64, "Key used to define the command <code>Features</code> of class <code>PROState</code> in project <code>ARDrone3</code>"),
@@ -418,10 +722,11 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		{	// FIXME 未実装
 			break;
 		}
-		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3DEBUG_GPSDEBUGSTATE_NBSATELLITECHANGED:	// (67, "Key used to define the command <code>NbSatelliteChanged</code> of class <code>GPSDebugState</code> in project <code>ARDrone3Debug</code>"),
-		{	// FIXME 未実装
-			break;
-		}
+//		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3DEBUG_GPSDEBUGSTATE_NBSATELLITECHANGED:	// (67, "Key used to define the command <code>NbSatelliteChanged</code> of class <code>GPSDebugState</code> in project <code>ARDrone3Debug</code>"),
+//		{	// 捕捉しているGPS衛星の数を受信した時
+// 			XXX これは定義だけかも? ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSTATE_NUMBEROFSATELLITECHANGEDが代わりにある
+//			break;
+//		}
 		default:
 			break;
 		}

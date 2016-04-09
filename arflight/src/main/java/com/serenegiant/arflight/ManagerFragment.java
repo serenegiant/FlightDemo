@@ -21,9 +21,12 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiver;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiverDelegate;
+import com.serenegiant.arflight.controllers.FlightControllerBebop;
+import com.serenegiant.arflight.controllers.FlightControllerBebop2;
 import com.serenegiant.arflight.controllers.FlightControllerBebop2NewAPI;
 import com.serenegiant.arflight.controllers.FlightControllerBebopNewAPI;
 import com.serenegiant.arflight.controllers.FlightControllerMiniDroneNewAPI;
+import com.serenegiant.arflight.controllers.SkyController;
 import com.serenegiant.arflight.controllers.SkyControllerNewAPI;
 import com.serenegiant.net.NetworkChangedReceiver;
 
@@ -343,22 +346,22 @@ public class ManagerFragment extends Fragment {
 				if (newAPI) {
 					result = new FlightControllerBebopNewAPI(getActivity(), device);
 				} else {
-					result = new com.serenegiant.arflight.controllers.FlightControllerBebop(getActivity(), device);
+					result = new FlightControllerBebop(getActivity(), device);
 				}
 				break;
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 				if (newAPI) {
 					result = new FlightControllerBebop2NewAPI(getActivity(), device);
 				} else {
-					result = new com.serenegiant.arflight.controllers.FlightControllerBebop2(getActivity(), device);
+					result = new FlightControllerBebop2(getActivity(), device);
 				}
 				break;
-			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
+			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
 				if (BuildConfig.USE_SKYCONTROLLER) {
 					if (newAPI) {
 						result = new SkyControllerNewAPI(getActivity(), device);
 					} else {
-						result = new com.serenegiant.arflight.controllers.SkyController(getActivity(), device);
+						result = new SkyController(getActivity(), device);
 					}
 				}
 				break;
