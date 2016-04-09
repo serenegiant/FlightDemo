@@ -1,4 +1,4 @@
-package com.serenegiant.arflight.NewControllers;
+package com.serenegiant.arflight.controllers;
 
 import android.content.Context;
 
@@ -28,17 +28,18 @@ import com.serenegiant.arflight.IVideoStreamNew;
 import com.serenegiant.arflight.IWiFiController;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.attribute.AttributeFloat;
-import com.serenegiant.arflight.configs.ARNetworkConfig;
+import com.serenegiant.arflight.attribute.AttributeGPS;
+import com.serenegiant.arflight.configs.ARNetworkConfigARDrone3;
 
-public class FlightControllerBebop extends FlightController implements ICameraController, IWiFiController {
+public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implements ICameraController, IWiFiController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static final String TAG = FlightControllerBebop.class.getSimpleName();
+	private static final String TAG = FlightControllerBebopNewAPI.class.getSimpleName();
 
 	private final Object mVideoSync = new Object();
 	private IVideoStreamNew mVideoStream;
 
-	public FlightControllerBebop(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
-		super(context, service, net_config);
+	public FlightControllerBebopNewAPI(final Context context, final ARDiscoveryDeviceService service) {
+		super(context, service, new ARNetworkConfigARDrone3());
 		init();
 	}
 
@@ -71,19 +72,19 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	private final ARDeviceControllerStreamListener mStreamListener = new ARDeviceControllerStreamListener() {
 		@Override
 		public ARCONTROLLER_ERROR_ENUM configureDecoder(final ARDeviceController deviceController, final ARControllerCodec codec) {
-			FlightControllerBebop.this.configureDecoder(deviceController, codec);
+			FlightControllerBebopNewAPI.this.configureDecoder(deviceController, codec);
 			return ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 		}
 
 		@Override
 		public ARCONTROLLER_ERROR_ENUM onFrameReceived(final ARDeviceController deviceController, final ARFrame frame) {
-			FlightControllerBebop.this.onFrameReceived(deviceController, frame);
+			FlightControllerBebopNewAPI.this.onFrameReceived(deviceController, frame);
 			return ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 		}
 
 		@Override
 		public void onFrameTimeout(final ARDeviceController deviceController) {
-			FlightControllerBebop.this.onFrameTimeout(deviceController);
+			FlightControllerBebopNewAPI.this.onFrameTimeout(deviceController);
 		}
 	};
 
@@ -364,6 +365,9 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 //--------------------------------------------------------------------------------
 	@Override
 	public boolean requestTakeoff() {
+		if (isGPSFixed()) {
+			sendResetHome();
+		}
 		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingTakeOff();
 		}
@@ -595,5 +599,17 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	public boolean stopAllAnimation() {
 		// これは無いみたい?
 		return false;
+	}
+//--------------------------------------------------------------------------------
+// GPS関係
+	public final AttributeGPS mGPS = new AttributeGPS();
+	public boolean isGPSFixed() {
+		return mGPS.fixed();
+	}
+
+	public void sendResetHome() {
+		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+			mARDeviceController.getFeatureARDrone3().sendGPSSettingsResetHome();
+		}
 	}
 }

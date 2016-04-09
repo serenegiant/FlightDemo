@@ -23,8 +23,6 @@ import android.widget.Toast;
 
 import com.serenegiant.arflight.AutoFlightListener;
 import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.Controllers.FlightControllerBebop;
-import com.serenegiant.arflight.Controllers.FlightControllerMiniDrone;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.ICameraController;
@@ -34,6 +32,8 @@ import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.arflight.TouchFlight;
 import com.serenegiant.arflight.VideoStream;
+import com.serenegiant.arflight.controllers.FlightControllerMiniDrone;
+import com.serenegiant.arflight.controllers.FlightControllerMiniDroneNewAPI;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.drone.IVideoScreen;
 import com.serenegiant.gameengine1.IModelView;
@@ -434,7 +434,8 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 			mMagnetValues[i] = mGravityValues[i] = mAzimuthValues[i] = 0;
 //			mAccelValues[i] = mGyroValues[i] = 0;
 		}
-		if (mController instanceof FlightControllerMiniDrone) return;
+		if ((mController instanceof FlightControllerMiniDrone)
+			|| (mController instanceof FlightControllerMiniDroneNewAPI)) return;
 		final Display display = getActivity().getWindowManager().getDefaultDisplay();
 		mRotation = display.getRotation();
 		// 重力センサーがあればそれを使う。なければ加速度センサーで代用する
@@ -567,11 +568,6 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	 * 離陸指示
 	 */
 	protected void takeOff() {
-		// ホーム位置を更新する
-		if ((mFlightController instanceof FlightControllerBebop)
-			&& ((FlightControllerBebop)mFlightController).isGPSFixed()) {
-			((FlightControllerBebop)mFlightController).sendResetHome();
-		}
 		// 離陸指示
 		if (mFlightController != null) {
 			mFlightController.requestTakeoff();

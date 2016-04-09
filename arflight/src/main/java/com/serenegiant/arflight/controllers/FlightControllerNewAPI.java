@@ -1,4 +1,4 @@
-package com.serenegiant.arflight.NewControllers;
+package com.serenegiant.arflight.controllers;
 
 import android.content.Context;
 import android.os.SystemClock;
@@ -19,9 +19,9 @@ import com.serenegiant.math.Vector;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class FlightController extends DeviceController implements IFlightController {
+public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI implements IFlightController {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static String TAG = FlightController.class.getSimpleName();
+	private static String TAG = FlightControllerNewAPI.class.getSimpleName();
 
 	private LooperThread mFlightCMDThread;
 
@@ -32,7 +32,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 	protected DroneSettings mSettings;
 
-	public FlightController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
+	public FlightControllerNewAPI(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		super(context, service, net_config);
 	}
 
@@ -422,7 +422,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 		public void onLoop() {
 			final long lastTime = SystemClock.elapsedRealtime();
 
-			final int state = FlightController.super.getState();
+			final int state = FlightControllerNewAPI.super.getState();
 
 			if (state == STATE_STARTED) {
 				sendCmdInControlLoop();

@@ -1080,7 +1080,7 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 				mConfigs = PAGER_CONFIG_MINIDRONE;
 				break;
-			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
+			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
 				// FIXME SkyController用の設定画面を追加する?
 				mConfigs = null;
 				break;

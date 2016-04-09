@@ -1,4 +1,4 @@
-package com.serenegiant.arflight.NewControllers;
+package com.serenegiant.arflight.controllers;
 
 import android.content.Context;
 import android.support.v4.content.LocalBroadcastManager;
@@ -33,9 +33,9 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class DeviceController implements IDeviceController {
+public abstract class DeviceControllerNewAPI implements IDeviceController {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static String TAG = DeviceController.class.getSimpleName();
+	private static String TAG = DeviceControllerNewAPI.class.getSimpleName();
 
 	private final WeakReference<Context> mWeakContext;
 	protected LocalBroadcastManager mLocalBroadcastManager;
@@ -50,7 +50,7 @@ public abstract class DeviceController implements IDeviceController {
 
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 
-	public DeviceController(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
+	public DeviceControllerNewAPI(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		mWeakContext = new WeakReference<Context>(context);
 		mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
 		mDeviceService = service;
@@ -407,7 +407,7 @@ public abstract class DeviceController implements IDeviceController {
 		public void onStateChanged(final ARDeviceController deviceController,
 			final ARCONTROLLER_DEVICE_STATE_ENUM newState, final ARCONTROLLER_ERROR_ENUM error) {
 
-			DeviceController.this.onStateChanged(deviceController, newState, error);
+			DeviceControllerNewAPI.this.onStateChanged(deviceController, newState, error);
         }
 
 		@Override
@@ -415,7 +415,7 @@ public abstract class DeviceController implements IDeviceController {
 			final ARCONTROLLER_DEVICE_STATE_ENUM newState,
 			final ARDISCOVERY_PRODUCT_ENUM product, final String name, final ARCONTROLLER_ERROR_ENUM error) {
 
-			DeviceController.this.onExtensionStateChanged(deviceController, newState, product, name, error);
+			DeviceControllerNewAPI.this.onExtensionStateChanged(deviceController, newState, product, name, error);
 		}
 
 		@Override
@@ -425,7 +425,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (elementDictionary != null) {
 				final ARControllerArgumentDictionary<Object> args = elementDictionary.get(ARControllerDictionary.ARCONTROLLER_DICTIONARY_SINGLE_KEY);
 				if (args != null) {
-					DeviceController.this.onCommandReceived(deviceController, commandKey, args);
+					DeviceControllerNewAPI.this.onCommandReceived(deviceController, commandKey, args);
 				}
 			}
 		}

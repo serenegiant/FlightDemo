@@ -1,4 +1,4 @@
-package com.serenegiant.arflight.Controllers;
+package com.serenegiant.arflight.controllers;
 
 
 import android.content.Context;
@@ -42,7 +42,7 @@ import com.serenegiant.arflight.configs.ARNetworkConfigMiniDrone;
 
 public class FlightControllerMiniDrone extends FlightController implements IBLEController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
-	private static String TAG = "FlightControllerMiniDrone";
+	private static String TAG = "FlightControllerMiniDroneNewAPI";
 
 
 	public FlightControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service) {

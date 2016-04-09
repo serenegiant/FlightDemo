@@ -21,10 +21,10 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiver;
 import com.parrot.arsdk.ardiscovery.receivers.ARDiscoveryServicesDevicesListUpdatedReceiverDelegate;
-import com.serenegiant.arflight.Controllers.FlightControllerBebop;
-import com.serenegiant.arflight.Controllers.FlightControllerBebop2;
-import com.serenegiant.arflight.Controllers.FlightControllerMiniDrone;
-import com.serenegiant.arflight.Controllers.SkyController;
+import com.serenegiant.arflight.controllers.FlightControllerBebop2NewAPI;
+import com.serenegiant.arflight.controllers.FlightControllerBebopNewAPI;
+import com.serenegiant.arflight.controllers.FlightControllerMiniDroneNewAPI;
+import com.serenegiant.arflight.controllers.SkyControllerNewAPI;
 import com.serenegiant.net.NetworkChangedReceiver;
 
 import java.util.ArrayList;
@@ -92,11 +92,11 @@ public class ManagerFragment extends Fragment {
 	 * @param index
 	 * @return indexに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public static IDeviceController getController(final Activity activity, final int index) {
+	public static IDeviceController getController(final Activity activity, final int index, final boolean newAPI) {
 		IDeviceController result = null;
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null)
-			result = fragment.getController(index);
+			result = fragment.getController(index, newAPI);
 		return result;
 	}
 
@@ -106,11 +106,11 @@ public class ManagerFragment extends Fragment {
 	 * @param name
 	 * @return nameに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public static IDeviceController getController(final Activity activity, final String name) {
+	public static IDeviceController getController(final Activity activity, final String name, final boolean newAPI) {
 		IDeviceController result = null;
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null)
-			result = fragment.getController(name);
+			result = fragment.getController(name, newAPI);
 		return result;
 	}
 
@@ -120,11 +120,11 @@ public class ManagerFragment extends Fragment {
 	 * @param device
 	 * @return
 	 */
-	public static IDeviceController getController(final Activity activity, final ARDiscoveryDeviceService device) {
+	public static IDeviceController getController(final Activity activity, final ARDiscoveryDeviceService device, final boolean newAPI) {
 		IDeviceController result = null;
-		final ManagerFragment fragment =  getInstance(activity);
+		final ManagerFragment fragment = getInstance(activity);
 		if (fragment != null)
-			result = fragment.getController(device);
+			result = fragment.getController(device, newAPI);
 		return result;
 	}
 
@@ -242,7 +242,7 @@ public class ManagerFragment extends Fragment {
 	 * @param name
 	 * @return nameに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public IDeviceController getController(final String name) {
+	public IDeviceController getController(final String name, final boolean newAPI) {
 		IDeviceController result;
 		synchronized (mControllerSync) {
 			result = mControllers.get(name);
@@ -250,7 +250,7 @@ public class ManagerFragment extends Fragment {
 		if (result == null && !TextUtils.isEmpty(name)) {
 			final ARDiscoveryDeviceService device = getDevice(name);
 			if (device != null) {
-				result = createController(device);
+				result = createController(device, newAPI);
 			}
 		}
 		return result;
@@ -261,7 +261,7 @@ public class ManagerFragment extends Fragment {
 	 * @param index
 	 * @return indexに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
-	public IDeviceController getController(final int index) {
+	public IDeviceController getController(final int index, final boolean newAPI) {
 		IDeviceController result = null;
 		final ARDiscoveryDeviceService device = getDevice(index);
 		if (device != null) {
@@ -269,7 +269,7 @@ public class ManagerFragment extends Fragment {
 				result = mControllers.get(device.getName());
 			}
 			if (result == null) {
-				result = createController(device);
+				result = createController(device, newAPI);
 			}
 		}
 		return result;
@@ -280,14 +280,14 @@ public class ManagerFragment extends Fragment {
 	 * @param device
 	 * @return
 	 */
-	public IDeviceController getController(final ARDiscoveryDeviceService device) {
+	public IDeviceController getController(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		IDeviceController result = null;
 		if (device != null) {
 			synchronized (mControllerSync) {
 				result = mControllers.get(device.getName());
 			}
 			if (result == null) {
-				result = createController(device);
+				result = createController(device, newAPI);
 			}
 		}
 		return result;
@@ -334,20 +334,32 @@ public class ManagerFragment extends Fragment {
 	 * @param device
 	 * @return
 	 */
-	public IDeviceController createController(final ARDiscoveryDeviceService device) {
+	public IDeviceController createController(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		IDeviceController result = null;
 		if (device != null) {
 			if (DEBUG) Log.v(TAG, "getProductID=" + device.getProductID());
 			switch (ARDiscoveryService.getProductFromProductID(device.getProductID())) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-				result = new FlightControllerBebop(getActivity(), device);
+				if (newAPI) {
+					result = new FlightControllerBebopNewAPI(getActivity(), device);
+				} else {
+					result = new com.serenegiant.arflight.controllers.FlightControllerBebop(getActivity(), device);
+				}
 				break;
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				result = new FlightControllerBebop2(getActivity(), device);
+				if (newAPI) {
+					result = new FlightControllerBebop2NewAPI(getActivity(), device);
+				} else {
+					result = new com.serenegiant.arflight.controllers.FlightControllerBebop2(getActivity(), device);
+				}
 				break;
-			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
+			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
 				if (BuildConfig.USE_SKYCONTROLLER) {
-					result = new SkyController(getActivity(), device);
+					if (newAPI) {
+						result = new SkyControllerNewAPI(getActivity(), device);
+					} else {
+						result = new com.serenegiant.arflight.controllers.SkyController(getActivity(), device);
+					}
 				}
 				break;
 			case ARDISCOVERY_PRODUCT_NSNETSERVICE:
@@ -359,7 +371,11 @@ public class ManagerFragment extends Fragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
-				result = new FlightControllerMiniDrone(getActivity(), device);
+				if (newAPI) {
+					result = new FlightControllerMiniDroneNewAPI(getActivity(), device);
+				} else {
+					result = new com.serenegiant.arflight.controllers.FlightControllerMiniDrone(getActivity(), device);
+				}
 				break;
 			}
 			if (result != null) {

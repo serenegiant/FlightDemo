@@ -27,7 +27,7 @@ import com.serenegiant.arflight.ARDeviceInfoAdapter;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.ManagerFragment;
-import com.serenegiant.arflight.Controllers.SkyController;
+import com.serenegiant.arflight.controllers.SkyController;
 import com.serenegiant.arflight.SkyControllerListener;
 import com.serenegiant.widget.PlayerTextureView;
 
@@ -272,7 +272,7 @@ public class BridgeFragment extends BaseControllerFragment {
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 //				adapter.add(info);
 //				break;
-//			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
+//			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
 //				adapter.add(info);
 //				break;
 //			case ARDISCOVERY_PRODUCT_NSNETSERVICE:

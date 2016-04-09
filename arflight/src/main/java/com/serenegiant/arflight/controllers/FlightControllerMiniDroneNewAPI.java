@@ -1,4 +1,4 @@
-package com.serenegiant.arflight.NewControllers;
+package com.serenegiant.arflight.controllers;
 
 import android.content.Context;
 
@@ -6,11 +6,11 @@ import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
 import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
 import com.parrot.arsdk.arcontroller.ARDeviceController;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.arflight.configs.ARNetworkConfig;
+import com.serenegiant.arflight.configs.ARNetworkConfigMiniDrone;
 
-public class FlightControllerMiniDrone extends FlightController {
-	public FlightControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
-		super(context, service, net_config);
+public class FlightControllerMiniDroneNewAPI extends FlightControllerNewAPI {
+	public FlightControllerMiniDroneNewAPI(final Context context, final ARDiscoveryDeviceService service) {
+		super(context, service, new ARNetworkConfigMiniDrone());
 	}
 
 	@Override

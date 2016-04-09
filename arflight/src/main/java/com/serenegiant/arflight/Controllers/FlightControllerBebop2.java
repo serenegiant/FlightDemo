@@ -1,4 +1,4 @@
-package com.serenegiant.arflight.Controllers;
+package com.serenegiant.arflight.controllers;
 
 import android.content.Context;
 

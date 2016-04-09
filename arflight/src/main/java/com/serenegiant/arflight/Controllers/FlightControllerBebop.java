@@ -1,4 +1,4 @@
-package com.serenegiant.arflight.Controllers;
+package com.serenegiant.arflight.controllers;
 
 
 import android.content.Context;
@@ -106,7 +106,7 @@ import java.util.Map;
 
 public class FlightControllerBebop extends FlightController implements ICameraController, IWiFiController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
-	private static String TAG = "FlightControllerBebop";
+	private static String TAG = "FlightControllerBebopNewAPI";
 
 	private boolean videoStreamDelegaterCreated;
 	private VideoStreamDelegater mVideoStreamDelegater;
@@ -1253,6 +1253,9 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 */
 	@Override
 	public boolean requestTakeoff() {
+		if (isGPSFixed()) {
+			sendResetHome();
+		}
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 

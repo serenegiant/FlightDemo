@@ -7,7 +7,7 @@ import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 import com.parrot.arsdk.arstream2.ARStream2Manager;
 import com.parrot.arsdk.arstream2.ARStream2Receiver;
-import com.serenegiant.arflight.Controllers.DeviceController;
+import com.serenegiant.arflight.controllers.DeviceController;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
 /**
