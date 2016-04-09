@@ -37,7 +37,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 public abstract class DeviceControllerNewAPI implements IDeviceController {
@@ -59,7 +58,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 * 切断待ちのためのセマフォ
 	 */
 	private final Semaphore disconnectSent = new Semaphore(0);
-	protected volatile boolean mRequestCancel;
+	protected volatile boolean mRequestDisconnect;
 //	/**
 //	 * 全ての設定取得待ちのためのセマフォ
 //	 * 初期値は0なのでonCommonSettingsStateAllSettingsChangedUpdateかcancelStart内でreleaseするまでは先に進まない
@@ -292,7 +291,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			if (mState != STATE_STOPPED) return false;
 			mState = STATE_STARTING;
 		}
-		mRequestCancel = false;
+		mRequestDisconnect = false;
 		setAlarm(DroneStatus.ALARM_NON);
 
 		boolean failed = startNetwork();
@@ -331,12 +330,18 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	@Override
 	public void cancelStart() {
 		if (DEBUG) Log.v(TAG, "cancelStart:");
-		if (!mRequestCancel) {
-			mRequestCancel = true;
-			internal_cancel_start();
-			if (mARDeviceController != null) {
-				mARDeviceController.stop();
-				mARDeviceController = null;
+		if (!mRequestDisconnect && mRequestConnect) {
+			mRequestDisconnect = true;
+			try {
+				internal_cancel_start();
+				if (mARDeviceController != null) {
+					mARDeviceController.stop();
+					mARDeviceController = null;
+				}
+				disconnectSent.acquire();
+			} catch (InterruptedException e) {
+			} finally {
+				mRequestDisconnect = false;
 			}
 			connectSent.release();
 //			cmdGetAllSettingsSent.release();
@@ -454,6 +459,22 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		onStop();
 		internal_stop();
 
+		if (!mRequestDisconnect && (mARDeviceController != null)) {
+			mRequestDisconnect = true;
+			try {
+				final ARCONTROLLER_ERROR_ENUM error = mARDeviceController.stop();
+				final boolean failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
+				if (failed) {
+					Log.w(TAG, "failed to stop ARController:err=" + error);
+				}
+				disconnectSent.acquire();
+			} catch (final InterruptedException e) {
+
+			} finally {
+				mRequestDisconnect = false;
+			}
+		}
+
 		// ネットワーク接続をクリーンアップ
 		stopNetwork();
 
@@ -471,12 +492,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	protected void stopNetwork() {
-		if (isActive()) {
-			final ARCONTROLLER_ERROR_ENUM error = mARDeviceController.stop();
-			final boolean failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
-			if (failed) {
-				Log.w(TAG, "failed to stop ARController:err=" + error);
-			}
+		if (mARDeviceController != null) {
 			mARDeviceController.dispose();
 			mARDeviceController = null;
 		}
@@ -588,6 +604,9 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		setAlarm(DroneStatus.ALARM_DISCONNECTED);
 		callOnAlarmStateChangedUpdate(DroneStatus.ALARM_DISCONNECTED);
 		callOnDisconnect();
+		if (mRequestDisconnect) {
+			disconnectSent.release();
+		}
 	}
 
 	/** mDeviceControllerListenerの下請け */

@@ -172,21 +172,19 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED:	// (8, "Key used to define the command <code>FlyingStateChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
-		{	// 飛行状態が変化した時の処理 FIXME 未実装
+		{	// 飛行状態が変化した時の処理
 			final ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM state
 				= ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM.getFromValue(
 					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE));
-			// ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_LANDED (0, "Landed state"),
-			// ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_TAKINGOFF (1, "Taking off state"),
-			// ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING (2, "Hovering state"),
-			// ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_FLYING (3, "Flying state"),
-			// ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_LANDING (4, "Landing state"),
-			// ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_EMERGENCY (5, "Emergency state"),
-
+			((DroneStatus)mStatus).setFlyingState(state.getValue() * 0x100);
+			callOnFlyingStateChangedUpdate(getState());
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED:	// (9, "Key used to define the command <code>AlertStateChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// 機体からの異常通知時
+			final int state = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE);
+			mStatus.setAlarm(state);
+			callOnAlarmStateChangedUpdate(getAlarm());
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_NAVIGATEHOMESTATECHANGED:	// (10, "Key used to define the command <code>NavigateHomeStateChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
@@ -346,7 +344,14 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED:	// (50, "Key used to define the command <code>VideoEnableChanged</code> of class <code>MediaStreamingState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// ライブビデオストリーミングの有効無効を受信した時
+			final int enabled = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED);
+			if (DEBUG) Log.v(TAG, "onARDrone3MediaStreamingStateVideoEnableChangedUpdate:enabled=" + enabled);
+
+			// 0: Video streaming is enabled.
+			// 1: Video streaming is disabled.
+			// 2: Video streaming failed to start.
+			mSettings.getCamera().videoStateState(enabled);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSETTINGSSTATE_HOMECHANGED:	// (51, "Key used to define the command <code>HomeChanged</code> of class <code>GPSSettingsState</code> in project <code>ARDrone3</code>"),
@@ -560,6 +565,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 //--------------------------------------------------------------------------------
 	@Override
 	public void setVideoStream(final IVideoStream video_stream) {
+		if (DEBUG) Log.v(TAG, "setVideoStream:" + video_stream);
 		if (video_stream instanceof IVideoStreamNew) {
 			synchronized (mVideoSync) {
 				mVideoStream = (IVideoStreamNew)video_stream;

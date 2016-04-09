@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class VideoStream implements IVideoStreamNew {
-	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = "VideoStream";
 
 	private static final String VIDEO_MIME_TYPE = "video/avc";
@@ -113,15 +113,21 @@ public class VideoStream implements IVideoStreamNew {
 // NewAPIを使う時
 	@Override
 	public void configureDecoder(final ARControllerCodec codec) {
+		if (DEBUG) Log.v(TAG, "configureDecoder:" + codec);
 		ByteBuffer sps = null, pps = null;
 		if (codec.getType() == ARCONTROLLER_STREAM_CODEC_TYPE_ENUM.ARCONTROLLER_STREAM_CODEC_TYPE_H264) {
 			final ARControllerCodec.H264 codecH264 = codec.getAsH264();
 
 			sps = ByteBuffer.wrap(codecH264.getSps().getByteData());
 			pps = ByteBuffer.wrap(codecH264.getPps().getByteData());
+		} else {
+			Log.w(TAG, "unexpected codec type:" + codec.getType());
 		}
 		if (sps != null) {
 			onSpsPpsReady(sps, pps);
+			mDecodeTask.waitForIFrame = false;
+		} else {
+			Log.w(TAG, "sps is null");
 		}
 	}
 
@@ -192,7 +198,7 @@ public class VideoStream implements IVideoStreamNew {
 
 		public void queueFrame(final ARNativeData frame, final boolean isIFrame) {
 //			if (DEBUG) Log.v(TAG, "queueFrame:mediaCodec" + mediaCodec + ",isCodecConfigured=" + isCodecConfigured
-//				+ ",waitForIFrame=" + waitForIFrame + ",isIFrame=" + (frame != null ? frame.isIFrame() : false));
+//				+ ",waitForIFrame=" + waitForIFrame + ",isIFrame=" + isIFrame);
 			if ((mediaCodec != null)) {
 				if (!isCodecConfigured && isIFrame) {
 					final ByteBuffer csdBuffer = getCSD(frame, isIFrame);
@@ -290,10 +296,13 @@ public class VideoStream implements IVideoStreamNew {
 		 * デコーダー用のMediaCodecを生成
 		 */
 		private void initMediaCodec() {
-			try {
-				mediaCodec = MediaCodec.createDecoderByType(VIDEO_MIME_TYPE);
-			} catch (final IOException e) {
-				Log.w(TAG, e);
+			if (DEBUG) Log.v(TAG, "initMediaCodec:");
+			if (mediaCodec == null) {
+				try {
+					mediaCodec = MediaCodec.createDecoderByType(VIDEO_MIME_TYPE);
+				} catch (final IOException e) {
+					Log.w(TAG, e);
+				}
 			}
 		}
 
@@ -303,6 +312,7 @@ public class VideoStream implements IVideoStreamNew {
 		 * @param surface
 		 */
 		private void configureMediaCodec(final ByteBuffer csdBuffer, final Surface surface) {
+			if (DEBUG) Log.v(TAG, "configureMediaCodec:");
 			final MediaFormat format = MediaFormat.createVideoFormat(VIDEO_MIME_TYPE, VIDEO_WIDTH, VIDEO_HEIGHT);
 			format.setByteBuffer("csd-0", csdBuffer);
 
@@ -314,6 +324,7 @@ public class VideoStream implements IVideoStreamNew {
 		}
 
 		private void configureMediaCodec(final ByteBuffer sps, final ByteBuffer pps, final Surface surface) {
+			if (DEBUG) Log.v(TAG, "configureMediaCodec:");
 			final MediaFormat format = MediaFormat.createVideoFormat(VIDEO_MIME_TYPE, VIDEO_WIDTH, VIDEO_HEIGHT);
 			format.setByteBuffer("csd-0", sps);
 			format.setByteBuffer("csd-1", pps);
@@ -329,6 +340,7 @@ public class VideoStream implements IVideoStreamNew {
 		 * デコーダーを破棄
 		 */
 		private void releaseMediaCodec() {
+			if (DEBUG) Log.v(TAG, "releaseMediaCodec:");
 			if ((mediaCodec != null) && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)) {
 				try {
 					if (isCodecConfigured) {
