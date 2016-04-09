@@ -56,14 +56,16 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	}
 
 	@Override
-	protected void setCountryCode(final String code) {
-		super.setCountryCode(code);
+	protected boolean setCountryCode(final String code) {
+		final boolean result = super.setCountryCode(code);
 		mSettings.setCountryCode(code);
+		return result;
 	}
 
-	protected void setAutomaticCountry(final boolean auto) {
-		super.setAutomaticCountry(auto);
+	protected boolean setAutomaticCountry(final boolean auto) {
+		final boolean result = super.setAutomaticCountry(auto);
 		mSettings.setAutomaticCountry(auto);
+		return result;
 	}
 
 	@Override

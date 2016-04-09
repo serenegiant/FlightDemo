@@ -71,6 +71,9 @@ public abstract class DeviceController implements IDeviceController {
 	protected ARNetworkManager mNetManager;
 	protected boolean mMediaOpened;
 
+	/**
+	 * 切断待ちのためのセマフォ
+	 */
 	private final Semaphore disconnectSent = new Semaphore(0);
 	protected volatile boolean mRequestCancel;
 	/**
@@ -204,6 +207,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (mState != STATE_STOPPED) return false;
 			mState = STATE_STARTING;
 		}
+		mRequestCancel = false;
 		setAlarm(DroneStatus.ALARM_NON);
 
 		registerARCommandsListener();
@@ -1158,12 +1162,12 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	@Override
-	public boolean sendTime(final Date currentDate) {
+	public boolean sendTime(final Date currentTime) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonCurrentTime(formattedTime.format(currentDate));
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonCommonCurrentTime(formattedTime.format(currentTime));
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);

@@ -226,7 +226,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_JPEG (1, "Take a 4:3 jpeg photo"),
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_SNAPSHOT (2, "Take a 16:9 snapshot from camera"),
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_JPEG_FISHEYE (3, "Take jpeg fisheye image only"),
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPictureSettingsPictureFormatSelection(type);
 		}
 		return false;
@@ -234,7 +234,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendVideoRecording(final boolean start, final int mass_storage_id) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendMediaRecordVideo(
 				start ? ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_START
 				: ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_STOP,
@@ -245,7 +245,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendVideoRecording(final boolean start) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendMediaRecordVideoV2(
 				start ? ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_ENUM.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_START
 				: ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_ENUM.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_STOP);
@@ -255,7 +255,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendCameraOrientation(final int tilt, final int pan) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendCameraOrientation((byte)tilt, (byte)pan);
 		}
 		return false;
@@ -268,7 +268,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_DAYLIGHT (2, "Daylight white balance"),
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_CLOUDY (3, "Cloudy white balance"),
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_COOL_WHITE (4, "White balance for a flash"),
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			if (auto_white_balance >= 0) {
 				final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM awb
 					= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM.getFromValue(auto_white_balance);
@@ -287,7 +287,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendExposure(final float exposure) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPictureSettingsExpositionSelection(exposure);
 		}
 		return false;
@@ -295,7 +295,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendSaturation(final float saturation) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPictureSettingsSaturationSelection(saturation);
 		}
 		return false;
@@ -303,7 +303,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendTimelapseSelection(final boolean enabled, final float interval) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPictureSettingsTimelapseSelection(enabled ? (byte)1 : (byte)0, interval);
 		}
 		return false;
@@ -311,7 +311,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendVideoAutoRecord(final boolean enabled, final int mass_storage_id) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPictureSettingsVideoAutorecordSelection(enabled ? (byte)1 : (byte)0, (byte)mass_storage_id);
 		}
 		return false;
@@ -356,7 +356,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean enableVideoStreaming(final boolean enable) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendMediaStreamingVideoEnable(enable ? (byte)1 : (byte)0);
 		}
 		return false;
@@ -368,7 +368,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		if (isGPSFixed()) {
 			sendResetHome();
 		}
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingTakeOff();
 		}
 		return false;
@@ -376,7 +376,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean requestLanding() {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingLanding();
 		}
 		return false;
@@ -384,7 +384,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean requestEmergencyStop() {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingEmergency();
 		}
 		return false;
@@ -392,7 +392,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean requestFlatTrim() {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingFlatTrim();
 		}
 		return false;
@@ -400,7 +400,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean startCalibration(final boolean start) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureCommon().sendCalibrationMagnetoCalibration(start ? (byte)1 : (byte)0);
 		}
 		return false;
@@ -408,7 +408,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean setMaxAltitude(final float altitude) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingSettingsMaxAltitude(altitude);
 		}
 		return false;
@@ -416,7 +416,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean setMaxTilt(final float tilt) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingSettingsMaxTilt(tilt);
 		}
 		return false;
@@ -424,7 +424,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean setMaxVerticalSpeed(final float speed) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendSpeedSettingsMaxVerticalSpeed(speed);
 		}
 		return false;
@@ -432,7 +432,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean setMaxRotationSpeed(final float speed) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendSpeedSettingsMaxRotationSpeed(speed);
 		}
 		return false;
@@ -451,7 +451,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendAutoTakeOffMode(final boolean enable) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingAutoTakeOffMode(enable ? (byte)1 : (byte)0);
 		}
 		return false;
@@ -459,7 +459,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean setHasGuard(final boolean has_guard) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendSpeedSettingsHullProtection(has_guard ? (byte)1 : (byte)0);
 		}
 		return false;
@@ -468,7 +468,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	private int _timestampAndSeqNum;
 	@Override
 	protected boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, _timestampAndSeqNum++);
 		}
 		return false;
@@ -490,7 +490,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		// ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_BACK (1, "Flip direction back"),
 		// ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_RIGHT (2, "Flip direction right"),
 		// ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_LEFT (3, "Flip direction left"),
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendAnimationsFlip(dir);
 		}
 		return false;
@@ -566,7 +566,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean requestTakePicture(final int mass_storage_id) {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendMediaRecordPictureV2();
 		}
 		return false;
@@ -608,7 +608,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	}
 
 	public void sendResetHome() {
-		if ((mARDeviceController != null) && (getDeviceState().equals(ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING))) {
+		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendGPSSettingsResetHome();
 		}
 	}

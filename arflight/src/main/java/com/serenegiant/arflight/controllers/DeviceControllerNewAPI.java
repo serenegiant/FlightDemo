@@ -15,6 +15,7 @@ import com.parrot.arsdk.arcontroller.ARDeviceControllerListener;
 import com.parrot.arsdk.arcontroller.ARFeatureCommon;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDevice;
+import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceBLEService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceNetService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryException;
@@ -30,8 +31,11 @@ import com.serenegiant.arflight.configs.ARNetworkConfig;
 
 import java.lang.ref.WeakReference;
 import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.Semaphore;
 
 public abstract class DeviceControllerNewAPI implements IDeviceController {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
@@ -42,6 +46,25 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected final ARNetworkConfig mNetConfig;
 	private final ARDiscoveryDeviceService mDeviceService;
 	protected ARDeviceController mARDeviceController;
+
+	/**
+	 * 切断待ちのためのセマフォ
+	 */
+	private final Semaphore disconnectSent = new Semaphore(0);
+	protected volatile boolean mRequestCancel;
+	/**
+	 * 全ての設定取得待ちのためのセマフォ
+	 * 初期値は0なのでonCommonSettingsStateAllSettingsChangedUpdateかcancelStart内でreleaseするまでは先に進まない
+	 */
+	protected final Semaphore cmdGetAllSettingsSent = new Semaphore(0);
+	protected boolean isWaitingAllSettings;
+
+	/**
+	 * 全てのステータス取得待ちのためのセマフォ
+	 * 初期値が0なのでonCommonCommonStateAllStatesChangedUpdateかcancelStart内でreleaseするまでは先に進まない
+	 */
+	protected final Semaphore cmdGetAllStatesSent = new Semaphore(0);
+	protected boolean isWaitingAllStates;
 
 	protected final Object mStateSync = new Object();
 	private int mState = STATE_STOPPED;
@@ -252,6 +275,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			if (mState != STATE_STOPPED) return false;
 			mState = STATE_STARTING;
 		}
+		mRequestCancel = false;
 		setAlarm(DroneStatus.ALARM_NON);
 
 		boolean failed = startNetwork();
@@ -281,7 +305,19 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	@Override
 	public void cancelStart() {
-
+		if (DEBUG) Log.v(TAG, "cancelStart:");
+		if (!mRequestCancel) {
+			mRequestCancel = true;
+			internal_cancel_start();
+			if (mARDeviceController != null) {
+				mARDeviceController.stop();
+				mARDeviceController = null;
+			}
+			cmdGetAllSettingsSent.release();
+			cmdGetAllStatesSent.release();
+			//TODO see : reset the semaphores or use signals
+		}
+		if (DEBUG) Log.v(TAG, "cancelStart:finished");
 	}
 
 	protected boolean startNetwork() {
@@ -290,7 +326,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		try {
 			device = new ARDiscoveryDevice();
 
-			ARDiscoveryDeviceNetService netDeviceService = (ARDiscoveryDeviceNetService) mDeviceService.getDevice();
+			final ARDiscoveryDeviceNetService netDeviceService = (ARDiscoveryDeviceNetService) mDeviceService.getDevice();
 			device.initWifi(getProductType(), netDeviceService.getName(), netDeviceService.getIp(), netDeviceService.getPort());
 		} catch (final ARDiscoveryException e) {
 			Log.e(TAG, "Exception", e);
@@ -298,7 +334,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			failed = true;
 		}
 		if (device != null) {
-			ARDeviceController deviceController = mARDeviceController = null;
+			ARDeviceController deviceController = null;
 			try {
 				deviceController = new ARDeviceController(device);
 
@@ -312,7 +348,12 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		return failed;
 	}
 
+	/** 接続開始時の追加処理 */
 	protected void internal_start() {
+	}
+
+	/** 接続中断の追加処理 */
+	protected void internal_cancel_start() {
 	}
 
 	/**
@@ -320,6 +361,42 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 */
 	protected void onStarted() {
 		if (DEBUG) Log.v(TAG, "onStarted:");
+		// only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
+		final Date currentDate = new Date(System.currentTimeMillis());
+		sendDate(currentDate);
+		sendTime(currentDate);
+		isWaitingAllSettings = true;
+		try {
+			if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings");
+			if (requestAllSettings()) {
+				try {
+					if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings:wait");
+					//successful = cmdGetAllSettingsSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
+					cmdGetAllSettingsSent.acquire();
+				} catch (final InterruptedException e) {
+					// ignore
+				}
+			}
+		} finally {
+			if (DEBUG) Log.v(TAG, "onStarted:requestAllSettings:finished");
+			isWaitingAllSettings = false;
+		}
+		isWaitingAllStates = true;
+		try {
+			if (DEBUG) Log.v(TAG, "onStarted:requestAllStates");
+			if (requestAllStates()) {
+				try {
+					if (DEBUG) Log.v(TAG, "onStarted:requestAllStates:wait");
+					//successful = cmdGetAllStatesSent.tryAcquire (INITIAL_TIMEOUT_RETRIEVAL_MS, TimeUnit.MILLISECONDS);
+					cmdGetAllStatesSent.acquire();
+				} catch (final InterruptedException e) {
+					// ignore
+				}
+			}
+		} finally {
+			if (DEBUG) Log.v(TAG, "onStarted:requestAllStates:finished");
+			isWaitingAllStates = false;
+		}
 		callOnConnect();
 		if (DEBUG) Log.v(TAG, "onStarted:finished");
 	}
@@ -356,7 +433,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	protected void stopNetwork() {
-		if ((mARDeviceController != null) && (ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(mState))) {
+		if (isActive()) {
 			final ARCONTROLLER_ERROR_ENUM error = mARDeviceController.stop();
 			final boolean failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
 			if (failed) {
@@ -380,27 +457,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			return (mState == STATE_STARTED) && (getAlarm() != DroneStatus.ALARM_DISCONNECTED);
 		}
 	}
-
-	@Override
-	public boolean sendDate(final Date currentDate) {
-		return false;
-	}
-
-	@Override
-	public boolean sendTime(final Date currentDate) {
-		return false;
-	}
-
-	@Override
-	public boolean requestAllSettings() {
-		return false;
-	}
-
-	@Override
-	public boolean requestAllStates() {
-		return false;
-	}
-
 
 	private final ARDeviceControllerListener mDeviceControllerListener = new ARDeviceControllerListener() {
 		@Override
@@ -459,13 +515,20 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		return mDeviceState;
 	}
 
+	protected boolean isActive() {
+		return (mARDeviceController != null)
+			&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(getDeviceState());
+	}
+
 	/** onStateChangedの下請け */
 	protected void onConnect() {
+		if (DEBUG) Log.d(TAG, "onConnect:");
 		mARDeviceController.getFeatureARDrone3().sendMediaStreamingVideoEnable((byte) 1);
 	}
 
 	/** onStateChangedの下請け */
 	protected void onDisconnect() {
+		if (DEBUG) Log.d(TAG, "onDisconnect:");
 		setAlarm(DroneStatus.ALARM_DISCONNECTED);
 		callOnAlarmStateChangedUpdate(DroneStatus.ALARM_DISCONNECTED);
 		callOnDisconnect();
@@ -485,61 +548,204 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 		switch (commandKey) {
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON:	// (157, "Key used to define the feature <code>Common</code>"),
+			break;
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_NETWORKEVENT_DISCONNECTION:	// (158, "Key used to define the command <code>Disconnection</code> of class <code>NetworkEvent</code> in project <code>Common</code>"),
+		{	// ネットワークから切断された時 FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_ALLSETTINGSCHANGED:	// (159, "Key used to define the command <code>AllSettingsChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
+		{	// すべての設定を受信した時
+			if (isWaitingAllSettings) {
+				cmdGetAllSettingsSent.release();
+			}
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_RESETCHANGED:	// (160, "Key used to define the command <code>ResetChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
+		{	// 設定がリセットされた時 FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_PRODUCTNAMECHANGED:	// (161, "Key used to define the command <code>ProductNameChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
+		{	// 製品名を受信した時 FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_PRODUCTVERSIONCHANGED:	// (162, "Key used to define the command <code>ProductVersionChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_PRODUCTSERIALHIGHCHANGED:	// (163, "Key used to define the command <code>ProductSerialHighChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_PRODUCTSERIALLOWCHANGED:	// (164, "Key used to define the command <code>ProductSerialLowChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_COUNTRYCHANGED:	// (165, "Key used to define the command <code>CountryChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_AUTOCOUNTRYCHANGED:	// (166, "Key used to define the command <code>AutoCountryChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_ALLSTATESCHANGED:	// (167, "Key used to define the command <code>AllStatesChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
+		{	// 全てのステータスを受信した時
+			if (isWaitingAllStates) {
+				cmdGetAllStatesSent.release();
+			}
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_BATTERYSTATECHANGED:	// (168, "Key used to define the command <code>BatteryStateChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
-		{
-			// if event received is the battery update
+		{	// バッテリー残量が変化した時
 			final int percent = (Integer) args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_BATTERYSTATECHANGED_PERCENT);
-			// バッテリー残表が変化した時の処理
 			setBattery(percent);
 			callOnUpdateBattery(percent);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED:	// (169, "Key used to define the command <code>MassStorageStateListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED:	// (170, "Key used to define the command <code>MassStorageInfoStateListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_CURRENTDATECHANGED:	// (171, "Key used to define the command <code>CurrentDateChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_CURRENTTIMECHANGED:	// (172, "Key used to define the command <code>CurrentTimeChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOREMAININGLISTCHANGED:	// (173, "Key used to define the command <code>MassStorageInfoRemainingListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_WIFISIGNALCHANGED:	// (174, "Key used to define the command <code>WifiSignalChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED:	// (175, "Key used to define the command <code>SensorsStatesListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_PRODUCTMODEL:	// (176, "Key used to define the command <code>ProductModel</code> of class <code>CommonState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_COUNTRYLISTKNOWN:	// (177, "Key used to define the command <code>CountryListKnown</code> of class <code>CommonState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_OVERHEATSTATE_OVERHEATCHANGED:	// (178, "Key used to define the command <code>OverHeatChanged</code> of class <code>OverHeatState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_OVERHEATSTATE_OVERHEATREGULATIONCHANGED:	// (179, "Key used to define the command <code>OverHeatRegulationChanged</code> of class <code>OverHeatState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_WIFISETTINGSSTATE_OUTDOORSETTINGSCHANGED:	// (180, "Key used to define the command <code>OutdoorSettingsChanged</code> of class <code>WifiSettingsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED:	// (181, "Key used to define the command <code>MavlinkFilePlayingStateChanged</code> of class <code>MavlinkState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_MAVLINKSTATE_MAVLINKPLAYERRORSTATECHANGED:	// (182, "Key used to define the command <code>MavlinkPlayErrorStateChanged</code> of class <code>MavlinkState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CALIBRATIONSTATE_MAGNETOCALIBRATIONSTATECHANGED:	// (183, "Key used to define the command <code>MagnetoCalibrationStateChanged</code> of class <code>CalibrationState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CALIBRATIONSTATE_MAGNETOCALIBRATIONREQUIREDSTATE:	// (184, "Key used to define the command <code>MagnetoCalibrationRequiredState</code> of class <code>CalibrationState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CALIBRATIONSTATE_MAGNETOCALIBRATIONAXISTOCALIBRATECHANGED:	// (185, "Key used to define the command <code>MagnetoCalibrationAxisToCalibrateChanged</code> of class <code>CalibrationState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CALIBRATIONSTATE_MAGNETOCALIBRATIONSTARTEDCHANGED:	// (186, "Key used to define the command <code>MagnetoCalibrationStartedChanged</code> of class <code>CalibrationState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED:	// (187, "Key used to define the command <code>CameraSettingsChanged</code> of class <code>CameraSettingsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_FLIGHTPLANSTATE_AVAILABILITYSTATECHANGED:	// (188, "Key used to define the command <code>AvailabilityStateChanged</code> of class <code>FlightPlanState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_FLIGHTPLANSTATE_COMPONENTSTATELISTCHANGED:	// (189, "Key used to define the command <code>ComponentStateListChanged</code> of class <code>FlightPlanState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_FLIGHTPLANEVENT_STARTINGERROREVENT:	// (190, "Key used to define the command <code>StartingErrorEvent</code> of class <code>FlightPlanEvent</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_FLIGHTPLANEVENT_SPEEDBRIDLEEVENT:	// (191, "Key used to define the command <code>SpeedBridleEvent</code> of class <code>FlightPlanEvent</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_ARLIBSVERSIONSSTATE_CONTROLLERLIBARCOMMANDSVERSION:	// (192, "Key used to define the command <code>ControllerLibARCommandsVersion</code> of class <code>ARLibsVersionsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_ARLIBSVERSIONSSTATE_SKYCONTROLLERLIBARCOMMANDSVERSION:	// (193, "Key used to define the command <code>SkyControllerLibARCommandsVersion</code> of class <code>ARLibsVersionsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_ARLIBSVERSIONSSTATE_DEVICELIBARCOMMANDSVERSION:	// (194, "Key used to define the command <code>DeviceLibARCommandsVersion</code> of class <code>ARLibsVersionsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_AUDIOSTATE_AUDIOSTREAMINGRUNNING:	// (195, "Key used to define the command <code>AudioStreamingRunning</code> of class <code>AudioState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_HEADLIGHTSSTATE_INTENSITYCHANGED:	// (196, "Key used to define the command <code>IntensityChanged</code> of class <code>HeadlightsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_ANIMATIONSSTATE_LIST:	// (197, "Key used to define the command <code>List</code> of class <code>AnimationsState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_ACCESSORYSTATE_SUPPORTEDACCESSORIESLISTCHANGED:	// (198, "Key used to define the command <code>SupportedAccessoriesListChanged</code> of class <code>AccessoryState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_ACCESSORYSTATE_ACCESSORYCONFIGCHANGED:	// (199, "Key used to define the command <code>AccessoryConfigChanged</code> of class <code>AccessoryState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_ACCESSORYSTATE_ACCESSORYCONFIGMODIFICATIONENABLED:	// (200, "Key used to define the command <code>AccessoryConfigModificationEnabled</code> of class <code>AccessoryState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CHARGERSTATE_MAXCHARGERATECHANGED:	// (201, "Key used to define the command <code>MaxChargeRateChanged</code> of class <code>ChargerState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CHARGERSTATE_CURRENTCHARGESTATECHANGED:	// (202, "Key used to define the command <code>CurrentChargeStateChanged</code> of class <code>ChargerState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CHARGERSTATE_LASTCHARGERATECHANGED:	// (203, "Key used to define the command <code>LastChargeRateChanged</code> of class <code>ChargerState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CHARGERSTATE_CHARGINGINFO:	// (204, "Key used to define the command <code>ChargingInfo</code> of class <code>ChargerState</code> in project <code>Common</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_RUNSTATE_RUNIDCHANGED:	// (205, "Key used to define the command <code>RunIdChanged</code> of class <code>RunState</code> in project <code>Common</code>"),
 		{
 			// if event received is the run id
@@ -547,15 +753,111 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG:	// (206, "Key used to define the feature <code>CommonDebug</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG_STATSEVENT_SENDPACKET:	// (207, "Key used to define the command <code>SendPacket</code> of class <code>StatsEvent</code> in project <code>CommonDebug</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG_DEBUGSETTINGSSTATE_INFO:	// (208, "Key used to define the command <code>Info</code> of class <code>DebugSettingsState</code> in project <code>CommonDebug</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG_DEBUGSETTINGSSTATE_LISTCHANGED:	// (209, "Key used to define the command <code>ListChanged</code> of class <code>DebugSettingsState</code> in project <code>CommonDebug</code>"),
+		{	// FIXME 未実装
+			break;
+		}
 		}
 	}
 
-	protected void setCountryCode(final String code) {
+//********************************************************************************
+// データ送受信関係
+//********************************************************************************
+	private static final SimpleDateFormat formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+	private static final SimpleDateFormat formattedTime = new SimpleDateFormat("'T'HHmmssZZZ", Locale.getDefault());
+	@Override
+	public boolean sendDate(final Date currentDate) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isActive()) {
+			result = mARDeviceController.getFeatureCommon().sendCommonCurrentDate(formattedDate.format(currentDate));
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendDate failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
-	protected void setAutomaticCountry(final boolean auto) {
+	@Override
+	public boolean sendTime(final Date currentTime) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isActive()) {
+			result = mARDeviceController.getFeatureCommon().sendCommonCurrentTime(formattedTime.format(currentTime));
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendTime failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestAllSettings() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isActive()) {
+			result = mARDeviceController.getFeatureCommon().sendSettingsAllSettings();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestAllSettings failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestAllStates() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isActive()) {
+			result = mARDeviceController.getFeatureCommon().sendCommonAllStates();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestAllStates failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	/**
+	 * ネットワーク切断要求
+	 * @return
+	 */
+	public boolean sendNetworkDisconnect() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isActive()) {
+			result = mARDeviceController.getFeatureCommon().sendNetworkDisconnect();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#setCountryCode failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	protected boolean setCountryCode(final String code) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isActive()) {
+			result = mARDeviceController.getFeatureCommon().sendSettingsCountry(code);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#setCountryCode failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	protected boolean setAutomaticCountry(final boolean auto) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isActive()) {
+			result = mARDeviceController.getFeatureCommon().sendSettingsAutoCountry(auto ? (byte)1 : (byte)0);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#setAutomaticCountry failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 }
