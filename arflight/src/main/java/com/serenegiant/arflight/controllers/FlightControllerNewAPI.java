@@ -4,7 +4,11 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
+import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
+import com.parrot.arsdk.arcontroller.ARDeviceController;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.FlightControllerListener;
 import com.serenegiant.arflight.DataPCMD;
 import com.serenegiant.arflight.DroneSettings;
@@ -36,6 +40,14 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 		super(context, service, net_config);
 	}
 
+	protected void onCommandReceived(final ARDeviceController deviceController,
+		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
+		final ARControllerArgumentDictionary<Object> args) {
+
+		switch (commandKey) {
+		}
+	}
+
 	@Override
 	protected void internal_start() {
 		if (mNetConfig.hasVideo()) {
@@ -56,16 +68,13 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	}
 
 	@Override
-	protected boolean setCountryCode(final String code) {
-		final boolean result = super.setCountryCode(code);
+	protected void setCountryCode(final String code) {
 		mSettings.setCountryCode(code);
-		return result;
 	}
 
-	protected boolean setAutomaticCountry(final boolean auto) {
-		final boolean result = super.setAutomaticCountry(auto);
+	@Override
+	protected void setAutomaticCountry(final boolean auto) {
 		mSettings.setAutomaticCountry(auto);
-		return result;
 	}
 
 	@Override
@@ -211,6 +220,195 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 		return ((DroneStatus)mStatus).getMotor(index);
 	}
 
+
+//================================================================================
+// コールバック関係
+//================================================================================
+	/**
+	 * コールバックリスナーを設定
+	 * @param listener
+	 */
+	@Override
+	public void addListener(final DeviceConnectionListener listener) {
+		super.addListener(listener);
+		if (listener instanceof FlightControllerListener) {
+			synchronized (mListeners) {
+				mListeners.add((FlightControllerListener) listener);
+				callOnFlyingStateChangedUpdate(((DroneStatus)mStatus).getFlyingState());
+			}
+		}
+	}
+
+	/**
+	 * 指定したコールバックリスナーを取り除く
+	 * @param listener
+	 */
+	@Override
+	public void removeListener(final DeviceConnectionListener listener) {
+		synchronized (mListeners) {
+			if (listener instanceof FlightControllerListener) {
+				mListeners.remove((FlightControllerListener)listener);
+			}
+		}
+		super.removeListener(listener);
+	}
+
+	/**
+	 * 飛行ステータス変更コールバックを呼び出す
+	 * @param state
+	 */
+	protected void callOnFlyingStateChangedUpdate(final int state) {
+		synchronized (mListeners) {
+			for (final FlightControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onFlyingStateChangedUpdate(state);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * フラットトリム実行完了時のコールバックを呼び出す
+	 */
+	protected void callOnFlatTrimChanged() {
+		synchronized (mListeners) {
+			for (final FlightControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onFlatTrimChanged();
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * キャリブレーション状態が変更された時のコールバックを呼び出す
+	 * @param need_calibration
+	 */
+	protected void callOnCalibrationRequiredChanged(final boolean need_calibration) {
+		synchronized (mListeners) {
+			for (final FlightControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onCalibrationRequiredChanged(need_calibration);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * キャリブレーションを開始/終了した時のコールバックを呼び出す
+	 * @param is_start
+	 */
+	protected void callOnCalibrationStartStop(final boolean is_start) {
+		synchronized (mListeners) {
+			for (final FlightControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onCalibrationStartStop(is_start);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * キャリブレーション中の軸が変更された時のコールバックを呼び出す
+	 * @param axis 0:x, 1:y, z:2, 3:none
+	 */
+	protected void callOnCalibrationAxisChanged(final int axis) {
+		synchronized (mListeners) {
+			for (final FlightControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onCalibrationAxisChanged(axis);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 静止画撮影ステータスが変化した時のコールバックを呼び出す
+	 * @param state
+	 */
+	protected void callOnStillCaptureStateChanged(final int state) {
+		final boolean changed = ((DroneStatus)mStatus).setStillCaptureState(state);
+		if (changed) {
+			synchronized (mListeners) {
+				for (final FlightControllerListener listener : mListeners) {
+					if (listener != null) {
+						try {
+							listener.onStillCaptureStateChanged(state);
+						} catch (final Exception e) {
+							if (DEBUG) Log.w(TAG, e);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 動画撮影ステータスが変化した時のコールバックを呼び出す
+	 * @param state
+	 */
+	protected void callOnVideoRecordingStateChanged(final int state) {
+		final boolean changed = ((DroneStatus)mStatus).setVideoRecordingState(state);
+		if (changed) {
+			synchronized (mListeners) {
+				for (final FlightControllerListener listener : mListeners) {
+					if (listener != null) {
+						try {
+							listener.onVideoRecordingStateChanged(state);
+						} catch (final Exception e) {
+							if (DEBUG) Log.w(TAG, e);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 機体のストレージ状態が変化した時のコールバックを呼び出す
+	 * @param mass_storage_id
+	 * @param size
+	 * @param used_size
+	 * @param plugged
+	 * @param full
+	 * @param internal
+	 */
+	protected void callOnUpdateStorageState(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal) {
+		final boolean changed = ((DroneStatus)mStatus).setMassStorageInfo(mass_storage_id, size, used_size, plugged, full, internal);
+		if (changed) {
+			synchronized (mListeners) {
+				for (final FlightControllerListener listener : mListeners) {
+					if (listener != null) {
+						try {
+							listener.onUpdateStorageState(mass_storage_id, size, used_size, plugged, full, internal);
+						} catch (final Exception e) {
+							if (DEBUG) Log.w(TAG, e);
+						}
+					}
+				}
+			}
+		}
+	}
 
 //********************************************************************************
 // 操縦関係

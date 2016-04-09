@@ -224,18 +224,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 * コールバックを登録解除
 	 */
 	protected void unregisterARCommandsListener() {
-		ARCommand.setCommonSettingsStateAllSettingsChangedListener(null);
-		ARCommand.setCommonSettingsStateResetChangedListener(null);
-		ARCommand.setCommonSettingsStateProductNameChangedListener(null);
-		ARCommand.setCommonSettingsStateProductVersionChangedListener(null);
-		ARCommand.setCommonSettingsStateProductSerialHighChangedListener(null);
-		ARCommand.setCommonSettingsStateProductSerialLowChangedListener(null);
-		ARCommand.setCommonSettingsStateCountryChangedListener(null);
-		ARCommand.setCommonSettingsStateAutoCountryChangedListener(null);
-
-		ARCommand.setCommonCommonStateAllStatesChangedListener(null);
-		ARCommand.setCommonCommonStateBatteryStateChangedListener(null);
-
 		ARCommand.setCommonCommonStateMassStorageStateListChangedListener(null);
 		ARCommand.setCommonCommonStateMassStorageInfoStateListChangedListener(null);
 		ARCommand.setCommonCommonStateCurrentDateChangedListener(null);
