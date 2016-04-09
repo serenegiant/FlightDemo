@@ -5,6 +5,8 @@ import android.content.Context;
 import android.util.Log;
 
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_ANTIFLICKERINGSTATE_ELECTRICFREQUENCYCHANGED_FREQUENCY_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_ANTIFLICKERINGSTATE_MODECHANGED_MODE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_GPSSETTINGSSTATE_GPSUPDATESTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_GPSSETTINGS_HOMETYPE_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_GPSSTATE_HOMETYPECHOSENCHANGED_TYPE_ENUM;
@@ -39,6 +41,8 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORL
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_SETTINGSSTATE_MOTORERRORSTATECHANGED_MOTORERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3AntiflickeringStateElectricFrequencyChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3AntiflickeringStateModeChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3CameraStateDefaultCameraOrientationListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3CameraStateOrientationListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener;
@@ -196,6 +200,8 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		ARCommand.setARDrone3GPSSettingsStateGPSUpdateStateChangedListener(mGPSSettingsStateGPSUpdateStateChangedListener);
 		ARCommand.setARDrone3CameraStateOrientationListener(mCameraStateOrientationListener);
 		ARCommand.setARDrone3CameraStateDefaultCameraOrientationListener(mARCommandARDrone3CameraStateDefaultCameraOrientationListener);
+		ARCommand.setARDrone3AntiflickeringStateElectricFrequencyChangedListener(mARCommandARDrone3AntiflickeringStateElectricFrequencyChangedListener);
+		ARCommand.setARDrone3AntiflickeringStateModeChangedListener(mARCommandARDrone3AntiflickeringStateModeChangedListener);
 		ARCommand.setARDrone3GPSStateHomeTypeChosenChangedListener(mARCommandARDrone3GPSStateHomeTypeChosenChangedListener);
 		ARCommand.setARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener(mDebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener);
 		ARCommand.setARDrone3DebugGPSDebugStateNbSatelliteChangedListener(mDebugGPSDebugStateNbSatelliteChangedListener);
@@ -254,6 +260,8 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		ARCommand.setARDrone3GPSSettingsStateGPSUpdateStateChangedListener(null);
 		ARCommand.setARDrone3CameraStateOrientationListener(null);
 		ARCommand.setARDrone3CameraStateDefaultCameraOrientationListener(null);
+		ARCommand.setARDrone3AntiflickeringStateElectricFrequencyChangedListener(null);
+		ARCommand.setARDrone3AntiflickeringStateModeChangedListener(null);
 		ARCommand.setARDrone3GPSStateHomeTypeChosenChangedListener(null);
 		ARCommand.setARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener(null);
 		ARCommand.setARDrone3DebugGPSDebugStateNbSatelliteChangedListener(null);
@@ -1229,6 +1237,45 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		@Override
 		public void onARDrone3CameraStateDefaultCameraOrientationUpdate(final byte tilt, final byte pan) {
 			mSettings.getCamera().pantiltDefault(pan, tilt);
+		}
+	};
+
+	/** ちらつき防止設定の周波数を受信した時 */
+	private final ARCommandARDrone3AntiflickeringStateElectricFrequencyChangedListener
+		mARCommandARDrone3AntiflickeringStateElectricFrequencyChangedListener
+			= new ARCommandARDrone3AntiflickeringStateElectricFrequencyChangedListener() {
+		@Override
+		public void onARDrone3AntiflickeringStateElectricFrequencyChangedUpdate(
+			final ARCOMMANDS_ARDRONE3_ANTIFLICKERINGSTATE_ELECTRICFREQUENCYCHANGED_FREQUENCY_ENUM frequency) {
+
+			int _frequency;
+			switch (frequency) {
+			case ARCOMMANDS_ARDRONE3_ANTIFLICKERINGSTATE_ELECTRICFREQUENCYCHANGED_FREQUENCY_FIFTYHERTZ: //  (0, "Electric frequency of the country is 50hz"),
+				_frequency = 50;
+				break;
+			case ARCOMMANDS_ARDRONE3_ANTIFLICKERINGSTATE_ELECTRICFREQUENCYCHANGED_FREQUENCY_SIXTYHERTZ: //  (1, "Electric frequency of the country is 60hz"),
+			default:
+				_frequency = 60;
+				break;
+			}
+			mSettings.getCamera().antiflickering(_frequency);
+		}
+	};
+
+	/** ちらつき防止設定を受信した時 */
+	private final ARCommandARDrone3AntiflickeringStateModeChangedListener
+		mARCommandARDrone3AntiflickeringStateModeChangedListener
+			= new ARCommandARDrone3AntiflickeringStateModeChangedListener() {
+		@Override
+		public void onARDrone3AntiflickeringStateModeChangedUpdate(
+			final ARCOMMANDS_ARDRONE3_ANTIFLICKERINGSTATE_MODECHANGED_MODE_ENUM mode) {
+
+			switch (mode) {
+			case ARCOMMANDS_ARDRONE3_ANTIFLICKERINGSTATE_MODECHANGED_MODE_AUTO: // (0, "Anti flickering based on the electric frequency previously sent")
+			case ARCOMMANDS_ARDRONE3_ANTIFLICKERINGSTATE_MODECHANGED_MODE_FIXEDFIFTYHERTZ: // (1, "Anti flickering based on a fixed frequency of 50Hz")
+			case ARCOMMANDS_ARDRONE3_ANTIFLICKERINGSTATE_MODECHANGED_MODE_FIXEDSIXTYHERTZ: // (2, "Anti flickering based on a fixed frequency of 60Hz")
+			}
+			mSettings.getCamera().antiflickeringMode(mode.getValue());
 		}
 	};
 

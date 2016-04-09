@@ -1,30 +1,90 @@
 package com.serenegiant.arflight.controllers;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_DEVICE_STATE_ENUM;
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
+import com.parrot.arsdk.arcontroller.ARCONTROLLER_ERROR_ENUM;
 import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
 import com.parrot.arsdk.arcontroller.ARDeviceController;
 import com.parrot.arsdk.arcontroller.ARFeatureSkyController;
+import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.CommonStatus;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.IBridgeController;
-import com.serenegiant.arflight.IVideoStream;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.IWiFiController;
 import com.serenegiant.arflight.VideoStreamDelegater;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
-import com.serenegiant.arflight.configs.ARNetworkConfigSkyController;
+
+import java.util.concurrent.Semaphore;
 
 public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements IBridgeController, IVideoStreamController, IWiFiController {
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final String TAG = SkyControllerNewAPI.class.getSimpleName();
+
+	/**
+	 * 接続待ちのためのセマフォ
+	 */
+	private final Semaphore skyControllerConnectSent = new Semaphore(0);
+	protected volatile boolean mRequestSkyControllerConnect;
+
+	protected CommonStatus mSkyControllerStatus = new CommonStatus();
+	protected ARCONTROLLER_DEVICE_STATE_ENUM mSkyControllerState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
+
 	public SkyControllerNewAPI(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service);
+		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 	}
 
-	protected CommonStatus mSkyControllerStatus;
-	private ARCONTROLLER_DEVICE_STATE_ENUM mSkyControllerState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
+	/** 接続開始時の追加処理 */
+	protected void internal_start() {
+		// onExtensionStateChangedが呼ばれるまで待機する
+		if (!mRequestSkyControllerConnect) {
+			try {
+				mRequestSkyControllerConnect = true;
+				skyControllerConnectSent.acquire();
+			} catch (final InterruptedException e) {
+			} finally {
+				mRequestSkyControllerConnect = false;
+			}
+		}
+		super.internal_start();
+	}
+
+	protected void onStateChanged(final ARDeviceController deviceController,
+		final ARCONTROLLER_DEVICE_STATE_ENUM newState, final ARCONTROLLER_ERROR_ENUM error) {
+		if (DEBUG) Log.v(TAG, "onStateChanged:");
+		synchronized (mStateSync) {
+			super.onStateChanged(deviceController, newState, error);
+			mSkyControllerState = newState;
+		}
+	}
+
+	protected void onExtensionStateChanged(final ARDeviceController deviceController,
+		final ARCONTROLLER_DEVICE_STATE_ENUM newState,
+		final ARDISCOVERY_PRODUCT_ENUM product,
+		final String name, final ARCONTROLLER_ERROR_ENUM error) {
+
+		if (DEBUG) Log.v(TAG, "onExtensionStateChanged:");
+		if (mRequestSkyControllerConnect) {
+			skyControllerConnectSent.release();
+		}
+		synchronized (mStateSync) {
+			super.onExtensionStateChanged(deviceController, newState, product, name, error);
+			mDeviceState = newState;
+		}
+	}
+
+	@Override
+	protected boolean isActive() {
+		synchronized (mStateSync) {
+			return super.isActive() && ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(mSkyControllerState);
+		}
+	}
+
 	@Override
 	protected void onCommandReceived(final ARDeviceController deviceController,
 		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
@@ -189,14 +249,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		default:
 			break;
 		}
-	}
-
-	@Override
-	protected void setCountryCode(final String code) {
-	}
-
-	@Override
-	protected void setAutomaticCountry(final boolean auto) {
 	}
 
 	@Override

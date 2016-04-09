@@ -29,6 +29,9 @@ public class AttributeCamera {
 	/** パンコントロール */
 	private AttributeFloat mPan = new AttributeFloat();
 	private float mPanDefault;
+	/** ちらつき防止設定 */
+	private int mAntiflickeringMode;
+	private int mAntiflickering;
 
 	/** 自動録画設定 */
 	private boolean enableAutoRecord;
@@ -193,6 +196,30 @@ public class AttributeCamera {
 	public int autoRecordMassStorageId() {
 		synchronized (mSync) {
 			return enableAutoRecord ? autoRecordMassStorageId : 0;
+		}
+	}
+
+	public void antiflickeringMode(final int mode) {
+		synchronized (mSync) {
+			mAntiflickeringMode = mode;
+		}
+	}
+
+	public int antiflickeringMode() {
+		synchronized (mSync) {
+			return mAntiflickeringMode;
+		}
+	}
+
+	public void antiflickering(final int frequency) {
+		synchronized (mSync) {
+			mAntiflickering = frequency;
+		}
+	}
+
+	public int antiflickering() {
+		synchronized (mSync) {
+			return mAntiflickering;
 		}
 	}
 }

@@ -28,7 +28,6 @@ import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageInfoRema
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageInfoStateListChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageStateListChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateSensorsStatesListChangedListener;
-//import com.parrot.arsdk.arcommands.ARCommandCommonControllerStateIsPilotingChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonDebugStatsEventSendPacketListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonHeadlightsIntensityListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonHeadlightsStateIntensityChangedListener;

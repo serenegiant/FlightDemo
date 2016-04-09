@@ -527,6 +527,7 @@ public class AutoPilotFragment2NewAPI extends BasePilotFragment implements Color
 
 	@Override
 	protected void startVideoStreaming() {
+		if (DEBUG) Log.v(TAG, "startVideoStreaming:");
 		super.startVideoStreaming();
 		startImageProcessor(
 			512, 256
@@ -537,6 +538,7 @@ public class AutoPilotFragment2NewAPI extends BasePilotFragment implements Color
 
 	@Override
 	protected void stopVideoStreaming() {
+		if (DEBUG) Log.v(TAG, "stopVideoStreaming:");
 		clearAutoPilot();	// 自動操縦解除
 		stopImageProcessor();
 		super.stopVideoStreaming();
@@ -705,6 +707,7 @@ public class AutoPilotFragment2NewAPI extends BasePilotFragment implements Color
 	};
 
 	private void startImageProcessor(final int processing_width, final int processing_height) {
+		if (DEBUG) Log.v(TAG, "startImageProcessor:");
 		mIsRunning = true;
 		if (mControlTask == null) {
 			mControlTask = new ControlTask(mFlightController);

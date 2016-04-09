@@ -52,7 +52,7 @@ import java.util.List;
 import static com.serenegiant.flightdemo.AppConst.*;
 
 public abstract class BasePilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
-//	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = BasePilotFragment.class.getSimpleName();
 
 	static {
@@ -217,9 +217,12 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 			post(new Runnable() {
 				@Override
 				public void run() {
-					if (mVideoStream == null) return;
+					if (mVideoStream == null) {
+						Log.w(TAG, "mVideoStreamが破棄されてる");
+						return;
+					}
 					final IScreen screen = mModelView.getCurrentScreen();
-//					if (DEBUG) Log.v(TAG, "startVideoStreaming:screen=" + screen);
+					if (DEBUG) Log.v(TAG, "startVideoStreaming:screen=" + screen);
 					if (screen instanceof IVideoScreen) {
 						try {
 							final SurfaceTexture surface = ((IVideoScreen) screen).getVideoTexture();
@@ -237,6 +240,8 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 					}
 				}
 			}, 100);
+		} else {
+			Log.w(TAG, "IVideoStreamControllerじゃない");
 		}
 		super.startVideoStreaming();
 	}
@@ -263,6 +268,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	protected void onConnect(final IDeviceController controller) {
 //		if (DEBUG) Log.v(TAG, "onConnect:");
 		super.onConnect(controller);
+
 		mVideoRecording = false;
 		if (mModelView != null) {
 			mModelView.hasGuard((controller instanceof IFlightController) && ((IFlightController)controller).hasGuard());

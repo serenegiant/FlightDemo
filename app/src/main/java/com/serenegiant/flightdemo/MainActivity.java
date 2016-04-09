@@ -37,6 +37,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 	static {
 		ARSDK.loadSDKLibs();
 //		ARSALPrint.setMinimumLogLevel(ARSAL_PRINT_LEVEL_ENUM.ARSAL_PRINT_DEBUG);
+		ARSALPrint.setMinimumLogLevel(ARSAL_PRINT_LEVEL_ENUM.ARSAL_PRINT_ERROR);
 	}
 
 	/**

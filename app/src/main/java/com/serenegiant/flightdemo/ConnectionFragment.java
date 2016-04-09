@@ -285,6 +285,11 @@ public class ConnectionFragment extends BaseFragment {
 					break;
 				case R.id.config_show_btn:
 					switch (product) {
+					case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+						if (BuildConfig.USE_SKYCONTROLLER) {
+							fragment = AutoPilotFragment2NewAPI.newInstance(device, "test005", AutoPilotFragment2NewAPI.MODE_TRACE);
+						}
+						break;
 					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 						fragment = AutoPilotFragment2NewAPI.newInstance(device, "test005", AutoPilotFragment2NewAPI.MODE_TRACE);

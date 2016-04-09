@@ -1,6 +1,7 @@
 package com.serenegiant.arflight.controllers;
 
 import android.content.Context;
+import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -30,6 +31,7 @@ import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
+import com.serenegiant.utils.HandlerThreadHandler;
 
 import java.lang.ref.WeakReference;
 import java.sql.Date;
@@ -48,6 +50,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected final ARNetworkConfig mNetConfig;
 	private final ARDiscoveryDeviceService mDeviceService;
 	protected ARDeviceController mARDeviceController;
+	protected Handler mAsyncHandler;
 
 	/**
 	 * 接続待ちのためのセマフォ
@@ -64,7 +67,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	private int mState = STATE_STOPPED;
 	protected AttributeDevice mInfo;
 	protected CommonStatus mStatus;
-	private ARCONTROLLER_DEVICE_STATE_ENUM mDeviceState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
+	protected ARCONTROLLER_DEVICE_STATE_ENUM mDeviceState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
 
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 
@@ -74,6 +77,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
 		mDeviceService = service;
 		mNetConfig = net_config;
+		mAsyncHandler = HandlerThreadHandler.createHandler(TAG);
 	}
 
 	@Override
@@ -81,6 +85,13 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "release:");
 		stop();
 		mLocalBroadcastManager = null;
+		if (mAsyncHandler != null) {
+			try {
+				mAsyncHandler.getLooper().quit();
+			} catch (final Exception e) {
+			}
+			mAsyncHandler = null;
+		}
 	}
 
 	public Context getContext() {
@@ -291,19 +302,20 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			mRequestConnect = true;
 			try {
 				error = mARDeviceController.start();
-				connectSent.acquire();
+				failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
+				if (!failed) {
+					internal_start();
+					synchronized (mStateSync) {
+						mState = STATE_STARTED;
+					}
+					connectSent.acquire();
+					onStarted();
+					callOnConnect();
+				}
 			} catch (final InterruptedException e) {
-
+				//
 			} finally {
 				mRequestConnect = false;
-			}
-			failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
-			if (!failed) {
-				internal_start();
-				synchronized (mStateSync) {
-					mState = STATE_STARTED;
-				}
-				onStarted();
 			}
 		}
 		if (failed) {
@@ -393,7 +405,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		final Date currentDate = new Date(System.currentTimeMillis());
 		sendDate(currentDate);
 		sendTime(currentDate);
-		callOnConnect();
 		if (DEBUG) Log.v(TAG, "onStarted:終了");
 	}
 
@@ -472,8 +483,10 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	protected boolean isActive() {
-		return (mARDeviceController != null)
-			&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(getDeviceState());
+		synchronized (mStateSync) {
+			return (mARDeviceController != null)
+				&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(getDeviceState());
+		}
 	}
 
 	private final ARDeviceControllerListener mDeviceControllerListener = new ARDeviceControllerListener() {
@@ -568,7 +581,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		final ARDISCOVERY_PRODUCT_ENUM product,
 		final String name, final ARCONTROLLER_ERROR_ENUM error) {
 
-		if (DEBUG) Log.v(TAG, "onExtensionStateChanged:product=" + product + ",name=" + name + ",error" + error);
+		if (DEBUG) Log.v(TAG, "onExtensionStateChanged:product=" + product + ",name=" + name + ",error=" + error);
 	}
 
 	/** mDeviceControllerListenerの下請け */
@@ -927,9 +940,9 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	public boolean sendDate(final Date currentDate) {
 		if (DEBUG) Log.v(TAG, "sendDate:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-//		if (isActive()) {
+		if (isActive()) {
 			result = mARDeviceController.getFeatureCommon().sendCommonCurrentDate(formattedDate.format(currentDate));
-//		}
+		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#sendDate failed:" + result);
 		}
