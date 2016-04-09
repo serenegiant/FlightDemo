@@ -35,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 public abstract class DeviceControllerNewAPI implements IDeviceController {
@@ -70,6 +71,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	private int mState = STATE_STOPPED;
 	protected AttributeDevice mInfo;
 	protected CommonStatus mStatus;
+	private ARCONTROLLER_DEVICE_STATE_ENUM mDeviceState = ARCONTROLLER_DEVICE_STATE_ENUM.eARCONTROLLER_DEVICE_STATE_UNKNOWN_ENUM_VALUE;
 
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 
@@ -322,22 +324,27 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	protected boolean startNetwork() {
 		boolean failed = false;
-		ARDiscoveryDevice device = null;
+		ARDiscoveryDevice discovery_device;
 		try {
-			device = new ARDiscoveryDevice();
+			discovery_device = new ARDiscoveryDevice();
 
-			final ARDiscoveryDeviceNetService netDeviceService = (ARDiscoveryDeviceNetService) mDeviceService.getDevice();
-			device.initWifi(getProductType(), netDeviceService.getName(), netDeviceService.getIp(), netDeviceService.getPort());
+			final Object device = mDeviceService.getDevice();
+			if (device instanceof ARDiscoveryDeviceNetService) {
+				final ARDiscoveryDeviceNetService netDeviceService = (ARDiscoveryDeviceNetService)device;
+				discovery_device.initWifi(getProductType(), netDeviceService.getName(), netDeviceService.getIp(), netDeviceService.getPort());
+			} else if (device instanceof ARDiscoveryDeviceBLEService) {
+				final ARDiscoveryDeviceBLEService bleDeviceService = (ARDiscoveryDeviceBLEService) device;
+				discovery_device.initBLE(getProductType(), getContext().getApplicationContext(), bleDeviceService.getBluetoothDevice());
+			}
 		} catch (final ARDiscoveryException e) {
 			Log.e(TAG, "Exception", e);
 			Log.e(TAG, "Error: " + e.getError());
+			discovery_device = null;
 			failed = true;
 		}
-		if (device != null) {
-			ARDeviceController deviceController = null;
-			try {
-				deviceController = new ARDeviceController(device);
-
+		if (discovery_device != null) {
+			 try {
+				final ARDeviceController deviceController = new ARDeviceController(discovery_device);
 				deviceController.addListener(mDeviceControllerListener);
 				mARDeviceController = deviceController;
 			} catch (final ARControllerException e) {
@@ -454,8 +461,19 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	@Override
 	public boolean isConnected() {
 		synchronized (mStateSync) {
-			return (mState == STATE_STARTED) && (getAlarm() != DroneStatus.ALARM_DISCONNECTED);
+			return isActive() && (mState == STATE_STARTED) && (getAlarm() != DroneStatus.ALARM_DISCONNECTED);
 		}
+	}
+
+	protected ARCONTROLLER_DEVICE_STATE_ENUM getDeviceState() {
+		synchronized (mStateSync) {
+			return mDeviceState;
+		}
+	}
+
+	protected boolean isActive() {
+		return (mARDeviceController != null)
+			&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(getDeviceState());
 	}
 
 	private final ARDeviceControllerListener mDeviceControllerListener = new ARDeviceControllerListener() {
@@ -491,7 +509,10 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected void onStateChanged(final ARDeviceController deviceController,
 		final ARCONTROLLER_DEVICE_STATE_ENUM newState, final ARCONTROLLER_ERROR_ENUM error) {
 
-		mDeviceState = newState;
+		if (DEBUG) Log.v(TAG, "onStateChanged:" + newState + ",error=" + error);
+		synchronized (mStateSync) {
+			mDeviceState = newState;
+		}
 		switch (newState) {
 		case ARCONTROLLER_DEVICE_STATE_STOPPED: 	// (0, "device controller is stopped"),
 			onDisconnect();
@@ -508,16 +529,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		default:
 			break;
 		}
-	}
-
-	private ARCONTROLLER_DEVICE_STATE_ENUM mDeviceState;
-	protected ARCONTROLLER_DEVICE_STATE_ENUM getDeviceState() {
-		return mDeviceState;
-	}
-
-	protected boolean isActive() {
-		return (mARDeviceController != null)
-			&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(getDeviceState());
 	}
 
 	/** onStateChangedの下請け */
@@ -539,6 +550,25 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		final ARCONTROLLER_DEVICE_STATE_ENUM newState,
 		final ARDISCOVERY_PRODUCT_ENUM product,
 		final String name, final ARCONTROLLER_ERROR_ENUM error) {
+
+		if (DEBUG) Log.v(TAG, "onExtensionStateChanged:product=" + product + ",name=" + name + ",error" + error);
+	}
+
+	private void dumpArgs(final ARControllerArgumentDictionary<Object> args) {
+		for (final String key: args.keySet()) {
+			final Object obj = args.get(key);
+			if (obj instanceof Integer) {
+				Log.v(TAG, "dumpArgs:Integer arg" + obj);
+			} else if (obj instanceof Long) {
+				Log.v(TAG, "dumpArgs:Long arg" + obj);
+			} else if (obj instanceof Double) {
+				Log.v(TAG, "dumpArgs:Double arg" + obj);
+			} else if (obj instanceof String) {
+				Log.v(TAG, "dumpArgs:String arg" + obj);
+			} else {
+				Log.v(TAG, "dumpArgs:unknown arg" + obj);
+			}
+		}
 	}
 
 	/** mDeviceControllerListenerの下請け */
@@ -546,6 +576,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
 		final ARControllerArgumentDictionary<Object> args) {
 
+		if (DEBUG) dumpArgs(args);
 		switch (commandKey) {
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON:	// (157, "Key used to define the feature <code>Common</code>"),
 			break;
