@@ -21,12 +21,16 @@ import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IVideoStream;
 import com.serenegiant.arflight.IVideoStreamNew;
 import com.serenegiant.arflight.IWiFiController;
+import com.serenegiant.arflight.WiFiStatus;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.arflight.attribute.AttributeGPS;
 import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.attribute.AttributePosition;
 import com.serenegiant.arflight.configs.ARNetworkConfigARDrone3;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implements ICameraController, IWiFiController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -329,7 +333,19 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED:	// (17, "Key used to define the command <code>WifiScanListChanged</code> of class <code>NetworkState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// WiFiスキャンリストが変更された時
+			/** SSID of the AP */
+			final String ssid  = (String)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_SSID);
+			/** RSSI of the AP in dbm (negative value) 受信信号強度 */
+			final int rssi = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_RSSI);
+			/** The band : 2.4 GHz or 5 GHz */
+			final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_BAND_ENUM band
+				= ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_BAND_ENUM.getFromValue(
+				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_BAND)
+			);
+			/** Channel of the AP */
+			final int channel = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_CHANNEL);
+			onWifiScanListChangedUpdate(ssid, rssi, band, channel);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSTATE_ALLWIFISCANCHANGED:	// (18, "Key used to define the command <code>AllWifiScanChanged</code> of class <code>NetworkState</code> in project <code>ARDrone3</code>"),
@@ -423,11 +439,26 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED:	// (35, "Key used to define the command <code>WifiSelectionChanged</code> of class <code>NetworkSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// WiFiの選択状態が変化した時
+			final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM type
+				= ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM.getFromValue(
+				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE)
+			);
+			final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM band
+				= ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM.getFromValue(
+					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND)
+			);
+			final int channel = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_CHANNEL);
+			onWifiSelectionChangedUpdate(type, band, channel);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED:	// (36, "Key used to define the command <code>WifiSecurityChanged</code> of class <code>NetworkSettingsState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	// WiFiのセキュリティ設定が変化した時
+			final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE_ENUM type
+				= ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE_ENUM.getFromValue(
+				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE)
+			);
+
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTMOTORVERSIONLISTCHANGED:	// (37, "Key used to define the command <code>ProductMotorVersionListChanged</code> of class <code>SettingsState</code> in project <code>ARDrone3</code>"),
@@ -1131,6 +1162,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	}
 //--------------------------------------------------------------------------------
 // GPS関係
+//--------------------------------------------------------------------------------
 	public final AttributeGPS mGPS = new AttributeGPS();
 	public boolean isGPSFixed() {
 		return mGPS.fixed();
@@ -1140,5 +1172,86 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendGPSSettingsResetHome();
 		}
+	}
+
+//--------------------------------------------------------------------------------
+// WiFi関係
+//--------------------------------------------------------------------------------
+	/** WiFiの状態 */
+	private final Map<String, WiFiStatus> mWifiStatus = new HashMap<String, WiFiStatus>();
+
+	/**
+	 * WiFiスキャンリストが変更された時
+	 * @param ssid SSID of the AP
+	 * @param rssi RSSI of the AP in dbm (negative value) 受信信号強度
+	 * @param band The band : 2.4 GHz or 5 GHz
+	 * @param channel Channel of the AP
+	 */
+	protected void onWifiScanListChangedUpdate(
+		final String ssid, final int rssi,
+		final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_BAND_ENUM band,
+		final int channel) {
+		Log.d(TAG, String.format("ssid=%s,rssi=%d,band=%s,channel=%d", ssid, rssi, band.toString(), channel));
+		final String key = band.toString() + Integer.toString(channel);
+		WiFiStatus status = mWifiStatus.get(key);
+		if (status == null) {
+			status = new WiFiStatus(-66);
+		}
+		status.ssid = ssid;
+		status.rssi = rssi;
+		status.band = band.getValue();
+		status.channel = channel;
+	}
+
+	/**
+	 * WiFiスキャンが変化した時
+	 */
+	protected void onAllWifiScanChangedUpdate() {
+		// FIXME 未実装
+	}
+
+	/**
+	 * WiFiチャンネルリストが変化した時
+	 * @param band The band of this channel : 2.4 GHz or 5 GHz
+	 * @param channel The authorized channel.
+	 * @param in_or_out Bit 0 is 1 if channel is authorized outside (0 otherwise) ; Bit 1 is 1 if channel is authorized inside (0 otherwise)
+	 */
+	protected void onWifiAuthChannelListChangedUpdate(
+		final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFIAUTHCHANNELLISTCHANGED_BAND_ENUM band,
+		final byte channel,
+		final byte in_or_out) {
+		Log.d(TAG, String.format("band=%s, channel=%d, in_or_out=%d", band.toString(), channel, in_or_out));
+		final String key = band.toString() + Byte.toString(channel);
+
+		// FIXME 未実装
+	}
+
+	/**
+	 * WiFiチャネルの状態が変化した時
+	 */
+	protected void onAllWifiAuthChannelChangedUpdate() {
+		// FIXME 未実装
+	}
+
+
+	/** WiFiのセキュリティ設定が変化した時 */
+	protected void onWifiSecurityChangedUpdate(
+		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE_ENUM type) {
+
+		// FIXME 未実装
+	}
+
+	/**
+	 * WiFiの選択状態が変化した時
+	 * @param type The type of wifi selection settings
+	 * @param band The actual  wifi band state
+	 * @param channel The channel (depends of the band)
+	 */
+	protected void onWifiSelectionChangedUpdate(
+		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM type,
+		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM band,
+		final int channel) {
+
+		// FIXME 未実装
 	}
 }

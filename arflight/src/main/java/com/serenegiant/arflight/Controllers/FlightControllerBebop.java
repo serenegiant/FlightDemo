@@ -20,6 +20,7 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTA
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_MEDIASTREAMINGSTATE_VIDEOENABLECHANGED_ENABLED_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_NETWORKSETTINGS_WIFISELECTION_BAND_ENUM;
@@ -56,6 +57,7 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordStatePictureState
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordStateVideoStateChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordStateVideoStateChangedV2Listener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaStreamingStateVideoEnableChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3NetworkSettingsStateWifiSecurityChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3NetworkSettingsStateWifiSelectionChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3NetworkStateAllWifiAuthChannelChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3NetworkStateAllWifiScanChangedListener;
@@ -164,6 +166,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		ARCommand.setARDrone3NetworkStateAllWifiScanChangedListener(mNetworkStateAllWifiScanChangedListener);
 		ARCommand.setARDrone3NetworkStateWifiAuthChannelListChangedListener(mNetworkStateWifiAuthChannelListChangedListener);
 		ARCommand.setARDrone3NetworkStateAllWifiAuthChannelChangedListener(mNetworkStateAllWifiAuthChannelChangedListener);
+		ARCommand.setARDrone3NetworkSettingsStateWifiSecurityChangedListener(mARCommandARDrone3NetworkSettingsStateWifiSecurityChangedListener);
 		ARCommand.setARDrone3PilotingSettingsStateMaxAltitudeChangedListener (mPilotingSettingsStateMaxAltitudeChangedListener);
 		ARCommand.setARDrone3PilotingSettingsStateMaxTiltChangedListener (mPilotingSettingsStateMaxTiltChangedListener);
 		ARCommand.setARDrone3PilotingSettingsStateAbsolutControlChangedListener(mPilotingSettingsStateAbsolutControlChangedListener);
@@ -221,6 +224,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		ARCommand.setARDrone3NetworkStateAllWifiScanChangedListener(null);
 		ARCommand.setARDrone3NetworkStateWifiAuthChannelListChangedListener(null);
 		ARCommand.setARDrone3NetworkStateAllWifiAuthChannelChangedListener(null);
+		ARCommand.setARDrone3NetworkSettingsStateWifiSecurityChangedListener(null);
 		ARCommand.setARDrone3PilotingSettingsStateMaxAltitudeChangedListener(null);
 		ARCommand.setARDrone3PilotingSettingsStateMaxTiltChangedListener(null);
 		ARCommand.setARDrone3PilotingSettingsStateAbsolutControlChangedListener(null);
@@ -427,6 +431,17 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		@Override
 		public void onARDrone3NetworkStateAllWifiAuthChannelChangedUpdate() {
 			onAllWifiAuthChannelChangedUpdate();
+		}
+	};
+
+	/** WiFiのセキュリティ設定を受信した時 */
+	private final ARCommandARDrone3NetworkSettingsStateWifiSecurityChangedListener
+		mARCommandARDrone3NetworkSettingsStateWifiSecurityChangedListener
+			= new ARCommandARDrone3NetworkSettingsStateWifiSecurityChangedListener() {
+		@Override
+		public void onARDrone3NetworkSettingsStateWifiSecurityChangedUpdate(
+			final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE_ENUM type) {
+			onWifiSecurityChangedUpdate(type);
 		}
 	};
 
@@ -1558,11 +1573,11 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @param channel Channel of the AP
 	 */
 	protected void onWifiScanListChangedUpdate(
-		final String ssid, final short rssi,
+		final String ssid, final int rssi,
 		final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_BAND_ENUM band,
-		final byte channel) {
+		final int channel) {
 		Log.d(TAG, String.format("ssid=%s,rssi=%d,band=%s,channel=%d", ssid, rssi, band.toString(), channel));
-		final String key = band.toString() + Byte.toString(channel);
+		final String key = band.toString() + Integer.toString(channel);
 		WiFiStatus status = mWifiStatus.get(key);
 		if (status == null) {
 			status = new WiFiStatus(-66);
@@ -1577,6 +1592,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * WiFiスキャンが変化した時
 	 */
 	protected void onAllWifiScanChangedUpdate() {
+		// FIXME 未実装
 	}
 
 	/**
@@ -1591,12 +1607,20 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		final byte in_or_out) {
 		Log.d(TAG, String.format("band=%s, channel=%d, in_or_out=%d", band.toString(), channel, in_or_out));
 		final String key = band.toString() + Byte.toString(channel);
+		// FIXME 未実装
 	}
 
 	/**
 	 * WiFiチャネルの状態が変化した時
 	 */
 	protected void onAllWifiAuthChannelChangedUpdate() {
+		// FIXME 未実装
+	}
+
+
+	/** WiFiのセキュリティ設定が変化した時 */
+	protected void onWifiSecurityChangedUpdate(final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE_ENUM type) {
+		// FIXME 未実装
 	}
 
 	/**
@@ -1608,7 +1632,9 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	protected void onWifiSelectionChangedUpdate(
 		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM type,
 		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM band,
-		final byte channel) {
+		final int channel) {
+
+		// FIXME 未実装
 	}
 
 	/**
