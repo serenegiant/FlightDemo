@@ -201,7 +201,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 						bridge.connectTo(mDeviceInfo);
 						if (mNewAPI) {
-							// FIXME 未実装
+							mController = controller;
 						} else {
 							mController = new FlightControllerBebop(getActivity(), bridge);
 						}
@@ -209,7 +209,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 						bridge.connectTo(mDeviceInfo);
 						if (mNewAPI) {
-							// FIXME 未実装
+							mController = controller;
 						} else {
 							mController = new FlightControllerBebop2(getActivity(), bridge);
 						}
@@ -229,9 +229,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	protected synchronized boolean startDeviceController() {
 		if (DEBUG) Log.v(TAG, "startDeviceController:");
 		boolean result = false;
-/*		if (mController == null) {
-			mController = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
-		} */
 		getController();
 		if (mController != null) {
 			final int state = getState();

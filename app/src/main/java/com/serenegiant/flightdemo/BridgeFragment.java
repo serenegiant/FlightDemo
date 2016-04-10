@@ -182,6 +182,41 @@ public class BridgeFragment extends BaseControllerFragment {
 
 	private final SkyControllerListener mSkyControllerListener = new SkyControllerListener() {
 		@Override
+		public void onSkyControllerConnect(final IDeviceController controller) {
+			if (DEBUG) Log.v(TAG, "onSkyControllerConnect:controller=" + controller);
+		}
+
+		@Override
+		public void onSkyControllerDisconnect(final IDeviceController controller) {
+			if (DEBUG) Log.v(TAG, "onSkyControllerDisconnect:controller=" + controller);
+		}
+
+		@Override
+		public void onSkyControllerUpdateBattery(final IDeviceController controller, final int percent) {
+			if (DEBUG) Log.v(TAG, "onSkyControllerUpdateBattery:controller=" + controller);
+		}
+
+		@Override
+		public void onSkyControllerAlarmStateChangedUpdate(final IDeviceController controller, final int alarm_state) {
+			if (DEBUG) Log.v(TAG, "onSkyControllerAlarmStateChangedUpdate:controller=" + controller);
+		}
+
+		@Override
+		public void onSkyControllerCalibrationRequiredChanged(final IDeviceController controller, final boolean need_calibration) {
+			if (DEBUG) Log.v(TAG, "onSkyControllerCalibrationRequiredChanged:controller=" + controller);
+		}
+
+		@Override
+		public void onSkyControllerCalibrationStartStop(final IDeviceController controller, final boolean isStart) {
+			if (DEBUG) Log.v(TAG, "onSkyControllerCalibrationStartStop:controller=" + controller);
+		}
+
+		@Override
+		public void onSkyControllerCalibrationAxisChanged(final IDeviceController controller, final int axis) {
+			if (DEBUG) Log.v(TAG, "onSkyControllerCalibrationAxisChanged:controller=" + controller);
+		}
+
+		@Override
 		public void onConnect(final IDeviceController controller) {
 			if (DEBUG) Log.v(TAG, "onConnect:controller=" + controller);
 			final SkyController bridge = (SkyController)controller;

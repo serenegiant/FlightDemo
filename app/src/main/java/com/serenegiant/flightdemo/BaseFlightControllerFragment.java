@@ -9,7 +9,6 @@ import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightControllerListener;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
-import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.SkyControllerListener;
 
@@ -150,6 +149,32 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 	}
 
 	/**
+	 * キャリブレーションが必要かどうかが変化した時のコールバック
+	 * @param need_calibration
+	 */
+	protected void skyControllerUpdateCalibrationRequired(final IDeviceController controller, final boolean need_calibration) {
+	}
+
+	/**
+	 * キャリブレーションを開始した
+	 */
+	protected void onSkyControllerStartCalibration(final IDeviceController controller) {
+	}
+
+	/**
+	 * キャリブレーションが終了した
+	 */
+	protected void onSkyControllerStopCalibration(final IDeviceController controller) {
+	}
+
+	/**
+	 * キャリブレーション中の軸が変更された
+	 * @param axis
+	 */
+	protected void skyControllerUpdateCalibrationAxisChanged(final IDeviceController controller, final int axis) {
+	}
+
+	/**
 	 * 静止画撮影ステータスが変化した時のコールバック
 	 * @param picture_state DroneStatus#MEDIA_XXX
 	 */
@@ -180,40 +205,24 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 	private final class MyFlightControllerListener implements  FlightControllerListener, SkyControllerListener {
 		@Override
 		public void onConnect(final IDeviceController controller) {
-			if (controller instanceof ISkyController) {
-				onSkyControllerConnect(controller);
-			} else {
-				BaseFlightControllerFragment.this.onConnect(controller);
-			}
+			BaseFlightControllerFragment.this.onConnect(controller);
 		}
 
 		@Override
 		public void onDisconnect(final IDeviceController controller) {
 			if (DEBUG) Log.v(TAG, "mFlightControllerListener#onDisconnect");
-			if (controller instanceof ISkyController) {
-				onSkyControllerDisconnect(controller);
-			} else {
-				BaseFlightControllerFragment.this.onDisconnect(controller);
-			}
+			BaseFlightControllerFragment.this.onDisconnect(controller);
 		}
 
 		@Override
 		public void onUpdateBattery(final IDeviceController controller, final int percent) {
-			if (controller instanceof ISkyController) {
-				skyControllerUpdateBattery(controller);
-			} else {
-				updateBattery(controller);
-			}
+			updateBattery(controller);
 		}
 
 		@Override
 		public void onAlarmStateChangedUpdate(final IDeviceController controller, int alarm_state) {
 			if (DEBUG) Log.v(TAG, "mFlightControllerListener#onAlarmStateChangedUpdate:state=" + alarm_state);
-			if (controller instanceof ISkyController) {
-				skyControllerUpdateAlarmState(alarm_state);
-			} else {
-				updateAlarmState(alarm_state);
-			}
+			updateAlarmState(alarm_state);
 		}
 
 		@Override
@@ -268,6 +277,44 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 			updateStorageState(mass_storage_id, size, used_size, plugged, full, internal);
 		}
 
+		@Override
+		public void onSkyControllerConnect(final IDeviceController controller) {
+			onSkyControllerConnect(controller);
+		}
+
+		@Override
+		public void onSkyControllerDisconnect(final IDeviceController controller) {
+			onSkyControllerDisconnect(controller);
+		}
+
+		@Override
+		public void onSkyControllerUpdateBattery(final IDeviceController controller, final int percent) {
+			skyControllerUpdateBattery(controller);
+		}
+
+		@Override
+		public void onSkyControllerAlarmStateChangedUpdate(final IDeviceController controller, final int alarm_state) {
+			skyControllerUpdateAlarmState(alarm_state);
+		}
+
+		@Override
+		public void onSkyControllerCalibrationRequiredChanged(final IDeviceController controller, final boolean need_calibration) {
+			skyControllerUpdateCalibrationRequired(controller, need_calibration);
+		}
+
+		@Override
+		public void onSkyControllerCalibrationStartStop(final IDeviceController controller, final boolean isStart) {
+			if (isStart) {
+				onSkyControllerStartCalibration(controller);
+			} else {
+				onSkyControllerStopCalibration(controller);
+			}
+		}
+
+		@Override
+		public void onSkyControllerCalibrationAxisChanged(final IDeviceController controller, final int axis) {
+			skyControllerUpdateCalibrationAxisChanged(controller, axis);
+		}
 	}
 
 }
