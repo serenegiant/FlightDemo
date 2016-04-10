@@ -39,7 +39,7 @@ import static com.serenegiant.arflight.ARFlightConst.*;
  * 検出している機体の一覧取得＆選択を行うためのFragment
  */
 public class BridgeFragment extends BaseControllerFragment {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = BridgeFragment.class.getSimpleName();
 
 	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device) {
@@ -148,6 +148,7 @@ public class BridgeFragment extends BaseControllerFragment {
 
 		mDownloadBtn = (ImageButton)rootView.findViewById(R.id.download_button);
 		mDownloadBtn.setOnClickListener(mOnClickListener);
+		mDownloadBtn.setOnLongClickListener(mOnLongClickListener);
 
 		mPilotBtn = (ImageButton)rootView.findViewById(R.id.pilot_button);
 		mPilotBtn.setOnClickListener(mOnClickListener);
@@ -237,6 +238,7 @@ public class BridgeFragment extends BaseControllerFragment {
 //					bridge.requestDeviceList();
 //					bridge.requestCurrentDevice();
 //					bridge.setSkyControllerSSID("SkyController_8376");
+//					bridge.setSkyControllerSSID("SkyController_saki");
 //					bridge.resetSettings();
 //					bridge.resetCameraOrientation();
 //					bridge.requestPresetAxisFilters();
@@ -340,6 +342,7 @@ public class BridgeFragment extends BaseControllerFragment {
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
 		public void onClick(final View view) {
+			if (DEBUG) Log.v(TAG, "onClick:");
 			Fragment fragment = null;
 			switch (view.getId()) {
 			case R.id.pilot_button:
@@ -366,6 +369,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		@Override
 		public boolean onLongClick(final View view) {
 			if (mPilotBtn.getVisibility() != View.VISIBLE) return false;
+			if (DEBUG) Log.v(TAG, "onLongClick:");
 			mVibrator.vibrate(50);
 			Fragment fragment = null;
 			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
@@ -376,7 +380,7 @@ public class BridgeFragment extends BaseControllerFragment {
 			final ARDiscoveryDeviceService device = mController.getDeviceService();
 			if (device != null) {
 				// 製品名を取得
-				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
+				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(info.productId());
 				final int id = view.getId();
 				switch (id) {
 				case R.id.pilot_button:
@@ -399,8 +403,18 @@ public class BridgeFragment extends BaseControllerFragment {
 						case R.id.script_button:
 							fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test014", AutoPilotFragment2.MODE_TRACKING);
 							break;
+						default:
+							Log.w(TAG, "未知のview idが来た。なんでやねん:" + id);
+							break;
 						}
+						break;
+					default:
+						Log.w(TAG, "未知の機体が来た:" + product);
+						break;
 					}
+					break;
+				default:
+					Log.w(TAG, "未知のview idが来た:" + id);
 					break;
 				}
 			} else {
@@ -415,6 +429,7 @@ public class BridgeFragment extends BaseControllerFragment {
 	};
 
 	private Fragment getFragment(final int position, final boolean isPiloting) {
+		if (DEBUG) Log.v(TAG, "getFragment:");
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
 //		final String itemValue = adapter.getItemName(position);
@@ -487,8 +502,8 @@ public class BridgeFragment extends BaseControllerFragment {
 		public void onCompletion(final MediaPlayer mp) {
 			// 再生が終了したら最初に戻って再度再生する
 			// 全体を再生し直すなら#onPreparedでMediaPlayer#setLooping(true);を呼ぶ方が簡単
-	//			mp.seekTo(0);
-	//			mp.start();
+//			mp.seekTo(0);
+//			mp.start();
 		}
 	};
 }

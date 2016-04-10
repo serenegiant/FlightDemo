@@ -79,4 +79,8 @@ public class DeviceInfo implements Parcelable {
 		dest.writeInt(mProductId);
 		dest.writeInt(connectionState);
 	}
+
+	public String toString() {
+		return String.format("DeviceInfo(%s,id=%d,state=%d)", mName, mProductId, connectionState);
+	}
 }
