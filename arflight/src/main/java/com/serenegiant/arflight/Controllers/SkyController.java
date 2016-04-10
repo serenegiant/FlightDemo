@@ -1574,6 +1574,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * onSkyControllerDeviceStateConnexionChangedUpdateが呼ばれる
 	 * SSIDもリセットされる
 	 */
+	@Override
 	public boolean resetSettings() {
 		if (DEBUG) Log.v(TAG, "resetSettings:");
 
@@ -1607,6 +1608,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * @param ssid 設定するSSID 使用可能な文字数はたぶん32文字, 半角英数+α
 	 * @return
 	 */
+	@Override
 	public boolean setSkyControllerSSID(final String ssid) {
 		if (DEBUG) Log.v(TAG, "setSkyControllerSSID:ssid=" + ssid);
 		if (TextUtils.isEmpty(ssid)) return false;
@@ -1634,6 +1636,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * スカイコントローラーが検出しているWiFiアクセスポイント一覧を要求
 	 * 周囲に存在するWiFiの状態を確認するぐらいにしか役に立たない
 	 */
+	@Override
 	public boolean requestWifiList() {
 		if (DEBUG) Log.v(TAG, "requestWifiList:");
 		boolean sentStatus = true;
@@ -1659,6 +1662,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * これを呼ぶとARCommandSkyControllerWifiStateConnexionChangedListenerと
 	 * ARCommandSkyControllerDeviceStateConnexionChangedListenerのコールバックメソッドが呼び出される
 	 */
+	@Override
 	public boolean requestCurrentWiFi() {
 		if (DEBUG) Log.v(TAG, "requestCurrentWiFi:");
 		boolean sentStatus = true;
@@ -1686,6 +1690,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * @param passphrase
 	 * @return
 	 */
+	@Override
 	public boolean connectToWiFi(final String bssid, final String ssid, final String passphrase) {
 		if (DEBUG) Log.v(TAG, "requestForgetWiFi:");
 		if (TextUtils.isEmpty(ssid)) return false;
@@ -1713,6 +1718,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * @param ssid
 	 * @return
 	 */
+	@Override
 	public boolean requestForgetWiFi(final String ssid) {
 		if (DEBUG) Log.v(TAG, "requestForgetWiFi:");
 		if (TextUtils.isEmpty(ssid)) return false;
@@ -1739,6 +1745,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	/**
 	 * スカイコントローラーが検出している機体一覧を要求
 	 */
+	@Override
 	public boolean requestDeviceList() {
 		if (DEBUG) Log.v(TAG, "requestDeviceList:");
 		boolean sentStatus = true;
@@ -1767,6 +1774,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * 接続している機体がなくてもARCommandSkyControllerDeviceStateConnexionChangedListenerのコールバックメソッドが呼び出される
 	 * (ARCommandSkyControllerWifiStateConnexionChangedListenerは来ない)
 	 */
+	@Override
 	public boolean requestCurrentDevice() {
 		if (DEBUG) Log.v(TAG, "requestCurrentDevice:");
 		boolean sentStatus = true;
@@ -1792,6 +1800,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * @param deviceName
 	 * @return true 接続できなかった
 	 */
+	@Override
 	public boolean connectToDevice(final String deviceName) {
 		if (DEBUG) Log.v(TAG, "connectToDevice:");
 		if (TextUtils.isEmpty(deviceName)) return false;
@@ -1830,6 +1839,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * ARCommandSkyControllerCoPilotingStatePilotingSourceListenerのコールバックメソッドが呼ばれる。なんでやねん
 	 * @param _source 0: スカイコントローラーを使用する, 1: タブレット/スマホを使用する
 	 */
+	@Override
 	public boolean setCoPilotingSource(final int _source) {
 		if (DEBUG) Log.v(TAG, "setCoPilotingSource:");
 		boolean sentStatus = true;
@@ -1860,6 +1870,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * カメラのpan/tiltをリセットする
 	 * FIXME 機体のカメラなんかな? これを呼んでも何のコールバックもこない. スカイコントローラー自体のアプリ用なのかも
 	 */
+	@Override
 	public boolean resetCameraOrientation() {
 		if (DEBUG) Log.v(TAG, "resetCameraOrientation:");
 
@@ -1884,6 +1895,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	/**
 	 * スカイコントローラーのボタン・ジョイスティック等の一覧を要求する
 	 */
+	@Override
 	public boolean requestGamepadControls() {
 		if (DEBUG) Log.v(TAG, "requestGamepadControls:");
 
@@ -1912,6 +1924,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	}
 
 	/** 現在のボタン割当設定を要求 */
+	@Override
 	public boolean requestCurrentButtonMappings() {
 		if (DEBUG) Log.v(TAG, "requestCurrentButtonMappings:");
 
@@ -1940,6 +1953,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	}
 
 	/** 使用可能なボタン割当設定を要求 */
+	@Override
 	public boolean requestAvailableButtonMappings() {
 		if (DEBUG) Log.v(TAG, "requestAvailableButtonMappings:");
 
@@ -1973,6 +1987,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * @param mapping_uid ボタン機能ID
 	 * @return
 	 */
+	@Override
 	public boolean setButtonMapping(final int key_id, final String mapping_uid) {
 		if (DEBUG) Log.v(TAG, "setButtonMapping:");
 
@@ -1998,6 +2013,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * ボタン割り付け設定をデフォルトにリセットする
 	 * @return
 	 */
+	@Override
 	public boolean resetButtonMapping() {
 		if (DEBUG) Log.v(TAG, "resetButtonMapping:");
 
@@ -2021,6 +2037,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 
 
 	/** 現在のジョイスティック割当設定を要求 */
+	@Override
 	public boolean requestCurrentAxisMappings() {
 		if (DEBUG) Log.v(TAG, "requestCurrentAxisMappings:");
 
@@ -2049,6 +2066,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	}
 
 	/** 使用可能なジョイスティック割当設定を要求 */
+	@Override
 	public boolean requestAvailableAxisMappings() {
 		if (DEBUG) Log.v(TAG, "connectToDevice:");
 
@@ -2082,6 +2100,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * @param mapping_uid ジョイスティックの機能ID
 	 * @return
 	 */
+	@Override
 	public boolean setAxisMapping(final int axis_id, final String mapping_uid) {
 		if (DEBUG) Log.v(TAG, "setAxisMapping:");
 
@@ -2110,6 +2129,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * もしかすると1回目は変更前で2回目が変更後なのかも
 	 * @return
 	 */
+	@Override
 	public boolean resetAxisMapping() {
 		if (DEBUG) Log.v(TAG, "resetAxisMapping:");
 
@@ -2132,6 +2152,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	}
 
 	/** ジョイスティックの入力フィルター設定を要求 */
+	@Override
 	public boolean requestCurrentAxisFilters() {
 		if (DEBUG) Log.v(TAG, "requestCurrentAxisFilters:");
 
@@ -2160,6 +2181,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	}
 
 	/** ジョイスティックの入力フィルターのプリセット設定を要求 */
+	@Override
 	public boolean requestPresetAxisFilters() {
 		if (DEBUG) Log.v(TAG, "requestPresetAxisFilters:");
 
@@ -2193,6 +2215,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * @param filter_uid_or_builder フィルターID
 	 * @return
 	 */
+	@Override
 	public boolean setAxisFilter(final int axis_id, final String filter_uid_or_builder) {
 		if (DEBUG) Log.v(TAG, "setAxisFilter:");
 
@@ -2218,6 +2241,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * ジョイスティックの入力フィルターをデフォルトにリセットする
 	 * @return
 	 */
+	@Override
 	public boolean resetAxisFilter() {
 		if (DEBUG) Log.v(TAG, "resetAxisFilter:");
 
@@ -2244,6 +2268,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * @param enable
 	 * @return
 	 */
+	@Override
 	public boolean setMagnetoCalibrationQualityUpdates(final boolean enable) {
 		if (DEBUG) Log.v(TAG, "setMagnetoCalibrationQualityUpdates:");
 
@@ -2272,6 +2297,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * FIXME スカイコントローラー自体のアプリ用なのかも
 	 * @return
 	 */
+	@Override
 	public boolean requestButtonEventsSettings() {
 		if (DEBUG) Log.v(TAG, "requestButtonEventsSettings:");
 
@@ -2298,6 +2324,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * @param t1Args
 	 * @return
 	 */
+	@Override
 	public boolean setDebugTest1(final byte t1Args) {
 		if (DEBUG) Log.v(TAG, "setDebugTest1:");
 

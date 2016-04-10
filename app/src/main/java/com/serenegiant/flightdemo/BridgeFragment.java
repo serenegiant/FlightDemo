@@ -25,9 +25,9 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.ARDeviceInfoAdapter;
 import com.serenegiant.arflight.DeviceInfo;
+import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.ManagerFragment;
-import com.serenegiant.arflight.controllers.SkyController;
 import com.serenegiant.arflight.SkyControllerListener;
 import com.serenegiant.widget.PlayerTextureView;
 
@@ -92,10 +92,10 @@ public class BridgeFragment extends BaseControllerFragment {
 		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
 			mMediaPlayer.start();
 		}
-		if (mController instanceof SkyController) {
+		if (mController instanceof IBridgeController) {
 			mController.addListener(mSkyControllerListener);
 			if (mController.isConnected()) {
-				((SkyController)mController).requestDeviceList();
+				((IBridgeController)mController).requestDeviceList();
 			}
 		}
 		startDeviceController();
@@ -148,14 +148,22 @@ public class BridgeFragment extends BaseControllerFragment {
 
 		mDownloadBtn = (ImageButton)rootView.findViewById(R.id.download_button);
 		mDownloadBtn.setOnClickListener(mOnClickListener);
+
 		mPilotBtn = (ImageButton)rootView.findViewById(R.id.pilot_button);
 		mPilotBtn.setOnClickListener(mOnClickListener);
+		mPilotBtn.setOnLongClickListener(mOnLongClickListener);
+
 		ImageButton button = (ImageButton)rootView.findViewById(R.id.gallery_button);
 		button.setOnClickListener(mOnClickListener);
+		button.setOnLongClickListener(mOnLongClickListener);
+
 		button = (ImageButton)rootView.findViewById(R.id.script_button);
 		button.setOnClickListener(mOnClickListener);
+		button.setOnLongClickListener(mOnLongClickListener);
+
 		button = (ImageButton)rootView.findViewById(R.id.config_show_btn);
 		button.setOnClickListener(mOnClickListener);
+		button.setOnLongClickListener(mOnLongClickListener);
 	}
 
 	private void updateButtons(final boolean visible) {
@@ -219,7 +227,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		@Override
 		public void onConnect(final IDeviceController controller) {
 			if (DEBUG) Log.v(TAG, "onConnect:controller=" + controller);
-			final SkyController bridge = (SkyController)controller;
+			final IBridgeController bridge = (IBridgeController)controller;
 			post(new Runnable() {
 				@Override
 				public void run() {
@@ -244,8 +252,8 @@ public class BridgeFragment extends BaseControllerFragment {
 					try {
 						final DeviceInfo info = bridge.connectDeviceInfo();
 						if (bridge.isConnected() && (info != null)) {
-							// 既に接続されていたら操縦画面へ
-							replace(PilotFragment2.newInstance(controller.getDeviceService(), info));
+							if (DEBUG) Log.v(TAG, "既に接続されていたら操縦画面へ");
+//							replace(PilotFragment2.newInstance(controller.getDeviceService(), info));
 						}
 					} catch (final Exception e) {
 					}
@@ -354,10 +362,62 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 	};
 
+	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
+		@Override
+		public boolean onLongClick(final View view) {
+			if (mPilotBtn.getVisibility() != View.VISIBLE) return false;
+			mVibrator.vibrate(50);
+			Fragment fragment = null;
+			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+			final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
+			final int position = mDeviceListView.getCheckedItemPosition();
+//			final String itemValue = adapter.getItemName(position);
+			final DeviceInfo info = adapter.getItem(position);
+			final ARDiscoveryDeviceService device = mController.getDeviceService();
+			if (device != null) {
+				// 製品名を取得
+				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
+				final int id = view.getId();
+				switch (id) {
+				case R.id.pilot_button:
+				case R.id.download_button:
+				case R.id.gallery_button:
+				case R.id.script_button:
+					switch (product) {
+					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+						switch (id) {
+						case R.id.pilot_button:
+							fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test011", AutoPilotFragment2.MODE_TRACE);
+							break;
+						case R.id.download_button:
+							fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test012", AutoPilotFragment2.MODE_TRACE);
+							break;
+						case R.id.gallery_button:
+							fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test013", AutoPilotFragment2.MODE_TRACE);
+							break;
+						case R.id.script_button:
+							fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test014", AutoPilotFragment2.MODE_TRACKING);
+							break;
+						}
+					}
+					break;
+				}
+			} else {
+				Log.w(TAG, "機体が取得できなかった:position=" + position);
+			}
+			if (fragment != null) {
+				replace(fragment);
+				return true;
+			}
+			return false;
+		}
+	};
+
 	private Fragment getFragment(final int position, final boolean isPiloting) {
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
-		final String itemValue = adapter.getItemName(position);
+//		final String itemValue = adapter.getItemName(position);
 		final DeviceInfo info = adapter.getItem(position);
 		Fragment fragment = null;
 		// 製品名を取得

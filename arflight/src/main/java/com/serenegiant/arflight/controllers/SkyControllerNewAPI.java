@@ -9,6 +9,7 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGSS
 import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_CALIBRATIONSTATE_MAGNETOCALIBRATIONSTATE_STATUS_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_SKYCONTROLLER_SETTINGSSTATE_PRODUCTVARIANTCHANGED_VARIANT_ENUM;
@@ -697,6 +698,96 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return mConnectDevice;
 	}
 
+	public boolean requestAllSettings() {
+		super.requestAllSettings();
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		result = mARDeviceController.getFeatureSkyController().sendSettingsAllSettings();
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean requestAllStates() {
+		super.requestAllStates();
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		result = mARDeviceController.getFeatureSkyController().sendCommonAllStates();
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean resetSettings() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendSettingsReset();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean setSkyControllerSSID(final String ssid) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendAccessPointSettingsAccessPointSSID(ssid);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+//	public ARCONTROLLER_ERROR_ENUM sendAccessPointSettingsAccessPointChannel (byte _channel)
+//	public ARCONTROLLER_ERROR_ENUM sendWifiWifiAuthChannel ()
+//	public ARCONTROLLER_ERROR_ENUM sendAccessPointSettingsWifiSelection (ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_TYPE_ENUM _type, ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_BAND_ENUM _band, byte _channel)
+
+	@Override
+	public boolean requestWifiList() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendWifiRequestWifiList();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestCurrentWiFi() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendWifiRequestCurrentWifi();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean connectToWiFi(final String bssid, final String ssid, final String passphrase) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendWifiConnectToWifi(bssid, ssid, passphrase);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestForgetWiFi(final String ssid) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendWifiForgetWifi(ssid);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestDeviceList() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestDeviceList();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestCurrentDevice() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestCurrentDevice();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
 	/**
 	 * 指定したデバイス名を持つ機体へ接続する
 	 * @param deviceName
@@ -730,6 +821,162 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
+	@Override
+	public boolean setCoPilotingSource(final int _source) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			final ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM source
+				= ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM.getFromValue(_source % 2);
+			result = mARDeviceController.getFeatureSkyController().sendCoPilotingSetPilotingSource(source);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean resetCameraOrientation() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendCameraResetOrientation();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestGamepadControls() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendGamepadInfosGetGamepadControls();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestCurrentButtonMappings() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsGetCurrentButtonMappings();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestAvailableButtonMappings() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsGetAvailableButtonMappings();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean setButtonMapping(final int key_id, final String mapping_uid) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsSetButtonMapping(key_id, mapping_uid);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean resetButtonMapping() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsDefaultButtonMapping();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestCurrentAxisMappings() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsGetCurrentAxisMappings();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestAvailableAxisMappings() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsGetAvailableAxisMappings();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean setAxisMapping(final int axis_id, final String mapping_uid) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsSetAxisMapping(axis_id, mapping_uid);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean resetAxisMapping() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsDefaultAxisMapping();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestCurrentAxisFilters() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersGetCurrentAxisFilters();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestPresetAxisFilters() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersGetPresetAxisFilters();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean setAxisFilter(final int axis_id, final String filter_uid_or_builder) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersSetAxisFilter(axis_id, filter_uid_or_builder);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean resetAxisFilter() {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersDefaultAxisFilters();
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean setMagnetoCalibrationQualityUpdates(final boolean enable) {
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureSkyController().sendCalibrationEnableMagnetoCalibrationQualityUpdates(enable ? (byte)1 : (byte)0);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public boolean requestButtonEventsSettings() {
+		return false;
+	}
+
+	@Override
+	public boolean setDebugTest1(final byte t1Args) {
+		return false;
+	}
+
 //================================================================================
 // ISkyController
 //================================================================================
@@ -742,35 +989,5 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public int getBatterySkyController() {
 		return mSkyControllerStatus.getBattery();
 	}
-
-//	public ARCONTROLLER_ERROR_ENUM sendWifiRequestWifiList ()
-//	public ARCONTROLLER_ERROR_ENUM sendWifiRequestCurrentWifi ()
-//	public ARCONTROLLER_ERROR_ENUM sendWifiConnectToWifi (String _bssid, String _ssid, String _passphrase)
-//	public ARCONTROLLER_ERROR_ENUM sendWifiForgetWifi (String _ssid)
-//	public ARCONTROLLER_ERROR_ENUM sendWifiWifiAuthChannel ()
-//	public ARCONTROLLER_ERROR_ENUM sendDeviceRequestDeviceList ()
-//	public ARCONTROLLER_ERROR_ENUM sendDeviceRequestCurrentDevice ()
-//	public ARCONTROLLER_ERROR_ENUM sendSettingsAllSettings ()
-//	public ARCONTROLLER_ERROR_ENUM sendSettingsReset ()
-//	public ARCONTROLLER_ERROR_ENUM sendCommonAllStates ()
-//	public ARCONTROLLER_ERROR_ENUM sendAccessPointSettingsAccessPointSSID (String _ssid)
-//	public ARCONTROLLER_ERROR_ENUM sendAccessPointSettingsAccessPointChannel (byte _channel)
-//	public ARCONTROLLER_ERROR_ENUM sendAccessPointSettingsWifiSelection (ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_TYPE_ENUM _type, ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_BAND_ENUM _band, byte _channel)
-//	public ARCONTROLLER_ERROR_ENUM sendCameraResetOrientation ()
-//	public ARCONTROLLER_ERROR_ENUM sendGamepadInfosGetGamepadControls ()
-//	public ARCONTROLLER_ERROR_ENUM sendButtonMappingsGetCurrentButtonMappings ()
-//	public ARCONTROLLER_ERROR_ENUM sendButtonMappingsGetAvailableButtonMappings ()
-//	public ARCONTROLLER_ERROR_ENUM sendButtonMappingsSetButtonMapping (int _key_id, String _mapping_uid)
-//	public ARCONTROLLER_ERROR_ENUM sendButtonMappingsDefaultButtonMapping ()
-//	public ARCONTROLLER_ERROR_ENUM sendAxisMappingsGetCurrentAxisMappings ()
-//	public ARCONTROLLER_ERROR_ENUM sendAxisMappingsGetAvailableAxisMappings ()
-//	public ARCONTROLLER_ERROR_ENUM sendAxisMappingsSetAxisMapping (int _axis_id, String _mapping_uid)
-//	public ARCONTROLLER_ERROR_ENUM sendAxisMappingsDefaultAxisMapping ()
-//	public ARCONTROLLER_ERROR_ENUM sendAxisFiltersGetCurrentAxisFilters ()
-//	public ARCONTROLLER_ERROR_ENUM sendAxisFiltersGetPresetAxisFilters ()
-//	public ARCONTROLLER_ERROR_ENUM sendAxisFiltersSetAxisFilter (int _axis_id, String _filter_uid_or_builder)
-//	public ARCONTROLLER_ERROR_ENUM sendAxisFiltersDefaultAxisFilters ()
-//	public ARCONTROLLER_ERROR_ENUM sendCoPilotingSetPilotingSource (ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM _source);
-//	public ARCONTROLLER_ERROR_ENUM sendCalibrationEnableMagnetoCalibrationQualityUpdates (byte _enable);
 
 }
