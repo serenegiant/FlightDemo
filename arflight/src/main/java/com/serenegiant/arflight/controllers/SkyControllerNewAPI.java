@@ -712,6 +712,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		super.requestAllSettings();
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		result = mARDeviceController.getFeatureSkyController().sendSettingsAllSettings();
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestAllSettings failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -720,6 +723,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		super.requestAllStates();
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		result = mARDeviceController.getFeatureSkyController().sendCommonAllStates();
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestAllStates failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -730,6 +736,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendSettingsReset();
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#resetSettings failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -739,6 +748,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAccessPointSettingsAccessPointSSID(ssid);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#setSkyControllerSSID failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -754,6 +766,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiRequestWifiList();
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestWifiList failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -763,6 +778,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiRequestCurrentWifi();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestCurrentWiFi failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -774,6 +792,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiConnectToWifi(bssid, ssid, passphrase);
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#connectToWiFi failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -783,6 +804,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiForgetWifi(ssid);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestForgetWiFi failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -794,6 +818,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestDeviceList();
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestDeviceList failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -803,6 +830,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestCurrentDevice();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestCurrentDevice failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -833,8 +863,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			} catch (final InterruptedException e) {
 				// ignore
 			}
-		} else {
-			Log.e(TAG, "Failed to send connectToDevice command.");
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#connectToDevice failed:" + result);
 		}
 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
@@ -849,6 +880,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 				= ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM.getFromValue(_source % 2);
 			result = mARDeviceController.getFeatureSkyController().sendCoPilotingSetPilotingSource(source);
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#setCoPilotingSource failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -858,6 +892,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendCameraResetOrientation();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#resetCameraOrientation failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -869,6 +906,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendGamepadInfosGetGamepadControls();
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestGamepadControls failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -878,6 +918,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsGetCurrentButtonMappings();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestCurrentButtonMappings failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -889,6 +932,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsGetAvailableButtonMappings();
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestAvailableButtonMappings failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -898,6 +944,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsSetButtonMapping(key_id, mapping_uid);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#setButtonMapping failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -909,6 +958,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsDefaultButtonMapping();
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#resetButtonMapping failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -918,6 +970,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsGetCurrentAxisMappings();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestCurrentAxisMappings failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -929,6 +984,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsGetAvailableAxisMappings();
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestAvailableAxisMappings failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -938,6 +996,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsSetAxisMapping(axis_id, mapping_uid);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#setAxisMapping failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -949,6 +1010,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsDefaultAxisMapping();
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#resetAxisMapping failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -958,6 +1022,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersGetCurrentAxisFilters();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestCurrentAxisFilters failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -969,6 +1036,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersGetPresetAxisFilters();
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#requestPresetAxisFilters failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -978,6 +1048,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersSetAxisFilter(axis_id, filter_uid_or_builder);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#setAxisFilter failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -989,6 +1062,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersDefaultAxisFilters();
 		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#resetAxisFilter failed:" + result);
+		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
@@ -998,6 +1074,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendCalibrationEnableMagnetoCalibrationQualityUpdates(enable ? (byte)1 : (byte)0);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#setMagnetoCalibrationQualityUpdates failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}

@@ -44,7 +44,7 @@ public class BridgeFragment extends BaseControllerFragment {
 
 	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device) {
 		final BridgeFragment fragment = new BridgeFragment();
-		fragment.setDevice(device);
+		fragment.setDevice(device, true);	// NewAPIを使う
 		return fragment;
 	}
 

@@ -360,7 +360,7 @@ public class ManagerFragment extends Fragment {
 		if (DEBUG) Log.i(TAG, "createController:" + device);
 		IDeviceController result = null;
 		if (device != null) {
-			if (DEBUG) Log.v(TAG, "getProductID=" + device.getProductID());
+//			if (DEBUG) Log.v(TAG, "getProductID=" + device.getProductID());
 			switch (ARDiscoveryService.getProductFromProductID(device.getProductID())) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 				if (newAPI) {
@@ -407,6 +407,7 @@ public class ManagerFragment extends Fragment {
 				}
 			}
 		}
+		if (DEBUG) Log.i(TAG, "createController:終了,result=" + result);
 		return result;
 	}
 
