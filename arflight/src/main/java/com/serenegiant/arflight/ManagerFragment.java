@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ManagerFragment extends Fragment {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "ManagerFragment";
 
 	public interface ManagerCallback {
@@ -247,7 +247,7 @@ public class ManagerFragment extends Fragment {
 	 */
 	public void removeCallback(final ManagerCallback callback) {
 		synchronized (mDeviceSync) {
-			for (; mCallbacks.remove(callback) ;) {};
+			for (; mCallbacks.remove(callback) ;) {}
 		}
 	}
 
@@ -307,6 +307,7 @@ public class ManagerFragment extends Fragment {
 				result = mControllers.get(name);
 			}
 			if ((result != null) && (result.isNewAPI() != newAPI)) {
+				if (DEBUG) Log.i(TAG, "internalGetController:release");
 				result.release();
 				result = null;
 				mControllers.remove(name);
@@ -356,6 +357,7 @@ public class ManagerFragment extends Fragment {
 	 * @return
 	 */
 	public IDeviceController createController(final ARDiscoveryDeviceService device, final boolean newAPI) {
+		if (DEBUG) Log.i(TAG, "createController:" + device);
 		IDeviceController result = null;
 		if (device != null) {
 			if (DEBUG) Log.v(TAG, "getProductID=" + device.getProductID());
@@ -413,6 +415,7 @@ public class ManagerFragment extends Fragment {
 	 * @param controller
 	 */
 	public void releaseController(final IDeviceController controller) {
+		if (DEBUG) Log.i(TAG, "releaseController:" + controller);
 		synchronized (mControllerSync) {
 			if (mControllers.containsValue(controller)) {
 				mControllers.remove(controller.getName());
@@ -425,6 +428,7 @@ public class ManagerFragment extends Fragment {
 	 * @param device
 	 */
 	public void releaseDevice(final ARDiscoveryDeviceService device) {
+		if (DEBUG) Log.i(TAG, "releaseDevice:" + device);
 		synchronized (mDeviceSync) {
 			mDevices.remove(device);
 		}
@@ -436,6 +440,7 @@ public class ManagerFragment extends Fragment {
 	 * releaseとかは呼ばない
 	 */
 	public void releaseAll() {
+		if (DEBUG) Log.i(TAG, "releaseAll:");
 		synchronized (mControllerSync) {
 			mControllers.clear();
 		}
@@ -572,7 +577,7 @@ public class ManagerFragment extends Fragment {
 	}
 
 	protected void stopController(final IDeviceController controller) {
-		if (DEBUG) Log.v(TAG, "stopDeviceController:");
+		if (DEBUG) Log.v(TAG, "stopController:" + controller);
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -614,11 +619,12 @@ public class ManagerFragment extends Fragment {
 		= new DeviceConnectionListener() {
 		@Override
 		public void onConnect(final IDeviceController controller) {
+			if (DEBUG) Log.v(TAG, "onConnect:" + controller);
 		}
 
 		@Override
 		public void onDisconnect(final IDeviceController controller) {
-			if (DEBUG) Log.v(TAG, "onDisconnect:");
+			if (DEBUG) Log.v(TAG, "onDisconnect:" + controller);
 			stopController(controller);
 		}
 

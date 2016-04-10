@@ -48,11 +48,13 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	public FlightControllerBebopNewAPI(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigARDrone3());
+		if (DEBUG) Log.v (TAG, "コンストラクタ:");
 		init();
 	}
 
 	/** 共通の初期化処理 */
 	private void init() {
+		if (DEBUG) Log.v (TAG, "init:");
 		mInfo = new AttributeDevice();
 		mSettings = new DroneSettings();
 		mStatus = new DroneStatus(4);
@@ -62,6 +64,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	protected boolean startNetwork() {
+		if (DEBUG) Log.v (TAG, "startNetwork:");
 		final boolean failed = super.startNetwork();
 		if (!failed) {
 			mARDeviceController.addStreamListener(mStreamListener);
@@ -71,6 +74,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	protected void stopNetwork() {
+		if (DEBUG) Log.v (TAG, "stopNetwork:");
 		if (mARDeviceController != null) {
 			enableVideoStreaming(false);
 			mARDeviceController.removeStreamListener(mStreamListener);
@@ -787,6 +791,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	private CameraControllerListener mCameraControllerListener;
 	@Override
 	public void setCameraControllerListener(final CameraControllerListener listener) {
+		if (DEBUG) Log.v (TAG, "setCameraControllerListener:" + listener);
 		mCameraControllerListener = listener;
 	}
 
@@ -797,6 +802,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	 */
 	@Override
 	public boolean sendPictureFormat(final int pictureFormat) {
+		if (DEBUG) Log.v (TAG, "sendPictureFormat:");
 		final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM type
 			= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM.getFromValue(pictureFormat);
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_RAW (0, "Take raw image"),
@@ -811,6 +817,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendVideoRecording(final boolean start, final int mass_storage_id) {
+		if (DEBUG) Log.v (TAG, "sendVideoRecording:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendMediaRecordVideo(
 				start ? ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_START
@@ -822,6 +829,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendVideoRecording(final boolean start) {
+		if (DEBUG) Log.v (TAG, "sendVideoRecording:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendMediaRecordVideoV2(
 				start ? ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_ENUM.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_START
@@ -832,6 +840,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendCameraOrientation(final int tilt, final int pan) {
+		if (DEBUG) Log.v (TAG, "sendCameraOrientation:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendCameraOrientation((byte)tilt, (byte)pan);
 		}
@@ -840,6 +849,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendAutoWhiteBalance(final int auto_white_balance) {
+		if (DEBUG) Log.v (TAG, "sendAutoWhiteBalance:");
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_AUTO (0, "Auto guess of best white balance params"),
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_TUNGSTEN (1, "Tungsten white balance"),
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_DAYLIGHT (2, "Daylight white balance"),
@@ -869,6 +879,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendExposure(final float exposure) {
+		if (DEBUG) Log.v (TAG, "sendExposure:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPictureSettingsExpositionSelection(exposure);
 		}
@@ -877,6 +888,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendSaturation(final float saturation) {
+		if (DEBUG) Log.v (TAG, "sendSaturation:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPictureSettingsSaturationSelection(saturation);
 		}
@@ -885,6 +897,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendTimelapseSelection(final boolean enabled, final float interval) {
+		if (DEBUG) Log.v (TAG, "sendTimelapseSelection:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPictureSettingsTimelapseSelection(enabled ? (byte)1 : (byte)0, interval);
 		}
@@ -893,6 +906,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendVideoAutoRecord(final boolean enabled, final int mass_storage_id) {
+		if (DEBUG) Log.v (TAG, "sendVideoAutoRecord:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPictureSettingsVideoAutorecordSelection(enabled ? (byte)1 : (byte)0, (byte)mass_storage_id);
 		}
@@ -906,6 +920,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendVideoSyncAnglesGyros(final float anglesDelay_s, final float gyrosDelay_s) {
+		if (DEBUG) Log.v (TAG, "sendVideoSyncAnglesGyros:");
 		return false;
 	}
 
@@ -949,6 +964,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 //--------------------------------------------------------------------------------
 	@Override
 	public boolean requestTakeoff() {
+		if (DEBUG) Log.v (TAG, "requestTakeoff:");
 		if (isGPSFixed()) {
 			sendResetHome();
 		}
@@ -960,6 +976,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean requestLanding() {
+		if (DEBUG) Log.v (TAG, "requestLanding:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingLanding();
 		}
@@ -968,6 +985,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean requestEmergencyStop() {
+		if (DEBUG) Log.v (TAG, "requestEmergencyStop:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingEmergency();
 		}
@@ -976,6 +994,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean requestFlatTrim() {
+		if (DEBUG) Log.v (TAG, "requestFlatTrim:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingFlatTrim();
 		}
@@ -984,6 +1003,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean startCalibration(final boolean start) {
+		if (DEBUG) Log.v (TAG, "startCalibration:");
 		if (isActive()) {
 			mARDeviceController.getFeatureCommon().sendCalibrationMagnetoCalibration(start ? (byte)1 : (byte)0);
 		}
@@ -992,6 +1012,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean setMaxAltitude(final float altitude) {
+		if (DEBUG) Log.v (TAG, "setMaxAltitude:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingSettingsMaxAltitude(altitude);
 		}
@@ -1000,6 +1021,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean setMaxTilt(final float tilt) {
+		if (DEBUG) Log.v (TAG, "setMaxTilt:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingSettingsMaxTilt(tilt);
 		}
@@ -1008,6 +1030,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean setMaxVerticalSpeed(final float speed) {
+		if (DEBUG) Log.v (TAG, "setMaxVerticalSpeed:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendSpeedSettingsMaxVerticalSpeed(speed);
 		}
@@ -1016,6 +1039,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean setMaxRotationSpeed(final float speed) {
+		if (DEBUG) Log.v (TAG, "setMaxRotationSpeed:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendSpeedSettingsMaxRotationSpeed(speed);
 		}
@@ -1029,12 +1053,14 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean sendCutOutMode(final boolean enabled) {
+		if (DEBUG) Log.v (TAG, "sendCutOutMode:");
 		// これは常時ONなのかも
 		return false;
 	}
 
 	@Override
 	public boolean sendAutoTakeOffMode(final boolean enable) {
+		if (DEBUG) Log.v (TAG, "sendAutoTakeOffMode:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendPilotingAutoTakeOffMode(enable ? (byte)1 : (byte)0);
 		}
@@ -1043,6 +1069,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean setHasGuard(final boolean has_guard) {
+		if (DEBUG) Log.v (TAG, "setHasGuard:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendSpeedSettingsHullProtection(has_guard ? (byte)1 : (byte)0);
 		}
@@ -1073,6 +1100,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	 */
 	@Override
 	public boolean requestAnimationsFlip(final int direction) {
+		if (DEBUG) Log.v (TAG, "requestAnimationsFlip:");
 		final ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_ENUM dir = ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_ENUM.getFromValue(direction - 1);
 		// ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_FRONT (0, "Flip direction front"),
 		// ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_BACK (1, "Flip direction back"),
@@ -1091,6 +1119,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	 */
 	@Override
 	public boolean requestAnimationsCap(final int degree) {
+		if (DEBUG) Log.v (TAG, "requestAnimationsCap:");
 
 		final byte d = (byte)(degree > 180 ? 180 : (degree < -180 ? -180 : degree));
 		boolean sentStatus = true;
@@ -1121,6 +1150,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	}
 
 	public boolean requestAnimationsCap(final int degree, final Object sync) {
+		if (DEBUG) Log.v (TAG, "requestAnimationsCap:");
 
 		final byte d = (byte)(degree > 180 ? 180 : (degree < -180 ? -180 : degree));
 		boolean sentStatus = true;
@@ -1154,6 +1184,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean requestTakePicture(final int mass_storage_id) {
+		if (DEBUG) Log.v (TAG, "requestTakePicture:mass_storage_id=" + mass_storage_id);
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendMediaRecordPictureV2();
 		}
@@ -1162,29 +1193,34 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean requestTakePicture() {
+		if (DEBUG) Log.v (TAG, "requestTakePicture:");
 		return requestTakePicture(0);
 	}
 
 	@Override
 	public boolean setHeadlightsIntensity(final int left, final int right) {
+		if (DEBUG) Log.v (TAG, "setHeadlightsIntensity:");
 		// これは無いみたい
 		return false;
 	}
 
 	@Override
 	public boolean startAnimation(final int animation) {
+		if (DEBUG) Log.v (TAG, "startAnimation:");
 		// これは無いみたい?
 		return false;
 	}
 
 	@Override
 	public boolean stopAnimation(final int animation) {
+		if (DEBUG) Log.v (TAG, "stopAnimation:");
 		// これは無いみたい?
 		return false;
 	}
 
 	@Override
 	public boolean stopAllAnimation() {
+		if (DEBUG) Log.v (TAG, "stopAllAnimation:");
 		// これは無いみたい?
 		return false;
 	}
@@ -1197,6 +1233,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	}
 
 	public void sendResetHome() {
+		if (DEBUG) Log.v (TAG, "sendResetHome:");
 		if (isActive()) {
 			mARDeviceController.getFeatureARDrone3().sendGPSSettingsResetHome();
 		}
@@ -1235,6 +1272,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	 * WiFiスキャンが変化した時
 	 */
 	protected void onAllWifiScanChangedUpdate() {
+		if (DEBUG) Log.v (TAG, "onAllWifiScanChangedUpdate:");
 		// FIXME 未実装
 	}
 
@@ -1258,6 +1296,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	 * WiFiチャネルの状態が変化した時
 	 */
 	protected void onAllWifiAuthChannelChangedUpdate() {
+		if (DEBUG) Log.v (TAG, "onAllWifiAuthChannelChangedUpdate:");
 		// FIXME 未実装
 	}
 
@@ -1265,6 +1304,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	/** WiFiのセキュリティ設定が変化した時 */
 	protected void onWifiSecurityChangedUpdate(
 		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE_ENUM type) {
+		if (DEBUG) Log.v (TAG, "onWifiSecurityChangedUpdate:");
 
 		// FIXME 未実装
 	}
@@ -1279,6 +1319,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM type,
 		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM band,
 		final int channel) {
+		if (DEBUG) Log.v (TAG, "onWifiSelectionChangedUpdate:");
 
 		// FIXME 未実装
 	}

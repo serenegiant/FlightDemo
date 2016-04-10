@@ -83,6 +83,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	@Override
 	public void finalize() throws Throwable {
+		if (DEBUG) Log.v (TAG, "finalize:");
 		release();
 		super.finalize();
 	}
@@ -309,13 +310,14 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		if (!failed && (mARDeviceController != null)
 			&& (ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED.equals(mDeviceState))) {
 
-			if (DEBUG) Log.v(TAG, "start:ARDeviceController#start");
 			mRequestConnect = true;
 			try {
+				if (DEBUG) Log.v(TAG, "start:ARDeviceController#start");
 				error = mARDeviceController.start();
 				failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
 				if (!failed) {
 					internal_start();
+					if (DEBUG) Log.v(TAG, "start:connectSent待機");
 					connectSent.acquire();
 					synchronized (mStateSync) {
 						mState = STATE_STARTED;
@@ -360,6 +362,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 					mARDeviceController.stop();
 					mARDeviceController = null;
 				}
+				if (DEBUG) Log.v(TAG, "start:disconnectSent待機");
 				disconnectSent.acquire();
 			} catch (InterruptedException e) {
 			} finally {
@@ -368,7 +371,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			connectSent.release();
 			//TODO see : reset the semaphores or use signals
 		}
-		if (DEBUG) Log.v(TAG, "cancelStart:finished");
+		if (DEBUG) Log.v(TAG, "cancelStart:終了");
 	}
 
 	protected boolean startNetwork() {
@@ -420,10 +423,12 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	/** 接続開始時の追加処理 */
 	protected void internal_start() {
+		if (DEBUG) Log.v(TAG, "internal_start:");
 	}
 
 	/** 接続中断の追加処理 */
 	protected void internal_cancel_start() {
+		if (DEBUG) Log.v(TAG, "internal_cancel_start:");
 	}
 
 	/**
@@ -457,11 +462,13 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			&& !ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED.equals(mDeviceState)) {
 			mRequestDisconnect = true;
 			try {
+				if (DEBUG) Log.v(TAG, "stop:ARDeviceController#stop");
 				final ARCONTROLLER_ERROR_ENUM error = mARDeviceController.stop();
 				final boolean failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
 				if (failed) {
 					Log.w(TAG, "failed to stop ARController:err=" + error);
 				}
+				if (DEBUG) Log.v(TAG, "stop:disconnectSent待機");
 				disconnectSent.acquire();
 			} catch (final InterruptedException e) {
 
@@ -480,13 +487,16 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	protected void onStop() {
+		if (DEBUG) Log.v(TAG, "onStop:");
 	}
 
 	/** 切断の追加処理 */
 	protected void internal_stop() {
+		if (DEBUG) Log.v(TAG, "internal_stop:");
 	}
 
 	protected void stopNetwork() {
+		if (DEBUG) Log.v(TAG, "stopNetwork:");
 		if (mARDeviceController != null) {
 			mARDeviceController.dispose();
 			mARDeviceController = null;
@@ -1090,7 +1100,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	protected boolean sendCountryCode(final String code) {
-		if (DEBUG) Log.v(TAG, "setCountryCode:");
+		if (DEBUG) Log.v(TAG, "sendCountryCode:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isActive()) {
 			result = mARDeviceController.getFeatureCommon().sendSettingsCountry(code);
@@ -1102,7 +1112,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	protected boolean sendAutomaticCountry(final boolean auto) {
-		if (DEBUG) Log.v(TAG, "setAutomaticCountry:");
+		if (DEBUG) Log.v(TAG, "sendAutomaticCountry:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isActive()) {
 			result = mARDeviceController.getFeatureCommon().sendSettingsAutoCountry(auto ? (byte)1 : (byte)0);

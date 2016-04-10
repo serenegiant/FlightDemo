@@ -66,6 +66,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	/** 接続開始時の追加処理 */
 	protected void internal_start() {
+		if (DEBUG) Log.d(TAG, "internal_start:");
 		// onExtensionStateChangedが呼ばれるまで待機する
 		if (!mRequestConnectDevice) {
 			try {
@@ -81,6 +82,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	}
 
 	protected void internal_cancel_start() {
+		if (DEBUG) Log.d(TAG, "internal_cancel_start:");
 		if (mRequestConnectDevice) {
 			mConnectDeviceSent.release();
 		}
@@ -223,10 +225,12 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SETTINGSSTATE_ALLSETTINGSCHANGED:	// (127, "Key used to define the command <code>AllSettingsChanged</code> of class <code>SettingsState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// スカイコントローラーの設定を全て受信した時
+			if (DEBUG) Log.e(TAG, "onAllSettingsUpdate:");
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SETTINGSSTATE_RESETCHANGED:	// (128, "Key used to define the command <code>ResetChanged</code> of class <code>SettingsState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// スカイコントローラーの設定がリセットされた時
+			if (DEBUG) Log.e(TAG, "onResetSettings:");
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SETTINGSSTATE_PRODUCTSERIALCHANGED:	// (129, "Key used to define the command <code>ProductSerialChanged</code> of class <code>SettingsState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -248,6 +252,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_COMMONSTATE_ALLSTATESCHANGED:	// (131, "Key used to define the command <code>AllStatesChanged</code> of class <code>CommonState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// スカイコントローラーのステータスを全て受信した時
+			if (DEBUG) Log.e(TAG, "onAllStateUpdate:");
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SKYCONTROLLERSTATE_BATTERYCHANGED:	// (132, "Key used to define the command <code>BatteryChanged</code> of class <code>SkyControllerState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -561,6 +566,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	}
 
 	private void removeDevice(final String deviceName) {
+		if (DEBUG) Log.d(TAG, "removeDevice:" + deviceName);
 		mDevices.remove(deviceName);
 		if ((mConnectDevice != null) && mConnectDevice.name().equals(deviceName)) {
 			mConnectDevice = null;
@@ -675,22 +681,25 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 //================================================================================
 	@Override
 	public ARNetworkConfig createBridgeNetConfig() {
+		if (DEBUG) Log.d(TAG, "createBridgeNetConfig:");
 		return null;
 	}
 
 	@Override
 	public VideoStreamDelegater getVideoStreamDelegater() {
+		if (DEBUG) Log.d(TAG, "getVideoStreamDelegater:");
 		return null;
 	}
 
 	@Override
 	public boolean connectTo(final DeviceInfo info) {
+		if (DEBUG) Log.d(TAG, "connectTo:");
 		return connectToDevice(info.name());
 	}
 
 	@Override
 	public void disconnectFrom() {
-
+		if (DEBUG) Log.d(TAG, "disconnectFrom:");
 	}
 
 	@Override
@@ -699,6 +708,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	}
 
 	public boolean requestAllSettings() {
+		if (DEBUG) Log.d(TAG, "requestAllSettings:");
 		super.requestAllSettings();
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		result = mARDeviceController.getFeatureSkyController().sendSettingsAllSettings();
@@ -706,6 +716,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	}
 
 	public boolean requestAllStates() {
+		if (DEBUG) Log.d(TAG, "requestAllStates:");
 		super.requestAllStates();
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		result = mARDeviceController.getFeatureSkyController().sendCommonAllStates();
@@ -714,6 +725,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean resetSettings() {
+		if (DEBUG) Log.d(TAG, "resetSettings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendSettingsReset();
@@ -723,6 +735,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean setSkyControllerSSID(final String ssid) {
+		if (DEBUG) Log.d(TAG, "setSkyControllerSSID:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAccessPointSettingsAccessPointSSID(ssid);
@@ -736,6 +749,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestWifiList() {
+		if (DEBUG) Log.d(TAG, "requestWifiList:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiRequestWifiList();
@@ -745,6 +759,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestCurrentWiFi() {
+		if (DEBUG) Log.d(TAG, "requestCurrentWiFi:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiRequestCurrentWifi();
@@ -754,6 +769,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean connectToWiFi(final String bssid, final String ssid, final String passphrase) {
+		if (DEBUG) Log.d(TAG, "connectToWiFi:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiConnectToWifi(bssid, ssid, passphrase);
@@ -763,6 +779,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestForgetWiFi(final String ssid) {
+		if (DEBUG) Log.d(TAG, "requestForgetWiFi:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiForgetWifi(ssid);
@@ -772,6 +789,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestDeviceList() {
+		if (DEBUG) Log.d(TAG, "requestDeviceList:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestDeviceList();
@@ -781,6 +799,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestCurrentDevice() {
+		if (DEBUG) Log.d(TAG, "requestCurrentDevice:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestCurrentDevice();
@@ -823,6 +842,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean setCoPilotingSource(final int _source) {
+		if (DEBUG) Log.d(TAG, "setCoPilotingSource:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			final ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM source
@@ -834,6 +854,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean resetCameraOrientation() {
+		if (DEBUG) Log.d(TAG, "resetCameraOrientation:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendCameraResetOrientation();
@@ -843,6 +864,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestGamepadControls() {
+		if (DEBUG) Log.d(TAG, "requestGamepadControls:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendGamepadInfosGetGamepadControls();
@@ -852,6 +874,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestCurrentButtonMappings() {
+		if (DEBUG) Log.d(TAG, "requestCurrentButtonMappings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsGetCurrentButtonMappings();
@@ -861,6 +884,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestAvailableButtonMappings() {
+		if (DEBUG) Log.d(TAG, "requestAvailableButtonMappings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsGetAvailableButtonMappings();
@@ -870,6 +894,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean setButtonMapping(final int key_id, final String mapping_uid) {
+		if (DEBUG) Log.d(TAG, "setButtonMapping:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsSetButtonMapping(key_id, mapping_uid);
@@ -879,6 +904,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean resetButtonMapping() {
+		if (DEBUG) Log.d(TAG, "resetButtonMapping:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsDefaultButtonMapping();
@@ -888,6 +914,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestCurrentAxisMappings() {
+		if (DEBUG) Log.d(TAG, "requestCurrentAxisMappings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsGetCurrentAxisMappings();
@@ -897,6 +924,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestAvailableAxisMappings() {
+		if (DEBUG) Log.d(TAG, "requestAvailableAxisMappings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsGetAvailableAxisMappings();
@@ -906,6 +934,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean setAxisMapping(final int axis_id, final String mapping_uid) {
+		if (DEBUG) Log.d(TAG, "setAxisMapping:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsSetAxisMapping(axis_id, mapping_uid);
@@ -915,6 +944,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean resetAxisMapping() {
+		if (DEBUG) Log.d(TAG, "resetAxisMapping:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsDefaultAxisMapping();
@@ -924,6 +954,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestCurrentAxisFilters() {
+		if (DEBUG) Log.d(TAG, "requestCurrentAxisFilters:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersGetCurrentAxisFilters();
@@ -933,6 +964,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestPresetAxisFilters() {
+		if (DEBUG) Log.d(TAG, "requestPresetAxisFilters:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersGetPresetAxisFilters();
@@ -942,6 +974,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean setAxisFilter(final int axis_id, final String filter_uid_or_builder) {
+		if (DEBUG) Log.d(TAG, "setAxisFilter:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersSetAxisFilter(axis_id, filter_uid_or_builder);
@@ -951,6 +984,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean resetAxisFilter() {
+		if (DEBUG) Log.d(TAG, "resetAxisFilter:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersDefaultAxisFilters();
@@ -960,6 +994,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean setMagnetoCalibrationQualityUpdates(final boolean enable) {
+		if (DEBUG) Log.d(TAG, "setMagnetoCalibrationQualityUpdates:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendCalibrationEnableMagnetoCalibrationQualityUpdates(enable ? (byte)1 : (byte)0);
@@ -969,11 +1004,13 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean requestButtonEventsSettings() {
+		if (DEBUG) Log.d(TAG, "requestButtonEventsSettings:");
 		return false;
 	}
 
 	@Override
 	public boolean setDebugTest1(final byte t1Args) {
+		if (DEBUG) Log.d(TAG, "setDebugTest1:");
 		return false;
 	}
 

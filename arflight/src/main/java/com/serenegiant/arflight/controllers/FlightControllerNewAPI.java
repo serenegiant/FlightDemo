@@ -38,6 +38,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 
 	public FlightControllerNewAPI(final Context context, final ARDiscoveryDeviceService service, final ARNetworkConfig net_config) {
 		super(context, service, net_config);
+		if (DEBUG) Log.v (TAG, "コンストラクタ:");
 	}
 
 	protected void onCommandReceived(final ARDeviceController deviceController,
@@ -50,6 +51,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 
 	@Override
 	protected void internal_start() {
+		if (DEBUG) Log.v (TAG, "internal_start:");
 		if (mNetConfig.hasVideo()) {
 			// ビデオストリーミング用スレッドを生成&開始
 			startVideoThread();
@@ -60,6 +62,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 
 	@Override
 	protected void internal_stop() {
+		if (DEBUG) Log.v (TAG, "internal_stop:");
 		requestLanding();
 		// 操縦コマンド送信スレッドを終了(終了するまで戻らない)
 		stopFlightCMDThread();
@@ -69,11 +72,13 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 
 	@Override
 	protected void setCountryCode(final String code) {
+		if (DEBUG) Log.v (TAG, "setCountryCode:");
 		mSettings.setCountryCode(code);
 	}
 
 	@Override
 	protected void setAutomaticCountry(final boolean auto) {
+		if (DEBUG) Log.v (TAG, "setAutomaticCountry:");
 		mSettings.setAutomaticCountry(auto);
 	}
 
@@ -144,10 +149,12 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 
 	/** 映像ストリーミングデータ受信スレッドを開始(このクラス内では何もしないので必要ならばoverrideすること) */
 	protected void startVideoThread() {
+		if (DEBUG) Log.v (TAG, "startVideoThread:");
 	}
 
 	/** 映像ストリーミングデータ受信スレッドを終了(このクラス内では何もしないので必要ならばoverrideすること) */
 	protected void stopVideoThread() {
+		if (DEBUG) Log.v (TAG, "stopVideoThread:");
 	}
 
 	/**
@@ -230,6 +237,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void addListener(final DeviceConnectionListener listener) {
+		if (DEBUG) Log.v (TAG, "addListener:");
 		super.addListener(listener);
 		if (listener instanceof FlightControllerListener) {
 			synchronized (mListeners) {
@@ -245,6 +253,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void removeListener(final DeviceConnectionListener listener) {
+		if (DEBUG) Log.v (TAG, "removeListener:");
 		synchronized (mListeners) {
 			if (listener instanceof FlightControllerListener) {
 				mListeners.remove((FlightControllerListener)listener);
@@ -258,6 +267,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * @param state
 	 */
 	protected void callOnFlyingStateChangedUpdate(final int state) {
+		if (DEBUG) Log.v (TAG, "callOnFlyingStateChangedUpdate:");
 		synchronized (mListeners) {
 			for (final FlightControllerListener listener: mListeners) {
 				if (listener != null) {
@@ -275,6 +285,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * フラットトリム実行完了時のコールバックを呼び出す
 	 */
 	protected void callOnFlatTrimChanged() {
+		if (DEBUG) Log.v (TAG, "callOnFlatTrimChanged:");
 		synchronized (mListeners) {
 			for (final FlightControllerListener listener: mListeners) {
 				if (listener != null) {
@@ -311,6 +322,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * @param is_start
 	 */
 	protected void callOnCalibrationStartStop(final boolean is_start) {
+		if (DEBUG) Log.v (TAG, "callOnCalibrationStartStop:");
 		synchronized (mListeners) {
 			for (final FlightControllerListener listener: mListeners) {
 				if (listener != null) {
@@ -329,6 +341,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * @param axis 0:x, 1:y, z:2, 3:none
 	 */
 	protected void callOnCalibrationAxisChanged(final int axis) {
+		if (DEBUG) Log.v (TAG, "callOnCalibrationAxisChanged:");
 		synchronized (mListeners) {
 			for (final FlightControllerListener listener: mListeners) {
 				if (listener != null) {
@@ -347,6 +360,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * @param state
 	 */
 	protected void callOnStillCaptureStateChanged(final int state) {
+		if (DEBUG) Log.v (TAG, "callOnStillCaptureStateChanged:");
 		final boolean changed = ((DroneStatus)mStatus).setStillCaptureState(state);
 		if (changed) {
 			synchronized (mListeners) {
@@ -368,6 +382,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * @param state
 	 */
 	protected void callOnVideoRecordingStateChanged(final int state) {
+		if (DEBUG) Log.v (TAG, "callOnVideoRecordingStateChanged:");
 		final boolean changed = ((DroneStatus)mStatus).setVideoRecordingState(state);
 		if (changed) {
 			synchronized (mListeners) {
@@ -394,6 +409,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * @param internal
 	 */
 	protected void callOnUpdateStorageState(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal) {
+		if (DEBUG) Log.v (TAG, "callOnUpdateStorageState:");
 		final boolean changed = ((DroneStatus)mStatus).setMassStorageInfo(mass_storage_id, size, used_size, plugged, full, internal);
 		if (changed) {
 			synchronized (mListeners) {
