@@ -119,9 +119,19 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	@Override
+	public void finalize() throws Throwable {
+		release();
+		super.finalize();
+	}
+
+	@Override
 	public void release() {
 		stop();
 		mLocalBroadcastManager = null;
+	}
+
+	public boolean isNewAPI() {
+		return false;
 	}
 
 	public Context getContext() {

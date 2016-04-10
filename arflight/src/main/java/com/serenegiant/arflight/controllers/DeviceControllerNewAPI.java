@@ -81,6 +81,12 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	@Override
+	public void finalize() throws Throwable {
+		release();
+		super.finalize();
+	}
+
+	@Override
 	public void release() {
 		if (DEBUG) Log.v(TAG, "release:");
 		stop();
@@ -92,6 +98,10 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			}
 			mAsyncHandler = null;
 		}
+	}
+
+	public boolean isNewAPI() {
+		return true;
 	}
 
 	public Context getContext() {

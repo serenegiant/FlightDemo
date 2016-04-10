@@ -47,9 +47,11 @@ public abstract class BaseControllerFragment extends BaseFragment {
 			mDevice = savedInstanceState.getParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE);
 			mDeviceInfo = savedInstanceState.getParcelable(ARFLIGHT_EXTRA_DEVICE_INFO);
 			mNewAPI = savedInstanceState.getBoolean(ARFLIGHT_EXTRA_NEWAPI, false);
-			final IDeviceController controller = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
+			getController();
+/*			final IDeviceController controller = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
 			if (BuildConfig.USE_SKYCONTROLLER) {
 				if ((mDeviceInfo != null) && (controller instanceof IBridgeController)) {
+					if (DEBUG) Log.d(TAG, "ブリッジ接続");
 					// スカイコントローラー経由のブリッジ接続の時
 					final IBridgeController bridge = (IBridgeController)controller;
 					final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceInfo.productId());
@@ -77,7 +79,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 			// 直接機体に接続している時かブリッジ接続できなかった時
 			if (mController == null) {
 				mController = controller;
-			}
+			} */
 		}
 		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState + ",mController=" + mController);
 	}
@@ -91,9 +93,10 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	@Override
 	public synchronized void onStart() {
 		super.onStart();
-		if (mController == null) {
+/*		if (mController == null) {
 			mController = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
-		}
+		} */
+		getController();
 		if (DEBUG) Log.v(TAG, "onStart:");
 	}
 
@@ -185,18 +188,57 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		return mController != null ? mController.getAlarm() : DroneStatus.ALARM_DISCONNECTED;
 	}
 
+	protected IDeviceController getController() {
+		if (mController == null) {
+			final IDeviceController controller = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
+			if (BuildConfig.USE_SKYCONTROLLER) {
+				if ((mDeviceInfo != null) && (controller instanceof IBridgeController)) {
+					if (DEBUG) Log.d(TAG, "ブリッジ接続");
+					// スカイコントローラー経由のブリッジ接続の時
+					final IBridgeController bridge = (IBridgeController)controller;
+					final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceInfo.productId());
+					switch (product) {
+					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+						bridge.connectTo(mDeviceInfo);
+						if (mNewAPI) {
+							// FIXME 未実装
+						} else {
+							mController = new FlightControllerBebop(getActivity(), bridge);
+						}
+						break;
+					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+						bridge.connectTo(mDeviceInfo);
+						if (mNewAPI) {
+							// FIXME 未実装
+						} else {
+							mController = new FlightControllerBebop2(getActivity(), bridge);
+						}
+						break;
+					}
+				}
+			}
+
+			// 直接機体に接続している時かブリッジ接続できなかった時
+			if (mController == null) {
+				mController = controller;
+			}
+		}
+		return mController;
+	}
+
 	protected synchronized boolean startDeviceController() {
 		if (DEBUG) Log.v(TAG, "startDeviceController:");
 		boolean result = false;
-		if (mController == null) {
+/*		if (mController == null) {
 			mController = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
-		}
+		} */
+		getController();
 		if (mController != null) {
 			final int state = getState();
 			if ((state != IFlightController.STATE_STARTED)
 				&& (state != IFlightController.STATE_STARTING)) {
 				if (DEBUG) Log.v(TAG, "未接続");
-				updateBattery();
+				updateBattery(mController);
 
 				final MainActivity activity = (MainActivity)getActivity();
 				if (activity != null) {
@@ -255,7 +297,8 @@ public abstract class BaseControllerFragment extends BaseFragment {
 				@Override
 				public void run() {
 					if (DEBUG) Log.v(TAG, "接続終了中");
-					controller.stop();
+//					controller.stop();
+					controller.release();
 					if (activity != null) {
 						ManagerFragment.releaseController(activity, controller);
 						activity.hideProgress();
@@ -269,7 +312,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	/**
 	 * バッテリー残量が変化した時のコールバック
 	 */
-	protected void updateBattery() {
+	protected void updateBattery(final IDeviceController controller) {
 	}
 
 	/**

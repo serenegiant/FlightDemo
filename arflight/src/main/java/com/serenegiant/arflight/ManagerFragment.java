@@ -142,6 +142,16 @@ public class ManagerFragment extends Fragment {
 			fragment.releaseController(controller);
 	}
 
+	/**
+	 * 全てのARDiscoveryDeviceServiceとIDeviceControllerを取り除く(IFlightController#releaseとかは呼ばない)
+	 * @param activity
+	 */
+	public static void releaseAll(final Activity activity) {
+		final ManagerFragment fragment =  getInstance(activity);
+		if (fragment != null)
+			fragment.releaseAll();
+	}
+
 	private final Handler mUIHandler = new Handler(Looper.getMainLooper());
 	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
 
@@ -195,6 +205,7 @@ public class ManagerFragment extends Fragment {
 	@Override
 	public void onDetach() {
 		if (DEBUG) Log.i(TAG, "onDetach:");
+		releaseAll();
 		super.onDetach();
 	}
 
@@ -246,10 +257,7 @@ public class ManagerFragment extends Fragment {
 	 * @return nameに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
 	public IDeviceController getController(final String name, final boolean newAPI) {
-		IDeviceController result;
-		synchronized (mControllerSync) {
-			result = mControllers.get(name);
-		}
+		IDeviceController result = internalGetController(name, newAPI);
 		if (result == null && !TextUtils.isEmpty(name)) {
 			final ARDiscoveryDeviceService device = getDevice(name);
 			if (device != null) {
@@ -268,9 +276,7 @@ public class ManagerFragment extends Fragment {
 		IDeviceController result = null;
 		final ARDiscoveryDeviceService device = getDevice(index);
 		if (device != null) {
-			synchronized (mControllerSync) {
-				result = mControllers.get(device.getName());
-			}
+			result = internalGetController(device.getName(), newAPI);
 			if (result == null) {
 				result = createController(device, newAPI);
 			}
@@ -286,9 +292,7 @@ public class ManagerFragment extends Fragment {
 	public IDeviceController getController(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		IDeviceController result = null;
 		if (device != null) {
-			synchronized (mControllerSync) {
-				result = mControllers.get(device.getName());
-			}
+			result = internalGetController(device.getName(), newAPI);
 			if (result == null) {
 				result = createController(device, newAPI);
 			}
@@ -296,6 +300,20 @@ public class ManagerFragment extends Fragment {
 		return result;
 	}
 
+	private IDeviceController internalGetController(final String name, final boolean newAPI) {
+		IDeviceController result = null;
+		synchronized (mControllerSync) {
+			if (mControllers.containsKey(name)) {
+				result = mControllers.get(name);
+			}
+			if ((result != null) && (result.isNewAPI() != newAPI)) {
+				result.release();
+				result = null;
+				mControllers.remove(name);
+			}
+		}
+		return result;
+	}
 
 	/**
 	 * 指定した名前のARDiscoveryDeviceServiceインスタンスを取得する
@@ -409,6 +427,20 @@ public class ManagerFragment extends Fragment {
 	public void releaseDevice(final ARDiscoveryDeviceService device) {
 		synchronized (mDeviceSync) {
 			mDevices.remove(device);
+		}
+	}
+
+	/**
+	 * 全てのARDiscoveryDeviceServiceをListから取り除き
+	 * 全てのIDeviceControllerをHashMapから取り除く
+	 * releaseとかは呼ばない
+	 */
+	public void releaseAll() {
+		synchronized (mControllerSync) {
+			mControllers.clear();
+		}
+		synchronized (mDeviceSync) {
+			mDevices.clear();
 		}
 	}
 
@@ -541,20 +573,30 @@ public class ManagerFragment extends Fragment {
 
 	protected void stopController(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
-		if (controller.isStarted()) {
-			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					final ProgressDialog dialog = new ProgressDialog(getActivity());
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				final boolean show_progress = controller.isStarted();
+				final ProgressDialog dialog;
+				if (show_progress) {
+					dialog = new ProgressDialog(getActivity());
 					dialog.setTitle(R.string.disconnecting);
 					dialog.setIndeterminate(true);
 					dialog.show();
+				} else {
+					dialog = null;
+				}
 
-					new Thread(new Runnable() {
-						@Override
-						public void run() {
-							controller.stop();
-							releaseController(controller);
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							controller.release();
+						} catch (final Exception e) {
+							Log.w(TAG, e);
+						}
+						releaseController(controller);
+						if (dialog != null) {
 							runOnUiThread(new Runnable() {
 								@Override
 								public void run() {
@@ -562,12 +604,10 @@ public class ManagerFragment extends Fragment {
 								}
 							});
 						}
-					}).start();
-				}
-			});
-		} else {
-			releaseController(controller);
-		}
+					}
+				}).start();
+			}
+		});
 	}
 
 	private final DeviceConnectionListener mConnectionListener

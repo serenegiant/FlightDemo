@@ -59,7 +59,7 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
-		final int model = getProduct() == ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BEBOP_2
+		final int model = (getProduct() == ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BEBOP_2)
 						? IModelView.MODEL_BEBOP2 :	IModelView.MODEL_BEBOP;
 		final SharedPreferences pref = getActivity().getPreferences(0);
 		final int color = pref.getInt(KEY_COLOR, getResources().getColor(R.color.RED));

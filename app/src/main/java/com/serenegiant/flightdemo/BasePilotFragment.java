@@ -317,7 +317,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	 * バッテリー残量が変化した時のコールバック
 	 */
 	@Override
-	protected void updateBattery() {
+	protected void updateBattery(final IDeviceController controller) {
 		runOnUiThread(mUpdateBatteryTask);
 	}
 

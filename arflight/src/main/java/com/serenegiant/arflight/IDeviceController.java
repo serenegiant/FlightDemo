@@ -119,4 +119,6 @@ public interface IDeviceController extends IController {
 	 * @return
 	 */
 	public boolean requestAllStates();
+	/** NewAPIを使うかどうか */
+	public boolean isNewAPI();
 }

@@ -457,7 +457,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 				= ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE_ENUM.getFromValue(
 				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE)
 			);
-
+			// FIXME 未実装
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTMOTORVERSIONLISTCHANGED:	// (37, "Key used to define the command <code>ProductMotorVersionListChanged</code> of class <code>SettingsState</code> in project <code>ARDrone3</code>"),
@@ -554,7 +554,6 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 				mPictureFormat = format;
 				// FIXME 未実装
 			}
-
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_AUTOWHITEBALANCECHANGED:	// (45, "Key used to define the command <code>AutoWhiteBalanceChanged</code> of class <code>PictureSettingsState</code> in project <code>ARDrone3</code>"),
@@ -847,12 +846,17 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_CLOUDY (3, "Cloudy white balance"),
 		// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_COOL_WHITE (4, "White balance for a flash"),
 		if (isActive()) {
-			if (auto_white_balance >= 0) {
-				final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM awb
-					= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM.getFromValue(auto_white_balance);
-				mARDeviceController.getFeatureARDrone3().sendPictureSettingsAutoWhiteBalanceSelection(awb);
-			} else {
-				mARDeviceController.getFeatureARDrone3Debug().sendVideoManualWhiteBalance();
+			try {
+				if (auto_white_balance >= 0) {
+					final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM awb
+						= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM.getFromValue(auto_white_balance);
+					mARDeviceController.getFeatureARDrone3().sendPictureSettingsAutoWhiteBalanceSelection(awb);
+				} else {
+					mARDeviceController.getFeatureARDrone3Debug().sendVideoManualWhiteBalance();
+					// FIXME ここでヌルポになる(getFeatureARDrone3Debugがnullを返す)
+				}
+			} catch (final Exception e) {
+				Log.w(TAG, e);
 			}
 		}
 		return false;

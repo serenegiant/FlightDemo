@@ -21,7 +21,7 @@ import com.serenegiant.arflight.configs.ARNetworkConfig;
 
 import java.util.concurrent.Semaphore;
 
-public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements IBridgeController, IVideoStreamController, IWiFiController {
+public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements /*IBridgeController,*/ IVideoStreamController, IWiFiController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyControllerNewAPI.class.getSimpleName();
 
@@ -54,6 +54,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		super.internal_start();
 	}
 
+	/** こっちはタブレット/スマホとスカイコントローラー自体が接続した時に呼ばれる */
 	protected void onStateChanged(final ARDeviceController deviceController,
 		final ARCONTROLLER_DEVICE_STATE_ENUM newState, final ARCONTROLLER_ERROR_ENUM error) {
 		if (DEBUG) Log.v(TAG, "onStateChanged:");
@@ -63,6 +64,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		}
 	}
 
+	/** スカイコントローラーが機体に接続した時にこのメソッドが呼ばれる  */
 	protected void onExtensionStateChanged(final ARDeviceController deviceController,
 		final ARCONTROLLER_DEVICE_STATE_ENUM newState,
 		final ARDISCOVERY_PRODUCT_ENUM product,
@@ -250,29 +252,31 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			break;
 		}
 	}
-
-	@Override
-	public ARNetworkConfig createBridgeNetConfig() {
-		return null;
-	}
-
-	@Override
-	public VideoStreamDelegater getVideoStreamDelegater() {
-		return null;
-	}
-
-	@Override
-	public boolean connectTo(final DeviceInfo info) {
-		return false;
-	}
-
-	@Override
-	public void disconnectFrom() {
-
-	}
-
-	@Override
-	public DeviceInfo connectDeviceInfo() {
-		return null;
-	}
+//================================================================================
+// IBridgeController
+//================================================================================
+//	@Override
+//	public ARNetworkConfig createBridgeNetConfig() {
+//		return null;
+//	}
+//
+//	@Override
+//	public VideoStreamDelegater getVideoStreamDelegater() {
+//		return null;
+//	}
+//
+//	@Override
+//	public boolean connectTo(final DeviceInfo info) {
+//		return false;
+//	}
+//
+//	@Override
+//	public void disconnectFrom() {
+//
+//	}
+//
+//	@Override
+//	public DeviceInfo connectDeviceInfo() {
+//		return null;
+//	}
 }

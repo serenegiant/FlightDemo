@@ -188,7 +188,7 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 
 		@Override
 		public void onUpdateBattery(final IDeviceController controller, final int percent) {
-			updateBattery();
+			updateBattery(controller);
 		}
 
 		@Override
