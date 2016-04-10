@@ -38,6 +38,7 @@ public class MediaEffectSaturate extends MediaEffect {
 	 * @return
 	 */
 	public MediaEffectSaturate setParameter(final float saturation) {
+		setEnable(saturation != 0.0f);
 		setParameter("scale", saturation);
 		return this;
 	}

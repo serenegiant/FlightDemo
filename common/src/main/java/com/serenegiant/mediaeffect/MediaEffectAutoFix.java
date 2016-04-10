@@ -38,6 +38,7 @@ public class MediaEffectAutoFix extends MediaEffect {
 	 * @return
 	 */
 	public MediaEffectAutoFix setParameter(final float scale) {
+		setEnable(scale != 0.0f);
 		setParameter("scale", scale);
 		return this;
 	}

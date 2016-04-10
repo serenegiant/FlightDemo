@@ -771,6 +771,7 @@ public class ImageProcessor {
 			synchronized (mSync) {
 				// 自動調整(0〜1.0f, 0なら変化なし)
 				final MediaEffectAutoFix autofix = new MediaEffectAutoFix(mEffectContext, 1.0f);
+				autofix.setEnable(false);
 				mEffects.add(autofix);
 				// 露出調整
 				final MediaEffectExposure exposure = new MediaEffectExposure(mExposure);
@@ -779,11 +780,11 @@ public class ImageProcessor {
 				// 彩度調整(-1.0f〜1.0f, -1.0fならグレースケール)
 				final MediaEffectSaturate saturate = new MediaEffectSaturate(mEffectContext, mSaturation);
 //				final MediaEffectSaturateGLES saturate = new MediaEffectSaturateGLES(mSaturation);
-				saturate.setEnable(true);
+//				saturate.setEnable(mSaturation != 0.0f);
 				mEffects.add(saturate);
 				// 明るさ調整(0〜, 1.0fなら変化なし)
 				final MediaEffectBrightness brightness = new MediaEffectBrightness(mBrightness);
-				brightness.setEnable(true);
+//				brightness.setEnable(mBrightness != 0);
 				mEffects.add(brightness);
 /*				// コントラスト(0〜1.0f, 0なら変化なし)
 				final MediaEffectContrast contrast = new MediaEffectContrast(mEffectContext, 1.0f);

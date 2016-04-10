@@ -53,6 +53,7 @@ public class MediaEffectBrightness extends MediaEffectGLESBase {
 	 * @return
 	 */
 	public MediaEffectBrightness setParameter(final float brightness) {
+		setEnable(brightness != 0.0f);
 		((MediaEffectColorAdjustDrawer)mDrawer).setColorAdjust(brightness);
 		return this;
 	}
