@@ -38,6 +38,6 @@ public abstract class LooperThread extends Thread {
 	protected abstract void onLoop();
 
 	protected void onStop() {
-		if (DEBUG) Log.v("LooperThread", "onStop:" + --thread_cnt);
+		if (DEBUG) Log.v("LooperThread", "onBeforeStop:" + --thread_cnt);
 	}
 }

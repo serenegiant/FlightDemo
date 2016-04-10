@@ -65,8 +65,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	}
 
 	/** 接続開始時の追加処理 */
-	protected void internal_start() {
-		if (DEBUG) Log.d(TAG, "internal_start:");
+	protected void onStarting() {
+		if (DEBUG) Log.d(TAG, "onStarting:");
 		// onExtensionStateChangedが呼ばれるまで待機する
 		if (!mRequestConnectDevice) {
 			try {
@@ -78,7 +78,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 				mRequestConnectDevice = false;
 			}
 		}
-		super.internal_start();
+		super.onStarting();
 	}
 
 	protected void internal_cancel_start() {
@@ -320,6 +320,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		{	// スカイコントローラーのボタン・スティック等の種類
 			// requestAllSettingsを呼んでも来る
 			// requestGamepadControlsを呼んでも来る
+			// FIXME ヌルポになる
 			final ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM type
 				= ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM.getFromValue(
 				(Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE)
@@ -348,6 +349,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS:	// (140, "Key used to define the command <code>CurrentButtonMappings</code> of class <code>ButtonMappingsState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// 現在のボタン割当設定を受信した時
 			// requestAllStatesを呼んでも来る
+			// FIXME ヌルポになる
 			final int key_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_KEY_ID);
 			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_MAPPING_UID);
 			if (DEBUG) Log.v(TAG, "onCurrentButtonMappingsUpdate:key_id=" + key_id + ", mapping_uid=" + mapping_uid);
@@ -385,6 +387,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			// requestAllStatesを呼んでも来る
 			// resetAxisMappingを呼んでも来る
 			// 複数回来た後ARCommandSkyControllerAxisMappingsStateAllCurrentAxisMappingsSentListenerが来る
+			// FIXME ヌルポになる
 			final int axis_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_AXIS_ID);
 			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_MAPPING_UID);
 			if (DEBUG) Log.v(TAG, "onCurrentAxisMappingsUpdate:axis_id=" + axis_id + ", mapping_uid=" + mapping_uid);
@@ -416,6 +419,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS:	// (148, "Key used to define the command <code>CurrentAxisFilters</code> of class <code>AxisFiltersState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// ジョイスティック入力フィルター設定が更新された時
 			// requestAllStatesを呼んでも来る
+			// FIXME ヌルポになる
 			/** 軸番号: 0..n */
 	 		final int axis_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS_AXIS_ID);
 	 		/** "ARMF"ってのが来る */

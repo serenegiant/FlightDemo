@@ -485,7 +485,7 @@ public class VideoStream implements IVideoStreamNew {
 
 		@Override
 		protected void onStop() {
-			if (DEBUG) Log.v(TAG, "onStop");
+			if (DEBUG) Log.v(TAG, "onBeforeStop");
 			synchronized (mParent.mSync) {
 				mParent.isRendererRunning = false;
 				mParent.mSync.notifyAll();
@@ -501,7 +501,7 @@ public class VideoStream implements IVideoStreamNew {
 				mMasterTexture.release();
 				mMasterTexture = null;
 			}
-			if (DEBUG) Log.v(TAG, "onStop:finished");
+			if (DEBUG) Log.v(TAG, "onBeforeStop:finished");
 		}
 
 		@Override

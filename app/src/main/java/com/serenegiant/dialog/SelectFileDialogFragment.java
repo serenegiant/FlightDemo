@@ -48,7 +48,7 @@ import java.util.regex.Pattern;
 
 //Fragmentのライフサイクル
 //onAttach() > onCreate() > onCreateView() > onActivityCreated() > onStart()
-//onResume() > onPause() > onStop() > onDestroyView() > onDestroy() > onDetach()
+//onResume() > onPause() > onBeforeStop() > onDestroyView() > onDestroy() > onDetach()
 
 public class SelectFileDialogFragment extends BaseDialogFragment
 	implements OnItemClickListener, OnClickListener {

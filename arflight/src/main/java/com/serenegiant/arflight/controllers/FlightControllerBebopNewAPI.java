@@ -73,13 +73,13 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	}
 
 	@Override
-	protected void stopNetwork() {
-		if (DEBUG) Log.v (TAG, "stopNetwork:");
+	protected void onBeforeStop() {
+		if (DEBUG) Log.v(TAG, "onBeforeStop:");
 		if (mARDeviceController != null) {
 			enableVideoStreaming(false);
 			mARDeviceController.removeStreamListener(mStreamListener);
 		}
-		super.stopNetwork();
+		super.onBeforeStop();
 	}
 
 //	@Override

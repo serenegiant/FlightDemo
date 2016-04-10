@@ -50,8 +50,8 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	}
 
 	@Override
-	protected void internal_start() {
-		if (DEBUG) Log.v (TAG, "internal_start:");
+	protected void onStarting() {
+		if (DEBUG) Log.v (TAG, "onStarting:");
 		if (mNetConfig.hasVideo()) {
 			// ビデオストリーミング用スレッドを生成&開始
 			startVideoThread();
@@ -61,8 +61,8 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	}
 
 	@Override
-	protected void internal_stop() {
-		if (DEBUG) Log.v (TAG, "internal_stop:");
+	protected void onBeforeStop() {
+		if (DEBUG) Log.v(TAG, "onBeforeStop:");
 		requestLanding();
 		// 操縦コマンド送信スレッドを終了(終了するまで戻らない)
 		stopFlightCMDThread();

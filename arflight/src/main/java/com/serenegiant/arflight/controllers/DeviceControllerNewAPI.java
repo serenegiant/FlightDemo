@@ -316,7 +316,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 				error = mARDeviceController.start();
 				failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
 				if (!failed) {
-					internal_start();
+					onStarting();
 					if (DEBUG) Log.v(TAG, "start:connectSent待機");
 					connectSent.acquire();
 					synchronized (mStateSync) {
@@ -374,6 +374,10 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "cancelStart:終了");
 	}
 
+	/**
+	 * デバイスへの接続開始処理
+	 * @return
+	 */
 	protected boolean startNetwork() {
 		if (DEBUG) Log.v(TAG, "startNetwork:");
 		boolean failed = false;
@@ -421,9 +425,9 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		return failed;
 	}
 
-	/** 接続開始時の追加処理 */
-	protected void internal_start() {
-		if (DEBUG) Log.v(TAG, "internal_start:");
+	/** 接続開始中の追加処理(この時点ではまだ機体との接続&ステータス取得が終わってない可能性がある, onConnectコールバックを呼ぶ前) */
+	protected void onStarting() {
+		if (DEBUG) Log.v(TAG, "onStarting:");
 	}
 
 	/** 接続中断の追加処理 */
@@ -431,9 +435,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "internal_cancel_start:");
 	}
 
-	/**
-	 * DeviceControllerがstartした時の処理
-	 */
+	/** DeviceControllerがstartした時の処理(mARDeviceControllerは有効, onConnectを呼び出す直前) */
 	protected void onStarted() {
 		if (DEBUG) Log.v(TAG, "onStarted:");
 		// only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
@@ -455,13 +457,13 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			mState = STATE_STOPPING;
 		}
 
-		onStop();
-		internal_stop();
+		onBeforeStop();
 
 		if (!mRequestDisconnect && (mARDeviceController != null)
 			&& !ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED.equals(mDeviceState)) {
 			mRequestDisconnect = true;
 			try {
+				onStopping();
 				if (DEBUG) Log.v(TAG, "stop:ARDeviceController#stop");
 				final ARCONTROLLER_ERROR_ENUM error = mARDeviceController.stop();
 				final boolean failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
@@ -486,15 +488,17 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "stop:終了");
 	}
 
-	protected void onStop() {
-		if (DEBUG) Log.v(TAG, "onStop:");
+	/** 切断前の処理(接続中ならまだmARDeviceControllerは有効) */
+	protected void onBeforeStop() {
+		if (DEBUG) Log.v(TAG, "onBeforeStop:");
 	}
 
-	/** 切断の追加処理 */
-	protected void internal_stop() {
-		if (DEBUG) Log.v(TAG, "internal_stop:");
+	/** 切断中の追加処理(接続中でなければ呼び出されない, mARDeviceControllerは有効) */
+	protected void onStopping() {
+		if (DEBUG) Log.v(TAG, "onStopping:");
 	}
 
+	/** 切断処理(mARDeviceControllerは既にstopしているので無効) */
 	protected void stopNetwork() {
 		if (DEBUG) Log.v(TAG, "stopNetwork:");
 		if (mARDeviceController != null) {

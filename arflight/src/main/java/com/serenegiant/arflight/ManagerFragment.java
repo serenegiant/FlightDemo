@@ -422,6 +422,7 @@ public class ManagerFragment extends Fragment {
 				mControllers.remove(controller.getName());
 			}
 		}
+		if (DEBUG) Log.i(TAG, "releaseController:終了");
 	}
 
 	/**

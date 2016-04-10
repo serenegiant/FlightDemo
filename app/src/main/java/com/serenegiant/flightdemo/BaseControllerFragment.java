@@ -14,7 +14,7 @@ import com.serenegiant.arflight.controllers.FlightControllerBebop2;
 import static com.serenegiant.arflight.ARFlightConst.*;
 
 public abstract class BaseControllerFragment extends BaseFragment {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = BaseControllerFragment.class.getSimpleName();
 
 	/** フラグメントに戻るまでの遅延時間[ミリ秒] */
@@ -93,11 +93,12 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	@Override
 	public synchronized void onStart() {
 		super.onStart();
+		if (DEBUG) Log.v(TAG, "onStart:");
 /*		if (mController == null) {
 			mController = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
 		} */
 		getController();
-		if (DEBUG) Log.v(TAG, "onStart:");
+		if (DEBUG) Log.v(TAG, "onStart:終了");
 	}
 
 //	@Override
@@ -226,6 +227,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		return mController;
 	}
 
+	/** デバイスへ接続開始, 既に接続していればonConnectを呼び出すだけ */
 	protected synchronized boolean startDeviceController() {
 		if (DEBUG) Log.v(TAG, "startDeviceController:");
 		boolean result = false;
@@ -272,11 +274,12 @@ public abstract class BaseControllerFragment extends BaseFragment {
 				onConnect(mController);
 			}
 		} else {
-			Log.e(TAG, "controllerがnull!");
+			throw new RuntimeException("IDeviceControllerを取得できなかった");
 		}
 		return result;
 	}
 
+	/** デバイスとの接続解除&開放  */
 	protected synchronized void stopDeviceController(final boolean disconnected) {
 		if (DEBUG) Log.v(TAG, "stopDeviceController:");
 		final int state = getState();

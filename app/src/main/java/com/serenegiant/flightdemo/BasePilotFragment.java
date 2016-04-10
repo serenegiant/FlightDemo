@@ -932,7 +932,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 
 		@Override
 		public void onStop() {
-//			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onStop:");
+//			if (DEBUG) Log.v(TAG, "mAutoFlightListener#onBeforeStop:");
 			stopPlay();
 			stopScript();
 			stopTouchMove();
