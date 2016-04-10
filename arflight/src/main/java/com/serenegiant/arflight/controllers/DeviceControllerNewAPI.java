@@ -68,6 +68,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected AttributeDevice mInfo;
 	protected CommonStatus mStatus;
 	protected ARCONTROLLER_DEVICE_STATE_ENUM mDeviceState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
+	protected ARCONTROLLER_DEVICE_STATE_ENUM mExtensionState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
 
 	private final List<DeviceConnectionListener> mConnectionListeners = new ArrayList<DeviceConnectionListener>();
 
@@ -315,12 +316,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 				failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
 				if (!failed) {
 					internal_start();
+					connectSent.acquire();
 					synchronized (mStateSync) {
 						mState = STATE_STARTED;
 					}
-					connectSent.acquire();
 					onStarted();
-					callOnConnect();
 				}
 			} catch (final InterruptedException e) {
 				//
@@ -330,6 +330,18 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		if (failed) {
 			Log.w(TAG, "failed to start ARController:err=" + error);
+			try {
+				if (mARDeviceController != null) {
+					mARDeviceController.dispose();
+					mARDeviceController = null;
+				}
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
+			synchronized (mStateSync) {
+				mState = STATE_STOPPED;
+			}
+			setAlarm(DroneStatus.ALARM_DISCONNECTED);
 		}
 		if (DEBUG) Log.v(TAG, "start:終了");
 
@@ -376,20 +388,27 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 				discovery_device.initBLE(getProductType(), getContext().getApplicationContext(), bleDeviceService.getBluetoothDevice());
 			}
 		} catch (final ARDiscoveryException e) {
-			Log.e(TAG, "Exception", e);
-			Log.e(TAG, "Error: " + e.getError());
+			Log.e(TAG, "err=" + e.getError(), e);
 			discovery_device = null;
 			failed = true;
 		}
 		if (discovery_device != null) {
 			if (DEBUG) Log.v(TAG, "startNetwork:ARDeviceController生成");
-			 try {
-				final ARDeviceController deviceController = new ARDeviceController(discovery_device);
+			ARDeviceController deviceController = null;
+			try {
+				deviceController = new ARDeviceController(discovery_device);
 				deviceController.addListener(mDeviceControllerListener);
 				mARDeviceController = deviceController;
 			} catch (final ARControllerException e) {
-				Log.e(TAG, "Exception", e);
+				Log.e(TAG, "err=" + e.getError(), e);
 				failed = true;
+				if (deviceController != null) {
+					try {
+						deviceController.dispose();
+					} catch (final Exception e2) {
+						Log.w(TAG, e2);
+					}
+				}
 			}
 		} else {
 			Log.w(TAG, "startNetwork:ARDiscoveryDeviceを初期化出来なかった");
@@ -433,7 +452,8 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		onStop();
 		internal_stop();
 
-		if (!mRequestDisconnect && (mARDeviceController != null)) {
+		if (!mRequestDisconnect && (mARDeviceController != null)
+			&& !ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED.equals(mDeviceState)) {
 			mRequestDisconnect = true;
 			try {
 				final ARCONTROLLER_ERROR_ENUM error = mARDeviceController.stop();
@@ -492,6 +512,12 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 	}
 
+	protected ARCONTROLLER_DEVICE_STATE_ENUM getExtensionDeviceState() {
+		synchronized (mStateSync) {
+			return mExtensionState;
+		}
+	}
+
 	protected boolean isActive() {
 		synchronized (mStateSync) {
 			return (mARDeviceController != null)
@@ -540,14 +566,22 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
     };
 
+	/**
+	 * onStateChangedから呼び出される
+	 * @param newState
+	 */
+	protected void setState(final ARCONTROLLER_DEVICE_STATE_ENUM newState) {
+		synchronized (mStateSync) {
+			mDeviceState = newState;
+		}
+	}
+
 	/** mDeviceControllerListenerの下請け */
 	protected void onStateChanged(final ARDeviceController deviceController,
 		final ARCONTROLLER_DEVICE_STATE_ENUM newState, final ARCONTROLLER_ERROR_ENUM error) {
 
-		if (DEBUG) Log.v(TAG, "onStateChanged:" + newState + ",error=" + error);
-		synchronized (mStateSync) {
-			mDeviceState = newState;
-		}
+		if (DEBUG) Log.v(TAG, "onStateChanged:state=" + newState + ",error=" + error);
+		setState(newState);
 		switch (newState) {
 		case ARCONTROLLER_DEVICE_STATE_STOPPED: 	// (0, "device controller is stopped"),
 			onDisconnect();
@@ -572,16 +606,30 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		if (mRequestConnect) {
 			connectSent.release();
 		}
+		callOnConnect();
 	}
 
 	/** onStateChangedの下請け */
 	protected void onDisconnect() {
 		if (DEBUG) Log.d(TAG, "onDisconnect:");
 		setAlarm(DroneStatus.ALARM_DISCONNECTED);
-		callOnAlarmStateChangedUpdate(DroneStatus.ALARM_DISCONNECTED);
-		callOnDisconnect();
+		if (mRequestConnect) {
+			connectSent.release();
+		}
 		if (mRequestDisconnect) {
 			disconnectSent.release();
+		}
+		callOnAlarmStateChangedUpdate(DroneStatus.ALARM_DISCONNECTED);
+		callOnDisconnect();
+	}
+
+	/**
+	 * onExtensionStateChangedから呼び出される
+	 * @param newState
+	 */
+	protected void setExtensionState(final ARCONTROLLER_DEVICE_STATE_ENUM newState) {
+		synchronized (mStateSync) {
+			mExtensionState = newState;
 		}
 	}
 
@@ -591,7 +639,34 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		final ARDISCOVERY_PRODUCT_ENUM product,
 		final String name, final ARCONTROLLER_ERROR_ENUM error) {
 
-		if (DEBUG) Log.v(TAG, "onExtensionStateChanged:product=" + product + ",name=" + name + ",error=" + error);
+		if (DEBUG) Log.v(TAG, "onExtensionStateChanged:state=" + newState + ",product=" + product + ",name=" + name + ",error=" + error);
+		setExtensionState(newState);
+		switch (newState) {
+		case ARCONTROLLER_DEVICE_STATE_STOPPED: 	// (0, "device controller is stopped"),
+			onExtensionDisconnect();
+			break;
+		case ARCONTROLLER_DEVICE_STATE_STARTING:	// (1, "device controller is starting"),
+			break;
+		case ARCONTROLLER_DEVICE_STATE_RUNNING:		// (2, "device controller is running"),
+			onExtensionConnect();
+			break;
+		case ARCONTROLLER_DEVICE_STATE_PAUSED: 		// (3, "device controller is paused"),
+			break;
+		case ARCONTROLLER_DEVICE_STATE_STOPPING:	// (4, "device controller is stopping"),
+			break;
+		default:
+			break;
+		}
+	}
+
+	/** onExtensionStateChangedの下請け */
+	protected void onExtensionConnect() {
+		if (DEBUG) Log.d(TAG, "onExtensionConnect:");
+	}
+
+	/** onExtensionStateChangedの下請け */
+	protected void onExtensionDisconnect() {
+		if (DEBUG) Log.d(TAG, "onExtensionDisconnect:");
 	}
 
 	/** mDeviceControllerListenerの下請け */
