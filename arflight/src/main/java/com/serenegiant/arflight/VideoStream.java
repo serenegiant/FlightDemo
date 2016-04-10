@@ -236,7 +236,7 @@ public class VideoStream implements IVideoStreamNew {
 						} catch (final IllegalStateException e) {
 							Log.w(TAG, "Error while queue input buffer");
 						}
-					} else {
+					} else if (isDecoderRunning) {
 						if (DEBUG) Log.v(TAG, "デコーダーの準備ができてない/入力キューが満杯");
 						waitForIFrame = true;
 					}

@@ -56,6 +56,7 @@ public class ImageProcessor {
 	private ProcessingTask mProcessingTask;
 	private Handler mAsyncHandler;
 
+	private boolean mEnableAutoFix;
 	private boolean mEnableExposure;
 	private float mExposure;
 	private boolean mEnableBrightness;
@@ -197,6 +198,25 @@ public class ImageProcessor {
 		return result;
 	}
 
+	public void enableAutoFix(final boolean enable) {
+		if (mEnableAutoFix != enable) {
+			mEnableAutoFix = enable;
+			final float value = enable ? 1.0f : 0.0f;
+			synchronized (mSync) {
+				for (final IEffect effect: mEffects) {
+					if (effect instanceof MediaEffectAutoFix) {
+						((MediaEffectAutoFix)effect).setParameter(value);
+						effect.setEnable(true);	// FIXME 常時有効にする
+					}
+				}
+			}
+		}
+	}
+
+	public boolean enableAutoFix() {
+		return mEnableAutoFix;
+	}
+
 	public void enableExposure(final boolean enable) {
 		if (mEnableExposure != enable) {
 			mEnableExposure = enable;
@@ -264,6 +284,7 @@ public class ImageProcessor {
 				for (final IEffect effect: mEffects) {
 					if (effect instanceof MediaEffectBrightness) {
 						((MediaEffectBrightness)effect).setParameter(brightness);
+						effect.setEnable(true);	// FIXME 無調整でも有効にする
 					}
 				}
 			}
@@ -769,13 +790,13 @@ public class ImageProcessor {
 			// プレフィルタの準備
 			mEffectContext = EffectContext.createWithCurrentGlContext();
 			synchronized (mSync) {
-				// 自動調整(0〜1.0f, 0なら変化なし)
-				final MediaEffectAutoFix autofix = new MediaEffectAutoFix(mEffectContext, 1.0f);
-				autofix.setEnable(false);
+				// 自動調整(0〜1.0f, 0なら変化なし) FIXME これを有効にするとNewAPIで取得した映像がかなり暗くなってしまう, でも無効にするとGPUのドライバーがエラーを吐く
+				final MediaEffectAutoFix autofix = new MediaEffectAutoFix(mEffectContext, mEnableAutoFix ? 1.0f : 0.0f);
+				autofix.setEnable(true);
 				mEffects.add(autofix);
 				// 露出調整
 				final MediaEffectExposure exposure = new MediaEffectExposure(mExposure);
-				exposure.setEnable(true);
+//				exposure.setEnable(true);
 				mEffects.add(exposure);
 				// 彩度調整(-1.0f〜1.0f, -1.0fならグレースケール)
 				final MediaEffectSaturate saturate = new MediaEffectSaturate(mEffectContext, mSaturation);
@@ -784,7 +805,7 @@ public class ImageProcessor {
 				mEffects.add(saturate);
 				// 明るさ調整(0〜, 1.0fなら変化なし)
 				final MediaEffectBrightness brightness = new MediaEffectBrightness(mBrightness);
-//				brightness.setEnable(mBrightness != 0);
+				brightness.setEnable(true);
 				mEffects.add(brightness);
 /*				// コントラスト(0〜1.0f, 0なら変化なし)
 				final MediaEffectContrast contrast = new MediaEffectContrast(mEffectContext, 1.0f);

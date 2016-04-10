@@ -694,6 +694,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		if (mImageProcessor == null) {
 			mImageProcessor = new ImageProcessor(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT,	// こっちは元映像のサイズ
 				new MyImageProcessorCallback(processing_width, processing_height));	// こっちは処理サイズ
+			mImageProcessor.enableAutoFix(!isNewAPI());
 			mImageProcessor.setExposure(mExposure);
 			mImageProcessor.setSaturation(mSaturation);
 			mImageProcessor.setBrightness(mBrightness);
