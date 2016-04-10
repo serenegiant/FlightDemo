@@ -272,7 +272,7 @@ public class BridgeFragment extends BaseControllerFragment {
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 //				adapter.add(info);
 //				break;
-//			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
+//			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
 //				adapter.add(info);
 //				break;
 //			case ARDISCOVERY_PRODUCT_NSNETSERVICE:

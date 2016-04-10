@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine1.IModelView;
@@ -113,7 +114,7 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	 * キャリブレーションを開始した
 	 */
 	@Override
-	protected void onStartCalibration() {
+	protected void onStartCalibration(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onStartCalibration:");
 		if (mState != STATE_STOPPED) {
 			Log.w(TAG, "onStartCalibration:ステートがおかしい:" + mState);
@@ -125,7 +126,7 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	 * キャリブレーションが終了した
 	 */
 	@Override
-	protected void onStopCalibration() {
+	protected void onStopCalibration(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onStopCalibration:");
 		mState = STATE_STOPPED;
 		// FIXME ここで終了のメッセージを表示する
@@ -147,7 +148,7 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	 * @param axis 0:x, 1:y, 2:z
 	 */
 	@Override
-	protected void updateCalibrationAxisChanged(final int axis) {
+	protected void updateCalibrationAxisChanged(final IDeviceController controller, final int axis) {
 		if (DEBUG) Log.v(TAG, "updateCalibrationAxisChanged:axis=" + axis);
 		mState = STATE_AXIS_X + axis;
 		switch (mState) {

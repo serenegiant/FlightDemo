@@ -90,12 +90,14 @@ import com.serenegiant.arflight.CommonStatus;
 import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.IBridgeController;
+import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.IVideoStream;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.IWiFiController;
 import com.serenegiant.arflight.SkyControllerListener;
 import com.serenegiant.arflight.VideoStreamDelegater;
 import com.serenegiant.arflight.attribute.AttributeDevice;
+import com.serenegiant.arflight.attribute.AttributeGPS;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 import com.serenegiant.arflight.configs.ARNetworkConfigBridge;
 import com.serenegiant.arflight.configs.ARNetworkConfigSkyController;
@@ -107,7 +109,7 @@ import java.util.Map;
 
 import static com.serenegiant.arflight.ARFlightConst.*;
 
-public class SkyController extends DeviceController implements IBridgeController, IVideoStreamController, IWiFiController {
+public class SkyController extends DeviceController implements ISkyController, IBridgeController, IVideoStreamController, IWiFiController {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyController.class.getSimpleName();
 
@@ -116,6 +118,7 @@ public class SkyController extends DeviceController implements IBridgeController
 	/** 接続中の機体情報, FIXME 排他制御が必要 */
 	private DeviceInfo mConnectDevice;
 	private VideoStreamDelegater mVideoStreamDelegater;
+	public final AttributeGPS mSkyControllerGPS = new AttributeGPS();
 
 	public SkyController(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigSkyController());
@@ -130,6 +133,19 @@ public class SkyController extends DeviceController implements IBridgeController
 		final ARNetworkConfig config = new ARNetworkConfigBridge(mNetConfig);
 		config.addStreamReaderIOBuffer(config.getFragmentSize(), config.getMaxFragmentNum());
 		return config;
+	}
+
+//================================================================================
+// ISkyController
+//================================================================================
+	@Override
+	public boolean isGPSFixedSkyController() {
+		return mSkyControllerGPS.fixed();
+	}
+
+	@Override
+	public int getBatterySkyController() {
+		return mStatus.getBattery();
 	}
 
 //********************************************************************************
@@ -859,6 +875,7 @@ public class SkyController extends DeviceController implements IBridgeController
 		public void onSkyControllerSkyControllerStateGpsFixChangedUpdate(final byte fixed) {
 
 			if (DEBUG) Log.v(TAG, "onGpsFixChangedUpdate:fixed=" + fixed);
+			mSkyControllerGPS.setFixed(fixed != 0);
 		}
 	};
 
@@ -872,9 +889,9 @@ public class SkyController extends DeviceController implements IBridgeController
 		@Override
 		public void onSkyControllerSkyControllerStateGpsPositionChangedUpdate(
 			final double latitude, final double longitude, final double altitude, final float heading) {
-//			FIXME 未実装 でも頻繁に来るのでコメントアウト
 //			if (DEBUG) Log.v (TAG, String.format("onGpsPositionChangedUpdate:latitude=%f, longitude=%f, altitude=%f, heading=%f",
 //				latitude, longitude, altitude, heading));
+			mStatus.setPosition(latitude, longitude, altitude, heading);
 		}
 	};
 

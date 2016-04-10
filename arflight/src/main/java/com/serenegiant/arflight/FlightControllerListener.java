@@ -18,18 +18,18 @@ public interface FlightControllerListener extends DeviceConnectionListener {
 	 * キャリブレーションが必要かどうかが変更された
 	 * @param need_calibration
 	 */
-	public void onCalibrationRequiredChanged(final boolean need_calibration);
+	public void onCalibrationRequiredChanged(final IDeviceController controller, final boolean need_calibration);
 
 	/**
 	 * キャリブレーションを開始/終了した
 	 * @param isStart
 	 */
-	public void onCalibrationStartStop(final boolean isStart);
+	public void onCalibrationStartStop(final IDeviceController controller, final boolean isStart);
 	/**
 	 * キャリブレーション中の軸が変更された
 	 * @param axis 0:x, 1:y, z:2, 3:none
 	 */
-	public void onCalibrationAxisChanged(final int axis);
+	public void onCalibrationAxisChanged(final IDeviceController controller, final int axis);
 
 	/**
 	 * 静止画撮影ステータスが変更された

@@ -225,7 +225,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		mAlpha = alpha;
 	}
 
-	private void moveDrone(final GL10 gl) {
+	protected void moveDrone(final GL10 gl) {
 		synchronized (mDroneSync) {
 			final Vector position = droneObj.position;
 			gl.glTranslatef(position.x, position.y, position.z);

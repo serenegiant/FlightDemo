@@ -346,6 +346,44 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	protected void onAlarmStateChangedUpdate(int alert_state) {
 	}
 
+	/**
+	 * バッテリー残量が変化した時のコールバック
+	 */
+	protected void skyControllerUpdateBattery(final IDeviceController controller) {
+	}
+
+	/**
+	 * 異常ステータスが変化した時のコールバック
+	 * @param alert_state
+	 */
+	protected void skyControllerUpdateAlarmState(final int alert_state) {
+	}
+
+	/**
+	 * 接続された
+	 * @param controller
+	 */
+	protected void onSkyControllerConnect(final IDeviceController controller) {
+		if (DEBUG) Log.v(TAG, "onConnectSkyController:");
+	}
+
+	/**
+	 * 切断された
+	 * @param controller
+	 */
+	protected void onSkyControllerDisconnect(final IDeviceController controller) {
+		if (DEBUG) Log.v(TAG, "onDisconnectSkyController:");
+		stopDeviceController(true);
+	}
+
+	/**
+	 * アラーム状態が変化した時のコールバック
+	 * @param alert_state
+	 */
+	protected void onSkyControllerAlarmStateChangedUpdate(int alert_state) {
+	}
+
+
 	private final DialogInterface.OnCancelListener mOnCancelListener
 		= new DialogInterface.OnCancelListener() {
 		@Override

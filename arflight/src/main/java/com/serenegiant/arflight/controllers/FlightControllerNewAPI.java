@@ -297,7 +297,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 			for (final FlightControllerListener listener: mListeners) {
 				if (listener != null) {
 					try {
-						listener.onCalibrationRequiredChanged(need_calibration);
+						listener.onCalibrationRequiredChanged(this, need_calibration);
 					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
@@ -315,7 +315,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 			for (final FlightControllerListener listener: mListeners) {
 				if (listener != null) {
 					try {
-						listener.onCalibrationStartStop(is_start);
+						listener.onCalibrationStartStop(this, is_start);
 					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
@@ -333,7 +333,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 			for (final FlightControllerListener listener: mListeners) {
 				if (listener != null) {
 					try {
-						listener.onCalibrationAxisChanged(axis);
+						listener.onCalibrationAxisChanged(this, axis);
 					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}

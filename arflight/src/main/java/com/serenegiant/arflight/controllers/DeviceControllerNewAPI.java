@@ -321,6 +321,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 						mState = STATE_STARTED;
 					}
 					onStarted();
+					callOnConnect();
 				}
 			} catch (final InterruptedException e) {
 				//
@@ -606,7 +607,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		if (mRequestConnect) {
 			connectSent.release();
 		}
-		callOnConnect();
 	}
 
 	/** onStateChangedの下請け */

@@ -8,12 +8,13 @@ public class AttributePosition {
 	private double mGPSLongitude;	// 経度[度], 無効値:500.0
 	private double mGPSAltitude;	// 高度[m], 無効値:500.0
 	private double mAltitude;		// 対地高度[m]
+	private double mHeading;		// 方位角[度]
 
 	/**
 	 * コンストラクタ
 	 */
 	public AttributePosition() {
-		this(INVALID_VALUE, INVALID_VALUE, INVALID_VALUE);
+		this(INVALID_VALUE, INVALID_VALUE, INVALID_VALUE, 0.0);
 	}
 
 	/**
@@ -23,10 +24,21 @@ public class AttributePosition {
 	 * @param altitude
 	 */
 	public AttributePosition(final double latitude, final double longitude, final double altitude) {
+		this(latitude, longitude, altitude, 0.0);
+	}
+
+	/**
+	 * コンストラクタ(GPS座標を指定)
+	 * @param latitude
+	 * @param longitude
+	 * @param altitude
+	 */
+	public AttributePosition(final double latitude, final double longitude, final double altitude, final double heading) {
 		mGPSLatitude = latitude;
 		mGPSLongitude = longitude;
 		mGPSAltitude = altitude;
-		mAltitude = 0;
+		mAltitude = 0.0;
+		mHeading = heading;
 		mGPSIsValid = (latitude != INVALID_VALUE) && (longitude != INVALID_VALUE) && (altitude != INVALID_VALUE);
 	}
 
@@ -35,11 +47,7 @@ public class AttributePosition {
 	 * @param other
 	 */
 	public AttributePosition(final AttributePosition other) {
-		mGPSLatitude = other != null ? other.mGPSLatitude : INVALID_VALUE;
-		mGPSLongitude = other != null ? other.mGPSLongitude : INVALID_VALUE;;
-		mGPSAltitude = other != null ? other.mGPSAltitude : INVALID_VALUE;
-		mAltitude = other != null ? other.mAltitude : 0;
-		mGPSIsValid = other != null ? other.mGPSIsValid : false;
+		set(other);
 	}
 
 	public boolean isGPSValid() {
@@ -50,7 +58,8 @@ public class AttributePosition {
 		mGPSLatitude = other != null ? other.mGPSLatitude : INVALID_VALUE;
 		mGPSLongitude = other != null ? other.mGPSLongitude : INVALID_VALUE;;
 		mGPSAltitude = other != null ? other.mAltitude : INVALID_VALUE;
-		mAltitude = other != null ? other.mAltitude : 0;
+		mAltitude = other != null ? other.mAltitude : 0.0;
+		mHeading = other != null ? other.mHeading : 0.0;
 		mGPSIsValid = other != null ? other.mGPSIsValid : false;
 	}
 
@@ -67,6 +76,19 @@ public class AttributePosition {
 		mGPSIsValid = (latitude != INVALID_VALUE) && (longitude != INVALID_VALUE) && (altitude != INVALID_VALUE);
 	}
 
+	/**
+	 * GPS座標をセット
+	 * @param latitude
+	 * @param longitude
+	 * @param altitude
+	 */
+	public void set(final double latitude, final double longitude, final double altitude, final double heading) {
+		mGPSLatitude = latitude;
+		mGPSLongitude = longitude;
+		mGPSAltitude = altitude;
+		mHeading = heading;
+		mGPSIsValid = (latitude != INVALID_VALUE) && (longitude != INVALID_VALUE) && (altitude != INVALID_VALUE);
+	}
 
 	/**
 	 * GPS緯度をセット
@@ -117,6 +139,22 @@ public class AttributePosition {
 	 */
 	public double altitude() {
 		return mGPSAltitude != INVALID_VALUE ? mGPSAltitude : mAltitude;
+	}
+
+	/**
+	 * 方位角をセット
+	 * @param heading
+	 */
+	public void heading(final double heading) {
+		mHeading = heading;
+	}
+
+	/**
+	 * 方位角を取得
+	 * @return
+	 */
+	public double heading() {
+		return mHeading;
 	}
 
 	/**

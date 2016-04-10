@@ -68,7 +68,19 @@ public class CommonStatus {
 	 */
 	public void setPosition(final double latitude, final double longitude, final double altitude) {
 		synchronized (mSync) {
-			mPosition.set(latitude, longitude, altitude);
+			mPosition.set(latitude, longitude, altitude, 0.0);
+		}
+	}
+
+	/**
+	 * 座標をセット
+	 * @param latitude
+	 * @param longitude
+	 * @param altitude
+	 */
+	public void setPosition(final double latitude, final double longitude, final double altitude, final double heading) {
+		synchronized (mSync) {
+			mPosition.set(latitude, longitude, altitude, heading);
 		}
 	}
 
@@ -108,6 +120,20 @@ public class CommonStatus {
 	public double altitude() {
 		synchronized (mSync) {
 			return mPosition.altitude();
+		}
+	}
+
+	/** 方位角[度]を設定 */
+	public void heading(final double heading) {
+		synchronized (mSync) {
+			mPosition.heading(heading);
+		}
+	}
+
+	/** 方位角[度]を取得 */
+	public double heading() {
+		synchronized (mSync) {
+			return mPosition.heading();
 		}
 	}
 
