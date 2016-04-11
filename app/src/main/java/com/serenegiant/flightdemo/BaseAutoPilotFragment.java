@@ -503,11 +503,15 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	protected void startVideoStreaming() {
 		if (DEBUG) Log.v(TAG, "startVideoStreaming:");
 		super.startVideoStreaming();
-		startImageProcessor(
-			512, 256
-//			VideoStream.VIDEO_HEIGHT >>> 1, VideoStream.VIDEO_HEIGHT
-//			VideoStream.VIDEO_HEIGHT, VideoStream.VIDEO_HEIGHT
-		);
+		try {
+			startImageProcessor(
+				512, 256
+//				VideoStream.VIDEO_HEIGHT >>> 1, VideoStream.VIDEO_HEIGHT
+//				VideoStream.VIDEO_HEIGHT, VideoStream.VIDEO_HEIGHT
+			);
+		} catch (final Exception e) {
+			Log.w(TAG, e);
+		}
 	}
 
 	@Override
@@ -841,273 +845,277 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 					mPool.add(new LineRec());
 				}
 			}
-			mIsRunning = mReqUpdateParams = true;
-			mAutoPilot = false;
-			mLostCnt = 0;
-			float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
-			boolean altitudeControl = mTraceAltitudeEnabled;
-			float flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
-			float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
-			final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
-			float scaleR = (float)mScaleR;
-			float directionalReverseBias = mTraceDirectionalReverseBias;
-//			float curvature = 0.0f; // mTraceCurvature;
-			//
-			long startTime = -1L, lostTime = -1L;
-			final Vector dir = new Vector(0.0f, flightSpeed, 0.0f).rotate(0.0f, 0.0f, flightAngleYaw);
-			final Vector offset = new Vector();
-			final Vector work = new Vector();
-			final Vector work2 = new Vector();
-			final Vector prevOffset = new Vector();
-			float pilotAngle = 0.0f;
-			final Vector mPilotValue = new Vector();		// roll,pitch,gaz制御量
-			final Vector mPrevPilotValue = new Vector();	// roll,pitch,gazの前回制御量
-			LineRec rec = null;
-			for ( ; mIsRunning ; ) {
-				synchronized (mParamSync) {
-					if (mReqUpdateParams) {	// パラメータ変更指示?
-						mReqUpdateParams = false;
-						flightAngleYaw = mTraceAttitudeYaw;
-						altitudeControl = mTraceAltitudeEnabled;
-						flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
-						if (flightAltitude < 0.5f) {
-							flightAltitude = 0.5f;
+			try {
+				mIsRunning = mReqUpdateParams = true;
+				mAutoPilot = false;
+				mLostCnt = 0;
+				float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
+				boolean altitudeControl = mTraceAltitudeEnabled;
+				float flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
+				float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
+				final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
+				float scaleR = (float)mScaleR;
+				float directionalReverseBias = mTraceDirectionalReverseBias;
+//				float curvature = 0.0f; // mTraceCurvature;
+				//
+				long startTime = -1L, lostTime = -1L;
+				final Vector dir = new Vector(0.0f, flightSpeed, 0.0f).rotate(0.0f, 0.0f, flightAngleYaw);
+				final Vector offset = new Vector();
+				final Vector work = new Vector();
+				final Vector work2 = new Vector();
+				final Vector prevOffset = new Vector();
+				float pilotAngle = 0.0f;
+				final Vector mPilotValue = new Vector();		// roll,pitch,gaz制御量
+				final Vector mPrevPilotValue = new Vector();	// roll,pitch,gazの前回制御量
+				LineRec rec = null;
+				for ( ; mIsRunning ; ) {
+					synchronized (mParamSync) {
+						if (mReqUpdateParams) {	// パラメータ変更指示?
+							mReqUpdateParams = false;
+							flightAngleYaw = mTraceAttitudeYaw;
+							altitudeControl = mTraceAltitudeEnabled;
+							flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
+							if (flightAltitude < 0.5f) {
+								flightAltitude = 0.5f;
+							}
+							// scaleが最大で±2になるのでmFlightSpeedは[-100,+100]なのを[-50,+50]にする
+							flightSpeed = mTraceSpeed / 2.0f * (float)(mMaxControlValue / 100.0);
+							scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
+							scaleR = (float)mScaleR;
+							dir.set(0.0f, flightSpeed, 0.0f).rotateXY(flightAngleYaw);
+							directionalReverseBias = mTraceDirectionalReverseBias;
+	//						curvature = mTraceCurvature;
+							if (mMovingAveTap != mTraceMovingAveTap) {
+								createMovingAve(mTraceMovingAveTap);
+							}
 						}
-						// scaleが最大で±2になるのでmFlightSpeedは[-100,+100]なのを[-50,+50]にする
-						flightSpeed = mTraceSpeed / 2.0f * (float)(mMaxControlValue / 100.0);
-						scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
-						scaleR = (float)mScaleR;
-						dir.set(0.0f, flightSpeed, 0.0f).rotateXY(flightAngleYaw);
-						directionalReverseBias = mTraceDirectionalReverseBias;
-//						curvature = mTraceCurvature;
-						if (mMovingAveTap != mTraceMovingAveTap) {
-							createMovingAve(mTraceMovingAveTap);
+					}
+					synchronized (mQueue) {
+						try {
+							// 解析データ待ち
+							mQueue.wait(500);
+						} catch (InterruptedException e) {
+							break;
+						}
+						if (!mIsRunning) break;
+						if (mQueue.size() > 0) {
+							rec = mQueue.remove(0);
 						}
 					}
-				}
-				synchronized (mQueue) {
-					try {
-						// 解析データ待ち
-						mQueue.wait(500);
-					} catch (InterruptedException e) {
-						break;
-					}
-					if (!mIsRunning) break;
-					if (mQueue.size() > 0) {
-						rec = mQueue.remove(0);
-					}
-				}
-				if (rec != null) {
-					try {
-						// 解析データを取得できた＼(^o^)／
-						String msg1 = null, msg2 = null;
-						if (rec.type >= 0) {	// 0:TYPE_LINE, 1:TYPE_CIRCLE, 2:TYPE_CORNER
-							// ラインを検出出来た時
-							lostTime = -1;
-							//--------------------------------------------------------------------------------
-							// 制御量を計算
-							// 機体からの角度はカメラ映像の真上が0で反時計回りが負、時計回りが正(Bebopのyaw軸回転角と同じ)
-							// 解析画像のラインに対する角度は機体が時計回りすれば正
-							// この時機体自体のラインに対する角度は符号反転
-							// mCurvatureがゼロでない時にmAngleが正ならラインは左へ曲がっている、mAngleが負なら右へ曲がっている
-							// Vectorクラスは反時計回りが正, 時計回りが負
-							//--------------------------------------------------------------------------------
-							// ライン角に機体の進行方向の傾きを補正
-							final float theta = rec.angle - flightAngleYaw;
-							float line_angle = -theta;
-							if ((line_angle > 90.0f) || (line_angle < -90.0f)) {
-								if (theta < 0.0f) {
-									line_angle -= 180.0f;
-								} else {
-									line_angle += 180.0f;
-								}
-							}
-							//--------------------------------------------------------------------------------
-							// 画像中心からライン最小矩形の中心へのオフセットを計算
-							offset.set(CX, CY, flightAltitude).sub(rec.linePos);
-							// 解析データ
-							msg1 = String.format("%d,v(%3.0f,%3.0f,%5.1f,%5.2f),θ=%5.2f)",
-								rec.type, offset.x, offset.y, offset.z, rec.angle, line_angle);
-							//--------------------------------------------------------------------------------
-							// 画面の端が-1または+1になるように変換する
-							offset.div(CX, CY, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
-							offset.set(updateMovingAve(offset));	// オフセットの移動平均を取得
-							// 移動方向, 前回と同じ方向なら1, 逆なら-1
-							work.set(offset).sub(prevOffset).sign();
-							// オフセットを保存
-							prevOffset.set(offset);
-							mPilotValue.set(offset);	// これは画面座標での画面中央とライン重心のオフセット値
-							// オフセットの移動平均の符号を取得
-							offset.sign();
-							// 移動方向が変わってなければバイアス加算, 変わってればバイアス減算
-							if (offset.x != 0.0f) { if (offset.x == work.x) { work.x = directionalReverseBias; } else { work.x = -directionalReverseBias; } } else { offset.x = 0.0f; }
-							if (offset.y != 0.0f) { if (offset.y == work.y) { work.y = directionalReverseBias; } else { work.y = -directionalReverseBias; } } else { offset.y = 0.0f; }
-							if (offset.z != 0.0f) { if (offset.z == work.z) { work.z = directionalReverseBias; } else { work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
-							work.add(1.0f, 1.0f, 1.0f);	// この時点でworkの各成分は1.0f±directionalReverseBias
-							// 機体のオフセットと反対向き動かすので-1倍, ±1を±50に換算するので50倍, 前進速度を加算
-							// オフセットy(ピッチ, 前後方向)はラインの中心点が中央より前だと負、中央より後ろだと正なので符号反転はしない
-							mPilotValue.mult(work).mult(-50.0f, 50.0f, 50.0f);
-//							// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
-//							mPilotValue.rotateXY(-angle);
-							// FIXME 高度に応じてスケールを変えないとだめかも
-							// 自動操縦スケールを適用
-							mPilotValue.mult(scale);
-							// 飛行速度を加算
-							switch (mMode) {
-							case MODE_TRACE:	// 通常(トレース)
-								mPilotValue.add(dir);
-								break;
-							case MODE_TRACKING:	// トラッキング
-								// 飛行速度の加算なし
-								break;
-							}
-							// 最大最小値を制限
-							mPilotValue.limit(-100.0f, +100.0f);
-							//--------------------------------------------------------------------------------
-							// 機体のyaw角を計算
-							switch (rec.type) {
-							case 0: // TYPE_LINE
-							{
-								pilotAngle = line_angle;
-								break;
-							}
-							case 1:	// TYPE_CIRCLE
-							{
-								// 楕円の中心とライン中心を通る線分と楕円の交点座標での接線の傾きを求める
-								final float ellipse_angle = rec.ellipseAngle <= 90.0f ? rec.ellipseAngle : -180.0f + rec.ellipseAngle;
-								// 楕円の中心からライン最小句形の中旬へ向かうベクトルを計算
-								offset.set(rec.linePos).sub(rec.ellipsePos);
-								// 楕円の回転角を補正, 楕円の回転角はline_angleと大体同じみたい,範囲が違うけど, [0-180]
-								offset.rotateXY(-ellipse_angle);
-								// 長軸半径・短軸半径
-								final float a = rec.ellipseA;
-								final float b = rec.ellipseB;
-								final float c;	// 楕円の中心とライン重心を通る線分の傾き
-								// 楕円の中心とライン重心を通る線分の傾きを取得
-								final float slope, slope_angle;
-								if (offset.x != 0) {
-									c = offset.y / offset.x;
-									//  楕円: x^2 / a^2 + y^2 / b^2 = 1との交点を計算
-									final float w = (a * a * b * b) / (b * b + a * a * c * c);
-									final float x1 = (float)Math.sqrt(w);
-									work.set(x1, c * x1);
-									final float d = Math.abs(work.getAngle(offset));
-									if (d > 5) {
-										// ライン重心と反対側の交点だったので符号を反転
-										work.mult(-1.0f);
+					if (rec != null) {
+						try {
+							// 解析データを取得できた＼(^o^)／
+							String msg1 = null, msg2 = null;
+							if (rec.type >= 0) {	// 0:TYPE_LINE, 1:TYPE_CIRCLE, 2:TYPE_CORNER
+								// ラインを検出出来た時
+								lostTime = -1;
+								//--------------------------------------------------------------------------------
+								// 制御量を計算
+								// 機体からの角度はカメラ映像の真上が0で反時計回りが負、時計回りが正(Bebopのyaw軸回転角と同じ)
+								// 解析画像のラインに対する角度は機体が時計回りすれば正
+								// この時機体自体のラインに対する角度は符号反転
+								// mCurvatureがゼロでない時にmAngleが正ならラインは左へ曲がっている、mAngleが負なら右へ曲がっている
+								// Vectorクラスは反時計回りが正, 時計回りが負
+								//--------------------------------------------------------------------------------
+								// ライン角に機体の進行方向の傾きを補正
+								final float theta = rec.angle - flightAngleYaw;
+								float line_angle = -theta;
+								if ((line_angle > 90.0f) || (line_angle < -90.0f)) {
+									if (theta < 0.0f) {
+										line_angle -= 180.0f;
+									} else {
+										line_angle += 180.0f;
 									}
-									// この時点でworkには楕円の中心とライン重心を通る線分と楕円の交点座標が入っている
-									//  楕円: x^2 / a^2 + y^2 / b^2 = 1上の点(x0,y0)の接線の方程式は
-									// x0・x / a^2 + y0・y / b^2 = 1, 式変形してy = b^2 / y - (x0・b^2) / (a^2・y0)・x
-									// なので傾きは -(x0・b^2) / (a^2・y0)
-									slope = - work.x * b * b / (a * a * work.y);
-									// 接線がx軸となす角を計算, 楕円の傾きを加算
-									slope_angle = (float)Math.toDegrees(Math.atan(slope)) + ellipse_angle;
-								} else {
-									c = slope = 0.0f;
-									slope_angle = ellipse_angle;
-									if (DEBUG) Log.v(TAG, "offset.x == 0");
 								}
+								//--------------------------------------------------------------------------------
+								// 画像中心からライン最小矩形の中心へのオフセットを計算
+								offset.set(CX, CY, flightAltitude).sub(rec.linePos);
+								// 解析データ
+								msg1 = String.format("%d,v(%3.0f,%3.0f,%5.1f,%5.2f),θ=%5.2f)",
+									rec.type, offset.x, offset.y, offset.z, rec.angle, line_angle);
+								//--------------------------------------------------------------------------------
+								// 画面の端が-1または+1になるように変換する
+								offset.div(CX, CY, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
+								offset.set(updateMovingAve(offset));	// オフセットの移動平均を取得
+								// 移動方向, 前回と同じ方向なら1, 逆なら-1
+								work.set(offset).sub(prevOffset).sign();
+								// オフセットを保存
+								prevOffset.set(offset);
+								mPilotValue.set(offset);	// これは画面座標での画面中央とライン重心のオフセット値
+								// オフセットの移動平均の符号を取得
+								offset.sign();
+								// 移動方向が変わってなければバイアス加算, 変わってればバイアス減算
+								if (offset.x != 0.0f) { if (offset.x == work.x) { work.x = directionalReverseBias; } else { work.x = -directionalReverseBias; } } else { offset.x = 0.0f; }
+								if (offset.y != 0.0f) { if (offset.y == work.y) { work.y = directionalReverseBias; } else { work.y = -directionalReverseBias; } } else { offset.y = 0.0f; }
+								if (offset.z != 0.0f) { if (offset.z == work.z) { work.z = directionalReverseBias; } else { work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
+								work.add(1.0f, 1.0f, 1.0f);	// この時点でworkの各成分は1.0f±directionalReverseBias
+								// 機体のオフセットと反対向き動かすので-1倍, ±1を±50に換算するので50倍, 前進速度を加算
+								// オフセットy(ピッチ, 前後方向)はラインの中心点が中央より前だと負、中央より後ろだと正なので符号反転はしない
+								mPilotValue.mult(work).mult(-50.0f, 50.0f, 50.0f);
+	//							// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
+	//							mPilotValue.rotateXY(-angle);
+								// FIXME 高度に応じてスケールを変えないとだめかも
+								// 自動操縦スケールを適用
+								mPilotValue.mult(scale);
+								// 飛行速度を加算
+								switch (mMode) {
+								case MODE_TRACE:	// 通常(トレース)
+									mPilotValue.add(dir);
+									break;
+								case MODE_TRACKING:	// トラッキング
+									// 飛行速度の加算なし
+									break;
+								}
+								// 最大最小値を制限
+								mPilotValue.limit(-100.0f, +100.0f);
+								//--------------------------------------------------------------------------------
+								// 機体のyaw角を計算
+								switch (rec.type) {
+								case 0: // TYPE_LINE
+								{
+									pilotAngle = line_angle;
+									break;
+								}
+								case 1:	// TYPE_CIRCLE
+								{
+									// 楕円の中心とライン中心を通る線分と楕円の交点座標での接線の傾きを求める
+									final float ellipse_angle = rec.ellipseAngle <= 90.0f ? rec.ellipseAngle : -180.0f + rec.ellipseAngle;
+									// 楕円の中心からライン最小句形の中旬へ向かうベクトルを計算
+									offset.set(rec.linePos).sub(rec.ellipsePos);
+									// 楕円の回転角を補正, 楕円の回転角はline_angleと大体同じみたい,範囲が違うけど, [0-180]
+									offset.rotateXY(-ellipse_angle);
+									// 長軸半径・短軸半径
+									final float a = rec.ellipseA;
+									final float b = rec.ellipseB;
+									final float c;	// 楕円の中心とライン重心を通る線分の傾き
+									// 楕円の中心とライン重心を通る線分の傾きを取得
+									final float slope, slope_angle;
+									if (offset.x != 0) {
+										c = offset.y / offset.x;
+										//  楕円: x^2 / a^2 + y^2 / b^2 = 1との交点を計算
+										final float w = (a * a * b * b) / (b * b + a * a * c * c);
+										final float x1 = (float)Math.sqrt(w);
+										work.set(x1, c * x1);
+										final float d = Math.abs(work.getAngle(offset));
+										if (d > 5) {
+											// ライン重心と反対側の交点だったので符号を反転
+											work.mult(-1.0f);
+										}
+										// この時点でworkには楕円の中心とライン重心を通る線分と楕円の交点座標が入っている
+										//  楕円: x^2 / a^2 + y^2 / b^2 = 1上の点(x0,y0)の接線の方程式は
+										// x0・x / a^2 + y0・y / b^2 = 1, 式変形してy = b^2 / y - (x0・b^2) / (a^2・y0)・x
+										// なので傾きは -(x0・b^2) / (a^2・y0)
+										slope = - work.x * b * b / (a * a * work.y);
+										// 接線がx軸となす角を計算, 楕円の傾きを加算
+										slope_angle = (float)Math.toDegrees(Math.atan(slope)) + ellipse_angle;
+									} else {
+										c = slope = 0.0f;
+										slope_angle = ellipse_angle;
+										if (DEBUG) Log.v(TAG, "offset.x == 0");
+									}
 
-								msg2 = String.format("e(%5.2f,%5.2f,%5.2f),θ=%5.2f,s=%5.2f",
-									offset.x, offset.y, rec.ellipseAngle, ellipse_angle,
-									slope_angle);
-								pilotAngle = slope_angle;
-								if (pilotAngle < -90.0f) pilotAngle += 90.0f;
-								if (pilotAngle > +90.0f) pilotAngle -= 90.0f;
-								if (Math.abs(pilotAngle - ellipse_angle) > 10.0f) {
-									pilotAngle = ellipse_angle;
+									msg2 = String.format("e(%5.2f,%5.2f,%5.2f),θ=%5.2f,s=%5.2f",
+										offset.x, offset.y, rec.ellipseAngle, ellipse_angle,
+										slope_angle);
+									pilotAngle = slope_angle;
+									if (pilotAngle < -90.0f) pilotAngle += 90.0f;
+									if (pilotAngle > +90.0f) pilotAngle -= 90.0f;
+									if (Math.abs(pilotAngle - ellipse_angle) > 10.0f) {
+										pilotAngle = ellipse_angle;
+									}
+									break;
 								}
-								break;
+								case 2: // TYPE_CORNER
+								{
+									break;
+								}
+								}	// switch (rec.type)
+	//							if (curvature != 0.0f) {
+	//								// 曲率による機体yaw角の補正
+	//								if (Math.abs(rec.curvature) > EPS_CURVATURE) {
+	//									// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
+	//									pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
+	//								}
+	//							}
+								// 自動操縦スケールを適用
+								pilotAngle *= scaleR;
+								// 一定角度以下は0に丸める
+								pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
+							} else {
+								// ラインを見失った時
+								mLostCnt++;
+								msg1 = null;
+								pilotAngle = 0.0f;
+								mPilotValue.clear(0.0f);
+								if (mAutoPilot) {
+									if (lostTime < 0) {
+										lostTime = System.currentTimeMillis();
+										mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+										clearMovingAve();	// オフセットの移動平均をクリア
+									}
+									final long t = System.currentTimeMillis() - lostTime;
+									if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
+										onStopAutoPilot(true);
+										mAutoPilot = false;
+										startTime = -1L;
+										mLostCnt = 0;
+										mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+									}
+								}
 							}
-							case 2: // TYPE_CORNER
-							{
-								break;
-							}
-							}	// switch (rec.type)
-//							if (curvature != 0.0f) {
-//								// 曲率による機体yaw角の補正
-//								if (Math.abs(rec.curvature) > EPS_CURVATURE) {
-//									// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
-//									pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
-//								}
-//							}
-							// 自動操縦スケールを適用
-							pilotAngle *= scaleR;
-							// 一定角度以下は0に丸める
-							pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
-						} else {
-							// ラインを見失った時
-							mLostCnt++;
-							msg1 = null;
-							pilotAngle = 0.0f;
-							mPilotValue.clear(0.0f);
+							//--------------------------------------------------------------------------------
+							// トレース飛行中なら制御コマンド送信
+							//--------------------------------------------------------------------------------
 							if (mAutoPilot) {
-								if (lostTime < 0) {
-									lostTime = System.currentTimeMillis();
-									mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
-									clearMovingAve();	// オフセットの移動平均をクリア
-								}
-								final long t = System.currentTimeMillis() - lostTime;
-								if (t > 10000) {	// 10秒以上ラインを見失ったらライントレース解除
-									onStopAutoPilot(true);
-									mAutoPilot = false;
-									startTime = -1L;
+								if (startTime < 0) {
+									startTime = System.currentTimeMillis();
 									mLostCnt = 0;
-									mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
 								}
-							}
-						}
-						//--------------------------------------------------------------------------------
-						// トレース飛行中なら制御コマンド送信
-						//--------------------------------------------------------------------------------
-						if (mAutoPilot) {
-							if (startTime < 0) {
-								startTime = System.currentTimeMillis();
-								mLostCnt = 0;
-							}
-							if (!altitudeControl) {
-								mPilotValue.z = 0.0f;
-							}
-							final boolean b = !altitudeControl || Math.abs(rec.linePos.z - flightAltitude) < 0.1f;	// 10センチ以内
-							if (b || (System.currentTimeMillis() - startTime > 5000)) {
-								// 制御コマンド送信
-								mControlTask.setMove(mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
-								// 今回の制御量を保存
-								if ((lostTime < 0) || (System.currentTimeMillis() - lostTime < 50)) {	// ラインを見失っても50ミリ秒以内なら保持する
-									mPrevPilotValue.set(mPilotValue);
+								if (!altitudeControl) {
+									mPilotValue.z = 0.0f;
+								}
+								final boolean b = !altitudeControl || Math.abs(rec.linePos.z - flightAltitude) < 0.1f;	// 10センチ以内
+								if (b || (System.currentTimeMillis() - startTime > 5000)) {
+									// 制御コマンド送信
+									mControlTask.setMove(mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
+									// 今回の制御量を保存
+									if ((lostTime < 0) || (System.currentTimeMillis() - lostTime < 50)) {	// ラインを見失っても50ミリ秒以内なら保持する
+										mPrevPilotValue.set(mPilotValue);
+									}
+								} else {
+									// 制御コマンド送信
+									mControlTask.setMove(0.0f, 0.0f, mPilotValue.z, 0.0f);
+									mPrevPilotValue.set(0.0f, 0.0f, mPilotValue.z);
 								}
 							} else {
-								// 制御コマンド送信
-								mControlTask.setMove(0.0f, 0.0f, mPilotValue.z, 0.0f);
-								mPrevPilotValue.set(0.0f, 0.0f, mPilotValue.z);
+								startTime = -1L;
 							}
-						} else {
-							startTime = -1L;
-						}
-						final String m3 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
-						final String m1 = msg1;
-						final String m2 = msg2;
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								mTraceTv1.setText(m1);
-								mTraceTv2.setText(m2);
-								mTraceTv3.setTextColor(mAutoPilot ? Color.RED : Color.GREEN);
-								mTraceTv3.setText(m3);
+							final String m3 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
+							final String m1 = msg1;
+							final String m2 = msg2;
+							runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									mTraceTv1.setText(m1);
+									mTraceTv2.setText(m2);
+									mTraceTv3.setTextColor(mAutoPilot ? Color.RED : Color.GREEN);
+									mTraceTv3.setText(m3);
+								}
+							});
+						} finally {
+							synchronized (mQueue) {
+								mPool.add(rec);
 							}
-						});
-					} finally {
-						synchronized (mQueue) {
-							mPool.add(rec);
 						}
 					}
+				}	// for ( ; mIsRunning ; )
+				try {
+					mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+				} catch (final Exception e) {
+					// ignore
 				}
-			}	// for ( ; mIsRunning ; )
-			try {
-				mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
 			} catch (final Exception e) {
-				// ignore
+				Log.w(TAG, e);
 			}
 			onStopAutoPilot(!mAutoPilot);
 			synchronized (mQueue) {

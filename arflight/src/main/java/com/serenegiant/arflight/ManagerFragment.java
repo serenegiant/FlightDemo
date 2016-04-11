@@ -7,6 +7,7 @@ import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -132,14 +133,26 @@ public class ManagerFragment extends Fragment {
 	}
 
 	/**
-	 * 指定したIDeviceControllerを取り除く(IFlightController#releaseとかは呼ばない)
+	 * 指定したIDeviceControllerを取り除く, IFlightController#releaseを呼んで破棄する
 	 * @param activity
 	 * @param controller
 	 */
 	public static void releaseController(final Activity activity, final IDeviceController controller) {
 		final ManagerFragment fragment =  getInstance(activity);
-		if (fragment != null)
+		if (fragment != null) {
 			fragment.releaseController(controller);
+		} else {
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						controller.release();
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					}
+				}
+			}).start();
+		}
 	}
 
 	/**
@@ -412,7 +425,7 @@ public class ManagerFragment extends Fragment {
 	}
 
 	/**
-	 * 指定したIDeviceControllerをHashMapから取り除く
+	 * 指定したIDeviceControllerをHashMapから取り除く, IDeviceController#releaseを呼んで開放する
 	 * @param controller
 	 */
 	public void releaseController(final IDeviceController controller) {
@@ -422,6 +435,26 @@ public class ManagerFragment extends Fragment {
 				mControllers.remove(controller.getName());
 			}
 		}
+		final Activity activity = getActivity();
+		if ((activity != null) && !activity.isFinishing()) {
+			showProgress(R.string.disconnecting, false, null);
+		}
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				if (DEBUG) Log.v(TAG, "接続終了中");
+				try {
+//					controller.stop();
+					controller.release();
+				} catch (final Exception e) {
+					Log.w(TAG, e);
+				}
+				hideProgress();
+				if (DEBUG) Log.v(TAG, "接続終了");
+			}
+		}).start();
+
 		if (DEBUG) Log.i(TAG, "releaseController:終了");
 	}
 
@@ -654,4 +687,34 @@ public class ManagerFragment extends Fragment {
 			}
 		}
 	};
+
+	private ProgressDialog mProgress;
+
+	private synchronized void showProgress(final int title_resID, final boolean cancelable,
+		final DialogInterface.OnCancelListener cancel_listener) {
+
+		final Activity activity = getActivity();
+
+		if ((activity != null) && !activity.isFinishing()) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					mProgress = ProgressDialog.show(activity, getString(title_resID), null, true, cancelable, cancel_listener);
+				}
+			});
+		}
+	}
+
+	private synchronized void hideProgress() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (mProgress != null) {
+					mProgress.dismiss();
+					mProgress = null;
+				}
+			}
+		});
+	}
+
 }

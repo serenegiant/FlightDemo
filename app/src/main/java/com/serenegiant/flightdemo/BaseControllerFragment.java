@@ -290,22 +290,23 @@ public abstract class BaseControllerFragment extends BaseFragment {
 
 			final MainActivity activity = (MainActivity)getActivity();
 			if (activity != null) {
-				activity.showProgress(R.string.disconnecting, false, null);
+//				activity.showProgress(R.string.disconnecting, false, null);
+				ManagerFragment.releaseController(activity, controller);
 			}
 
-			new Thread(new Runnable() {
+/*			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					if (DEBUG) Log.v(TAG, "接続終了中");
 //					controller.stop();
 					controller.release();
 					if (activity != null) {
-						ManagerFragment.releaseController(activity, controller);
+//						ManagerFragment.releaseController(activity, controller);
 						activity.hideProgress();
 					}
 					if (DEBUG) Log.v(TAG, "接続終了");
 				}
-			}).start();
+			}).start(); */
 		}
 	}
 
