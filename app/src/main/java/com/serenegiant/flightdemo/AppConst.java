@@ -32,9 +32,15 @@ public class AppConst {
 	public static final int SCALE_OFFSET = 500;
 
 // ライントレース
+	public static final String KEY_CAMERA_WHITE_BLANCE = "KEY_CAMERA_WHITE_BLANCE";
+	public static final int DEFAULT_CAMERA_WHITE_BLANCE = 0;
+	public static final String KEY_CAMERA_EXPOSURE = "KEY_CAMERA_EXPOSURE";
+	public static final float DEFAULT_CAMERA_EXPOSURE = 0.0f;
+	public static final String KEY_CAMERA_SATURATION = "KEY_CAMERA_SATURATION";
+	public static final float DEFAULT_CAMERA_SATURATION = 0.0f;
 	public static final String KEY_PREF_NAME_AUTOPILOT = "KEY_PREF_NAME_AUTOPILOT";
 	public static final String KEY_AUTOPILOT_MODE = "KEY_AUTOPILOT_MODE";
-	public static final String KEY_AUTO_WHITE_BLANCE = "KEY_AUTO_WHITE_BLANCE";
+//	public static final String KEY_AUTO_WHITE_BLANCE = "KEY_AUTO_WHITE_BLANCE";
 	public static final String KEY_EXPOSURE = "KEY_EXPOSURE";
 	public static final float DEFAULT_EXPOSURE = 0.0f;
 	public static final String KEY_SATURATION = "KEY_SATURATION";

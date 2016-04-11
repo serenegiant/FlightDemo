@@ -69,7 +69,7 @@ public class BridgeFragment extends BaseControllerFragment {
 
 	@Override
 	public void onDetach() {
-//		if (DEBUG) Log.v(TAG, "onDetach:");
+		if (DEBUG) Log.v(TAG, "onDetach:");
 		mLocalBroadcastManager.unregisterReceiver(mBroadcastReceiver);
 		stopDeviceController(false);
 		super.onDetach();
@@ -77,7 +77,7 @@ public class BridgeFragment extends BaseControllerFragment {
 
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-//		if (DEBUG) Log.v(TAG, "onCreateView:");
+		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
 		final View rootView = local_inflater.inflate(R.layout.fragment_bridge, container, false);
 		initView(rootView);
@@ -115,6 +115,7 @@ public class BridgeFragment extends BaseControllerFragment {
 
 	@Override
 	public void onDestroy() {
+		if (DEBUG) Log.d(TAG, "onDestroy:");
 		if (mMediaPlayer != null) {
 			if (mMediaPlayer.isPlaying()) {
 				mMediaPlayer.stop();
@@ -255,6 +256,8 @@ public class BridgeFragment extends BaseControllerFragment {
 						final DeviceInfo info = bridge.connectDeviceInfo();
 						if (bridge.isConnected() && (info != null)) {
 							if (DEBUG) Log.v(TAG, "既に接続されていたら操縦画面へ");
+							// FIXME 検出している機体が1機でそれに接続している時は操縦画面へ
+							// XXX ただし今はアイコン長押しでトレース/トラキングモードに移行できるようにしているので自動では遷移しない
 //							replace(PilotFragment2.newInstance(controller.getDeviceService(), info));
 						}
 					} catch (final Exception e) {
@@ -293,6 +296,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 	};
 
+	/** 検出した機体をリストに登録する, Bridge接続はBebop/Bebop2のみ対応 */
 	private void updateDeviceList(final DeviceInfo[] info_array) {
 		if (DEBUG) Log.v(TAG, "updateDeviceList:" + info_array);
 		final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter) mDeviceListView.getAdapter();
@@ -339,6 +343,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 	}
 
+	/** アイコンにタッチした時の処理 */
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
 		public void onClick(final View view) {
@@ -365,6 +370,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 	};
 
+	/** アイコンを長押しした時の処理 */
 	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
 		@Override
 		public boolean onLongClick(final View view) {
@@ -428,6 +434,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 	};
 
+	/** アイコンにタッチした時の処理の下請け, 選択している機体に対応するFragmentを生成する */
 	private Fragment getFragment(final int position, final boolean isPiloting) {
 		if (DEBUG) Log.v(TAG, "getFragment:");
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());

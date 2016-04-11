@@ -146,7 +146,9 @@ public class ManagerFragment extends Fragment {
 				@Override
 				public void run() {
 					try {
-						controller.release();
+						if (controller != null) {
+							controller.release();
+						}
 					} catch (final Exception e) {
 						Log.w(TAG, e);
 					}
@@ -373,7 +375,6 @@ public class ManagerFragment extends Fragment {
 		if (DEBUG) Log.i(TAG, "createController:" + device);
 		IDeviceController result = null;
 		if (device != null) {
-//			if (DEBUG) Log.v(TAG, "getProductID=" + device.getProductID());
 			switch (ARDiscoveryService.getProductFromProductID(device.getProductID())) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 				if (newAPI) {
@@ -419,6 +420,8 @@ public class ManagerFragment extends Fragment {
 					mControllers.put(device.getName(), result);
 				}
 			}
+		} else {
+			Log.w(TAG, "deviceがnullやん");
 		}
 		if (DEBUG) Log.i(TAG, "createController:終了,result=" + result);
 		return result;
@@ -430,31 +433,31 @@ public class ManagerFragment extends Fragment {
 	 */
 	public void releaseController(final IDeviceController controller) {
 		if (DEBUG) Log.i(TAG, "releaseController:" + controller);
-		synchronized (mControllerSync) {
-			if (mControllers.containsValue(controller)) {
-				mControllers.remove(controller.getName());
-			}
-		}
-		final Activity activity = getActivity();
-		if ((activity != null) && !activity.isFinishing()) {
-			showProgress(R.string.disconnecting, false, null);
-		}
-
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				if (DEBUG) Log.v(TAG, "接続終了中");
-				try {
-//					controller.stop();
-					controller.release();
-				} catch (final Exception e) {
-					Log.w(TAG, e);
+		if (controller != null) {
+			synchronized (mControllerSync) {
+				if (mControllers.containsValue(controller)) {
+					mControllers.remove(controller.getName());
 				}
-				hideProgress();
-				if (DEBUG) Log.v(TAG, "接続終了");
 			}
-		}).start();
+			final Activity activity = getActivity();
+			if ((activity != null) && !activity.isFinishing()) {
+				showProgress(R.string.disconnecting, false, null);
+			}
 
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					if (DEBUG) Log.v(TAG, "接続終了中");
+					try {
+						controller.release();
+					} catch (final Exception e) {
+						Log.w(TAG, e);
+					}
+					hideProgress();
+					if (DEBUG) Log.v(TAG, "接続終了");
+				}
+			}).start();
+		}
 		if (DEBUG) Log.i(TAG, "releaseController:終了");
 	}
 

@@ -127,11 +127,19 @@
 	<string name="anim_boost">ブースト</string>
 
 	<!-- ライントレース画面の文字列 -->
+	<!-- カメラ設定 -->
+	<string name="trace_config_title_camera">カメラ設定</string>
+	<string name="trace_camera_white_blance">カメラホワイトバランス</string>
+	<string name="trace_white_blance_auto">自動</string>
+	<string name="trace_white_blance_lamp">電球色</string>
+	<string name="trace_white_blance_daylight">晴天</string>
+	<string name="trace_white_blance_cloudy">曇天</string>
+	<string name="trace_white_blance_flash">フラッシュ</string>
+	<string name="trace_white_blance_manual">手動</string>
+	<string name="trace_camera_exposure">カメラ露出: %6.3f</string>
+	<string name="trace_camera_saturation">カメラ彩度: %4.1f</string>
 	<!-- 映像処理1設定 -->
 	<string name="trace_config_title_preprocess">映像処理設定1</string>
-	<string name="trace_white_blance">ホワイトバランス</string>
-	<string name="trace_white_blance_auto">自動</string>
-	<string name="trace_white_blance_manual">手動</string>
 	<string name="trace_use_exposure">露出: %6.3f</string>
 	<string name="trace_use_saturation">彩度: %5.2f</string>
 	<string name="trace_use_brightness">明るさ: %5.2f</string>

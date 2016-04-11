@@ -89,7 +89,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	protected ImageProcessor mImageProcessor;
 	protected TraceTask mTraceTask;
 	protected ControlTask mControlTask;
-	protected Switch mAutoWhiteBlanceSw;
+//	protected Switch mAutoWhiteBlanceSw;
 	private TextView mTraceTv1, mTraceTv2, mTraceTv3;
 	private TextView mCpuLoadTv;
 	private TextView mFpsSrcTv, mFpsResultTv;
@@ -142,7 +142,10 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		mMode = args.getInt(KEY_AUTOPILOT_MODE, mMode);
 		mPref = getActivity().getSharedPreferences(mPrefName, 0);
 		// パラメータの読み込み
-		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, false);
+		mCameraAutoWhiteBlance = getInt(mPref, KEY_CAMERA_WHITE_BLANCE, DEFAULT_CAMERA_WHITE_BLANCE);
+		mCameraExposure = mPref.getFloat(KEY_CAMERA_EXPOSURE, DEFAULT_CAMERA_EXPOSURE);
+		mCameraSaturation = mPref.getFloat(KEY_CAMERA_SATURATION, DEFAULT_CAMERA_SATURATION);
+//		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, false);
 		mExposure = mPref.getFloat(KEY_EXPOSURE, DEFAULT_EXPOSURE);
 		mSaturation = mPref.getFloat(KEY_SATURATION, DEFAULT_SATURATION);
 		mBrightness = mPref.getFloat(KEY_BRIGHTNESS, DEFAULT_BRIGHTNESS);
@@ -474,16 +477,17 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		super.onConnect(controller);
 		if (DEBUG) Log.v(TAG, "onConnect");
 		if (controller instanceof ICameraController) {
-			((ICameraController)controller).sendExposure(3);
 			((ICameraController)controller).sendCameraOrientation(-100, 0);
-			((ICameraController)controller).sendAutoWhiteBalance(mAutoWhiteBlance ? 0 : -1);	// 自動ホワイトバランス
-		} else {
-			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					mAutoWhiteBlanceSw.setVisibility(View.GONE);
-				}
-			});
+			((ICameraController)controller).sendExposure(mCameraExposure);
+			((ICameraController)controller).sendSaturation(mCameraSaturation);
+			((ICameraController)controller).sendAutoWhiteBalance(mCameraAutoWhiteBlance - 1);	// 自動ホワイトバランス
+//		} else {
+//			runOnUiThread(new Runnable() {
+//				@Override
+//				public void run() {
+//					mAutoWhiteBlanceSw.setVisibility(View.GONE);
+//				}
+//			});
 		}
 		mTraceAltitude = Math.min(mPref.getFloat(KEY_TRACE_ALTITUDE, DEFAULT_TRACE_ALTITUDE), mFlightController.getMaxAltitude().current());
 		synchronized (mParamSync) {
@@ -1292,6 +1296,35 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		return result;
 	}
 
+	private static class WhiteBlanceAdapter extends ArrayAdapter<String> {
+		private final String[] values;
+		public WhiteBlanceAdapter(final Context context) {
+			super(context, android.R.layout.simple_dropdown_item_1line);
+			values = context.getResources().getStringArray(R.array.trace_white_blance_value);
+			final String[] entries = context.getResources().getStringArray(R.array.trace_white_blance_entries);
+			addAll(entries);
+		}
+
+		@Override
+		public View getView(final int position, final View convertView, final ViewGroup parent) {
+			final View rootView = super.getView(position, convertView, parent);
+			changeColor(rootView, getContext().getResources().getColor(R.color.WHITE));
+			return rootView;
+		}
+
+		private void changeColor(final View view, final int cl) {
+			if (view instanceof TextView) {
+				((TextView)view).setTextColor(cl);
+			} else if (view instanceof ViewGroup) {
+				final ViewGroup parent = (ViewGroup)view;
+				final int n = parent.getChildCount();
+				for (int i = 0; i < n; i++) {
+					changeColor(parent.getChildAt(i), cl);
+				}
+			}
+		}
+	}
+
 	private static class SmoothTypeAdapter extends ArrayAdapter<String> {
 		private final String[] values;
 		public SmoothTypeAdapter(final Context context) {
@@ -1331,6 +1364,18 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 					mImageProcessor.nativeSmoothType(position % 4);
 				}
 				break;
+			case R.id.camera_white_blance_spinner:
+				final int white_blance = position - 1;
+				if (mCameraAutoWhiteBlance != white_blance) {
+					mCameraAutoWhiteBlance = white_blance;
+					if (mController instanceof ICameraController) {
+						((ICameraController)mController).sendAutoWhiteBalance(white_blance);
+					}
+					if (mPref != null) {
+						mPref.edit().putInt(KEY_CAMERA_WHITE_BLANCE, white_blance).apply();
+					}
+				}
+				break;
 			}
 		}
 
@@ -1342,6 +1387,14 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 					mImageProcessor.nativeSmoothType(0);
 				}
 				break;
+			case R.id.camera_white_blance_spinner:
+				if (mController instanceof ICameraController) {
+					((ICameraController)mController).sendAutoWhiteBalance(0);
+				}
+				if (mPref != null) {
+					mPref.edit().putInt(KEY_CAMERA_WHITE_BLANCE, 0).apply();
+				}
+				break;
 			}
 		}
 	};
@@ -1351,12 +1404,12 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		@Override
 		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
 			switch (buttonView.getId()) {
-			case R.id.white_balance_sw:
-				((ICameraController)mController).sendAutoWhiteBalance(isChecked ? 0 : -1);
-				if (mPref != null) {
-					mPref.edit().putBoolean(KEY_AUTO_WHITE_BLANCE, isChecked).apply();
-				}
-				break;
+//			case R.id.white_balance_sw:
+//				((ICameraController)mController).sendAutoWhiteBalance(isChecked ? 0 : -1);
+//				if (mPref != null) {
+//					mPref.edit().putBoolean(KEY_AUTO_WHITE_BLANCE, isChecked).apply();
+//				}
+//				break;
 			case R.id.use_extract_sw:
 				if (mImageProcessor != null) {
 					mEnableGLESExtraction = isChecked;
@@ -1438,8 +1491,28 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		public void onProgressChanged(final SeekBar seekBar, final int progress, final boolean fromUser) {
 			if (!fromUser) return;
 			switch (seekBar.getId()) {
+			case R.id.camera_exposure_seekbar:
+				final float camera_exposure = progressToCameraExposure(progress);	// [0,3000] => [-1.5f, +1.5f]
+				if (mCameraExposure != camera_exposure) {
+					mCameraExposure = camera_exposure;
+					if (mController instanceof ICameraController) {
+						((ICameraController)mController).sendExposure(camera_exposure);
+					}
+					updateCameraExposure(camera_exposure);
+				}
+				break;
+			case R.id.camera_saturation_seekbar:
+				final float camera_saturation = (progress - 1000) / 10.0f;	// [0,2000] => [-100.0f, +100.0f]
+				if (mCameraSaturation != camera_saturation) {
+					mCameraSaturation = camera_saturation;
+					if (mController instanceof ICameraController) {
+						((ICameraController)mController).sendSaturation(camera_saturation);
+					}
+					updateCameraSaturation(camera_saturation);
+				}
+				break;
 			case R.id.exposure_seekbar:
-				final float exposure = progressToExposure(progress);	// [0,6000] => [-3.0f, +3.0f]
+				final float exposure = progressToExposure(progress);	// [0,3000] => [-1.5f, +1.5f]
 				if (mExposure != exposure) {
 					mExposure = exposure;
 					if (mImageProcessor != null) {
@@ -1642,6 +1715,16 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		@Override
 		public void onStopTrackingTouch(final SeekBar seekBar) {
 			switch (seekBar.getId()) {
+			case R.id.camera_exposure_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_CAMERA_EXPOSURE, mCameraExposure).apply();
+				}
+				break;
+			case R.id.camera_saturation_seekbar:
+				if (mPref != null) {
+					mPref.edit().putFloat(KEY_CAMERA_SATURATION, mCameraSaturation).apply();
+				}
+				break;
 			case R.id.exposure_seekbar:
 				if (mPref != null) {
 					mPref.edit().putFloat(KEY_EXPOSURE, mExposure).apply();
@@ -1842,6 +1925,72 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	};
 
 //--------------------------------------------------------------------------------
+	private String mCameraExposureFormat;
+	private String mCameraSaturationFormat;
+	private TextView mCameraExposureLabel;
+	private TextView mCameraSaturationLabel;
+	/** ホワイトバランス */
+	protected int mCameraAutoWhiteBlance;
+	/** 露出 */
+	protected float mCameraExposure;
+	/** 彩度 */
+	protected float mCameraSaturation;
+
+	private void initCamera(final View rootView) {
+		mCameraExposureFormat = getString(R.string.trace_camera_exposure);
+		mCameraSaturationFormat = getString(R.string.trace_camera_saturation);
+
+		SeekBar sb;
+		// ホワイトバランス
+		mCameraAutoWhiteBlance = getInt(mPref, KEY_CAMERA_WHITE_BLANCE, DEFAULT_CAMERA_WHITE_BLANCE);
+		final Spinner spinner = (Spinner)rootView.findViewById(R.id.camera_white_blance_spinner);
+		spinner.setAdapter(new WhiteBlanceAdapter(getActivity()));
+		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
+		// 露出
+		mCameraExposure = mPref.getFloat(KEY_CAMERA_EXPOSURE, DEFAULT_CAMERA_EXPOSURE);
+		mCameraExposureLabel = (TextView)rootView.findViewById(R.id.camera_exposure_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.camera_exposure_seekbar);
+		sb.setMax(3000);
+		sb.setProgress(cameraExposureToProgress(mCameraExposure));	// [-1.5,+ 1.5] => [0, 3000]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateCameraExposure(mCameraExposure);
+		// 彩度
+		mCameraSaturation = mPref.getFloat(KEY_CAMERA_SATURATION, DEFAULT_CAMERA_SATURATION);
+		mCameraSaturationLabel = (TextView)rootView.findViewById(R.id.camera_saturation_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.camera_saturation_seekbar);
+		sb.setMax(2000);
+		sb.setProgress((int)(mCameraSaturation * 10.0f) + 1000);	// [-100.0f, +100.0f] => [0, 2000]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateCameraSaturation(mCameraSaturation);
+	}
+
+	private void releaseCamera(final View rootView) {
+		mCameraExposureLabel = null;
+		mCameraSaturationLabel = null;
+	}
+
+	private int cameraExposureToProgress(final float exposure) {
+		return (int)(Math.signum(exposure) * (Math.sqrt(Math.abs(exposure * 1500000)))) + 1500;
+	}
+
+	private float progressToCameraExposure(final int progress) {
+		final int p = progress - 1500;
+		return Math.signum(p) * (p * p / 1500000.0f);
+	}
+
+	private void updateCameraExposure(final float exposure) {
+		if (mCameraExposureLabel != null) {
+			mCameraExposureLabel.setText(String.format(mCameraExposureFormat, exposure));
+		}
+	}
+
+	private void updateCameraSaturation(final float saturation) {
+		if (mCameraSaturationLabel != null) {
+			mCameraSaturationLabel.setText(String.format(mCameraSaturationFormat, saturation));
+		}
+	}
+
+//--------------------------------------------------------------------------------
 	private String mExposureFormat;
 	private String mSaturationFormat;
 	private String mBrightnessFormat;
@@ -1854,8 +2003,8 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 //	private TextView mPosterizeLabel;
 	private TextView mBinarizeThresholdLabel;
 	private TextView mTrapeziumRateLabel;
-	/** ホワイトバランス */
-	protected boolean mAutoWhiteBlance;
+//	/** ホワイトバランス */
+//	protected boolean mAutoWhiteBlance;
 	/** 露出 */
 	protected float mExposure;
 	/** 彩度 */
@@ -1881,11 +2030,11 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		Switch sw;
 		SeekBar sb;
 		Button btn;
-		// ホワイトバランス
-		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, true);
-		mAutoWhiteBlanceSw = (Switch)rootView.findViewById(R.id.white_balance_sw);
-		mAutoWhiteBlanceSw.setChecked(mAutoWhiteBlance);
-		mAutoWhiteBlanceSw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+//		// ホワイトバランス
+//		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, true);
+//		mAutoWhiteBlanceSw = (Switch)rootView.findViewById(R.id.white_balance_sw);
+//		mAutoWhiteBlanceSw.setChecked(mAutoWhiteBlance);
+//		mAutoWhiteBlanceSw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 		// 露出
 		mExposure = mPref.getFloat(KEY_EXPOSURE, DEFAULT_EXPOSURE);
 		mExposureLabel = (TextView)rootView.findViewById(R.id.exposure_textview);
@@ -2776,8 +2925,18 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	private static PagerAdapterConfig[] PAGER_CONFIG_TRACE;
 	static {
 		//
-		PAGER_CONFIG_TRACE = new PagerAdapterConfig[7];
-		PAGER_CONFIG_TRACE[0] = new PagerAdapterConfig(R.string.trace_config_title_preprocess, R.layout.trace_config_preprocess, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE = new PagerAdapterConfig[8];
+		PAGER_CONFIG_TRACE[0] = new PagerAdapterConfig(R.string.trace_config_title_camera, R.layout.trace_config_camera, new AdapterItemHandler() {
+			@Override
+			public void initialize(final BaseAutoPilotFragment parent, final View view) {
+				parent.initCamera(view);
+			}
+			@Override
+			public void release(final BaseAutoPilotFragment parent, final View view) {
+				parent.releaseCamera(view);
+			}
+		});
+		PAGER_CONFIG_TRACE[1] = new PagerAdapterConfig(R.string.trace_config_title_preprocess, R.layout.trace_config_preprocess, new AdapterItemHandler() {
 			@Override
 			public void initialize(final BaseAutoPilotFragment parent, final View view) {
 				parent.initPreprocess(view);
@@ -2787,7 +2946,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				parent.releasePreprocess(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[1] = new PagerAdapterConfig(R.string.trace_config_title_preprocess2, R.layout.trace_config_preprocess2, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[2] = new PagerAdapterConfig(R.string.trace_config_title_preprocess2, R.layout.trace_config_preprocess2, new AdapterItemHandler() {
 			@Override
 			public void initialize(final BaseAutoPilotFragment parent, final View view) {
 				parent.initPreprocess2(view);
@@ -2797,7 +2956,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				parent.releasePreprocess2(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[2] = new PagerAdapterConfig(R.string.trace_config_title_color_extract, R.layout.trace_config_color_extraction, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[3] = new PagerAdapterConfig(R.string.trace_config_title_color_extract, R.layout.trace_config_color_extraction, new AdapterItemHandler() {
 			@Override
 			public void initialize(final BaseAutoPilotFragment parent, final View view) {
 				parent.initColorExtraction(view);
@@ -2807,7 +2966,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				parent.releaseColorExtraction(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[3] = new PagerAdapterConfig(R.string.trace_config_title_detect, R.layout.trace_config_detect, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[4] = new PagerAdapterConfig(R.string.trace_config_title_detect, R.layout.trace_config_detect, new AdapterItemHandler() {
 			@Override
 			public void initialize(final BaseAutoPilotFragment parent, final View view) {
 				parent.initDetect(view);
@@ -2817,7 +2976,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				parent.releaseDetect(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[4] = new PagerAdapterConfig(R.string.trace_config_title_auto_trace, R.layout.trace_config_auto_trace, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[5] = new PagerAdapterConfig(R.string.trace_config_title_auto_trace, R.layout.trace_config_auto_trace, new AdapterItemHandler() {
 			@Override
 			public void initialize(final BaseAutoPilotFragment parent, final View view) {
 				parent.initAutoTrace(view);
@@ -2827,7 +2986,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				parent.releaseAutoTrace(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[5] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.trace_config_flight, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[6] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.trace_config_flight, new AdapterItemHandler() {
 			@Override
 			public void initialize(final BaseAutoPilotFragment parent, final View view) {
 				parent.initConfigFlight(view);
@@ -2837,7 +2996,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				parent.releaseConfigFlight(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[6] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.trace_config_autopilot, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[7] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.trace_config_autopilot, new AdapterItemHandler() {
 			@Override
 			public void initialize(final BaseAutoPilotFragment parent, final View view) {
 				parent.initConfigAutopilot(view);

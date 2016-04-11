@@ -8,16 +8,16 @@
 		android:layout_height="wrap_content"
 		android:orientation="vertical">
 		<!-- ホワイトバランス -->
-		<Switch
+<!--	<Switch
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_white_blance"
+			android:text="@string/trace_camera_white_blance"
 			android:textColor="@color/trace_config"
 			android:textSize="@dimen/text_sz_trace_config_list"
 			android:textOn="@string/trace_white_blance_auto"
 			android:textOff="@string/trace_white_blance_manual"
 			android:paddingBottom="@dimen/min_padding"
-			android:id="@+id/white_balance_sw"/>
+			android:id="@+id/white_balance_sw"/> -->
 		<!-- 露出 -->
 		<TextView
 			android:id="@+id/exposure_textview"

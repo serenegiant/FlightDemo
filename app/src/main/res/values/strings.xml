@@ -126,11 +126,19 @@
 	<string name="anim_boost">Boost</string>
 
 	<!-- ライントレース画面の文字列 -->
+	<!-- カメラ設定 -->
+	<string name="trace_config_title_camera">Camera settings</string>
+	<string name="trace_camera_white_blance">カメラホワイトバランス</string>
+	<string name="trace_white_blance_auto">自動</string>
+	<string name="trace_white_blance_lamp">電球色</string>
+	<string name="trace_white_blance_daylight">晴天</string>
+	<string name="trace_white_blance_cloudy">曇天</string>
+	<string name="trace_white_blance_flash">フラッシュ</string>
+	<string name="trace_white_blance_manual">手動</string>
+	<string name="trace_camera_exposure">カメラ露出: %6.3f</string>
+	<string name="trace_camera_saturation">カメラ彩度: %4.1f</string>
 	<!-- 映像処理1 -->
 	<string name="trace_config_title_preprocess">Preprocess settings1</string>
-	<string name="trace_white_blance">White blance</string>
-	<string name="trace_white_blance_auto">auto</string>
-	<string name="trace_white_blance_manual">manual</string>
 	<string name="trace_use_exposure">Exposure: %6.3f</string>
 	<string name="trace_use_saturation">Saturation: %5.2f</string>
 	<string name="trace_use_brightness">Brightness: %5.2f</string>
@@ -176,6 +184,7 @@
 	<string name="trace_config_trace_reverse_bias">Directional reverse bias rate: %5.2f</string>
 	<string name="trace_config_moving_ave_tap">Moving average tap: %d</string>
 
+	<!-- 平滑化 -->
 	<array name="trace_smooth_entries">
 		<item>@string/trace_smooth_non</item>
 		<item>@string/trace_smooth_gaussian</item>
@@ -190,4 +199,23 @@
 		<item>3</item>
 		<item>4</item>
 	</array>
+
+	<!-- カメラホワイトバランス -->
+	<array name="trace_white_blance_entries">
+		<item>@string/trace_white_blance_auto</item>
+		<item>@string/trace_white_blance_lamp</item>
+		<item>@string/trace_white_blance_daylight</item>
+		<item>@string/trace_white_blance_cloudy</item>
+		<item>@string/trace_white_blance_flash</item>
+		<item>@string/trace_white_blance_manual</item>
+	</array>
+	<array name="trace_white_blance_value">
+		<item>-1</item>
+		<item>0</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+		<item>4</item>
+	</array>
+
 </resources>

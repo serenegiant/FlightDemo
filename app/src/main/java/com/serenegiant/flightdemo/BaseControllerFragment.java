@@ -1,5 +1,6 @@
 package com.serenegiant.flightdemo;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
@@ -48,38 +49,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 			mDeviceInfo = savedInstanceState.getParcelable(ARFLIGHT_EXTRA_DEVICE_INFO);
 			mNewAPI = savedInstanceState.getBoolean(ARFLIGHT_EXTRA_NEWAPI, false);
 			getController();
-/*			final IDeviceController controller = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
-			if (BuildConfig.USE_SKYCONTROLLER) {
-				if ((mDeviceInfo != null) && (controller instanceof IBridgeController)) {
-					if (DEBUG) Log.d(TAG, "ブリッジ接続");
-					// スカイコントローラー経由のブリッジ接続の時
-					final IBridgeController bridge = (IBridgeController)controller;
-					final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceInfo.productId());
-					switch (product) {
-					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-						bridge.connectTo(mDeviceInfo);
-						if (mNewAPI) {
-							// FIXME 未実装
-						} else {
-							mController = new FlightControllerBebop(getActivity(), bridge);
-						}
-						break;
-					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-						bridge.connectTo(mDeviceInfo);
-						if (mNewAPI) {
-							// FIXME 未実装
-						} else {
-							mController = new FlightControllerBebop2(getActivity(), bridge);
-						}
-						break;
-					}
-				}
-			}
-
-			// 直接機体に接続している時かブリッジ接続できなかった時
-			if (mController == null) {
-				mController = controller;
-			} */
 		}
 		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState + ",mController=" + mController);
 	}
@@ -94,9 +63,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	public synchronized void onStart() {
 		super.onStart();
 		if (DEBUG) Log.v(TAG, "onStart:");
-/*		if (mController == null) {
-			mController = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
-		} */
 		getController();
 		if (DEBUG) Log.v(TAG, "onStart:終了");
 	}
@@ -119,11 +85,11 @@ public abstract class BaseControllerFragment extends BaseFragment {
 //		super.onDestroy();
 //	}
 
-//	@Override
-//	public void onDetach() {
-//		if (DEBUG) Log.v(TAG, "onDetach:");
-//		super.onDetach();
-//	}
+	@Override
+	public void onDetach() {
+		if (DEBUG) Log.v(TAG, "onDetach:");
+		super.onDetach();
+	}
 
 	protected Bundle setDevice(final ARDiscoveryDeviceService device) {
 		return setDevice(device, false);
@@ -224,6 +190,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 				mController = controller;
 			}
 		}
+		if (DEBUG) Log.v(TAG, "getController:" + mController);
 		return mController;
 	}
 
@@ -288,25 +255,10 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		if ((state == IFlightController.STATE_STARTED)
 			|| (state == IFlightController.STATE_STARTING)) {
 
-			final MainActivity activity = (MainActivity)getActivity();
+			final Activity activity = getActivity();
 			if (activity != null) {
-//				activity.showProgress(R.string.disconnecting, false, null);
 				ManagerFragment.releaseController(activity, controller);
 			}
-
-/*			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					if (DEBUG) Log.v(TAG, "接続終了中");
-//					controller.stop();
-					controller.release();
-					if (activity != null) {
-//						ManagerFragment.releaseController(activity, controller);
-						activity.hideProgress();
-					}
-					if (DEBUG) Log.v(TAG, "接続終了");
-				}
-			}).start(); */
 		}
 	}
 
@@ -383,7 +335,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	 */
 	protected void onSkyControllerAlarmStateChangedUpdate(int alert_state) {
 	}
-
 
 	private final DialogInterface.OnCancelListener mOnCancelListener
 		= new DialogInterface.OnCancelListener() {
