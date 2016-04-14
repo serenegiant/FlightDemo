@@ -9,11 +9,6 @@ OPENCV_LIB_TYPE:=SHARED
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/ \
 
-# OpenCV2 (2.4.11)を使う時
-# include $(LOCAL_PATH)/../opencv2/OpenCV.mk
-# LOCAL_SHARED_LIBRARIES := libopencv_java
-#LOCAL_C_INCLUDES += $(LOCAL_PATH)/../opencv2/include \
-
 # OpenCV3 (3.10)を使う時
 include $(LOCAL_PATH)/../opencv3/OpenCV.mk
 LOCAL_SHARED_LIBRARIES := libopencv_java3

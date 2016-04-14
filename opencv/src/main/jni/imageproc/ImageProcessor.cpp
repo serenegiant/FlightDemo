@@ -380,6 +380,10 @@ void ImageProcessor::do_process(JNIEnv *env) {
 // 最大で直線・円弧・コーナーの3つの処理が走るので近似輪郭検出と最低限のチェック(面積とか)は1回だけ先に済ましておく
 				findPossibleContours(src, bk_result, contours, approxes, param);
 				if (UNLIKELY(!mIsRunning)) break;
+				{	// vectorの余分なメモリーを開放する
+					std::vector<std::vector< cv::Point>> temp1;
+					contours.swap(temp1);
+				}
 //--------------------------------------------------------------------------------
 // 直線ラインの検出処理
 				result = bk_result;	// 結果用画像を初期化
@@ -393,10 +397,8 @@ void ImageProcessor::do_process(JNIEnv *env) {
 				if (UNLIKELY(!mIsRunning)) break;
 //================================================================================
 				{	// vectorの余分なメモリーを開放する
-					std::vector<std::vector< cv::Point>> temp1;
 					std::vector<const DetectRec_t *> temp2;
 					std::vector<DetectRec_t> temp3;
-					contours.swap(temp1);
 					work.swap(temp2);
 					approxes.swap(temp3);
 				}

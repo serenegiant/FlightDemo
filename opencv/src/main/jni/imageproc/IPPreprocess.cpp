@@ -152,9 +152,6 @@ int IPPreprocess::findPossibleContours(cv::Mat &src, cv::Mat &result,
 	cv::Point2f vertices[4];
 	const float areaErrLimit2Min = 1.0f / param.mAreaErrLimit2;
 
-	contours.clear();
-	approxes.clear();
-
 	// 輪郭を求める
 	findContours(src, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
 //	findContours(src, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);

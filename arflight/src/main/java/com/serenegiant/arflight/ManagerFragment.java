@@ -26,10 +26,12 @@ import com.serenegiant.arflight.controllers.FlightControllerBebop;
 import com.serenegiant.arflight.controllers.FlightControllerBebop2;
 import com.serenegiant.arflight.controllers.FlightControllerBebop2NewAPI;
 import com.serenegiant.arflight.controllers.FlightControllerBebopNewAPI;
+import com.serenegiant.arflight.controllers.FlightControllerMiniDrone;
 import com.serenegiant.arflight.controllers.FlightControllerMiniDroneNewAPI;
 import com.serenegiant.arflight.controllers.SkyController;
 import com.serenegiant.arflight.controllers.SkyControllerNewAPI;
 import com.serenegiant.net.NetworkChangedReceiver;
+import com.serenegiant.utils.HandlerThreadHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -167,8 +169,10 @@ public class ManagerFragment extends Fragment {
 			fragment.releaseAll();
 	}
 
+	private final Object mSync = new Object();
 	private final Handler mUIHandler = new Handler(Looper.getMainLooper());
 	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
+	private Handler mAsyncHandler;
 
 	private NetworkChangedReceiver mNetworkChangedReceiver;
 	private ARDiscoveryService ardiscoveryService;
@@ -193,6 +197,9 @@ public class ManagerFragment extends Fragment {
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		if (DEBUG) Log.i(TAG, "onAttach:");
+		synchronized (mSync) {
+			mAsyncHandler = HandlerThreadHandler.createHandler(TAG);
+		}
 		startServices();
 		initBroadcastReceiver();
 		initServiceConnection();
@@ -221,6 +228,16 @@ public class ManagerFragment extends Fragment {
 	public void onDetach() {
 		if (DEBUG) Log.i(TAG, "onDetach:");
 		releaseAll();
+		synchronized (mSync) {
+			if (mAsyncHandler != null) {
+				try {
+					mAsyncHandler.getLooper().quit();
+				} catch (final Exception e) {
+					//
+				}
+				mAsyncHandler = null;
+			}
+		}
 		super.onDetach();
 	}
 
@@ -243,7 +260,7 @@ public class ManagerFragment extends Fragment {
 	public void addCallback(final ManagerCallback callback) {
 		synchronized (mDeviceSync) {
 			boolean found = false;
-			for (ManagerCallback cb: mCallbacks) {
+			for (final ManagerCallback cb: mCallbacks) {
 				if (cb.equals(callback)) {
 					found = true;
 					break;
@@ -272,11 +289,16 @@ public class ManagerFragment extends Fragment {
 	 * @return nameに対応するARDiscoveryDeviceServiceが見つからなければnull
 	 */
 	public IDeviceController getController(final String name, final boolean newAPI) {
-		IDeviceController result = internalGetController(name, newAPI);
-		if (result == null && !TextUtils.isEmpty(name)) {
+		IDeviceController result = null;
+		synchronized (mControllerSync) {
 			final ARDiscoveryDeviceService device = getDevice(name);
 			if (device != null) {
-				result = createController(device, newAPI);
+				result = internalGetController(name, newAPI);
+				if (result == null) {
+					if (device != null) {
+						result = createController(device, newAPI);
+					}
+				}
 			}
 		}
 		return result;
@@ -289,11 +311,13 @@ public class ManagerFragment extends Fragment {
 	 */
 	public IDeviceController getController(final int index, final boolean newAPI) {
 		IDeviceController result = null;
-		final ARDiscoveryDeviceService device = getDevice(index);
-		if (device != null) {
-			result = internalGetController(device.getName(), newAPI);
-			if (result == null) {
-				result = createController(device, newAPI);
+		synchronized (mControllerSync) {
+			final ARDiscoveryDeviceService device = getDevice(index);
+			if (device != null) {
+				result = internalGetController(device.getName(), newAPI);
+				if (result == null) {
+					result = createController(device, newAPI);
+				}
 			}
 		}
 		return result;
@@ -306,10 +330,12 @@ public class ManagerFragment extends Fragment {
 	 */
 	public IDeviceController getController(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		IDeviceController result = null;
-		if (device != null) {
-			result = internalGetController(device.getName(), newAPI);
-			if (result == null) {
-				result = createController(device, newAPI);
+		synchronized (mControllerSync) {
+			if (device != null) {
+				result = internalGetController(device.getName(), newAPI);
+				if (result == null) {
+					result = createController(device, newAPI);
+				}
 			}
 		}
 		return result;
@@ -317,7 +343,7 @@ public class ManagerFragment extends Fragment {
 
 	private IDeviceController internalGetController(final String name, final boolean newAPI) {
 		IDeviceController result = null;
-		synchronized (mControllerSync) {
+		if (ardiscoveryServiceBound) {
 			if (mControllers.containsKey(name)) {
 				result = mControllers.get(name);
 			}
@@ -338,7 +364,7 @@ public class ManagerFragment extends Fragment {
 	 */
 	public ARDiscoveryDeviceService getDevice(final String name) {
 		ARDiscoveryDeviceService result = null;
-		if (!TextUtils.isEmpty(name)) {
+		if (ardiscoveryServiceBound && !TextUtils.isEmpty(name)) {
 			synchronized (mDeviceSync) {
 				for (ARDiscoveryDeviceService device : mDevices) {
 					if (name.equals(device.getName())) {
@@ -358,9 +384,11 @@ public class ManagerFragment extends Fragment {
 	 */
 	public ARDiscoveryDeviceService getDevice(final int index) {
 		ARDiscoveryDeviceService device = null;
-		synchronized (mDeviceSync) {
-			if ((index >= 0) && (index < mDevices.size())) {
-				device = mDevices.get(index);
+		if (ardiscoveryServiceBound) {
+			synchronized (mDeviceSync) {
+				if ((index >= 0) && (index < mDevices.size())) {
+					device = mDevices.get(index);
+				}
 			}
 		}
 		return device;
@@ -373,6 +401,7 @@ public class ManagerFragment extends Fragment {
 	 */
 	public IDeviceController createController(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		if (DEBUG) Log.i(TAG, "createController:" + device);
+		if (!ardiscoveryServiceBound) return null;
 		IDeviceController result = null;
 		if (device != null) {
 			switch (ARDiscoveryService.getProductFromProductID(device.getProductID())) {
@@ -411,7 +440,7 @@ public class ManagerFragment extends Fragment {
 				if (newAPI) {
 					result = new FlightControllerMiniDroneNewAPI(getActivity(), device);
 				} else {
-					result = new com.serenegiant.arflight.controllers.FlightControllerMiniDrone(getActivity(), device);
+					result = new FlightControllerMiniDrone(getActivity(), device);
 				}
 				break;
 			}
@@ -444,7 +473,7 @@ public class ManagerFragment extends Fragment {
 				showProgress(R.string.disconnecting, false, null);
 			}
 
-			new Thread(new Runnable() {
+			queueEvent(new Runnable() {
 				@Override
 				public void run() {
 					if (DEBUG) Log.v(TAG, "接続終了中");
@@ -456,7 +485,7 @@ public class ManagerFragment extends Fragment {
 					hideProgress();
 					if (DEBUG) Log.v(TAG, "接続終了");
 				}
-			}).start();
+			});
 		}
 		if (DEBUG) Log.i(TAG, "releaseController:終了");
 	}
@@ -614,6 +643,30 @@ public class ManagerFragment extends Fragment {
 		}
 	}
 
+	protected void queueEvent(final Runnable task) {
+		synchronized (mSync) {
+			if (mAsyncHandler != null) {
+				mAsyncHandler.post(task);
+			} else {
+				throw new RuntimeException("mAsyncHandler already released");
+			}
+		}
+	}
+
+	protected void queueEvent(final Runnable task, final long delay) {
+		synchronized (mSync) {
+			if (mAsyncHandler != null) {
+				if (delay > 0) {
+					mAsyncHandler.postDelayed(task, delay);
+				} else {
+					mAsyncHandler.post(task);
+				}
+			} else {
+				throw new RuntimeException("mAsyncHandler already released");
+			}
+		}
+	}
+
 	protected void stopController(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "stopController:" + controller);
 		runOnUiThread(new Runnable() {
@@ -630,7 +683,7 @@ public class ManagerFragment extends Fragment {
 					dialog = null;
 				}
 
-				new Thread(new Runnable() {
+				queueEvent(new Runnable() {
 					@Override
 					public void run() {
 						try {
@@ -648,7 +701,7 @@ public class ManagerFragment extends Fragment {
 							});
 						}
 					}
-				}).start();
+				});
 			}
 		});
 	}
