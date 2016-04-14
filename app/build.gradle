@@ -3,16 +3,25 @@ apply plugin: 'com.android.application'
 android {
 	compileSdkVersion 22
 	buildToolsVersion '23.0.3'
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_1_7
+		targetCompatibility JavaVersion.VERSION_1_7
+	}
+
 	defaultConfig {
-		applicationId "com.serenegiant.flightdemo"
 		minSdkVersion 18
 		targetSdkVersion 22
-		versionCode 40
-		versionName '0.67.11'
+		manifestPlaceholders = [appName:"@string/app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
 	}
 	signingConfigs {
-		releaseKey {
+		debugKey {
+			storeFile file('/Users/saki/projects/_misc/debug.keystore')
+			storePassword 'android'
+			keyAlias 'androiddebugkey'
+			keyPassword 'android'
+		}
+		aceparrot_releaseKey {
 			storeFile file('/Users/saki/projects/_misc/keystone_wheel.jks')
 			storePassword 'Wvgdz108oZMzQUOLUCR6hZsD8igoWas'
 			keyAlias 'flightdemo-key'
@@ -24,19 +33,20 @@ android {
 			debuggable true
 			applicationIdSuffix = '.debug'  // パッケージ名の末尾に .debug をつける
 			versionNameSuffix = 'a'
+			signingConfig signingConfigs.debugKey
 		}
 		release {
+			debuggable false
 			minifyEnabled true
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 		}
 	}
-	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_1_7
-		targetCompatibility JavaVersion.VERSION_1_7
-	}
 	productFlavors {
-		product {
-			signingConfig signingConfigs.releaseKey
+		aceparrot {
+			applicationId "com.serenegiant.flightdemo"
+			signingConfig signingConfigs.aceparrot_releaseKey
+			versionCode 40
+			versionName '0.67.11'
 		}
 	}
 }

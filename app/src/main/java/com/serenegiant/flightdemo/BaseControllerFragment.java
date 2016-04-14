@@ -1,7 +1,5 @@
 package com.serenegiant.flightdemo;
 
-import android.app.Activity;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -219,31 +217,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 						}
 					}
 				});
-
-/*				final MainActivity activity = (MainActivity)getActivity();
-				if (activity != null) {
-					activity.showProgress(R.string.connecting, true, mOnCancelListener);
-				}
-
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						if (DEBUG) Log.v(TAG, "接続開始");
-						final boolean failed = mController.start();
-						if (activity != null) {
-							activity.hideProgress();
-						}
-
-						if (failed) {
-							if (DEBUG) Log.w(TAG, "DeviceControllerを開始できなかった");
-							try {
-								popBackStack();
-							} catch (final Exception e) {
-								Log.w(TAG, e);
-							}
-						}
-					}
-				}).start(); */
 			} else {
 				if (DEBUG) Log.v(TAG, "既にstartしている");
 //				mController.requestAllSettings();
@@ -268,10 +241,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		if ((state == IFlightController.STATE_STARTED)
 			|| (state == IFlightController.STATE_STARTING)) {
 
-			final Activity activity = getActivity();
-			if (activity != null) {
-				ManagerFragment.releaseController(activity, controller);
-			}
+			ManagerFragment.releaseController(getActivity(), controller);
 		}
 	}
 
@@ -348,16 +318,5 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	 */
 	protected void onSkyControllerAlarmStateChangedUpdate(int alert_state) {
 	}
-
-	private final DialogInterface.OnCancelListener mOnCancelListener
-		= new DialogInterface.OnCancelListener() {
-		@Override
-		public void onCancel(final DialogInterface dialog) {
-			if (DEBUG) Log.w(TAG, "ユーザーキャンセル");
-			if (getState() == IFlightController.STATE_STARTING) {
-				mController.cancelStart();
-			}
-		}
-	};
 
 }
