@@ -134,6 +134,23 @@ public class ManagerFragment extends Fragment {
 		return result;
 	}
 
+	public static IDeviceController startController(final Activity activity, final IDeviceController controller) {
+		if (controller != null) {
+			final ManagerFragment fragment =  getInstance(activity);
+			if (fragment != null) {
+				fragment.releaseController(controller);
+			} else {
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+
+					}
+				}, TAG);
+			}
+		}
+		return controller;
+	}
+
 	/**
 	 * 指定したIDeviceControllerを取り除く, IFlightController#releaseを呼んで破棄する
 	 * @param activity
@@ -144,6 +161,7 @@ public class ManagerFragment extends Fragment {
 		if (fragment != null) {
 			fragment.releaseController(controller);
 		} else {
+			if (DEBUG) Log.w(TAG, "no activity, try to release on private thread.");
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
@@ -155,7 +173,7 @@ public class ManagerFragment extends Fragment {
 						Log.w(TAG, e);
 					}
 				}
-			}).start();
+			}, TAG).start();
 		}
 	}
 
@@ -540,7 +558,7 @@ public class ManagerFragment extends Fragment {
 			ardiscoveryServiceBound = false;
 			final Activity activity = getActivity();
 			final Context app_context = activity != null ? activity.getApplicationContext() : null;
-			new Thread(new Runnable() {
+			queueEvent(new Runnable() {
 				@Override
 				public void run() {
 					try {
@@ -552,7 +570,7 @@ public class ManagerFragment extends Fragment {
 						Log.w(TAG, e);
 					}
 				}
-			}).start();
+			});
 		}
 	}
 

@@ -89,12 +89,6 @@ public interface IDeviceController extends IController {
 	public boolean isStarted();
 
 	/**
-	 * 接続されているかどうか
-	 * @return
-	 */
-	public boolean isConnected();
-
-	/**
 	 * 日付を送信
 	 * @param currentDate
 	 * @return

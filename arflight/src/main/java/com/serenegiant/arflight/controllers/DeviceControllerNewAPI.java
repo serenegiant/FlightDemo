@@ -510,14 +510,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	@Override
 	public boolean isStarted() {
 		synchronized (mStateSync) {
-			return mState == STATE_STARTED;
-		}
-	}
-
-	@Override
-	public boolean isConnected() {
-		synchronized (mStateSync) {
-			return isActive() && (mState == STATE_STARTED) && (getAlarm() != DroneStatus.ALARM_DISCONNECTED);
+			return isActive() && (mState == STATE_STARTED);
 		}
 	}
 

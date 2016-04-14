@@ -25,7 +25,6 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.CommonStatus;
 import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.IWiFiController;
@@ -43,7 +42,7 @@ import java.util.concurrent.Semaphore;
 import static com.serenegiant.arflight.ARFlightConst.ARFLIGHT_ACTION_DEVICE_LIST_CHANGED;
 import static com.serenegiant.arflight.ARFlightConst.ARFLIGHT_EXTRA_DEVICE_LIST;
 
-public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements ISkyController, IBridgeController, IVideoStreamController, IWiFiController {
+public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements ISkyController, IVideoStreamController, IWiFiController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyControllerNewAPI.class.getSimpleName();
 
@@ -119,6 +118,11 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			return super.isActive()
 				&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(mExtensionState);
 		}
+	}
+
+	@Override
+	public boolean isConnected() {
+		return isActive() && (mConnectDevice != null);
 	}
 
 	@Override

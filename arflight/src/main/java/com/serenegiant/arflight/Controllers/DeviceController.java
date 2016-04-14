@@ -39,9 +39,9 @@ import com.serenegiant.arflight.BuildConfig;
 import com.serenegiant.arflight.CommonStatus;
 import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
+import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.LooperThread;
 import com.serenegiant.arflight.attribute.AttributeDevice;
 import com.serenegiant.arflight.configs.ARNetworkConfig;
@@ -65,7 +65,7 @@ public abstract class DeviceController implements IDeviceController {
 	protected LocalBroadcastManager mLocalBroadcastManager;
 	protected final ARNetworkConfig mNetConfig;
 	private final ARDiscoveryDeviceService mDeviceService;
-	private final IBridgeController mBridge;
+	private final ISkyController mBridge;
 
 	protected ARNetworkALManager mNetALManager;
 	protected ARNetworkManager mNetManager;
@@ -109,7 +109,7 @@ public abstract class DeviceController implements IDeviceController {
 		mNetConfig = net_config;
 	}
 
-	public DeviceController(final Context context, final IBridgeController bridge) {
+	public DeviceController(final Context context, final ISkyController bridge) {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		mWeakContext = new WeakReference<Context>(context);
 		mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
@@ -177,7 +177,7 @@ public abstract class DeviceController implements IDeviceController {
 		return mNetConfig;
 	}
 
-	protected IBridgeController getBridge() {
+	protected ISkyController getBridge() {
 		return mBridge;
 	}
 
@@ -322,13 +322,6 @@ public abstract class DeviceController implements IDeviceController {
 	public boolean isStarted() {
 		synchronized (mStateSync) {
 			return mState == STATE_STARTED;
-		}
-	}
-
-	@Override
-	public boolean isConnected() {
-		synchronized (mStateSync) {
-			return (mState == STATE_STARTED) && (getAlarm() != DroneStatus.ALARM_DISCONNECTED);
 		}
 	}
 

@@ -89,7 +89,6 @@ import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 import com.serenegiant.arflight.CommonStatus;
 import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.IVideoStream;
 import com.serenegiant.arflight.IVideoStreamController;
@@ -109,7 +108,7 @@ import java.util.Map;
 
 import static com.serenegiant.arflight.ARFlightConst.*;
 
-public class SkyController extends DeviceController implements ISkyController, IBridgeController, IVideoStreamController, IWiFiController {
+public class SkyController extends DeviceController implements ISkyController, IVideoStreamController, IWiFiController {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyController.class.getSimpleName();
 
@@ -176,7 +175,9 @@ public class SkyController extends DeviceController implements ISkyController, I
 
 	@Override
 	public boolean isConnected() {
-		return super.isConnected() && (mConnectDevice != null);
+		synchronized (mStateSync) {
+			return isStarted() && (mConnectDevice != null);
+		}
 	}
 
 	@Override
@@ -246,7 +247,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	@Override
 	public boolean enableVideoStreaming(boolean enable) {
 		if (DEBUG) Log.v(TAG, "enableVideoStreaming:enable=" + enable);
-		final IBridgeController bridge = getBridge();
+		final ISkyController bridge = getBridge();
 		if (bridge != null) {
 			VideoStreamDelegater.sendVideoStreamingEnable((DeviceController)bridge, bridge.getNetConfig(), enable);
 		}
