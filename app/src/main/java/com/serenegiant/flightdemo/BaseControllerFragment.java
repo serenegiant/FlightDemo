@@ -143,8 +143,8 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		return mDevice != null ? ARDiscoveryService.getProductFromProductID(mDevice.getProductID()) : ARDISCOVERY_PRODUCT_ENUM.eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE;
 	}
 
-	protected boolean isConnected() {
-		return mController != null && mController.isConnected();
+	protected boolean isStarted() {
+		return mController != null && mController.isStarted();
 	}
 
 	protected int getState() {
@@ -159,10 +159,10 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		if (mController == null) {
 			final IDeviceController controller = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
 			if (BuildConfig.USE_SKYCONTROLLER) {
-				if ((mDeviceInfo != null) && (controller instanceof IBridgeController)) {
+				if ((mDeviceInfo != null) && (controller instanceof ISkyController)) {
 					if (DEBUG) Log.d(TAG, "ブリッジ接続");
 					// スカイコントローラー経由のブリッジ接続の時
-					final IBridgeController bridge = (IBridgeController)controller;
+					final ISkyController bridge = (ISkyController)controller;
 					final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceInfo.productId());
 					switch (product) {
 					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
@@ -190,7 +190,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 				mController = controller;
 			}
 		}
-		if (DEBUG) Log.v(TAG, "getController:" + mController);
+		if (DEBUG) Log.v(TAG, "getController:終了" + mController);
 		return mController;
 	}
 
@@ -206,7 +206,21 @@ public abstract class BaseControllerFragment extends BaseFragment {
 				if (DEBUG) Log.v(TAG, "未接続");
 				updateBattery(mController);
 
-				final MainActivity activity = (MainActivity)getActivity();
+				ManagerFragment.startController(getActivity(), mController, new ManagerFragment.StartControllerListener() {
+					@Override
+					public void onResult(final IDeviceController controller, final boolean success) {
+						if (!success) {
+							if (DEBUG) Log.w(TAG, "DeviceControllerを開始できなかった");
+							try {
+								popBackStack();
+							} catch (final Exception e) {
+								Log.w(TAG, e);
+							}
+						}
+					}
+				});
+
+/*				final MainActivity activity = (MainActivity)getActivity();
 				if (activity != null) {
 					activity.showProgress(R.string.connecting, true, mOnCancelListener);
 				}
@@ -220,7 +234,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 							activity.hideProgress();
 						}
 
-//						mIsConnected = !failed;
 						if (failed) {
 							if (DEBUG) Log.w(TAG, "DeviceControllerを開始できなかった");
 							try {
@@ -230,7 +243,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 							}
 						}
 					}
-				}).start();
+				}).start(); */
 			} else {
 				if (DEBUG) Log.v(TAG, "既にstartしている");
 //				mController.requestAllSettings();

@@ -159,7 +159,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 		startDeviceController();
 		startSensor();
 		if (mModelView != null) {
-			if ((mFlightController != null) && isConnected()) {
+			if ((mFlightController != null) && isStarted()) {
 				mModelView.hasGuard(mFlightController.hasGuard());
 			}
 			mModelView.onResume();

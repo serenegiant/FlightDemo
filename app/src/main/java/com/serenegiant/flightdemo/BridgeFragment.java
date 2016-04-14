@@ -25,8 +25,8 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.ARDeviceInfoAdapter;
 import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.arflight.SkyControllerListener;
 import com.serenegiant.widget.PlayerTextureView;
@@ -92,10 +92,10 @@ public class BridgeFragment extends BaseControllerFragment {
 		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
 			mMediaPlayer.start();
 		}
-		if (mController instanceof IBridgeController) {
+		if (mController instanceof ISkyController) {
 			mController.addListener(mSkyControllerListener);
-			if (mController.isConnected()) {
-				((IBridgeController)mController).requestDeviceList();
+			if (((ISkyController)mController).isConnected()) {
+				((ISkyController)mController).requestDeviceList();
 			}
 		}
 		startDeviceController();
@@ -229,7 +229,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		@Override
 		public void onConnect(final IDeviceController controller) {
 			if (DEBUG) Log.v(TAG, "onConnect:controller=" + controller);
-			final IBridgeController bridge = (IBridgeController)controller;
+			final ISkyController bridge = (ISkyController)controller;
 			post(new Runnable() {
 				@Override
 				public void run() {

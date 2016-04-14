@@ -42,8 +42,8 @@ import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DroneSettings;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightControllerListener;
-import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.IFlightController;
+import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.LooperThread;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.arflight.attribute.AttributeMotor;
@@ -70,7 +70,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 		super(context, service, net_config);
 	}
 
-	public FlightController(final Context context, final IBridgeController bridge) {
+	public FlightController(final Context context, final ISkyController bridge) {
 		super(context, bridge);
 	}
 

@@ -312,7 +312,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 			case R.id.config_show_btn:
 				// 設定パネル表示処理
 				setColorFilter((ImageView)view);
-				if (isConnected()) {
+				if (isStarted()) {
 					if ((getState() & IFlightController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
 						replace(ConfigFragment.newInstance(getDevice()));
 					} else {
@@ -617,7 +617,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 			final int alarm_state = getAlarm();
 			final int still_capture_state = getStillCaptureState();
 			final int video_recording_state = getVideoRecordingState();
-			final boolean is_connected = isConnected();
+			final boolean is_connected = isStarted();
 			final boolean is_recording = mFlightRecorder.isRecording();
 			final boolean is_playing = mFlightRecorder.isPlaying();
 			final boolean can_play = is_connected && !is_recording && !mScriptRunning && !mTouchMoveRunning && (alarm_state == DroneStatus.ALARM_NON) && (mFlightRecorder.size() > 0);

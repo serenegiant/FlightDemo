@@ -100,8 +100,8 @@ import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 import com.serenegiant.arflight.CameraControllerListener;
 import com.serenegiant.arflight.DroneSettings;
 import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.IBridgeController;
 import com.serenegiant.arflight.ICameraController;
+import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.IVideoStream;
 import com.serenegiant.arflight.IWiFiController;
 import com.serenegiant.arflight.VideoStreamDelegater;
@@ -128,7 +128,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		init();
 	}
 
-	public FlightControllerBebop(final Context context, final IBridgeController bridge) {
+	public FlightControllerBebop(final Context context, final ISkyController bridge) {
 		super(context, bridge);
 		init();
 	}
@@ -2146,7 +2146,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		if (mVideoStreamDelegater != null) {
 			return mVideoStreamDelegater.enableVideoStreaming(enable);
 		} else {
-			final IBridgeController bridge = getBridge();
+			final ISkyController bridge = getBridge();
 			if (bridge != null) {
 				VideoStreamDelegater.sendVideoStreamingEnable(this, mNetConfig, enable);
 			}
@@ -2374,7 +2374,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		if (mVideoStreamDelegater == null) {
 //			mVideoStreamDelegater = new VideoStreamDelegater(this, mNetConfig);
 			videoStreamDelegaterCreated = false;
-			final IBridgeController bridge = getBridge();
+			final ISkyController bridge = getBridge();
 			if (bridge != null) {
 				mVideoStreamDelegater = bridge.getVideoStreamDelegater();
 			}

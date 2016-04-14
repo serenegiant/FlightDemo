@@ -46,6 +46,10 @@ public class ManagerFragment extends Fragment {
 		public void onServicesDevicesListUpdated(final List<ARDiscoveryDeviceService> devices);
 	}
 
+	public interface StartControllerListener {
+		public void onResult(final IDeviceController controller, final boolean success);
+	}
+
 	/**
 	 * ManagerFragmentを取得する
 	 * @param activity
@@ -134,18 +138,13 @@ public class ManagerFragment extends Fragment {
 		return result;
 	}
 
-	public static IDeviceController startController(final Activity activity, final IDeviceController controller) {
+	public static IDeviceController startController(final Activity activity, final IDeviceController controller, final StartControllerListener listener) {
 		if (controller != null) {
-			final ManagerFragment fragment =  getInstance(activity);
+			final ManagerFragment fragment = getInstance(activity);
 			if (fragment != null) {
-				fragment.releaseController(controller);
+				fragment.startController(controller, listener);
 			} else {
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-
-					}
-				}, TAG);
+				throw new RuntimeException("not attached to Activity");
 			}
 		}
 		return controller;
@@ -361,16 +360,14 @@ public class ManagerFragment extends Fragment {
 
 	private IDeviceController internalGetController(final String name, final boolean newAPI) {
 		IDeviceController result = null;
-		if (ardiscoveryServiceBound) {
-			if (mControllers.containsKey(name)) {
-				result = mControllers.get(name);
-			}
-			if ((result != null) && (result.isNewAPI() != newAPI)) {
-				if (DEBUG) Log.i(TAG, "internalGetController:release");
-				result.release();
-				result = null;
-				mControllers.remove(name);
-			}
+		if (mControllers.containsKey(name)) {
+			result = mControllers.get(name);
+		}
+		if ((result != null) && (result.isNewAPI() != newAPI)) {
+			if (DEBUG) Log.i(TAG, "internalGetController:release");
+			result.release();
+			result = null;
+			mControllers.remove(name);
 		}
 		return result;
 	}
@@ -382,7 +379,7 @@ public class ManagerFragment extends Fragment {
 	 */
 	public ARDiscoveryDeviceService getDevice(final String name) {
 		ARDiscoveryDeviceService result = null;
-		if (ardiscoveryServiceBound && !TextUtils.isEmpty(name)) {
+		if (!TextUtils.isEmpty(name)) {
 			synchronized (mDeviceSync) {
 				for (ARDiscoveryDeviceService device : mDevices) {
 					if (name.equals(device.getName())) {
@@ -402,11 +399,9 @@ public class ManagerFragment extends Fragment {
 	 */
 	public ARDiscoveryDeviceService getDevice(final int index) {
 		ARDiscoveryDeviceService device = null;
-		if (ardiscoveryServiceBound) {
-			synchronized (mDeviceSync) {
-				if ((index >= 0) && (index < mDevices.size())) {
-					device = mDevices.get(index);
-				}
+		synchronized (mDeviceSync) {
+			if ((index >= 0) && (index < mDevices.size())) {
+				device = mDevices.get(index);
 			}
 		}
 		return device;
@@ -418,8 +413,7 @@ public class ManagerFragment extends Fragment {
 	 * @return
 	 */
 	public IDeviceController createController(final ARDiscoveryDeviceService device, final boolean newAPI) {
-		if (DEBUG) Log.i(TAG, "createController:" + device);
-		if (!ardiscoveryServiceBound) return null;
+		if (DEBUG) Log.i(TAG, "createController:" + device + ",ardiscoveryServiceBound=" + ardiscoveryServiceBound);
 		IDeviceController result = null;
 		if (device != null) {
 			switch (ARDiscoveryService.getProductFromProductID(device.getProductID())) {
@@ -472,6 +466,52 @@ public class ManagerFragment extends Fragment {
 		}
 		if (DEBUG) Log.i(TAG, "createController:終了,result=" + result);
 		return result;
+	}
+
+	public void startController(final IDeviceController controller, final StartControllerListener listener) {
+		if (DEBUG) Log.i(TAG, "releaseController:" + controller);
+
+		if (controller != null) {
+			final Activity activity = getActivity();
+			if (activity != null) {
+				showProgress(R.string.connecting, true, new DialogInterface.OnCancelListener() {
+					@Override
+					public void onCancel(final DialogInterface dialog) {
+						if (DEBUG) Log.w(TAG, "ユーザーキャンセル");
+							controller.cancelStart();
+						}
+					}
+				);
+			}
+
+			queueEvent(new Runnable() {
+				@Override
+				public void run() {
+					if (DEBUG) Log.v(TAG, "接続開始");
+					boolean failed = true;
+					synchronized (mControllerSync) {
+						if (mControllers.containsValue(controller)) {
+							try {
+								failed = controller.start();
+							} catch (final Exception e) {
+								Log.w(TAG, e);
+							}
+						} else {
+							Log.w(TAG, "controller is already removed:" + controller);
+						}
+					}
+					hideProgress();
+
+					if (listener != null) {
+						try {
+							listener.onResult(controller, !failed);
+						} catch (final Exception e) {
+							Log.w(TAG, e);
+						}
+					}
+				}
+			});
+		}
 	}
 
 	/**
