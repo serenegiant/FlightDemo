@@ -2,17 +2,14 @@ package com.serenegiant.arflight;
 
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
-public interface ISkyController extends IController {
+public interface ISkyController extends IDeviceController {
 	/** ブリッジ接続用のARNetworkConfigを新規に生成して返す */
 	public ARNetworkConfig createBridgeNetConfig();
 	public VideoStreamDelegater getVideoStreamDelegater();
 
 	public boolean connectTo(final DeviceInfo info);
 	public void disconnectFrom();
-	public boolean isStarted();
 	public DeviceInfo connectDeviceInfo();
-	public boolean requestAllSettings();
-	public boolean requestAllStates();
 	/**
 	 * スカイコントローラーの設定をリセット
 	 * onSkyControllerDeviceStateConnexionChangedUpdateが呼ばれる
@@ -157,5 +154,4 @@ public interface ISkyController extends IController {
 
 	public boolean isGPSFixedSkyController();
 	public int getBatterySkyController();
-	public boolean isConnected();
 }

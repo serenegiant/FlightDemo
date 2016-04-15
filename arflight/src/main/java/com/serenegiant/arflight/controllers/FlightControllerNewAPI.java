@@ -641,7 +641,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 		public void onLoop() {
 			final long lastTime = SystemClock.elapsedRealtime();
 
-			if (isStarted()) {
+			if (isConnected()) {
 				sendCmdInControlLoop();
 			}
 			// 次の送信予定時間までの休止時間を計算[ミリ秒]

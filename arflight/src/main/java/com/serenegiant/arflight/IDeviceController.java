@@ -1,15 +1,23 @@
 package com.serenegiant.arflight;
 
+import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.parrot.arsdk.arnetwork.ARNetworkManager;
+import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
+import com.serenegiant.arflight.configs.ARNetworkConfig;
+
 import java.sql.Date;
 
-/**
- * Created by saki on 15/10/31.
- */
-public interface IDeviceController extends IController {
+public interface IDeviceController {
 	public static final int STATE_STOPPED = 0x0000;
 	public static final int STATE_STARTING = 0x0001;
 	public static final int STATE_STARTED = 0x0002;
 	public static final int STATE_STOPPING = 0x0003;
+
+	/** コントローラーに関連付けられているARDiscoveryDeviceServiceを取得 */
+	public ARDiscoveryDeviceService getDeviceService();
+	public ARNetworkALManager getNetALManager();
+	public ARNetworkManager getNetManager();
+	public ARNetworkConfig getNetConfig();
 
 	public void release();
 
@@ -82,11 +90,13 @@ public interface IDeviceController extends IController {
 	 */
 	public void stop();
 
+	public boolean isStarted();
 	/**
-	 * startしているかどうか
+	 * 機体と接続しているかどうか
+	 * 直接接続の時は#isStartedと同じ
 	 * @return
 	 */
-	public boolean isStarted();
+	public boolean isConnected();
 
 	/**
 	 * 日付を送信

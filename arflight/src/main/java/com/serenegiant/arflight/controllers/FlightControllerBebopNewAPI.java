@@ -806,7 +806,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendPictureFormat(final int pictureFormat) {
 		if (DEBUG) Log.v (TAG, "sendPictureFormat:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM type
 				= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM.getFromValue(pictureFormat);
 			// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_RAW (0, "Take raw image"),
@@ -825,7 +825,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendVideoRecording(final boolean start, final int mass_storage_id) {
 		if (DEBUG) Log.v (TAG, "sendVideoRecording:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendMediaRecordVideo(
 				start ? ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_START
 				: ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_ENUM.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEO_RECORD_STOP,
@@ -841,7 +841,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendVideoRecording(final boolean start) {
 		if (DEBUG) Log.v (TAG, "sendVideoRecording:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendMediaRecordVideoV2(
 				start ? ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_ENUM.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_START
 				: ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_ENUM.ARCOMMANDS_ARDRONE3_MEDIARECORD_VIDEOV2_RECORD_STOP);
@@ -856,7 +856,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendCameraOrientation(final int tilt, final int pan) {
 		if (DEBUG) Log.v (TAG, "sendCameraOrientation:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendCameraOrientation((byte)tilt, (byte)pan);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -869,7 +869,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendAutoWhiteBalance(final int auto_white_balance) {
 		if (DEBUG) Log.v (TAG, "sendAutoWhiteBalance:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			try {
 				// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_AUTO (0, "Auto guess of best white balance params"),
 				// ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_TUNGSTEN (1, "Tungsten white balance"),
@@ -903,7 +903,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendExposure(final float exposure) {
 		if (DEBUG) Log.v (TAG, "sendExposure:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPictureSettingsExpositionSelection(exposure);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -916,7 +916,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendSaturation(final float saturation) {
 		if (DEBUG) Log.v (TAG, "sendSaturation:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPictureSettingsSaturationSelection(saturation);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -929,7 +929,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendTimelapseSelection(final boolean enabled, final float interval) {
 		if (DEBUG) Log.v (TAG, "sendTimelapseSelection:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPictureSettingsTimelapseSelection(enabled ? (byte)1 : (byte)0, interval);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -942,7 +942,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendVideoAutoRecord(final boolean enabled, final int mass_storage_id) {
 		if (DEBUG) Log.v (TAG, "sendVideoAutoRecord:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPictureSettingsVideoAutorecordSelection(enabled ? (byte)1 : (byte)0, (byte)mass_storage_id);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -954,7 +954,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	@Override
 	public boolean sendWobbleCancellation(final boolean enabled) {
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#sendWobbleCancellation failed:" + result);
@@ -966,7 +966,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendVideoSyncAnglesGyros(final float anglesDelay_s, final float gyrosDelay_s) {
 		if (DEBUG) Log.v (TAG, "sendVideoSyncAnglesGyros:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#sendVideoSyncAnglesGyros failed:" + result);
@@ -1004,9 +1004,9 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public boolean enableVideoStreaming(final boolean enable) {
-		if (DEBUG) Log.v(TAG, "enableVideoStreaming:enable=" + enable + ",isActive=" + isActive());
+		if (DEBUG) Log.v(TAG, "enableVideoStreaming:enable=" + enable + ",isConnected=" + isConnected());
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendMediaStreamingVideoEnable(enable ? (byte)1 : (byte)0);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1023,7 +1023,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		if (isGPSFixed()) {
 			sendResetHome();
 		}
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPilotingTakeOff();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1036,7 +1036,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean requestLanding() {
 		if (DEBUG) Log.v (TAG, "requestLanding:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPilotingLanding();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1049,7 +1049,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean requestEmergencyStop() {
 		if (DEBUG) Log.v (TAG, "requestEmergencyStop:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPilotingEmergency();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1062,7 +1062,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean requestFlatTrim() {
 		if (DEBUG) Log.v (TAG, "requestFlatTrim:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPilotingFlatTrim();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1075,7 +1075,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean startCalibration(final boolean start) {
 		if (DEBUG) Log.v (TAG, "startCalibration:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureCommon().sendCalibrationMagnetoCalibration(start ? (byte)1 : (byte)0);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1088,7 +1088,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean setMaxAltitude(final float altitude) {
 		if (DEBUG) Log.v (TAG, "setMaxAltitude:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPilotingSettingsMaxAltitude(altitude);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1101,7 +1101,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean setMaxTilt(final float tilt) {
 		if (DEBUG) Log.v (TAG, "setMaxTilt:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPilotingSettingsMaxTilt(tilt);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1114,7 +1114,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean setMaxVerticalSpeed(final float speed) {
 		if (DEBUG) Log.v (TAG, "setMaxVerticalSpeed:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendSpeedSettingsMaxVerticalSpeed(speed);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1127,7 +1127,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean setMaxRotationSpeed(final float speed) {
 		if (DEBUG) Log.v (TAG, "setMaxRotationSpeed:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendSpeedSettingsMaxRotationSpeed(speed);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1152,7 +1152,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendAutoTakeOffMode(final boolean enable) {
 		if (DEBUG) Log.v (TAG, "sendAutoTakeOffMode:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendPilotingAutoTakeOffMode(enable ? (byte)1 : (byte)0);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1165,7 +1165,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean setHasGuard(final boolean has_guard) {
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (DEBUG) Log.v (TAG, "setHasGuard:");
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendSpeedSettingsHullProtection(has_guard ? (byte)1 : (byte)0);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1178,7 +1178,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	@Override
 	protected boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading) {
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			try {
 				result = mARDeviceController.getFeatureARDrone3().sendPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, _timestampAndSeqNum++);
 			} catch (final Exception e) {
@@ -1204,7 +1204,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean requestAnimationsFlip(final int direction) {
 		if (DEBUG) Log.v (TAG, "requestAnimationsFlip:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			final ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_ENUM dir = ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_ENUM.getFromValue(direction - 1);
 			// ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_FRONT (0, "Flip direction front"),
 			// ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_BACK (1, "Flip direction back"),
@@ -1292,7 +1292,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean requestTakePicture(final int mass_storage_id) {
 		if (DEBUG) Log.v (TAG, "requestTakePicture:mass_storage_id=" + mass_storage_id);
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendMediaRecordPictureV2();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1345,7 +1345,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	public boolean sendResetHome() {
 		if (DEBUG) Log.v (TAG, "sendResetHome:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureARDrone3().sendGPSSettingsResetHome();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {

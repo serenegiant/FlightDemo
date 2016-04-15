@@ -326,6 +326,16 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	/**
+	 * 機体と接続しているかどうか
+	 * 直接接続の時は#isStartedと同じ
+ 	 * @return
+	 */
+	@Override
+	public boolean isConnected() {
+		return isStarted();
+	}
+
+	/**
 	 * DeviceControllerがstartした時の処理
 	 */
 	protected void onStarted() {

@@ -113,16 +113,16 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	}
 
 	@Override
-	protected boolean isActive() {
+	public boolean isStarted() {
 		synchronized (mStateSync) {
-			return super.isActive()
+			return super.isStarted()
 				&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(mExtensionState);
 		}
 	}
 
 	@Override
 	public boolean isConnected() {
-		return isActive() && (mConnectDevice != null);
+		return super.isConnected() && (mConnectDevice != null);
 	}
 
 	@Override
@@ -741,7 +741,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean resetSettings() {
 		if (DEBUG) Log.d(TAG, "resetSettings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendSettingsReset();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -754,7 +754,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean setSkyControllerSSID(final String ssid) {
 		if (DEBUG) Log.d(TAG, "setSkyControllerSSID:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAccessPointSettingsAccessPointSSID(ssid);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -771,7 +771,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestWifiList() {
 		if (DEBUG) Log.d(TAG, "requestWifiList:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiRequestWifiList();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -784,7 +784,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestCurrentWiFi() {
 		if (DEBUG) Log.d(TAG, "requestCurrentWiFi:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiRequestCurrentWifi();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -797,7 +797,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean connectToWiFi(final String bssid, final String ssid, final String passphrase) {
 		if (DEBUG) Log.d(TAG, "connectToWiFi:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiConnectToWifi(bssid, ssid, passphrase);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -810,7 +810,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestForgetWiFi(final String ssid) {
 		if (DEBUG) Log.d(TAG, "requestForgetWiFi:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiForgetWifi(ssid);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -823,7 +823,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestDeviceList() {
 		if (DEBUG) Log.d(TAG, "requestDeviceList:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestDeviceList();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -836,7 +836,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestCurrentDevice() {
 		if (DEBUG) Log.d(TAG, "requestCurrentDevice:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestCurrentDevice();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -883,7 +883,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean setCoPilotingSource(final int _source) {
 		if (DEBUG) Log.d(TAG, "setCoPilotingSource:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			final ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM source
 				= ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM.getFromValue(_source % 2);
 			result = mARDeviceController.getFeatureSkyController().sendCoPilotingSetPilotingSource(source);
@@ -898,7 +898,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean resetCameraOrientation() {
 		if (DEBUG) Log.d(TAG, "resetCameraOrientation:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureSkyController().sendCameraResetOrientation();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -911,7 +911,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestGamepadControls() {
 		if (DEBUG) Log.d(TAG, "requestGamepadControls:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendGamepadInfosGetGamepadControls();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -924,7 +924,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestCurrentButtonMappings() {
 		if (DEBUG) Log.d(TAG, "requestCurrentButtonMappings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsGetCurrentButtonMappings();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -937,7 +937,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestAvailableButtonMappings() {
 		if (DEBUG) Log.d(TAG, "requestAvailableButtonMappings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsGetAvailableButtonMappings();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -950,7 +950,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean setButtonMapping(final int key_id, final String mapping_uid) {
 		if (DEBUG) Log.d(TAG, "setButtonMapping:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isConnected()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsSetButtonMapping(key_id, mapping_uid);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -963,7 +963,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean resetButtonMapping() {
 		if (DEBUG) Log.d(TAG, "resetButtonMapping:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendButtonMappingsDefaultButtonMapping();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -976,7 +976,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestCurrentAxisMappings() {
 		if (DEBUG) Log.d(TAG, "requestCurrentAxisMappings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsGetCurrentAxisMappings();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -989,7 +989,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestAvailableAxisMappings() {
 		if (DEBUG) Log.d(TAG, "requestAvailableAxisMappings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsGetAvailableAxisMappings();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1002,7 +1002,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean setAxisMapping(final int axis_id, final String mapping_uid) {
 		if (DEBUG) Log.d(TAG, "setAxisMapping:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsSetAxisMapping(axis_id, mapping_uid);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1015,7 +1015,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean resetAxisMapping() {
 		if (DEBUG) Log.d(TAG, "resetAxisMapping:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisMappingsDefaultAxisMapping();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1028,7 +1028,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestCurrentAxisFilters() {
 		if (DEBUG) Log.d(TAG, "requestCurrentAxisFilters:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersGetCurrentAxisFilters();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1041,7 +1041,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestPresetAxisFilters() {
 		if (DEBUG) Log.d(TAG, "requestPresetAxisFilters:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersGetPresetAxisFilters();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1054,7 +1054,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean setAxisFilter(final int axis_id, final String filter_uid_or_builder) {
 		if (DEBUG) Log.d(TAG, "setAxisFilter:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersSetAxisFilter(axis_id, filter_uid_or_builder);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1067,7 +1067,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean resetAxisFilter() {
 		if (DEBUG) Log.d(TAG, "resetAxisFilter:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAxisFiltersDefaultAxisFilters();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {

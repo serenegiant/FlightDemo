@@ -510,8 +510,19 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	@Override
 	public boolean isStarted() {
 		synchronized (mStateSync) {
-			return isActive() && (mState == STATE_STARTED);
+			return (mARDeviceController != null)
+				&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(getDeviceState())
+				&& (mState == STATE_STARTED);
 		}
+	}
+
+	/***
+	 * 機体と接続しているかどうか
+	 * 直接接続の時は#isStartedと同じ
+	 * @return
+	 */
+	public boolean isConnected() {
+		return isStarted();
 	}
 
 	protected ARCONTROLLER_DEVICE_STATE_ENUM getDeviceState() {
@@ -523,13 +534,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected ARCONTROLLER_DEVICE_STATE_ENUM getExtensionDeviceState() {
 		synchronized (mStateSync) {
 			return mExtensionState;
-		}
-	}
-
-	protected boolean isActive() {
-		synchronized (mStateSync) {
-			return (mARDeviceController != null)
-				&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(getDeviceState());
 		}
 	}
 
@@ -1032,7 +1036,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	public boolean sendDate(final Date currentDate) {
 		if (DEBUG) Log.v(TAG, "sendDate:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureCommon().sendCommonCurrentDate(formattedDate.format(currentDate));
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1045,7 +1049,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	public boolean sendTime(final Date currentTime) {
 		if (DEBUG) Log.v(TAG, "sendTime:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureCommon().sendCommonCurrentTime(formattedTime.format(currentTime));
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1058,7 +1062,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	public boolean requestAllSettings() {
 		if (DEBUG) Log.v(TAG, "requestAllSettings:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureCommon().sendSettingsAllSettings();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1071,7 +1075,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	public boolean requestAllStates() {
 		if (DEBUG) Log.v(TAG, "requestAllStates:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureCommon().sendCommonAllStates();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1087,7 +1091,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	public boolean sendNetworkDisconnect() {
 		if (DEBUG) Log.v(TAG, "sendNetworkDisconnect:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isConnected()) {
 			result = mARDeviceController.getFeatureCommon().sendNetworkDisconnect();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1099,7 +1103,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected boolean sendCountryCode(final String code) {
 		if (DEBUG) Log.v(TAG, "sendCountryCode:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureCommon().sendSettingsCountry(code);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1111,7 +1115,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected boolean sendAutomaticCountry(final boolean auto) {
 		if (DEBUG) Log.v(TAG, "sendAutomaticCountry:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isActive()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureCommon().sendSettingsAutoCountry(auto ? (byte)1 : (byte)0);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
