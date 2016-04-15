@@ -40,7 +40,7 @@ import static com.serenegiant.arflight.ARFlightConst.*;
  */
 public class BridgeFragment extends BaseControllerFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static String TAG = BridgeFragment.class.getSimpleName();
+	private static final String TAG = BridgeFragment.class.getSimpleName();
 
 	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device) {
 		final BridgeFragment fragment = new BridgeFragment();
@@ -230,7 +230,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		public void onConnect(final IDeviceController controller) {
 			if (DEBUG) Log.v(TAG, "onConnect:controller=" + controller);
 			final ISkyController bridge = (ISkyController)controller;
-			post(new Runnable() {
+			queueEvent(new Runnable() {
 				@Override
 				public void run() {
 //					bridge.setCoPilotingSource(1);
@@ -249,7 +249,7 @@ public class BridgeFragment extends BaseControllerFragment {
 //					bridge.requestButtonEventsSettings();
 				}
 			}, 0);
-			post(new Runnable() {
+			queueEvent(new Runnable() {
 				@Override
 				public void run() {
 					try {

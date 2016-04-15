@@ -1,6 +1,5 @@
 package com.serenegiant.flightdemo;
 
-import android.app.Fragment;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.TextUtils;

@@ -33,6 +33,7 @@ import com.serenegiant.arflight.controllers.SkyControllerNewAPI;
 import com.serenegiant.net.NetworkChangedReceiver;
 import com.serenegiant.utils.HandlerThreadHandler;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -201,7 +202,7 @@ public class ManagerFragment extends Fragment {
 	private final Object mDeviceSync = new Object();
 	private final List<ARDiscoveryDeviceService> mDevices = new ArrayList<ARDiscoveryDeviceService>();
 	private final Object mControllerSync = new Object();
-	private final Map<String, IDeviceController> mControllers = new HashMap<String, IDeviceController>();
+	private final Map<String, WeakReference<IDeviceController>> mControllers = new HashMap<String, WeakReference<IDeviceController>>();
 
 	private final List<ManagerCallback> mCallbacks = new ArrayList<ManagerCallback>();
 
@@ -361,7 +362,11 @@ public class ManagerFragment extends Fragment {
 	private IDeviceController internalGetController(final String name, final boolean newAPI) {
 		IDeviceController result = null;
 		if (mControllers.containsKey(name)) {
-			result = mControllers.get(name);
+			final WeakReference<IDeviceController> weak_controller = mControllers.get(name);
+			result = weak_controller != null ? weak_controller.get() : null;
+			if (result == null) {
+				mControllers.remove(name);
+			}
 		}
 		if ((result != null) && (result.isNewAPI() != newAPI)) {
 			if (DEBUG) Log.i(TAG, "internalGetController:release");
@@ -458,7 +463,7 @@ public class ManagerFragment extends Fragment {
 			}
 			if (result != null) {
 				synchronized (mControllerSync) {
-					mControllers.put(device.getName(), result);
+					mControllers.put(device.getName(), new WeakReference<IDeviceController>(result));
 				}
 			}
 		} else {
@@ -469,7 +474,7 @@ public class ManagerFragment extends Fragment {
 	}
 
 	public void startController(final IDeviceController controller, final StartControllerListener listener) {
-		if (DEBUG) Log.i(TAG, "releaseController:" + controller);
+		if (DEBUG) Log.i(TAG, "startController:" + controller);
 
 		if (controller != null) {
 			final Activity activity = getActivity();
@@ -477,7 +482,7 @@ public class ManagerFragment extends Fragment {
 				showProgress(R.string.connecting, true, new DialogInterface.OnCancelListener() {
 					@Override
 					public void onCancel(final DialogInterface dialog) {
-						if (DEBUG) Log.w(TAG, "ユーザーキャンセル");
+						if (DEBUG) Log.w(TAG, "startController:ユーザーキャンセル");
 							controller.cancelStart();
 						}
 					}
@@ -487,11 +492,12 @@ public class ManagerFragment extends Fragment {
 			queueEvent(new Runnable() {
 				@Override
 				public void run() {
-					if (DEBUG) Log.v(TAG, "接続開始");
+					if (DEBUG) Log.v(TAG, "startController:接続開始");
 					boolean failed = true;
 					synchronized (mControllerSync) {
-						if (mControllers.containsValue(controller)) {
+						if (mControllers.containsKey(controller.getName())) {
 							try {
+								if (DEBUG) Log.v(TAG, "startController:IDeviceController#start");
 								failed = controller.start();
 							} catch (final Exception e) {
 								Log.w(TAG, e);

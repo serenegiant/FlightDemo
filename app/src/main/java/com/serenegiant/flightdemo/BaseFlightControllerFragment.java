@@ -14,7 +14,7 @@ import com.serenegiant.arflight.SkyControllerListener;
 
 public abstract class BaseFlightControllerFragment extends BaseControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static String TAG = BaseFlightControllerFragment.class.getSimpleName();
+	private final String TAG = "BaseFlightControllerFragment:" + getClass().getSimpleName();
 
 	protected IFlightController mFlightController;
 
@@ -113,6 +113,42 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 		if (mController instanceof IVideoStreamController) {
 			((IVideoStreamController)mController).enableVideoStreaming(false);
 		}
+	}
+
+	/**
+	 * 移動停止
+	 */
+	protected void stopMove() {
+		if (DEBUG) Log.v(TAG, "stopMove:");
+		if (mController instanceof IFlightController) {
+			((IFlightController)mController).setMove(0, 0, 0, 0, 0);
+		}
+	}
+
+	/**
+	 * 非常停止指示
+	 */
+	protected void emergencyStop() {
+		stopMove();
+		if (mController instanceof IFlightController) {
+			((IFlightController)mController).requestEmergencyStop();
+		}
+	}
+
+	@Override
+	protected void onConnect(final IDeviceController controller) {
+		super.onConnect(controller);
+		stopMove();
+		startVideoStreaming();
+	}
+
+	@Override
+	protected void onDisconnect(final IDeviceController controller) {
+		if (DEBUG) Log.v(TAG, "onDisconnect:");
+		stopMove();
+		stopVideoStreaming();
+		stopDeviceController(true);
+		super.onDisconnect(controller);
 	}
 
 	/**

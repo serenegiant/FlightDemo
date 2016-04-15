@@ -19,7 +19,7 @@ import static com.serenegiant.flightdemo.AppConst.*;
 
 public class CalibrationFragment extends BaseFlightControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static String TAG = CalibrationFragment.class.getSimpleName();
+	private static final String TAG = CalibrationFragment.class.getSimpleName();
 
 	public static CalibrationFragment newInstance(final ARDiscoveryDeviceService device) {
 		final CalibrationFragment fragment = new CalibrationFragment();
@@ -93,7 +93,7 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 				@Override
 				public void run() {
 					((IFlightController)mController).startCalibration(true);
-					post(mUpdateStateTask, 300);
+					queueEvent(mUpdateStateTask, 300);
 				}
 			});
 		}
@@ -105,7 +105,7 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 		if ((mState != STATE_STOPPED) && (mController instanceof IFlightController)) {
 			((IFlightController)mController).startCalibration(false);
 		}
-		remove(mUpdateStateTask);
+		removeEvent(mUpdateStateTask);
 		mModelView.onPause();
 		super.onPause();
 	}
@@ -192,7 +192,7 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 				});
 			}
 			mModelView.setAxis(mState - STATE_AXIS_X);
-			post(this, 200);
+			queueEvent(this, 200);
 		}
 	};
 }

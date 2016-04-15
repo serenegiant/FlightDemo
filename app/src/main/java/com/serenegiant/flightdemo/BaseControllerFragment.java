@@ -14,7 +14,7 @@ import static com.serenegiant.arflight.ARFlightConst.*;
 
 public abstract class BaseControllerFragment extends BaseFragment {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static String TAG = BaseControllerFragment.class.getSimpleName();
+	private final String TAG = "BaseControllerFragment:" + getClass().getSimpleName();
 
 	/** フラグメントに戻るまでの遅延時間[ミリ秒] */
 	protected static final long POP_BACK_STACK_DELAY = 2000;
@@ -86,6 +86,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
+		mController = null;
 		super.onDetach();
 	}
 

@@ -117,7 +117,7 @@ public class MediaFragment extends BaseFlightControllerFragment
 		super.onConnect(controller);
 		mFTPController = FTPController.newInstance(getActivity().getApplicationContext(), mController);
 		mFTPController.setCallback(mCallback);
-		post(mConnectCheckTask, 500);
+		queueEvent(mConnectCheckTask, 500);
 	}
 
 	@Override
@@ -153,7 +153,7 @@ public class MediaFragment extends BaseFlightControllerFragment
 		public void run() {
 			final String mass_storage_name = mFlightController.getMassStorageName();
 			if (TextUtils.isEmpty(mass_storage_name)) {
-				post(this, 1000);	// まだ準備出来てないので1秒後に再実行
+				queueEvent(this, 1000);	// まだ準備出来てないので1秒後に再実行
 			} else {
 				mFTPController.connect();
 			}

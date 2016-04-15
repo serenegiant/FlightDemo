@@ -25,8 +25,6 @@ import com.serenegiant.utils.BuildCheck;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.serenegiant.flightdemo.AppConst.*;
-
 public class BaseFragment extends Fragment {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = BaseFragment.class.getSimpleName();
@@ -174,7 +172,7 @@ public class BaseFragment extends Fragment {
 	 * プライベートスレッドでの実行待ちタスクを削除する
 	 * @param task
 	 */
-	protected void remove(final Runnable task) {
+	protected void removeEvent(final Runnable task) {
 		if (mAsyncHandler != null) {
 			mAsyncHandler.removeCallbacks(task);
 		} else {
@@ -186,7 +184,7 @@ public class BaseFragment extends Fragment {
 	 * @param task
 	 * @param delay_msec
 	 */
-	protected void post(final Runnable task, final long delay_msec) {
+	protected void queueEvent(final Runnable task, final long delay_msec) {
 		if (mAsyncHandler != null) {
 			if (delay_msec <= 0) {
 				mAsyncHandler.post(task);
@@ -511,7 +509,7 @@ public class BaseFragment extends Fragment {
 		final Activity context = getActivity();
 		final SharedPreferences pref = context.getPreferences(0);
 		final int layout_style;
-		switch (pref.getInt(KEY_ICON_TYPE, 0)) {
+		switch (pref.getInt(AppConst.KEY_ICON_TYPE, 0)) {
 		case 1:
 			layout_style = R.style.AppTheme_001;
 			break;

@@ -7,7 +7,6 @@ import com.serenegiant.media.IFrameCallback;
 import com.serenegiant.widget.PlayerTextureView;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -19,8 +18,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.MediaController;
-import android.widget.VideoView;
 
 /**
  * MediaMoviePlayerを使って動画を再生するためのFragment

@@ -51,9 +51,9 @@ import java.util.List;
 
 import static com.serenegiant.flightdemo.AppConst.*;
 
-public abstract class BasePilotFragment extends ControlFragment implements SelectFileDialogFragment.OnFileSelectListener {
+public abstract class BasePilotFragment extends BaseFlightControllerFragment implements SelectFileDialogFragment.OnFileSelectListener {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static String TAG = BasePilotFragment.class.getSimpleName();
+	private final String TAG = "BasePilotFragment:" + getClass().getSimpleName();
 
 	static {
 		FileUtils.DIR_NAME = "FlightDemo";
@@ -182,8 +182,8 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 		stopScript();
 		stopTouchMove();
 		stopSensor();
-		remove(mGamePadTask);
-		remove(mUpdateStatusTask);
+		removeEvent(mGamePadTask);
+		removeEvent(mUpdateStatusTask);
 //		mControllerFrame.setKeepScreenOn(false);
 		super.onPause();
 	}
@@ -214,7 +214,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 				mVideoStream = new VideoStream();
 			}
 			((IVideoStreamController)mController).setVideoStream(mVideoStream);
-			post(new Runnable() {
+			queueEvent(new Runnable() {
 				@Override
 				public void run() {
 					if (mVideoStream == null) {
@@ -236,7 +236,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 							Log.w(TAG, e);
 						}
 					} else {
-						post(this, 300);
+						queueEvent(this, 300);
 					}
 				}
 			}, 100);
@@ -289,7 +289,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 		stopRecord();
 		stopPlay();
 		stopGamePadTask();
-		remove(mUpdateStatusTask);
+		removeEvent(mUpdateStatusTask);
 		requestPopBackStack(POP_BACK_STACK_DELAY);
 		super.onDisconnect(controller);
 	}
@@ -954,7 +954,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	};
 
 	protected void startUpdateStatusTask() {
-		post(mUpdateStatusTask, 100);
+		queueEvent(mUpdateStatusTask, 100);
 	}
 
 	// 機体姿勢と高度
@@ -997,7 +997,7 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 				prevState = getState();
 				updateButtons();
 			}
-			post(this, 50);	// 50ミリ秒=1秒間に最大で約20回更新
+			queueEvent(this, 50);	// 50ミリ秒=1秒間に最大で約20回更新
 		}
 	};
 
@@ -1045,14 +1045,14 @@ public abstract class BasePilotFragment extends ControlFragment implements Selec
 	private final Runnable mUpdateTimeTask = new Runnable() {
 		@Override
 		public void run() {
-			remove(mIntervalUpdateTimeTask);
+			removeEvent(mIntervalUpdateTimeTask);
 			long t = mCurrentTime;
 			if (t >= 0) {
 				t +=  System.currentTimeMillis() - lastCall;
 				final int m = (int)(t / 60000);
 				final int s = (int)(t - m * 60000) / 1000;
 				updateTimeOnUIThread(m, s);
-				post(mIntervalUpdateTimeTask, 500);	// プライベートスレッド上で遅延実行
+				queueEvent(mIntervalUpdateTimeTask, 500);	// プライベートスレッド上で遅延実行
 			}
 		}
 	};

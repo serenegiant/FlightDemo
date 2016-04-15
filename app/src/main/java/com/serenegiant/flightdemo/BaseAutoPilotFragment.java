@@ -53,7 +53,7 @@ import static com.serenegiant.flightdemo.AppConst.*;
 
 public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPickerDialog.OnColorChangedListener {
 	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
-	private static final String TAG = BaseAutoPilotFragment.class.getSimpleName();
+	private final String TAG = "BaseAutoPilotFragment:" + getClass().getSimpleName();
 
 	public static final int MODE_TRACE = 0;
 	public static final int MODE_TRACKING = 1;
@@ -372,7 +372,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 			case R.id.drone_view:
 				break;
 			case R.id.update_extraction_color_btn:
-				post(new Runnable() {
+				queueEvent(new Runnable() {
 					@Override
 					public void run() {
 						if (mImageProcessor != null) {
@@ -441,7 +441,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 					if (!isFlying()) {
 						// 飛行中でなければ離陸指示＆一定時間後に自動トレース開始
 						takeOff();
-						post(mAutoPilotOnTask, 500);
+						queueEvent(mAutoPilotOnTask, 500);
 					} else {
 						// 飛行中ならすぐに自動トレース開始
 						mAutoPilot = true;
@@ -459,7 +459,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	/** 自動操縦解除 */
 	private void clearAutoPilot() {
 		mAutoPilot = mRequestAutoPilot = false;
-		remove(mAutoPilotOnTask);
+		removeEvent(mAutoPilotOnTask);
 	}
 
 	private final Runnable mAutoPilotOnTask = new Runnable() {

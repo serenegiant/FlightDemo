@@ -391,7 +391,7 @@ public class PilotFragment2 extends BasePilotFragment {
 //				if (DEBUG) Log.v(TAG, "ACTION_MOVE:");
 				if ((n > 1) && (System.currentTimeMillis() - prevTime > MIN_CMD_INTERVALS_MS) && checkTouchMoved(event)) {
 					prevTime = System.currentTimeMillis();
-					remove(mResetRunnable);
+					removeEvent(mResetRunnable);
 					if (!inited) {
 						initTouch(event);
 					}
@@ -423,7 +423,7 @@ public class PilotFragment2 extends BasePilotFragment {
 			}
 			if (n == 0) {
 				inited = false;
-				remove(mResetRunnable);
+				removeEvent(mResetRunnable);
 				cancelAlphaHide();
 			}
 			return false;
@@ -467,8 +467,8 @@ public class PilotFragment2 extends BasePilotFragment {
 				mTilt = ((ICameraController)mController).getTilt();
 			}
 			inited = true;
-			remove(mResetRunnable);
-			post(mResetRunnable, RESET_DURATION_MS);
+			removeEvent(mResetRunnable);
+			queueEvent(mResetRunnable, RESET_DURATION_MS);
 			clearAlphaHide();
 		}
 
