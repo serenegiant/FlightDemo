@@ -352,11 +352,13 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSTATE_ALLWIFISCANCHANGED:	// (18, "Key used to define the command <code>AllWifiScanChanged</code> of class <code>NetworkState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{
+			onAllWifiScanChangedUpdate();
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSTATE_ALLWIFIAUTHCHANNELCHANGED:	// (20, "Key used to define the command <code>AllWifiAuthChannelChanged</code> of class <code>NetworkState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{
+			onAllWifiAuthChannelChangedUpdate();
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSETTINGSSTATE_MAXALTITUDECHANGED:	// (21, "Key used to define the command <code>MaxAltitudeChanged</code> of class <code>PilotingSettingsState</code> in project <code>ARDrone3</code>"),
@@ -1374,6 +1376,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		WiFiStatus status = mWifiStatus.get(key);
 		if (status == null) {
 			status = new WiFiStatus(-66);
+			mWifiStatus.put(key, status);
 		}
 		status.ssid = ssid;
 		status.rssi = rssi;
@@ -1417,7 +1420,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	/** WiFiのセキュリティ設定が変化した時 */
 	protected void onWifiSecurityChangedUpdate(
 		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE_ENUM type) {
-		if (DEBUG) Log.v (TAG, "onWifiSecurityChangedUpdate:");
+		if (DEBUG) Log.v (TAG, "onWifiSecurityChangedUpdate:type=" + type);
 
 		// FIXME 未実装
 	}
@@ -1432,7 +1435,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_TYPE_ENUM type,
 		final ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND_ENUM band,
 		final int channel) {
-		if (DEBUG) Log.v (TAG, "onWifiSelectionChangedUpdate:");
+		if (DEBUG) Log.v (TAG, "onWifiSelectionChangedUpdate:type=" + type + ",band=" + band + ",channel=" + channel);
 
 		// FIXME 未実装
 	}

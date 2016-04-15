@@ -71,7 +71,7 @@ public class BridgeFragment extends BaseControllerFragment {
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
 		mLocalBroadcastManager.unregisterReceiver(mBroadcastReceiver);
-		stopDeviceController(false);
+//		stopDeviceController(false);
 		super.onDetach();
 	}
 
@@ -88,17 +88,14 @@ public class BridgeFragment extends BaseControllerFragment {
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.d(TAG, "onResume:");
-		updateButtons(false);
 		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
 			mMediaPlayer.start();
 		}
 		if (mController instanceof ISkyController) {
 			mController.addListener(mSkyControllerListener);
-			if (((ISkyController)mController).isConnected()) {
-				((ISkyController)mController).requestDeviceList();
-			}
 		}
 		startDeviceController();
+		updateButtons(false);
 	}
 
 	@Override
@@ -124,6 +121,19 @@ public class BridgeFragment extends BaseControllerFragment {
 			mMediaPlayer = null;
 		}
 		super.onDestroy();
+	}
+
+	/**
+	 * 接続された
+	 * @param controller
+	 */
+	protected void onConnect(final IDeviceController controller) {
+		if (DEBUG) Log.v(TAG, "onConnect:");
+		super.onConnect(controller);
+		if (controller instanceof ISkyController) {
+			((ISkyController)mController).requestDeviceList();	// これは動かないみたい
+			((ISkyController)mController).requestCurrentDevice();
+		}
 	}
 
 	/**

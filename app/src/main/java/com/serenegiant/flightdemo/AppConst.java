@@ -33,7 +33,7 @@ public class AppConst {
 
 // ライントレース
 	public static final String KEY_CAMERA_WHITE_BLANCE = "KEY_CAMERA_WHITE_BLANCE";
-	public static final int DEFAULT_CAMERA_WHITE_BLANCE = 0;
+	public static final int DEFAULT_CAMERA_WHITE_BLANCE = 2;	// 晴天
 	public static final String KEY_CAMERA_EXPOSURE = "KEY_CAMERA_EXPOSURE";
 	public static final float DEFAULT_CAMERA_EXPOSURE = 0.0f;
 	public static final String KEY_CAMERA_SATURATION = "KEY_CAMERA_SATURATION";

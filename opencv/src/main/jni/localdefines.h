@@ -22,7 +22,7 @@ subject to the following restrictions:
 #include <jni.h>
 
 #ifndef LOG_TAG
-#define LOG_TAG "libandrousb"
+#define LOG_TAG "imageprocessor"
 #endif
 
 #define LIBUVC_HAS_JPEG

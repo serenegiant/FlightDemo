@@ -1288,7 +1288,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 		return sentStatus;
 	}
 
-
 	/**
 	 * 操縦コマンド送信スレッドでのループ内の処理(sendPCMDを呼び出す)
 	 * 下位クラスで定期的にコマンド送信が必要ならoverride
@@ -1319,9 +1318,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 		public void onLoop() {
 			final long lastTime = SystemClock.elapsedRealtime();
 
-			final int state = FlightController.super.getState();
-
-			if (state == STATE_STARTED) {
+			if (isStarted()) {
 				sendCmdInControlLoop();
 			}
 			// 次の送信予定時間までの休止時間を計算[ミリ秒]

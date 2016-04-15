@@ -45,6 +45,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
 		final ARControllerArgumentDictionary<Object> args) {
 
+		super.onCommandReceived(deviceController, commandKey, args);
 		switch (commandKey) {
 		}
 	}
@@ -52,6 +53,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	@Override
 	protected void onStarting() {
 		if (DEBUG) Log.v (TAG, "onStarting:");
+		super.onStarting();
 		if (mNetConfig.hasVideo()) {
 			// ビデオストリーミング用スレッドを生成&開始
 			startVideoThread();
@@ -68,6 +70,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 		stopFlightCMDThread();
 		// ビデオストリーミングスレッドを終了(終了するまで戻らない)
 		stopVideoThread();
+		super.onBeforeStop();
 	}
 
 	@Override
@@ -638,9 +641,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 		public void onLoop() {
 			final long lastTime = SystemClock.elapsedRealtime();
 
-			final int state = FlightControllerNewAPI.super.getState();
-
-			if (state == STATE_STARTED) {
+			if (isStarted()) {
 				sendCmdInControlLoop();
 			}
 			// 次の送信予定時間までの休止時間を計算[ミリ秒]

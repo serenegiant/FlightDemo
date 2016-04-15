@@ -91,7 +91,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	public void onDetach() {
 //		if (DEBUG) Log.v(TAG, "onDetach:");
 		mJoystick = null;
-		stopDeviceController(false);
+//		stopDeviceController(false);
 		mFlightRecorder.release();
 		mScriptFlight.release();
 		super.onDetach();

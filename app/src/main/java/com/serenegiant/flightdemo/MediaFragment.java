@@ -94,7 +94,7 @@ public class MediaFragment extends BaseFlightControllerFragment
 			mFTPController.release();
 			mFTPController = null;
 		}
-		stopDeviceController(false);
+//		stopDeviceController(false);
 		super.onDestroy();
 	}
 

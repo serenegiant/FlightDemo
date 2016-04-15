@@ -118,7 +118,7 @@ import java.util.Map;
 
 public class FlightControllerBebop extends FlightController implements ICameraController, IWiFiController {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
-	private static String TAG = "FlightControllerBebopNewAPI";
+	private static final String TAG = FlightControllerBebop.class.getSimpleName();
 
 	private boolean videoStreamDelegaterCreated;
 	private VideoStreamDelegater mVideoStreamDelegater;
@@ -1628,6 +1628,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		WiFiStatus status = mWifiStatus.get(key);
 		if (status == null) {
 			status = new WiFiStatus(-66);
+			mWifiStatus.put(key, status);
 		}
 		status.ssid = ssid;
 		status.rssi = rssi;

@@ -147,7 +147,6 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 		if (DEBUG) Log.v(TAG, "onDisconnect:");
 		stopMove();
 		stopVideoStreaming();
-		stopDeviceController(true);
 		super.onDisconnect(controller);
 	}
 

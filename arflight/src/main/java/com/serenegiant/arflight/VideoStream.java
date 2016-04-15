@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class VideoStream implements IVideoStreamNew {
-	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = "VideoStream";
 
 	private static final String VIDEO_MIME_TYPE = "video/avc";
