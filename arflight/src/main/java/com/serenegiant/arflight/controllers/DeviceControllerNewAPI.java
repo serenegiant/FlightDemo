@@ -401,6 +401,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 				mRequestDisconnect = false;
 			}
 			connectSent.release();
+			connectSent.tryAcquire();
 			//TODO see : reset the semaphores or use signals
 		}
 		if (DEBUG) Log.v(TAG, "cancelStart:終了");

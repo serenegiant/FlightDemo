@@ -117,7 +117,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FlightControllerBebop extends FlightController implements ICameraController, IWiFiController {
-	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
 	private static final String TAG = FlightControllerBebop.class.getSimpleName();
 
 	private boolean videoStreamDelegaterCreated;

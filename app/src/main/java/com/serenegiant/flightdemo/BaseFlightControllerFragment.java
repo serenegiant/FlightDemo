@@ -33,9 +33,6 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 	public synchronized void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (DEBUG) Log.v(TAG, "onCreate:" + savedInstanceState);
-		if (mController instanceof IFlightController) {
-			mFlightController = (IFlightController)mController;
-		}
 	}
 
 //	@Override
@@ -48,6 +45,9 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 	public synchronized void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
+		if (mController instanceof IFlightController) {
+			mFlightController = (IFlightController)mController;
+		}
 		if (mFlightController != null) {
 			mFlightController.addListener(mFlightControllerListener);
 		}

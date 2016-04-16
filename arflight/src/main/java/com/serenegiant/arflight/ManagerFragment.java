@@ -226,7 +226,7 @@ public class ManagerFragment extends Fragment {
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.i(TAG, "onPause:");
-//		stopDiscovery();
+		stopDiscovery();
 		super.onPause();
 	}
 

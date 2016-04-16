@@ -58,7 +58,7 @@ import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
 public abstract class DeviceController implements IDeviceController {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = DeviceController.class.getSimpleName();
 
 	private final WeakReference<Context> mWeakContext;
@@ -71,11 +71,8 @@ public abstract class DeviceController implements IDeviceController {
 	protected ARNetworkManager mNetManager;
 	protected boolean mMediaOpened;
 
-	/**
-	 * 切断待ちのためのセマフォ
-	 */
-	private final Semaphore disconnectSent = new Semaphore(0);
-	protected volatile boolean mRequestCancel;
+	private boolean mRequestConnect;
+	private boolean mRequestDisconnect;
 	/**
 	 * 全ての設定取得待ちのためのセマフォ
 	 * 初期値は0なのでonCommonSettingsStateAllSettingsChangedUpdateかcancelStart内でreleaseするまでは先に進まない
@@ -228,30 +225,36 @@ public abstract class DeviceController implements IDeviceController {
 			if (mState != STATE_STOPPED) return false;
 			mState = STATE_STARTING;
 		}
-		mRequestCancel = false;
-		setAlarm(DroneStatus.ALARM_NON);
+		boolean failed = true;
+		mRequestConnect = true;
+		try {
+			mRequestDisconnect = false;
+			setAlarm(DroneStatus.ALARM_NON);
 
-		registerARCommandsListener();
+			registerARCommandsListener();
 
-		final boolean failed = startNetwork();
+			failed = startNetwork();
 
-		if (!failed) {
-            // ネットワークへの送受信スレッドを生成&開始
-			rxThread = new Thread(mNetManager.m_receivingRunnable);
-			rxThread.start();
+			if (!failed) {
+				// ネットワークへの送受信スレッドを生成&開始
+				rxThread = new Thread(mNetManager.m_receivingRunnable);
+				rxThread.start();
 
-			txThread = new Thread(mNetManager.m_sendingRunnable);
-			txThread.start();
+				txThread = new Thread(mNetManager.m_sendingRunnable);
+				txThread.start();
 
-			// 機体データ受信スレッドを生成&開始
-			startReadThreads();
+				// 機体データ受信スレッドを生成&開始
+				startReadThreads();
 
-			internal_start();
+				internal_start();
 
-			synchronized (mStateSync) {
-				mState = STATE_STARTED;
+				synchronized (mStateSync) {
+					mState = STATE_STARTED;
+				}
+				onStarted();
 			}
-			onStarted();
+		} finally {
+			mRequestConnect = false;
 		}
 		if (DEBUG) Log.v(TAG, "start:finished");
 
@@ -269,23 +272,31 @@ public abstract class DeviceController implements IDeviceController {
 	@Override
 	public final void cancelStart() {
 		if (DEBUG) Log.v(TAG, "cancelStart:");
-		if (!mRequestCancel) {
-			mRequestCancel = true;
-			internal_cancel_start();
-			final ARDiscoveryDeviceService device_service = getDeviceService();
-			final Object device = device_service.getDevice();
-			if (device instanceof ARDiscoveryDeviceNetService) {
-				if (discoveryData != null) {
-					discoveryData.ControllerConnectionAbort();
+		if (!mRequestDisconnect && mRequestConnect) {
+			mRequestDisconnect = true;
+			try {
+				internal_cancel_start();
+				final ARDiscoveryDeviceService device_service = getDeviceService();
+				final Object device = device_service.getDevice();
+				if (device instanceof ARDiscoveryDeviceNetService) {
+					if (discoveryData != null) {
+						discoveryData.ControllerConnectionAbort();
+					}
+				} else if (device instanceof ARDiscoveryDeviceBLEService) {
+					mNetALManager.cancelBLENetwork();
+				} else {
+					Log.w(TAG, "Unknown network media type.");
 				}
-			} else if (device instanceof ARDiscoveryDeviceBLEService) {
-				mNetALManager.cancelBLENetwork();
-			} else {
-				Log.w(TAG, "Unknown network media type.");
+				if (isWaitingAllSettings) {
+					cmdGetAllSettingsSent.release();
+				}
+				if (isWaitingAllStates) {
+					cmdGetAllStatesSent.release();
+				}
+				//TODO see : reset the semaphores or use signals
+			} finally {
+				mRequestDisconnect = false;
 			}
-			cmdGetAllSettingsSent.release();
-			cmdGetAllStatesSent.release();
-			//TODO see : reset the semaphores or use signals
 		}
 		if (DEBUG) Log.v(TAG, "cancelStart:finished");
 	}
@@ -306,16 +317,27 @@ public abstract class DeviceController implements IDeviceController {
 			mState = STATE_STOPPING;
 		}
 
-		onStop();
-		internal_stop();
-		// 機体データ受信スレッドを終了(終了するまで戻らない)
-		stopReaderThreads();
+		if (!mRequestDisconnect) {
+			mRequestDisconnect = true;
+			try {
+				onStop();
+				internal_stop();
+				// 機体データ受信スレッドを終了(終了するまで戻らない)
+				stopReaderThreads();
 
-		// ネットワーク接続をクリーンアップ
-		stopNetwork();
+				// ネットワーク接続をクリーンアップ
+				stopNetwork();
 
-		unregisterARCommandsListener();
+				unregisterARCommandsListener();
 
+				setAlarm(DroneStatus.ALARM_DISCONNECTED);
+				callOnAlarmStateChangedUpdate(DroneStatus.ALARM_DISCONNECTED);
+				callOnDisconnect();
+
+			} finally {
+				mRequestDisconnect = false;
+			}
+		}
 		synchronized (mStateSync) {
 			mState = STATE_STOPPED;
 		}
@@ -1109,6 +1131,7 @@ public abstract class DeviceController implements IDeviceController {
 			= new ARCommandCommonSettingsStateAllSettingsChangedListener() {
 		@Override
 		public void onCommonSettingsStateAllSettingsChangedUpdate() {
+			if (DEBUG) Log.v(TAG, "onCommonSettingsStateAllSettingsChangedUpdate:isWaitingAllSettings=" + isWaitingAllSettings);
 			if (isWaitingAllSettings) {
 				cmdGetAllSettingsSent.release();
 			}
@@ -1123,6 +1146,7 @@ public abstract class DeviceController implements IDeviceController {
 			= new ARCommandCommonCommonStateAllStatesChangedListener() {
 		@Override
 		public void onCommonCommonStateAllStatesChangedUpdate() {
+			if (DEBUG) Log.v(TAG, "onCommonCommonStateAllStatesChangedUpdate:isWaitingAllStates=" + isWaitingAllStates);
 			if (isWaitingAllStates) {
 				cmdGetAllStatesSent.release();
 			}
@@ -1414,10 +1438,14 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onDisconnect(final ARNetworkALManager arNetworkALManager) {
 			if (DEBUG) Log.d(TAG, "onDisconnect ...");
+			// このメソッドは呼び出されないみたい
 			DeviceController.this.stop();
-			setAlarm(DroneStatus.ALARM_DISCONNECTED);
-			callOnAlarmStateChangedUpdate(DroneStatus.ALARM_DISCONNECTED);
-			callOnDisconnect();
+//			setAlarm(DroneStatus.ALARM_DISCONNECTED);
+//			callOnAlarmStateChangedUpdate(DroneStatus.ALARM_DISCONNECTED);
+//			callOnDisconnect();
+//			if (mRequestDisconnect) {
+//				disconnectSent.release();
+//			}
 		}
 	}
 
