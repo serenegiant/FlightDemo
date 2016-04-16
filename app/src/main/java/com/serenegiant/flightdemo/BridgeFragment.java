@@ -53,6 +53,7 @@ public class BridgeFragment extends BaseControllerFragment {
 	private ImageButton mDownloadBtn, mPilotBtn;
 	private MediaPlayer mMediaPlayer;
 	private boolean mIsConnectToDevice;
+	private boolean mNeedRequestDeviceList;
 
 	public BridgeFragment() {
 		super();
@@ -115,6 +116,8 @@ public class BridgeFragment extends BaseControllerFragment {
 			mController.removeListener(mSkyControllerListener);
 			if (!mIsConnectToDevice) {
 				releaseDeviceController(true);
+			} else {
+				mNeedRequestDeviceList = true;
 			}
 			mController = null;
 		}
@@ -185,6 +188,19 @@ public class BridgeFragment extends BaseControllerFragment {
 		button.setOnLongClickListener(mOnLongClickListener);
 	}
 
+	protected synchronized boolean startDeviceController() {
+		final boolean already_connected = super.startDeviceController();
+		if (already_connected) {
+			onSkyControllerConnect(mController);
+		}
+		return already_connected;
+	}
+
+	protected void releaseDeviceController(final boolean disconnected) {
+		mIsConnectToDevice = mNeedRequestDeviceList = false;
+		super.releaseDeviceController(disconnected);
+	}
+
 	private void updateButtons(final boolean visible) {
 		final Activity activity = getActivity();
 		if ((activity != null) && !activity.isFinishing()) {
@@ -207,19 +223,31 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 	}
 
-	private final SkyControllerListener mSkyControllerListener = new SkyControllerListener() {
-		@Override
-		public void onSkyControllerConnect(final IDeviceController controller) {
-			if (DEBUG) Log.v(TAG, "onSkyControllerConnect:controller=" + controller);
+	protected void onSkyControllerConnect(final IDeviceController controller) {
+		if (DEBUG) Log.v(TAG, "onSkyControllerConnect:controller=" + controller);
+		if (mNeedRequestDeviceList) {
+			mNeedRequestDeviceList = false;
 			final ISkyController ctrl = (ISkyController)controller;
 //			ctrl.requestWifiList();
 //			ctrl.requestDeviceList();
 //			ctrl.requestCurrentDevice();
+			ctrl.requestAllStates();
+		}
+	}
+
+	protected void onSkyControllerDisconnect(final IDeviceController controller) {
+		if (DEBUG) Log.v(TAG, "onSkyControllerDisconnect:controller=" + controller);
+	}
+
+	private final SkyControllerListener mSkyControllerListener = new SkyControllerListener() {
+		@Override
+		public void onSkyControllerConnect(final IDeviceController controller) {
+			BridgeFragment.this.onSkyControllerConnect(controller);
 		}
 
 		@Override
 		public void onSkyControllerDisconnect(final IDeviceController controller) {
-			if (DEBUG) Log.v(TAG, "onSkyControllerDisconnect:controller=" + controller);
+			BridgeFragment.this.onSkyControllerDisconnect(controller);
 		}
 
 		@Override
@@ -472,7 +500,7 @@ public class BridgeFragment extends BaseControllerFragment {
 				Log.w(TAG, "機体が取得できなかった:position=" + position);
 			}
 			if (fragment != null) {
-				mIsConnectToDevice = true;
+				mIsConnectToDevice = mNeedRequestDeviceList = true;
 				replace(fragment);
 				return true;
 			}
@@ -493,7 +521,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		switch (product) {
 		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 		case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-			mIsConnectToDevice = true;
+			mIsConnectToDevice = mNeedRequestDeviceList = true;
 			fragment = isPiloting ? PilotFragment2.newInstance(mController.getDeviceService(), info, mController.isNewAPI())
 				: MediaFragment.newInstance(mController.getDeviceService(), info, mController.isNewAPI());
 			break;
