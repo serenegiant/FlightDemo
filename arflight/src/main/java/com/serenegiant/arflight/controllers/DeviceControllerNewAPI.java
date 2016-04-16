@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 public abstract class DeviceControllerNewAPI implements IDeviceController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -53,14 +54,10 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected ARDeviceController mARDeviceController;
 	protected Handler mAsyncHandler;
 
-	/**
-	 * 接続待ちのためのセマフォ
-	 */
+	/** 接続待ちのためのセマフォ */
 	private final Semaphore connectSent = new Semaphore(0);
 	protected volatile boolean mRequestConnect;
-	/**
-	 * 切断待ちのためのセマフォ
-	 */
+	/** 切断待ちのためのセマフォ */
 	private final Semaphore disconnectSent = new Semaphore(0);
 	protected volatile boolean mRequestDisconnect;
 
@@ -348,14 +345,18 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 				error = mARDeviceController.start();
 				failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
 				if (!failed) {
-					onStarting();
 					if (DEBUG) Log.v(TAG, "start:connectSent待機");
 					connectSent.acquire();
-					synchronized (mStateSync) {
-						mState = STATE_STARTED;
+					if (ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(getDeviceState())) {
+						synchronized (mStateSync) {
+							mState = STATE_STARTED;
+						}
+						onStarted();
+						callOnConnect();
+					} else {
+						Log.w(TAG, "connectSent#acquireを抜けたのにRUNNINGになってない");
+						failed = true;
 					}
-					onStarted();
-					callOnConnect();
 				}
 			} catch (final InterruptedException e) {
 				//
@@ -375,6 +376,8 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			}
 			synchronized (mStateSync) {
 				mState = STATE_STOPPED;
+				mDeviceState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
+				mExtensionState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
 			}
 			setAlarm(DroneStatus.ALARM_DISCONNECTED);
 		}
@@ -394,15 +397,14 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 					mARDeviceController.stop();
 					mARDeviceController = null;
 				}
-				if (DEBUG) Log.v(TAG, "start:disconnectSent待機");
-				disconnectSent.acquire();
-			} catch (InterruptedException e) {
+				if (DEBUG) Log.v(TAG, "cancelStart:disconnectSent待機");
+				disconnectSent.tryAcquire(3000, TimeUnit.MILLISECONDS);	// とりあえず最大3秒待機
+			} catch (final InterruptedException e) {
+				// ignore
 			} finally {
 				mRequestDisconnect = false;
 			}
-			connectSent.release();
-			connectSent.tryAcquire();
-			//TODO see : reset the semaphores or use signals
+			onStopped();
 		}
 		if (DEBUG) Log.v(TAG, "cancelStart:終了");
 	}
@@ -458,11 +460,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		return failed;
 	}
 
-	/** 接続開始中の追加処理(この時点ではまだ機体との接続&ステータス取得が終わってない可能性がある, onConnectコールバックを呼ぶ前) */
-	protected void onStarting() {
-		if (DEBUG) Log.v(TAG, "onStarting:");
-	}
-
 	/** 接続中断の追加処理 */
 	protected void internal_cancel_start() {
 		if (DEBUG) Log.v(TAG, "internal_cancel_start:");
@@ -496,7 +493,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			&& !ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED.equals(mDeviceState)) {
 			mRequestDisconnect = true;
 			try {
-				onStopping();
 				if (DEBUG) Log.v(TAG, "stop:ARDeviceController#stop");
 				final ARCONTROLLER_ERROR_ENUM error = mARDeviceController.stop();
 				final boolean failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
@@ -510,6 +506,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			} finally {
 				mRequestDisconnect = false;
 			}
+			onStopped();
 		}
 
 		// ネットワーク接続をクリーンアップ
@@ -517,6 +514,8 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 		synchronized (mStateSync) {
 			mState = STATE_STOPPED;
+			mDeviceState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
+			mExtensionState = ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_STOPPED;
 		}
 		if (DEBUG) Log.v(TAG, "stop:終了");
 	}
@@ -526,9 +525,14 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		if (DEBUG) Log.v(TAG, "onBeforeStop:");
 	}
 
-	/** 切断中の追加処理(接続中でなければ呼び出されない, mARDeviceControllerは有効) */
-	protected void onStopping() {
-		if (DEBUG) Log.v(TAG, "onStopping:");
+	/** 切断後の追加処理(接続中でなければ呼び出されない) */
+	protected void onStopped() {
+		if (DEBUG) Log.v(TAG, "onStopped:");
+		// セマフォをリセット
+		connectSent.release();
+		for ( ; connectSent.tryAcquire() ;) {}
+		disconnectSent.release();
+		for ( ; disconnectSent.tryAcquire() ;) {}
 	}
 
 	/** 切断処理(mARDeviceControllerは既にstopしているので無効) */
@@ -545,7 +549,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		synchronized (mStateSync) {
 			return (mARDeviceController != null)
 				&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(getDeviceState())
-				&& (mState == STATE_STARTED);
+				&& ((mState == STATE_STARTED) || (mState == STATE_STARTING));	// これは無くていいかも
 		}
 	}
 

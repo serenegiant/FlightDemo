@@ -138,18 +138,14 @@ public class BridgeFragment extends BaseControllerFragment {
 		super.onDestroy();
 	}
 
-	/**
-	 * 接続された
-	 * @param controller
-	 */
-	protected void onConnect(final IDeviceController controller) {
-		if (DEBUG) Log.v(TAG, "onConnect:");
-		super.onConnect(controller);
-		if (controller instanceof ISkyController) {
-			((ISkyController)mController).requestDeviceList();	// これは動かないみたい
-			((ISkyController)mController).requestCurrentDevice();
-		}
-	}
+//	/**
+//	 * 接続された
+//	 * @param controller
+//	 */
+//	protected void onConnect(final IDeviceController controller) {
+//		if (DEBUG) Log.v(TAG, "onConnect:");
+//		super.onConnect(controller);
+//	}
 
 	/**
 	 * Viewを初期化
@@ -215,6 +211,10 @@ public class BridgeFragment extends BaseControllerFragment {
 		@Override
 		public void onSkyControllerConnect(final IDeviceController controller) {
 			if (DEBUG) Log.v(TAG, "onSkyControllerConnect:controller=" + controller);
+			final ISkyController ctrl = (ISkyController)controller;
+//			ctrl.requestWifiList();
+//			ctrl.requestDeviceList();
+//			ctrl.requestCurrentDevice();
 		}
 
 		@Override
@@ -249,7 +249,7 @@ public class BridgeFragment extends BaseControllerFragment {
 
 		@Override
 		public void onConnect(final IDeviceController controller) {
-			if (DEBUG) Log.v(TAG, "onConnect:controller=" + controller);
+			if (DEBUG) Log.v(TAG, "SkyControllerListener#onConnect:controller=" + controller);
 			final ISkyController bridge = (ISkyController)controller;
 			queueEvent(new Runnable() {
 				@Override
@@ -331,6 +331,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		for (int i = 0; i < n; i++) {
 			final DeviceInfo info = info_array[i];
 			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(info.productId());
+			if (DEBUG) Log.v(TAG, "updateDeviceList:product=" + product);
 			switch (product) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// bebop2

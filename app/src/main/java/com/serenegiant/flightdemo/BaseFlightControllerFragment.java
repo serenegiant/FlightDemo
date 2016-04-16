@@ -104,12 +104,14 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 	}
 
 	protected void startVideoStreaming() {
+		if (DEBUG) Log.v(TAG, "startVideoStreaming:");
 		if (mController instanceof IVideoStreamController) {
 			((IVideoStreamController)mController).enableVideoStreaming(true);
 		}
 	}
 
 	protected void stopVideoStreaming() {
+		if (DEBUG) Log.v(TAG, "stopVideoStreaming:");
 		if (mController instanceof IVideoStreamController) {
 			((IVideoStreamController)mController).enableVideoStreaming(false);
 		}
@@ -138,6 +140,7 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		super.onConnect(controller);
+		if (DEBUG) Log.v(TAG, "onConnect:");
 		stopMove();
 		startVideoStreaming();
 	}

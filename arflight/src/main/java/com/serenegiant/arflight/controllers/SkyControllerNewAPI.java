@@ -47,9 +47,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	/** 接続中の機体情報 */
 	private DeviceInfo mConnectDevice;
-	/**
-	 * 機体接続待ちのためのセマフォ
-	 */
+	/** 機体接続待ちのためのセマフォ */
 	private final Semaphore mConnectDeviceSent = new Semaphore(0);
 	protected volatile boolean mRequestConnectDevice;
 
@@ -69,33 +67,51 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		super.cancelStart();
 	}
 
-	/** 接続開始時の追加処理 */
-	protected void onStarting() {
-		if (DEBUG) Log.d(TAG, "onStarting:");
-/*		// onExtensionStateChangedが呼ばれるまで待機する
-		if (!mRequestConnectDevice) {
-			try {
-				mRequestConnectDevice = true;
-				if (DEBUG) Log.v(TAG, "skyControllerConnectSent待機");
-				mConnectDeviceSent.acquire();
-			} catch (final InterruptedException e) {
-			} finally {
-				mRequestConnectDevice = false;
-			}
-		} */
-		super.onStarting();
+//	protected void onStarting() {
+//		if (DEBUG) Log.d(TAG, "onStarting:");
+//		super.onStarting();
+//	}
+
+	protected void onStopped() {
+		mConnectDeviceSent.release();
+		for ( ; mConnectDeviceSent.tryAcquire(); ) {}
+		super.onStopped();
+	}
+
+	@Override
+	protected void onConnect() {
+		super.onConnect();
+		callOnSkyControllerConnect();
+	}
+
+	@Override
+	protected void onDisconnect() {
+		callOnSkyControllerDisconnect();
+		super.onDisconnect();
+	}
+
+	@Override
+	protected void callOnConnect() {
+		// これは機体が接続した時(onExtensionConnect)に呼び出したいので無効にする
+	}
+
+	@Override
+	protected void callOnDisconnect() {
+		// これは機体が切断された時(onExtensionDisconnect)に呼び出したいので無効にする
 	}
 
 	/**
 	 * onExtensionStateChangedの下請け
 	 * これはスカイコントローラーが機体に接続した時に呼ばれる
 	 */
+	@Override
 	protected void onExtensionConnect() {
 		if (DEBUG) Log.d(TAG, "onExtensionConnect:");
 		super.onExtensionConnect();
 		if (mRequestConnectDevice) {
 			mConnectDeviceSent.release();
 		}
+		super.callOnConnect();
 	}
 
 	/**
@@ -107,6 +123,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (mRequestConnectDevice) {
 			mConnectDeviceSent.release();
 		}
+		super.callOnDisconnect();
 		super.onExtensionDisconnect();
 	}
 
@@ -135,19 +152,23 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			// requestWifiListに対する応答, 自動的には来ない
 			final String bssid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_BSSID);
 			final String ssid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SSID);
-			final boolean secured = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SECURED) != 0;
-			final boolean saved = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SAVED) != 0;
-			final int rssi = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_RSSI);
-			final int frequency = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_FREQUENCY);
+			Object temp = args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SECURED);
+			final boolean secured = (temp instanceof Integer) && (Integer)temp != 0;
+			temp = args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SAVED);
+			final boolean saved = (temp instanceof Integer) && (Integer)temp != 0;
+			temp = args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_RSSI);
+			final int rssi = temp instanceof Integer ? (Integer)temp : 0;
+			temp = args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_FREQUENCY);
+			final int frequency = temp instanceof Integer ? (Integer)temp : 0;
 
 			if (DEBUG) Log.v(TAG, String.format("onWifiListUpdate:bssid=%s, ssid=%s, secured=%d, saved=%d, rssi=%d, frequency=%d",
-				bssid, ssid, secured, saved, rssi, frequency));
+				bssid, ssid, secured ? 1 : 0, saved ? 1 : 0, rssi, frequency));
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED:	// (121, "Key used to define the command <code>ConnexionChanged</code> of class <code>WifiState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// スカイコントローラーとWiFiアクセスポイント間の接続状態が変化した時のコールバックリスナー
 			// requestAllStatesでも来る
-			// requestCurrentWiFiを呼んでも来る
+			// requestCurrentWiFiを呼んでも来る...NewAPIだとこない?
 			// 何故か1回の接続で3回来るのと切断された時には来ないみたい
 			// ...ARCONTROLLER_DEVICE_STATE_ENUMのstop, starting, runningのタイミングで来るのかも
 			// XXX これは普通は使わんで良さそう
@@ -205,8 +226,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED:	// (126, "Key used to define the command <code>ConnexionChanged</code> of class <code>DeviceState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// スカイコントローラーと機体の接続状態が変化した時のコールバックリスナー
 			// requestAllStatesでも来る
-			// requestCurrentDeviceを呼ぶと来る
-			// requestCurrentWiFiを呼んでも来る
+			// requestCurrentDeviceを呼ぶと来る...NewAPIだとこない?
+			// requestCurrentWiFiを呼んでも来る...NewAPIだとこない?
 			// AccessPointのSSIDやチャネル等を変更しても来る
 			// たぶん最初に見つかった機体には勝手に接続しに行きよる
 			// ARCommandSkyControllerWifiStateConnexionChangedListenerのコールバックメソッドよりも後に来る
@@ -637,7 +658,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	 * 接続時のコールバックを呼び出す
 	 */
 	protected void callOnSkyControllerConnect() {
-		if (DEBUG) Log.v(TAG, "callOnConnect:");
+		if (DEBUG) Log.v(TAG, "callOnSkyControllerConnect:");
 		synchronized (mListeners) {
 			for (final SkyControllerListener listener: mListeners) {
 				if (listener != null) {
@@ -655,7 +676,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	 * 切断時のコールバックを呼び出す
 	 */
 	protected void callOnSkyControllerDisconnect() {
-		if (DEBUG) Log.v(TAG, "callOnDisconnect:");
+		if (DEBUG) Log.v(TAG, "callOnSkyControllerDisconnect:");
 		synchronized (mListeners) {
 			for (final SkyControllerListener listener: mListeners) {
 				if (listener != null) {
@@ -692,7 +713,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	 * バッテリー残量変更コールバックを呼び出す
 	 */
 	protected void callOnSkyControllerUpdateBattery(final int percent) {
-		if (DEBUG) Log.v(TAG, "callOnUpdateBattery:" + percent);
+		if (DEBUG) Log.v(TAG, "callOnSkyControllerUpdateBattery:" + percent);
 		synchronized (mListeners) {
 			for (final SkyControllerListener listener: mListeners) {
 				if (listener != null) {
@@ -812,6 +833,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendSettingsReset();
+		} else {
+			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#resetSettings failed:" + result);
@@ -825,6 +848,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAccessPointSettingsAccessPointSSID(ssid);
+		} else {
+			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#setSkyControllerSSID failed:" + result);
@@ -833,7 +858,21 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	}
 
 //	public ARCONTROLLER_ERROR_ENUM sendAccessPointSettingsAccessPointChannel (byte _channel)
-//	public ARCONTROLLER_ERROR_ENUM sendWifiWifiAuthChannel ()
+
+	public boolean sendWifiWifiAuthChannel() {
+		if (DEBUG) Log.d(TAG, "sendWifiWifiAuthChannel:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureSkyController().sendWifiWifiAuthChannel();
+		} else {
+			if (DEBUG) Log.v(TAG, "sendWifiWifiAuthChannel:not started");
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendWifiWifiAuthChannel failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
 //	public ARCONTROLLER_ERROR_ENUM sendAccessPointSettingsWifiSelection (ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_TYPE_ENUM _type, ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_BAND_ENUM _band, byte _channel)
 
 	@Override
@@ -842,6 +881,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiRequestWifiList();
+		} else {
+			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#requestWifiList failed:" + result);
@@ -855,6 +896,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiRequestCurrentWifi();
+		} else {
+			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#requestCurrentWiFi failed:" + result);
@@ -868,6 +911,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiConnectToWifi(bssid, ssid, passphrase);
+		} else {
+			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#connectToWiFi failed:" + result);
@@ -881,6 +926,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiForgetWifi(ssid);
+		} else {
+			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#requestForgetWiFi failed:" + result);
@@ -920,7 +967,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean connectToDevice(final DeviceInfo info) {
-		if (DEBUG) Log.d(TAG, "connectToDevice:");
+		if (DEBUG) Log.d(TAG, "connectToDevice:info=" + info);
 		return connectToDevice(info.name());
 	}
 
@@ -930,12 +977,12 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	 * @return true 接続できなかった
 	 */
 	public boolean connectToDevice(final String deviceName) {
-		if (DEBUG) Log.v(TAG, "connectToDevice:");
+		if (DEBUG) Log.v(TAG, "connectToDevice:deviceName=" + deviceName);
 		if (TextUtils.isEmpty(deviceName)) return false;
 
 		final DeviceInfo info = mDevices.containsKey(deviceName) ? mDevices.get(deviceName) : null;
 		if ((info != null) && info.isConnected()) {
-			// 既に接続されている
+			if (DEBUG) Log.v(TAG, "connectToDevice:既に接続されている");
 			return false;
 		}
 

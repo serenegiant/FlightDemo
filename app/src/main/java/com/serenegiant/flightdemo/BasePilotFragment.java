@@ -265,7 +265,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 
 	@Override
 	protected void onConnect(final IDeviceController controller) {
-//		if (DEBUG) Log.v(TAG, "onConnect:");
+		if (DEBUG) Log.v(TAG, "onConnect:");
 		super.onConnect(controller);
 
 		mVideoRecording = false;
@@ -283,7 +283,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
-//		if (DEBUG) Log.v(TAG, "#onDisconnect");
+		if (DEBUG) Log.v(TAG, "#onDisconnect");
 		mVideoRecording = false;
 		stopRecord();
 		stopPlay();

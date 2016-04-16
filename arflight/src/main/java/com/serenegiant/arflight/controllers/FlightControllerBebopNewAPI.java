@@ -290,6 +290,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			// reason=6: Navigate home enabled by product (unavailable->available)
 
 			// FIXME 未実装
+			if (DEBUG) Log.v(TAG, "onPilotingStateNavigateHomeStateChanged:state=" + state + ",reason=" + reason);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_POSITIONCHANGED:	// (11, "Key used to define the command <code>PositionChanged</code> of class <code>PilotingState</code> in project <code>ARDrone3</code>"),
@@ -348,6 +349,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			);
 			/** Channel of the AP */
 			final int channel = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_CHANNEL);
+
 			onWifiScanListChangedUpdate(ssid, rssi, band, channel);
 			break;
 		}
@@ -454,6 +456,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 					(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_BAND)
 			);
 			final int channel = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISELECTIONCHANGED_CHANNEL);
+
 			onWifiSelectionChangedUpdate(type, band, channel);
 			break;
 		}
@@ -463,7 +466,8 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 				= ARCOMMANDS_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE_ENUM.getFromValue(
 				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_NETWORKSETTINGSSTATE_WIFISECURITYCHANGED_TYPE)
 			);
-			// FIXME 未実装
+
+			onWifiSecurityChangedUpdate(type);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_SETTINGSSTATE_PRODUCTMOTORVERSIONLISTCHANGED:	// (37, "Key used to define the command <code>ProductMotorVersionListChanged</code> of class <code>SettingsState</code> in project <code>ARDrone3</code>"),
@@ -1376,7 +1380,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		final String ssid, final int rssi,
 		final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFISCANLISTCHANGED_BAND_ENUM band,
 		final int channel) {
-		Log.d(TAG, String.format("ssid=%s,rssi=%d,band=%s,channel=%d", ssid, rssi, band.toString(), channel));
+		Log.d(TAG, String.format("onWifiScanListChangedUpdate:ssid=%s,rssi=%d,band=%s,channel=%d", ssid, rssi, band.toString(), channel));
 		final String key = band.toString() + Integer.toString(channel);
 		WiFiStatus status = mWifiStatus.get(key);
 		if (status == null) {
@@ -1407,7 +1411,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		final ARCOMMANDS_ARDRONE3_NETWORKSTATE_WIFIAUTHCHANNELLISTCHANGED_BAND_ENUM band,
 		final byte channel,
 		final byte in_or_out) {
-		Log.d(TAG, String.format("band=%s, channel=%d, in_or_out=%d", band.toString(), channel, in_or_out));
+		Log.d(TAG, String.format("onWifiAuthChannelListChangedUpdate:band=%s, channel=%d, in_or_out=%d", band.toString(), channel, in_or_out));
 		final String key = band.toString() + Byte.toString(channel);
 
 		// FIXME 未実装

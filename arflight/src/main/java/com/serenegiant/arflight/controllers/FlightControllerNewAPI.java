@@ -51,9 +51,9 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	}
 
 	@Override
-	protected void onStarting() {
-		if (DEBUG) Log.v (TAG, "onStarting:");
-		super.onStarting();
+	protected void onStarted() {
+		if (DEBUG) Log.v (TAG, "onStarted:");
+		super.onStarted();
 		if (mNetConfig.hasVideo()) {
 			// ビデオストリーミング用スレッドを生成&開始
 			startVideoThread();
