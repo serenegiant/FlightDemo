@@ -304,6 +304,17 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	protected void setBattery(final int percent) {
 		mStatus.setBattery(percent);
+		callOnUpdateBattery(percent);
+	}
+
+	@Override
+	public int getWiFiSignal() {
+		return mStatus.getWiFiSignal();
+	}
+
+	protected void setWiFiSignal(final int rssi) {
+		mStatus.setWiFiSignal(rssi);
+		callOnUpdateWifiSignal(rssi);
 	}
 
 	@Override
@@ -767,8 +778,9 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_BATTERYSTATECHANGED:	// (168, "Key used to define the command <code>BatteryStateChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// バッテリー残量が変化した時
 			final int percent = (Integer) args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_BATTERYSTATECHANGED_PERCENT);
-			setBattery(percent);
-			callOnUpdateBattery(percent);
+			if (getBattery() != percent) {
+				setBattery(percent);
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED:	// (169, "Key used to define the command <code>MassStorageStateListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
@@ -822,7 +834,9 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_WIFISIGNALCHANGED:	// (174, "Key used to define the command <code>WifiSignalChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// WiFiの信号強度が変化した時
 			final int rssi = (Integer) args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_WIFISIGNALCHANGED_RSSI);
-			onCommonStateWifiSignalChangedUpdate(rssi);
+			if (getWiFiSignal() != rssi) {
+				setWiFiSignal(rssi);
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED:	// (175, "Key used to define the command <code>SensorsStatesListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
@@ -1064,14 +1078,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 		if (DEBUG) Log.v(TAG, String.format("onCommonStateMassStorageInfoStateListChanged:%d,size=%d,used=%d",
 			mass_storage_id, size, used_size));
-	}
-
-	/**
-	 * WiFiの信号強度が変化した時の処理
-	 * @param rssi [dBm]
-	 */
-	protected void onCommonStateWifiSignalChangedUpdate(final int rssi) {
-		callOnUpdateWifiSignal(rssi);
 	}
 
 //********************************************************************************

@@ -53,12 +53,23 @@ public interface IDeviceController {
 	 */
 	public String getSerial();
 
+	/**
+	 * 異常コードを取得
+	 * @return
+	 */
 	public int getAlarm();
+
 	/**
 	 * バッテリーの残量を取得
 	 * @return バッテリー残量[%]
 	 */
 	public int getBattery();
+
+	/**
+	 * WiFi信号強度を取得
+	 * @return
+	 */
+	public int getWiFiSignal();
 
 	/**
 	 * コールバックリスナーを追加

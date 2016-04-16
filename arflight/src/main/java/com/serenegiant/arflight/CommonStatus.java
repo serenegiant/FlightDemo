@@ -19,6 +19,7 @@ public class CommonStatus {
 	protected final Object mSync = new Object();
 	protected int mAlarmState = ALARM_NON;
 	protected int mBatteryState = -1;
+	protected int mWiFiSignalRssi = 0;
 
 	private AttributePosition mPosition = new AttributePosition();
 	private AttributePosition mHomePosition = new AttributePosition();
@@ -50,6 +51,26 @@ public class CommonStatus {
 	public int getBattery() {
 		synchronized (mStateSync) {
 			return mBatteryState;
+		}
+	}
+
+	/**
+	 * WiFi信号強度をセット
+	 * @param rssi
+	 */
+	public void setWiFiSignal(final int rssi) {
+		synchronized (mStateSync) {
+			mWiFiSignalRssi = rssi;
+		}
+	}
+
+	/**
+	 * WiFi信号強度を取得
+	 * @return
+	 */
+	public int getWiFiSignal() {
+		synchronized (mStateSync) {
+			return mWiFiSignalRssi;
 		}
 	}
 

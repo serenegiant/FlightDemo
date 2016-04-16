@@ -203,6 +203,17 @@ public abstract class DeviceController implements IDeviceController {
 
 	protected void setBattery(final int percent) {
 		mStatus.setBattery(percent);
+		callOnUpdateBattery(percent);
+	}
+
+	@Override
+	public int getWiFiSignal() {
+		return mStatus.getWiFiSignal();
+	}
+
+	protected void setWiFiSignal(final int rssi) {
+		mStatus.setWiFiSignal(rssi);
+		callOnUpdateWifiSignal(rssi);
 	}
 
 	/**
@@ -1037,17 +1048,11 @@ public abstract class DeviceController implements IDeviceController {
 		 */
 		@Override
 		public void onCommonCommonStateWifiSignalChangedUpdate(final short rssi) {
-			DeviceController.this.onCommonStateWifiSignalChangedUpdate(rssi);
+			if (getWiFiSignal() != rssi) {
+				setWiFiSignal(rssi);
+			}
 		}
 	};
-
-	/**
-	 * WiFiの信号強度が変化した時の処理
-	 * @param rssi [dBm]
-	 */
-	protected void onCommonStateWifiSignalChangedUpdate(final short rssi) {
-		callOnUpdateWifiSignal(rssi);
-	}
 
 	/**
 	 * 日付が変更された時
@@ -1091,9 +1096,7 @@ public abstract class DeviceController implements IDeviceController {
 		@Override
 		public void onCommonCommonStateBatteryStateChangedUpdate(final byte percent) {
 			if (getBattery() != percent) {
-				// FIXME DroneStatusの#setBatteryを呼べばコールバックが呼び出されるようにしたい
 				setBattery(percent);
-				callOnUpdateBattery(percent);
 			}
 		}
 	};
