@@ -1090,19 +1090,6 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	}
 
 	@Override
-	public boolean startCalibration(final boolean start) {
-		if (DEBUG) Log.v (TAG, "startCalibration:");
-		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isConnected()) {
-			result = mARDeviceController.getFeatureCommon().sendCalibrationMagnetoCalibration(start ? (byte)1 : (byte)0);
-		}
-		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
-			Log.e(TAG, "#startCalibration failed:" + result);
-		}
-		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
-	}
-
-	@Override
 	public boolean setMaxAltitude(final float altitude) {
 		if (DEBUG) Log.v (TAG, "setMaxAltitude:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;

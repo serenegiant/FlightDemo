@@ -97,10 +97,10 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 	}
 
 	@Override
-	protected synchronized void stopDeviceController(final boolean disconnected) {
-		if (DEBUG) Log.v(TAG, "stopDeviceController:");
+	protected synchronized void releaseDeviceController(final boolean disconnected) {
+		if (DEBUG) Log.v(TAG, "releaseDeviceController:");
 		mFlightController = null;
-		super.stopDeviceController(disconnected);
+		super.releaseDeviceController(disconnected);
 	}
 
 	protected void startVideoStreaming() {

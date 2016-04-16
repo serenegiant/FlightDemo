@@ -57,45 +57,50 @@ public abstract class BaseControllerFragment extends BaseFragment {
 //		if (DEBUG) Log.v(TAG, "onSaveInstanceState:" + outState);
 //	}
 
+//	@Override
+//	public synchronized void onStart() {
+//		super.onStart();
+//		if (DEBUG) Log.v(TAG, "onStart:");
+//	}
+
 	@Override
-	public synchronized void onStart() {
-		super.onStart();
-		if (DEBUG) Log.v(TAG, "onStart:");
+	public synchronized void onResume() {
+		super.onResume();
 		getController();
-		if (DEBUG) Log.v(TAG, "onStart:終了");
+		if (DEBUG) Log.v(TAG, "onResume:");
+	}
+
+	@Override
+	public synchronized void onPause() {
+		if (DEBUG) Log.v(TAG, "onPause:isFinishing=" + getActivity().isFinishing());
+		if (mController instanceof ISkyController) {
+			((ISkyController)mController).disconnectFrom();
+		} else if (mController != null) {
+			try {
+				releaseDeviceController(true);
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
+		}
+		mController = null;
+		super.onPause();
 	}
 
 //	@Override
-//	public synchronized void onResume() {
-//		super.onResume();
-//		if (DEBUG) Log.v(TAG, "onResume:");
-//	}
-
-//	@Override
-//	public synchronized void onPause() {
-//		if (DEBUG) Log.v(TAG, "onPause:");
-//		super.onPause();
+//	public synchronized void onStop() {
+//		if (DEBUG) Log.v(TAG, "onStop:");
+//		super.onStop();
 //	}
 
 	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
-		if (mController instanceof ISkyController) {
-			((ISkyController)mController).disconnectFrom();
-		} else if (mController != null) {
-			try {
-				stopDeviceController(true);
-			} catch (final Exception e) {
-				Log.w(TAG, e);
-			}
-		}
 		super.onDestroy();
 	}
 
 	@Override
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
-		mController = null;
 		super.onDetach();
 	}
 
@@ -243,8 +248,8 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	}
 
 	/** デバイスとの接続解除&開放  */
-	protected synchronized void stopDeviceController(final boolean disconnected) {
-		if (DEBUG) Log.v(TAG, "stopDeviceController:");
+	protected synchronized void releaseDeviceController(final boolean disconnected) {
+		if (DEBUG) Log.v(TAG, "releaseDeviceController:");
 		final int state = getState();
 		final IDeviceController controller = mController;
 		mController = null;
@@ -289,7 +294,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	 */
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onDisconnect:");
-		stopDeviceController(true);
+		releaseDeviceController(true);
 	}
 
 	/**
@@ -326,7 +331,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	 */
 	protected void onSkyControllerDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onDisconnectSkyController:");
-		stopDeviceController(true);
+		releaseDeviceController(true);
 	}
 
 	/**

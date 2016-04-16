@@ -193,16 +193,11 @@ public class ManagerFragment extends Fragment {
 	private final long mUIThreadId = Looper.getMainLooper().getThread().getId();
 	private Handler mAsyncHandler;
 
-	private NetworkChangedReceiver mNetworkChangedReceiver;
 	private ARDiscoveryService ardiscoveryService;
 	private boolean ardiscoveryServiceBound = false;
 	private boolean mRegistered = false;
-	private ServiceConnection ardiscoveryServiceConnection;
 	private IBinder discoveryServiceBinder;
-	private BroadcastReceiver mDevicesListUpdatedReceiver;
-	private final Object mDeviceSync = new Object();
 	private final List<ARDiscoveryDeviceService> mDevices = new ArrayList<ARDiscoveryDeviceService>();
-	private final Object mControllerSync = new Object();
 	private final Map<String, WeakReference<IDeviceController>> mControllers = new HashMap<String, WeakReference<IDeviceController>>();
 
 	private final List<ManagerCallback> mCallbacks = new ArrayList<ManagerCallback>();
@@ -219,27 +214,19 @@ public class ManagerFragment extends Fragment {
 		synchronized (mSync) {
 			mAsyncHandler = HandlerThreadHandler.createHandler(TAG);
 		}
-		startServices();
-		initBroadcastReceiver();
-		initServiceConnection();
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.i(TAG, "onResume:");
-		startDiscovery();
-		mNetworkChangedReceiver = NetworkChangedReceiver.registerNetworkChangedReceiver(getActivity(), mOnNetworkChangedListener);
+//		startDiscovery();
 	}
 
 	@Override
 	public void onPause() {
 		if (DEBUG) Log.i(TAG, "onPause:");
-		if (mNetworkChangedReceiver != null) {
-			NetworkChangedReceiver.unregisterNetworkChangedReceiver(getActivity(), mNetworkChangedReceiver);
-			mNetworkChangedReceiver = null;
-		}
-		stopDiscovery();
+//		stopDiscovery();
 		super.onPause();
 	}
 
@@ -261,15 +248,16 @@ public class ManagerFragment extends Fragment {
 	}
 
 	public void startDiscovery() {
+		if (DEBUG) Log.v(TAG, "startDiscovery:");
 		mDeviceListUpdatedReceiverDelegate.onServicesDevicesListUpdated();
+		bindServices();
 		registerReceivers();
-		initServices();
 	}
 
 	public void stopDiscovery() {
-
+		if (DEBUG) Log.v(TAG, "stopDiscovery:");
 		unregisterReceivers();
-		closeServices();
+		unbindServices();
 	}
 
 	/**
@@ -277,7 +265,7 @@ public class ManagerFragment extends Fragment {
 	 * @param callback
 	 */
 	public void addCallback(final ManagerCallback callback) {
-		synchronized (mDeviceSync) {
+		synchronized (mDevices) {
 			boolean found = false;
 			for (final ManagerCallback cb: mCallbacks) {
 				if (cb.equals(callback)) {
@@ -297,7 +285,7 @@ public class ManagerFragment extends Fragment {
 	 * @param callback
 	 */
 	public void removeCallback(final ManagerCallback callback) {
-		synchronized (mDeviceSync) {
+		synchronized (mDevices) {
 			for (; mCallbacks.remove(callback) ;) {}
 		}
 	}
@@ -309,7 +297,7 @@ public class ManagerFragment extends Fragment {
 	 */
 	public IDeviceController getController(final String name, final boolean newAPI) {
 		IDeviceController result = null;
-		synchronized (mControllerSync) {
+		synchronized (mControllers) {
 			final ARDiscoveryDeviceService device = getDevice(name);
 			if (device != null) {
 				result = internalGetController(name, newAPI);
@@ -330,7 +318,7 @@ public class ManagerFragment extends Fragment {
 	 */
 	public IDeviceController getController(final int index, final boolean newAPI) {
 		IDeviceController result = null;
-		synchronized (mControllerSync) {
+		synchronized (mControllers) {
 			final ARDiscoveryDeviceService device = getDevice(index);
 			if (device != null) {
 				result = internalGetController(device.getName(), newAPI);
@@ -349,7 +337,7 @@ public class ManagerFragment extends Fragment {
 	 */
 	public IDeviceController getController(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		IDeviceController result = null;
-		synchronized (mControllerSync) {
+		synchronized (mControllers) {
 			if (device != null) {
 				result = internalGetController(device.getName(), newAPI);
 				if (result == null) {
@@ -386,8 +374,8 @@ public class ManagerFragment extends Fragment {
 	public ARDiscoveryDeviceService getDevice(final String name) {
 		ARDiscoveryDeviceService result = null;
 		if (!TextUtils.isEmpty(name)) {
-			synchronized (mDeviceSync) {
-				for (ARDiscoveryDeviceService device : mDevices) {
+			synchronized (mDevices) {
+				for (final ARDiscoveryDeviceService device : mDevices) {
 					if (name.equals(device.getName())) {
 						result = device;
 						break;
@@ -405,7 +393,7 @@ public class ManagerFragment extends Fragment {
 	 */
 	public ARDiscoveryDeviceService getDevice(final int index) {
 		ARDiscoveryDeviceService device = null;
-		synchronized (mDeviceSync) {
+		synchronized (mDevices) {
 			if ((index >= 0) && (index < mDevices.size())) {
 				device = mDevices.get(index);
 			}
@@ -463,7 +451,7 @@ public class ManagerFragment extends Fragment {
 				break;
 			}
 			if (result != null) {
-				synchronized (mControllerSync) {
+				synchronized (mControllers) {
 					mControllers.put(device.getName(), new WeakReference<IDeviceController>(result));
 				}
 			}
@@ -495,7 +483,7 @@ public class ManagerFragment extends Fragment {
 				public void run() {
 					if (DEBUG) Log.v(TAG, "startController:接続開始");
 					boolean failed = true;
-					synchronized (mControllerSync) {
+					synchronized (mControllers) {
 						if (mControllers.containsKey(controller.getName())) {
 							try {
 								if (DEBUG) Log.v(TAG, "startController:IDeviceController#start");
@@ -516,6 +504,7 @@ public class ManagerFragment extends Fragment {
 							Log.w(TAG, e);
 						}
 					}
+					if (DEBUG) Log.v(TAG, "startController:接続完了");
 				}
 			});
 		}
@@ -528,10 +517,8 @@ public class ManagerFragment extends Fragment {
 	public void releaseController(final IDeviceController controller) {
 		if (DEBUG) Log.i(TAG, "releaseController:" + controller);
 		if (controller != null) {
-			synchronized (mControllerSync) {
-				if (mControllers.containsValue(controller)) {
-					mControllers.remove(controller.getName());
-				}
+			synchronized (mControllers) {
+				mControllers.remove(controller.getName());
 			}
 			final Activity activity = getActivity();
 			if ((activity != null) && !activity.isFinishing()) {
@@ -552,7 +539,6 @@ public class ManagerFragment extends Fragment {
 				}
 			});
 		}
-		if (DEBUG) Log.i(TAG, "releaseController:終了");
 	}
 
 	/**
@@ -561,7 +547,7 @@ public class ManagerFragment extends Fragment {
 	 */
 	public void releaseDevice(final ARDiscoveryDeviceService device) {
 		if (DEBUG) Log.i(TAG, "releaseDevice:" + device);
-		synchronized (mDeviceSync) {
+		synchronized (mDevices) {
 			mDevices.remove(device);
 		}
 	}
@@ -575,7 +561,7 @@ public class ManagerFragment extends Fragment {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				synchronized (mControllerSync) {
+				synchronized (mControllers) {
 					for (final WeakReference<IDeviceController> weak_controller: mControllers.values()) {
 						final IDeviceController controller = weak_controller != null ? weak_controller.get() : null;
 						if (controller != null) {
@@ -587,16 +573,13 @@ public class ManagerFragment extends Fragment {
 				}
 			}
 		}).start();
-		synchronized (mDeviceSync) {
+		synchronized (mDevices) {
 			mDevices.clear();
 		}
 	}
 
-	private void startServices() {
-		//startService(new Intent(this, ARDiscoveryService.class));
-	}
-
-	private void initServices() {
+	private void bindServices() {
+		if (DEBUG) Log.d(TAG, "bindServices ...:binder=" + discoveryServiceBinder);
 		if (discoveryServiceBinder == null) {
 			final Context app = getActivity().getApplicationContext();
 			final Intent intent = new Intent(app, ARDiscoveryService.class);
@@ -609,8 +592,8 @@ public class ManagerFragment extends Fragment {
 		}
 	}
 
-	private void closeServices() {
-		if (DEBUG) Log.d(TAG, "closeServices ...");
+	private void unbindServices() {
+		if (DEBUG) Log.d(TAG, "unbindServices ...");
 
 		if (ardiscoveryServiceBound) {
 			ardiscoveryServiceBound = false;
@@ -632,44 +615,47 @@ public class ManagerFragment extends Fragment {
 		}
 	}
 
-	private void initBroadcastReceiver() {
-		mDevicesListUpdatedReceiver = new ARDiscoveryServicesDevicesListUpdatedReceiver(mDeviceListUpdatedReceiverDelegate);
-	}
+	private final ServiceConnection ardiscoveryServiceConnection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(final ComponentName name, final IBinder service) {
+			discoveryServiceBinder = service;
+			ardiscoveryService = ((ARDiscoveryService.LocalBinder) service).getService();
+			ardiscoveryServiceBound = true;
+			ardiscoveryService.start();
+		}
+		@Override
+		public void onServiceDisconnected(final ComponentName name) {
+			discoveryServiceBinder = null;
+			ardiscoveryService = null;
+			ardiscoveryServiceBound = false;
+		}
+	};
 
-	private void initServiceConnection() {
-		ardiscoveryServiceConnection = new ServiceConnection() {
-			@Override
-			public void onServiceConnected(final ComponentName name, final IBinder service) {
-				discoveryServiceBinder = service;
-				ardiscoveryService = ((ARDiscoveryService.LocalBinder) service).getService();
-				ardiscoveryServiceBound = true;
-
-				ardiscoveryService.start();
-			}
-
-			@Override
-			public void onServiceDisconnected(final ComponentName name) {
-				ardiscoveryService = null;
-				ardiscoveryServiceBound = false;
-			}
-		};
-	}
-
+	private NetworkChangedReceiver mNetworkChangedReceiver;
 	private void registerReceivers() {
+		if (DEBUG) Log.v(TAG, "registerReceivers:mRegistered=" + mRegistered);
 		if (!mRegistered) {
 			mRegistered = true;
 			final LocalBroadcastManager localBroadcastMgr
 				= LocalBroadcastManager.getInstance(getActivity().getApplicationContext());
 			localBroadcastMgr.registerReceiver(mDevicesListUpdatedReceiver,
 				new IntentFilter(ARDiscoveryService.kARDiscoveryServiceNotificationServicesDevicesListUpdated));
+			if (mNetworkChangedReceiver == null) {
+				mNetworkChangedReceiver = NetworkChangedReceiver.registerNetworkChangedReceiver(getActivity(), mOnNetworkChangedListener);
+			}
 		}
 	}
 
 	private void unregisterReceivers() {
+		if (DEBUG) Log.v(TAG, "unregisterReceivers:mRegistered=" + mRegistered);
 		mRegistered = false;
 		final LocalBroadcastManager localBroadcastMgr = LocalBroadcastManager.getInstance(
 			getActivity().getApplicationContext());
 		localBroadcastMgr.unregisterReceiver(mDevicesListUpdatedReceiver);
+		if (mNetworkChangedReceiver != null) {
+			NetworkChangedReceiver.unregisterNetworkChangedReceiver(getActivity(), mNetworkChangedReceiver);
+			mNetworkChangedReceiver = null;
+		}
 	}
 
 	private final ARDiscoveryServicesDevicesListUpdatedReceiverDelegate
@@ -683,7 +669,7 @@ public class ManagerFragment extends Fragment {
 				final List<ARDiscoveryDeviceService> list = ardiscoveryService.getDeviceServicesArray();
 
 				if (list != null) {
-					synchronized (mDeviceSync) {
+					synchronized (mDevices) {
 						mDevices.clear();
 						mDevices.addAll(list);
 					}
@@ -693,8 +679,11 @@ public class ManagerFragment extends Fragment {
 		}
 	};
 
+	private final BroadcastReceiver mDevicesListUpdatedReceiver
+		= new ARDiscoveryServicesDevicesListUpdatedReceiver(mDeviceListUpdatedReceiverDelegate);
+
 	private void callOnServicesDevicesListUpdated() {
-		synchronized (mDeviceSync) {
+		synchronized (mDevices) {
 			for (final ManagerCallback cb: mCallbacks) {
 				try {
 					cb.onServicesDevicesListUpdated(mDevices);
@@ -763,11 +752,10 @@ public class ManagerFragment extends Fragment {
 					@Override
 					public void run() {
 						try {
-							controller.release();
+							controller.stop();
 						} catch (final Exception e) {
 							Log.w(TAG, e);
 						}
-						releaseController(controller);
 						if (dialog != null) {
 							runOnUiThread(new Runnable() {
 								@Override
@@ -792,7 +780,7 @@ public class ManagerFragment extends Fragment {
 		@Override
 		public void onDisconnect(final IDeviceController controller) {
 			if (DEBUG) Log.v(TAG, "onDisconnect:" + controller);
-			stopController(controller);
+			releaseController(controller);
 		}
 
 		@Override

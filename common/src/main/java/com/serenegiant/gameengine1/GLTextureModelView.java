@@ -50,10 +50,10 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 		setRenderer(renderer);
 	}
 
-/*	@Override
+	@Override
 	public void onResume() {
 		super.onResume();
-	} */
+	}
 
 	@Override
 	public void onPause() {

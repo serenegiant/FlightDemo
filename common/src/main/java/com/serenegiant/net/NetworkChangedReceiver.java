@@ -129,6 +129,7 @@ public class NetworkChangedReceiver extends BroadcastReceiver {
 		intentFilter.addAction(ACTION_LOCAL_CONNECTIVITY_CHANGE);
 		final LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(context.getApplicationContext());
 		broadcastManager.registerReceiver(receiver, intentFilter);
+		receiver.onReceiveGlobal(context, null);
 		return receiver;
 	}
 

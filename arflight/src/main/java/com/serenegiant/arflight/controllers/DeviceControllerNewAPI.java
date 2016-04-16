@@ -90,7 +90,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	}
 
 	@Override
-	public void release() {
+	public synchronized void release() {
 		if (DEBUG) Log.v(TAG, "release:");
 		stop();
 		mLocalBroadcastManager = null;
@@ -481,7 +481,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 * 切断処理。子クラスで追加処理が必要であれば#internal_stopをOverrideすること
 	 */
 	@Override
-	public final void stop() {
+	public final synchronized void stop() {
 		if (DEBUG) Log.v(TAG, "stop:");
 
 		synchronized (mStateSync) {
@@ -1301,14 +1301,14 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
-	public boolean sendCalibrationMagnetoCalibration(final boolean calibrate) {
-		if (DEBUG) Log.v(TAG, "sendCalibrationMagnetoCalibration:");
+	public boolean startCalibration(final boolean start) {
+		if (DEBUG) Log.v (TAG, "startCalibration:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isStarted()) {
-			result = mARDeviceController.getFeatureCommon().sendCalibrationMagnetoCalibration(calibrate ? (byte)1 : (byte)0);
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureCommon().sendCalibrationMagnetoCalibration(start ? (byte)1 : (byte)0);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
-			Log.e(TAG, "#sendCalibrationMagnetoCalibration failed:" + result);
+			Log.e(TAG, "#startCalibration failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}

@@ -113,10 +113,10 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 		if (mController != null) {
 			mController.removeListener(mSkyControllerListener);
-			if (mIsConnectToDevice) {
-				// 操縦画面へ行くときは破棄されないようにする
-				mController = null;
+			if (!mIsConnectToDevice) {
+				releaseDeviceController(true);
 			}
+			mController = null;
 		}
 		if (DEBUG) Log.v(TAG, "onPause:isAdded=" + isAdded() + ",isDetached=" + isDetached()
 			+ ",isHidden=" + isHidden() + ",isInLayout=" + isInLayout()
@@ -135,7 +135,6 @@ public class BridgeFragment extends BaseControllerFragment {
 			mMediaPlayer.release();
 			mMediaPlayer = null;
 		}
-		stopDeviceController(true);
 		super.onDestroy();
 	}
 

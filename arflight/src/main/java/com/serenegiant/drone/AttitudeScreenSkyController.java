@@ -25,11 +25,19 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 	public void resume() {
 		super.resume();
 		droneModel.resume();
+		if (mVideoFrameTexture == null) {
+			mVideoFrameTexture = new DynamicTexture(mModelView);
+			mVideoFrameTexture.setSize(640, 368);
+		}
 	}
 
 	@Override
 	public void pause() {
 		droneModel.pause();
+		if (mVideoFrameTexture != null) {
+			mVideoFrameTexture.release();
+			mVideoFrameTexture = null;
+		}
 		super.pause();
 	}
 
@@ -44,8 +52,10 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 
 	@Override
 	protected void initModel() {
-		mVideoFrameTexture = new DynamicTexture(mModelView);
-		mVideoFrameTexture.setSize(640, 368);
+		if (mVideoFrameTexture == null) {
+			mVideoFrameTexture = new DynamicTexture(mModelView);
+			mVideoFrameTexture.setSize(640, 368);
+		}
 		// 機体
 		switch (mCtrlType) {
 		case CTRL_PILOT:

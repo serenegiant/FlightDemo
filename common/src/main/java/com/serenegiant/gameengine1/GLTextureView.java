@@ -15,7 +15,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class GLTextureView extends TextureView {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = GLTextureView.class.getSimpleName();
 
 	/**
@@ -191,6 +191,7 @@ public class GLTextureView extends TextureView {
 	}
 
 	private void startRenderTask() {
+		if (DEBUG) Log.v(TAG, "startRenderTask:mRendererTask=" + mRendererTask);
 		mIsActive = true;
 		if (mRendererTask == null) {
 			mRendererTask = new RendererTask(this);
@@ -200,6 +201,7 @@ public class GLTextureView extends TextureView {
 	}
 
 	private void stopRenderTask() {
+		if (DEBUG) Log.v(TAG, "stopRenderTask:");
 		mIsActive = false;
 		if (mRendererTask != null) {
 			mRendererTask.release();
@@ -210,7 +212,7 @@ public class GLTextureView extends TextureView {
 	private final SurfaceTextureListener mSurfaceTextureListener = new SurfaceTextureListener() {
 		@Override
 		public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
-			if (DEBUG) Log.v(TAG, "onSurfaceTextureAvailable:" + mRendererTask);
+			if (DEBUG) Log.v(TAG, "onSurfaceTextureAvailable:mRendererTask=" + mRendererTask);
 			startRenderTask();
 			if (mRendererTask != null) {
 				if (DEBUG) Log.v(TAG, "offer CMD_AVAILABLE");
@@ -230,7 +232,7 @@ public class GLTextureView extends TextureView {
 
 		@Override
 		public boolean onSurfaceTextureDestroyed(final SurfaceTexture surface) {
-			if (DEBUG) Log.v(TAG, "onSurfaceTextureDestroyed:" + mRendererTask);
+			if (DEBUG) Log.v(TAG, "onSurfaceTextureDestroyed:mRendererTask=" + mRendererTask);
 			stopRenderTask();
 			return true;
 		}

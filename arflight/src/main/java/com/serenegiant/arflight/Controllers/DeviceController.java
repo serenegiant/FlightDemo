@@ -125,7 +125,7 @@ public abstract class DeviceController implements IDeviceController {
 	}
 
 	@Override
-	public void release() {
+	public synchronized void release() {
 		stop();
 		mLocalBroadcastManager = null;
 	}
@@ -298,7 +298,7 @@ public abstract class DeviceController implements IDeviceController {
 	 * 切断処理。子クラスで追加処理が必要であれば#internal_stopをOverrideすること
 	 */
 	@Override
-	public final void stop() {
+	public final synchronized void stop() {
 		if (DEBUG) Log.v(TAG, "stop:");
 
 		synchronized (mStateSync) {

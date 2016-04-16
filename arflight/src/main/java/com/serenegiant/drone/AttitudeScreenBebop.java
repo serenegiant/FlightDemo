@@ -30,6 +30,10 @@ public class AttitudeScreenBebop extends AttitudeScreenBase implements IVideoScr
 		frontRightRotorModel.resume(false);	// テクスチャを共有しているのでテクスチャのリロードは不要
 		rearLeftRotorModel.resume();
 		rearRightRotorModel.resume(false);	// テクスチャを共有しているのでテクスチャのリロードは不要
+		if (mVideoFrameTexture == null) {
+			mVideoFrameTexture = new DynamicTexture(mModelView);
+			mVideoFrameTexture.setSize(640, 368);
+		}
 	}
 
 	@Override
@@ -42,6 +46,10 @@ public class AttitudeScreenBebop extends AttitudeScreenBase implements IVideoScr
 		frontRightRotorModel.pause();
 		rearLeftRotorModel.pause();
 		rearRightRotorModel.pause();
+		if (mVideoFrameTexture != null) {
+			mVideoFrameTexture.release();
+			mVideoFrameTexture = null;
+		}
 		super.pause();
 	}
 
@@ -56,8 +64,10 @@ public class AttitudeScreenBebop extends AttitudeScreenBase implements IVideoScr
 
 	@Override
 	protected void initModel() {
-		mVideoFrameTexture = new DynamicTexture(mModelView);
-		mVideoFrameTexture.setSize(640, 368);
+		if (mVideoFrameTexture == null) {
+			mVideoFrameTexture = new DynamicTexture(mModelView);
+			mVideoFrameTexture.setSize(640, 368);
+		}
 		// 機体
 		switch (mCtrlType) {
 		case CTRL_PILOT:
