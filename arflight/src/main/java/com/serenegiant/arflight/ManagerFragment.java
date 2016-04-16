@@ -157,6 +157,7 @@ public class ManagerFragment extends Fragment {
 	 * @param controller
 	 */
 	public static void releaseController(final Activity activity, final IDeviceController controller) {
+		if (controller == null) return;
 		final ManagerFragment fragment =  getInstance(activity);
 		if (fragment != null) {
 			fragment.releaseController(controller);
@@ -540,14 +541,14 @@ public class ManagerFragment extends Fragment {
 			queueEvent(new Runnable() {
 				@Override
 				public void run() {
-					if (DEBUG) Log.v(TAG, "接続終了中");
+					if (DEBUG) Log.v(TAG, "releaseController:終了中");
 					try {
 						controller.release();
 					} catch (final Exception e) {
 						Log.w(TAG, e);
 					}
 					hideProgress();
-					if (DEBUG) Log.v(TAG, "接続終了");
+					if (DEBUG) Log.v(TAG, "releaseController:終了");
 				}
 			});
 		}

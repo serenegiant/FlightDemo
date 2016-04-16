@@ -52,6 +52,7 @@ public class BridgeFragment extends BaseControllerFragment {
 	private PlayerTextureView mVideoView;
 	private ImageButton mDownloadBtn, mPilotBtn;
 	private MediaPlayer mMediaPlayer;
+	private boolean mIsConnectToDevice;
 
 	public BridgeFragment() {
 		super();
@@ -88,12 +89,17 @@ public class BridgeFragment extends BaseControllerFragment {
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.d(TAG, "onResume:");
+		mIsConnectToDevice = false;
 		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
 			mMediaPlayer.start();
 		}
 		if (mController instanceof ISkyController) {
 			mController.addListener(mSkyControllerListener);
 		}
+		if (DEBUG) Log.v(TAG, "onResume:isAdded=" + isAdded() + ",isDetached=" + isDetached()
+			+ ",isHidden=" + isHidden() + ",isInLayout=" + isInLayout()
+			+ ",isRemoving=" + isRemoving() + ",isResumed=" + isResumed()
+			+ ",isVisible=" + isVisible() + ",mIsConnectToDevice=" + mIsConnectToDevice);
 		startDeviceController();
 		updateButtons(false);
 	}
@@ -106,7 +112,17 @@ public class BridgeFragment extends BaseControllerFragment {
 		if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
 			mMediaPlayer.stop();
 		}
-		mController.removeListener(mSkyControllerListener);
+		if (mController != null) {
+			mController.removeListener(mSkyControllerListener);
+			if (mIsConnectToDevice) {
+				// 操縦画面へ行くときは破棄されないようにする
+				mController = null;
+			}
+		}
+		if (DEBUG) Log.v(TAG, "onPause:isAdded=" + isAdded() + ",isDetached=" + isDetached()
+			+ ",isHidden=" + isHidden() + ",isInLayout=" + isInLayout()
+			+ ",isRemoving=" + isRemoving() + ",isResumed=" + isResumed()
+			+ ",isVisible=" + isVisible() + ",mIsConnectToDevice=" + mIsConnectToDevice);
 		super.onPause();
 	}
 
@@ -120,6 +136,7 @@ public class BridgeFragment extends BaseControllerFragment {
 			mMediaPlayer.release();
 			mMediaPlayer = null;
 		}
+		stopDeviceController(true);
 		super.onDestroy();
 	}
 
@@ -144,9 +161,9 @@ public class BridgeFragment extends BaseControllerFragment {
 
 		final ARDeviceInfoAdapter adapter = new ARDeviceInfoAdapter(getActivity(), R.layout.list_item_deviceservice);
 
-		mMediaPlayer = new MediaPlayer();
-		mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
-		mMediaPlayer.setOnCompletionListener(mOnCompletionListener);
+//		mMediaPlayer = new MediaPlayer();
+//		mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
+//		mMediaPlayer.setOnCompletionListener(mOnCompletionListener);
 
 		mDeviceListView = (ListView)rootView.findViewById(R.id.list);
 		final View empty_view = rootView.findViewById(R.id.empty_view);
@@ -381,7 +398,9 @@ public class BridgeFragment extends BaseControllerFragment {
 				fragment = ConfigAppFragment.newInstance();
 				break;
 			}
-			replace(fragment);
+			if (fragment != null) {
+				replace(fragment);
+			}
 		}
 	};
 
@@ -458,6 +477,7 @@ public class BridgeFragment extends BaseControllerFragment {
 				Log.w(TAG, "機体が取得できなかった:position=" + position);
 			}
 			if (fragment != null) {
+				mIsConnectToDevice = true;
 				replace(fragment);
 				return true;
 			}
@@ -478,6 +498,7 @@ public class BridgeFragment extends BaseControllerFragment {
 		switch (product) {
 		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 		case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+			mIsConnectToDevice = true;
 			fragment = isPiloting ? PilotFragment2.newInstance(mController.getDeviceService(), info, mController.isNewAPI())
 				: MediaFragment.newInstance(mController.getDeviceService(), info, mController.isNewAPI());
 			break;
@@ -494,6 +515,11 @@ public class BridgeFragment extends BaseControllerFragment {
 		public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
 			mVideoView.reset();
 			try {
+				if (mMediaPlayer == null) {
+					mMediaPlayer = new MediaPlayer();
+					mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
+					mMediaPlayer.setOnCompletionListener(mOnCompletionListener);
+				}
 				if (mMediaPlayer != null) {
 					mMediaPlayer.setDataSource(getActivity(), Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.into_the_sky));
 					mMediaPlayer.prepareAsync();

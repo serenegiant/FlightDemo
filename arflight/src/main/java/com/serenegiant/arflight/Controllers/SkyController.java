@@ -114,7 +114,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 
 	private final List<SkyControllerListener> mListeners = new ArrayList<SkyControllerListener>();
 
-	/** 接続中の機体情報, FIXME 排他制御が必要 */
+	/** 接続中の機体情報 */
 	private DeviceInfo mConnectDevice;
 	private VideoStreamDelegater mVideoStreamDelegater;
 	public final AttributeGPS mSkyControllerGPS = new AttributeGPS();
@@ -541,7 +541,9 @@ public class SkyController extends DeviceController implements ISkyController, I
 					mDevices.put(deviceName, info);
 				}
 				info.connectionState(status.getValue());
-				mConnectDevice = info;
+				synchronized (mStateSync) {
+					mConnectDevice = info;
+				}
 				break;
 			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_DISCONNECTING:    // 3
 				removeDevice(deviceName);
@@ -566,8 +568,10 @@ public class SkyController extends DeviceController implements ISkyController, I
 
 	private void removeDevice(final String deviceName) {
 		mDevices.remove(deviceName);
-		if ((mConnectDevice != null) && mConnectDevice.name().equals(deviceName)) {
-			mConnectDevice = null;
+		synchronized (mStateSync) {
+			if ((mConnectDevice != null) && mConnectDevice.name().equals(deviceName)) {
+				mConnectDevice = null;
+			}
 		}
 	}
 
@@ -1809,7 +1813,9 @@ public class SkyController extends DeviceController implements ISkyController, I
 			return false;
 		}
 
-		mConnectDevice = null;
+		synchronized (mStateSync) {
+			mConnectDevice = null;
+		}
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
@@ -1833,6 +1839,10 @@ public class SkyController extends DeviceController implements ISkyController, I
 
 	@Override
 	public void disconnectFrom() {
+		if (DEBUG) Log.d(TAG, "disconnectFrom:");
+		synchronized (mStateSync) {
+			mConnectDevice = null;
+		}
 	}
 
 //================================================================================

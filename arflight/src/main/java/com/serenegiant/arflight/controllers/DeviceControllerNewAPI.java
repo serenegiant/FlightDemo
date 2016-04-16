@@ -101,6 +101,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			}
 			mAsyncHandler = null;
 		}
+		if (DEBUG) Log.v(TAG, "release:終了");
 	}
 
 	public boolean isNewAPI() {
@@ -452,7 +453,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		} else {
 			Log.w(TAG, "startNetwork:ARDiscoveryDeviceを初期化出来なかった");
 		}
-		if (DEBUG) Log.v(TAG, "startNetwork:終了" + failed);
+		if (DEBUG) Log.v(TAG, "startNetwork:終了,failed=" + failed);
 		return failed;
 	}
 

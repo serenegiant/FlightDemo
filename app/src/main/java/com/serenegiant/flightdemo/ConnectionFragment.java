@@ -107,9 +107,9 @@ public class ConnectionFragment extends BaseFragment {
 
 		final ARDeviceServiceAdapter adapter = new ARDeviceServiceAdapter(getActivity(), R.layout.list_item_deviceservice);
 
-		mMediaPlayer = new MediaPlayer();
-		mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
-		mMediaPlayer.setOnCompletionListener(mOnCompletionListener);
+//		mMediaPlayer = new MediaPlayer();
+//		mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
+//		mMediaPlayer.setOnCompletionListener(mOnCompletionListener);
 
 		mDeviceListView = (ListView)rootView.findViewById(R.id.list);
 		final View empty_view = rootView.findViewById(R.id.empty_view);
@@ -349,6 +349,11 @@ public class ConnectionFragment extends BaseFragment {
 		public void onSurfaceTextureAvailable(final SurfaceTexture surface, final int width, final int height) {
 			mVideoView.reset();
 			try {
+				if (mMediaPlayer == null) {
+					mMediaPlayer = new MediaPlayer();
+					mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
+					mMediaPlayer.setOnCompletionListener(mOnCompletionListener);
+				}
 				if (mMediaPlayer != null) {
 					mMediaPlayer.setDataSource(getActivity(), Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.into_the_sky));
 					mMediaPlayer.prepareAsync();

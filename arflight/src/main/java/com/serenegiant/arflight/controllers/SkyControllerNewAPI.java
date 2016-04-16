@@ -46,7 +46,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyControllerNewAPI.class.getSimpleName();
 
-	/** 接続中の機体情報, FIXME 排他制御が必要 */
+	/** 接続中の機体情報 */
 	private DeviceInfo mConnectDevice;
 	/**
 	 * 機体接続待ちのためのセマフォ
@@ -558,7 +558,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 					mDevices.put(deviceName, info);
 				}
 				info.connectionState(status.getValue());
-				mConnectDevice = info;
+				synchronized (mStateSync) {
+					mConnectDevice = info;
+				}
 				break;
 			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_DISCONNECTING:    // 3
 				removeDevice(deviceName);
@@ -581,11 +583,21 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		}
 	}
 
+	/**
+	 * #updateConnectionStateの下請け, mDevicesがロックされた状態で呼び出される
+	 * @param deviceName
+	 */
 	private void removeDevice(final String deviceName) {
 		if (DEBUG) Log.d(TAG, "removeDevice:" + deviceName);
-		mDevices.remove(deviceName);
-		if ((mConnectDevice != null) && mConnectDevice.name().equals(deviceName)) {
-			mConnectDevice = null;
+		if (TextUtils.isEmpty(deviceName)) {
+			mDevices.clear();
+		} else {
+			mDevices.remove(deviceName);
+			synchronized (mStateSync) {
+				if ((mConnectDevice != null) && mConnectDevice.name().equals(deviceName)) {
+					mConnectDevice = null;
+				}
+			}
 		}
 	}
 
@@ -709,7 +721,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public DeviceInfo connectDeviceInfo() {
-		return mConnectDevice;
+		synchronized (mStateSync) {
+			return mConnectDevice;
+		}
 	}
 
 	public boolean requestAllSettings() {
@@ -871,7 +885,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 		if (!mRequestConnectDevice) {
 			mRequestConnectDevice = true;
-			mConnectDevice = null;
+			synchronized (mStateSync) {
+				mConnectDevice = null;
+			}
 			try {
 				result = mARDeviceController.getFeatureSkyController().sendDeviceConnectToDevice(deviceName);
 				if (result == ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -879,8 +895,10 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 					if (DEBUG) Log.v(TAG, "connectToDevice:skyControllerConnectSent待機");
 					mConnectDeviceSent.acquire();
 					if (DEBUG) Log.v(TAG, "connectToDevice:" + mConnectDevice);
-					if (mConnectDevice == null) {
-						result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR_CANCELED;
+					synchronized (mStateSync) {
+						if (mConnectDevice == null) {
+							result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR_CANCELED;
+						}
 					}
 				}
 			} catch (final InterruptedException e) {
@@ -902,6 +920,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	@Override
 	public void disconnectFrom() {
 		if (DEBUG) Log.d(TAG, "disconnectFrom:");
+		synchronized (mStateSync) {
+			mConnectDevice = null;
+		}
 	}
 
 	@Override

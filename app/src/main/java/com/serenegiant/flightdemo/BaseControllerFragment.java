@@ -80,7 +80,9 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
-		if (mController != null) {
+		if (mController instanceof ISkyController) {
+			((ISkyController)mController).disconnectFrom();
+		} else if (mController != null) {
 			try {
 				stopDeviceController(true);
 			} catch (final Exception e) {

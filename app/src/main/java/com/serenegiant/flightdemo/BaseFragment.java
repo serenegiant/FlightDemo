@@ -61,7 +61,11 @@ public class BaseFragment extends Fragment {
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
 		if (mAsyncHandler != null) {
-			mAsyncHandler.getLooper().quit();
+			try {
+				mAsyncHandler.getLooper().quit();
+			} catch (final Exception e) {
+				// ignore
+			}
 			mAsyncHandler = null;
 		}
 		super.onDestroy();
