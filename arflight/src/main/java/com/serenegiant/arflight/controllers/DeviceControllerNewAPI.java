@@ -197,6 +197,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	/**
 	 * バッテリー残量変更コールバックを呼び出す
+	 * @param percent
 	 */
 	protected void callOnUpdateBattery(final int percent) {
 		if (DEBUG) Log.v(TAG, "callOnUpdateBattery:" + percent);
@@ -205,6 +206,24 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 				if (listener != null) {
 					try {
 						listener.onUpdateBattery(this, percent);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * WiFi信号強度更新コールバックを呼び出す
+	 * @param rssi
+	 */
+	protected void callOnUpdateWifiSignal(final int rssi) {
+		synchronized (mConnectionListeners) {
+			for (final DeviceConnectionListener listener: mConnectionListeners) {
+				if (listener != null) {
+					try {
+						listener.onUpdateWiFiSignal(this, rssi);
 					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
@@ -1049,10 +1068,10 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	/**
 	 * WiFiの信号強度が変化した時の処理
-	 * @param rssi
+	 * @param rssi [dBm]
 	 */
 	protected void onCommonStateWifiSignalChangedUpdate(final int rssi) {
-		if (DEBUG) Log.v(TAG, "onCommonStateWifiSignalChangedUpdate:rssi=" + rssi);
+		callOnUpdateWifiSignal(rssi);
 	}
 
 //********************************************************************************

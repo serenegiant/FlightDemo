@@ -260,6 +260,13 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	}
 
 	/**
+	 * WiFi信号強度が変化した時のコールバック
+	 * @param rssi
+	 */
+	protected void updateWiFiSignal(final int rssi) {
+	}
+
+	/**
 	 * 異常ステータスが変化した時のコールバック
 	 * @param alert_state
 	 */

@@ -799,6 +799,10 @@ public class ManagerFragment extends Fragment {
 		}
 
 		@Override
+		public void onUpdateWiFiSignal(final IDeviceController controller, final int rssi) {
+		}
+
+		@Override
 		public void onAlarmStateChangedUpdate(final IDeviceController controller, final int alarm_state) {
 		}
 	};

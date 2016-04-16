@@ -255,6 +255,11 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 		}
 
 		@Override
+		public void onUpdateWiFiSignal(final IDeviceController controller, final int rssi) {
+			updateWiFiSignal(rssi);
+		}
+
+		@Override
 		public void onAlarmStateChangedUpdate(final IDeviceController controller, int alarm_state) {
 			if (DEBUG) Log.v(TAG, "mFlightControllerListener#onAlarmStateChangedUpdate:state=" + alarm_state);
 			updateAlarmState(alarm_state);

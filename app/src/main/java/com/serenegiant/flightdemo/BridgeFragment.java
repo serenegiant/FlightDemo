@@ -287,6 +287,11 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 
 		@Override
+		public void onUpdateWiFiSignal(final IDeviceController controller, final int rssi) {
+			if (DEBUG) Log.v(TAG, "onUpdateWiFiSignal:controller=" + controller + ", rssi=" + rssi);
+		}
+
+		@Override
 		public void onAlarmStateChangedUpdate(final IDeviceController controller, final int alarm_state) {
 			if (DEBUG) Log.v(TAG, "onAlarmStateChangedUpdate:controller=" + controller + ", alarm_state=" + alarm_state);
 		}

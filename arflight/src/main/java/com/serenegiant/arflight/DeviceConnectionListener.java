@@ -16,6 +16,13 @@ public interface DeviceConnectionListener {
 	 * @param percent
 	 */
 	public void onUpdateBattery(final IDeviceController controller, final int percent);
+
+	/**
+	 * WiFi信号強度が変化した時のコールバック
+	 * @param controller
+	 * @param rssi
+	 */
+	public void onUpdateWiFiSignal(final IDeviceController controller, final int rssi);
 	/**
 	 * 機器からの異常通知時のコールバック
 	 * @param controller
