@@ -1690,7 +1690,9 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @param is_outdoor
 	 * @return
 	 */
-	public boolean sendSpeedSettingsOutdoor(final boolean is_outdoor) {
+	@Override
+	public boolean sendSettingsOutdoor(final boolean is_outdoor) {
+		super.sendSettingsOutdoor(is_outdoor);
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 

@@ -25,6 +25,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.CommonStatus;
 import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DeviceInfo;
+import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.IWiFiController;
@@ -39,8 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
-import static com.serenegiant.arflight.ARFlightConst.ARFLIGHT_ACTION_DEVICE_LIST_CHANGED;
-import static com.serenegiant.arflight.ARFlightConst.ARFLIGHT_EXTRA_DEVICE_LIST;
+import static com.serenegiant.arflight.ARFlightConst.*;
 
 public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements ISkyController, IVideoStreamController, IWiFiController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
@@ -580,6 +580,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 				intent.putExtra(ARFLIGHT_EXTRA_DEVICE_LIST, info_array);
 			}
 			mLocalBroadcastManager.sendBroadcast(intent);
+		} else {
+			Log.w(TAG, "mLocalBroadcastManager is null, already released?");
 		}
 	}
 
@@ -697,6 +699,63 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 				if (listener != null) {
 					try {
 						listener.onSkyControllerUpdateBattery(this, percent);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * キャリブレーションが必要かどうかが変更された時のコールバックを呼び出す
+	 * @param need_calibration
+	 */
+	protected void callOnSkyControllerCalibrationRequiredChanged(final boolean need_calibration) {
+		if (DEBUG) Log.v(TAG, "callOnSkyControllerCalibrationRequiredChanged:" + need_calibration);
+		synchronized (mListeners) {
+			for (final SkyControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onSkyControllerCalibrationRequiredChanged(this, need_calibration);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * キャリブレーションを開始/終了した時のコールバックを呼び出す
+	 * @param isStart
+	 */
+	protected void callOnSkyControllerCalibrationStartStop(final boolean isStart) {
+		if (DEBUG) Log.v(TAG, "callOnSkyControllerCalibrationStartStop:" + isStart);
+		synchronized (mListeners) {
+			for (final SkyControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onSkyControllerCalibrationStartStop(this, isStart);
+					} catch (final Exception e) {
+						if (DEBUG) Log.w(TAG, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * キャリブレーション中の軸が変更された
+	 * @param axis 0:x, 1:y, z:2, 3:none
+	 */
+	protected void callOnSkyControllerCalibrationAxisChanged(final int axis) {
+		if (DEBUG) Log.v(TAG, "callOnSkyControllerCalibrationStartStop:" + axis);
+		synchronized (mListeners) {
+			for (final SkyControllerListener listener: mListeners) {
+				if (listener != null) {
+					try {
+						listener.onSkyControllerCalibrationAxisChanged(this, axis);
 					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}

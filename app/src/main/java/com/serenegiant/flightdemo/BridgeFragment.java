@@ -72,7 +72,6 @@ public class BridgeFragment extends BaseControllerFragment {
 	public void onDetach() {
 		if (DEBUG) Log.v(TAG, "onDetach:");
 		mLocalBroadcastManager.unregisterReceiver(mBroadcastReceiver);
-//		stopDeviceController(false);
 		super.onDetach();
 	}
 
@@ -160,10 +159,6 @@ public class BridgeFragment extends BaseControllerFragment {
 	private void initView(final View rootView) {
 
 		final ARDeviceInfoAdapter adapter = new ARDeviceInfoAdapter(getActivity(), R.layout.list_item_deviceservice);
-
-//		mMediaPlayer = new MediaPlayer();
-//		mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
-//		mMediaPlayer.setOnCompletionListener(mOnCompletionListener);
 
 		mDeviceListView = (ListView)rootView.findViewById(R.id.list);
 		final View empty_view = rootView.findViewById(R.id.empty_view);

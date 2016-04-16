@@ -33,7 +33,7 @@ import java.util.Map;
 
 public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implements ICameraController, IWiFiController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static final String TAG = FlightControllerBebopNewAPI.class.getSimpleName();
+	private final String TAG = "FlightControllerBebopNewAPI:" + getClass().getSimpleName();
 
 	private final Object mVideoSync = new Object();
 	private IVideoStreamNew mVideoStream;
@@ -1456,5 +1456,19 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		if (DEBUG) Log.v (TAG, "onWifiSelectionChangedUpdate:type=" + type + ",band=" + band + ",channel=" + channel);
 
 		// FIXME 未実装
+	}
+
+	@Override
+	public boolean sendSettingsOutdoor(final boolean is_outdoor) {
+		super.sendSettingsOutdoor(is_outdoor);
+		if (DEBUG) Log.d(TAG, "sendSettingsOutdoor:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureARDrone3().sendSpeedSettingsOutdoor(is_outdoor ? (byte)1 : (byte)0);
+			if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+				Log.e(TAG, "#sendSettingsOutdoor failed:" + result);
+			}
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 }

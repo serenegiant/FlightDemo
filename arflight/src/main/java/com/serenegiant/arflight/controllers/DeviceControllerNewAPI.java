@@ -1086,6 +1086,22 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 //********************************************************************************
 	private static final SimpleDateFormat formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 	private static final SimpleDateFormat formattedTime = new SimpleDateFormat("'T'HHmmssZZZ", Locale.getDefault());
+	/**
+	 * ネットワーク切断要求
+	 * @return
+	 */
+	public boolean sendNetworkDisconnect() {
+		if (DEBUG) Log.v(TAG, "sendNetworkDisconnect:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isConnected()) {
+			result = mARDeviceController.getFeatureCommon().sendNetworkDisconnect();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendNetworkDisconnect failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
 	@Override
 	public boolean sendDate(final Date currentDate) {
 		if (DEBUG) Log.v(TAG, "sendDate:");
@@ -1138,18 +1154,14 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
-	/**
-	 * ネットワーク切断要求
-	 * @return
-	 */
-	public boolean sendNetworkDisconnect() {
-		if (DEBUG) Log.v(TAG, "sendNetworkDisconnect:");
+	public boolean sendSettingsReset() {
+		if (DEBUG) Log.v(TAG, "sendSettingsReset:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isConnected()) {
-			result = mARDeviceController.getFeatureCommon().sendNetworkDisconnect();
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendSettingsReset();
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
-			Log.e(TAG, "#setCountryCode failed:" + result);
+			Log.e(TAG, "#sendSettingsReset failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
@@ -1177,4 +1189,232 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
+
+	public boolean sendSettingsProductName(final String name) {
+		if (DEBUG) Log.v(TAG, "sendSettingsProductName:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendSettingsProductName(name);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendSettingsProductName failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendCommonReboot() {
+		if (DEBUG) Log.v(TAG, "sendCommonReboot:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendCommonReboot();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendCommonReboot failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendOverHeatSwitchOff() {
+		if (DEBUG) Log.v(TAG, "sendOverHeatSwitchOff:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendOverHeatSwitchOff();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendOverHeatSwitchOff failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendOverHeatVentilate() {
+		if (DEBUG) Log.v(TAG, "sendOverHeatVentilate:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendOverHeatVentilate();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendOverHeatVentilate failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendControllerIsPiloting(final boolean piloting) {
+		if (DEBUG) Log.v(TAG, "sendControllerIsPiloting:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendControllerIsPiloting(piloting ? (byte)1 : (byte)0);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendControllerIsPiloting failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendSettingsOutdoor(final boolean outdoor) {
+		if (DEBUG) Log.v(TAG, "sendSettingsOutdoor:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendWifiSettingsOutdoorSetting(outdoor ? (byte)1 : (byte)0);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendSettingsOutdoor failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendMavlinkStart(final String filepath, final boolean isFlightPlan) {
+		if (DEBUG) Log.v(TAG, "sendMavlinkStart:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendMavlinkStart(filepath,
+				isFlightPlan ? ARCOMMANDS_COMMON_MAVLINK_START_TYPE_ENUM.ARCOMMANDS_COMMON_MAVLINK_START_TYPE_FLIGHTPLAN
+					: ARCOMMANDS_COMMON_MAVLINK_START_TYPE_ENUM.ARCOMMANDS_COMMON_MAVLINK_START_TYPE_MAPMYHOUSE
+			);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendMavlinkStart failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendMavlinkPause() {
+		if (DEBUG) Log.v(TAG, "sendMavlinkPause:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendMavlinkPause();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendMavlinkPause failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendMavlinkStop() {
+		if (DEBUG) Log.v(TAG, "sendMavlinkStop:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendMavlinkStop();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendMavlinkStop failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendCalibrationMagnetoCalibration(final boolean calibrate) {
+		if (DEBUG) Log.v(TAG, "sendCalibrationMagnetoCalibration:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendCalibrationMagnetoCalibration(calibrate ? (byte)1 : (byte)0);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendCalibrationMagnetoCalibration failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendGPSControllerPositionForRun(final double latitude, final double longitude) {
+		if (DEBUG) Log.v(TAG, "sendGPSControllerPositionForRun:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendGPSControllerPositionForRun(latitude, longitude);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendGPSControllerPositionForRun failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendAudioControllerReadyForStreaming(final boolean ready) {
+		if (DEBUG) Log.v(TAG, "sendAudioControllerReadyForStreaming:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendAudioControllerReadyForStreaming(ready ? (byte)1 : (byte)0);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendAudioControllerReadyForStreaming failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendHeadlightsIntensity(final byte left, final byte right) {
+		if (DEBUG) Log.v(TAG, "sendHeadlightsIntensity:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendHeadlightsIntensity(left, right);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendHeadlightsIntensity failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendAnimationsStartAnimation(final int anim) {
+		if (DEBUG) Log.v(TAG, "sendAnimationsStartAnimation:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			final ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_ENUM _anim
+				= ARCOMMANDS_COMMON_ANIMATIONS_STARTANIMATION_ANIM_ENUM.getFromValue(anim);
+			result = mARDeviceController.getFeatureCommon().sendAnimationsStartAnimation(_anim);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendAnimationsStartAnimation failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendAnimationsStopAnimation(final int anim) {
+		if (DEBUG) Log.v(TAG, "sendAnimationsStopAnimation:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			final ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_ENUM _anim
+				= ARCOMMANDS_COMMON_ANIMATIONS_STOPANIMATION_ANIM_ENUM.getFromValue(anim);
+			result = mARDeviceController.getFeatureCommon().sendAnimationsStopAnimation(_anim);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendAnimationsStopAnimation failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendAnimationsStopAllAnimations(final int anim) {
+		if (DEBUG) Log.v(TAG, "sendAnimationsStopAllAnimations:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			result = mARDeviceController.getFeatureCommon().sendAnimationsStopAllAnimations();
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendAnimationsStopAllAnimations failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendAccessoryConfig(final int accessory) {
+		if (DEBUG) Log.v(TAG, "sendAccessoryConfig:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			ARCOMMANDS_COMMON_ACCESSORY_CONFIG_ACCESSORY_ENUM _accessory
+				= ARCOMMANDS_COMMON_ACCESSORY_CONFIG_ACCESSORY_ENUM.getFromValue(accessory);
+			result = mARDeviceController.getFeatureCommon().sendAccessoryConfig(_accessory);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendAccessoryConfig failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	public boolean sendChargerSetMaxChargeRate(final int rate) {
+		if (DEBUG) Log.v(TAG, "sendChargerSetMaxChargeRate:");
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+		if (isStarted()) {
+			ARCOMMANDS_COMMON_CHARGER_SETMAXCHARGERATE_RATE_ENUM _rate
+				= ARCOMMANDS_COMMON_CHARGER_SETMAXCHARGERATE_RATE_ENUM.getFromValue(rate);
+			result = mARDeviceController.getFeatureCommon().sendChargerSetMaxChargeRate(_rate);
+		}
+		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+			Log.e(TAG, "#sendChargerSetMaxChargeRate failed:" + result);
+		}
+		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
 }

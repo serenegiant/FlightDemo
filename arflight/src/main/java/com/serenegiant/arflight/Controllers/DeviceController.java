@@ -1301,6 +1301,24 @@ public abstract class DeviceController implements IDeviceController {
 		return result;
 	}
 
+	public boolean sendSettingsOutdoor(final boolean is_outdoor) {
+		boolean sentStatus = true;
+		final ARCommand cmd = new ARCommand();
+
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setCommonWifiSettingsOutdoorSetting((byte)(is_outdoor ? 1 : 0));
+		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+			cmd.dispose();
+		}
+
+		if (!sentStatus) {
+			Log.e(TAG, "Failed to send setCommonWifiSettingsOutdoorSetting command.");
+		}
+
+		return sentStatus;
+	}
+
 	/**
 	 * コールバック呼び出し用にARNetworkManagerを拡張
 	 */
