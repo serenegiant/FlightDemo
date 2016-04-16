@@ -38,7 +38,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	@Override
 	public synchronized void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		if (DEBUG) Log.v(TAG, "onCreate:" + savedInstanceState);
+		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState);
 		if (savedInstanceState == null)
 			savedInstanceState = getArguments();
 		if (savedInstanceState != null) {
@@ -77,11 +77,18 @@ public abstract class BaseControllerFragment extends BaseFragment {
 //		super.onPause();
 //	}
 
-//	@Override
-//	public void onDestroy() {
-//		if (DEBUG) Log.v(TAG, "onDestroy:");
-//		super.onDestroy();
-//	}
+	@Override
+	public void onDestroy() {
+		if (DEBUG) Log.v(TAG, "onDestroy:");
+		if (mController != null) {
+			try {
+				stopDeviceController(true);
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
+		}
+		super.onDestroy();
+	}
 
 	@Override
 	public void onDetach() {

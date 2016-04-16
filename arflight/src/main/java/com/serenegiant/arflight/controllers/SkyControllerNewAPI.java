@@ -66,7 +66,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	/** 接続開始時の追加処理 */
 	protected void onStarting() {
 		if (DEBUG) Log.d(TAG, "onStarting:");
-		// onExtensionStateChangedが呼ばれるまで待機する
+/*		// onExtensionStateChangedが呼ばれるまで待機する
 		if (!mRequestConnectDevice) {
 			try {
 				mRequestConnectDevice = true;
@@ -76,7 +76,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			} finally {
 				mRequestConnectDevice = false;
 			}
-		}
+		} */
 		super.onStarting();
 	}
 
@@ -113,16 +113,12 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	}
 
 	@Override
-	public boolean isStarted() {
+	public boolean isConnected() {
 		synchronized (mStateSync) {
-			return super.isStarted()
+			return super.isConnected()
+				&& (mConnectDevice != null)
 				&& ARCONTROLLER_DEVICE_STATE_ENUM.ARCONTROLLER_DEVICE_STATE_RUNNING.equals(mExtensionState);
 		}
-	}
-
-	@Override
-	public boolean isConnected() {
-		return super.isConnected() && (mConnectDevice != null);
 	}
 
 	@Override
@@ -324,21 +320,24 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		{	// スカイコントローラーのボタン・スティック等の種類
 			// requestAllSettingsを呼んでも来る
 			// requestGamepadControlsを呼んでも来る
-			// FIXME ヌルポになる
-			final ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM type
-				= ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM.getFromValue(
-				(Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE)
-			);
-			final int id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_ID);
 			final String name = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_NAME);
+			if (!TextUtils.isEmpty(name)) {
+				final ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM type
+					= ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM.getFromValue(
+					(Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE)
+				);
+				final int id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_ID);
 
-			if (DEBUG) Log.v(TAG, "onStateGamepadControlUpdate:type=" + type + ", id=" + id + ", name=" + name);
-			switch (type) {
-			case ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_AXIS:	// 0, スティック
-			case ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_BUTTON:	// 1, ボタン, スティックの押し込みを含む
-				break;
+				if (DEBUG) Log.v(TAG, "onStateGamepadControlUpdate:type=" + type + ", id=" + id + ", name=" + name);
+				switch (type) {
+				case ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_AXIS:	// 0, スティック
+				case ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_BUTTON:	// 1, ボタン, スティックの押し込みを含む
+					break;
+				}
+				// FIXME GamepadControlの追加処理
+			} else {
+				if (DEBUG) Log.v(TAG, "onStateGamepadControlUpdate:null");
 			}
-			// FIXME GamepadControlの追加処理
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_ALLGAMEPADCONTROLSSENT:	// (139, "Key used to define the command <code>AllGamepadControlsSent</code> of class <code>GamepadInfosState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -353,11 +352,14 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS:	// (140, "Key used to define the command <code>CurrentButtonMappings</code> of class <code>ButtonMappingsState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// 現在のボタン割当設定を受信した時
 			// requestAllStatesを呼んでも来る
-			// FIXME ヌルポになる
-			final int key_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_KEY_ID);
 			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_MAPPING_UID);
-			if (DEBUG) Log.v(TAG, "onCurrentButtonMappingsUpdate:key_id=" + key_id + ", mapping_uid=" + mapping_uid);
-			// FIXME ボタン割り当て設定追加
+			if (!TextUtils.isEmpty(mapping_uid)) {
+				final int key_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_KEY_ID);
+				if (DEBUG) Log.v(TAG, "onCurrentButtonMappingsUpdate:key_id=" + key_id + ", mapping_uid=" + mapping_uid);
+				// FIXME ボタン割り当て設定追加
+			} else {
+				if (DEBUG) Log.v(TAG, "onCurrentButtonMappingsUpdate:null");
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_ALLCURRENTBUTTONMAPPINGSSENT:	// (141, "Key used to define the command <code>AllCurrentButtonMappingsSent</code> of class <code>ButtonMappingsState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -391,11 +393,14 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			// requestAllStatesを呼んでも来る
 			// resetAxisMappingを呼んでも来る
 			// 複数回来た後ARCommandSkyControllerAxisMappingsStateAllCurrentAxisMappingsSentListenerが来る
-			// FIXME ヌルポになる
-			final int axis_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_AXIS_ID);
 			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_MAPPING_UID);
-			if (DEBUG) Log.v(TAG, "onCurrentAxisMappingsUpdate:axis_id=" + axis_id + ", mapping_uid=" + mapping_uid);
-			// FIXME ジョイスティック割当設定を追加
+			if (!TextUtils.isEmpty(mapping_uid)) {
+				final int axis_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_AXIS_ID);
+				if (DEBUG) Log.v(TAG, "onCurrentAxisMappingsUpdate:axis_id=" + axis_id + ", mapping_uid=" + mapping_uid);
+				// FIXME ジョイスティック割当設定を追加
+			} else {
+				if (DEBUG) Log.v(TAG, "onCurrentAxisMappingsUpdate:null");
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_ALLCURRENTAXISMAPPINGSSENT:	// (145, "Key used to define the command <code>AllCurrentAxisMappingsSent</code> of class <code>AxisMappingsState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -423,13 +428,16 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS:	// (148, "Key used to define the command <code>CurrentAxisFilters</code> of class <code>AxisFiltersState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// ジョイスティック入力フィルター設定が更新された時
 			// requestAllStatesを呼んでも来る
-			// FIXME ヌルポになる
-			/** 軸番号: 0..n */
-	 		final int axis_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS_AXIS_ID);
-	 		/** "ARMF"ってのが来る */
+			/** "ARMF"ってのが来る */
 			final String filter_uid_or_builder = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS_FILTER_UID_OR_BUILDER);
-			if (DEBUG) Log.v(TAG, "onCurrentAxisFiltersUpdate:axis_id=" + axis_id + ", filter_uid_or_builder=" + filter_uid_or_builder);
-			// FIXME ジョイスティック入力フィルター設定追加
+			if (!TextUtils.isEmpty(filter_uid_or_builder)) {
+				/** 軸番号: 0..n */
+				final int axis_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS_AXIS_ID);
+				if (DEBUG) Log.v(TAG, "onCurrentAxisFiltersUpdate:axis_id=" + axis_id + ", filter_uid_or_builder=" + filter_uid_or_builder);
+				// FIXME ジョイスティック入力フィルター設定追加
+			} else {
+				if (DEBUG) Log.v(TAG, "onCurrentAxisFiltersUpdate:null");
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_ALLCURRENTFILTERSSENT:	// (149, "Key used to define the command <code>AllCurrentFiltersSent</code> of class <code>AxisFiltersState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -825,6 +833,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestDeviceList();
+		} else {
+			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#requestDeviceList failed:" + result);
@@ -838,6 +848,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestCurrentDevice();
+		} else {
+			if (DEBUG) Log.v(TAG, "requestCurrentDevice:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#requestCurrentDevice failed:" + result);
@@ -860,18 +872,28 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			return false;
 		}
 
-		mConnectDevice = null;
-		final ARCONTROLLER_ERROR_ENUM result = mARDeviceController.getFeatureSkyController().sendDeviceConnectToDevice(deviceName);
+		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 
-		if (result == ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
-			// 正常に送信できた。接続待ちする
+		if (!mRequestConnectDevice) {
 			mRequestConnectDevice = true;
+			mConnectDevice = null;
 			try {
-				mConnectDeviceSent.acquire();
+				result = mARDeviceController.getFeatureSkyController().sendDeviceConnectToDevice(deviceName);
+				if (result == ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+					// 正常に送信できた。onExtensionStateChangedが呼ばれるまで待機する
+					if (DEBUG) Log.v(TAG, "connectToDevice:skyControllerConnectSent待機");
+					mConnectDeviceSent.acquire();
+					if (DEBUG) Log.v(TAG, "connectToDevice:" + mConnectDevice);
+				}
 			} catch (final InterruptedException e) {
 				// ignore
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			} finally {
+				mRequestConnectDevice = false;
 			}
 		}
+
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#connectToDevice failed:" + result);
 		}

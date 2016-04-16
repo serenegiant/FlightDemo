@@ -13,7 +13,7 @@
 		android:layout_height="match_parent"
 		android:id="@+id/videoView"
 		android:layout_centerVertical="true"
-		android:layout_centerHorizontal="true"/>-->
+		android:layout_centerHorizontal="true"/>
 
     <ListView
         android:id="@+id/list"

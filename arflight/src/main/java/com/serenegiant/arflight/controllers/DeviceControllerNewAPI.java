@@ -3,6 +3,7 @@ package com.serenegiant.arflight.controllers;
 import android.content.Context;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.parrot.arsdk.arcommands.*;
@@ -43,7 +44,7 @@ import java.util.concurrent.Semaphore;
 
 public abstract class DeviceControllerNewAPI implements IDeviceController {
 	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
-	private static String TAG = DeviceControllerNewAPI.class.getSimpleName();
+	private String TAG = "DeviceControllerNewAPI:" + getClass().getSimpleName();
 
 	private final WeakReference<Context> mWeakContext;
 	protected LocalBroadcastManager mLocalBroadcastManager;
@@ -730,14 +731,12 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_COUNTRYCHANGED:	// (165, "Key used to define the command <code>CountryChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
 		{	// 国コードを受信した時
-			if (DEBUG) Log.v(TAG, "SETTINGSSTATE_COUNTRYCHANGED:");
 			final String code = (String)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_COUNTRYCHANGED_CODE);
 			setCountryCode(code);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_AUTOCOUNTRYCHANGED:	// (166, "Key used to define the command <code>AutoCountryChanged</code> of class <code>SettingsState</code> in project <code>Common</code>"),
 		{	// 自動国選択設定が変更された時
-			if (DEBUG) Log.v(TAG, "SETTINGSSTATE_AUTOCOUNTRYCHANGED:");
 			final boolean auto = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_SETTINGSSTATE_AUTOCOUNTRYCHANGED_AUTOMATIC) != 0;
 			setAutomaticCountry(auto);
 			break;
@@ -755,21 +754,29 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED:	// (169, "Key used to define the command <code>MassStorageStateListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// 機体内のストレージ一覧が変化した時
-			final int mass_storage_id = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED_MASS_STORAGE_ID);
 			final String name = (String)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED_NAME);
-			onCommonStateMassStorageStateListChanged(mass_storage_id, name);
+			if (!TextUtils.isEmpty(name)) {
+				final int mass_storage_id = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED_MASS_STORAGE_ID);
+				onCommonStateMassStorageStateListChanged(mass_storage_id, name);
+			} else {
+				if (DEBUG) Log.v(TAG, "onCommonStateMassStorageStateListChanged:null");
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED:	// (170, "Key used to define the command <code>MassStorageInfoStateListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// ストレージの状態が変化した時
-			final int mass_storage_id = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_MASS_STORAGE_ID);
-			final long size = (Long)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_SIZE);
-			final long used_size = (Long)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_USED_SIZE);
-			final boolean plugged = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_PLUGGED) != 0;
-			final boolean full = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_FULL) != 0;
-			final boolean internal = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_INTERNAL) != 0;
+			try {
+				final int mass_storage_id = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_MASS_STORAGE_ID);
+				final long size = (Long)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_SIZE);
+				final long used_size = (Long)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_USED_SIZE);
+				final boolean plugged = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_PLUGGED) != 0;
+				final boolean full = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_FULL) != 0;
+				final boolean internal = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_INTERNAL) != 0;
 
-			onCommonStateMassStorageInfoStateListChanged(mass_storage_id, size, used_size, plugged, full, internal);
+				onCommonStateMassStorageInfoStateListChanged(mass_storage_id, size, used_size, plugged, full, internal);
+			} catch (final Exception e) {
+				if (DEBUG) Log.v(TAG, "onCommonStateMassStorageInfoStateListChanged:null");
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_CURRENTDATECHANGED:	// (171, "Key used to define the command <code>CurrentDateChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
@@ -780,7 +787,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_CURRENTTIMECHANGED:	// (172, "Key used to define the command <code>CurrentTimeChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// 時刻が変更された時
-			if (DEBUG) Log.v(TAG, "COMMONSTATE_CURRENTTIMECHANGED:");
 			final String time = (String)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_CURRENTTIMECHANGED_TIME);
 			if (DEBUG) Log.v(TAG, "COMMONSTATE_CURRENTTIMECHANGED:" + time);
 			break;
@@ -802,19 +808,23 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED:	// (175, "Key used to define the command <code>SensorsStatesListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// センサー状態リストが変化した時
-			final int _sensor = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME);
-			final ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM sensor = ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM.getFromValue(_sensor);
-   			final int state = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORSTATE);
+			try {
+				final int _sensor = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME);
+				final ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM sensor = ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM.getFromValue(_sensor);
+				final int state = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORSTATE);
 
-			switch (sensor.getValue()) {
-			case IFlightController.SENSOR_IMU: // 0
-			case IFlightController.SENSOR_BAROMETER:	// 1
-			case IFlightController.SENSOR_ULTRASOUND: // 2
-			case IFlightController.SENSOR_GPS: // 3
-			case IFlightController.SENSOR_MAGNETOMETER: // 4
-			case IFlightController.SENSOR_VERTICAL_CAMERA: // 5
+				switch (sensor.getValue()) {
+				case IFlightController.SENSOR_IMU: // 0
+				case IFlightController.SENSOR_BAROMETER:	// 1
+				case IFlightController.SENSOR_ULTRASOUND: // 2
+				case IFlightController.SENSOR_GPS: // 3
+				case IFlightController.SENSOR_MAGNETOMETER: // 4
+				case IFlightController.SENSOR_VERTICAL_CAMERA: // 5
+				}
+				if (DEBUG) Log.v(TAG, String.format("SensorsStatesListChangedUpdate:%d=%d", sensor.getValue(), state));
+			} catch (final Exception e) {
+				if (DEBUG) Log.v(TAG, "SensorsStatesListChangedUpdate:null");
 			}
-			if (DEBUG) Log.v(TAG, String.format("SensorsStatesListChangedUpdate:%d=%d", sensor.getValue(), state));
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_PRODUCTMODEL:	// (176, "Key used to define the command <code>ProductModel</code> of class <code>CommonState</code> in project <code>Common</code>"),
@@ -837,22 +847,27 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_OVERHEATSTATE_OVERHEATREGULATIONCHANGED:	// (179, "Key used to define the command <code>OverHeatRegulationChanged</code> of class <code>OverHeatState</code> in project <code>Common</code>"),
 		{	//  オーバーヒート時の冷却方法設定が変更された時 FIXME 未実装
 			if (DEBUG) Log.v(TAG, "OVERHEATSTATE_OVERHEATREGULATIONCHANGED:");
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_OVERHEATSTATE_OVERHEATREGULATIONCHANGED_REGULATIONTYPE = ""; /**< Key of the argument </code>regulationType</code> of class <code>OverHeatState</code> in feature <code>Common</code> */
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_WIFISETTINGSSTATE_OUTDOORSETTINGSCHANGED:	// (180, "Key used to define the command <code>OutdoorSettingsChanged</code> of class <code>WifiSettingsState</code> in project <code>Common</code>"),
-		{	//  WiFiの室内/室外モードが変更された時 FIXME 未実装
+		{	//  WiFiの室内/室外モードが変更された時
 			final boolean outdoor = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_WIFISETTINGSSTATE_OUTDOORSETTINGSCHANGED_OUTDOOR) != 0;
-			if (DEBUG) Log.v(TAG, "WIFISETTINGSSTATE_OUTDOORSETTINGSCHANGED:" + outdoor);
+			onOutdoorSettingChanged(outdoor);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED:	// (181, "Key used to define the command <code>MavlinkFilePlayingStateChanged</code> of class <code>MavlinkState</code> in project <code>Common</code>"),
 		{	// FIXME 未実装
 			if (DEBUG) Log.v(TAG, "MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED:");
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED_STATE = ""; /**< Key of the argument </code>state</code> of class <code>MavlinkState</code> in feature <code>Common</code> */
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED_FILEPATH = ""; /**< Key of the argument </code>filepath</code> of class <code>MavlinkState</code> in feature <code>Common</code> */
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_MAVLINKSTATE_MAVLINKFILEPLAYINGSTATECHANGED_TYPE = ""; /**< Key of the argument </code>type</code> of class <code>MavlinkState</code> in feature <code>Common</code> */
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_MAVLINKSTATE_MAVLINKPLAYERRORSTATECHANGED:	// (182, "Key used to define the command <code>MavlinkPlayErrorStateChanged</code> of class <code>MavlinkState</code> in project <code>Common</code>"),
 		{	// FIXME 未実装
 			if (DEBUG) Log.v(TAG, "MAVLINKSTATE_MAVLINKPLAYERRORSTATECHANGED:");
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_MAVLINKSTATE_MAVLINKPLAYERRORSTATECHANGED_ERROR = ""; /**< Key of the argument </code>error</code> of class <code>MavlinkState</code> in feature <code>Common</code> */
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CALIBRATIONSTATE_MAGNETOCALIBRATIONSTATECHANGED:	// (183, "Key used to define the command <code>MagnetoCalibrationStateChanged</code> of class <code>CalibrationState</code> in project <code>Common</code>"),
@@ -886,16 +901,24 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED:	// (187, "Key used to define the command <code>CameraSettingsChanged</code> of class <code>CameraSettingsState</code> in project <code>Common</code>"),
 		{	// FIXME 未実装
 			if (DEBUG) Log.v(TAG, "CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED:");
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED_FOV = ""; /**< Key of the argument </code>fov</code> of class <code>CameraSettingsState</code> in feature <code>Common</code> */
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED_PANMAX = ""; /**< Key of the argument </code>panMax</code> of class <code>CameraSettingsState</code> in feature <code>Common</code> */
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED_PANMIN = ""; /**< Key of the argument </code>panMin</code> of class <code>CameraSettingsState</code> in feature <code>Common</code> */
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED_TILTMAX = ""; /**< Key of the argument </code>tiltMax</code> of class <code>CameraSettingsState</code> in feature <code>Common</code> */
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_CAMERASETTINGSSTATE_CAMERASETTINGSCHANGED_TILTMIN = ""; /**< Key of the argument </code>tiltMin</code> of class <code>CameraSettingsState</code> in feature <code>Common</code> */
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_FLIGHTPLANSTATE_AVAILABILITYSTATECHANGED:	// (188, "Key used to define the command <code>AvailabilityStateChanged</code> of class <code>FlightPlanState</code> in project <code>Common</code>"),
 		{	// FIXME 未実装
 			if (DEBUG) Log.v(TAG, "FLIGHTPLANSTATE_AVAILABILITYSTATECHANGED:");
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_FLIGHTPLANSTATE_AVAILABILITYSTATECHANGED_AVAILABILITYSTATE = ""; /**< Key of the argument </code>AvailabilityState</code> of class <code>FlightPlanState</code> in feature <code>Common</code> */
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_FLIGHTPLANSTATE_COMPONENTSTATELISTCHANGED:	// (189, "Key used to define the command <code>ComponentStateListChanged</code> of class <code>FlightPlanState</code> in project <code>Common</code>"),
 		{	// FIXME 未実装
 			if (DEBUG) Log.v(TAG, "FLIGHTPLANSTATE_COMPONENTSTATELISTCHANGED:");
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_FLIGHTPLANSTATE_COMPONENTSTATELISTCHANGED_COMPONENT = ""; /**< Key of the argument </code>component</code> of class <code>FlightPlanState</code> in feature <code>Common</code> */
+//			public static String ARCONTROLLER_DICTIONARY_KEY_COMMON_FLIGHTPLANSTATE_COMPONENTSTATELISTCHANGED_STATE = ""; /**< Key of the argument </code>State</code> of class <code>FlightPlanState</code> in feature <code>Common</code> */
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_FLIGHTPLANEVENT_STARTINGERROREVENT:	// (190, "Key used to define the command <code>StartingErrorEvent</code> of class <code>FlightPlanEvent</code> in project <code>Common</code>"),
@@ -1008,15 +1031,20 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected abstract void callOnCalibrationRequiredChanged(final boolean failed);
 	protected abstract void callOnCalibrationAxisChanged(final int axis);
 
+	protected abstract void onOutdoorSettingChanged(final boolean outdoor);
+
 	protected void onCommonStateMassStorageStateListChanged(
 		final int mass_storage_id, final String name) {
+
+		if (DEBUG) Log.v(TAG, String.format("onCommonStateMassStorageStateListChanged:id=%d,name=%s", mass_storage_id, name));
 	}
 
 	protected void onCommonStateMassStorageInfoStateListChanged(
 		final int mass_storage_id, final long size, final long used_size,
 		final boolean plugged, final boolean full, final boolean internal) {
 
-		if (DEBUG) Log.v(TAG, "onCommonStateMassStorageInfoStateListChanged:");
+		if (DEBUG) Log.v(TAG, String.format("onCommonStateMassStorageInfoStateListChanged:%d,size=%d,used=%d",
+			mass_storage_id, size, used_size));
 	}
 
 	/**
@@ -1024,7 +1052,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 * @param rssi
 	 */
 	protected void onCommonStateWifiSignalChangedUpdate(final int rssi) {
-		if (DEBUG) Log.v(TAG, "onCommonStateWifiSignalChangedUpdate:");
+		if (DEBUG) Log.v(TAG, "onCommonStateWifiSignalChangedUpdate:rssi=" + rssi);
 	}
 
 //********************************************************************************
@@ -1036,7 +1064,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	public boolean sendDate(final Date currentDate) {
 		if (DEBUG) Log.v(TAG, "sendDate:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isConnected()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureCommon().sendCommonCurrentDate(formattedDate.format(currentDate));
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
@@ -1049,7 +1077,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	public boolean sendTime(final Date currentTime) {
 		if (DEBUG) Log.v(TAG, "sendTime:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isConnected()) {
+		if (isStarted()) {
 			result = mARDeviceController.getFeatureCommon().sendCommonCurrentTime(formattedTime.format(currentTime));
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {

@@ -65,12 +65,15 @@ public interface ICameraController extends IVideoStreamController {
 	 */
 	public boolean sendExposure(final float exposure);
 
+	public float exposure();
 	/**
 	 * 彩度設定
 	 * @param saturation Saturation value (bounds given by SaturationChanged arg min and max, by default [-100:100])
 	 * @return
 	 */
 	public boolean sendSaturation(final float saturation);
+
+	public float saturation();
 
 	/**
 	 * タイムラプス設定(一定時間毎に自動撮影)

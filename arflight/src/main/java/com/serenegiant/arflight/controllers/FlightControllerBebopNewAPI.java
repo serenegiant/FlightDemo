@@ -586,7 +586,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			final float current = ((Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_SATURATIONCHANGED_VALUE)).floatValue();
 			final float min = ((Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_SATURATIONCHANGED_MIN)).floatValue();
 			final float max = ((Double)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_SATURATIONCHANGED_MAX)).floatValue();
-			mSettings.setExposure(current, min, max);
+			mSettings.setSaturation(current, min, max);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PICTURESETTINGSSTATE_TIMELAPSECHANGED:	// (48, "Key used to define the command <code>TimelapseChanged</code> of class <code>PictureSettingsState</code> in project <code>ARDrone3</code>"),
@@ -881,8 +881,16 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 						= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM.getFromValue(auto_white_balance);
 					result = mARDeviceController.getFeatureARDrone3().sendPictureSettingsAutoWhiteBalanceSelection(awb);
 				} else {
-					result = mARDeviceController.getFeatureARDrone3Debug().sendVideoManualWhiteBalance();
-					// FIXME ここでヌルポになる(getFeatureARDrone3Debugがnullを返す)
+					try {
+						// これはヌルポになる(getFeatureARDrone3Debugがnullを返す)
+						result = mARDeviceController.getFeatureARDrone3Debug().sendVideoManualWhiteBalance();
+					} catch (final NullPointerException e) {
+						// とりあえずTYPE_CLOUDYにする
+						result = mARDeviceController.getFeatureARDrone3().sendPictureSettingsAutoWhiteBalanceSelection(
+							ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM
+								.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_CLOUDY);
+					}
+					mSettings.autoWhiteBalance(-1);
 				}
 			} catch (final Exception e) {
 				Log.w(TAG, e);
@@ -896,7 +904,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 	@Override
 	public int autoWhiteBalance() {
-		return 0;
+		return mSettings.autoWhiteBalance();
 	}
 
 	@Override
@@ -913,6 +921,11 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	}
 
 	@Override
+	public float exposure() {
+		return mSettings.exposure().current();
+	}
+
+	@Override
 	public boolean sendSaturation(final float saturation) {
 		if (DEBUG) Log.v (TAG, "sendSaturation:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
@@ -923,6 +936,11 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			Log.e(TAG, "#sendSaturation failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public float saturation() {
+		return mSettings.saturation().current();
 	}
 
 	@Override

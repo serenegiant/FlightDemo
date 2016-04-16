@@ -33,6 +33,7 @@ import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
+import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.dialog.ColorPickerDialog;
@@ -66,6 +67,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	private TextView mBatteryLabel;			// バッテリー残量表示
 	private ImageButton mFlatTrimBtn;		// フラットトリム
 	private TextView mAlertMessage;			// 非常メッセージ
+	private String mBatteryFmt;
 
 	// 下パネル
 	private View mBottomPanel;
@@ -472,15 +474,22 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	};
 
 	private int mImageProcessorSurfaceId;
+	private float originalExposure;
+	private float originalSaturation;
+	private int originalAutoWhiteBlance;
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		super.onConnect(controller);
 		if (DEBUG) Log.v(TAG, "onConnect");
 		if (controller instanceof ICameraController) {
-			((ICameraController)controller).sendCameraOrientation(-100, 0);
-			((ICameraController)controller).sendExposure(mCameraExposure);
-			((ICameraController)controller).sendSaturation(mCameraSaturation);
-			((ICameraController)controller).sendAutoWhiteBalance(mCameraAutoWhiteBlance - 1);	// 自動ホワイトバランス
+			final ICameraController camera = (ICameraController)controller;
+			originalExposure = camera.exposure();
+			originalSaturation = camera.saturation();
+			originalAutoWhiteBlance = camera.autoWhiteBalance();
+			camera.sendCameraOrientation(-100, 0);
+			camera.sendExposure(mCameraExposure);
+			camera.sendSaturation(mCameraSaturation);
+			camera.sendAutoWhiteBalance(mCameraAutoWhiteBlance);
 //		} else {
 //			runOnUiThread(new Runnable() {
 //				@Override
@@ -500,6 +509,13 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		if (DEBUG) Log.v(TAG, "onDisconnect");
 		clearAutoPilot();	// 自動操縦解除
 		stopImageProcessor();
+		if (controller instanceof ICameraController) {
+			final ICameraController camera = (ICameraController)controller;
+			camera.sendCameraOrientation(0, 0);
+			camera.sendExposure(originalExposure);
+			camera.sendSaturation(originalSaturation);
+			camera.sendAutoWhiteBalance(originalAutoWhiteBlance);
+		}
 		super.onDisconnect(controller);
 	}
 
@@ -558,8 +574,14 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 
 	@Override
 	protected void updateBatteryOnUIThread(final int battery) {
+		final boolean isSkyController = mController instanceof ISkyController;
+		if (mBatteryFmt == null) {
+			mBatteryFmt = getString(isSkyController ? R.string.battery_skycontroller : R.string.battery);
+		}
 		if (battery >= 0) {
-			mBatteryLabel.setText(String.format("%d%%", battery));
+			mBatteryLabel.setText(isSkyController
+				? String.format(mBatteryFmt, battery, ((ISkyController)mController).getBatterySkyController())
+				: String.format(mBatteryFmt, battery));
 		} else {
 			mBatteryLabel.setText("---");
 		}
@@ -1945,6 +1967,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		mCameraAutoWhiteBlance = getInt(mPref, KEY_CAMERA_WHITE_BLANCE, DEFAULT_CAMERA_WHITE_BLANCE);
 		final Spinner spinner = (Spinner)rootView.findViewById(R.id.camera_white_blance_spinner);
 		spinner.setAdapter(new WhiteBlanceAdapter(getActivity()));
+		spinner.setSelection(mCameraAutoWhiteBlance + 1);
 		spinner.setOnItemSelectedListener(mOnItemSelectedListener);
 		// 露出
 		mCameraExposure = mPref.getFloat(KEY_CAMERA_EXPOSURE, DEFAULT_CAMERA_EXPOSURE);

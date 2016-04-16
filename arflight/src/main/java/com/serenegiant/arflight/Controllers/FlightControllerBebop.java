@@ -1880,6 +1880,11 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		return sentStatus;
 	}
 
+	@Override
+	public float exposure() {
+		return mSettings.exposure().current();
+	}
+
 	/**
 	 * 彩度設定
 	 * @param saturation Saturation value (bounds given by SaturationChanged arg min and max, by default [-100:100])
@@ -1902,6 +1907,11 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		}
 
 		return sentStatus;
+	}
+
+	@Override
+	public float saturation() {
+		return mSettings.saturation().current();
 	}
 
 	/**

@@ -85,6 +85,10 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 		mSettings.setAutomaticCountry(auto);
 	}
 
+	protected void onOutdoorSettingChanged(final boolean outdoor) {
+		mSettings.outdoorMode(outdoor);
+	}
+
 	@Override
 	public int getState() {
 		synchronized (mStateSync) {

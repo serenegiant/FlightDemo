@@ -202,12 +202,12 @@
 
 	<!-- カメラホワイトバランス -->
 	<array name="trace_white_blance_entries">
+		<item>@string/trace_white_blance_manual</item>
 		<item>@string/trace_white_blance_auto</item>
 		<item>@string/trace_white_blance_lamp</item>
 		<item>@string/trace_white_blance_daylight</item>
 		<item>@string/trace_white_blance_cloudy</item>
 		<item>@string/trace_white_blance_flash</item>
-		<item>@string/trace_white_blance_manual</item>
 	</array>
 	<array name="trace_white_blance_value">
 		<item>-1</item>

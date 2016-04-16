@@ -178,7 +178,7 @@ public class ManagerFragment extends Fragment {
 	}
 
 	/**
-	 * 全てのARDiscoveryDeviceServiceとIDeviceControllerを取り除く(IFlightController#releaseとかは呼ばない)
+	 * 全てのARDiscoveryDeviceServiceとIDeviceControllerを取り除く
 	 * @param activity
 	 */
 	public static void releaseAll(final Activity activity) {
@@ -369,7 +369,7 @@ public class ManagerFragment extends Fragment {
 			}
 		}
 		if ((result != null) && (result.isNewAPI() != newAPI)) {
-			if (DEBUG) Log.i(TAG, "internalGetController:release");
+			if (DEBUG) Log.i(TAG, "internalGetController:release,newAPI=" + newAPI);
 			result.release();
 			result = null;
 			mControllers.remove(name);
@@ -418,7 +418,7 @@ public class ManagerFragment extends Fragment {
 	 * @return
 	 */
 	public IDeviceController createController(final ARDiscoveryDeviceService device, final boolean newAPI) {
-		if (DEBUG) Log.i(TAG, "createController:" + device + ",ardiscoveryServiceBound=" + ardiscoveryServiceBound);
+		if (DEBUG) Log.i(TAG, "createController:" + device + ",ardiscoveryServiceBound=" + ardiscoveryServiceBound + ",newAPI=" + newAPI);
 		IDeviceController result = null;
 		if (device != null) {
 			switch (ARDiscoveryService.getProductFromProductID(device.getProductID())) {
@@ -568,13 +568,24 @@ public class ManagerFragment extends Fragment {
 	/**
 	 * 全てのARDiscoveryDeviceServiceをListから取り除き
 	 * 全てのIDeviceControllerをHashMapから取り除く
-	 * releaseとかは呼ばない
 	 */
 	public void releaseAll() {
 		if (DEBUG) Log.i(TAG, "releaseAll:");
-		synchronized (mControllerSync) {
-			mControllers.clear();
-		}
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				synchronized (mControllerSync) {
+					for (final WeakReference<IDeviceController> weak_controller: mControllers.values()) {
+						final IDeviceController controller = weak_controller != null ? weak_controller.get() : null;
+						if (controller != null) {
+							if (DEBUG) Log.i(TAG, "releaseAll:" + controller);
+							controller.release();
+						}
+					}
+					mControllers.clear();
+				}
+			}
+		}).start();
 		synchronized (mDeviceSync) {
 			mDevices.clear();
 		}

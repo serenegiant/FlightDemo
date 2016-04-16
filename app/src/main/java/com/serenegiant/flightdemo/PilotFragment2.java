@@ -21,6 +21,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.CameraControllerListener;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.controllers.FlightControllerBebop;
 import com.serenegiant.arflight.controllers.FlightControllerBebop2;
 import com.serenegiant.arflight.controllers.FlightControllerMiniDrone;
@@ -53,16 +54,25 @@ public class PilotFragment2 extends BasePilotFragment {
 	private static final long ALPHA_PILOTING_DELAY_MS = 2500;		// アイコン等のアルファを落とすまでの時間[ミリ秒]
 	private static final long HIDE_PILOTING_DELAY_MS = 5000;		// アイコン等をすべて隠すまでの時間[ミリ秒]
 
+
 	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device) {
+		return newInstance(device, false);
+	}
+
+	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		final PilotFragment2 fragment = new PilotFragment2();
-		fragment.setDevice(device);
+		fragment.setDevice(device, newAPI);
 		return fragment;
 	}
 
 	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
+		return newInstance(device, info, false);
+	}
+
+	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final boolean newAPI) {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final PilotFragment2 fragment = new PilotFragment2();
-		fragment.setBridge(device, info);
+		fragment.setBridge(device, info, newAPI);
 		return fragment;
 	}
 
@@ -75,6 +85,7 @@ public class PilotFragment2 extends BasePilotFragment {
 	private TextView mBatteryLabel;			// バッテリー残量表示
 	private ImageButton mFlatTrimBtn;		// フラットトリム
 	private TextView mAlertMessage;			// 非常メッセージ
+	private String mBatteryFmt;
 	// 下パネル
 	private View mBottomPanel;
 	private ImageButton mEmergencyBtn;		// 非常停止ボタン
@@ -947,8 +958,14 @@ public class PilotFragment2 extends BasePilotFragment {
 
 	@Override
 	protected void updateBatteryOnUIThread(final int battery) {
+		final boolean isSkyController = mController instanceof ISkyController;
+		if (mBatteryFmt == null) {
+			mBatteryFmt = getString(isSkyController ? R.string.battery_skycontroller : R.string.battery);
+		}
 		if (battery >= 0) {
-			mBatteryLabel.setText(String.format("%d%%", battery));
+			mBatteryLabel.setText(isSkyController
+				? String.format(mBatteryFmt, battery, ((ISkyController)mController).getBatterySkyController())
+				: String.format(mBatteryFmt, battery));
 		} else {
 			mBatteryLabel.setText("---");
 		}

@@ -15,5 +15,10 @@
 	<string name="disconnecting">切断中…</string>
 	<string name="connecting">接続中…</string>
 	<string name="loading">読み込み中…</string>
-	<string name="battery">電池残量:</string>
+	<string name="battery" formatted="false">電池残量:%d%%</string>
+	<string name="battery_skycontroller" formatted="false">電池残量:%d%%(%d%%)</string>
+
+	<string name="select">選択</string>
+	<string name="not_selected">未選択</string>
+	<string name="parent_dir">上へ…</string>
 </resources>

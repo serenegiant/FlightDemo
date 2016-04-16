@@ -131,6 +131,9 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 		if (mJoystick != null) {
 			mJoystick.unregister();
 		}
+		if (isFinishing()) {
+			ManagerFragment.releaseAll(this);
+		}
 		super.onPause();
 	}
 

@@ -408,16 +408,32 @@ public class BridgeFragment extends BaseControllerFragment {
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 						switch (id) {
 						case R.id.pilot_button:
-							fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test011", AutoPilotFragment2.MODE_TRACE);
+							if (mController.isNewAPI()) {
+								fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test011", AutoPilotFragment2.MODE_TRACE);
+							} else {
+								fragment = AutoPilotFragment2.newInstance(device, info, "test001", AutoPilotFragment2.MODE_TRACE);
+							}
 							break;
 						case R.id.download_button:
-							fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test012", AutoPilotFragment2.MODE_TRACE);
+							if (mController.isNewAPI()) {
+								fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test012", AutoPilotFragment2.MODE_TRACE);
+							} else {
+								fragment = AutoPilotFragment2.newInstance(device, info, "test002", AutoPilotFragment2.MODE_TRACE);
+							}
 							break;
 						case R.id.gallery_button:
-							fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test013", AutoPilotFragment2.MODE_TRACE);
+							if (mController.isNewAPI()) {
+								fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test013", AutoPilotFragment2.MODE_TRACE);
+							} else {
+								fragment = AutoPilotFragment2.newInstance(device, info, "test003", AutoPilotFragment2.MODE_TRACE);
+							}
 							break;
 						case R.id.script_button:
-							fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test014", AutoPilotFragment2.MODE_TRACKING);
+							if (mController.isNewAPI()) {
+								fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test014", AutoPilotFragment2.MODE_TRACKING);
+							} else {
+								fragment = AutoPilotFragment2.newInstance(device, info, "test004", AutoPilotFragment2.MODE_TRACKING);
+							}
 							break;
 						default:
 							Log.w(TAG, "未知のview idが来た。なんでやねん:" + id);
@@ -457,7 +473,8 @@ public class BridgeFragment extends BaseControllerFragment {
 		switch (product) {
 		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 		case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-			fragment = isPiloting ? PilotFragment2.newInstance(mController.getDeviceService(), info) : MediaFragment.newInstance(mController.getDeviceService(), info);
+			fragment = isPiloting ? PilotFragment2.newInstance(mController.getDeviceService(), info, mController.isNewAPI())
+				: MediaFragment.newInstance(mController.getDeviceService(), info, mController.isNewAPI());
 			break;
 		}
 		return fragment;
