@@ -172,7 +172,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 					final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceInfo.productId());
 					switch (product) {
 					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-						bridge.connectTo(mDeviceInfo);
+						bridge.connectToDevice(mDeviceInfo);
 						if (mNewAPI) {
 							mController = controller;
 						} else {
@@ -180,7 +180,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 						}
 						break;
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-						bridge.connectTo(mDeviceInfo);
+						bridge.connectToDevice(mDeviceInfo);
 						if (mNewAPI) {
 							mController = controller;
 						} else {

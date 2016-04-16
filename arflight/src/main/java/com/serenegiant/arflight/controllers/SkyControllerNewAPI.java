@@ -63,6 +63,13 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (DEBUG) Log.v(TAG, "コンストラクタ:");
 	}
 
+	public void cancelStart() {
+		if (mRequestConnectDevice) {
+			mConnectDeviceSent.release();
+		}
+		super.cancelStart();
+	}
+
 	/** 接続開始時の追加処理 */
 	protected void onStarting() {
 		if (DEBUG) Log.d(TAG, "onStarting:");
@@ -78,14 +85,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			}
 		} */
 		super.onStarting();
-	}
-
-	protected void internal_cancel_start() {
-		if (DEBUG) Log.d(TAG, "internal_cancel_start:");
-		if (mRequestConnectDevice) {
-			mConnectDeviceSent.release();
-		}
-		super.internal_cancel_start();
 	}
 
 	/**
@@ -151,6 +150,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			// requestAllStatesでも来る
 			// requestCurrentWiFiを呼んでも来る
 			// 何故か1回の接続で3回来るのと切断された時には来ないみたい
+			// ...ARCONTROLLER_DEVICE_STATE_ENUMのstop, starting, runningのタイミングで来るのかも
 			// XXX これは普通は使わんで良さそう
 			final String ssid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_SSID);
 			final ARCOMMANDS_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED_STATUS_ENUM status
@@ -708,17 +708,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	}
 
 	@Override
-	public boolean connectTo(final DeviceInfo info) {
-		if (DEBUG) Log.d(TAG, "connectTo:");
-		return connectToDevice(info.name());
-	}
-
-	@Override
-	public void disconnectFrom() {
-		if (DEBUG) Log.d(TAG, "disconnectFrom:");
-	}
-
-	@Override
 	public DeviceInfo connectDeviceInfo() {
 		return mConnectDevice;
 	}
@@ -857,6 +846,12 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
+	@Override
+	public boolean connectToDevice(final DeviceInfo info) {
+		if (DEBUG) Log.d(TAG, "connectToDevice:");
+		return connectToDevice(info.name());
+	}
+
 	/**
 	 * 指定したデバイス名を持つ機体へ接続する
 	 * @param deviceName
@@ -884,6 +879,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 					if (DEBUG) Log.v(TAG, "connectToDevice:skyControllerConnectSent待機");
 					mConnectDeviceSent.acquire();
 					if (DEBUG) Log.v(TAG, "connectToDevice:" + mConnectDevice);
+					if (mConnectDevice == null) {
+						result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR_CANCELED;
+					}
 				}
 			} catch (final InterruptedException e) {
 				// ignore
@@ -899,6 +897,11 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		}
 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public void disconnectFrom() {
+		if (DEBUG) Log.d(TAG, "disconnectFrom:");
 	}
 
 	@Override

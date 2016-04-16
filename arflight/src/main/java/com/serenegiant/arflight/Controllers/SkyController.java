@@ -165,15 +165,6 @@ public class SkyController extends DeviceController implements ISkyController, I
 	}
 
 	@Override
-	public boolean connectTo(final DeviceInfo info) {
-		return connectToDevice(info.name());
-	}
-
-	@Override
-	public void disconnectFrom() {
-	}
-
-	@Override
 	public boolean isConnected() {
 		synchronized (mStateSync) {
 			return isStarted() && (mConnectDevice != null);
@@ -475,13 +466,14 @@ public class SkyController extends DeviceController implements ISkyController, I
 	 * requestAllStatesでも来る
 	 * requestCurrentWiFiを呼んでも来る
 	 * 何故か1回の接続で3回来るのと切断された時には来ないみたい
+	 // ...ARCONTROLLER_DEVICE_STATE_ENUMのstop, starting, runningのタイミングで来るのかも
 	 * XXX これは普通は使わんで良さそう
 	 */
 	private final ARCommandSkyControllerWifiStateConnexionChangedListener
 		mARCommandSkyControllerWifiStateConnexionChangedListener
 			= new ARCommandSkyControllerWifiStateConnexionChangedListener() {
 		/**
-		 * @param ssid 通常は機体名と一緒, Bebop2-K007717とか, ssidを変更できるのかどうかは未確認
+		 * @param ssid 通常は機体名と一緒, Bebop2-K007717とか
 		 * @param status 0:Connected, 1:Error, 2:Disconnected
 		 */
 		@Override
@@ -1796,6 +1788,11 @@ public class SkyController extends DeviceController implements ISkyController, I
 		return sentStatus;
 	}
 
+	@Override
+	public boolean connectToDevice(final DeviceInfo info) {
+		return connectToDevice(info.name());
+	}
+
 	/**
 	 * 指定したデバイス名を持つ機体へ接続する
 	 * @param deviceName
@@ -1832,6 +1829,10 @@ public class SkyController extends DeviceController implements ISkyController, I
 		}
 
 		return sentStatus;
+	}
+
+	@Override
+	public void disconnectFrom() {
 	}
 
 //================================================================================
@@ -2069,7 +2070,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 	/** 使用可能なジョイスティック割当設定を要求 */
 	@Override
 	public boolean requestAvailableAxisMappings() {
-		if (DEBUG) Log.v(TAG, "connectToDevice:");
+		if (DEBUG) Log.v(TAG, "requestAvailableAxisMappings:");
 
 		// FIXME これを送る前にAvailableAxisMappingListをクリアする
 		boolean sentStatus = true;
@@ -2084,7 +2085,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 		}
 
 		if (!sentStatus) {
-			Log.e(TAG, "Failed to send connectToDevice command.");
+			Log.e(TAG, "Failed to send setSkyControllerAxisMappingsGetAvailableAxisMappings command.");
 		}
 
 		// FIXME 終了指示が来るか全て追加終わるかタイムアウトするかisStartedがfalseになるまで別スレッドで待機

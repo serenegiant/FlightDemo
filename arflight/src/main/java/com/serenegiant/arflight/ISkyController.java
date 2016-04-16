@@ -7,9 +7,6 @@ public interface ISkyController extends IDeviceController {
 	public ARNetworkConfig createBridgeNetConfig();
 	public VideoStreamDelegater getVideoStreamDelegater();
 
-	public boolean connectTo(final DeviceInfo info);
-	public void disconnectFrom();
-	public DeviceInfo connectDeviceInfo();
 	/**
 	 * スカイコントローラーの設定をリセット
 	 * onSkyControllerDeviceStateConnexionChangedUpdateが呼ばれる
@@ -66,6 +63,9 @@ public interface ISkyController extends IDeviceController {
 	 * @return true 接続できなかった
 	 */
 	public boolean connectToDevice(final String deviceName);
+	public boolean connectToDevice(final DeviceInfo info);
+	public void disconnectFrom();
+	public DeviceInfo connectDeviceInfo();
 	/**
 	 * 操縦に使用する入力方法を選択
 	 * ARCommandSkyControllerCoPilotingStatePilotingSourceListenerのコールバックメソッドが呼ばれる。なんでやねん
