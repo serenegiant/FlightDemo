@@ -172,11 +172,6 @@ public class SkyController extends DeviceController implements ISkyController, I
 	}
 
 	@Override
-	public DeviceInfo connectDeviceInfo() {
-		return mConnectDevice;
-	}
-
-	@Override
 	public VideoStreamDelegater getVideoStreamDelegater() {
 		if (mVideoStreamDelegater == null) {
 			mVideoStreamDelegater = new VideoStreamDelegater(this, mNetConfig);
@@ -1748,7 +1743,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		// FIXME 送信前に機体一覧Listをクリアする
+		// FIXME 送信前に機体一覧Listをクリアする?
 
 		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setSkyControllerDeviceRequestDeviceList();
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
@@ -1763,6 +1758,22 @@ public class SkyController extends DeviceController implements ISkyController, I
 		}
 
 		return sentStatus;
+	}
+
+	@Override
+	public int getDeviceNum() {
+		synchronized (mDevices) {
+			return mDevices.size();
+		}
+	}
+
+	@Override
+	public List<DeviceInfo> getDeviceList() {
+		final List<DeviceInfo> result;
+		synchronized (mDevices) {
+			result = new ArrayList<DeviceInfo>(mDevices.values());
+		}
+		return result;
 	}
 
 	/**
@@ -1790,6 +1801,13 @@ public class SkyController extends DeviceController implements ISkyController, I
 		}
 
 		return sentStatus;
+	}
+
+	@Override
+	public DeviceInfo getCurrentDevice() {
+		synchronized (mStateSync) {
+			return mConnectDevice != null ? new DeviceInfo(mConnectDevice) : null;
+		}
 	}
 
 	@Override

@@ -107,7 +107,8 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 
 	@Override
 	public final View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-//		if (DEBUG) Log.v(TAG, "onCreateView:");
+		if (DEBUG) Log.v(TAG, "onCreateView:");
+		onBeforeCreateView();
 		final SharedPreferences pref = getActivity().getPreferences(0);
 		mOperationTouch = pref.getBoolean(KEY_OPERATION_TOUCH, false);
 		mOperationType = pref.getInt(KEY_OPERATION_TYPE, 0);
@@ -141,7 +142,6 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				layout_id = R.layout.fragment_pilot;
 			}
 		}
-
 		return internalCreateView(inflater, container, savedInstanceState, layout_id);
 
 	}
@@ -298,8 +298,13 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param state
 	 */
 	@Override
-	protected void updateFlyingState(final int state) {
+	protected void updateFlyingState(final IDeviceController controller, final int state) {
 		updateButtons();
+	}
+
+	@Override
+	protected void updateWiFiSignal(final IDeviceController controller, final int rssi) {
+
 	}
 
 	/**
@@ -307,7 +312,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param alert_state
 	 */
 	@Override
-	protected void updateAlarmState(final int alert_state) {
+	protected void updateAlarmState(final IDeviceController controller, final int alert_state) {
 		runOnUiThread(mUpdateAlarmMessageTask);
 		updateButtons();
 	}
@@ -316,7 +321,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * バッテリー残量が変化した時のコールバック
 	 */
 	@Override
-	protected void updateBattery(final IDeviceController controller) {
+	protected void updateBattery(final IDeviceController controller, final int percent) {
 		runOnUiThread(mUpdateBatteryTask);
 	}
 
@@ -325,7 +330,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param picture_state DroneStatus#MEDIA_XXX
 	 */
 	@Override
-	protected void updatePictureCaptureState(final int picture_state) {
+	protected void updatePictureCaptureState(final IDeviceController controller, final int picture_state) {
 		switch (picture_state) {
 		case DroneStatus.MEDIA_UNAVAILABLE:
 		case DroneStatus.MEDIA_READY:
@@ -356,7 +361,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param video_state DroneStatus#MEDIA_XXX
 	 */
 	@Override
-	protected void updateVideoRecordingState(final int video_state) {
+	protected void updateVideoRecordingState(final IDeviceController controller, final int video_state) {
 		switch (video_state) {
 		case DroneStatus.MEDIA_UNAVAILABLE:
 		case DroneStatus.MEDIA_READY:

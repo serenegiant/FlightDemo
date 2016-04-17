@@ -51,6 +51,9 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState + ",mController=" + mController);
 	}
 
+	/** Viewが生成される前に毎回行う処理 */
+	protected abstract void onBeforeCreateView();
+
 //	@Override
 //	public void onSaveInstanceState(final Bundle outState) {
 //		super.onSaveInstanceState(outState);
@@ -217,7 +220,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 			if ((state != IFlightController.STATE_STARTED)
 				&& (state != IFlightController.STATE_STARTING)) {
 				if (DEBUG) Log.v(TAG, "未接続");
-				updateBattery(mController);
+				updateBattery(mController, -1);
 
 				ManagerFragment.startController(getActivity(), mController, new ManagerFragment.StartControllerListener() {
 					@Override
@@ -262,31 +265,30 @@ public abstract class BaseControllerFragment extends BaseFragment {
 
 	/**
 	 * バッテリー残量が変化した時のコールバック
+	 * @param controller
+	 * @param percent
 	 */
-	protected void updateBattery(final IDeviceController controller) {
-	}
+	protected abstract void updateBattery(final IDeviceController controller, final int percent);
 
 	/**
 	 * WiFi信号強度が変化した時のコールバック
+	 * @param controller
 	 * @param rssi
 	 */
-	protected void updateWiFiSignal(final int rssi) {
-	}
+	protected abstract void updateWiFiSignal(final IDeviceController controller, final int rssi);
 
 	/**
 	 * 異常ステータスが変化した時のコールバック
+	 * @param controller
 	 * @param alert_state
 	 */
-	protected void updateAlarmState(final int alert_state) {
-	}
+	protected abstract void updateAlarmState(final IDeviceController controller, final int alert_state);
 
 	/**
 	 * 接続された
 	 * @param controller
 	 */
-	protected void onConnect(final IDeviceController controller) {
-		if (DEBUG) Log.v(TAG, "onConnect:");
-	}
+	protected abstract void onConnect(final IDeviceController controller);
 
 	/**
 	 * 切断された
@@ -298,23 +300,10 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	}
 
 	/**
-	 * アラーム状態が変化した時のコールバック
-	 * @param alert_state
-	 */
-	protected void onAlarmStateChangedUpdate(int alert_state) {
-	}
-
-	/**
 	 * バッテリー残量が変化した時のコールバック
 	 */
-	protected void skyControllerUpdateBattery(final IDeviceController controller) {
-	}
-
-	/**
-	 * 異常ステータスが変化した時のコールバック
-	 * @param alert_state
-	 */
-	protected void skyControllerUpdateAlarmState(final int alert_state) {
+	protected void updateSkyControllerBattery(final IDeviceController controller, final int percent) {
+		if (DEBUG) Log.v(TAG, "updateSkyControllerBattery:controller=" + controller);
 	}
 
 	/**
@@ -330,15 +319,16 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	 * @param controller
 	 */
 	protected void onSkyControllerDisconnect(final IDeviceController controller) {
-		if (DEBUG) Log.v(TAG, "onDisconnectSkyController:");
+		if (DEBUG) Log.v(TAG, "onSkyControllerDisconnect:controller=" + controller);
 		releaseDeviceController(true);
 	}
 
 	/**
-	 * アラーム状態が変化した時のコールバック
+	 * スカイコントローラーのアラーム状態が変化した時のコールバック
 	 * @param alert_state
 	 */
-	protected void onSkyControllerAlarmStateChangedUpdate(int alert_state) {
+	protected void updateSkyControllerAlarmState(final IDeviceController controller, int alert_state) {
+		if (DEBUG) Log.v(TAG, "updateSkyControllerAlarmState:controller=" + controller);
 	}
 
 }

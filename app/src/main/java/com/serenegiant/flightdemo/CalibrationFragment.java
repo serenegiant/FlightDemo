@@ -110,6 +110,26 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 		super.onPause();
 	}
 
+	@Override
+	protected void updateBattery(final IDeviceController controller, final int percent) {
+
+	}
+
+	@Override
+	protected void updateWiFiSignal(final IDeviceController controller, final int rssi) {
+
+	}
+
+	@Override
+	protected void updateAlarmState(final IDeviceController controller, final int alert_state) {
+
+	}
+
+	@Override
+	protected void updateFlyingState(final IDeviceController controller, final int state) {
+
+	}
+
 	/**
 	 * キャリブレーションを開始した
 	 */
@@ -148,8 +168,8 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	 * @param axis 0:x, 1:y, 2:z
 	 */
 	@Override
-	protected void updateCalibrationAxisChanged(final IDeviceController controller, final int axis) {
-		if (DEBUG) Log.v(TAG, "updateCalibrationAxisChanged:axis=" + axis);
+	protected void updateCalibrationAxis(final IDeviceController controller, final int axis) {
+		if (DEBUG) Log.v(TAG, "updateCalibrationAxis:axis=" + axis);
 		mState = STATE_AXIS_X + axis;
 		switch (mState) {
 		case STATE_START:
@@ -164,7 +184,7 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 			mState = STATE_START;
 			break;
 		default:
-			Log.w(TAG, "updateCalibrationAxisChanged:ステートがおかしい:" + mState + ",axis=" + axis);
+			Log.w(TAG, "updateCalibrationAxis:ステートがおかしい:" + mState + ",axis=" + axis);
 		}
 	}
 

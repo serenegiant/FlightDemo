@@ -79,6 +79,7 @@ public class BridgeFragment extends BaseControllerFragment {
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
+		onBeforeCreateView();
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
 		final View rootView = local_inflater.inflate(R.layout.fragment_bridge, container, false);
 		initView(rootView);
@@ -141,6 +142,10 @@ public class BridgeFragment extends BaseControllerFragment {
 		super.onDestroy();
 	}
 
+	@Override
+	protected void onBeforeCreateView() {
+	}
+
 //	/**
 //	 * 接続された
 //	 * @param controller
@@ -201,28 +206,27 @@ public class BridgeFragment extends BaseControllerFragment {
 		super.releaseDeviceController(disconnected);
 	}
 
-	private void updateButtons(final boolean visible) {
-		final Activity activity = getActivity();
-		if ((activity != null) && !activity.isFinishing()) {
-			getActivity().runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					if (!visible) {
-						try {
-							final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
-							adapter.clear();
-						} catch (final Exception e) {
-							Log.w(TAG, e);
-						}
-					}
-					final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
-					mDownloadBtn.setVisibility(visibility);
-					mPilotBtn.setVisibility(visibility);
-				}
-			});
-		}
+	@Override
+	protected void updateBattery(final IDeviceController controller, final int percent) {
+
 	}
 
+	@Override
+	protected void updateWiFiSignal(final IDeviceController controller, final int rssi) {
+
+	}
+
+	@Override
+	protected void updateAlarmState(final IDeviceController controller, final int alert_state) {
+
+	}
+
+	@Override
+	protected void onConnect(final IDeviceController controller) {
+
+	}
+
+	@Override
 	protected void onSkyControllerConnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "onSkyControllerConnect:controller=" + controller);
 		if (mNeedRequestDeviceList) {
@@ -235,8 +239,34 @@ public class BridgeFragment extends BaseControllerFragment {
 		}
 	}
 
-	protected void onSkyControllerDisconnect(final IDeviceController controller) {
-		if (DEBUG) Log.v(TAG, "onSkyControllerDisconnect:controller=" + controller);
+	/**
+	 * スカイコントローラーのキャリブレーションの状態が変化した時
+	 * @param controller
+	 * @param need_calibration
+	 */
+	protected void onSkyControllerCalibrationRequiredChanged(final IDeviceController controller, final boolean need_calibration) {
+		if (DEBUG) Log.v(TAG, "onSkyControllerCalibrationRequiredChanged:controller=" + controller + ",need_calibration=" + need_calibration);
+	}
+
+	/**
+	 * スカイコントローラーのキャリブレーションを開始した
+	 */
+	protected void onSkyControllerStartCalibration(final IDeviceController controller) {
+	}
+
+	/**
+	 * スカイコントローラーのキャリブレーションが終了した
+	 */
+	protected void onSkyControllerStopCalibration(final IDeviceController controller) {
+	}
+
+	/**
+	 * スカイコントローラーのキャリブレーション中の軸が変更された
+	 * @param controller
+	 * @param axis
+	 */
+	protected void updateSkyControllerCalibrationAxis(final IDeviceController controller, final int axis) {
+		if (DEBUG) Log.v(TAG, "updateSkyControllerCalibrationAxis:controller=" + controller + ",axis=" + axis);
 	}
 
 	private final SkyControllerListener mSkyControllerListener = new SkyControllerListener() {
@@ -252,27 +282,31 @@ public class BridgeFragment extends BaseControllerFragment {
 
 		@Override
 		public void onSkyControllerUpdateBattery(final IDeviceController controller, final int percent) {
-			if (DEBUG) Log.v(TAG, "onSkyControllerUpdateBattery:controller=" + controller);
+			BridgeFragment.this.updateSkyControllerBattery(controller, percent);
 		}
 
 		@Override
 		public void onSkyControllerAlarmStateChangedUpdate(final IDeviceController controller, final int alarm_state) {
-			if (DEBUG) Log.v(TAG, "onSkyControllerAlarmStateChangedUpdate:controller=" + controller);
+			BridgeFragment.this.updateSkyControllerAlarmState(controller, alarm_state);
 		}
 
 		@Override
 		public void onSkyControllerCalibrationRequiredChanged(final IDeviceController controller, final boolean need_calibration) {
-			if (DEBUG) Log.v(TAG, "onSkyControllerCalibrationRequiredChanged:controller=" + controller);
+			BridgeFragment.this.onSkyControllerCalibrationRequiredChanged(controller, need_calibration);
 		}
 
 		@Override
 		public void onSkyControllerCalibrationStartStop(final IDeviceController controller, final boolean isStart) {
-			if (DEBUG) Log.v(TAG, "onSkyControllerCalibrationStartStop:controller=" + controller);
+			if (isStart) {
+				onSkyControllerStartCalibration(controller);
+			} else {
+				onSkyControllerStopCalibration(controller);
+			}
 		}
 
 		@Override
 		public void onSkyControllerCalibrationAxisChanged(final IDeviceController controller, final int axis) {
-			if (DEBUG) Log.v(TAG, "onSkyControllerCalibrationAxisChanged:controller=" + controller);
+			updateSkyControllerCalibrationAxis(controller, axis);
 		}
 
 		@Override
@@ -302,11 +336,12 @@ public class BridgeFragment extends BaseControllerFragment {
 				@Override
 				public void run() {
 					try {
-						final DeviceInfo info = bridge.connectDeviceInfo();
-						if (bridge.isConnected() && (info != null)) {
-							if (DEBUG) Log.v(TAG, "既に接続されていたら操縦画面へ");
-							// FIXME 検出している機体が1機でそれに接続している時は操縦画面へ
-							// XXX ただし今はアイコン長押しでトレース/トラキングモードに移行できるようにしているので自動では遷移しない
+						final DeviceInfo info = bridge.getCurrentDevice();
+						final int numDevices = bridge.getDeviceNum();
+						if (bridge.isConnected() && (info != null) && (numDevices == 1)) {
+							if (DEBUG) Log.v(TAG, "既に1機だけ検出&接続されていたら操縦画面へ");
+							// 検出している機体が1機でそれに接続している時は操縦画面へ
+							// FIXME ただし今はアイコン長押しでトレース/トラッキングモードに移行できるようにしているので自動では遷移しない
 //							replace(PilotFragment2.newInstance(controller.getDeviceService(), info));
 						}
 					} catch (final Exception e) {
@@ -317,24 +352,46 @@ public class BridgeFragment extends BaseControllerFragment {
 
 		@Override
 		public void onDisconnect(final IDeviceController controller) {
-			if (DEBUG) Log.v(TAG, "onDisconnect:controller=" + controller);
+			if (DEBUG) Log.v(TAG, "SkyControllerListener#onDisconnect:controller=" + controller);
 		}
 
 		@Override
 		public void onUpdateBattery(final IDeviceController controller, final int percent) {
-			if (DEBUG) Log.v(TAG, "onUpdateBattery:controller=" + controller + ", percent=" + percent);
+			if (DEBUG) Log.v(TAG, "SkyControllerListener#onUpdateBattery:controller=" + controller + ", percent=" + percent);
 		}
 
 		@Override
 		public void onUpdateWiFiSignal(final IDeviceController controller, final int rssi) {
-			if (DEBUG) Log.v(TAG, "onUpdateWiFiSignal:controller=" + controller + ", rssi=" + rssi);
+			if (DEBUG) Log.v(TAG, "SkyControllerListener#onUpdateWiFiSignal:controller=" + controller + ", rssi=" + rssi);
 		}
 
 		@Override
 		public void onAlarmStateChangedUpdate(final IDeviceController controller, final int alarm_state) {
-			if (DEBUG) Log.v(TAG, "onAlarmStateChangedUpdate:controller=" + controller + ", alarm_state=" + alarm_state);
+			if (DEBUG) Log.v(TAG, "SkyControllerListener#onAlarmStateChangedUpdate:controller=" + controller + ", alarm_state=" + alarm_state);
 		}
 	};
+
+	private void updateButtons(final boolean visible) {
+		final Activity activity = getActivity();
+		if ((activity != null) && !activity.isFinishing()) {
+			getActivity().runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					if (!visible) {
+						try {
+							final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
+							adapter.clear();
+						} catch (final Exception e) {
+							Log.w(TAG, e);
+						}
+					}
+					final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+					mDownloadBtn.setVisibility(visibility);
+					mPilotBtn.setVisibility(visibility);
+				}
+			});
+		}
+	}
 
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 		@Override

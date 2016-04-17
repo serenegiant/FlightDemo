@@ -469,6 +469,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected void onStarted() {
 		if (DEBUG) Log.v(TAG, "onStarted:");
 		// only with RollingSpider in version 1.97 : date and time must be sent to permit a reconnection
+		// NewAPIだといらんのかもしれんけど念の為に
 		final Date currentDate = new Date(System.currentTimeMillis());
 		sendDate(currentDate);
 		sendTime(currentDate);

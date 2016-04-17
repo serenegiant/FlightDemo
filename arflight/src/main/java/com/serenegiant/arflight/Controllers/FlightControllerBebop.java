@@ -1222,7 +1222,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			mSettings.getCamera().pantilt(pan, tilt);
 			if (mCameraControllerListener != null) {
 				try {
-					mCameraControllerListener.onCameraOrientationChanged(pan, tilt);
+					mCameraControllerListener.onCameraOrientationChanged(FlightControllerBebop.this, pan, tilt);
 				} catch (final Exception e) {
 					// ignore
 				}

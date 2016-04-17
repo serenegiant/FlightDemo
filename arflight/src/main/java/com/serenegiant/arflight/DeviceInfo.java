@@ -34,6 +34,14 @@ public class DeviceInfo implements Parcelable {
 		connectionState = CONNECT_STATE_DISCONNECT;
 	}
 
+	public DeviceInfo(final DeviceInfo other) {
+		mName = other.mName;
+		mProductId = other.mProductId;
+		synchronized (other.mSync) {
+			connectionState = other.connectionState;
+		}
+	}
+
 	protected DeviceInfo(final Parcel in) {
 		mName = in.readString();
 		mProductId = in.readInt();
@@ -77,7 +85,9 @@ public class DeviceInfo implements Parcelable {
 	public void writeToParcel(final Parcel dest, final int flags) {
 		dest.writeString(mName);
 		dest.writeInt(mProductId);
-		dest.writeInt(connectionState);
+		synchronized (mSync) {
+			dest.writeInt(connectionState);
+		}
 	}
 
 	public String toString() {

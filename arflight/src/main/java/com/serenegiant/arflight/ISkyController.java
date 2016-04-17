@@ -2,6 +2,8 @@ package com.serenegiant.arflight;
 
 import com.serenegiant.arflight.configs.ARNetworkConfig;
 
+import java.util.List;
+
 public interface ISkyController extends IDeviceController {
 	/** ブリッジ接続用のARNetworkConfigを新規に生成して返す */
 	public ARNetworkConfig createBridgeNetConfig();
@@ -50,6 +52,19 @@ public interface ISkyController extends IDeviceController {
 	 * スカイコントローラーが検出している機体一覧を要求
 	 */
 	public boolean requestDeviceList();
+
+	/**
+	 * スカイコントローラーが検出している機体の数を取得
+	 * @return
+	 */
+	public int getDeviceNum();
+	/**
+	 * ISkyControllerを実装するクラスが保持している、スカイコントローラーが検出している機体一覧を取得
+	 * コピーを返すので呼び出し以降の接続状態の変更は反映されない
+	 * SDK側で#requestDeviceListが正しく動いてないようなので
+	 * @return
+	 */
+	public List<DeviceInfo> getDeviceList();
 	/**
 	 * スカイコントローラーが現在接続している機体との接続状態を要求する
 	 * これを呼ぶとARCommandSkyControllerDeviceStateConnexionChangedListenerのコールバックメソッドが呼び出される
@@ -58,6 +73,12 @@ public interface ISkyController extends IDeviceController {
 	 */
 	public boolean requestCurrentDevice();
 	/**
+	 * ISkyControllerを実装するクラスが保持している、スカイコントローラーが現在接続している機体を取得
+	 * コピーを返すので呼び出し以降の接続状態の変更は反映されない
+	 * @return null 接続されていない
+	 */
+	public DeviceInfo getCurrentDevice();
+	/**
 	 * 指定したデバイス名を持つ機体へ接続する
 	 * @param deviceName
 	 * @return true 接続できなかった
@@ -65,7 +86,6 @@ public interface ISkyController extends IDeviceController {
 	public boolean connectToDevice(final String deviceName);
 	public boolean connectToDevice(final DeviceInfo info);
 	public void disconnectFrom();
-	public DeviceInfo connectDeviceInfo();
 	/**
 	 * 操縦に使用する入力方法を選択
 	 * ARCommandSkyControllerCoPilotingStatePilotingSourceListenerのコールバックメソッドが呼ばれる。なんでやねん

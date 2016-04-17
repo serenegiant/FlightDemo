@@ -700,7 +700,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			mSettings.getCamera().pantilt(pan, tilt);
 			if (mCameraControllerListener != null) {
 				try {
-					mCameraControllerListener.onCameraOrientationChanged(pan, tilt);
+					mCameraControllerListener.onCameraOrientationChanged(FlightControllerBebopNewAPI.this, pan, tilt);
 				} catch (final Exception e) {
 					// ignore
 				}

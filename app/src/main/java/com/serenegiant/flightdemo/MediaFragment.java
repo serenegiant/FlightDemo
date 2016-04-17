@@ -152,6 +152,26 @@ public class MediaFragment extends BaseFlightControllerFragment
 		super.onDisconnect(controller);
 	}
 
+	@Override
+	protected void updateBattery(final IDeviceController controller, final int percent) {
+
+	}
+
+	@Override
+	protected void updateWiFiSignal(final IDeviceController controller, final int rssi) {
+
+	}
+
+	@Override
+	protected void updateAlarmState(final IDeviceController controller, final int alert_state) {
+
+	}
+
+	@Override
+	protected void updateFlyingState(final IDeviceController controller, final int state) {
+
+	}
+
 	/**
 	 * 接続後機体のストレージ状態を受信するまで待機するためのRunnable
 	 */

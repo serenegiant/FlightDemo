@@ -102,7 +102,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	/**
 	 * onExtensionStateChangedの下請け
-	 * これはスカイコントローラーが機体に接続した時に呼ばれる
+	 * スカイコントローラーが機体に接続した時に呼ばれる
 	 */
 	@Override
 	protected void onExtensionConnect() {
@@ -116,7 +116,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	/**
 	 * onExtensionStateChangedの下請け
-	 * これはスカイコントローラーが機体から切断された時に呼ばれる
+	 * スカイコントローラーが機体から切断された時に呼ばれる
 	 */
 	protected void onExtensionDisconnect() {
 		if (DEBUG) Log.d(TAG, "onExtensionDisconnect:");
@@ -150,6 +150,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		{	// スカイコントローラーが検出したアクセスポイント一覧を取得した時
 			// 検出しているアクセスポイント1つ毎に1回呼び出される
 			// requestWifiListに対する応答, 自動的には来ない
+			// XXX ARSDK3.8.3のNewAPIだとnullしか来ない
 			final String bssid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_BSSID);
 			final String ssid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SSID);
 			Object temp = args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SECURED);
@@ -231,7 +232,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			// AccessPointのSSIDやチャネル等を変更しても来る
 			// たぶん最初に見つかった機体には勝手に接続しに行きよる
 			// ARCommandSkyControllerWifiStateConnexionChangedListenerのコールバックメソッドよりも後に来る
-
+			// onAllSettingsUpdate/onAllStateUpdateよりも後に来る
  			final ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_ENUM status
 				= ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_ENUM.getFromValue(
 				(Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS)
@@ -245,7 +246,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SETTINGSSTATE_ALLSETTINGSCHANGED:	// (127, "Key used to define the command <code>AllSettingsChanged</code> of class <code>SettingsState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// スカイコントローラーの設定を全て受信した時
-			if (DEBUG) Log.e(TAG, "onAllSettingsUpdate:");
+			if (DEBUG) Log.w(TAG, "onAllSettingsUpdate:");
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SETTINGSSTATE_RESETCHANGED:	// (128, "Key used to define the command <code>ResetChanged</code> of class <code>SettingsState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -272,14 +273,14 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_COMMONSTATE_ALLSTATESCHANGED:	// (131, "Key used to define the command <code>AllStatesChanged</code> of class <code>CommonState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// スカイコントローラーのステータスを全て受信した時
-			if (DEBUG) Log.e(TAG, "onAllStateUpdate:");
+			if (DEBUG) Log.w(TAG, "onAllStateUpdate:");
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SKYCONTROLLERSTATE_BATTERYCHANGED:	// (132, "Key used to define the command <code>BatteryChanged</code> of class <code>SkyControllerState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// スカイコントローラーのバッテリー残量が変化した時
 			final int percent = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SKYCONTROLLERSTATE_BATTERYCHANGED_PERCENT);
 			mSkyControllerStatus.setBattery(percent);
-			callOnUpdateBattery(percent);
+			callOnSkyControllerUpdateBattery(percent);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_SKYCONTROLLERSTATE_GPSFIXCHANGED:	// (133, "Key used to define the command <code>GpsFixChanged</code> of class <code>SkyControllerState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -340,6 +341,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		{	// スカイコントローラーのボタン・スティック等の種類
 			// requestAllSettingsを呼んでも来る
 			// requestGamepadControlsを呼んでも来る
+			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
 			final String name = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_NAME);
 			if (!TextUtils.isEmpty(name)) {
 				final ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM type
@@ -372,6 +374,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS:	// (140, "Key used to define the command <code>CurrentButtonMappings</code> of class <code>ButtonMappingsState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// 現在のボタン割当設定を受信した時
 			// requestAllStatesを呼んでも来る
+			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
 			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_MAPPING_UID);
 			if (!TextUtils.isEmpty(mapping_uid)) {
 				final int key_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_KEY_ID);
@@ -393,6 +396,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		{	// 使用可能なボタンの割当設定
 			// requestAllStatesを呼んでも来る
 			// 複数回来た後ARCommandSkyControllerButtonMappingsStateAllAvailableButtonsMappingsSentListenerが来る
+			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
 			/** ボタンの識別コード */
 			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_AVAILABLEBUTTONMAPPINGS_MAPPING_UID);
 			/** ボタン名 */
@@ -413,6 +417,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			// requestAllStatesを呼んでも来る
 			// resetAxisMappingを呼んでも来る
 			// 複数回来た後ARCommandSkyControllerAxisMappingsStateAllCurrentAxisMappingsSentListenerが来る
+			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
 			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_MAPPING_UID);
 			if (!TextUtils.isEmpty(mapping_uid)) {
 				final int axis_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_AXIS_ID);
@@ -434,6 +439,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_AVAILABLEAXISMAPPINGS:	// (146, "Key used to define the command <code>AvailableAxisMappings</code> of class <code>AxisMappingsState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// 使用可能なジョイスティック割当を受信した時
 			// requestAllStatesを呼んでも来る
+			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
 			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_AVAILABLEAXISMAPPINGS_MAPPING_UID);
 			final String name = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_AVAILABLEAXISMAPPINGS_NAME);
 			if (DEBUG) Log.v(TAG, "onAvailableAxisMappingsUpdate:mapping_uid=" + mapping_uid + ", name=" + name);
@@ -448,7 +454,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS:	// (148, "Key used to define the command <code>CurrentAxisFilters</code> of class <code>AxisFiltersState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// ジョイスティック入力フィルター設定が更新された時
 			// requestAllStatesを呼んでも来る
-			/** "ARMF"ってのが来る */
+			// "ARMF"ってのが来る
+			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
 			final String filter_uid_or_builder = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS_FILTER_UID_OR_BUILDER);
 			if (!TextUtils.isEmpty(filter_uid_or_builder)) {
 				/** 軸番号: 0..n */
@@ -556,6 +563,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 //================================================================================
 // 機体との接続状態の管理
 //================================================================================
+	/** スカイコントローラーの認識している機体一覧 */
 	private final Map<String, DeviceInfo> mDevices = new HashMap<String, DeviceInfo>();
 
 	private void updateConnectionState(
@@ -567,8 +575,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		synchronized (mDevices) {
 			DeviceInfo info = mDevices.containsKey(deviceName) ? mDevices.get(deviceName) : null;
 			switch (status) {
-			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_NOTCONNECTED:        // 0
-				removeDevice(deviceName);
+			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_NOTCONNECTED:		// 0
+				removeDevice(null);
 				break;
 			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_CONNECTING:		// 1
 			case ARCOMMANDS_SKYCONTROLLER_DEVICESTATE_CONNEXIONCHANGED_STATUS_CONNECTED:		// 2
@@ -798,13 +806,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return null;
 	}
 
-	@Override
-	public DeviceInfo connectDeviceInfo() {
-		synchronized (mStateSync) {
-			return mConnectDevice;
-		}
-	}
-
 	public boolean requestAllSettings() {
 		if (DEBUG) Log.d(TAG, "requestAllSettings:");
 		super.requestAllSettings();
@@ -834,7 +835,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendSettingsReset();
 		} else {
-			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
+			if (DEBUG) Log.v(TAG, "resetSettings:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#resetSettings failed:" + result);
@@ -849,7 +850,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendAccessPointSettingsAccessPointSSID(ssid);
 		} else {
-			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
+			if (DEBUG) Log.v(TAG, "setSkyControllerSSID:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#setSkyControllerSSID failed:" + result);
@@ -875,6 +876,10 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 //	public ARCONTROLLER_ERROR_ENUM sendAccessPointSettingsWifiSelection (ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_TYPE_ENUM _type, ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_BAND_ENUM _band, byte _channel)
 
+	/**
+	 * XXX ARSDK3.8.3のNewAPIだと結果データがnullで返ってくる
+	 * @return
+	 */
 	@Override
 	public boolean requestWifiList() {
 		if (DEBUG) Log.d(TAG, "requestWifiList:");
@@ -882,7 +887,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiRequestWifiList();
 		} else {
-			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
+			if (DEBUG) Log.v(TAG, "requestWifiList:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#requestWifiList failed:" + result);
@@ -897,7 +902,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiRequestCurrentWifi();
 		} else {
-			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
+			if (DEBUG) Log.v(TAG, "requestCurrentWiFi:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#requestCurrentWiFi failed:" + result);
@@ -912,7 +917,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiConnectToWifi(bssid, ssid, passphrase);
 		} else {
-			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
+			if (DEBUG) Log.v(TAG, "connectToWiFi:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#connectToWiFi failed:" + result);
@@ -927,7 +932,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendWifiForgetWifi(ssid);
 		} else {
-			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
+			if (DEBUG) Log.v(TAG, "requestForgetWiFi:not started");
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#requestForgetWiFi failed:" + result);
@@ -935,9 +940,17 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
+	/**
+	 * スカイコントローラーが検出している機体一覧を要求
+	 * XXX ARSDK3.8.3のNewAPIだと結果が返ってこない
+	 * @return
+	 */
 	@Override
 	public boolean requestDeviceList() {
 		if (DEBUG) Log.d(TAG, "requestDeviceList:");
+
+		// FIXME 送信前に機体一覧Listをクリアする...でもARSDK3.8.3のNewAPIだと結果が来ないので...
+
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestDeviceList();
@@ -951,6 +964,27 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	}
 
 	@Override
+	public int getDeviceNum() {
+		synchronized (mDevices) {
+			return mDevices.size();
+		}
+	}
+
+	@Override
+	public List<DeviceInfo> getDeviceList() {
+		final List<DeviceInfo> result;
+		synchronized (mDevices) {
+			result = new ArrayList<DeviceInfo>(mDevices.values());
+		}
+		return result;
+	}
+
+	/**
+	 * スカイコントローラーが現在接続している機体との接続状態を要求する
+	 * XXX ARSDK3.8.3のNewAPIだと結果が返ってこない
+	 * @return
+	 */
+	@Override
 	public boolean requestCurrentDevice() {
 		if (DEBUG) Log.d(TAG, "requestCurrentDevice:");
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
@@ -963,6 +997,13 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			Log.e(TAG, "#requestCurrentDevice failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	@Override
+	public DeviceInfo getCurrentDevice() {
+		synchronized (mStateSync) {
+			return mConnectDevice != null ? new DeviceInfo(mConnectDevice) : null;
+		}
 	}
 
 	@Override
@@ -1022,6 +1063,10 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
+	/**
+	 * このクラス内で保持している接続状態をクリアするだけ。
+	 * 実際の切断はしない
+	 */
 	@Override
 	public void disconnectFrom() {
 		if (DEBUG) Log.d(TAG, "disconnectFrom:");
@@ -1071,6 +1116,10 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
+	/**
+	 * XXX ARSDK3.8.3のNewAPIだと結果データがnullで返ってくる
+	 * @return
+	 */
 	@Override
 	public boolean requestCurrentButtonMappings() {
 		if (DEBUG) Log.d(TAG, "requestCurrentButtonMappings:");
@@ -1084,6 +1133,10 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
+	/**
+	 * XXX ARSDK3.8.3のNewAPIだと結果データがnullで返ってくる
+	 * @return
+	 */
 	@Override
 	public boolean requestAvailableButtonMappings() {
 		if (DEBUG) Log.d(TAG, "requestAvailableButtonMappings:");
@@ -1123,6 +1176,10 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
+	/**
+	 * XXX ARSDK3.8.3のNewAPIだと結果データがnullで返ってくる
+	 * @return
+	 */
 	@Override
 	public boolean requestCurrentAxisMappings() {
 		if (DEBUG) Log.d(TAG, "requestCurrentAxisMappings:");
@@ -1136,6 +1193,10 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
+	/**
+	 * XXX ARSDK3.8.3のNewAPIだと結果データがnullで返ってくる
+	 * @return
+	 */
 	@Override
 	public boolean requestAvailableAxisMappings() {
 		if (DEBUG) Log.d(TAG, "requestAvailableAxisMappings:");

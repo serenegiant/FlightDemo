@@ -513,7 +513,7 @@ public class PilotFragment2 extends BasePilotFragment {
 
 	private final CameraControllerListener mCameraControllerListener = new CameraControllerListener() {
 		@Override
-		public void onCameraOrientationChanged(final int pan, final int tilt) {
+		public void onCameraOrientationChanged(final IDeviceController controller, final int pan, final int tilt) {
 			if (mCameraView != null) {
 				mCameraView.setPanTilt(-pan, tilt);
 			}

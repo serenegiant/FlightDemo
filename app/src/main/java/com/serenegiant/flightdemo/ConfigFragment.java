@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.widget.ColorPickerView;
 import com.serenegiant.widget.RelativeRadioGroup;
@@ -134,6 +135,26 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		super.onPause();
 	} */
+
+	@Override
+	protected void updateBattery(final IDeviceController controller, final int percent) {
+
+	}
+
+	@Override
+	protected void updateWiFiSignal(final IDeviceController controller, final int rssi) {
+
+	}
+
+	@Override
+	protected void updateAlarmState(final IDeviceController controller, final int alert_state) {
+
+	}
+
+	@Override
+	protected void updateFlyingState(final IDeviceController controller, final int state) {
+
+	}
 
 	private AttributeFloat mMaxAltitude;
 	private AttributeFloat mMaxTilt;
