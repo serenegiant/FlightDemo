@@ -44,7 +44,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public abstract class DeviceControllerNewAPI implements IDeviceController {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private String TAG = "DeviceControllerNewAPI:" + getClass().getSimpleName();
 
 	private final WeakReference<Context> mWeakContext;

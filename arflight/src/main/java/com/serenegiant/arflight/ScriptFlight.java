@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ScriptFlight implements IAutoFlight {
 	private static final boolean DEBUG = false;				// FIXME 実働時はfalseにすること
-	private static final boolean DEBUG_PRESETFUNC = true;	// プリセット関数のデバッグメッセージ切り替え FIXME 実働時はfalseにすること
+	private static final boolean DEBUG_PRESETFUNC = false;	// プリセット関数のデバッグメッセージ切り替え FIXME 実働時はfalseにすること
 	private static final String TAG = ScriptFlight.class.getSimpleName();
 
 	private final Object mSync = new Object();

@@ -51,14 +51,14 @@ android {
 		aceparrot {
 			applicationId "com.serenegiant.flightdemo"
 			signingConfig signingConfigs.aceparrot_releaseKey
-			versionCode 40
-			versionName '0.67.11'
+			versionCode 41
+			versionName '0.67.12'
 		}
 		autoparrot {
 			applicationId "com.serenegiant.autoparrot"
 			signingConfig signingConfigs.autoparrot_releaseKey
-			versionCode 40
-			versionName '0.67.11'
+			versionCode 41
+			versionName '0.67.12'
 		}
 	}
 }

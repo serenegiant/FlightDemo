@@ -9,7 +9,7 @@ import com.serenegiant.arflight.DeviceInfo;
 import static com.serenegiant.flightdemo.AppConst.*;
 
 public class AutoPilotFragment2NewAPI extends BaseAutoPilotFragment {
-	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = AutoPilotFragment2NewAPI.class.getSimpleName();
 
 	public static AutoPilotFragment2NewAPI newInstance(final ARDiscoveryDeviceService device, final String pref_name, final int mode) {

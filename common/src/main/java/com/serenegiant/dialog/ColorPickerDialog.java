@@ -27,7 +27,7 @@ import com.serenegiant.widget.ColorPickerView.ColorPickerListener;
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 public class ColorPickerDialog extends DialogFragment {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private static final String TAG = "ColorPickerDialog";
 
 	private static final String KEY_TITLE_ID = "title_id";

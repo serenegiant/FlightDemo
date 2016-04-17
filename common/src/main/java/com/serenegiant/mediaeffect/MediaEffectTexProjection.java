@@ -10,7 +10,7 @@ import com.serenegiant.glutils.GLHelper;
  * うまく動かない, Matrixの計算がダメなのかも
  */
 public class MediaEffectTexProjection extends MediaEffectGLESBase {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private static final String TAG = "MediaEffectTexProjection";
 
 	private static class MediaEffectTexProjectionDrawer extends MediaEffectDrawer {

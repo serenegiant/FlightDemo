@@ -23,7 +23,7 @@ import com.serenegiant.glutils.Texture2dProgram;
 
 /** Cannyエッジ検出フィルタ */
 public class MediaEffectCanny extends MediaEffectGLESBase {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private static final String TAG = "MediaEffectCanny";
 
 	private static final String FRAGMENT_SHADER_BASE = Texture2dProgram.SHADER_VERSION +

@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ManagerFragment extends Fragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "ManagerFragment";
 
 	public interface ManagerCallback {

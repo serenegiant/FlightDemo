@@ -53,7 +53,7 @@ import java.util.List;
 import static com.serenegiant.flightdemo.AppConst.*;
 
 public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPickerDialog.OnColorChangedListener {
-	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private final String TAG = "BaseAutoPilotFragment:" + getClass().getSimpleName();
 
 	public static final int MODE_TRACE = 0;
@@ -189,8 +189,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		// Viewの取得・初期化
 		mActionViews.clear();
 
-		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
-		final ViewGroup rootView = (ViewGroup) local_inflater.inflate(R.layout.fragment_pilot_auto, container, false);
+		final ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_pilot_auto, container, false);
 
 		mControllerFrame = (ViewGroup) rootView.findViewById(R.id.controller_frame);
 		mControllerFrame.setOnClickListener(mOnClickListener);

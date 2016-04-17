@@ -161,8 +161,7 @@ public class PilotFragment2 extends BasePilotFragment {
 		mActionViews.clear();
 		mAlphaHideList.clear();
 
-		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
-		final ViewGroup rootView = (ViewGroup) local_inflater.inflate(layout_id, container, false);
+		final ViewGroup rootView = (ViewGroup) inflater.inflate(layout_id, container, false);
 
 //		rootView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
 //		rootView.setOnKeyListener(mOnKeyListener);

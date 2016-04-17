@@ -42,7 +42,7 @@ import java.util.concurrent.Semaphore;
 import static com.serenegiant.arflight.ARFlightConst.*;
 
 public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements ISkyController, IVideoStreamController, IWiFiController {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyControllerNewAPI.class.getSimpleName();
 
 	/** 接続中の機体情報 */

@@ -52,7 +52,7 @@ import java.util.List;
 import static com.serenegiant.flightdemo.AppConst.*;
 
 public abstract class BasePilotFragment extends BaseFlightControllerFragment implements SelectFileDialogFragment.OnFileSelectListener {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private final String TAG = "BasePilotFragment:" + getClass().getSimpleName();
 
 	static {
@@ -142,7 +142,8 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				layout_id = R.layout.fragment_pilot;
 			}
 		}
-		return internalCreateView(inflater, container, savedInstanceState, layout_id);
+		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
+		return internalCreateView(local_inflater, container, savedInstanceState, layout_id);
 
 	}
 

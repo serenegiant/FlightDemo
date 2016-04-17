@@ -33,7 +33,7 @@ import com.serenegiant.widget.DirectionView;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private static final boolean USE_RAW_CALLBACK = false;	// true: ゲームパッドの生データのコールバックをするとき
 	private static final String TAG = "MainActivity";
 
