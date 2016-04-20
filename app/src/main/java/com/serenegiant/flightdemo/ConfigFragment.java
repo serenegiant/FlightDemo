@@ -25,7 +25,7 @@ import com.serenegiant.widget.RelativeRadioGroup;
 import static com.serenegiant.flightdemo.AppConst.*;
 
 public class ConfigFragment extends BaseFlightControllerFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
 	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {

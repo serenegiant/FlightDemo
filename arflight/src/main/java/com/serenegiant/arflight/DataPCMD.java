@@ -7,6 +7,7 @@ public class DataPCMD {
 	public float yaw;
 	public float gaz;
 	public float heading;
+	public boolean requestSend;
 
 	public DataPCMD() {
 		flag = 0;

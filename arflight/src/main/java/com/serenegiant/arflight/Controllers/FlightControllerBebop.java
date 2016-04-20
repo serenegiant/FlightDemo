@@ -1299,6 +1299,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 //================================================================================
 // コマンド送信関係
 //================================================================================
+	private int seqNum;
 	/**
 	 * 操縦コマンドを送信
 	 * @param flag flag to activate roll/pitch movement
@@ -1315,7 +1316,8 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, heading);
+		final int timestampAndSeqNum = (int)(System.currentTimeMillis() & 0xffffff) + (seqNum ++) << 24;
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, timestampAndSeqNum);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dNackId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);

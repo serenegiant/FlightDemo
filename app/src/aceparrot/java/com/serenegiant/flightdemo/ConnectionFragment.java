@@ -62,7 +62,6 @@ public class ConnectionFragment extends BaseConnectionFragment {
 			case R.id.script_button:
 				switch (product) {
 				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 					switch (id) {
 					case R.id.pilot_button:
 						fragment = AutoPilotFragment2.newInstance(device, "test001", AutoPilotFragment2.MODE_TRACE, isNewAPI());
@@ -77,6 +76,23 @@ public class ConnectionFragment extends BaseConnectionFragment {
 						fragment = AutoPilotFragment2.newInstance(device, "test004", AutoPilotFragment2.MODE_TRACKING, isNewAPI());
 						break;
 					}
+					break;
+				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+					switch (id) {
+					case R.id.pilot_button:
+						fragment = AutoPilotFragment2.newInstance(device, "test011", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						break;
+					case R.id.download_button:
+						fragment = AutoPilotFragment2.newInstance(device, "test012", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						break;
+					case R.id.gallery_button:
+						fragment = AutoPilotFragment2.newInstance(device, "test013", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						break;
+					case R.id.script_button:
+						fragment = AutoPilotFragment2.newInstance(device, "test014", AutoPilotFragment2.MODE_TRACKING, isNewAPI());
+						break;
+					}
+					break;
 				}
 				break;
 			case R.id.config_show_btn:
@@ -87,8 +103,10 @@ public class ConnectionFragment extends BaseConnectionFragment {
 					}
 					break;
 				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+					fragment = AutoPilotFragment2.newInstance(device, "test006", AutoPilotFragment2NewAPI.MODE_TRACE, isNewAPI());
+					break;
 				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-					fragment = AutoPilotFragment2.newInstance(device, "test005", AutoPilotFragment2NewAPI.MODE_TRACE, isNewAPI());
+					fragment = AutoPilotFragment2.newInstance(device, "test016", AutoPilotFragment2NewAPI.MODE_TRACE, isNewAPI());
 					break;
 				}
 				break;

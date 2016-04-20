@@ -58,7 +58,7 @@ import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
 public abstract class DeviceController implements IDeviceController {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = DeviceController.class.getSimpleName();
 
 	private final WeakReference<Context> mWeakContext;

@@ -420,6 +420,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 //================================================================================
 // コマンド送信関係
 //================================================================================
+	private int seqNum;
 	/**
 	 * 操縦コマンドを送信
 	 * @param flag flag to activate roll/pitch movement
@@ -435,7 +436,8 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
 
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingPCMD((byte)flag, (byte)roll, (byte)pitch, (byte)yaw, (byte)gaz, heading);
+		final int timestampAndSeqNum = (int)(System.currentTimeMillis() & 0xffffff) + (seqNum ++) << 24;
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setMiniDronePilotingPCMD((byte)flag, (byte)roll, (byte)pitch, (byte)yaw, (byte)gaz, timestampAndSeqNum);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dNackId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);

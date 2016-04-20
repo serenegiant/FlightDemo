@@ -19,6 +19,7 @@ import com.parrot.arsdk.arcontroller.ARCONTROLLER_DEVICE_STATE_ENUM;
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_ERROR_ENUM;
 import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
+import com.parrot.arsdk.arcontroller.ARControllerDictionary;
 import com.parrot.arsdk.arcontroller.ARDeviceController;
 import com.parrot.arsdk.arcontroller.ARFeatureSkyController;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -42,7 +43,7 @@ import java.util.concurrent.Semaphore;
 import static com.serenegiant.arflight.ARFlightConst.*;
 
 public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements ISkyController, IVideoStreamController, IWiFiController {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyControllerNewAPI.class.getSimpleName();
 
 	/** 接続中の機体情報 */
@@ -139,9 +140,10 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	@Override
 	protected void onCommandReceived(final ARDeviceController deviceController,
 		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
-		final ARControllerArgumentDictionary<Object> args) {
+		final ARControllerArgumentDictionary<Object> args,
+		final ARControllerDictionary elementDictionary) {
 
-		super.onCommandReceived(deviceController, commandKey, args);
+		super.onCommandReceived(deviceController, commandKey, args, elementDictionary);
 
 		switch (commandKey) {
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER:	// (119, "Key used to define the feature <code>SkyControllerNewAPI</code>"),
@@ -150,20 +152,27 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		{	// スカイコントローラーが検出したアクセスポイント一覧を取得した時
 			// 検出しているアクセスポイント1つ毎に1回呼び出される
 			// requestWifiListに対する応答, 自動的には来ない
-			// XXX ARSDK3.8.3のNewAPIだとnullしか来ない
-			final String bssid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_BSSID);
-			final String ssid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SSID);
-			Object temp = args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SECURED);
-			final boolean secured = (temp instanceof Integer) && (Integer)temp != 0;
-			temp = args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SAVED);
-			final boolean saved = (temp instanceof Integer) && (Integer)temp != 0;
-			temp = args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_RSSI);
-			final int rssi = temp instanceof Integer ? (Integer)temp : 0;
-			temp = args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_FREQUENCY);
-			final int frequency = temp instanceof Integer ? (Integer)temp : 0;
+			for (final ARControllerArgumentDictionary<Object> element: elementDictionary.values()) {
+				final Object bssid_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_BSSID);
+				final Object ssid_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SSID);
+				final Object secured_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SECURED);
+				final Object saved_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_SAVED);
+				final Object rssi_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_RSSI);
+				final Object frequency_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_WIFILIST_FREQUENCY);
 
-			if (DEBUG) Log.v(TAG, String.format("onWifiListUpdate:bssid=%s, ssid=%s, secured=%d, saved=%d, rssi=%d, frequency=%d",
-				bssid, ssid, secured ? 1 : 0, saved ? 1 : 0, rssi, frequency));
+				if ((bssid_obj != null) && (ssid_obj != null) && (secured_obj != null)
+					&& (saved_obj != null) && (rssi_obj != null) && (frequency_obj != null)) {
+					final String bssid = (String)bssid_obj;
+					final String ssid = (String)ssid_obj;
+					final boolean secured = (Integer)secured_obj != 0;
+					final boolean saved = (Integer)saved_obj != 0;
+					final int rssi = (Integer)rssi_obj;
+					final int frequency = (Integer)frequency_obj;
+
+					if (DEBUG) Log.v(TAG, String.format("onWifiListUpdate:bssid=%s, ssid=%s, secured=%d, saved=%d, rssi=%d, frequency=%d",
+						bssid, ssid, secured ? 1 : 0, saved ? 1 : 0, rssi, frequency));
+				}
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_WIFISTATE_CONNEXIONCHANGED:	// (121, "Key used to define the command <code>ConnexionChanged</code> of class <code>WifiState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -341,25 +350,25 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		{	// スカイコントローラーのボタン・スティック等の種類
 			// requestAllSettingsを呼んでも来る
 			// requestGamepadControlsを呼んでも来る
-			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
-			final String name = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_NAME);
-			if (!TextUtils.isEmpty(name)) {
-				final ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM type
-					= ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM.getFromValue(
-					(Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE)
-				);
-				final int id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_ID);
-
-				if (DEBUG) Log.v(TAG, "onStateGamepadControlUpdate:type=" + type + ", id=" + id + ", name=" + name);
-				switch (type) {
-				case ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_AXIS:	// 0, スティック
-				case ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_BUTTON:	// 1, ボタン, スティックの押し込みを含む
-					break;
+			for (final ARControllerArgumentDictionary<Object> element: elementDictionary.values()) {
+				final Object name_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_NAME);
+				final Object type_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE);
+				final Object id_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_ID);
+				if ((name_obj != null) && (type_obj != null) && (id_obj != null)) {
+					final String name = (String)name_obj;
+					final ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM type
+						= ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_ENUM.getFromValue((Integer)type_obj);
+					final int id = (Integer)id_obj;
+						if (DEBUG) Log.v(TAG, "onStateGamepadControlUpdate:type=" + type + ", id=" + id + ", name=" + name);
+					switch (type) {
+					case ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_AXIS:	// 0, スティック
+					case ARCOMMANDS_SKYCONTROLLER_GAMEPADINFOSSTATE_GAMEPADCONTROL_TYPE_BUTTON:	// 1, ボタン, スティックの押し込みを含む
+						break;
+					}
+					// FIXME GamepadControlの追加処理
 				}
-				// FIXME GamepadControlの追加処理
-			} else {
-				if (DEBUG) Log.v(TAG, "onStateGamepadControlUpdate:null");
 			}
+
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_GAMEPADINFOSSTATE_ALLGAMEPADCONTROLSSENT:	// (139, "Key used to define the command <code>AllGamepadControlsSent</code> of class <code>GamepadInfosState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -374,14 +383,15 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS:	// (140, "Key used to define the command <code>CurrentButtonMappings</code> of class <code>ButtonMappingsState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// 現在のボタン割当設定を受信した時
 			// requestAllStatesを呼んでも来る
-			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
-			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_MAPPING_UID);
-			if (!TextUtils.isEmpty(mapping_uid)) {
-				final int key_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_KEY_ID);
-				if (DEBUG) Log.v(TAG, "onCurrentButtonMappingsUpdate:key_id=" + key_id + ", mapping_uid=" + mapping_uid);
-				// FIXME ボタン割り当て設定追加
-			} else {
-				if (DEBUG) Log.v(TAG, "onCurrentButtonMappingsUpdate:null");
+			for (final ARControllerArgumentDictionary<Object> element: elementDictionary.values()) {
+				final Object uid_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_MAPPING_UID);
+				final Object id_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_CURRENTBUTTONMAPPINGS_KEY_ID);
+				if ((uid_obj != null) && (id_obj != null)) {
+					final String mapping_uid = (String)uid_obj;
+					final int key_id = (Integer)id_obj;
+					if (DEBUG) Log.v(TAG, "onCurrentButtonMappingsUpdate:key_id=" + key_id + ", mapping_uid=" + mapping_uid);
+					// FIXME ボタン割り当て設定追加
+				}
 			}
 			break;
 		}
@@ -396,13 +406,18 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		{	// 使用可能なボタンの割当設定
 			// requestAllStatesを呼んでも来る
 			// 複数回来た後ARCommandSkyControllerButtonMappingsStateAllAvailableButtonsMappingsSentListenerが来る
-			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
-			/** ボタンの識別コード */
-			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_AVAILABLEBUTTONMAPPINGS_MAPPING_UID);
-			/** ボタン名 */
-			final String name = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_AVAILABLEBUTTONMAPPINGS_NAME);
-			if (DEBUG) Log.v(TAG, "onAvailableButtonMappingsUpdate:mapping_uid=" + mapping_uid + ", name=" + name);
-			// FIXME 使用可能ボタン割り当て設定に追加
+			for (final ARControllerArgumentDictionary<Object> element: elementDictionary.values()) {
+				final Object uid_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_AVAILABLEBUTTONMAPPINGS_MAPPING_UID);
+				final Object name_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_AVAILABLEBUTTONMAPPINGS_NAME);
+				if ((uid_obj != null) && (name_obj != null)) {
+					/** ボタンの識別コード */
+					final String mapping_uid = (String)uid_obj;
+					/** ボタン名 */
+					final String name = (String)name_obj;
+					if (DEBUG) Log.v(TAG, "onAvailableButtonMappingsUpdate:mapping_uid=" + mapping_uid + ", name=" + name);
+					// FIXME 使用可能ボタン割り当て設定に追加
+				}
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_BUTTONMAPPINGSSTATE_ALLAVAILABLEBUTTONSMAPPINGSSENT:	// (143, "Key used to define the command <code>AllAvailableButtonsMappingsSent</code> of class <code>ButtonMappingsState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -417,14 +432,15 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			// requestAllStatesを呼んでも来る
 			// resetAxisMappingを呼んでも来る
 			// 複数回来た後ARCommandSkyControllerAxisMappingsStateAllCurrentAxisMappingsSentListenerが来る
-			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
-			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_MAPPING_UID);
-			if (!TextUtils.isEmpty(mapping_uid)) {
-				final int axis_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_AXIS_ID);
-				if (DEBUG) Log.v(TAG, "onCurrentAxisMappingsUpdate:axis_id=" + axis_id + ", mapping_uid=" + mapping_uid);
-				// FIXME ジョイスティック割当設定を追加
-			} else {
-				if (DEBUG) Log.v(TAG, "onCurrentAxisMappingsUpdate:null");
+			for (final ARControllerArgumentDictionary<Object> element: elementDictionary.values()) {
+				final Object uid_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_MAPPING_UID);
+				final Object id_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_CURRENTAXISMAPPINGS_AXIS_ID);
+				if ((uid_obj != null) && (id_obj != null)) {
+					final String mapping_uid = (String)uid_obj;
+					final int axis_id = (Integer)id_obj;
+					if (DEBUG) Log.v(TAG, "onCurrentAxisMappingsUpdate:axis_id=" + axis_id + ", mapping_uid=" + mapping_uid);
+					// FIXME ジョイスティック割当設定を追加
+				}
 			}
 			break;
 		}
@@ -439,10 +455,15 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_AVAILABLEAXISMAPPINGS:	// (146, "Key used to define the command <code>AvailableAxisMappings</code> of class <code>AxisMappingsState</code> in project <code>SkyControllerNewAPI</code>"),
 		{	// 使用可能なジョイスティック割当を受信した時
 			// requestAllStatesを呼んでも来る
-			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
-			final String mapping_uid = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_AVAILABLEAXISMAPPINGS_MAPPING_UID);
-			final String name = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_AVAILABLEAXISMAPPINGS_NAME);
-			if (DEBUG) Log.v(TAG, "onAvailableAxisMappingsUpdate:mapping_uid=" + mapping_uid + ", name=" + name);
+			for (final ARControllerArgumentDictionary<Object> element: elementDictionary.values()) {
+				final Object uid_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_AVAILABLEAXISMAPPINGS_MAPPING_UID);
+				final Object name_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_AVAILABLEAXISMAPPINGS_NAME);
+				if ((uid_obj != null) && (name_obj != null)) {
+					final String mapping_uid = (String)uid_obj;
+					final String name = (String)name_obj;
+					if (DEBUG) Log.v(TAG, "onAvailableAxisMappingsUpdate:mapping_uid=" + mapping_uid + ", name=" + name);
+				}
+			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISMAPPINGSSTATE_ALLAVAILABLEAXISMAPPINGSSENT:	// (147, "Key used to define the command <code>AllAvailableAxisMappingsSent</code> of class <code>AxisMappingsState</code> in project <code>SkyControllerNewAPI</code>"),
@@ -455,15 +476,16 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		{	// ジョイスティック入力フィルター設定が更新された時
 			// requestAllStatesを呼んでも来る
 			// "ARMF"ってのが来る
-			// XXX ARSDK3.8.3までのNewAPIだとnullしか来ない
-			final String filter_uid_or_builder = (String)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS_FILTER_UID_OR_BUILDER);
-			if (!TextUtils.isEmpty(filter_uid_or_builder)) {
-				/** 軸番号: 0..n */
-				final int axis_id = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS_AXIS_ID);
-				if (DEBUG) Log.v(TAG, "onCurrentAxisFiltersUpdate:axis_id=" + axis_id + ", filter_uid_or_builder=" + filter_uid_or_builder);
-				// FIXME ジョイスティック入力フィルター設定追加
-			} else {
-				if (DEBUG) Log.v(TAG, "onCurrentAxisFiltersUpdate:null");
+			for (final ARControllerArgumentDictionary<Object> element: elementDictionary.values()) {
+				final Object uid_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS_FILTER_UID_OR_BUILDER);
+				final Object id_obj = element.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_AXISFILTERSSTATE_CURRENTAXISFILTERS_AXIS_ID);
+				if ((uid_obj != null) && (id_obj != null)) {
+					final String filter_uid_or_builder = (String)uid_obj;
+					/** 軸番号: 0..n */
+					final int axis_id = (Integer)id_obj;
+					if (DEBUG) Log.v(TAG, "onCurrentAxisFiltersUpdate:axis_id=" + axis_id + ", filter_uid_or_builder=" + filter_uid_or_builder);
+					// FIXME ジョイスティック入力フィルター設定追加
+				}
 			}
 			break;
 		}
@@ -877,7 +899,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 //	public ARCONTROLLER_ERROR_ENUM sendAccessPointSettingsWifiSelection (ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_TYPE_ENUM _type, ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_BAND_ENUM _band, byte _channel)
 
 	/**
-	 * XXX ARSDK3.8.3のNewAPIだと結果データがnullで返ってくる
 	 * @return
 	 */
 	@Override
@@ -942,7 +963,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	/**
 	 * スカイコントローラーが検出している機体一覧を要求
-	 * XXX ARSDK3.8.3のNewAPIだと結果が返ってこない
 	 * @return
 	 */
 	@Override
@@ -1116,10 +1136,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
-	/**
-	 * XXX ARSDK3.8.3のNewAPIだと結果データがnullで返ってくる
-	 * @return
-	 */
 	@Override
 	public boolean requestCurrentButtonMappings() {
 		if (DEBUG) Log.d(TAG, "requestCurrentButtonMappings:");
@@ -1133,10 +1149,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
-	/**
-	 * XXX ARSDK3.8.3のNewAPIだと結果データがnullで返ってくる
-	 * @return
-	 */
 	@Override
 	public boolean requestAvailableButtonMappings() {
 		if (DEBUG) Log.d(TAG, "requestAvailableButtonMappings:");
@@ -1176,10 +1188,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
-	/**
-	 * XXX ARSDK3.8.3のNewAPIだと結果データがnullで返ってくる
-	 * @return
-	 */
 	@Override
 	public boolean requestCurrentAxisMappings() {
 		if (DEBUG) Log.d(TAG, "requestCurrentAxisMappings:");
@@ -1193,10 +1201,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
-	/**
-	 * XXX ARSDK3.8.3のNewAPIだと結果データがnullで返ってくる
-	 * @return
-	 */
 	@Override
 	public boolean requestAvailableAxisMappings() {
 		if (DEBUG) Log.d(TAG, "requestAvailableAxisMappings:");

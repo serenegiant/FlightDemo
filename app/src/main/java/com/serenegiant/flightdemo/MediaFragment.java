@@ -33,7 +33,7 @@ import java.util.List;
 
 public class MediaFragment extends BaseFlightControllerFragment
 	implements TransferProgressDialogFragment.TransferProgressDialogListener, OnDialogResultIntListener {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = MediaFragment.class.getSimpleName();
 
 	private static final int REQUEST_DELETE = 1;
@@ -169,6 +169,7 @@ public class MediaFragment extends BaseFlightControllerFragment
 	private final Runnable mConnectCheckTask = new Runnable() {
 		@Override
 		public void run() {
+			if (DEBUG) Log.v(TAG, "mConnectCheckTask#run:");
 			final String mass_storage_name = mFlightController.getMassStorageName();
 			if (TextUtils.isEmpty(mass_storage_name)) {
 				queueEvent(this, 1000);	// まだ準備出来てないので1秒後に再実行

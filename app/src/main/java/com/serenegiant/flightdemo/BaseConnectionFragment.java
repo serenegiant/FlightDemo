@@ -207,7 +207,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 					adapter.add(service);
 					break;
 				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
-					if (BuildConfig.USE_SKYCONTROLLER) {
+					if (isNewAPI() && BuildConfig.USE_SKYCONTROLLER) {
 						adapter.add(service);
 					}
 					break;
@@ -267,7 +267,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			switch (product) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				fragment = isPiloting ? PilotFragment2.newInstance(device, mIsNewAPI) : MediaFragment.newInstance(device, mIsNewAPI);
+				fragment = isPiloting ? PilotFragment2.newInstance(device, isNewAPI()) : MediaFragment.newInstance(device, isNewAPI());
 				break;
 			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
 				//FIXME JumpingSumoは未実装
@@ -276,7 +276,8 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
-				fragment = isPiloting ? PilotFragment2.newInstance(device, mIsNewAPI) : MediaFragment.newInstance(device, mIsNewAPI);
+				// XXX MinidroneをNewAPIで動かすと機体が滑らかに飛行しないので常に従来APIにする
+				fragment = isPiloting ? PilotFragment2.newInstance(device, false) : MediaFragment.newInstance(device, false);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
 				if (BuildConfig.USE_SKYCONTROLLER) {

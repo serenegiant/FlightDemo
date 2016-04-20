@@ -16,7 +16,7 @@ import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.SkyControllerListener;
 
 public abstract class BaseFlightControllerFragment extends BaseControllerFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private final String TAG = "BaseFlightControllerFragment:" + getClass().getSimpleName();
 
 	protected IFlightController mFlightController;

@@ -1,12 +1,14 @@
 package com.serenegiant.arflight.controllers;
 
 import android.content.Context;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.parrot.arsdk.arcommands.*;
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_ERROR_ENUM;
 import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
+import com.parrot.arsdk.arcontroller.ARControllerDictionary;
 import com.parrot.arsdk.arcontroller.ARDeviceController;
 import com.parrot.arsdk.arcontroller.ARFeatureMiniDrone;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -40,9 +42,10 @@ public class FlightControllerMiniDroneNewAPI extends FlightControllerNewAPI {
 	@Override
 	protected void onCommandReceived(final ARDeviceController deviceController,
 		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
-		final ARControllerArgumentDictionary<Object> args) {
+		final ARControllerArgumentDictionary<Object> args,
+		final ARControllerDictionary elementDictionary) {
 
-		super.onCommandReceived(deviceController, commandKey, args);
+		super.onCommandReceived(deviceController, commandKey, args, elementDictionary);
 
 		switch (commandKey) {
 		case ARCONTROLLER_DICTIONARY_KEY_MINIDRONE:	// (100, "Key used to define the feature <code>MiniDrone</code>"),
@@ -229,13 +232,22 @@ public class FlightControllerMiniDroneNewAPI extends FlightControllerNewAPI {
 		}
 	}
 
-	private int _timestampAndSeqNum;
+	private int seqNum;
 	@Override
 	protected boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading) {
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			try {
-				result = mARDeviceController.getFeatureMiniDrone().sendPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, _timestampAndSeqNum++);
+				/** sendPilotingPCMD
+				 * @param _flag Boolean flag to activate roll/pitch movement
+				 * @param _roll Roll consign for the drone [-100;100]
+				 * @param _pitch Pitch consign for the drone [-100;100]
+				 * @param _yaw Yaw consign for the drone [-100;100]
+				 * @param _gaz Gaz consign for the drone [-100;100]
+				 * @param _timestampAndSeqNum Command timestamp in milliseconds (low 24 bits) + command sequence number [0;255] (high 8 bits).
+				 */
+				final int timestampAndSeqNum = (int)(System.currentTimeMillis() & 0xffffff) + (seqNum ++) << 24;
+				result = mARDeviceController.getFeatureMiniDrone().sendPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, timestampAndSeqNum);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}

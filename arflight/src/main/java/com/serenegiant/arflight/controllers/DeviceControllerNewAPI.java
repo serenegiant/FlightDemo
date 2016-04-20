@@ -3,7 +3,6 @@ package com.serenegiant.arflight.controllers;
 import android.content.Context;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.parrot.arsdk.arcommands.*;
@@ -40,11 +39,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public abstract class DeviceControllerNewAPI implements IDeviceController {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private String TAG = "DeviceControllerNewAPI:" + getClass().getSimpleName();
 
 	private final WeakReference<Context> mWeakContext;
@@ -497,13 +497,14 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 				if (DEBUG) Log.v(TAG, "stop:ARDeviceController#stop");
 				final ARCONTROLLER_ERROR_ENUM error = mARDeviceController.stop();
 				final boolean failed = (error != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK);
-				if (failed) {
+				if (!failed) {
+					if (DEBUG) Log.v(TAG, "stop:disconnectSent待機");
+					disconnectSent.acquire();
+				} else {
 					Log.w(TAG, "failed to stop ARController:err=" + error);
 				}
-				if (DEBUG) Log.v(TAG, "stop:disconnectSent待機");
-				disconnectSent.acquire();
 			} catch (final InterruptedException e) {
-
+				// ignore
 			} finally {
 				mRequestDisconnect = false;
 			}
@@ -604,13 +605,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey, final ARControllerDictionary elementDictionary) {
 
 			if (elementDictionary != null) {
-				final ARControllerArgumentDictionary<Object> args = elementDictionary.get(ARControllerDictionary.ARCONTROLLER_DICTIONARY_SINGLE_KEY);
-				if (args != null) {
-					try {
-						DeviceControllerNewAPI.this.onCommandReceived(deviceController, commandKey, args);
-					} catch (final Exception e) {
-						Log.w(TAG, e);
-					}
+				try {
+					final ARControllerArgumentDictionary<Object> single = elementDictionary.get(ARControllerDictionary.ARCONTROLLER_DICTIONARY_SINGLE_KEY);
+					DeviceControllerNewAPI.this.onCommandReceived(deviceController, commandKey, single, elementDictionary);
+				} catch (final Exception e) {
+					Log.w(TAG, e);
 				}
 			}
 		}
@@ -721,7 +720,8 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	/** mDeviceControllerListenerの下請け */
 	protected void onCommandReceived(final ARDeviceController deviceController,
 		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
-		final ARControllerArgumentDictionary<Object> args) {
+		final ARControllerArgumentDictionary<Object> args,
+		final ARControllerDictionary elementDictionary) {
 
 		switch (commandKey) {
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON:	// (157, "Key used to define the feature <code>Common</code>"),
@@ -792,29 +792,37 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED:	// (169, "Key used to define the command <code>MassStorageStateListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// 機体内のストレージ一覧が変化した時
-			final String name = (String)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED_NAME);
-			if (!TextUtils.isEmpty(name)) {
-				final int mass_storage_id = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED_MASS_STORAGE_ID);
-				onCommonStateMassStorageStateListChanged(mass_storage_id, name);
-			} else {
-				if (DEBUG) Log.v(TAG, "onCommonStateMassStorageStateListChanged:null");
+			for (final ARControllerArgumentDictionary<Object> element: elementDictionary.values()) {
+				final Object id_obj = element.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED_MASS_STORAGE_ID);
+				final Object name_obj = element.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGESTATELISTCHANGED_NAME);
+				if ((id_obj != null) && (name_obj != null)) {
+					onCommonStateMassStorageStateListChanged((Integer)id_obj, (String)name_obj);
+				}
 			}
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED:	// (170, "Key used to define the command <code>MassStorageInfoStateListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// ストレージの状態が変化した時
-			try {
-				final int mass_storage_id = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_MASS_STORAGE_ID);
-				final long size = (Long)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_SIZE);
-				final long used_size = (Long)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_USED_SIZE);
-				final boolean plugged = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_PLUGGED) != 0;
-				final boolean full = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_FULL) != 0;
-				final boolean internal = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_INTERNAL) != 0;
+			for (final ARControllerArgumentDictionary<Object> element: elementDictionary.values()) {
+				final Object id_obj = element.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_MASS_STORAGE_ID);
+				final Object size_obj = element.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_SIZE);
+				final Object used_size_obj = element.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_USED_SIZE);
+				final Object plugged_obj = element.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_PLUGGED);
+				final Object full_obj = element.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_FULL);
+				final Object internal_obj = element.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_MASSSTORAGEINFOSTATELISTCHANGED_INTERNAL);
+				if ((id_obj != null) && (size_obj != null) && (used_size_obj != null)
+					&& (plugged_obj != null) && (full_obj != null) && (internal_obj != null)) {
+					final int mass_storage_id = (Integer)id_obj;
+					final int size = (Integer)size_obj;
+					final int used_size = (Integer)used_size_obj;
+					final boolean plugged = (Integer)plugged_obj != 0;
+					final boolean full = (Integer)full_obj != 0;
+					final boolean internal = (Integer)internal_obj != 0;
 
-				onCommonStateMassStorageInfoStateListChanged(mass_storage_id, size, used_size, plugged, full, internal);
-			} catch (final Exception e) {
-				if (DEBUG) Log.v(TAG, "onCommonStateMassStorageInfoStateListChanged:null");
+					onCommonStateMassStorageInfoStateListChanged(mass_storage_id, size, used_size, plugged, full, internal);
+				}
 			}
+
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_CURRENTDATECHANGED:	// (171, "Key used to define the command <code>CurrentDateChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
@@ -848,22 +856,25 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED:	// (175, "Key used to define the command <code>SensorsStatesListChanged</code> of class <code>CommonState</code> in project <code>Common</code>"),
 		{	// センサー状態リストが変化した時
-			try {
-				final int _sensor = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME);
-				final ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM sensor = ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM.getFromValue(_sensor);
-				final int state = (Integer)args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORSTATE);
+			for (final ARControllerArgumentDictionary<Object> element: elementDictionary.values()) {
+				final Object sensor_obj = element.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME);
+				final Object state_obj = element.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORSTATE);
+				if ((sensor_obj != null) && (state_obj != null)) {
+					final ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM sensor
+						= ARCOMMANDS_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME_ENUM.getFromValue((Integer)sensor_obj);
+					final int state = (Integer)state_obj;
 
-				switch (sensor.getValue()) {
-				case IFlightController.SENSOR_IMU: // 0
-				case IFlightController.SENSOR_BAROMETER:	// 1
-				case IFlightController.SENSOR_ULTRASOUND: // 2
-				case IFlightController.SENSOR_GPS: // 3
-				case IFlightController.SENSOR_MAGNETOMETER: // 4
-				case IFlightController.SENSOR_VERTICAL_CAMERA: // 5
+					switch (sensor.getValue()) {
+					case IFlightController.SENSOR_IMU: // 0
+					case IFlightController.SENSOR_BAROMETER:	// 1
+					case IFlightController.SENSOR_ULTRASOUND: // 2
+					case IFlightController.SENSOR_GPS: // 3
+					case IFlightController.SENSOR_MAGNETOMETER: // 4
+					case IFlightController.SENSOR_VERTICAL_CAMERA: // 5
+						break;
+					}
+//					if (DEBUG) Log.v(TAG, String.format("SensorsStatesListChangedUpdate:%d=%d", sensor.getValue(), state));
 				}
-				if (DEBUG) Log.v(TAG, String.format("SensorsStatesListChangedUpdate:%d=%d", sensor.getValue(), state));
-			} catch (final Exception e) {
-				if (DEBUG) Log.v(TAG, "SensorsStatesListChangedUpdate:null");
 			}
 			break;
 		}
@@ -1070,21 +1081,24 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	protected abstract void callOnCalibrationStartStop(final boolean is_start);
 	protected abstract void callOnCalibrationRequiredChanged(final boolean failed);
 	protected abstract void callOnCalibrationAxisChanged(final int axis);
+	protected abstract void callOnUpdateStorageState(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal);
 
 	protected abstract void onOutdoorSettingChanged(final boolean outdoor);
 
 	protected void onCommonStateMassStorageStateListChanged(
 		final int mass_storage_id, final String name) {
 
-		if (DEBUG) Log.v(TAG, String.format("onCommonStateMassStorageStateListChanged:id=%d,name=%s", mass_storage_id, name));
+//		if (DEBUG) Log.v(TAG, String.format("onCommonStateMassStorageStateListChanged:id=%d,name=%s", mass_storage_id, name));
+		((DroneStatus)mStatus).setMassStorage(mass_storage_id, name);
 	}
 
 	protected void onCommonStateMassStorageInfoStateListChanged(
-		final int mass_storage_id, final long size, final long used_size,
+		final int mass_storage_id, final int size, final int used_size,
 		final boolean plugged, final boolean full, final boolean internal) {
 
-		if (DEBUG) Log.v(TAG, String.format("onCommonStateMassStorageInfoStateListChanged:%d,size=%d,used=%d",
-			mass_storage_id, size, used_size));
+//		if (DEBUG) Log.v(TAG, String.format("onCommonStateMassStorageInfoStateListChanged:%d,size=%d,used=%d",
+//			mass_storage_id, size, used_size));
+		callOnUpdateStorageState(mass_storage_id, size, used_size, plugged, full, internal);
 	}
 
 //********************************************************************************

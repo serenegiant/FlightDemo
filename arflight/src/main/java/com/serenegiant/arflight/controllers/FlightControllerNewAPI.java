@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
 import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
+import com.parrot.arsdk.arcontroller.ARControllerDictionary;
 import com.parrot.arsdk.arcontroller.ARDeviceController;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceConnectionListener;
@@ -27,9 +28,8 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = FlightControllerNewAPI.class.getSimpleName();
 
-	private LooperThread mFlightCMDThread;
+	private FlightCMDThread mFlightCMDThread;
 
-	private final Object mDataSync = new Object();
 	private final DataPCMD mDataPCMD = new DataPCMD();
 
 	private final List<FlightControllerListener> mListeners = new ArrayList<FlightControllerListener>();
@@ -41,14 +41,16 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 		if (DEBUG) Log.v (TAG, "コンストラクタ:");
 	}
 
-	protected void onCommandReceived(final ARDeviceController deviceController,
-		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
-		final ARControllerArgumentDictionary<Object> args) {
-
-		super.onCommandReceived(deviceController, commandKey, args);
-		switch (commandKey) {
-		}
-	}
+//	protected void onCommandReceived(final ARDeviceController deviceController,
+//		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
+//		final ARControllerArgumentDictionary<Object> args,
+//		final ARControllerDictionary elementDictionary) {
+//
+//		super.onCommandReceived(deviceController, commandKey, args, elementDictionary);
+//
+//		switch (commandKey) {
+//		}
+//	}
 
 	@Override
 	protected void onStarted() {
@@ -131,17 +133,14 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 		if (mFlightCMDThread != null) {
 			mFlightCMDThread.stopThread();
 		}
-        /* Create the looper thread */
-		mFlightCMDThread = new FlightCMDThread((mNetConfig.getPCMDLoopIntervalsMs()));
-
-        /* Start the looper thread. */
+		mFlightCMDThread = new FlightCMDThread(); // new FlightCMDThread(mNetConfig.getPCMDLoopIntervalsMs());
 		mFlightCMDThread.start();
 	}
 
 	/** 操縦コマンド送信を終了(終了するまで戻らない) */
 	private void stopFlightCMDThread() {
 		if (DEBUG) Log.v(TAG, "stopFlightCMDThread:");
-        /* Cancel the looper thread and block until it is stopped. */
+		/* Cancel the looper thread and block until it is stopped. */
 		if (null != mFlightCMDThread) {
 			mFlightCMDThread.stopThread();
 			try {
@@ -310,6 +309,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * キャリブレーション状態が変更された時のコールバックを呼び出す
 	 * @param need_calibration
 	 */
+	@Override
 	protected void callOnCalibrationRequiredChanged(final boolean need_calibration) {
 		synchronized (mListeners) {
 			for (final FlightControllerListener listener: mListeners) {
@@ -328,6 +328,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * キャリブレーションを開始/終了した時のコールバックを呼び出す
 	 * @param is_start
 	 */
+	@Override
 	protected void callOnCalibrationStartStop(final boolean is_start) {
 		if (DEBUG) Log.v (TAG, "callOnCalibrationStartStop:");
 		synchronized (mListeners) {
@@ -347,6 +348,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * キャリブレーション中の軸が変更された時のコールバックを呼び出す
 	 * @param axis 0:x, 1:y, z:2, 3:none
 	 */
+	@Override
 	protected void callOnCalibrationAxisChanged(final int axis) {
 		if (DEBUG) Log.v (TAG, "callOnCalibrationAxisChanged:");
 		synchronized (mListeners) {
@@ -415,6 +417,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 * @param full
 	 * @param internal
 	 */
+	@Override
 	protected void callOnUpdateStorageState(final int mass_storage_id, final int size, final int used_size, final boolean plugged, final boolean full, final boolean internal) {
 		if (DEBUG) Log.v (TAG, "callOnUpdateStorageState:");
 		final boolean changed = ((DroneStatus)mStatus).setMassStorageInfo(mass_storage_id, size, used_size, plugged, full, internal);
@@ -442,8 +445,10 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setFlag(final int flag) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.flag = flag == 0 ? 0 : (flag != 0 ? 1 : 0);
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -453,8 +458,10 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setGaz(final float gaz) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.gaz = gaz > 100 ? 100 : (gaz < -100 ? -100 : gaz);
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -464,8 +471,10 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setRoll(final float roll) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -476,9 +485,11 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setRoll(final float roll, final boolean move) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
 			mDataPCMD.flag = move ? 1 : 0;
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -488,8 +499,10 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setPitch(final float pitch) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -500,9 +513,11 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setPitch(final float pitch, final boolean move) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
 			mDataPCMD.flag = move ? 1 : 0;
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -512,8 +527,10 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setYaw(final float yaw) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.yaw = yaw > 100 ? 100 : (yaw < -100 ? -100 : yaw);
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -523,8 +540,10 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setHeading(final float heading) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.heading = heading;
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -535,10 +554,12 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setMove(final float roll, final float pitch) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
 			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.flag = 1;
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -550,11 +571,13 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setMove(final float roll, final float pitch, final float gaz) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
 			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
 			mDataPCMD.flag = 1;
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -567,12 +590,14 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setMove(final float roll, final float pitch, final float gaz, final float yaw) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
 			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
 			mDataPCMD.yaw = yaw > 100.0f ? 100.0f : (yaw < -100.0f ? -100.0f : yaw) ;
 			mDataPCMD.flag = 1;
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -586,18 +611,20 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 	 */
 	@Override
 	public void setMove(final float roll, final float pitch, final float gaz, final float yaw, int flag) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
 			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
 			mDataPCMD.yaw = yaw > 100.0f ? 100.0f : (yaw < -100.0f ? -100.0f : yaw) ;
 			mDataPCMD.flag = flag;
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
 	protected void getPCMD(final DataPCMD dest) {
 		if (dest != null) {
-			synchronized (mDataSync) {
+			synchronized (mDataPCMD) {
 				dest.set(mDataPCMD);
 			}
 		}
@@ -617,25 +644,56 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 
 	/**
 	 * 操縦コマンド送信スレッドでのループ内の処理(sendPCMDを呼び出す)
-	 * 下位クラスで定期的にコマンド送信が必要ならoverride
 	 */
 	protected void sendCmdInControlLoop() {
 		final int flag;
 		float roll, pitch, yaw, gaz, heading;
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
+			if (!mDataPCMD.requestSend) return;
 			flag = mDataPCMD.flag;
 			roll = mDataPCMD.roll;
 			pitch = mDataPCMD.pitch;
 			yaw = mDataPCMD.yaw;
 			gaz = mDataPCMD.gaz;
 			heading = mDataPCMD.heading;
+			mDataPCMD.requestSend = false;
 		}
 		// 操縦コマンド送信
 		sendPCMD(flag, (int) roll, (int) pitch, (int)yaw, (int)gaz, (int)heading);
 	}
 
 	/** 操縦コマンドを定期的に送信するためのスレッド */
-	protected class FlightCMDThread extends LooperThread {
+	protected class FlightCMDThread extends Thread {
+		private volatile boolean mIsRunning;
+		public FlightCMDThread() {
+		}
+
+		public void stopThread() {
+			mIsRunning = false;
+			synchronized (mDataPCMD) {
+				mDataPCMD.notifyAll();
+			}
+		}
+
+		@Override
+		public void run() {
+			mIsRunning = true;
+			for ( ; mIsRunning ; ) {
+				synchronized (mDataPCMD) {
+					try {
+						mDataPCMD.wait(1000);
+					} catch (final InterruptedException e) {
+						break;
+					}
+				}
+				if (mIsRunning && isConnected()) {
+					sendCmdInControlLoop();
+				}
+			}
+		}
+	}
+
+/*	protected class FlightCMDThread extends LooperThread {
 		private final long intervals_ms;
 		public FlightCMDThread(final long _intervals_ms) {
 			intervals_ms = _intervals_ms;
@@ -657,5 +715,5 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 				// ignore
 			}
 		}
-	}
+	} */
 }

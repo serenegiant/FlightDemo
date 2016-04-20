@@ -8,6 +8,7 @@ import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_ERROR_ENUM;
 import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
 import com.parrot.arsdk.arcontroller.ARControllerCodec;
+import com.parrot.arsdk.arcontroller.ARControllerDictionary;
 import com.parrot.arsdk.arcontroller.ARDeviceController;
 import com.parrot.arsdk.arcontroller.ARDeviceControllerStreamListener;
 import com.parrot.arsdk.arcontroller.ARFeatureARDrone3;
@@ -32,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implements ICameraController, IWiFiController {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private final String TAG = "FlightControllerBebopNewAPI:" + getClass().getSimpleName();
 
 	private final Object mVideoSync = new Object();
@@ -76,7 +77,14 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	protected void onBeforeStop() {
 		if (DEBUG) Log.v(TAG, "onBeforeStop:");
 		if (mARDeviceController != null) {
-			enableVideoStreaming(false);
+			if (isVideoStreamingEnabled()) {
+				enableVideoStreaming(false);
+				try {
+					Thread.sleep(1000);
+				} catch (final InterruptedException e) {
+					// ignore
+				}
+			}
 			mARDeviceController.removeStreamListener(mStreamListener);
 		}
 		super.onBeforeStop();
@@ -151,9 +159,10 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 	@Override
 	protected void onCommandReceived(final ARDeviceController deviceController,
 		final ARCONTROLLER_DICTIONARY_KEY_ENUM commandKey,
-		final ARControllerArgumentDictionary<Object> args) {
+		final ARControllerArgumentDictionary<Object> args,
+		final ARControllerDictionary elementDictionary) {
 
-		super.onCommandReceived(deviceController, commandKey, args);
+		super.onCommandReceived(deviceController, commandKey, args, elementDictionary);
 
 		switch (commandKey) {
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3:	// (0, "Key used to define the feature <code>ARDrone3</code>"),
@@ -166,7 +175,13 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED:	// (2, "Key used to define the command <code>VideoStateChanged</code> of class <code>MediaRecordState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	//  ビデオ撮影状態を受信した時
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED_STATE_ENUM state
+				= ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED_STATE_ENUM.getFromValue(
+				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED_STATE)
+			);
+			final int mass_storage_id = (Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGED_MASS_STORAGE_ID);
+			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStateVideoStateChangedUpdate:state=" + state + ",mass_storage_id=" + mass_storage_id);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_PICTURESTATECHANGEDV2:	// (3, "Key used to define the command <code>PictureStateChangedV2</code> of class <code>MediaRecordState</code> in project <code>ARDrone3</code>"),
@@ -196,7 +211,30 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2:	// (4, "Key used to define the command <code>VideoStateChangedV2</code> of class <code>MediaRecordState</code> in project <code>ARDrone3</code>"),
-		{	// FIXME 未実装
+		{	//  ビデオ撮影状態を受信した時
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE_ENUM state
+				= ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE_ENUM.getFromValue(
+				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE)
+			);
+			final ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_ERROR_ENUM error
+				= ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_ERROR_ENUM.getFromValue(
+				(Integer)args.get(ARFeatureARDrone3.ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_ERROR)
+			);
+			if (DEBUG) Log.v(TAG, "onARDrone3MediaRecordStateVideoStateChangedV2Update:state=" + state + ",error=" + error);
+			int _state;
+			switch (state) {
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE_STOPPED:
+				_state = DroneStatus.MEDIA_READY;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE_STARTED:
+				_state = DroneStatus.MEDIA_BUSY;
+				break;
+			case ARCOMMANDS_ARDRONE3_MEDIARECORDSTATE_VIDEOSTATECHANGEDV2_STATE_NOTAVAILABLE:
+			default:
+				_state = DroneStatus.MEDIA_UNAVAILABLE;
+				break;
+			}
+			callOnVideoRecordingStateChanged(_state);
 			break;
 		}
 		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_MEDIARECORDEVENT_PICTUREEVENTCHANGED:	// (5, "Key used to define the command <code>PictureEventChanged</code> of class <code>MediaRecordEvent</code> in project <code>ARDrone3</code>"),
@@ -1183,13 +1221,22 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
-	private int _timestampAndSeqNum;
+	private int seqNum;
 	@Override
 	protected boolean sendPCMD(final int flag, final int roll, final int pitch, final int yaw, final int gaz, final int heading) {
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			try {
-				result = mARDeviceController.getFeatureARDrone3().sendPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, _timestampAndSeqNum++);
+				/** sendPilotingPCMD
+				 * @param _flag Boolean flag to activate roll/pitch movement
+				 * @param _roll Roll consign for the drone [-100;100]
+				 * @param _pitch Pitch consign for the drone [-100;100]
+				 * @param _yaw Yaw consign for the drone [-100;100]
+				 * @param _gaz Gaz consign for the drone [-100;100]
+				 * @param _timestampAndSeqNum Command timestamp in milliseconds (low 24 bits) + command sequence number [0;255] (high 8 bits).
+				 */
+				final int timestampAndSeqNum = (int)(System.currentTimeMillis() & 0xffffff) + (seqNum ++) << 24;
+				result = mARDeviceController.getFeatureARDrone3().sendPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, timestampAndSeqNum);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
@@ -1243,12 +1290,15 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 			final AttributeFloat rotation_speed = mSettings.maxRotationSpeed();    // 回転速度[度/秒]
 			final float current = rotation_speed.current();
+			final float max = rotation_speed.max();
 			try {
 				try {
-					if (current != rotation_speed.max()) {
+					if (current != max) {
 						// 最大回転速度に変更する
-						setMaxRotationSpeed(rotation_speed.max());
-						Thread.sleep(5);
+						setMaxRotationSpeed(max);
+						for ( ; rotation_speed.current() != max ;) {
+							Thread.sleep(5);
+						}
 					}
 					final long t = (long) Math.abs(degree / rotation_speed.max() * 1000);    // 回転時間[ミリ秒]を計算
 					setYaw(degree > 0 ? 100 : -100);
@@ -1274,14 +1324,17 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 
 			final AttributeFloat rotation_speed = mSettings.maxRotationSpeed();    // 回転速度[度/秒]
 			final float current = rotation_speed.current();
+			final float max = rotation_speed.max();
 			try {
 				try {
-					final long t = (long) Math.abs(degree / rotation_speed.max() * 1000);    // 回転時間[ミリ秒]を計算
+					final long t = (long) Math.abs(degree / max * 1000);    // 回転時間[ミリ秒]を計算
 					synchronized (sync) {
-						if (current != rotation_speed.max()) {
+						if (current != max) {
 							// 最大回転速度に変更する
-							setMaxRotationSpeed(rotation_speed.max());
-							sync.wait(5);
+							setMaxRotationSpeed(max);
+							for ( ; rotation_speed.current() != max ;) {
+								sync.wait(5);
+							}
 						}
 						setYaw(degree > 0 ? 100 : -100);
 						sync.wait(t);

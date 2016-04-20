@@ -524,12 +524,20 @@ public class ManagerFragment extends Fragment {
 			if ((activity != null) && !activity.isFinishing()) {
 				showProgress(R.string.disconnecting, false, null);
 			}
-
+			if (controller instanceof IVideoStreamController) {
+				queueEvent(new Runnable() {
+					@Override
+					public void run() {
+						((IVideoStreamController)controller).enableVideoStreaming(false);
+					}
+				});
+			}
 			queueEvent(new Runnable() {
 				@Override
 				public void run() {
 					if (DEBUG) Log.v(TAG, "releaseController:終了中");
 					try {
+						controller.stop();
 						controller.release();
 					} catch (final Exception e) {
 						Log.w(TAG, e);

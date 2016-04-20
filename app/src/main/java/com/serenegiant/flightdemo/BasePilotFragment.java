@@ -122,7 +122,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		mGamepadScaleY = pref.getFloat(KEY_GAMEPAD_SCALE_Y, 1.0f);
 		mGamepadScaleZ = pref.getFloat(KEY_GAMEPAD_SCALE_Z, 1.0f);
 		mGamepadScaleR = pref.getFloat(KEY_GAMEPAD_SCALE_R, 1.0f);
-		mAutoHide = pref.getBoolean(KEY_AUTO_HIDE, false);
+		mAutoHide = (mController instanceof ICameraController) && pref.getBoolean(KEY_AUTO_HIDE, false);
 		int layout_id;
 		if (mOperationTouch) {
 			layout_id = R.layout.fragment_pilot_touch;

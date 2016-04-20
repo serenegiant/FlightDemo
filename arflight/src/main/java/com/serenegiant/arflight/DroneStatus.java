@@ -217,7 +217,7 @@ public class DroneStatus extends CommonStatus {
 		return massStorageName(mCurrentMassStorageId);
 	}
 	/**
-	 * マスストレージ名を取得
+	 * マスストレージ名を設定
 	 * @param mass_storage_id
 	 * @return
 	 */

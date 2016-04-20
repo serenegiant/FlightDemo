@@ -59,7 +59,6 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 	private LooperThread mFlightCMDThread;
 
-	private final Object mDataSync = new Object();
 	private final DataPCMD mDataPCMD = new DataPCMD();
 
 	private final List<FlightControllerListener> mListeners = new ArrayList<FlightControllerListener>();
@@ -874,7 +873,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setFlag(final int flag) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.flag = flag == 0 ? 0 : (flag != 0 ? 1 : 0);
 		}
 	}
@@ -885,7 +884,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setGaz(final float gaz) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.gaz = gaz > 100 ? 100 : (gaz < -100 ? -100 : gaz);
 		}
 	}
@@ -896,7 +895,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setRoll(final float roll) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
 		}
 	}
@@ -908,7 +907,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setRoll(final float roll, final boolean move) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100 ? 100 : (roll < -100 ? -100 : roll);
 			mDataPCMD.flag = move ? 1 : 0;
 		}
@@ -920,7 +919,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setPitch(final float pitch) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
 		}
 	}
@@ -932,7 +931,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setPitch(final float pitch, final boolean move) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
 			mDataPCMD.flag = move ? 1 : 0;
 		}
@@ -944,7 +943,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setYaw(final float yaw) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.yaw = yaw > 100 ? 100 : (yaw < -100 ? -100 : yaw);
 		}
 	}
@@ -955,7 +954,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setHeading(final float heading) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.heading = heading;
 		}
 	}
@@ -967,7 +966,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setMove(final float roll, final float pitch) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
 			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.flag = 1;
@@ -982,7 +981,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setMove(final float roll, final float pitch, final float gaz) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
 			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
@@ -999,7 +998,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setMove(final float roll, final float pitch, final float gaz, final float yaw) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
 			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
@@ -1018,7 +1017,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	 */
 	@Override
 	public void setMove(final float roll, final float pitch, final float gaz, final float yaw, int flag) {
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			mDataPCMD.roll = roll > 100.0f ? 100.0f : (roll < -100.0f ? -100.0f : roll) ;
 			mDataPCMD.pitch = pitch > 100.0f ? 100.0f : (pitch < -100.0f ? -100.0f : pitch) ;
 			mDataPCMD.gaz = gaz > 100.0f ? 100.0f : (gaz < -100.0f ? -100.0f : gaz) ;
@@ -1029,7 +1028,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 	protected void getPCMD(final DataPCMD dest) {
 		if (dest != null) {
-			synchronized (mDataSync) {
+			synchronized (mDataPCMD) {
 				dest.set(mDataPCMD);
 			}
 		}
@@ -1295,7 +1294,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	protected void sendCmdInControlLoop() {
 		final int flag;
 		float roll, pitch, yaw, gaz, heading;
-		synchronized (mDataSync) {
+		synchronized (mDataPCMD) {
 			flag = mDataPCMD.flag;
 			roll = mDataPCMD.roll;
 			pitch = mDataPCMD.pitch;
@@ -1304,7 +1303,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 			heading = mDataPCMD.heading;
 		}
 		// 操縦コマンド送信
-		sendPCMD(flag, (int) roll, (int) pitch, (int)yaw, (int)gaz, (int)heading);
+		sendPCMD(flag, (int)roll, (int)pitch, (int)yaw, (int)gaz, (int)heading);
 	}
 
 	/** 操縦コマンドを定期的に送信するためのスレッド */

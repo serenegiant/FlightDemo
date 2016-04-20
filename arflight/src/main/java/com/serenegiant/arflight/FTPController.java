@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class FTPController {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "FTPController:";
 
 	public interface FTPControllerCallback {
@@ -131,6 +131,7 @@ public abstract class FTPController {
 	}
 
 	public void connect() {
+		if (DEBUG) Log.v(TAG, "connect:");
 		try {
 			mConnected = true;
 			mFTPHandler.sendEmptyMessage(REQ_CONNECT);
@@ -143,6 +144,7 @@ public abstract class FTPController {
 	 * 関連するリソースを破棄する。必ず呼び出すこと。再利用は出来ない。
 	 */
 	public void release() {
+		if (DEBUG) Log.v(TAG, "release:");
 		cancel();
 		try {
 			mConnected = false;
@@ -157,6 +159,7 @@ public abstract class FTPController {
 	 * 実行中・実行待ちの処理を中断要求する
 	 */
 	public void cancel() {
+		if (DEBUG) Log.v(TAG, "cancel:");
 		try {
 			// FIXME ここで未実行のCMD_RELEASE以外のコマンドを取り除く
 			mFTPHandler.removeMessages(REQ_CANCEL);
@@ -712,17 +715,17 @@ public abstract class FTPController {
 	private static final String USER_NAME = "anonymous";
 	private static final String PASSWORD = "";
 	private static final int HOST_PORT = 21;
-	/**
-	 * WiFi接続用のFTP処理クラス
-	 */
+	/** WiFi接続用のFTP処理クラス */
 	public static class FTPControllerWiFi extends FTPController {
 		public FTPControllerWiFi(final Context context, final IFlightController controller) {
 			super(context, controller);
+			if (DEBUG) Log.v(TAG, "FTPControllerWiFi:コンストラクタ");
 			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_INIT, controller));
 		}
 
 		@Override
 		protected void handleInit(final IFlightController controller) {
+			if (DEBUG) Log.v(TAG, "FTPControllerWiFi:handleInit:controller=" + controller);
 			final Object device = controller.getDeviceService().getDevice();
 			final String hostAddr;
 			if (device instanceof ARDiscoveryDeviceNetService) {
@@ -745,6 +748,7 @@ public abstract class FTPController {
 
 		@Override
 		protected void handleRelease() {
+			if (DEBUG) Log.v(TAG, "FTPControllerWiFi:handleRelease");
 			if ((mFTPListManager != null) && mFTPListManager.isCorrectlyInitialized()) {
 				mFTPListManager.closeWifiFtp();
 			}
@@ -756,17 +760,17 @@ public abstract class FTPController {
 
 	}
 
-	/**
-	 * Bluetooth接続用のFTP処理クラス
-	 */
+	/** Bluetooth接続用のFTP処理クラス */
 	public static class FTPControllerBLE extends FTPController {
 		public FTPControllerBLE(final Context context, final IFlightController controller) {
 			super(context, controller);
 			mFTPHandler.sendMessage(mFTPHandler.obtainMessage(REQ_INIT, controller));
+			if (DEBUG) Log.v(TAG, "FTPControllerBLE:コンストラクタ");
 		}
 
 		@Override
 		protected void handleInit(final IFlightController controller) {
+			if (DEBUG) Log.v(TAG, "FTPControllerBLE:handleInit:controller=" + controller);
 			final Context context = mWeakContext.get();
 			final Object device = controller.getDeviceService().getDevice();
 			if (!(device instanceof ARDiscoveryDeviceBLEService)) {
@@ -788,6 +792,7 @@ public abstract class FTPController {
 
 		@Override
 		protected void handleRelease() {
+			if (DEBUG) Log.v(TAG, "FTPControllerBLE:handleRelease");
 			final Context context = mWeakContext.get();
 			if ((mFTPListManager != null) && mFTPListManager.isCorrectlyInitialized()) {
 				mFTPListManager.closeBLEFtp(context);
