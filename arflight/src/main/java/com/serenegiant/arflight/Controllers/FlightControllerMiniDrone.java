@@ -47,6 +47,13 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 
 	public FlightControllerMiniDrone(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigMiniDrone());
+		if (DEBUG) Log.v (TAG, "コンストラクタ:");
+		init();
+	}
+
+	/** 共通の初期化処理 */
+	private void init() {
+		if (DEBUG) Log.v (TAG, "init:");
 		mInfo = new AttributeDevice();
 		mSettings = new DroneSettings();
 		mStatus = new DroneStatus(4);
@@ -406,7 +413,7 @@ public class FlightControllerMiniDrone extends FlightController implements IBLEC
 		 */
 		@Override
 		public void onMiniDroneFloodControlStateFloodControlChangedUpdate(final short delay) {
-			if (DEBUG) Log.v(TAG, "onMiniDroneFloodControlStateFloodControlChangedUpdate:");
+			if (DEBUG) Log.v(TAG, "onMiniDroneFloodControlStateFloodControlChangedUpdate:delay=" + delay);
 		}
 	};
 

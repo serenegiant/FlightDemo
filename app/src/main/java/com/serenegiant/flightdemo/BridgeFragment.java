@@ -42,9 +42,9 @@ public class BridgeFragment extends BaseControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = BridgeFragment.class.getSimpleName();
 
-	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device) {
+	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		final BridgeFragment fragment = new BridgeFragment();
-		fragment.setDevice(device, true);	// NewAPIを使う
+		fragment.setDevice(device, newAPI);
 		return fragment;
 	}
 
@@ -512,32 +512,16 @@ public class BridgeFragment extends BaseControllerFragment {
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 						switch (id) {
 						case R.id.pilot_button:
-							if (mController.isNewAPI()) {
-								fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test011", AutoPilotFragment2.MODE_TRACE);
-							} else {
-								fragment = AutoPilotFragment2.newInstance(device, info, "test001", AutoPilotFragment2.MODE_TRACE);
-							}
+							fragment = AutoPilotFragment2.newInstance(device, info, "test001", AutoPilotFragment2.MODE_TRACE, mController.isNewAPI());
 							break;
 						case R.id.download_button:
-							if (mController.isNewAPI()) {
-								fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test012", AutoPilotFragment2.MODE_TRACE);
-							} else {
-								fragment = AutoPilotFragment2.newInstance(device, info, "test002", AutoPilotFragment2.MODE_TRACE);
-							}
+							fragment = AutoPilotFragment2.newInstance(device, info, "test002", AutoPilotFragment2.MODE_TRACE, mController.isNewAPI());
 							break;
 						case R.id.gallery_button:
-							if (mController.isNewAPI()) {
-								fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test013", AutoPilotFragment2.MODE_TRACE);
-							} else {
-								fragment = AutoPilotFragment2.newInstance(device, info, "test003", AutoPilotFragment2.MODE_TRACE);
-							}
+							fragment = AutoPilotFragment2.newInstance(device, info, "test003", AutoPilotFragment2.MODE_TRACE, mController.isNewAPI());
 							break;
 						case R.id.script_button:
-							if (mController.isNewAPI()) {
-								fragment = AutoPilotFragment2NewAPI.newInstance(device, info, "test014", AutoPilotFragment2.MODE_TRACKING);
-							} else {
-								fragment = AutoPilotFragment2.newInstance(device, info, "test004", AutoPilotFragment2.MODE_TRACKING);
-							}
+							fragment = AutoPilotFragment2.newInstance(device, info, "test004", AutoPilotFragment2.MODE_TRACKING, mController.isNewAPI());
 							break;
 						default:
 							Log.w(TAG, "未知のview idが来た。なんでやねん:" + id);

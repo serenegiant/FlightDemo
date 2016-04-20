@@ -13,6 +13,8 @@ android {
 		targetSdkVersion 22
 		manifestPlaceholders = [appName:"@string/app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
+		versionCode 41
+		versionName '0.68.0'
 	}
 	signingConfigs {
 		debugKey {
@@ -51,14 +53,10 @@ android {
 		aceparrot {
 			applicationId "com.serenegiant.flightdemo"
 			signingConfig signingConfigs.aceparrot_releaseKey
-			versionCode 41
-			versionName '0.67.12'
 		}
 		autoparrot {
 			applicationId "com.serenegiant.autoparrot"
 			signingConfig signingConfigs.autoparrot_releaseKey
-			versionCode 41
-			versionName '0.67.12'
 		}
 	}
 }

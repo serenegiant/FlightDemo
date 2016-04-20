@@ -55,18 +55,10 @@ public class PilotFragment2 extends BasePilotFragment {
 	private static final long HIDE_PILOTING_DELAY_MS = 5000;		// アイコン等をすべて隠すまでの時間[ミリ秒]
 
 
-	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device) {
-		return newInstance(device, false);
-	}
-
 	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		final PilotFragment2 fragment = new PilotFragment2();
 		fragment.setDevice(device, newAPI);
 		return fragment;
-	}
-
-	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
-		return newInstance(device, info, false);
 	}
 
 	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final boolean newAPI) {
@@ -566,7 +558,7 @@ public class PilotFragment2 extends BasePilotFragment {
 				setColorFilter((ImageView)view);
 				if (isStarted()) {
 					if ((getState() & IFlightController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
-						replace(ConfigFragment.newInstance(getDevice()));
+						replace(ConfigFragment.newInstance(getDevice(), isNewAPI()));
 					} else {
 						landing();
 					}
@@ -714,7 +706,7 @@ public class PilotFragment2 extends BasePilotFragment {
 			case R.id.flat_trim_btn:
 				setColorFilter((ImageView)view);
 				if ((mFlightController != null) && (getState() == IFlightController.STATE_STARTED)) {
-					replace(CalibrationFragment.newInstance(getDevice()));
+					replace(CalibrationFragment.newInstance(getDevice(), isNewAPI()));
 					return true;
 				}
 				break;

@@ -89,6 +89,7 @@ import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
 import com.serenegiant.arflight.CommonStatus;
 import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DeviceInfo;
+import com.serenegiant.arflight.DroneSettings;
 import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.IVideoStream;
 import com.serenegiant.arflight.IVideoStreamController;
@@ -118,11 +119,13 @@ public class SkyController extends DeviceController implements ISkyController, I
 	private DeviceInfo mConnectDevice;
 	private VideoStreamDelegater mVideoStreamDelegater;
 	public final AttributeGPS mSkyControllerGPS = new AttributeGPS();
+	protected DroneSettings mSettings;
 
 	public SkyController(final Context context, final ARDiscoveryDeviceService service) {
 		super(context, service, new ARNetworkConfigSkyController());
 		mInfo = new AttributeDevice();
 		mStatus = new CommonStatus();
+		mSettings = new DroneSettings();
 	}
 
 //================================================================================
@@ -2376,6 +2379,11 @@ public class SkyController extends DeviceController implements ISkyController, I
 		return sentStatus;
 	}
 
+	@Override
+	public boolean isOutdoor() {
+		return mSettings.outdoorMode();
+	}
+
 //********************************************************************************
 // スカイコントローラー自体のアプリで使用するコマンドかも, 途中にstateが入ってるメソッド
 //********************************************************************************
@@ -2422,5 +2430,4 @@ public class SkyController extends DeviceController implements ISkyController, I
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAxisFiltersStateAllPresetFiltersSent()
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCalibrationStateMagnetoCalibrationState(ARCOMMANDS_SKYCONTROLLER_CALIBRATIONSTATE_MAGNETOCALIBRATIONSTATE_STATUS_ENUM status, byte X_Quality, byte Y_Quality, byte Z_Quality)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerCalibrationStateMagnetoCalibrationQualityUpdatesState(byte enabled)
-
 }

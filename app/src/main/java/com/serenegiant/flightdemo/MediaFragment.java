@@ -39,18 +39,10 @@ public class MediaFragment extends BaseFlightControllerFragment
 	private static final int REQUEST_DELETE = 1;
 	private static final int REQUEST_FETCH = 2;
 
-	public static MediaFragment newInstance(final ARDiscoveryDeviceService device) {
-		return newInstance(device, false);
-	}
-
 	public static MediaFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		final MediaFragment fragment = new MediaFragment();
 		fragment.setDevice(device, newAPI);
 		return fragment;
-	}
-
-	public static MediaFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
-		return newInstance(device, info, false);
 	}
 
 	public static MediaFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final boolean newAPI) {
@@ -85,6 +77,7 @@ public class MediaFragment extends BaseFlightControllerFragment
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
+		onBeforeCreateView();
 		mPagerAdapter = new MediaPagerAdapter(inflater);
 
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
@@ -143,8 +136,6 @@ public class MediaFragment extends BaseFlightControllerFragment
 		});
 	}
 
-	/** 切断された時に前のフラグメントに戻るまでの遅延時間[ミリ秒] */
-	private static final long POP_BACK_STACK_DELAY = 2000;
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		if (DEBUG) Log.v(TAG, "#onDisconnect");

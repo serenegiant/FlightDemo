@@ -1711,6 +1711,15 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	}
 
 	/**
+	 * 室外モードか室内モードかを取得
+	 * @return true 室外モード
+	 */
+	@Override
+	public boolean isOutdoor() {
+		return mSettings.outdoorMode();
+	}
+
+	/**
 	 * WiFi選択設定
 	 * @param is_auto_select
 	 * @param selection_band 0: 2.4GHz, 1: 5GHz, 2:2.4GHz+5GHz

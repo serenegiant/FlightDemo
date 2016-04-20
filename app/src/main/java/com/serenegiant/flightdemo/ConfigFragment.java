@@ -18,18 +18,19 @@ import android.widget.TextView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.IDeviceController;
+import com.serenegiant.arflight.IWiFiController;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.widget.ColorPickerView;
 import com.serenegiant.widget.RelativeRadioGroup;
 import static com.serenegiant.flightdemo.AppConst.*;
 
 public class ConfigFragment extends BaseFlightControllerFragment {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
-	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device) {
+	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		final ConfigFragment fragment = new ConfigFragment();
-		fragment.setDevice(device);
+		fragment.setDevice(device, newAPI);
 		return fragment;
 	}
 
@@ -109,6 +110,7 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
+		onBeforeCreateView();
 		mProduct = getProduct();
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
 		final View rootView = local_inflater.inflate(R.layout.fragment_config, container, false);
@@ -135,6 +137,11 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 		if (DEBUG) Log.v(TAG, "onPause:");
 		super.onPause();
 	} */
+
+	@Override
+	protected boolean canReleaseController() {
+		return false;
+	}
 
 	@Override
 	protected void updateBattery(final IDeviceController controller, final int percent) {
@@ -495,7 +502,16 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 	 * @param root
 	 */
 	private void initConfigNetwork(final View root) {
-		// FIXME 未実装
+		final IWiFiController wifi = (mController instanceof IWiFiController) ? (IWiFiController)mController : null;
+		final RadioGroup group = (RadioGroup)root.findViewById(R.id.network_wifi_mode_radiogroup);
+		if (wifi != null) {
+			final boolean outdoor = wifi.isOutdoor();
+			group.check(outdoor ? R.id.network_outdoor_radiobutton : R.id.network_indoor_radiobutton);
+			group.setOnCheckedChangeListener(mOnRadioButtonCheckedChangeListener);
+		} else {
+			group.check(R.id.network_indoor_radiobutton);
+			group.setEnabled(false);
+		}
 	}
 
 	/**
@@ -917,46 +933,64 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 		}
 	};
 
+	/**ラジオグループで選択が変更された時の処理 */
 	private final RadioGroup.OnCheckedChangeListener mOnRadioButtonCheckedChangeListener
 		= new RadioGroup.OnCheckedChangeListener() {
 
 		@Override
 		public void onCheckedChanged(final RadioGroup group, final int checkedId) {
-			switch (checkedId) {
-			case R.id.operation_normal_radiobutton:
-				mPref.edit().putInt(KEY_OPERATION_TYPE, 0).apply();
-				break;
-			case R.id.operation_reverse_radiobutton:
-				mPref.edit().putInt(KEY_OPERATION_TYPE, 1).apply();
-				break;
-			case R.id.operation_mode1_radiobutton:
-				mPref.edit().putInt(KEY_OPERATION_TYPE, 2).apply();
-				break;
-			case R.id.operation_mode2_radiobutton:
-				mPref.edit().putInt(KEY_OPERATION_TYPE, 3).apply();
-				break;
-			}
+			ConfigFragment.this.onCheckedChanged(checkedId);
 		}
 	};
 
+	/**ラジオグループで選択が変更された時の処理 */
 	private final RelativeRadioGroup.OnCheckedChangeListener mOnRelativeRadioButtonCheckedChangeListener
 		= new RelativeRadioGroup.OnCheckedChangeListener() {
 
 		@Override
 		public void onCheckedChanged(final RelativeRadioGroup group, final int checkedId) {
-			switch (checkedId) {
-			case R.id.icon_000_radiobutton:
-				mPref.edit().putInt(KEY_ICON_TYPE, 0).apply();
-				break;
-			case R.id.icon_001_radiobutton:
-				mPref.edit().putInt(KEY_ICON_TYPE, 1).apply();
-				break;
-			case R.id.icon_002_radiobutton:
-				mPref.edit().putInt(KEY_ICON_TYPE, 2).apply();
-				break;
-			}
+			ConfigFragment.this.onCheckedChanged(checkedId);
 		}
 	};
+
+	/**ラジオグループで選択が変更された時の処理 */
+	private void onCheckedChanged(final int checkedId) {
+		switch (checkedId) {
+		case R.id.icon_000_radiobutton:
+			mPref.edit().putInt(KEY_ICON_TYPE, 0).apply();
+			break;
+		case R.id.icon_001_radiobutton:
+			mPref.edit().putInt(KEY_ICON_TYPE, 1).apply();
+			break;
+		case R.id.icon_002_radiobutton:
+			mPref.edit().putInt(KEY_ICON_TYPE, 2).apply();
+			break;
+		case R.id.operation_normal_radiobutton:
+			mPref.edit().putInt(KEY_OPERATION_TYPE, 0).apply();
+			break;
+		case R.id.operation_reverse_radiobutton:
+			mPref.edit().putInt(KEY_OPERATION_TYPE, 1).apply();
+			break;
+		case R.id.operation_mode1_radiobutton:
+			mPref.edit().putInt(KEY_OPERATION_TYPE, 2).apply();
+			break;
+		case R.id.operation_mode2_radiobutton:
+			mPref.edit().putInt(KEY_OPERATION_TYPE, 3).apply();
+			break;
+		case R.id.network_outdoor_radiobutton:
+			if ((mController instanceof IWiFiController)
+				&& !((IWiFiController)mController).isOutdoor()) {
+				((IWiFiController)mController).sendSettingsOutdoor(true);
+			}
+			break;
+		case R.id.network_indoor_radiobutton:
+			if ((mController instanceof IWiFiController)
+				&& ((IWiFiController)mController).isOutdoor()) {
+				((IWiFiController)mController).sendSettingsOutdoor(false);
+			}
+			break;
+		}
+	}
 
 	private final ColorPickerView.ColorPickerListener mColorPickerListener
 		= new ColorPickerView.ColorPickerListener() {

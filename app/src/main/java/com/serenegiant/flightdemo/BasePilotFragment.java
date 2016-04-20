@@ -278,7 +278,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		updateButtons();
 		// キャリブレーションが必要ならCalibrationFragmentへ遷移させる
 		if ((controller instanceof IFlightController) && ((IFlightController)controller).needCalibration()) {
-			replace(CalibrationFragment.newInstance(getDevice()));
+			replace(CalibrationFragment.newInstance(getDevice(), isNewAPI()));
 		}
 	}
 

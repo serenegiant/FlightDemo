@@ -21,9 +21,9 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = CalibrationFragment.class.getSimpleName();
 
-	public static CalibrationFragment newInstance(final ARDiscoveryDeviceService device) {
+	public static CalibrationFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		final CalibrationFragment fragment = new CalibrationFragment();
-		fragment.setDevice(device);
+		fragment.setDevice(device, newAPI);
 		return fragment;
 	}
 
@@ -35,6 +35,8 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	private static final int STATE_AXIS_NONE = 5;
 	private static final int STATE_SUCCESS = 6;
 	private static final int STATE_FAILED = 7;
+
+	private static final long POP_BACK_STACK_DELAY_NO_CONTROLLER = 300;
 
 	private IModelView mModelView;
 	private TextView mMessageTextView;
@@ -60,6 +62,7 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
+		onBeforeCreateView();
 		final int model = (getProduct() == ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BEBOP_2)
 						? IModelView.MODEL_BEBOP2 :	IModelView.MODEL_BEBOP;
 		final SharedPreferences pref = getActivity().getPreferences(0);
@@ -88,14 +91,16 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
 		mModelView.onResume();
-		if (mController instanceof IFlightController) {
+		if (mFlightController != null) {
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					((IFlightController)mController).startCalibration(true);
+					mFlightController.startCalibration(true);
 					queueEvent(mUpdateStateTask, 300);
 				}
 			});
+		} else {
+			requestPopBackStack(POP_BACK_STACK_DELAY_NO_CONTROLLER);
 		}
 	}
 
@@ -108,6 +113,11 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 		removeEvent(mUpdateStateTask);
 		mModelView.onPause();
 		super.onPause();
+	}
+
+	@Override
+	protected boolean canReleaseController() {
+		return false;
 	}
 
 	@Override
@@ -128,6 +138,13 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	@Override
 	protected void updateFlyingState(final IDeviceController controller, final int state) {
 
+	}
+
+	@Override
+	protected void onDisconnect(final IDeviceController controller) {
+		if (DEBUG) Log.v(TAG, "#onDisconnect");
+		requestPopBackStack(POP_BACK_STACK_DELAY);
+		super.onDisconnect(controller);
 	}
 
 	/**

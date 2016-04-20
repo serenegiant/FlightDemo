@@ -13,10 +13,10 @@ import com.serenegiant.arflight.controllers.FlightControllerBebop2;
 import static com.serenegiant.arflight.ARFlightConst.*;
 
 public abstract class BaseControllerFragment extends BaseFragment {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private final String TAG = "BaseControllerFragment:" + getClass().getSimpleName();
 
-	/** フラグメントに戻るまでの遅延時間[ミリ秒] */
+	/** 前のフラグメントに戻るまでの遅延時間[ミリ秒] */
 	protected static final long POP_BACK_STACK_DELAY = 2000;
 
 	private ARDiscoveryDeviceService mDevice;
@@ -36,19 +36,20 @@ public abstract class BaseControllerFragment extends BaseFragment {
 //	}
 
 	@Override
-	public synchronized void onCreate(Bundle savedInstanceState) {
+	public synchronized void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState);
-		if (savedInstanceState == null)
-			savedInstanceState = getArguments();
-		if (savedInstanceState != null) {
-			mController = null;
-			mDevice = savedInstanceState.getParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE);
-			mDeviceInfo = savedInstanceState.getParcelable(ARFLIGHT_EXTRA_DEVICE_INFO);
-			mNewAPI = savedInstanceState.getBoolean(ARFLIGHT_EXTRA_NEWAPI, false);
+		mController = null;
+		Bundle args = savedInstanceState;
+		if (args == null)
+			args = getArguments();
+		if (args != null) {
+			mDevice = args.getParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE);
+			mDeviceInfo = args.getParcelable(ARFLIGHT_EXTRA_DEVICE_INFO);
+			mNewAPI = args.getBoolean(ARFLIGHT_EXTRA_NEWAPI, false);
 			getController();
 		}
-		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState + ",mController=" + mController);
+		if (DEBUG) Log.v(TAG, "onCreate:mController=" + mController);
 	}
 
 	/** Viewが生成される前に毎回行う処理 */
@@ -78,9 +79,9 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		if (DEBUG) Log.v(TAG, "onPause:isFinishing=" + getActivity().isFinishing());
 		if (mController instanceof ISkyController) {
 			((ISkyController)mController).disconnectFrom();
-		} else if (mController != null) {
+		} else if ((mController != null) && canReleaseController()) {
 			try {
-				releaseDeviceController(true);
+				releaseDeviceController(false);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
@@ -107,10 +108,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		super.onDetach();
 	}
 
-	protected Bundle setDevice(final ARDiscoveryDeviceService device) {
-		return setDevice(device, false);
-	}
-
 	protected Bundle setDevice(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		if (DEBUG) Log.v(TAG, "setDevice:" + device);
 		mDevice = device;
@@ -127,10 +124,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		return args;
 	}
 
-	protected Bundle setBridge(final ARDiscoveryDeviceService bridge, final DeviceInfo info) {
-		return setBridge(bridge, info, false);
-	}
-
 	protected Bundle setBridge(final ARDiscoveryDeviceService bridge, final DeviceInfo info, final boolean newAPI) {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		mDevice = bridge;
@@ -145,6 +138,14 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		args.putParcelable(ARFLIGHT_EXTRA_DEVICE_INFO, info);
 		setArguments(args);
 		return args;
+	}
+
+	/**
+	 * コントローラーが破棄可能かを取得
+	 * @return true: onPauseの際にISkyControllerでなければ破棄する
+	 */
+	protected boolean canReleaseController() {
+		return !isReplacing();
 	}
 
 	protected boolean isNewAPI() {

@@ -25,24 +25,19 @@ import com.serenegiant.widget.PlayerTextureView;
 
 import java.util.List;
 
-public class ConnectionFragment extends BaseFragment {
+import static com.serenegiant.arflight.ARFlightConst.*;
+
+public abstract class BaseConnectionFragment extends BaseFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static String TAG = ConnectionFragment.class.getSimpleName();
+	private static String TAG = BaseConnectionFragment.class.getSimpleName();
 
-	public static ConnectionFragment newInstance() {
-		ConnectionFragment fragment = new ConnectionFragment();
-		final Bundle args = new Bundle();
-		fragment.setArguments(args);
-		return fragment;
-	}
-
-	private ListView mDeviceListView;
-//	private IModelView mModelView;
+	private boolean mIsNewAPI;
 	private PlayerTextureView mVideoView;
 	private ImageButton mDownloadBtn, mPilotBtn;
 	private MediaPlayer mMediaPlayer;
+	protected ListView mDeviceListView;
 
-	public ConnectionFragment() {
+	public BaseConnectionFragment() {
 		super();
 		// Required empty public constructor
 	}
@@ -50,6 +45,7 @@ public class ConnectionFragment extends BaseFragment {
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
+		loadArguments(savedInstanceState);
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
 		final View rootView = local_inflater.inflate(R.layout.fragment_connection, container, false);
 		initView(rootView);
@@ -64,7 +60,6 @@ public class ConnectionFragment extends BaseFragment {
 		manager.startDiscovery();
 		manager.addCallback(mManagerCallback);
 		updateButtons(false);
-//		mModelView.onResume();
 		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
 			mMediaPlayer.start();
 		}
@@ -75,7 +70,6 @@ public class ConnectionFragment extends BaseFragment {
 		if (DEBUG) Log.d(TAG, "onPause:");
 
 		updateButtons(false);
-//		mModelView.onPause();
 		if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
 			mMediaPlayer.stop();
 		}
@@ -99,6 +93,32 @@ public class ConnectionFragment extends BaseFragment {
 		super.onDestroy();
 	}
 
+	protected void loadArguments(final Bundle _args) {
+		super.loadArguments(_args);
+		Bundle args = _args;
+		if (args == null) {
+			args = getArguments();
+		}
+		if (args != null) {
+			mIsNewAPI = args.getBoolean(ARFLIGHT_EXTRA_NEWAPI, false);
+		}
+	}
+
+	protected Bundle setNewAPI(final boolean newAPI) {
+		mIsNewAPI = newAPI;
+		Bundle args = getArguments();
+		if (args == null) {
+			args = new Bundle();
+		}
+		args.putBoolean(ARFLIGHT_EXTRA_NEWAPI, newAPI);
+		setArguments(args);
+		return args;
+	}
+
+	public boolean isNewAPI() {
+		return mIsNewAPI;
+	}
+
 	/**
 	 * Viewを初期化
 	 * @param rootView
@@ -107,16 +127,11 @@ public class ConnectionFragment extends BaseFragment {
 
 		final ARDeviceServiceAdapter adapter = new ARDeviceServiceAdapter(getActivity(), R.layout.list_item_deviceservice);
 
-//		mMediaPlayer = new MediaPlayer();
-//		mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
-//		mMediaPlayer.setOnCompletionListener(mOnCompletionListener);
-
 		mDeviceListView = (ListView)rootView.findViewById(R.id.list);
 		final View empty_view = rootView.findViewById(R.id.empty_view);
 		mDeviceListView.setEmptyView(empty_view);
 		mDeviceListView.setAdapter(adapter);
 		mDeviceListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-//		mModelView = (IModelView)rootView.findViewById(R.id.drone_view);
 		mVideoView = (PlayerTextureView)rootView.findViewById(R.id.videoView);
 		mVideoView.setScaleMode(PlayerTextureView.SCALE_MODE_CROP);
 		mVideoView.setSurfaceTextureListener(mSurfaceTextureListener);
@@ -223,90 +238,23 @@ public class ConnectionFragment extends BaseFragment {
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
 		public void onClick(final View view) {
-			Fragment fragment = null;
-			switch (view.getId()) {
-			case R.id.pilot_button:
-				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), true);
-				break;
-			case R.id.download_button:
-				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), false);
-				break;
-			case R.id.gallery_button:
-				fragment = GalleyFragment.newInstance();
-				break;
-			case R.id.script_button:
-				fragment = ScriptFragment.newInstance();
-				break;
-			case R.id.config_show_btn:
-				fragment = ConfigAppFragment.newInstance();
-				break;
-			}
-			replace(fragment);
+			BaseConnectionFragment.this.onClick(view, mDeviceListView.getCheckedItemPosition());
 		}
 	};
+
+	protected abstract void onClick(final View view, final int position);
 
 	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
 		@Override
 		public boolean onLongClick(final View view) {
 			if (mPilotBtn.getVisibility() != View.VISIBLE) return false;
-			mVibrator.vibrate(50);
-			Fragment fragment = null;
-			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-			final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
-			final String itemValue = adapter.getItemName(mDeviceListView.getCheckedItemPosition());
-			final ARDiscoveryDeviceService device = manager.getDevice(itemValue);
-			if (device != null) {
-				// 製品名を取得
-				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
-				final int id = view.getId();
-				switch (id) {
-				case R.id.pilot_button:
-				case R.id.download_button:
-				case R.id.gallery_button:
-				case R.id.script_button:
-					switch (product) {
-					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-						switch (id) {
-						case R.id.pilot_button:
-							fragment = AutoPilotFragment2.newInstance(device, "test001", AutoPilotFragment2.MODE_TRACE);
-							break;
-						case R.id.download_button:
-							fragment = AutoPilotFragment2.newInstance(device, "test002", AutoPilotFragment2.MODE_TRACE);
-							break;
-						case R.id.gallery_button:
-							fragment = AutoPilotFragment2.newInstance(device, "test003", AutoPilotFragment2.MODE_TRACE);
-							break;
-						case R.id.script_button:
-							fragment = AutoPilotFragment2.newInstance(device, "test004", AutoPilotFragment2.MODE_TRACKING);
-							break;
-						}
-					}
-					break;
-				case R.id.config_show_btn:
-					switch (product) {
-					case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
-						if (BuildConfig.USE_SKYCONTROLLER) {
-							fragment = AutoPilotFragment2NewAPI.newInstance(device, "test005", AutoPilotFragment2NewAPI.MODE_TRACE);
-						}
-						break;
-					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-						fragment = AutoPilotFragment2NewAPI.newInstance(device, "test005", AutoPilotFragment2NewAPI.MODE_TRACE);
-						break;
-					}
-					break;
-				}
-			}
-			if (fragment != null) {
-				replace(fragment);
-				return true;
-			}
-			return false;
+			return BaseConnectionFragment.this.onLongClick(view, mDeviceListView.getCheckedItemPosition());
 		}
 	};
 
-	private Fragment getFragment(final int position, final boolean isPiloting) {
+	protected abstract boolean onLongClick(final View view, final int position);
+
+	protected Fragment getFragment(final int position, final boolean isPiloting) {
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
 		final String itemValue = adapter.getItemName(position);
@@ -319,7 +267,7 @@ public class ConnectionFragment extends BaseFragment {
 			switch (product) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				fragment = isPiloting ? PilotFragment2.newInstance(device) : MediaFragment.newInstance(device);
+				fragment = isPiloting ? PilotFragment2.newInstance(device, mIsNewAPI) : MediaFragment.newInstance(device, mIsNewAPI);
 				break;
 			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
 				//FIXME JumpingSumoは未実装
@@ -328,11 +276,11 @@ public class ConnectionFragment extends BaseFragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
-				fragment = isPiloting ? PilotFragment2.newInstance(device) : MediaFragment.newInstance(device);
+				fragment = isPiloting ? PilotFragment2.newInstance(device, mIsNewAPI) : MediaFragment.newInstance(device, mIsNewAPI);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
 				if (BuildConfig.USE_SKYCONTROLLER) {
-					fragment = BridgeFragment.newInstance(device);
+					fragment = BridgeFragment.newInstance(device, true);	// NewAPIを使う
 				}
 				break;
 			}
@@ -405,5 +353,4 @@ public class ConnectionFragment extends BaseFragment {
 //			mp.start();
 		}
 	};
-
 }

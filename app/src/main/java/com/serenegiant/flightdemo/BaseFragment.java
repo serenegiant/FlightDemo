@@ -21,6 +21,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.serenegiant.utils.BuildCheck;
+import com.serenegiant.utils.HandlerThreadHandler;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,15 +47,15 @@ public class BaseFragment extends Fragment {
 		super.onAttach(activity);
 		mLocalBroadcastManager = LocalBroadcastManager.getInstance(activity);
 		mVibrator = (Vibrator)getActivity().getSystemService(Activity.VIBRATOR_SERVICE);
+		mIsReplacing = false;
 	}
 
 	@Override
 	public synchronized void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		loadArguments(savedInstanceState);
-		final HandlerThread thread = new HandlerThread(TAG);
-		thread.start();
-		mAsyncHandler = new Handler(thread.getLooper());
+		mAsyncHandler = HandlerThreadHandler.createHandler(TAG);
+		mIsReplacing = false;
 	}
 
 	@Override
@@ -94,11 +95,12 @@ public class BaseFragment extends Fragment {
 		loadArguments(savedInstanceState);
 	}
 
-/*	@Override
+	@Override
 	public synchronized void onResume() {
 		super.onResume();
 		if (DEBUG) Log.v(TAG, "onResume:");
-	} */
+		mIsReplacing = false;
+	}
 
 	@Override
 	public synchronized void onPause() {
@@ -111,6 +113,11 @@ public class BaseFragment extends Fragment {
 	protected void loadArguments(final Bundle savedInstanceState) {
 	}
 
+	private boolean mIsReplacing;
+	protected boolean isReplacing() {
+		return mIsReplacing;
+	}
+
 	/**
 	 * 指定したフラグメントに切り替える。元のフラグメントはbackstackに追加する。
 	 * @param fragment nullなら何もしない
@@ -118,6 +125,7 @@ public class BaseFragment extends Fragment {
 	 */
 	protected Fragment replace(final Fragment fragment) {
 		if (fragment != null) {
+			mIsReplacing = true;
 			getFragmentManager().beginTransaction()
 				.addToBackStack(null)
 				.replace(R.id.container, fragment)
@@ -126,10 +134,15 @@ public class BaseFragment extends Fragment {
 		return fragment;
 	}
 
+	protected void clearReplacing() {
+		mIsReplacing = false;
+	}
+
 	/**
 	 * １つ前のフラグメントに戻る
 	 */
 	protected void popBackStack() {
+		mIsReplacing = false;
 		getFragmentManager().popBackStack();
 	}
 
@@ -224,6 +237,7 @@ public class BaseFragment extends Fragment {
 		@Override
 		public void run() {
 			try {
+				mIsReplacing = false;
 				popBackStack();
 			} catch (final Exception e) {
 				Log.w(TAG, e);

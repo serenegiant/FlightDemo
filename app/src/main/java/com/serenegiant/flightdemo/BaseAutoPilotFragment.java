@@ -315,7 +315,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				setColorFilter((ImageView)view);
 				if (isStarted()) {
 					if ((getState() & IFlightController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
-						replace(ConfigFragment.newInstance(getDevice()));
+						replace(ConfigFragment.newInstance(getDevice(), isNewAPI()));
 					} else {
 						landing();
 					}
@@ -418,7 +418,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				clearAutoPilot();	// 自動操縦解除
 				setColorFilter((ImageView)view);
 				if ((mFlightController != null) && (getState() == IFlightController.STATE_STARTED)) {
-					replace(CalibrationFragment.newInstance(getDevice()));
+					replace(CalibrationFragment.newInstance(getDevice(), isNewAPI()));
 					return true;
 				}
 				break;

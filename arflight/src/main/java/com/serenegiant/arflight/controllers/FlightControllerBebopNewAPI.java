@@ -1462,4 +1462,9 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
+
+	@Override
+	public boolean isOutdoor() {
+		return mSettings.outdoorMode();
+	}
 }

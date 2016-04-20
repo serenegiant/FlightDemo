@@ -7,4 +7,5 @@ public interface IWiFiController {
 	 * @return
 	 */
 	public boolean sendSettingsOutdoor(final boolean is_outdoor);
+	public boolean isOutdoor();
 }

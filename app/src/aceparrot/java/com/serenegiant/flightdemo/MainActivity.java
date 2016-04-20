@@ -56,7 +56,6 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 	private SideMenuFrameLayout mSideMenuFrame;
 	private ActionBarDrawerToggle mDrawerToggle;
 	private final Handler mUiHandler = new Handler();
-//	private final KeyGamePad mKeyGamePad = KeyGamePad.getInstance();
 	/*package*/Joystick mJoystick;
 
 	@Override
@@ -69,7 +68,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 		NetworkChangedReceiver.enable(getApplicationContext());
 		final ManagerFragment manager = ManagerFragment.getInstance(this);
 		if (savedInstanceState == null) {
-			final Fragment fragment = new ConnectionFragment();
+			final Fragment fragment = ConnectionFragment.newInstance(false);
 			getFragmentManager().beginTransaction()
 				.add(R.id.container, fragment).commit();
 		}
@@ -147,7 +146,6 @@ public class MainActivity extends Activity /*AppCompatActivity*/ {
 
 	@Override
 	public boolean dispatchKeyEvent(final KeyEvent event) {
-//		if (!isFinishing() && mKeyGamePad.processKeyEvent(event)) return true;
 		if (mJoystick != null) {
 			if (mJoystick.dispatchKeyEvent(event)) {
 				return true;
