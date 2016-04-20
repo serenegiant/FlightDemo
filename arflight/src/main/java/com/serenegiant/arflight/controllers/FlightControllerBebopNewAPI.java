@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implements ICameraController, IWiFiController {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private final String TAG = "FlightControllerBebopNewAPI:" + getClass().getSimpleName();
 
 	private final Object mVideoSync = new Object();

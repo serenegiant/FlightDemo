@@ -39,7 +39,7 @@ import static com.serenegiant.arflight.ARFlightConst.*;
  * 検出している機体の一覧取得＆選択を行うためのFragment
  */
 public class BridgeFragment extends BaseControllerFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = BridgeFragment.class.getSimpleName();
 
 	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {

@@ -33,7 +33,7 @@ import java.util.List;
 
 public class MediaFragment extends BaseFlightControllerFragment
 	implements TransferProgressDialogFragment.TransferProgressDialogListener, OnDialogResultIntListener {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = MediaFragment.class.getSimpleName();
 
 	private static final int REQUEST_DELETE = 1;
