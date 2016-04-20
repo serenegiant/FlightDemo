@@ -232,10 +232,10 @@ public class BridgeFragment extends BaseControllerFragment {
 		if (mNeedRequestDeviceList) {
 			mNeedRequestDeviceList = false;
 			final ISkyController ctrl = (ISkyController)controller;
-			ctrl.requestWifiList();
-			ctrl.requestDeviceList();
-			ctrl.requestCurrentDevice();
-			ctrl.requestAllStates();
+//			ctrl.requestWifiList();			// これはNewAPIだとWiFiList自体は返ってくるけど検出している機体一覧は来ない
+			ctrl.requestDeviceList();		// これはNewAPIだと値が返ってこない
+//			ctrl.requestCurrentDevice();	// これはNewAPIだと値が返ってこない
+//			ctrl.requestAllStates();
 		}
 	}
 

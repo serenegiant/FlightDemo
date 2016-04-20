@@ -593,7 +593,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		final String deviceName, final int deviceProductID) {
 
 		if (DEBUG) Log.v(TAG, "updateConnectionState:");
-		DeviceInfo[] info_array = null;
 		synchronized (mDevices) {
 			DeviceInfo info = mDevices.containsKey(deviceName) ? mDevices.get(deviceName) : null;
 			switch (status) {
@@ -616,6 +615,13 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 				removeDevice(deviceName);
 				break;
 			}
+		}
+		broadcastConnectedDevices();
+	}
+
+	private boolean broadcastConnectedDevices() {
+		DeviceInfo[] info_array = null;
+		synchronized (mDevices) {
 			if (mDevices.size() > 0) {
 				info_array = new DeviceInfo[mDevices.size()];
 				int i = 0;
@@ -633,6 +639,7 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		} else {
 			Log.w(TAG, "mLocalBroadcastManager is null, already released?");
 		}
+		return info_array != null;
 	}
 
 	/**
@@ -969,18 +976,20 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	public boolean requestDeviceList() {
 		if (DEBUG) Log.d(TAG, "requestDeviceList:");
 
-		// FIXME 送信前に機体一覧Listをクリアする...でもARSDK3.8.3のNewAPIだと結果が来ないので...
-
-		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
-		if (isStarted()) {
-			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestDeviceList();
-		} else {
-			if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
+		// FIXME 送信前に機体一覧Listをクリアする...でもARSDK3.8.3のNewAPIだと結果が来ないので検出している機体リストに値があればそれをブロードキャストする
+		if (!broadcastConnectedDevices()) {
+			ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
+			if (isStarted()) {
+				result = mARDeviceController.getFeatureSkyController().sendDeviceRequestDeviceList();
+			} else {
+				if (DEBUG) Log.v(TAG, "requestDeviceList:not started");
+			}
+			if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+				Log.e(TAG, "#requestDeviceList failed:" + result);
+			}
+			return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 		}
-		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
-			Log.e(TAG, "#requestDeviceList failed:" + result);
-		}
-		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+		return false;
 	}
 
 	@Override
@@ -1007,6 +1016,10 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	@Override
 	public boolean requestCurrentDevice() {
 		if (DEBUG) Log.d(TAG, "requestCurrentDevice:");
+		if (mConnectDevice != null) {
+			broadcastConnectedDevices();
+			return false;
+		}
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
 			result = mARDeviceController.getFeatureSkyController().sendDeviceRequestCurrentDevice();
@@ -1039,11 +1052,14 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	 */
 	public boolean connectToDevice(final String deviceName) {
 		if (DEBUG) Log.v(TAG, "connectToDevice:deviceName=" + deviceName);
-		if (TextUtils.isEmpty(deviceName)) return false;
+		if (TextUtils.isEmpty(deviceName)) return true;
 
 		final DeviceInfo info = mDevices.containsKey(deviceName) ? mDevices.get(deviceName) : null;
 		if ((info != null) && info.isConnected()) {
 			if (DEBUG) Log.v(TAG, "connectToDevice:既に接続されている");
+			synchronized (mStateSync) {
+				mConnectDevice = info;
+			}
 			return false;
 		}
 

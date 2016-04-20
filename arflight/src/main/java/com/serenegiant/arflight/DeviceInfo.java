@@ -90,7 +90,20 @@ public class DeviceInfo implements Parcelable {
 		}
 	}
 
+	@Override
 	public String toString() {
 		return String.format("DeviceInfo(%s,id=%d,state=%d)", mName, mProductId, connectionState);
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+		if (other instanceof DeviceInfo) {
+			return (((mName == null) && (((DeviceInfo)other).mName == null))
+					|| ((mName != null) && mName.equals(((DeviceInfo)other).mName)))
+				&& (mProductId == ((DeviceInfo)other).mProductId)
+				&& (connectionState == ((DeviceInfo)other).connectionState);
+		} else {
+			return super.equals(other);
+		}
 	}
 }
