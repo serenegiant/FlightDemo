@@ -16,7 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class TextureHelper {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = TextureHelper.class.getSimpleName();
 
 	private static final String[][] PATH = {
@@ -33,15 +33,23 @@ public class TextureHelper {
 			"bebop_drone_rotor_front_tex.png", "model/bebop_drone_rotor_front_tex_mask.png",
 			"bebop_drone_bumper_tex.png", "model/bebop_drone_bumper_tex_mask.png",
 		},
+		{	// Cargodrone用
+			"cargo_drone_tex_blue.png", "model/cargo_drone_tex_mask.png",
+		},
 	};
 
 	public static void genTexture(final Context context, final int model, final int color) {
 		if (DEBUG) Log.v(TAG, "genTexture:color=" + color);
 		switch (model % IModelView.MODEL_NUM) {
-		case IModelView.MODEL_MINIDRONE:
 		case IModelView.MODEL_JUMPINGSUMO:
+			break;
+		case IModelView.MODEL_MINIDRONE:
 			// model/minidrone.png
 			genTexture(context, PATH[0][0], PATH[0][1], color);
+			break;
+		case IModelView.MODEL_CARGO:
+			// model/cargo_drone_tex_blue.png
+			genTexture(context, PATH[3][0], PATH[3][1], color);
 			break;
 		case IModelView.MODEL_BEBOP2:
 			// model/bebop_drone2_body_tex.png

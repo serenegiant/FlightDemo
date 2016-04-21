@@ -63,8 +63,26 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		if (DEBUG) Log.v(TAG, "onCreateView:");
 		onBeforeCreateView();
-		final int model = (getProduct() == ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BEBOP_2)
-						? IModelView.MODEL_BEBOP2 :	IModelView.MODEL_BEBOP;
+		final int model;
+		switch (getProduct()) {
+		case ARDISCOVERY_PRODUCT_BEBOP_2:
+			model = IModelView.MODEL_BEBOP2;
+			break;
+		case ARDISCOVERY_PRODUCT_ARDRONE:
+			model = IModelView.MODEL_BEBOP;
+			break;
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
+			model = IModelView.MODEL_CARGO;
+			break;
+		case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+			model = IModelView.MODEL_SKYCONTROLLER;
+			break;
+		default:
+			model = IModelView.MODEL_BEBOP;
+			break;
+		}
 		final SharedPreferences pref = getActivity().getPreferences(0);
 		final int color = pref.getInt(KEY_COLOR, getResources().getColor(R.color.RED));
 		TextureHelper.genTexture(getActivity(), model, color);

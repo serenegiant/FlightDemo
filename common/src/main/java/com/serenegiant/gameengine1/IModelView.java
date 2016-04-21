@@ -8,8 +8,9 @@ public interface IModelView {
 	public static final int MODEL_MINIDRONE = 2;
 	public static final int MODEL_JUMPINGSUMO = 3;
 	public static final int MODEL_BEBOP2 = 4;
-	public static final int MODEL_SKYCONTROLLER = 5;
-	public static final int MODEL_NUM = 6;
+	public static final int MODEL_CARGO = 5;
+	public static final int MODEL_SKYCONTROLLER = 6;
+	public static final int MODEL_NUM = 7;
 
 	public void setModel(final int model, final int type);
 	public void hasGuard(final boolean hasGuard);

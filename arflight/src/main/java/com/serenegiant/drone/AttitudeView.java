@@ -36,12 +36,18 @@ public class AttitudeView extends GLModelView {
 		if (DEBUG) Log.v(TAG, "createScreen");
 		IScreen result = null;
 		switch (mModel) {
-		case MODEL_MINIDRONE:
+		case MODEL_NON:
 		case MODEL_JUMPINGSUMO:
+			result = new AttitudeScreenNull(this);
+			break;
+		case MODEL_MINIDRONE:
 			result = new AttitudeScreenMinidrone(this, mCtrlType);
 			break;
 		case MODEL_BEBOP2:
 			result = new AttitudeScreenBebop2(this, mCtrlType);
+			break;
+		case MODEL_CARGO:
+			result = new AttitudeScreenCargodrone(this, mCtrlType);
 			break;
 		case MODEL_SKYCONTROLLER:
 			result = new AttitudeScreenSkyController(this, mCtrlType);

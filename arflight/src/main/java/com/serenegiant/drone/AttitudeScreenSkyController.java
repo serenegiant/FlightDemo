@@ -13,7 +13,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class AttitudeScreenSkyController extends AttitudeScreenBase implements IVideoScreen {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static final String TAG = "AttitudeScreenBebop2";
+	private static final String TAG = "AttitudeScreenSkyController";
 
 	private DynamicTexture mVideoFrameTexture;
 
@@ -81,11 +81,11 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 		final FileIO io = mModelView.getFileIO();
 		StaticTexture droneTexture = null;
 		try {
-			droneTexture = new StaticTexture(mModelView, "bebop_drone2_body_tex.png");
+			droneTexture = new StaticTexture(mModelView, "skycontroller_tex.png");
 		} catch (final Exception e) {
-			droneTexture = new StaticTexture(mModelView, "model/bebop_drone2_body_tex.png");
+			droneTexture = new StaticTexture(mModelView, "model/skycontroller_tex.png");
 		}
-		droneModel = loadModel(io, "model/bebop_drone2_body.obj");
+		droneModel = loadModel(io, "model/skycontroller.obj");
 		droneModel.setTexture(droneTexture);
 	}
 

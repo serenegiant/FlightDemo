@@ -40,6 +40,7 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 
 	@Override
 	protected void onBeforeCreateView() {
+		getController();
 		if (mController instanceof IFlightController) {
 			mFlightController = (IFlightController)mController;
 		} else {

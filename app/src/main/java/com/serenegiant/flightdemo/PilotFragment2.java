@@ -17,19 +17,26 @@ import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.CameraControllerListener;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.controllers.FlightControllerBebop;
 import com.serenegiant.arflight.controllers.FlightControllerBebop2;
+import com.serenegiant.arflight.controllers.FlightControllerBebop2NewAPI;
+import com.serenegiant.arflight.controllers.FlightControllerBebopNewAPI;
+import com.serenegiant.arflight.controllers.FlightControllerCargoDrone;
+import com.serenegiant.arflight.controllers.FlightControllerCargoDroneNewAPI;
 import com.serenegiant.arflight.controllers.FlightControllerMiniDrone;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.IVideoStreamController;
+import com.serenegiant.arflight.controllers.FlightControllerMiniDroneNewAPI;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine1.IModelView;
@@ -308,19 +315,52 @@ public class PilotFragment2 extends BasePilotFragment {
 		// 機体モデル表示
 		final int model;
 		final int ctrl;
-		if (mController instanceof FlightControllerMiniDrone) {
-			model = IModelView.MODEL_MINIDRONE;
-			ctrl = AttitudeScreenBase.CTRL_PILOT;
-		} else if (mController instanceof FlightControllerBebop2) {
+		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mController.getProductId());
+		switch (product) {
+		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+			model = IModelView.MODEL_BEBOP;
+			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
+			break;
+		case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 			model = IModelView.MODEL_BEBOP2;
 			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
-		} else if (mController instanceof FlightControllerBebop) {
+			break;
+//		case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
+		case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+			model = IModelView.MODEL_MINIDRONE;
+			ctrl = AttitudeScreenBase.CTRL_PILOT;
+			break;
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+			model = IModelView.MODEL_CARGO;
+			ctrl = AttitudeScreenBase.CTRL_PILOT;
+			break;
+		default:
+		case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
+			model = IModelView.MODEL_BEBOP;
+			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
+			break;
+		}
+/*		if ((mController instanceof FlightControllerCargoDrone)
+			|| (mController instanceof FlightControllerCargoDroneNewAPI)) {
+			model = IModelView.MODEL_CARGO;
+			ctrl = AttitudeScreenBase.CTRL_PILOT;
+		} else if ((mController instanceof FlightControllerMiniDroneNewAPI)
+			|| (mController instanceof FlightControllerMiniDrone)) {
+			model = IModelView.MODEL_MINIDRONE;
+			ctrl = AttitudeScreenBase.CTRL_PILOT;
+		} else if ((mController instanceof FlightControllerBebop2)
+			|| (mController instanceof FlightControllerBebop2NewAPI)) {
+			model = IModelView.MODEL_BEBOP2;
+			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
+		} else if ((mController instanceof FlightControllerBebop)
+			|| (mController instanceof FlightControllerBebopNewAPI)) {
 			model = IModelView.MODEL_BEBOP;
 			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
 		} else {
 			model = IModelView.MODEL_BEBOP;
 			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
-		}
+		} */
 		if (mController instanceof ICameraController) {
 			((ICameraController)mController).setCameraControllerListener(mCameraControllerListener);
 			((ICameraController)mController).sendCameraOrientation(0, 0);
