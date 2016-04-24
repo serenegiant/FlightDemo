@@ -5,7 +5,7 @@
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	tools:context="com.serenegiant.flightdemo.PilotFragment"
+	tools:context="com.serenegiant.aceparrot.PilotFragment"
 	android:id="@+id/screen_frame">
 
 	<com.serenegiant.drone.AttitudeTextureView

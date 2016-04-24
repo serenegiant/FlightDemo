@@ -13,11 +13,15 @@ public interface IDeviceController {
 	public static final int STATE_STARTED = 0x0002;
 	public static final int STATE_STOPPING = 0x0003;
 
+//	ARCONTROLLER_DEVICE_STATE_ENUM.
+//		ARCONTROLLER_DEVICE_STATE_STOPPED (0, "device controller is stopped"),
+//		ARCONTROLLER_DEVICE_STATE_STARTING (1, "device controller is starting"),
+//		ARCONTROLLER_DEVICE_STATE_RUNNING (2, "device controller is running"),
+//		ARCONTROLLER_DEVICE_STATE_PAUSED (3, "device controller is paused"),
+//		ARCONTROLLER_DEVICE_STATE_STOPPING (4, "device controller is stopping"),
+
 	/** コントローラーに関連付けられているARDiscoveryDeviceServiceを取得 */
 	public ARDiscoveryDeviceService getDeviceService();
-	public ARNetworkALManager getNetALManager();
-	public ARNetworkManager getNetManager();
-	public ARNetworkConfig getNetConfig();
 
 	public void release();
 

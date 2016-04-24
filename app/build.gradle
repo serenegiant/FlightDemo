@@ -13,8 +13,8 @@ android {
 		targetSdkVersion 22
 		manifestPlaceholders = [appName:"@string/app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
-		versionCode 41
-		versionName '0.68.0'
+		versionCode 42
+		versionName '0.68.1'
 	}
 	signingConfigs {
 		debugKey {
@@ -51,7 +51,7 @@ android {
 	}
 	productFlavors {
 		aceparrot {
-			applicationId "com.serenegiant.flightdemo"
+			applicationId "com.serenegiant.aceparrot"
 			signingConfig signingConfigs.aceparrot_releaseKey
 		}
 		autoparrot {
@@ -66,7 +66,6 @@ dependencies {
 	compile project(':arflight')
 	compile project(':common')
 	compile project(':gamepad')
-	compile project(':resource_common')
 	compile project(':graphics_common')
 	compile project(':animations')
 	compile project(':icon_buttons')

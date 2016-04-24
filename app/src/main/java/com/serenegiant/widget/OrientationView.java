@@ -9,12 +9,9 @@ import android.graphics.PathDashPathEffect;
 import android.graphics.PathEffect;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
-import android.view.Display;
 import android.view.View;
-import android.view.WindowManager;
 
-import com.serenegiant.flightdemo.R;
+import com.serenegiant.aceparrot.R;
 
 /**
  * カメラのPan/Tiltに対応する位置に十字線を描くためのView

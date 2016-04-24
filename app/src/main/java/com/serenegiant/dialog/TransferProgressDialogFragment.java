@@ -15,7 +15,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.serenegiant.flightdemo.R;
+import com.serenegiant.aceparrot.R;
 import com.serenegiant.utils.BuildCheck;
 
 public class TransferProgressDialogFragment extends BaseDialogFragment {

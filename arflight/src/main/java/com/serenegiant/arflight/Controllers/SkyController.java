@@ -90,6 +90,7 @@ import com.serenegiant.arflight.CommonStatus;
 import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.DroneSettings;
+import com.serenegiant.arflight.IARNetworkController;
 import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.IVideoStream;
 import com.serenegiant.arflight.IVideoStreamController;
@@ -238,7 +239,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 		if (DEBUG) Log.v(TAG, "enableVideoStreaming:enable=" + enable);
 		final ISkyController bridge = getBridge();
 		if (bridge != null) {
-			VideoStreamDelegater.sendVideoStreamingEnable((DeviceController)bridge, bridge.getNetConfig(), enable);
+			VideoStreamDelegater.sendVideoStreamingEnable((DeviceController)bridge, ((IARNetworkController)bridge).getNetConfig(), enable);
 		}
 		if (mVideoStreamDelegater != null) {
 			return mVideoStreamDelegater.enableVideoStreaming(enable);

@@ -2,7 +2,7 @@
 // Created by saki on 16/03/01.
 //
 
-#if 0	// デバッグ情報を出さない時は1
+#if 1	// デバッグ情報を出さない時は1
 	#ifndef LOG_NDEBUG
 		#define	LOG_NDEBUG		// LOGV/LOGD/MARKを出力しない時
 	#endif

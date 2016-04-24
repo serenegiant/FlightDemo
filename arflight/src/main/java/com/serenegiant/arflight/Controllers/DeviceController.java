@@ -39,6 +39,7 @@ import com.serenegiant.arflight.BuildConfig;
 import com.serenegiant.arflight.CommonStatus;
 import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.DroneStatus;
+import com.serenegiant.arflight.IARNetworkController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.ISkyController;
@@ -57,7 +58,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Semaphore;
 
-public abstract class DeviceController implements IDeviceController {
+public abstract class DeviceController implements IARNetworkController, IDeviceController {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = DeviceController.class.getSimpleName();
 
@@ -491,7 +492,7 @@ public abstract class DeviceController implements IDeviceController {
 			if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 			// FIXME スカイコントローラー経由でブリッジ接続した時
 			// FIXME SkyControllerからmNetALManagerとmNetManagerをコピーすればいいんかな?
-			mNetALManager = mBridge.getNetALManager();
+			mNetALManager = ((IARNetworkController)mBridge).getNetALManager();
 //			mNetALManager = new ARNetworkALManager();
 /*			final String deviceIP = mNetConfig.getDeviceAddress();
 			final int devicePort = mNetConfig.getC2DPort();
@@ -512,7 +513,7 @@ public abstract class DeviceController implements IDeviceController {
 				Log.w(TAG, "error occurred: " + netALError.toString());
 				failed = true;
 			} */
-			mNetManager = mBridge.getNetManager();
+			mNetManager = ((IARNetworkController)mBridge).getNetManager();
 /*			if (!failed) {
 				prepare_network();
 				// ARNetworkManagerを生成

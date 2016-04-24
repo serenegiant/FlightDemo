@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.serenegiant.flightdemo"
+<manifest package="com.serenegiant.aceparrot"
 		  xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<uses-feature android:glEsVersion="0x00030000" android:required="true" />
@@ -18,43 +18,5 @@
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 	<!-- 長押し時のフィードバックのため -->
 	<uses-permission android:name="android.permission.VIBRATE" />
-
-	<application
-		android:name="com.serenegiant.flightdemo.FlightDemoApplication"
-		android:allowBackup="true"
-		android:hardwareAccelerated="true"
-		android:icon="@mipmap/ic_launcher"
-		android:label="${appName}"
-		android:largeHeap="true"
-		android:theme="@style/AppTheme">
-
-		<activity
-			android:name=".MainActivity"
-			android:label="${appName}"
-			android:screenOrientation="userLandscape"
-			android:launchMode="singleTask" >
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN"/>
-				<category android:name="android.intent.category.LAUNCHER"/>
-			</intent-filter>
-
-<!--		<intent-filter>
-				<action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
-			</intent-filter>
-			<meta-data
-				android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-				android:resource="@xml/device_filter"/>-->
-		</activity>
-
-		<service android:name="com.parrot.arsdk.ardiscovery.ARDiscoveryService"/>
-
-		<receiver
-			android:name="com.serenegiant.net.NetworkChangedReceiver"
-			android:enabled="false">
-			<intent-filter>
-				<action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
-			</intent-filter>
-		</receiver>
-	</application>
 
 </manifest>

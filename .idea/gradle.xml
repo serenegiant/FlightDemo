@@ -26,7 +26,6 @@
             <option value="$PROJECT_DIR$/libraries/ScriptEngine" />
             <option value="$PROJECT_DIR$/libraries/ScriptEngine/core" />
             <option value="$PROJECT_DIR$/opencv" />
-            <option value="$PROJECT_DIR$/resource_common" />
           </set>
         </option>
         <option name="myModules">
@@ -48,7 +47,6 @@
             <option value="$PROJECT_DIR$/libraries/ScriptEngine" />
             <option value="$PROJECT_DIR$/libraries/ScriptEngine/core" />
             <option value="$PROJECT_DIR$/opencv" />
-            <option value="$PROJECT_DIR$/resource_common" />
           </set>
         </option>
       </GradleProjectSettings>

@@ -20,6 +20,5 @@ android {
 
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
-	compile project(':resource_common')
 	compile project(':icon_buttons')
 }

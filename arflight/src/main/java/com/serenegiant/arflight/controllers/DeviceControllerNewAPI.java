@@ -175,15 +175,15 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 
 	/**
 	 * 異常状態変更コールバックを呼び出す
-	 * @param state
+	 * @param alarm
 	 */
-	protected void callOnAlarmStateChangedUpdate(final int state) {
-		if (DEBUG) Log.v(TAG, "callOnAlarmStateChangedUpdate:" + state);
+	protected void callOnAlarmStateChangedUpdate(final int alarm) {
+		if (DEBUG) Log.v(TAG, "callOnAlarmStateChangedUpdate:" + alarm);
 		synchronized (mConnectionListeners) {
 			for (final DeviceConnectionListener listener: mConnectionListeners) {
 				if (listener != null) {
 					try {
-						listener.onAlarmStateChangedUpdate(this, state);
+						listener.onAlarmStateChangedUpdate(this, alarm);
 					} catch (final Exception e) {
 						if (DEBUG) Log.w(TAG, e);
 					}
@@ -244,31 +244,16 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	@Override
 	public int getProductId() {
 		final ARDiscoveryDeviceService device_service = getDeviceService();
-		return device_service != null ? device_service.getProductID() : 0;
+		return device_service != null ? device_service.getProductID() : ARDISCOVERY_PRODUCT_ENUM.eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE.getValue();
 	}
 
-	public ARDISCOVERY_PRODUCT_ENUM getProductType() {
+	public ARDISCOVERY_PRODUCT_ENUM getProduct() {
 		return ARDiscoveryService.getProductFromProductID(getProductId());
 	}
 
 	@Override
 	public ARDiscoveryDeviceService getDeviceService() {
 		return mDeviceService;
-	}
-
-	@Override
-	public ARNetworkALManager getNetALManager() {
-		return null;
-	}
-
-	@Override
-	public ARNetworkManager getNetManager() {
-		return null;
-	}
-
-	@Override
-	public ARNetworkConfig getNetConfig() {
-		return mNetConfig;
 	}
 
 	@Override
@@ -362,6 +347,8 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			} finally {
 				mRequestConnect = false;
 			}
+		} else {
+			failed = true;
 		}
 		if (failed) {
 			Log.w(TAG, "failed to start ARController:err=" + error);
@@ -412,7 +399,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 	 * デバイスへの接続開始処理
 	 * @return
 	 */
-	protected boolean startNetwork() {
+	protected synchronized boolean startNetwork() {
 		if (DEBUG) Log.v(TAG, "startNetwork:");
 		boolean failed = false;
 		ARDiscoveryDevice discovery_device;
@@ -423,11 +410,11 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			if (device instanceof ARDiscoveryDeviceNetService) {
 				if (DEBUG) Log.v(TAG, "startNetwork:ARDiscoveryDeviceNetService");
 				final ARDiscoveryDeviceNetService netDeviceService = (ARDiscoveryDeviceNetService)device;
-				discovery_device.initWifi(getProductType(), netDeviceService.getName(), netDeviceService.getIp(), netDeviceService.getPort());
+				discovery_device.initWifi(getProduct(), netDeviceService.getName(), netDeviceService.getIp(), netDeviceService.getPort());
 			} else if (device instanceof ARDiscoveryDeviceBLEService) {
 				if (DEBUG) Log.v(TAG, "startNetwork:ARDiscoveryDeviceBLEService");
 				final ARDiscoveryDeviceBLEService bleDeviceService = (ARDiscoveryDeviceBLEService) device;
-				discovery_device.initBLE(getProductType(), getContext().getApplicationContext(), bleDeviceService.getBluetoothDevice());
+				discovery_device.initBLE(getProduct(), getContext().getApplicationContext(), bleDeviceService.getBluetoothDevice());
 			}
 		} catch (final ARDiscoveryException e) {
 			Log.e(TAG, "err=" + e.getError(), e);
@@ -440,7 +427,6 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			try {
 				deviceController = new ARDeviceController(discovery_device);
 				deviceController.addListener(mDeviceControllerListener);
-				mARDeviceController = deviceController;
 			} catch (final ARControllerException e) {
 				Log.e(TAG, "err=" + e.getError(), e);
 				failed = true;
@@ -450,8 +436,10 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 					} catch (final Exception e2) {
 						Log.w(TAG, e2);
 					}
+					deviceController = null;
 				}
 			}
+			mARDeviceController = deviceController;
 		} else {
 			Log.w(TAG, "startNetwork:ARDiscoveryDeviceを初期化出来なかった");
 		}

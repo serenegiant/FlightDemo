@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.serenegiant.flightdemo.R;
+import com.serenegiant.aceparrot.R;
 
 public class StickView extends FrameLayout {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること

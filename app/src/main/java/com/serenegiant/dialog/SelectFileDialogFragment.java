@@ -33,7 +33,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.serenegiant.flightdemo.R;
+import com.serenegiant.aceparrot.R;
 import com.serenegiant.utils.BuildCheck;
 
 import java.io.File;

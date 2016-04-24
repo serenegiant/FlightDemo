@@ -10,8 +10,8 @@ import android.view.animation.AnimationUtils;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 
-import com.serenegiant.flightdemo.R;
-import com.serenegiant.flightdemo.SideMenuAdapter;
+import com.serenegiant.aceparrot.R;
+import com.serenegiant.aceparrot.SideMenuAdapter;
 
 public class SideMenuListView extends ListView implements ISideMenuView {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること

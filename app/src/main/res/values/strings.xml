@@ -1,6 +1,4 @@
 <resources>
-	<string name="app_name">Aceparrot</string>
-
 	<string name="action_settings">Settings</string>
 	<string name="action_takeoff">takeoff</string>
 	<string name="action_landing">landing</string>
