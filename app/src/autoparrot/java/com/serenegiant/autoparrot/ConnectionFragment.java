@@ -106,6 +106,11 @@ public class ConnectionFragment extends BaseConnectionFragment {
 						break;
 					}
 					break;
+				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
+					if (BuildConfig.USE_SKYCONTROLLER) {
+						fragment = newBridgetFragment(device, true);	// NewAPIを使う
+					}
+					break;
 				}
 				break;
 			case R.id.config_show_btn:

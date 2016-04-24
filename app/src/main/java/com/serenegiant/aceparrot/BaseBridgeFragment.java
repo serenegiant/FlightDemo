@@ -23,6 +23,7 @@ import android.widget.ListView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.ARDeviceInfoAdapter;
+import com.serenegiant.arflight.ARDeviceServiceAdapter;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.ISkyController;
@@ -43,7 +44,7 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 
 	protected ListView mDeviceListView;
 	private PlayerTextureView mVideoView;
-	private ImageButton mDownloadBtn, mPilotBtn;
+	protected ImageButton mDownloadBtn, mPilotBtn, mGalleyBrn, mScriptBtn;
 	private MediaPlayer mMediaPlayer;
 	protected boolean mIsConnectToDevice;
 	protected boolean mNeedRequestDeviceList;
@@ -173,15 +174,15 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 		mPilotBtn.setOnClickListener(mOnClickListener);
 		mPilotBtn.setOnLongClickListener(mOnLongClickListener);
 
-		ImageButton button = (ImageButton)rootView.findViewById(R.id.gallery_button);
-		button.setOnClickListener(mOnClickListener);
-		button.setOnLongClickListener(mOnLongClickListener);
+		mGalleyBrn = (ImageButton)rootView.findViewById(R.id.gallery_button);
+		mGalleyBrn.setOnClickListener(mOnClickListener);
+		mGalleyBrn.setOnLongClickListener(mOnLongClickListener);
 
-		button = (ImageButton)rootView.findViewById(R.id.script_button);
-		button.setOnClickListener(mOnClickListener);
-		button.setOnLongClickListener(mOnLongClickListener);
+		mScriptBtn = (ImageButton)rootView.findViewById(R.id.script_button);
+		mScriptBtn.setOnClickListener(mOnClickListener);
+		mScriptBtn.setOnLongClickListener(mOnLongClickListener);
 
-		button = (ImageButton)rootView.findViewById(R.id.config_show_btn);
+		ImageButton button = (ImageButton)rootView.findViewById(R.id.config_show_btn);
 		button.setOnClickListener(mOnClickListener);
 		button.setOnLongClickListener(mOnLongClickListener);
 	}
@@ -370,20 +371,24 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 			getActivity().runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					if (!visible) {
-						try {
-							final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
-							adapter.clear();
-						} catch (final Exception e) {
-							Log.w(TAG, e);
-						}
-					}
-					final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
-					mDownloadBtn.setVisibility(visibility);
-					mPilotBtn.setVisibility(visibility);
+					updateButtonsOnUiThread(visible);
 				}
 			});
 		}
+	}
+
+	protected void updateButtonsOnUiThread(final boolean visible) {
+		if (!visible) {
+			try {
+				final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+				adapter.clear();
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
+		}
+		final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+		mDownloadBtn.setVisibility(visibility);
+		mPilotBtn.setVisibility(visibility);
 	}
 
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {

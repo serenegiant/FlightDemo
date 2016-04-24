@@ -169,7 +169,6 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 		}
 	}
 
-
 	protected void updateButtonsOnUiThread(final boolean visible) {
 		if (!visible) {
 			try {
@@ -190,6 +189,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	private ManagerFragment.ManagerCallback mManagerCallback = new ManagerFragment.ManagerCallback() {
 		@Override
 		public void onServicesDevicesListUpdated(final List<ARDiscoveryDeviceService> devices) {
+			if (DEBUG) Log.v(TAG, "onServicesDevicesListUpdated:");
 			final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter) mDeviceListView.getAdapter();
 			adapter.clear();
 			for (final ARDiscoveryDeviceService service : devices) {
@@ -226,7 +226,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			}
 			adapter.notifyDataSetChanged();
 			mDeviceListView.setItemChecked(0, true);	// 先頭を選択
-			updateButtons(devices.size() > 0);
+			updateButtons(adapter.getCount() > 0);
 		}
 	};
 

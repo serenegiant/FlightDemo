@@ -38,41 +38,41 @@ public class BridgeFragment extends BaseBridgeFragment {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 	}
 
+	@Override
+	protected int getLayoutStyle(final int type) {
+		final int result;
+		switch (type) {
+		case 1:
+			result = R.style.AppThemeAuto_001;
+			break;
+		case 2:
+			result = R.style.AppThemeAuto_002;
+			break;
+//		case 0:
+		default:
+			result = R.style.AppThemeAuto_001;
+			break;
+		}
+		return result;
+	}
+
+	@Override
+	protected void updateButtonsOnUiThread(final boolean visible) {
+		super.updateButtonsOnUiThread(visible);
+		final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+		mDownloadBtn.setVisibility(visibility);
+		mPilotBtn.setVisibility(visibility);
+		mGalleyBrn.setVisibility(visibility);
+		mScriptBtn.setVisibility(visibility);
+	}
 
 	@Override
 	protected void onClick(final View view) {
 		if (DEBUG) Log.v(TAG, "onClick:");
 		Fragment fragment = null;
-		switch (view.getId()) {
-		case R.id.pilot_button:
-			fragment = getFragment(mDeviceListView.getCheckedItemPosition(), true);
-			break;
-		case R.id.download_button:
-			fragment = getFragment(mDeviceListView.getCheckedItemPosition(), false);
-			break;
-		case R.id.gallery_button:
-			fragment = GalleyFragment.newInstance();
-			break;
-		case R.id.script_button:
-			fragment = ScriptFragment.newInstance();
-			break;
-		case R.id.config_show_btn:
-			fragment = ConfigAppFragment.newInstance();
-			break;
-		}
-		if (fragment != null) {
-			replace(fragment);
-		}
-	}
-
-	@Override
-	protected boolean onLongClick(final View view) {
-		if (DEBUG) Log.v(TAG, "onLongClick:");
-		Fragment fragment = null;
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
 		final int position = mDeviceListView.getCheckedItemPosition();
-//			final String itemValue = adapter.getItemName(position);
 		final DeviceInfo info = adapter.getItem(position);
 		final ARDiscoveryDeviceService device = mController.getDeviceService();
 		if (device != null) {
@@ -120,8 +120,11 @@ public class BridgeFragment extends BaseBridgeFragment {
 		if (fragment != null) {
 			mIsConnectToDevice = mNeedRequestDeviceList = true;
 			replace(fragment);
-			return true;
 		}
+	}
+
+	@Override
+	protected boolean onLongClick(final View view) {
 		return false;
 	}
 
