@@ -1,9 +1,10 @@
-package com.serenegiant.aceparrot;
+package com.serenegiant.autoparrot;
 
 import android.os.Bundle;
 import android.text.TextUtils;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.serenegiant.aceparrot.BuildConfig;
 import com.serenegiant.arflight.DeviceInfo;
 
 import static com.serenegiant.aceparrot.AppConst.*;

@@ -7,8 +7,7 @@ import android.view.View;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.aceparrot.AutoPilotFragment2;
-import com.serenegiant.aceparrot.AutoPilotFragment2NewAPI;
+import com.serenegiant.aceparrot.BaseBridgeFragment;
 import com.serenegiant.aceparrot.BaseConnectionFragment;
 import com.serenegiant.aceparrot.BuildConfig;
 import com.serenegiant.aceparrot.ConfigAppFragment;
@@ -125,5 +124,10 @@ public class ConnectionFragment extends BaseConnectionFragment {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	protected BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device, final boolean newAPI) {
+		return BridgeFragment.newInstance(device, true);
 	}
 }

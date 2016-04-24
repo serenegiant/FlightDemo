@@ -1,4 +1,10 @@
 package com.serenegiant.utils;
+/*
+ * Androusb
+ * Copyright (c) 2014-2016 saki t_saki@serenegiant.com
+ * Distributed under the terms of the GNU Lesser General Public License (LGPL v3.0) License.
+ * License details are in the file license.txt, distributed as part of this software.
+ */
 
 import android.os.Build;
 
@@ -327,5 +333,29 @@ public final class BuildCheck {
 	 */
 	public static boolean isLollipopMR1() {
 		return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1);
+	}
+
+	/**
+	 * Marshmallow.  A flat one with beautiful shadows.  But still tasty., API>=23
+	 * @return
+	 */
+	public static boolean isM() {
+		return check(Build.VERSION_CODES.M);
+	}
+
+	/**
+	 * Marshmallow.  A flat one with beautiful shadows.  But still tasty., API>=23
+	 * @return
+	 */
+	public static boolean isMarshmallow() {
+		return check(Build.VERSION_CODES.M);
+	}
+
+	/**
+	 * Marshmallow.  A flat one with beautiful shadows.  But still tasty., API>=23
+	 * @return
+	 */
+	public static boolean isAndroid6() {
+		return check(Build.VERSION_CODES.M);
 	}
 }

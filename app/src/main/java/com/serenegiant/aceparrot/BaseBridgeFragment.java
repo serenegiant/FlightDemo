@@ -21,7 +21,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
-import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.ARDeviceInfoAdapter;
 import com.serenegiant.arflight.DeviceInfo;
@@ -31,31 +30,25 @@ import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.arflight.SkyControllerListener;
 import com.serenegiant.widget.PlayerTextureView;
 
-
-import static com.serenegiant.arflight.ARFlightConst.*;
+import static com.serenegiant.arflight.ARFlightConst.ARFLIGHT_ACTION_DEVICE_LIST_CHANGED;
+import static com.serenegiant.arflight.ARFlightConst.ARFLIGHT_EXTRA_DEVICE_LIST;
 
 /**
  * スカイコントローラーに接続してスカイコントローラーが
  * 検出している機体の一覧取得＆選択を行うためのFragment
  */
-public class BridgeFragment extends BaseControllerFragment {
+public abstract class BaseBridgeFragment extends BaseControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static final String TAG = BridgeFragment.class.getSimpleName();
+	private static final String TAG = BaseBridgeFragment.class.getSimpleName();
 
-	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
-		final BridgeFragment fragment = new BridgeFragment();
-		fragment.setDevice(device, newAPI);
-		return fragment;
-	}
-
-	private ListView mDeviceListView;
+	protected ListView mDeviceListView;
 	private PlayerTextureView mVideoView;
 	private ImageButton mDownloadBtn, mPilotBtn;
 	private MediaPlayer mMediaPlayer;
-	private boolean mIsConnectToDevice;
-	private boolean mNeedRequestDeviceList;
+	protected boolean mIsConnectToDevice;
+	protected boolean mNeedRequestDeviceList;
 
-	public BridgeFragment() {
+	public BaseBridgeFragment() {
 		super();
 		// デフォルトコンストラクタが必要
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
@@ -272,27 +265,27 @@ public class BridgeFragment extends BaseControllerFragment {
 	private final SkyControllerListener mSkyControllerListener = new SkyControllerListener() {
 		@Override
 		public void onSkyControllerConnect(final IDeviceController controller) {
-			BridgeFragment.this.onSkyControllerConnect(controller);
+			BaseBridgeFragment.this.onSkyControllerConnect(controller);
 		}
 
 		@Override
 		public void onSkyControllerDisconnect(final IDeviceController controller) {
-			BridgeFragment.this.onSkyControllerDisconnect(controller);
+			BaseBridgeFragment.this.onSkyControllerDisconnect(controller);
 		}
 
 		@Override
 		public void onSkyControllerUpdateBattery(final IDeviceController controller, final int percent) {
-			BridgeFragment.this.updateSkyControllerBattery(controller, percent);
+			BaseBridgeFragment.this.updateSkyControllerBattery(controller, percent);
 		}
 
 		@Override
 		public void onSkyControllerAlarmStateChangedUpdate(final IDeviceController controller, final int alarm_state) {
-			BridgeFragment.this.updateSkyControllerAlarmState(controller, alarm_state);
+			BaseBridgeFragment.this.updateSkyControllerAlarmState(controller, alarm_state);
 		}
 
 		@Override
 		public void onSkyControllerCalibrationRequiredChanged(final IDeviceController controller, final boolean need_calibration) {
-			BridgeFragment.this.onSkyControllerCalibrationRequiredChanged(controller, need_calibration);
+			BaseBridgeFragment.this.onSkyControllerCalibrationRequiredChanged(controller, need_calibration);
 		}
 
 		@Override
@@ -459,28 +452,7 @@ public class BridgeFragment extends BaseControllerFragment {
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
 		public void onClick(final View view) {
-			if (DEBUG) Log.v(TAG, "onClick:");
-			Fragment fragment = null;
-			switch (view.getId()) {
-			case R.id.pilot_button:
-				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), true);
-				break;
-			case R.id.download_button:
-				fragment = getFragment(mDeviceListView.getCheckedItemPosition(), false);
-				break;
-			case R.id.gallery_button:
-				fragment = GalleyFragment.newInstance();
-				break;
-			case R.id.script_button:
-				fragment = ScriptFragment.newInstance();
-				break;
-			case R.id.config_show_btn:
-				fragment = ConfigAppFragment.newInstance();
-				break;
-			}
-			if (fragment != null) {
-				replace(fragment);
-			}
+			BaseBridgeFragment.this.onClick(view);
 		}
 	};
 
@@ -491,66 +463,15 @@ public class BridgeFragment extends BaseControllerFragment {
 			if (mPilotBtn.getVisibility() != View.VISIBLE) return false;
 			if (DEBUG) Log.v(TAG, "onLongClick:");
 			mVibrator.vibrate(50);
-			Fragment fragment = null;
-			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-			final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
-			final int position = mDeviceListView.getCheckedItemPosition();
-//			final String itemValue = adapter.getItemName(position);
-			final DeviceInfo info = adapter.getItem(position);
-			final ARDiscoveryDeviceService device = mController.getDeviceService();
-			if (device != null) {
-				// 製品名を取得
-				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(info.productId());
-				final int id = view.getId();
-				switch (id) {
-				case R.id.pilot_button:
-				case R.id.download_button:
-				case R.id.gallery_button:
-				case R.id.script_button:
-					switch (product) {
-					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-						switch (id) {
-						case R.id.pilot_button:
-							fragment = AutoPilotFragment2.newInstance(device, info, "test001", AutoPilotFragment2.MODE_TRACE, mController.isNewAPI());
-							break;
-						case R.id.download_button:
-							fragment = AutoPilotFragment2.newInstance(device, info, "test002", AutoPilotFragment2.MODE_TRACE, mController.isNewAPI());
-							break;
-						case R.id.gallery_button:
-							fragment = AutoPilotFragment2.newInstance(device, info, "test003", AutoPilotFragment2.MODE_TRACE, mController.isNewAPI());
-							break;
-						case R.id.script_button:
-							fragment = AutoPilotFragment2.newInstance(device, info, "test004", AutoPilotFragment2.MODE_TRACKING, mController.isNewAPI());
-							break;
-						default:
-							Log.w(TAG, "未知のview idが来た。なんでやねん:" + id);
-							break;
-						}
-						break;
-					default:
-						Log.w(TAG, "未知の機体が来た:" + product);
-						break;
-					}
-					break;
-				default:
-					Log.w(TAG, "未知のview idが来た:" + id);
-					break;
-				}
-			} else {
-				Log.w(TAG, "機体が取得できなかった:position=" + position);
-			}
-			if (fragment != null) {
-				mIsConnectToDevice = mNeedRequestDeviceList = true;
-				replace(fragment);
-				return true;
-			}
-			return false;
+			return BaseBridgeFragment.this.onLongClick(view);
 		}
 	};
 
+	protected abstract void onClick(final View view);
+	protected abstract boolean onLongClick(final View view);
+
 	/** アイコンにタッチした時の処理の下請け, 選択している機体に対応するFragmentを生成する */
-	private Fragment getFragment(final int position, final boolean isPiloting) {
+	protected Fragment getFragment(final int position, final boolean isPiloting) {
 		if (DEBUG) Log.v(TAG, "getFragment:");
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();

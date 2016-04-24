@@ -4,6 +4,8 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.view.View;
 
+import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+
 public class ConnectionFragment extends BaseConnectionFragment {
 
 	public static ConnectionFragment newInstance(final boolean newAPI) {
@@ -40,5 +42,10 @@ public class ConnectionFragment extends BaseConnectionFragment {
 
 	protected boolean onLongClick(final View view, final int position) {
 		return false;
+	}
+
+	@Override
+	protected BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device, final boolean newAPI) {
+		return BridgeFragment.newInstance(device, true);
 	}
 }

@@ -281,13 +281,15 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
 				if (BuildConfig.USE_SKYCONTROLLER) {
-					fragment = BridgeFragment.newInstance(device, true);	// NewAPIを使う
+					fragment = newBridgetFragment(device, true);	// NewAPIを使う
 				}
 				break;
 			}
 		}
 		return fragment;
 	}
+
+	protected abstract BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device, final boolean newAPI);
 
 //********************************************************************************
 // 背景動画再生関連

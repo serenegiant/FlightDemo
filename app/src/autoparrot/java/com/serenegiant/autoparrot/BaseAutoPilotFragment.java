@@ -1,4 +1,4 @@
-package com.serenegiant.aceparrot;
+package com.serenegiant.autoparrot;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -29,6 +29,11 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.serenegiant.aceparrot.BasePilotFragment;
+import com.serenegiant.aceparrot.CalibrationFragment;
+import com.serenegiant.aceparrot.ConfigFragment;
+import com.serenegiant.aceparrot.LineRec;
+import com.serenegiant.aceparrot.R;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
