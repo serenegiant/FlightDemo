@@ -8,6 +8,7 @@ import com.serenegiant.aceparrot.BuildConfig;
 import com.serenegiant.arflight.DeviceInfo;
 
 import static com.serenegiant.aceparrot.AppConst.*;
+import static com.serenegiant.autoparrot.AutoPilotConst.*;
 
 public class AutoPilotFragment2NewAPI extends BaseAutoPilotFragment {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること

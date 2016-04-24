@@ -29,30 +29,36 @@ public class ConnectionFragment extends BaseConnectionFragment {
 		super();
 	}
 
-	protected void onClick(final View view, final int position) {
-		Fragment fragment = null;
-		switch (view.getId()) {
-		case R.id.pilot_button:
-			fragment = getFragment(position, true);
+	@Override
+	protected int getLayoutStyle(final int type) {
+		final int result;
+		switch (type) {
+		case 1:
+			result = R.style.AppThemeAuto_001;
 			break;
-		case R.id.download_button:
-			fragment = getFragment(position, false);
+		case 2:
+			result = R.style.AppThemeAuto_002;
 			break;
-		case R.id.gallery_button:
-			fragment = GalleyFragment.newInstance();
-			break;
-		case R.id.script_button:
-			fragment = ScriptFragment.newInstance();
-			break;
-		case R.id.config_show_btn:
-			fragment = ConfigAppFragment.newInstance();
+//		case 0:
+		default:
+			result = R.style.AppThemeAuto_001;
 			break;
 		}
-		replace(fragment);
+		return result;
 	}
 
-	protected boolean onLongClick(final View view, final int position) {
-		mVibrator.vibrate(50);
+	@Override
+	protected void updateButtonsOnUiThread(final boolean visible) {
+		super.updateButtonsOnUiThread(visible);
+		final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+		mDownloadBtn.setVisibility(visibility);
+		mPilotBtn.setVisibility(visibility);
+		mGalleyBrn.setVisibility(visibility);
+		mScriptBtn.setVisibility(visibility);
+	}
+
+	@Override
+	protected void onClick(final View view, final int position) {
 		Fragment fragment = null;
 		final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
 		final String itemValue = adapter.getItemName(position);
@@ -103,26 +109,17 @@ public class ConnectionFragment extends BaseConnectionFragment {
 				}
 				break;
 			case R.id.config_show_btn:
-				switch (product) {
-				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
-					if (BuildConfig.USE_SKYCONTROLLER) {
-						fragment = AutoPilotFragment2.newInstance(device, "test005", AutoPilotFragment2NewAPI.MODE_TRACE, isNewAPI());
-					}
-					break;
-				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-					fragment = AutoPilotFragment2.newInstance(device, "test006", AutoPilotFragment2NewAPI.MODE_TRACE, isNewAPI());
-					break;
-				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-					fragment = AutoPilotFragment2.newInstance(device, "test016", AutoPilotFragment2NewAPI.MODE_TRACE, isNewAPI());
-					break;
-				}
+				fragment = ConfigAppFragment.newInstance();
 				break;
 			}
 		}
 		if (fragment != null) {
 			replace(fragment);
-			return true;
 		}
+	}
+
+	@Override
+	protected boolean onLongClick(final View view, final int position) {
 		return false;
 	}
 

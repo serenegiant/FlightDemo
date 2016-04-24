@@ -27,7 +27,7 @@
 	<string name="permission_network_finish">No network access permission. \nApp will finish soon</string>
 	<!-- 位置情報のパーミッション -->
 	<string name="permission_location">No location access permission</string>
-	<string name="permission_location_reason">Location access permission is necessary for %s</string>
-	<string name="permission_location_request">Location access permission is necessary for %s</string>
+	<string name="permission_location_reason">Location access permission is necessary to control your drone correctly. </string>
+	<string name="permission_location_request">Location access permission is necessary to control your drone correctly.</string>
 	<string name="permission_location_finish">No location access permission. \nApp will finish soon</string>
 </resources>

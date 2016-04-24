@@ -525,23 +525,27 @@ public class BaseFragment extends Fragment {
 	protected LayoutInflater getThemedLayoutInflater(final LayoutInflater inflater) {
 		final Activity context = getActivity();
 		final SharedPreferences pref = context.getPreferences(0);
-		final int layout_style;
-		switch (pref.getInt(AppConst.KEY_ICON_TYPE, 0)) {
-		case 1:
-			layout_style = R.style.AppTheme_001;
-			break;
-		case 2:
-			layout_style = R.style.AppTheme_002;
-			break;
-//		case 0:
-		default:
-			layout_style = R.style.AppTheme;
-			break;
-		}
+		final int layout_style = getLayoutStyle(pref.getInt(AppConst.KEY_ICON_TYPE, 0));
 		// create ContextThemeWrapper from the original Activity Context with the custom theme
 		final Context contextThemeWrapper = new ContextThemeWrapper(context, layout_style);
 		// clone the inflater using the ContextThemeWrapper
 		return inflater.cloneInContext(contextThemeWrapper);
 	}
 
+	protected int getLayoutStyle(final int type) {
+		final int result;
+		switch (type) {
+		case 1:
+			result = R.style.AppTheme_001;
+			break;
+		case 2:
+			result = R.style.AppTheme_002;
+			break;
+//		case 0:
+		default:
+			result = R.style.AppTheme;
+			break;
+		}
+		return result;
+	}
 }

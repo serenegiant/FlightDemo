@@ -1,0 +1,23 @@
+<resources>
+
+	<!-- Base application theme. -->
+<!--<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar"> -->
+<!--<style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">-->
+	<style name="AppThemeAuto_001" parent="AppTheme_001">
+		<!-- Customize your theme here. -->
+		<item name="flightdemo_icon_auto_condition1">@mipmap/ic_autopilot_001_001</item>
+		<item name="flightdemo_icon_auto_condition2">@mipmap/ic_autopilot_001_002</item>
+		<item name="flightdemo_icon_auto_condition3">@mipmap/ic_autopilot_001_003</item>
+		<item name="flightdemo_icon_auto_condition4">@mipmap/ic_autopilot_001_004</item>
+		<item name="flightdemo_icon_auto_condition5">@mipmap/ic_autopilot_001_005</item>
+	</style>
+	<style name="AppThemeAuto_002" parent="AppTheme_002">
+		<!-- Customize your theme here. -->
+		<item name="flightdemo_icon_auto_condition1">@mipmap/ic_autopilot_002_001</item>
+		<item name="flightdemo_icon_auto_condition2">@mipmap/ic_autopilot_002_002</item>
+		<item name="flightdemo_icon_auto_condition3">@mipmap/ic_autopilot_002_003</item>
+		<item name="flightdemo_icon_auto_condition4">@mipmap/ic_autopilot_002_004</item>
+		<item name="flightdemo_icon_auto_condition5">@mipmap/ic_autopilot_002_005</item>
+	</style>
+
+</resources>

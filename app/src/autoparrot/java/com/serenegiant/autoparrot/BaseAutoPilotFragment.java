@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.serenegiant.aceparrot.AppConst.*;
+import static com.serenegiant.autoparrot.AutoPilotConst.*;
 
 public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPickerDialog.OnColorChangedListener {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること

@@ -33,7 +33,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 
 	private boolean mIsNewAPI;
 	private PlayerTextureView mVideoView;
-	private ImageButton mDownloadBtn, mPilotBtn;
+	protected ImageButton mDownloadBtn, mPilotBtn, mGalleyBrn, mScriptBtn;
 	private MediaPlayer mMediaPlayer;
 	protected ListView mDeviceListView;
 
@@ -144,15 +144,15 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 		mPilotBtn.setOnClickListener(mOnClickListener);
 		mPilotBtn.setOnLongClickListener(mOnLongClickListener);
 
-		ImageButton button = (ImageButton)rootView.findViewById(R.id.gallery_button);
-		button.setOnClickListener(mOnClickListener);
-		button.setOnLongClickListener(mOnLongClickListener);
+		mGalleyBrn = (ImageButton)rootView.findViewById(R.id.gallery_button);
+		mGalleyBrn.setOnClickListener(mOnClickListener);
+		mGalleyBrn.setOnLongClickListener(mOnLongClickListener);
 
-		button = (ImageButton)rootView.findViewById(R.id.script_button);
-		button.setOnClickListener(mOnClickListener);
-		button.setOnLongClickListener(mOnLongClickListener);
+		mScriptBtn = (ImageButton)rootView.findViewById(R.id.script_button);
+		mScriptBtn.setOnClickListener(mOnClickListener);
+		mScriptBtn.setOnLongClickListener(mOnLongClickListener);
 
-		button = (ImageButton)rootView.findViewById(R.id.config_show_btn);
+		ImageButton button = (ImageButton)rootView.findViewById(R.id.config_show_btn);
 		button.setOnClickListener(mOnClickListener);
 		button.setOnLongClickListener(mOnLongClickListener);
 	}
@@ -163,20 +163,25 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			getActivity().runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					if (!visible) {
-						try {
-							final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
-							adapter.clear();
-						} catch (final Exception e) {
-							Log.w(TAG, e);
-						}
-					}
-					final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
-					mDownloadBtn.setVisibility(visibility);
-					mPilotBtn.setVisibility(visibility);
+					updateButtonsOnUiThread(visible);
 				}
 			});
 		}
+	}
+
+
+	protected void updateButtonsOnUiThread(final boolean visible) {
+		if (!visible) {
+			try {
+				final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+				adapter.clear();
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
+		}
+		final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+		mDownloadBtn.setVisibility(visibility);
+		mPilotBtn.setVisibility(visibility);
 	}
 
 	/**

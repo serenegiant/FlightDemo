@@ -27,7 +27,7 @@
 	<string name="permission_network_finish">ネットワークアクセス許可がありません。\n終了します。</string>
 	<!-- 位置情報のパーミッション -->
 	<string name="permission_location">位置情報へのアクセス許可がありません。</string>
-	<string name="permission_location_reason">位置情報へのアクセス許可が必要です。</string>
-	<string name="permission_location_request">位置情報へのアクセス許可が必要です。</string>
+	<string name="permission_location_reason">ドローンを正確に制御するには位置情報へのアクセス許可が必要です。</string>
+	<string name="permission_location_request">ドローンを正確に制御するには位置情報へのアクセス許可が必要です。</string>
 	<string name="permission_location_finish">位置情報へのアクセス許可がありません。\n終了します。</string>
 </resources>

@@ -41,5 +41,11 @@
 		<attr name="flightdemo_icon_turn_left" format="reference" />
 		<attr name="flightdemo_icon_turn_right" format="reference" />
 		<attr name="flightdemo_icon_dropdown" format="reference" />
+		<!--  -->
+		<attr name="flightdemo_icon_auto_condition1" format="reference" />
+		<attr name="flightdemo_icon_auto_condition2" format="reference" />
+		<attr name="flightdemo_icon_auto_condition3" format="reference" />
+		<attr name="flightdemo_icon_auto_condition4" format="reference" />
+		<attr name="flightdemo_icon_auto_condition5" format="reference" />
 	</declare-styleable>
 </resources>
