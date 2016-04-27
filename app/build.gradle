@@ -13,8 +13,8 @@ android {
 		targetSdkVersion 22
 		manifestPlaceholders = [appName:"@string/app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
-		versionCode 42
-		versionName '0.68.1'
+		versionCode 43
+		versionName '0.68.2'
 	}
 	signingConfigs {
 		debugKey {

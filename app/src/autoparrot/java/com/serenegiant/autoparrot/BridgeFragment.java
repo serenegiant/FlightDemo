@@ -11,6 +11,7 @@ import com.serenegiant.aceparrot.BaseBridgeFragment;
 import com.serenegiant.aceparrot.BuildConfig;
 import com.serenegiant.aceparrot.ConfigAppFragment;
 import com.serenegiant.aceparrot.GalleyFragment;
+import com.serenegiant.aceparrot.PilotFragment2;
 import com.serenegiant.aceparrot.R;
 import com.serenegiant.aceparrot.ScriptFragment;
 import com.serenegiant.arflight.ARDeviceInfoAdapter;
@@ -125,6 +126,40 @@ public class BridgeFragment extends BaseBridgeFragment {
 
 	@Override
 	protected boolean onLongClick(final View view) {
+		if (DEBUG) Log.v(TAG, "onClick:");
+		Fragment fragment = null;
+		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+		final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
+		final int position = mDeviceListView.getCheckedItemPosition();
+		final DeviceInfo info = adapter.getItem(position);
+		final ARDiscoveryDeviceService device = mController.getDeviceService();
+		if (device != null) {
+			// 製品名を取得
+			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(info.productId());
+			final int id = view.getId();
+			switch (id) {
+			case R.id.config_show_btn:
+				switch (product) {
+				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+					fragment = PilotFragment2.newInstance(device, info, mController.isNewAPI());
+					break;
+				default:
+					Log.w(TAG, "未知の機体が来た:" + product);
+					break;
+				}
+				break;
+			default:
+				break;
+			}
+		} else {
+			Log.w(TAG, "機体が取得できなかった:position=" + position);
+		}
+		if (fragment != null) {
+			mIsConnectToDevice = mNeedRequestDeviceList = true;
+			replace(fragment);
+			return true;
+		}
 		return false;
 	}
 
