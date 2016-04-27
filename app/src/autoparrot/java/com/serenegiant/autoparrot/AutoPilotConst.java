@@ -67,7 +67,7 @@ public class AutoPilotConst {
 		public static final String KEY_TRACE_SPEED = "KEY_TRACE_FLIGHT_SPEED";
 		public static final float DEFAULT_TRACE_SPEED = 100.0f;
 		public static final String KEY_TRACE_ALTITUDE_ENABLED = "KEY_TRACE_ALTITUDE_ENABLED";
-		public static final boolean DEFAULT_TRACE_ALTITUDE_ENABLED = true;
+		public static final boolean DEFAULT_TRACE_ALTITUDE_ENABLED = false;
 		public static final String KEY_TRACE_ALTITUDE = "KEY_TRACE_ALTITUDE";
 		public static final float DEFAULT_TRACE_ALTITUDE = 0.6f;
 	//	public static final String KEY_TRACE_CURVATURE = "KEY_TRACE_CURVATURE";

@@ -337,14 +337,12 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 				// 自動操縦ボタン
 				setColorFilter((ImageView)view);
 				clearAutoPilot();	// 自動操縦解除
-				updateButtons();
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
-				clearAutoPilot();	// 自動操縦解除
 				setColorFilter((ImageView) view);
 				emergencyStop();
-				updateButtons();
+				clearAutoPilot();	// 自動操縦解除
 				break;
 			case R.id.copilot_btn:
 				if ((mController instanceof ISkyController) && mController.isConnected()) {
@@ -489,6 +487,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 			// スカイコントローラーのジョイスティックで操縦する
 			((ISkyController)mController).setCoPilotingSource(0);
 		}
+		updateButtons();
 	}
 
 	private final Runnable mAutoPilotOnTask = new Runnable() {
@@ -520,13 +519,6 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 			camera.sendExposure(mCameraExposure);
 			camera.sendSaturation(mCameraSaturation);
 			camera.sendAutoWhiteBalance(mCameraAutoWhiteBlance);
-//		} else {
-//			runOnUiThread(new Runnable() {
-//				@Override
-//				public void run() {
-//					mAutoWhiteBlanceSw.setVisibility(View.GONE);
-//				}
-//			});
 		}
 		mTraceAltitude = Math.min(mPref.getFloat(KEY_TRACE_ALTITUDE, DEFAULT_TRACE_ALTITUDE), mFlightController.getMaxAltitude().current());
 		synchronized (mParamSync) {
@@ -624,7 +616,9 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 
 	@Override
 	protected void updateButtons() {
-		runOnUiThread(mUpdateButtonsTask);
+		// 20ミリ秒以内に連続して呼ばれた時は最後のをのみ実行できるように遅延実行する
+		removeFromUIThread(mUpdateButtonsTask);
+		runOnUiThread(mUpdateButtonsTask, 20);
 	}
 
 	@Override
@@ -805,10 +799,10 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 	/** トレース飛行中 */
 	private volatile boolean mAutoPilot, mRequestAutoPilot;
 	/** パラメータ変更指示 */
-	protected boolean mReqUpdateParams;
+	private boolean mReqUpdateParams;
 	/** パラメータの排他制御用 */
-	protected final Object mParamSync = new Object();
-	protected volatile int mLostCnt;
+	private final Object mParamSync = new Object();
+	private volatile int mLostCnt;
 
 	protected void prepareQueue() {
 		synchronized (mQueue) {
@@ -838,20 +832,6 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		if (rec != null) {
 			synchronized (mQueue) {
 				mPool.add(rec);
-			}
-		}
-	}
-
-	protected void setMove(final float roll, final float pitch, final float gaz, final float yaw) {
-//		if (DEBUG) Log.v(TAG, String.format("ControlTask#setMove:%f,%f,%f,%f", roll, pitch, gaz, yaw));
-		if (mControlTask != null) {
-			synchronized (mControlTask) {
-				mControlTask.roll = roll;
-				mControlTask.pitch = pitch;
-				mControlTask.gaz = gaz;
-				mControlTask.yaw = yaw;
-				mControlTask.requested = true;
-				mControlTask.notify();
 			}
 		}
 	}
@@ -891,7 +871,21 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		}
 	}
 
-	/** トレース飛行タスク */
+	protected void setMove(final float roll, final float pitch, final float gaz, final float yaw) {
+//		if (DEBUG) Log.v(TAG, String.format("ControlTask#setMove:%f,%f,%f,%f", roll, pitch, gaz, yaw));
+		if (mControlTask != null) {
+			synchronized (mControlTask) {
+				mControlTask.roll = roll;
+				mControlTask.pitch = pitch;
+				mControlTask.gaz = gaz;
+				mControlTask.yaw = yaw;
+				mControlTask.requested = true;
+				mControlTask.notify();
+			}
+		}
+	}
+
+	/** トレース飛行タスク抽象クラス */
 	protected abstract class AbstractTraceTask implements Runnable {
 		protected static final float EPS_CURVATURE = 1.0e-4f;
 		protected static final float MAX_PILOT_ANGLE = 80.0f;	// 一度に修正するyaw角の最大絶対値
@@ -899,7 +893,6 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 
 		protected final int WIDTH, HEIGHT;
 		protected final int CX, CY;
-		protected long startTime = -1L, lostTime = -1L;
 		protected int mMovingAveTap = 0;
 		protected final Vector mMovingAve = new Vector();			// オフセットの移動平均
 		protected Vector[] mOffsets;
@@ -963,7 +956,16 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 			return mMovingAve;
 		}
 
+		/** UIで設定値が変更された時の処理, 必要な物をコピーする */
 		protected abstract void onUpdateParams();
+
+		/**
+		 * 飛行制御値の計算処理
+		 * 解析データを受け取ると呼び出される
+		 * 引数のLineRecはこのメソッドの呼び出し側でrecycleする
+		 * @param rec
+		 * @return 飛行制御値
+		 */
 		protected abstract PilotVector onCalc(final LineRec rec);
 
 		@Override
@@ -973,21 +975,9 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 				mIsRunning = mReqUpdateParams = true;
 				mAutoPilot = false;
 				mLostCnt = 0;
-//				float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
-//				float flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
-//				float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
-//				final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
-//				float scaleR = (float)mScaleR;
-//				float directionalReverseBias = mTraceDirectionalReverseBias;
-//				float curvature = 0.0f; // mTraceCurvature;
-//				//
-//				final Vector dir = new Vector(0.0f, flightSpeed, 0.0f).rotate(0.0f, 0.0f, flightAngleYaw);
-//				final Vector offset = new Vector();
-//				final Vector work = new Vector();
-//				final Vector work2 = new Vector();
-//				final Vector prevOffset = new Vector();
 				final PilotVector mPilotValue = new PilotVector();		// roll,pitch,gaz,yaw制御量
 				final PilotVector mPrevPilotValue = new PilotVector();	// roll,pitch,gazの前回制御量
+				long startTime = -1L, lostTime = -1L;
 				LineRec rec = null;
 				for ( ; mIsRunning ; ) {
 					synchronized (mParamSync) {
@@ -1007,6 +997,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 						try {
 							// 解析データを取得できた＼(^o^)／
 							if (rec.type >= 0) {
+								lostTime = -1;
 								mPilotValue.set(onCalc(rec));
 							} else {
 								// ラインを見失った時
@@ -1205,7 +1196,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 				rec.center.set(result[12], result[13], 0.0f);
 				// 処理時間
 				rec.processingTimeMs = (long)(result[19]);
-				// キュー内に最大数入っていたら先頭(一番古いもの)をプールに戻す
+				// キュー内に最大数入っていたら先頭(一番古いもの)をプールに戻す(と言っても最新１つしか保持しないけど)
 				for ( ; mQueue.size() > MAX_QUEUE ; ) {
 					mPool.add(mQueue.remove(0));
 				}
@@ -1854,7 +1845,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 						mReqUpdateParams = true;
 						mTraceMovingAveTap = notch;
 					}
-					mPref.edit().putFloat(KEY_TRACE_MOVING_AVE_TAP, notch).apply();
+					mPref.edit().putInt(KEY_TRACE_MOVING_AVE_TAP, notch).apply();
 				}
 				break;
 			}
