@@ -1432,6 +1432,7 @@ public class SkyController extends DeviceController implements ISkyController, I
 				// タブレットまたはスマホで操縦する時
 				break;
 			}
+			mCoPilotingSource = source.getValue();
 		}
 	};
 
@@ -1896,6 +1897,11 @@ public class SkyController extends DeviceController implements ISkyController, I
 		return sentStatus;
 	}
 
+	private int mCoPilotingSource;
+	@Override
+	public int getCoPilotingSource() {
+		return mCoPilotingSource;
+	}
 
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAccessPointSettingsAccessPointChannel(byte channel)
 // public ARCOMMANDS_GENERATOR_ERROR_ENUM setSkyControllerAccessPointSettingsWifiSelection(ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_TYPE_ENUM type, ARCOMMANDS_SKYCONTROLLER_ACCESSPOINTSETTINGS_WIFISELECTION_BAND_ENUM band, byte channel)

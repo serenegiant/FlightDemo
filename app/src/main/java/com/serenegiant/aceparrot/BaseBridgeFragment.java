@@ -108,6 +108,8 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 			mMediaPlayer.stop();
 		}
 		if (mController != null) {
+			final ISkyController bridge = (ISkyController)mController;
+			bridge.setCoPilotingSource(0);
 			mController.removeListener(mSkyControllerListener);
 			if (!mIsConnectToDevice) {
 				releaseDeviceController(true);
@@ -380,7 +382,7 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 	protected void updateButtonsOnUiThread(final boolean visible) {
 		if (!visible) {
 			try {
-				final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+				final ARDeviceInfoAdapter adapter = (ARDeviceInfoAdapter)mDeviceListView.getAdapter();
 				adapter.clear();
 			} catch (final Exception e) {
 				Log.w(TAG, e);

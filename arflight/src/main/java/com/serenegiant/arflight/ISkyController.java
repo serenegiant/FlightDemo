@@ -92,6 +92,7 @@ public interface ISkyController extends IDeviceController {
 	 * @param _source 0: スカイコントローラーを使用する, 1: タブレット/スマホを使用する
 	 */
 	public boolean setCoPilotingSource(final int _source);
+	public int getCoPilotingSource();
 	/**
 	 * カメラのpan/tiltをリセットする
 	 * FIXME 機体のカメラなんかな? これを呼んでも何のコールバックもこない. スカイコントローラー自体のアプリ用なのかも

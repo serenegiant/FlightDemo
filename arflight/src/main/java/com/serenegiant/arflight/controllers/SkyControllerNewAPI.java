@@ -43,7 +43,7 @@ import java.util.concurrent.Semaphore;
 import static com.serenegiant.arflight.ARFlightConst.*;
 
 public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements ISkyController, IVideoStreamController, IWiFiController {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = SkyControllerNewAPI.class.getSimpleName();
 
 	/** 接続中の機体情報 */
@@ -518,10 +518,9 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			// このコールバックメソッドの引数と同じARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUMだけど
 			// どちらのコールバックメソッドも呼び出されない
 			// なんでやねん。
+			mCoPilotingSource = (Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE);
 			final ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUM source
-				= ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUM.getFromValue(
-				(Integer)args.get(ARFeatureSkyController.ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE)
-			);
+				= ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_ENUM.getFromValue(mCoPilotingSource);
 			if (DEBUG) Log.v(TAG, "onCoPilotingSourceUpdate:source=" + source);
 			switch (source) {
 			case ARCOMMANDS_SKYCONTROLLER_COPILOTINGSTATE_PILOTINGSOURCE_SOURCE_SKYCONTROLLER:
@@ -1113,17 +1112,23 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 
 	@Override
 	public boolean setCoPilotingSource(final int _source) {
-		if (DEBUG) Log.d(TAG, "setCoPilotingSource:");
+		final ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM source
+			= ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM.getFromValue(_source % 2);
+		if (DEBUG) Log.d(TAG, "setCoPilotingSource:source=" + source);
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isStarted()) {
-			final ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM source
-				= ARCOMMANDS_SKYCONTROLLER_COPILOTING_SETPILOTINGSOURCE_SOURCE_ENUM.getFromValue(_source % 2);
 			result = mARDeviceController.getFeatureSkyController().sendCoPilotingSetPilotingSource(source);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#setCoPilotingSource failed:" + result);
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
+	}
+
+	private int mCoPilotingSource;
+	@Override
+	public int getCoPilotingSource() {
+		return mCoPilotingSource;
 	}
 
 	@Override

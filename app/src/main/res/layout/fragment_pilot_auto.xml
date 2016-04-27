@@ -5,7 +5,7 @@
 	xmlns:tools="http://schemas.android.com/tools"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	tools:context="com.serenegiant.aceparrot.PilotFragment"
+	tools:context="com.serenegiant.aceparrot.PilotFragment2"
 	android:id="@+id/screen_frame">
 
 	<LinearLayout
@@ -165,6 +165,14 @@
 			android:textSize="@dimen/text_sz_fps"
 			android:gravity="center_horizontal"
 			android:textColor="@color/GRAY"/>
+
+		<ImageButton
+			android:layout_width="@dimen/btn_size_action"
+			android:layout_height="@dimen/btn_size_action"
+			android:id="@+id/copilot_btn"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_favorite"/>
 
 		<ImageButton
 			android:id="@+id/still_capture_btn"

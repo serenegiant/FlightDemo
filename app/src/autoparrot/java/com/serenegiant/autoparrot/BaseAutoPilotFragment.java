@@ -86,6 +86,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 
 	// 右サイドパネル
 	private View mRightSidePanel;
+	private ImageButton mCopilotBtn;		// コパイロットボタン
 	private ImageButton mStillCaptureBtn;
 	private ImageButton mVideoRecordingBtn;
 	private ImageButton mTraceButton;
@@ -131,12 +132,14 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		super.onResume();
 		runOnUiThread(mCPUMonitorTask, 1000);
 		runOnUiThread(mFpsTask, 1000);
+		clearAutoPilot();
 	}
 
 	@Override
 	public void onPause() {
 		removeFromUIThread(mFpsTask);
 		removeFromUIThread(mCPUMonitorTask);
+		clearAutoPilot();
 		super.onPause();
 	}
 
@@ -242,6 +245,11 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		mRightSidePanel = rootView.findViewById(R.id.right_side_panel);
 		mActionViews.add(mRightSidePanel);
 
+		// コパイロットボタン
+		mCopilotBtn = (ImageButton) rootView.findViewById(R.id.copilot_btn);
+		mCopilotBtn.setOnClickListener(mOnClickListener);
+		mCopilotBtn.setVisibility(mController instanceof ISkyController ? View.VISIBLE : View.GONE);
+
 		// 静止画撮影
 		mStillCaptureBtn = (ImageButton) rootView.findViewById(R.id.still_capture_btn);
 		mStillCaptureBtn.setOnClickListener(mOnClickListener);
@@ -339,6 +347,14 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				setColorFilter((ImageView) view);
 				emergencyStop();
 				updateButtons();
+				break;
+			case R.id.copilot_btn:
+				if ((mController instanceof ISkyController) && mController.isConnected()) {
+					((ISkyController)mController).setCoPilotingSource(
+						((ISkyController)mController).getCoPilotingSource() == 0 ? 1 : 0
+					);
+					runOnUiThread(mUpdateButtonsTask, 300);
+				}
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
@@ -452,6 +468,10 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 					} else {
 						// 飛行中ならすぐに自動トレース開始
 						mAutoPilot = true;
+						if ((mController instanceof ISkyController) && mController.isConnected()) {
+							// スマホ/タブレットで操縦する
+							((ISkyController)mController).setCoPilotingSource(1);
+						}
 					}
 				} else {
 					mAutoPilot = mRequestAutoPilot = false;
@@ -467,12 +487,20 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	private void clearAutoPilot() {
 		mAutoPilot = mRequestAutoPilot = false;
 		removeEvent(mAutoPilotOnTask);
+		if ((mController instanceof ISkyController) && mController.isConnected()) {
+			// スカイコントローラーのジョイスティックで操縦する
+			((ISkyController)mController).setCoPilotingSource(0);
+		}
 	}
 
 	private final Runnable mAutoPilotOnTask = new Runnable() {
 		@Override
 		public void run() {
 			synchronized (mParamSync) {
+				if ((mController instanceof ISkyController) && mController.isConnected()) {
+					// スマホ/タブレットで操縦する
+					((ISkyController)mController).setCoPilotingSource(1);
+				}
 				mAutoPilot = mReqUpdateParams = true;
 			}
 		}
@@ -667,6 +695,11 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 			// 下パネル
 			mBottomPanel.setEnabled(is_connected);
 			mEmergencyBtn.setEnabled(is_connected);	// 非常停止
+			mCopilotBtn.setEnabled(is_connected);	// コパイロット
+			mCopilotBtn.setColorFilter(
+				(mController instanceof ISkyController)
+				&& ((ISkyController)mController).getCoPilotingSource() == 0
+					? 0 : 0xffff0000);
 			setChildVisibility(mTimeLabelTv, is_recording || is_playing ? View.VISIBLE : View.INVISIBLE);
 			mRecordBtn.setEnabled(can_record);        // 記録
 			mRecordBtn.setColorFilter(can_record ? (is_recording ? 0xffff0000 : 0) : DISABLE_COLOR);
@@ -1225,6 +1258,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 			} catch (final Exception e) {
 				// ignore
 			}
+			clearAutoPilot();
 			if (DEBUG) Log.v(TAG, "ControlTask#run:finished");
 		}
 	}

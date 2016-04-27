@@ -41,8 +41,9 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		if (DEBUG) Log.v(TAG, "onCreate:savedInstanceState=" + savedInstanceState);
 		mController = null;
 		Bundle args = savedInstanceState;
-		if (args == null)
+		if (args == null) {
 			args = getArguments();
+		}
 		if (args != null) {
 			mDevice = args.getParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE);
 			mDeviceInfo = args.getParcelable(ARFLIGHT_EXTRA_DEVICE_INFO);

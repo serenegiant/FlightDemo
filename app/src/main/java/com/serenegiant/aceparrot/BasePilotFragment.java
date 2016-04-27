@@ -28,6 +28,7 @@ import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
+import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.arflight.TouchFlight;
@@ -97,7 +98,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	}
 
 	// 操縦用
-	protected int mOperationType;				// 操縦スティックのモード
+	protected int mOperationType;			// 操縦スティックのモード
 	protected boolean mOperationTouch;		// タッチ描画で操縦モードかどうか
 	protected double mMaxControlValue = DEFAULT_AUTOPILOT_MAX_CONTROL_VALUE;
 	protected double mScaleX, mScaleY, mScaleZ, mScaleR;

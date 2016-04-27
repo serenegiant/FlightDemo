@@ -93,6 +93,7 @@ public class PilotFragment2 extends BasePilotFragment {
 	private ImageButton mMoveButton;		// 移動ボタン(タッチ描画操縦)
 	// 右サイドパネル
 	private View mRightSidePanel;
+	private ImageButton mCopilotBtn;		// コパイロットボタン
 	private ImageButton mStillCaptureBtn;
 	private ImageButton mVideoRecordingBtn;
 	// 左サイドパネル
@@ -247,6 +248,11 @@ public class PilotFragment2 extends BasePilotFragment {
 // 右サイドパネル
 		mRightSidePanel = rootView.findViewById(R.id.right_side_panel);
 		mActionViews.add(mRightSidePanel);
+
+		// コパイロットボタン
+		mCopilotBtn = (ImageButton) rootView.findViewById(R.id.copilot_btn);
+		mCopilotBtn.setOnClickListener(mOnClickListener);
+		mCopilotBtn.setVisibility(mController instanceof ISkyController ? View.VISIBLE : View.GONE);
 
 		// 静止画撮影
 		mStillCaptureBtn = (ImageButton) rootView.findViewById(R.id.still_capture_btn);
@@ -628,6 +634,14 @@ public class PilotFragment2 extends BasePilotFragment {
 				// 非常停止指示ボタンの処理
 				setColorFilter((ImageView) view);
 				emergencyStop();
+				break;
+			case R.id.copilot_btn:
+				if ((mController instanceof ISkyController) && mController.isConnected()) {
+					((ISkyController)mController).setCoPilotingSource(
+						((ISkyController)mController).getCoPilotingSource() == 0 ? 1 : 0
+					);
+					runOnUiThread(mUpdateButtonsTask, 300);
+				}
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
@@ -1050,6 +1064,11 @@ public class PilotFragment2 extends BasePilotFragment {
 			// 下パネル
 			mBottomPanel.setEnabled(is_connected);
 			mEmergencyBtn.setEnabled(is_connected);	// 非常停止
+			mCopilotBtn.setEnabled(is_connected);	// コパイロット
+			mCopilotBtn.setColorFilter(
+				(mController instanceof ISkyController)
+				&& ((ISkyController)mController).getCoPilotingSource() == 0
+					? 0 : 0xffff0000);
 			setChildVisibility(mTimeLabelTv, is_recording || is_playing ? View.VISIBLE : View.INVISIBLE);
 			mLoadBtn.setEnabled(can_load);            // 読み込み
 			mPlayBtn.setEnabled(can_play);            // 再生
