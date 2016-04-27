@@ -247,7 +247,7 @@ public class FlightControllerMiniDroneNewAPI extends FlightControllerNewAPI {
 				 * @param _timestampAndSeqNum Command timestamp in milliseconds (low 24 bits) + command sequence number [0;255] (high 8 bits).
 				 */
 				final int timestampAndSeqNum = (int)(System.currentTimeMillis() & 0xffffff) + (seqNum ++) << 24;
-				result = mARDeviceController.getFeatureMiniDrone().sendPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, timestampAndSeqNum);
+				result = mARDeviceController.getFeatureMiniDrone().setPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, timestampAndSeqNum);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}

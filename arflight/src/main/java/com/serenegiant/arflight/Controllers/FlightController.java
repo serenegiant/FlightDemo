@@ -57,7 +57,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = FlightController.class.getSimpleName();
 
-	private LooperThread mFlightCMDThread;
+	private FlightCMDThread mFlightCMDThread;
 
 	private final DataPCMD mDataPCMD = new DataPCMD();
 
@@ -921,6 +921,8 @@ public abstract class FlightController extends DeviceController implements IFlig
 	public void setPitch(final float pitch) {
 		synchronized (mDataPCMD) {
 			mDataPCMD.pitch = pitch > 100 ? 100 : (pitch < -100 ? -100 : pitch);
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -956,6 +958,8 @@ public abstract class FlightController extends DeviceController implements IFlig
 	public void setHeading(final float heading) {
 		synchronized (mDataPCMD) {
 			mDataPCMD.heading = heading;
+			mDataPCMD.requestSend = true;
+			mDataPCMD.notify();
 		}
 	}
 
@@ -1287,48 +1291,94 @@ public abstract class FlightController extends DeviceController implements IFlig
 		return sentStatus;
 	}
 
-	/**
-	 * 操縦コマンド送信スレッドでのループ内の処理(sendPCMDを呼び出す)
-	 * 下位クラスで定期的にコマンド送信が必要ならoverride
-	 */
-	protected void sendCmdInControlLoop() {
-		final int flag;
-		float roll, pitch, yaw, gaz, heading;
-		synchronized (mDataPCMD) {
-			flag = mDataPCMD.flag;
-			roll = mDataPCMD.roll;
-			pitch = mDataPCMD.pitch;
-			yaw = mDataPCMD.yaw;
-			gaz = mDataPCMD.gaz;
-			heading = mDataPCMD.heading;
-		}
-		// 操縦コマンド送信
-		sendPCMD(flag, (int)roll, (int)pitch, (int)yaw, (int)gaz, (int)heading);
-	}
 
 	/** 操縦コマンドを定期的に送信するためのスレッド */
-	protected class FlightCMDThread extends LooperThread {
+	protected class FlightCMDThread extends Thread {
 		private final long intervals_ms;
+		private volatile boolean mIsRunning;
+
 		public FlightCMDThread(final long _intervals_ms) {
 			intervals_ms = _intervals_ms;
 		}
 
-		@Override
-		public void onLoop() {
-			final long lastTime = SystemClock.elapsedRealtime();
-
-			if (isStarted()) {
-				sendCmdInControlLoop();
+		public void stopThread() {
+			mIsRunning = false;
+			synchronized (mDataPCMD) {
+				mDataPCMD.notifyAll();
 			}
-			// 次の送信予定時間までの休止時間を計算[ミリ秒]
-			final long sleepTime = (SystemClock.elapsedRealtime() + intervals_ms) - lastTime;
+		}
 
-			try {
-				sleep(sleepTime);
-			} catch (final InterruptedException e) {
-				// ignore
+		@Override
+		public void run() {
+			mIsRunning = true;
+			int flag, roll, pitch, yaw, gaz, heading;
+			for ( ; mIsRunning ; ) {
+				final long lastTime = SystemClock.elapsedRealtime();
+				synchronized (mDataPCMD) {
+					if (mIsRunning && isConnected()) {
+						flag = mDataPCMD.flag;
+						roll = (int)mDataPCMD.roll;
+						pitch = (int)mDataPCMD.pitch;
+						yaw = (int)mDataPCMD.yaw;
+						gaz = (int)mDataPCMD.gaz;
+						heading = (int)mDataPCMD.heading;
+						// 操縦コマンド送信
+						sendPCMD(flag, roll, pitch, yaw, gaz, heading);
+					}
+					// 次の送信予定時間までの休止時間を計算[ミリ秒]
+					final long sleepTime = (SystemClock.elapsedRealtime() + intervals_ms) - lastTime;
+					try {
+						mDataPCMD.wait(sleepTime);
+					} catch (final InterruptedException e) {
+						break;
+					}
+				}
 			}
 		}
 	}
+
+//	/**
+//	 * 操縦コマンド送信スレッドでのループ内の処理(sendPCMDを呼び出す)
+//	 * 下位クラスで定期的にコマンド送信が必要ならoverride
+//	 */
+//	protected void sendCmdInControlLoop() {
+//		final int flag;
+//		float roll, pitch, yaw, gaz, heading;
+//		synchronized (mDataPCMD) {
+//			flag = mDataPCMD.flag;
+//			roll = mDataPCMD.roll;
+//			pitch = mDataPCMD.pitch;
+//			yaw = mDataPCMD.yaw;
+//			gaz = mDataPCMD.gaz;
+//			heading = mDataPCMD.heading;
+//		}
+//		// 操縦コマンド送信
+//		sendPCMD(flag, (int)roll, (int)pitch, (int)yaw, (int)gaz, (int)heading);
+//	}
+//
+//	/** 操縦コマンドを定期的に送信するためのスレッド */
+//	protected class FlightCMDThread extends LooperThread {
+//		private final long intervals_ms;
+//		public FlightCMDThread(final long _intervals_ms) {
+//			intervals_ms = _intervals_ms;
+//		}
+//
+//		@Override
+//		public void onLoop() {
+//			final long lastTime = SystemClock.elapsedRealtime();
+//
+//			if (isStarted()) {
+//				sendCmdInControlLoop();
+//			}
+//			// 次の送信予定時間までの休止時間を計算[ミリ秒]
+//			final long sleepTime = (SystemClock.elapsedRealtime() + intervals_ms) - lastTime;
+//
+//			try {
+//				sleep(sleepTime);
+//			} catch (final InterruptedException e) {
+//				// ignore
+//			}
+//		}
+//	}
 
 }

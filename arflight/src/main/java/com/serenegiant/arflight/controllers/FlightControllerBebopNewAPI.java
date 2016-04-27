@@ -1236,7 +1236,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 				 * @param _timestampAndSeqNum Command timestamp in milliseconds (low 24 bits) + command sequence number [0;255] (high 8 bits).
 				 */
 				final int timestampAndSeqNum = (int)(System.currentTimeMillis() & 0xffffff) + (seqNum ++) << 24;
-				result = mARDeviceController.getFeatureARDrone3().sendPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, timestampAndSeqNum);
+				result = mARDeviceController.getFeatureARDrone3().setPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, timestampAndSeqNum);
 			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}

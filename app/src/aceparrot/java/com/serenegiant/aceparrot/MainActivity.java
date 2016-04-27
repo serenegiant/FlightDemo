@@ -68,7 +68,7 @@ public class MainActivity extends Activity /*AppCompatActivity*/ implements IMai
 		NetworkChangedReceiver.enable(getApplicationContext());
 		final ManagerFragment manager = ManagerFragment.getInstance(this);
 		if (savedInstanceState == null) {
-			final Fragment fragment = ConnectionFragment.newInstance(false);	// XXX NewAPIを使うかどうか
+			final Fragment fragment = ConnectionFragment.newInstance(true);	// XXX NewAPIを使うかどうか
 			getFragmentManager().beginTransaction()
 				.add(R.id.container, fragment).commit();
 		}

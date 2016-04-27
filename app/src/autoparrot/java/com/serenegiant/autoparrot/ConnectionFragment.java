@@ -60,49 +60,49 @@ public class ConnectionFragment extends BaseConnectionFragment {
 	@Override
 	protected void onClick(final View view, final int position) {
 		Fragment fragment = null;
-		final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
-		final String itemValue = adapter.getItemName(position);
-		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-		final ARDiscoveryDeviceService device = manager.getDevice(itemValue);
-		if (device != null) {
-			// 製品名を取得
-			final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
-			final int id = view.getId();
-			switch (id) {
-			case R.id.pilot_button:
-			case R.id.download_button:
-			case R.id.gallery_button:
-			case R.id.script_button:
+		final int id = view.getId();
+		switch (id) {
+		case R.id.pilot_button:
+		case R.id.download_button:
+		case R.id.gallery_button:
+		case R.id.script_button:
+			final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+			final String itemValue = adapter.getItemName(position);
+			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+			final ARDiscoveryDeviceService device = manager.getDevice(itemValue);
+			if (device != null) {
+				// 製品名を取得
+				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
 				switch (product) {
 				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 					switch (id) {
 					case R.id.pilot_button:
-						fragment = AutoPilotFragment2.newInstance(device, "test001", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test001", AutoPilotFragment2.MODE_TRACE, isNewAPI());
 						break;
 					case R.id.download_button:
-						fragment = AutoPilotFragment2.newInstance(device, "test002", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test002", AutoPilotFragment2.MODE_TRACE, isNewAPI());
 						break;
 					case R.id.gallery_button:
-						fragment = AutoPilotFragment2.newInstance(device, "test003", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test003", AutoPilotFragment2.MODE_TRACE, isNewAPI());
 						break;
 					case R.id.script_button:
-						fragment = AutoPilotFragment2.newInstance(device, "test004", AutoPilotFragment2.MODE_TRACKING, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test004", AutoPilotFragment2.MODE_TRACKING, isNewAPI());
 						break;
 					}
 					break;
 				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 					switch (id) {
 					case R.id.pilot_button:
-						fragment = AutoPilotFragment2.newInstance(device, "test011", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test011", AutoPilotFragment2.MODE_TRACE, isNewAPI());
 						break;
 					case R.id.download_button:
-						fragment = AutoPilotFragment2.newInstance(device, "test012", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test012", AutoPilotFragment2.MODE_TRACE, isNewAPI());
 						break;
 					case R.id.gallery_button:
-						fragment = AutoPilotFragment2.newInstance(device, "test013", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test013", AutoPilotFragment2.MODE_TRACE, isNewAPI());
 						break;
 					case R.id.script_button:
-						fragment = AutoPilotFragment2.newInstance(device, "test014", AutoPilotFragment2.MODE_TRACKING, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test014", AutoPilotFragment2.MODE_TRACKING, isNewAPI());
 						break;
 					}
 					break;
@@ -112,11 +112,11 @@ public class ConnectionFragment extends BaseConnectionFragment {
 					}
 					break;
 				}
-				break;
-			case R.id.config_show_btn:
-				fragment = ConfigAppFragment.newInstance();
-				break;
 			}
+			break;
+		case R.id.config_show_btn:
+			fragment = ConfigAppFragment.newInstance();
+			break;
 		}
 		if (fragment != null) {
 			replace(fragment);

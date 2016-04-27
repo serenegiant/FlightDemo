@@ -1103,7 +1103,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	private final boolean[] downs = new boolean[GamePadConst.KEY_NUMS];
 	private final long[] down_times = new long[GamePadConst.KEY_NUMS];
 	private final int[] analogSticks = new int[4];
-	boolean moved;
+	private volatile boolean moved;
 	/** ゲームパッド読み取りスレッドの実行部 */
 	private final Runnable mGamePadTask = new Runnable() {
 		private int mCurrentPan = Integer.MAX_VALUE, mCurrentTilt = Integer.MAX_VALUE;
@@ -1239,7 +1239,11 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		}
 	};
 
-	private static final float DEAD_ZONE = 2.0f;
+	private volatile boolean mMoveByGamepad;
+	protected boolean isMoveByGamepad() {
+		return mMoveByGamepad;
+	}
+
 	/**
 	 * ゲームパッド操作時の実際の移動コマンド発行処理
 	 * @param roll
@@ -1247,25 +1251,42 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param gaz
 	 * @param yaw
 	 */
-	protected void gamepad_move(final float roll, final float pitch, final float gaz, final float yaw) {
+	private void gamepad_move(final float roll, final float pitch, final float gaz, final float yaw) {
+		sendMove(roll, pitch, gaz, yaw, true);
+	}
+
+	protected void sendMove(final float roll, final float pitch, final float gaz, final float yaw) {
+		sendMove(roll, pitch, gaz, yaw, false);
+	}
+
+	private static final float DEAD_ZONE = 2.0f;
+	private int prev_r, prev_p, prev_g, prev_y;
+
+	private void sendMove(final float roll, final float pitch, final float gaz, final float yaw, final boolean moveByGamepad) {
+		if (isMoveByGamepad() && !moveByGamepad) return;
 		final int r = (int)(Math.abs(roll) > DEAD_ZONE ? roll : 0.0f);
 		final int p = (int)(Math.abs(pitch) > DEAD_ZONE ? pitch : 0.0f);
 		final int g = (int)(Math.abs(gaz) > DEAD_ZONE ? gaz : 0.0f);
 		final int y = (int)(Math.abs(yaw) > DEAD_ZONE ? yaw : 0.0f);
-		if ((r != 0) || (p != 0) || (g != 0) || (y != 0)) {
-//			if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", roll, pitch, gaz, yaw));
-			if (mFlightController != null) {
-				moved = true;
-				mFlightController.setMove(r, p, g, y);
-				mFlightRecorder.record(FlightRecorder.CMD_MOVE4, r, p, g, y);
+		if ((r != prev_r) || (p != prev_p) || (g != prev_g) || (y != prev_y)) {
+			prev_r = r;
+			prev_p = p;
+			prev_g = g;
+			prev_y = y;
+			if ((r != 0) || (p != 0) || (g != 0) || (y != 0)) {
+				if (mFlightController != null) {
+					moved = true;
+					mMoveByGamepad = moveByGamepad;
+					mFlightController.setMove(r, p, g, y);
+					mFlightRecorder.record(FlightRecorder.CMD_MOVE4, r, p, g, y);
+				}
+			} else if (moved) {
+				if (mFlightController != null) {
+					mFlightController.setMove(0, 0, 0, 0);
+					mFlightRecorder.record(FlightRecorder.CMD_MOVE4, 0, 0, 0, 0);
+				}
+				moved = mMoveByGamepad = false;
 			}
-		} else if (moved) {
-			if (mFlightController != null) {
-				mFlightController.setMove(0, 0, 0, 0, 0);
-				mFlightRecorder.record(FlightRecorder.CMD_MOVE4, 0, 0, 0, 0);
-			}
-			moved = false;
-//			if (DEBUG) Log.v(TAG, String.format("move(%5.1f,%5.1f,%5.1f,%5.1f", 0f, 0f, 0f, 0f));
 		}
 	}
 

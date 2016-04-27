@@ -39,16 +39,10 @@ public class MediaFragment extends BaseFlightControllerFragment
 	private static final int REQUEST_DELETE = 1;
 	private static final int REQUEST_FETCH = 2;
 
-	public static MediaFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
-		final MediaFragment fragment = new MediaFragment();
-		fragment.setDevice(device, newAPI);
-		return fragment;
-	}
-
 	public static MediaFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final boolean newAPI) {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final MediaFragment fragment = new MediaFragment();
-		fragment.setBridge(device, info, newAPI);
+		fragment.setDevice(device, info, newAPI);
 		return fragment;
 	}
 

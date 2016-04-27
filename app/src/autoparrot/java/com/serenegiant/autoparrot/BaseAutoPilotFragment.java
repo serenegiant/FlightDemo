@@ -329,7 +329,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				setColorFilter((ImageView)view);
 				if (isStarted()) {
 					if ((getState() & IFlightController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
-						replace(ConfigFragment.newInstance(getDevice(), isNewAPI()));
+						replace(ConfigFragment.newInstance(getDevice(), getDeviceInfo(), isNewAPI()));
 					} else {
 						landing();
 					}
@@ -1243,13 +1243,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 					}
 					requested = false;
 				}
-//				if (DEBUG) Log.v(TAG, String.format("ControlTask#run:%f,%f,%f,%f", local_roll, local_pitch, local_gaz, local_yaw));
-				try {
-					mController.setMove(local_roll, local_pitch, local_gaz, local_yaw);
-				} catch (final Exception e) {
-					Log.w(TAG, e);
-					break;
-				}
+				sendMove(local_roll, local_pitch, local_gaz, local_yaw);
 			} // for (; mIsRunning ; )
 			Process.setThreadPriority(Process. THREAD_PRIORITY_DEFAULT);	// 0
 			mIsRunning = false;

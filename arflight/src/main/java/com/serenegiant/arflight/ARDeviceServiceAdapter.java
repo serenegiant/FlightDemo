@@ -71,7 +71,11 @@ public class ARDeviceServiceAdapter extends ArrayAdapter<ARDiscoveryDeviceServic
 	}
 
 	public String getItemName(final int position) {
-		final ARDiscoveryDeviceService device = getItem(position);
+		ARDiscoveryDeviceService device = null;
+		try {
+			device = getItem(position);
+		} catch (final Exception e) {
+		}
 		return device != null ? device.getName() : null;
 	}
 

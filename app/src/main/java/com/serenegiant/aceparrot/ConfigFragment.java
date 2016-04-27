@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IWiFiController;
 import com.serenegiant.arflight.attribute.AttributeFloat;
@@ -28,9 +29,9 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = ConfigFragment.class.getSimpleName();
 
-	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
+	public static ConfigFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final boolean newAPI) {
 		final ConfigFragment fragment = new ConfigFragment();
-		fragment.setDevice(device, newAPI);
+		fragment.setDevice(device, info, newAPI);
 		return fragment;
 	}
 

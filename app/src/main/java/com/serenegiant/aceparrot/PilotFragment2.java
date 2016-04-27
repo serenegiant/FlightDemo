@@ -55,16 +55,10 @@ public class PilotFragment2 extends BasePilotFragment {
 	private static final long HIDE_PILOTING_DELAY_MS = 5000;		// アイコン等をすべて隠すまでの時間[ミリ秒]
 
 
-	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
-		final PilotFragment2 fragment = new PilotFragment2();
-		fragment.setDevice(device, newAPI);
-		return fragment;
-	}
-
 	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final boolean newAPI) {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final PilotFragment2 fragment = new PilotFragment2();
-		fragment.setBridge(device, info, newAPI);
+		fragment.setDevice(device, info, newAPI);
 		return fragment;
 	}
 
@@ -348,26 +342,6 @@ public class PilotFragment2 extends BasePilotFragment {
 			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
 			break;
 		}
-/*		if ((mController instanceof FlightControllerCargoDrone)
-			|| (mController instanceof FlightControllerCargoDroneNewAPI)) {
-			model = IModelView.MODEL_CARGO;
-			ctrl = AttitudeScreenBase.CTRL_PILOT;
-		} else if ((mController instanceof FlightControllerMiniDroneNewAPI)
-			|| (mController instanceof FlightControllerMiniDrone)) {
-			model = IModelView.MODEL_MINIDRONE;
-			ctrl = AttitudeScreenBase.CTRL_PILOT;
-		} else if ((mController instanceof FlightControllerBebop2)
-			|| (mController instanceof FlightControllerBebop2NewAPI)) {
-			model = IModelView.MODEL_BEBOP2;
-			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
-		} else if ((mController instanceof FlightControllerBebop)
-			|| (mController instanceof FlightControllerBebopNewAPI)) {
-			model = IModelView.MODEL_BEBOP;
-			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
-		} else {
-			model = IModelView.MODEL_BEBOP;
-			ctrl = AttitudeScreenBase.CTRL_ATTITUDE;
-		} */
 		if (mController instanceof ICameraController) {
 			((ICameraController)mController).setCameraControllerListener(mCameraControllerListener);
 			((ICameraController)mController).sendCameraOrientation(0, 0);
@@ -605,7 +579,7 @@ public class PilotFragment2 extends BasePilotFragment {
 				setColorFilter((ImageView)view);
 				if (isStarted()) {
 					if ((getState() & IFlightController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
-						replace(ConfigFragment.newInstance(getDevice(), isNewAPI()));
+						replace(ConfigFragment.newInstance(getDevice(), getDeviceInfo(), isNewAPI()));
 					} else {
 						landing();
 					}

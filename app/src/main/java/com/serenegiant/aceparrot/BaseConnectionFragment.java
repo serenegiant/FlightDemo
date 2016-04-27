@@ -272,7 +272,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			switch (product) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				fragment = isPiloting ? PilotFragment2.newInstance(device, isNewAPI()) : MediaFragment.newInstance(device, isNewAPI());
+				fragment = isPiloting ? PilotFragment2.newInstance(device, null, isNewAPI()) : MediaFragment.newInstance(device, null, isNewAPI());
 				break;
 			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
 				//FIXME JumpingSumoは未実装
@@ -282,7 +282,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
 				// XXX MinidroneをNewAPIで動かすと機体が滑らかに飛行しないので常に従来APIにする
-				fragment = isPiloting ? PilotFragment2.newInstance(device, false) : MediaFragment.newInstance(device, false);
+				fragment = isPiloting ? PilotFragment2.newInstance(device, null, false) : MediaFragment.newInstance(device, null, false);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
 				if (BuildConfig.USE_SKYCONTROLLER) {

@@ -125,8 +125,8 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		return args;
 	}
 
-	protected Bundle setBridge(final ARDiscoveryDeviceService bridge, final DeviceInfo info, final boolean newAPI) {
-		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
+	protected Bundle setDevice(final ARDiscoveryDeviceService bridge, final DeviceInfo info, final boolean newAPI) {
+		if ((info != null) && !BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		mDevice = bridge;
 		mDeviceInfo = info;
 		mNewAPI = newAPI;
@@ -136,7 +136,11 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		}
 		args.putBoolean(ARFLIGHT_EXTRA_NEWAPI, newAPI);
 		args.putParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE, bridge);
-		args.putParcelable(ARFLIGHT_EXTRA_DEVICE_INFO, info);
+		if (info != null) {
+			args.putParcelable(ARFLIGHT_EXTRA_DEVICE_INFO, info);
+		} else {
+			args.remove(ARFLIGHT_EXTRA_DEVICE_INFO);
+		}
 		setArguments(args);
 		return args;
 	}
@@ -166,7 +170,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	}
 
 	protected ARDISCOVERY_PRODUCT_ENUM getProduct() {
-		return mDevice != null ? ARDiscoveryService.getProductFromProductID(mDevice.getProductID()) : ARDISCOVERY_PRODUCT_ENUM.eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE;
+		return ARDiscoveryService.getProductFromProductID(getProductId());
 	}
 
 	protected boolean isStarted() {
