@@ -1121,6 +1121,8 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#setCoPilotingSource failed:" + result);
+		} else {
+			mCoPilotingSource = _source;
 		}
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}

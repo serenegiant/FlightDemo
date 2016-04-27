@@ -1892,6 +1892,8 @@ public class SkyController extends DeviceController implements ISkyController, I
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send setCoPilotingSource command.");
+		} else {
+			mCoPilotingSource = _source;
 		}
 
 		return sentStatus;

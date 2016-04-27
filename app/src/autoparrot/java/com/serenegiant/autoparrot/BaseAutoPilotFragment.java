@@ -39,7 +39,6 @@ import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.ISkyController;
-import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.dialog.ColorPickerDialog;
 import com.serenegiant.dialog.SelectFileDialogFragment;
@@ -58,7 +57,7 @@ import java.util.List;
 import static com.serenegiant.aceparrot.AppConst.*;
 import static com.serenegiant.autoparrot.AutoPilotConst.*;
 
-public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPickerDialog.OnColorChangedListener {
+public abstract class BaseAutoPilotFragment extends BasePilotFragment implements ColorPickerDialog.OnColorChangedListener {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private final String TAG = "BaseAutoPilotFragment:" + getClass().getSimpleName();
 
@@ -96,10 +95,9 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 
 	protected SurfaceView mDetectView;
 	protected ImageProcessor mImageProcessor;
-	protected TraceTask mTraceTask;
 	protected ControlTask mControlTask;
 //	protected Switch mAutoWhiteBlanceSw;
-	private TextView mTraceTv1, mTraceTv2, mTraceTv3;
+	protected TextView mTraceTv1, mTraceTv2, mTraceTv3;
 	private TextView mCpuLoadTv;
 	private TextView mFpsSrcTv, mFpsResultTv;
 
@@ -353,7 +351,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 					((ISkyController)mController).setCoPilotingSource(
 						((ISkyController)mController).getCoPilotingSource() == 0 ? 1 : 0
 					);
-					runOnUiThread(mUpdateButtonsTask, 300);
+					updateButtons();
 				}
 				break;
 			case R.id.take_onoff_btn:
@@ -484,7 +482,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	};
 
 	/** 自動操縦解除 */
-	private void clearAutoPilot() {
+	protected void clearAutoPilot() {
 		mAutoPilot = mRequestAutoPilot = false;
 		removeEvent(mAutoPilotOnTask);
 		if ((mController instanceof ISkyController) && mController.isConnected()) {
@@ -506,7 +504,6 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		}
 	};
 
-	private int mImageProcessorSurfaceId;
 	private float originalExposure;
 	private float originalSaturation;
 	private int originalAutoWhiteBlance;
@@ -748,54 +745,15 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		}
 	};
 
-	private void startImageProcessor(final int processing_width, final int processing_height) {
-		if (DEBUG) Log.v(TAG, "startImageProcessor:");
+	protected void startImageProcessor(final int processing_width, final int processing_height) {
 		mIsRunning = true;
 		if (mControlTask == null) {
 			mControlTask = new ControlTask(mFlightController);
 			new Thread(mControlTask, "Ctrl").start();
 		}
-		if (mTraceTask == null) {
-			mTraceTask = new TraceTask(processing_width, processing_height);
-			new Thread(mTraceTask, "Trace").start();
-		}
-		if (mImageProcessor == null) {
-			mImageProcessor = new ImageProcessor(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT,	// こっちは元映像のサイズ
-				new MyImageProcessorCallback(processing_width, processing_height));	// こっちは処理サイズ
-			mImageProcessor.enableAutoFix(!isNewAPI());
-			mImageProcessor.setExposure(mExposure);
-			mImageProcessor.setSaturation(mSaturation);
-			mImageProcessor.setBrightness(mBrightness);
-			applyExtractRange(mExtractRangeH, mExtractRangeS, mExtractRangeV);
-			mImageProcessor.enableExtraction(mEnableGLESExtraction);
-//			mImageProcessor.enableNativeExtract(mEnableNativeExtraction);
-//			mImageProcessor.enableNativeCanny(mEnableNativeCanny);
-			mImageProcessor.trapeziumRate(mTrapeziumRate);
-			mImageProcessor.setAreaLimit(mAreaLimitMin, AREA_LIMIT_MAX);
-			mImageProcessor.setAreaErrLimit(mAreaErrLimit1, mAreaErrLimit2);
-			mImageProcessor.setAspectLimit(mAspectLimitMin);
-			mImageProcessor.setMaxThinningLoop(mMaxThinningLoop);
-			mImageProcessor.setFillInnerContour(mFillContour);
-			mImageProcessor.start(processing_width, processing_height);	// これも処理サイズ
-			final Surface surface = mImageProcessor.getSurface();
-			mImageProcessorSurfaceId = surface != null ? surface.hashCode() : 0;
-			if (mImageProcessorSurfaceId != 0) {
-				mVideoStream.addSurface(mImageProcessorSurfaceId, surface);
-			}
-		}
-		updateButtons();
 	}
 
-	private void stopImageProcessor() {
-		if ((mVideoStream != null) && (mImageProcessorSurfaceId != 0)) {
-			mVideoStream.removeSurface(mImageProcessorSurfaceId);
-		}
-		mImageProcessorSurfaceId = 0;
-		if (mImageProcessor != null) {
-			mImageProcessor.release();
-			mImageProcessor = null;
-		}
-		mTraceTask = null;
+	protected void stopImageProcessor() {
 		synchronized (mQueue) {
 			mIsRunning = false;
 			mQueue.notifyAll();
@@ -812,11 +770,29 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	 * TraceTaskが停止するときのコールバック
 	 * @param isError
 	 */
-	private void onStopAutoPilot(final boolean isError) {
+	protected void onStopAutoPilot(final boolean isError) {
 		if (DEBUG) Log.v(TAG, "onStopAutoPilot:");
 		mVibrator.vibrate(100);
 		clearAutoPilot();	// 自動操縦解除
 		updateButtons();
+		synchronized (mQueue) {
+			mIsRunning = mAutoPilot = false;
+			mQueue.clear();
+			mPool.clear();
+		}
+		System.gc();
+	}
+
+	protected void addSurface(final int id, final Surface surface) {
+		if ((mVideoStream != null) && (id != 0) && (surface != null)) {
+			mVideoStream.addSurface(id, surface);
+		}
+	}
+
+	protected void removeSurface(final int id) {
+		if ((mVideoStream != null) && (id != 0)) {
+			mVideoStream.removeSurface(id);
+		}
 	}
 
 	/** 解析データキューの最大サイズ */
@@ -829,24 +805,109 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	/** トレース飛行中 */
 	private volatile boolean mAutoPilot, mRequestAutoPilot;
 	/** パラメータ変更指示 */
-	private boolean mReqUpdateParams;
+	protected boolean mReqUpdateParams;
 	/** パラメータの排他制御用 */
-	private final Object mParamSync = new Object();
-	private volatile int mLostCnt;
+	protected final Object mParamSync = new Object();
+	protected volatile int mLostCnt;
+
+	protected void prepareQueue() {
+		synchronized (mQueue) {
+			for (int i = 0; i < MAX_QUEUE; i++) {
+				mPool.add(new LineRec());
+			}
+		}
+	}
+
+	protected LineRec waitLineRec() {
+		LineRec result = null;
+		synchronized (mQueue) {
+			try {
+				// 解析データ待ち
+				mQueue.wait(500);
+			} catch (final InterruptedException e) {
+				// ignore
+			}
+			if (mQueue.size() > 0) {
+				result = mQueue.remove(0);
+			}
+		}
+		return result;
+	}
+
+	protected void recycleLineRec(final LineRec rec) {
+		if (rec != null) {
+			synchronized (mQueue) {
+				mPool.add(rec);
+			}
+		}
+	}
+
+	protected void setMove(final float roll, final float pitch, final float gaz, final float yaw) {
+//		if (DEBUG) Log.v(TAG, String.format("ControlTask#setMove:%f,%f,%f,%f", roll, pitch, gaz, yaw));
+		if (mControlTask != null) {
+			synchronized (mControlTask) {
+				mControlTask.roll = roll;
+				mControlTask.pitch = pitch;
+				mControlTask.gaz = gaz;
+				mControlTask.yaw = yaw;
+				mControlTask.requested = true;
+				mControlTask.notify();
+			}
+		}
+	}
+
+	protected static class PilotVector extends Vector {
+		public float angle;
+
+		public PilotVector() {
+			super();
+		}
+
+		public PilotVector(final PilotVector other) {
+			super(other);
+			angle = other.angle;
+		}
+
+		public PilotVector(final Vector other) {
+			super(other);
+			angle = 0.0f;
+		}
+
+		public PilotVector set(final PilotVector src) {
+			super.set(src);
+			angle = src.angle;
+			return this;
+		}
+
+		public PilotVector set(final Vector src) {
+			super.set(src);
+			return this;
+		}
+
+		public PilotVector clear(final float scaler) {
+			super.clear(scaler);
+			angle = scaler;
+			return this;
+		}
+	}
 
 	/** トレース飛行タスク */
-	private class TraceTask implements Runnable {
-		private static final float EPS_CURVATURE = 1.0e-4f;
-		private static final float MAX_PILOT_ANGLE = 80.0f;	// 一度に修正するyaw角の最大絶対値
-		private static final float MIN_PILOT_ANGLE = 3.0f;	// 0とみなすyaw角のずれの絶対値
+	protected abstract class AbstractTraceTask implements Runnable {
+		protected static final float EPS_CURVATURE = 1.0e-4f;
+		protected static final float MAX_PILOT_ANGLE = 80.0f;	// 一度に修正するyaw角の最大絶対値
+		protected static final float MIN_PILOT_ANGLE = 1.0f;	// 0とみなすyaw角のずれの絶対値
 
-		private final int WIDTH, HEIGHT;
-		private final int CX, CY;
-		private int mMovingAveTap = 0;
-		private final Vector mMovingAve = new Vector();			// オフセットの移動平均
-		private Vector[] mOffsets;
-		private int mOffsetIx;
-		public TraceTask(final int processing_width, final int processing_height) {
+		protected final int WIDTH, HEIGHT;
+		protected final int CX, CY;
+		protected long startTime = -1L, lostTime = -1L;
+		protected int mMovingAveTap = 0;
+		protected final Vector mMovingAve = new Vector();			// オフセットの移動平均
+		protected Vector[] mOffsets;
+		protected int mOffsetIx;
+		protected boolean altitudeControl = mTraceAltitudeEnabled;
+		protected float flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
+		protected String msg1, msg2;
+		public AbstractTraceTask(final int processing_width, final int processing_height) {
 			WIDTH = processing_width;
 			HEIGHT = processing_height;
 			CX = processing_width >>> 1;
@@ -857,7 +918,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		 * オフセットの移動平均計算用ワーク変数を生成
 		 * @param notch
 		 */
-		private void createMovingAve(final int notch) {
+		protected void createMovingAve(final int notch) {
 			if ((mOffsets == null) || (mOffsets.length != notch)) {
 				final Vector[] temp = new Vector[notch];
 				final int n = mOffsets != null ? mOffsets.length : 0;
@@ -878,7 +939,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		/***
 		 * 移動平均計算用ワークをクリア
 		 */
-		private void clearMovingAve() {
+		protected void clearMovingAve() {
 			mOffsetIx = -1;
 			for (int i = 0; i < mMovingAveTap; i++) {
 				mOffsets[i].clear(0.0f);
@@ -891,7 +952,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		 * @param offset
 		 * @return
 		 */
-		private Vector updateMovingAve(final Vector offset) {
+		protected Vector updateMovingAve(final Vector offset) {
 			mOffsetIx = (++mOffsetIx) % mMovingAveTap;
 			mOffsets[mOffsetIx].set(offset);
 			mMovingAve.clear(0.0f);
@@ -902,219 +963,60 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 			return mMovingAve;
 		}
 
+		protected abstract void onUpdateParams();
+		protected abstract PilotVector onCalc(final LineRec rec);
+
 		@Override
 		public void run() {
-			synchronized (mQueue) {
-				for (int i = 0; i < MAX_QUEUE; i++) {
-					mPool.add(new LineRec());
-				}
-			}
+			prepareQueue();
 			try {
 				mIsRunning = mReqUpdateParams = true;
 				mAutoPilot = false;
 				mLostCnt = 0;
-				float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
-				boolean altitudeControl = mTraceAltitudeEnabled;
-				float flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
-				float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
-				final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
-				float scaleR = (float)mScaleR;
-				float directionalReverseBias = mTraceDirectionalReverseBias;
+//				float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
+//				float flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
+//				float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
+//				final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
+//				float scaleR = (float)mScaleR;
+//				float directionalReverseBias = mTraceDirectionalReverseBias;
 //				float curvature = 0.0f; // mTraceCurvature;
-				//
-				long startTime = -1L, lostTime = -1L;
-				final Vector dir = new Vector(0.0f, flightSpeed, 0.0f).rotate(0.0f, 0.0f, flightAngleYaw);
-				final Vector offset = new Vector();
-				final Vector work = new Vector();
-				final Vector work2 = new Vector();
-				final Vector prevOffset = new Vector();
-				float pilotAngle = 0.0f;
-				final Vector mPilotValue = new Vector();		// roll,pitch,gaz制御量
-				final Vector mPrevPilotValue = new Vector();	// roll,pitch,gazの前回制御量
+//				//
+//				final Vector dir = new Vector(0.0f, flightSpeed, 0.0f).rotate(0.0f, 0.0f, flightAngleYaw);
+//				final Vector offset = new Vector();
+//				final Vector work = new Vector();
+//				final Vector work2 = new Vector();
+//				final Vector prevOffset = new Vector();
+				final PilotVector mPilotValue = new PilotVector();		// roll,pitch,gaz,yaw制御量
+				final PilotVector mPrevPilotValue = new PilotVector();	// roll,pitch,gazの前回制御量
 				LineRec rec = null;
 				for ( ; mIsRunning ; ) {
 					synchronized (mParamSync) {
 						if (mReqUpdateParams) {	// パラメータ変更指示?
 							mReqUpdateParams = false;
-							flightAngleYaw = mTraceAttitudeYaw;
 							altitudeControl = mTraceAltitudeEnabled;
 							flightAltitude = Math.min(mTraceAltitude, mFlightController.getMaxAltitude().current());
 							if (flightAltitude < 0.5f) {
 								flightAltitude = 0.5f;
 							}
-							// scaleが最大で±2になるのでmFlightSpeedは[-100,+100]なのを[-50,+50]にする
-							flightSpeed = mTraceSpeed / 2.0f * (float)(mMaxControlValue / 100.0);
-							scale.set((float)mScaleX, (float)mScaleY, (float)mScaleZ);
-							scaleR = (float)mScaleR;
-							dir.set(0.0f, flightSpeed, 0.0f).rotateXY(flightAngleYaw);
-							directionalReverseBias = mTraceDirectionalReverseBias;
-	//						curvature = mTraceCurvature;
-							if (mMovingAveTap != mTraceMovingAveTap) {
-								createMovingAve(mTraceMovingAveTap);
-							}
+							onUpdateParams();
 						}
 					}
-					synchronized (mQueue) {
-						try {
-							// 解析データ待ち
-							mQueue.wait(500);
-						} catch (InterruptedException e) {
-							break;
-						}
-						if (!mIsRunning) break;
-						if (mQueue.size() > 0) {
-							rec = mQueue.remove(0);
-						}
-					}
+					rec = waitLineRec();
+					if (!mIsRunning) break;
 					if (rec != null) {
 						try {
 							// 解析データを取得できた＼(^o^)／
-							String msg1 = null, msg2 = null;
-							if (rec.type >= 0) {	// 0:TYPE_LINE, 1:TYPE_CIRCLE, 2:TYPE_CORNER
-								// ラインを検出出来た時
-								lostTime = -1;
-								//--------------------------------------------------------------------------------
-								// 制御量を計算
-								// 機体からの角度はカメラ映像の真上が0で反時計回りが負、時計回りが正(Bebopのyaw軸回転角と同じ)
-								// 解析画像のラインに対する角度は機体が時計回りすれば正
-								// この時機体自体のラインに対する角度は符号反転
-								// mCurvatureがゼロでない時にmAngleが正ならラインは左へ曲がっている、mAngleが負なら右へ曲がっている
-								// Vectorクラスは反時計回りが正, 時計回りが負
-								//--------------------------------------------------------------------------------
-								// ライン角に機体の進行方向の傾きを補正
-								final float theta = rec.angle - flightAngleYaw;
-								float line_angle = -theta;
-								if ((line_angle > 90.0f) || (line_angle < -90.0f)) {
-									if (theta < 0.0f) {
-										line_angle -= 180.0f;
-									} else {
-										line_angle += 180.0f;
-									}
-								}
-								//--------------------------------------------------------------------------------
-								// 画像中心からライン最小矩形の中心へのオフセットを計算
-								offset.set(CX, CY, flightAltitude).sub(rec.linePos);
-								// 解析データ
-								msg1 = String.format("%d,v(%3.0f,%3.0f,%5.1f,%5.2f),θ=%5.2f)",
-									rec.type, offset.x, offset.y, offset.z, rec.angle, line_angle);
-								//--------------------------------------------------------------------------------
-								// 画面の端が-1または+1になるように変換する
-								offset.div(CX, CY, flightAltitude);	// [-320,+320][-184,+184][z] => [-1,+1][-1,+1][0,1]
-								offset.set(updateMovingAve(offset));	// オフセットの移動平均を取得
-								// 移動方向, 前回と同じ方向なら1, 逆なら-1
-								work.set(offset).sub(prevOffset).sign();
-								// オフセットを保存
-								prevOffset.set(offset);
-								mPilotValue.set(offset);	// これは画面座標での画面中央とライン重心のオフセット値
-								// オフセットの移動平均の符号を取得
-								offset.sign();
-								// 移動方向が変わってなければバイアス加算, 変わってればバイアス減算
-								if (offset.x != 0.0f) { if (offset.x == work.x) { work.x = directionalReverseBias; } else { work.x = -directionalReverseBias; } } else { offset.x = 0.0f; }
-								if (offset.y != 0.0f) { if (offset.y == work.y) { work.y = directionalReverseBias; } else { work.y = -directionalReverseBias; } } else { offset.y = 0.0f; }
-								if (offset.z != 0.0f) { if (offset.z == work.z) { work.z = directionalReverseBias; } else { work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
-								work.add(1.0f, 1.0f, 1.0f);	// この時点でworkの各成分は1.0f±directionalReverseBias
-								// 機体のオフセットと反対向き動かすので-1倍, ±1を±50に換算するので50倍, 前進速度を加算
-								// オフセットy(ピッチ, 前後方向)はラインの中心点が中央より前だと負、中央より後ろだと正なので符号反転はしない
-								mPilotValue.mult(work).mult(-50.0f, 50.0f, 50.0f);
-	//							// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
-	//							mPilotValue.rotateXY(-angle);
-								// FIXME 高度に応じてスケールを変えないとだめかも
-								// 自動操縦スケールを適用
-								mPilotValue.mult(scale);
-								// 飛行速度を加算
-								switch (mMode) {
-								case MODE_TRACE:	// 通常(トレース)
-									mPilotValue.add(dir);
-									break;
-								case MODE_TRACKING:	// トラッキング
-									// 飛行速度の加算なし
-									break;
-								}
-								// 最大最小値を制限
-								mPilotValue.limit(-100.0f, +100.0f);
-								//--------------------------------------------------------------------------------
-								// 機体のyaw角を計算
-								switch (rec.type) {
-								case 0: // TYPE_LINE
-								{
-									pilotAngle = line_angle;
-									break;
-								}
-								case 1:	// TYPE_CIRCLE
-								{
-									// 楕円の中心とライン中心を通る線分と楕円の交点座標での接線の傾きを求める
-									final float ellipse_angle = rec.ellipseAngle <= 90.0f ? rec.ellipseAngle : -180.0f + rec.ellipseAngle;
-									// 楕円の中心からライン最小句形の中旬へ向かうベクトルを計算
-									offset.set(rec.linePos).sub(rec.ellipsePos);
-									// 楕円の回転角を補正, 楕円の回転角はline_angleと大体同じみたい,範囲が違うけど, [0-180]
-									offset.rotateXY(-ellipse_angle);
-									// 長軸半径・短軸半径
-									final float a = rec.ellipseA;
-									final float b = rec.ellipseB;
-									final float c;	// 楕円の中心とライン重心を通る線分の傾き
-									// 楕円の中心とライン重心を通る線分の傾きを取得
-									final float slope, slope_angle;
-									if (offset.x != 0) {
-										c = offset.y / offset.x;
-										//  楕円: x^2 / a^2 + y^2 / b^2 = 1との交点を計算
-										final float w = (a * a * b * b) / (b * b + a * a * c * c);
-										final float x1 = (float)Math.sqrt(w);
-										work.set(x1, c * x1);
-										final float d = Math.abs(work.getAngle(offset));
-										if (d > 5) {
-											// ライン重心と反対側の交点だったので符号を反転
-											work.mult(-1.0f);
-										}
-										// この時点でworkには楕円の中心とライン重心を通る線分と楕円の交点座標が入っている
-										//  楕円: x^2 / a^2 + y^2 / b^2 = 1上の点(x0,y0)の接線の方程式は
-										// x0・x / a^2 + y0・y / b^2 = 1, 式変形してy = b^2 / y - (x0・b^2) / (a^2・y0)・x
-										// なので傾きは -(x0・b^2) / (a^2・y0)
-										slope = - work.x * b * b / (a * a * work.y);
-										// 接線がx軸となす角を計算, 楕円の傾きを加算
-										slope_angle = (float)Math.toDegrees(Math.atan(slope)) + ellipse_angle;
-									} else {
-										c = slope = 0.0f;
-										slope_angle = ellipse_angle;
-										if (DEBUG) Log.v(TAG, "offset.x == 0");
-									}
-
-									msg2 = String.format("e(%5.2f,%5.2f,%5.2f),θ=%5.2f,s=%5.2f",
-										offset.x, offset.y, rec.ellipseAngle, ellipse_angle,
-										slope_angle);
-									pilotAngle = slope_angle;
-									if (pilotAngle < -90.0f) pilotAngle += 90.0f;
-									if (pilotAngle > +90.0f) pilotAngle -= 90.0f;
-									if (Math.abs(pilotAngle - ellipse_angle) > 10.0f) {
-										pilotAngle = ellipse_angle;
-									}
-									break;
-								}
-								case 2: // TYPE_CORNER
-								{
-									break;
-								}
-								}	// switch (rec.type)
-	//							if (curvature != 0.0f) {
-	//								// 曲率による機体yaw角の補正
-	//								if (Math.abs(rec.curvature) > EPS_CURVATURE) {
-	//									// mCurvatureは10e-4〜10e-3ぐらい, log10で-4〜-3ぐらい
-	//									pilotAngle *= 1.0f + 0.5f * curvature; // 最大±5%上乗せする
-	//								}
-	//							}
-								// 自動操縦スケールを適用
-								pilotAngle *= scaleR;
-								// 一定角度以下は0に丸める
-								pilotAngle = (pilotAngle < -MIN_PILOT_ANGLE) || (pilotAngle > MIN_PILOT_ANGLE) ? pilotAngle : 0.0f;
+							if (rec.type >= 0) {
+								mPilotValue.set(onCalc(rec));
 							} else {
 								// ラインを見失った時
 								mLostCnt++;
 								msg1 = null;
-								pilotAngle = 0.0f;
 								mPilotValue.clear(0.0f);
 								if (mAutoPilot) {
 									if (lostTime < 0) {
 										lostTime = System.currentTimeMillis();
-										mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+										setMove(0.0f, 0.0f, 0.0f, 0.0f);
 										clearMovingAve();	// オフセットの移動平均をクリア
 									}
 									final long t = System.currentTimeMillis() - lostTime;
@@ -1123,7 +1025,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 										mAutoPilot = false;
 										startTime = -1L;
 										mLostCnt = 0;
-										mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+										setMove(0.0f, 0.0f, 0.0f, 0.0f);
 									}
 								}
 							}
@@ -1141,20 +1043,20 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 								final boolean b = !altitudeControl || Math.abs(rec.linePos.z - flightAltitude) < 0.1f;	// 10センチ以内
 								if (b || (System.currentTimeMillis() - startTime > 5000)) {
 									// 制御コマンド送信
-									mControlTask.setMove(mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
+									setMove(mPilotValue.x, mPilotValue.y, mPilotValue.z, mPilotValue.angle);
 									// 今回の制御量を保存
 									if ((lostTime < 0) || (System.currentTimeMillis() - lostTime < 50)) {	// ラインを見失っても50ミリ秒以内なら保持する
 										mPrevPilotValue.set(mPilotValue);
 									}
 								} else {
 									// 制御コマンド送信
-									mControlTask.setMove(0.0f, 0.0f, mPilotValue.z, 0.0f);
+									setMove(0.0f, 0.0f, mPilotValue.z, 0.0f);
 									mPrevPilotValue.set(0.0f, 0.0f, mPilotValue.z);
 								}
 							} else {
 								startTime = -1L;
 							}
-							final String m3 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, mPilotValue.z, pilotAngle);
+							final String m3 = String.format("p(%5.1f,%5.1f,%5.1f,%5.1f)", mPilotValue.x, mPilotValue.y, mPilotValue.z, mPilotValue.angle);
 							final String m1 = msg1;
 							final String m2 = msg2;
 							runOnUiThread(new Runnable() {
@@ -1167,14 +1069,12 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 								}
 							});
 						} finally {
-							synchronized (mQueue) {
-								mPool.add(rec);
-							}
+							recycleLineRec(rec);
 						}
 					}
 				}	// for ( ; mIsRunning ; )
 				try {
-					mControlTask.setMove(0.0f, 0.0f, 0.0f, 0.0f);
+					setMove(0.0f, 0.0f, 0.0f, 0.0f);
 				} catch (final Exception e) {
 					// ignore
 				}
@@ -1182,12 +1082,6 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 				Log.w(TAG, e);
 			}
 			onStopAutoPilot(!mAutoPilot);
-			synchronized (mQueue) {
-				mIsRunning = mAutoPilot = false;
-				mQueue.clear();
-				mPool.clear();
-			}
-			System.gc();
 		}
 	}
 
@@ -1204,18 +1098,6 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 			mIsRunning = false;
 			synchronized (this) {
 				this.notifyAll();
-			}
-		}
-
-		public void setMove(final float roll, final float pitch, final float gaz, final float yaw) {
-//			if (DEBUG) Log.v(TAG, String.format("ControlTask#setMove:%f,%f,%f,%f", roll, pitch, gaz, yaw));
-			synchronized (this) {
-				this.roll = roll;
-				this.pitch = pitch;
-				this.gaz = gaz;
-				this.yaw = yaw;
-				requested = true;
-				this.notify();
 			}
 		}
 
@@ -1257,11 +1139,11 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 		}
 	}
 
-	private class MyImageProcessorCallback implements ImageProcessor.ImageProcessorCallback {
+	protected class MyImageProcessorCallback implements ImageProcessor.ImageProcessorCallback {
 		private final int width, height;
 		private final Matrix matrix = new Matrix();
 		private Bitmap mFrame;
-		private MyImageProcessorCallback(final int processing_width, final int processing_height) {
+		protected MyImageProcessorCallback(final int processing_width, final int processing_height) {
 			width = processing_width;
 			height = processing_height;
 		}
@@ -2369,7 +2251,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	 * この時は既にImageProcessor側は更新されている
 	 * @param limit_hsv
 	 */
-	private void extractColorChanged(final int[] limit_hsv) {
+	protected void extractColorChanged(final int[] limit_hsv) {
 		final float dh = Math.abs(limit_hsv[0] - limit_hsv[1]) / 180.0f;
 		final float h = (limit_hsv[0] + limit_hsv[0]) / 2.0f / 180.0f;
 		final float ds = Math.abs(limit_hsv[2] - limit_hsv[3]) / 255.0f;
@@ -2403,7 +2285,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	}
 
 	/** 抽出色が変更された時ImageProcessorへ適用するためのメソッド */
-	private void applyExtract(final float h, final float s, final float v) {
+	protected void applyExtract(final float h, final float s, final float v) {
 		if (mImageProcessor != null) {
 			final float h_min = ImageProcessor.sat(h - mExtractRangeH / 2.0f, 0.0f, 1.0f);
 			final float h_max = ImageProcessor.sat(h + mExtractRangeH / 2.0f, 0.0f, 1.0f);
@@ -2423,7 +2305,7 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	}
 
 	/** 抽出色範囲が変更された時にImageProcessorへ適用するためのメソッド */
-	private void applyExtractRange(final float h_range, final float s_range, final float v_range) {
+	protected void applyExtractRange(final float h_range, final float s_range, final float v_range) {
 		if (mImageProcessor != null) {
 			final float h_min = ImageProcessor.sat(mExtractH - h_range / 2.0f, 0.0f, 1.0f);
 			final float h_max = ImageProcessor.sat(mExtractH + h_range / 2.0f, 0.0f, 1.0f);
@@ -2582,13 +2464,13 @@ public class BaseAutoPilotFragment extends BasePilotFragment implements ColorPic
 	private String mTraceAltitudeFormat;
 	private String mTraceDirectionalReverseBiasFormat;
 	private String mTraceMovingAveTapFormat;
-	private float mTraceAttitudeYaw = 0.0f;
-	private float mTraceSpeed = 100.0f;
-	private boolean mTraceAltitudeEnabled = true;
-	private float mTraceAltitude = 0.6f;
-	private float mTraceDirectionalReverseBias = 0.3f;
+	protected float mTraceAttitudeYaw = 0.0f;
+	protected float mTraceSpeed = 100.0f;
+	protected boolean mTraceAltitudeEnabled = true;
+	protected float mTraceAltitude = 0.6f;
+	protected float mTraceDirectionalReverseBias = 0.3f;
 //	private float mTraceCurvature = 0.0f;
-	private int mTraceMovingAveTap = DEFAULT_TRACE_MOVING_AVE_TAP;
+	protected int mTraceMovingAveTap = DEFAULT_TRACE_MOVING_AVE_TAP;
 
 	private void initAutoTrace(final View rootView) {
 		SeekBar sb;
