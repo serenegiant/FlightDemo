@@ -5,15 +5,17 @@
 	<!-- ライントレース画面の文字列 -->
 	<!-- カメラ設定 -->
 	<string name="trace_config_title_camera">Camera settings</string>
-	<string name="trace_camera_white_blance">カメラホワイトバランス</string>
-	<string name="trace_white_blance_auto">自動</string>
-	<string name="trace_white_blance_lamp">電球色</string>
-	<string name="trace_white_blance_daylight">晴天</string>
-	<string name="trace_white_blance_cloudy">曇天</string>
-	<string name="trace_white_blance_flash">フラッシュ</string>
-	<string name="trace_white_blance_manual">手動</string>
-	<string name="trace_camera_exposure">カメラ露出: %6.3f</string>
-	<string name="trace_camera_saturation">カメラ彩度: %4.1f</string>
+	<string name="trace_camera_white_blance">White blance</string>
+	<string name="trace_white_blance_auto">Auto</string>
+	<string name="trace_white_blance_lamp">Lamp</string>
+	<string name="trace_white_blance_daylight">Daylight</string>
+	<string name="trace_white_blance_cloudy">Cloudy</string>
+	<string name="trace_white_blance_flash">Flash</string>
+	<string name="trace_white_blance_manual">Manual</string>
+	<string name="trace_camera_exposure">Exposure: %6.3f</string>
+	<string name="trace_camera_saturation">Saturation: %4.1f</string>
+	<string name="trace_camera_pan">Pan: %4d</string>
+	<string name="trace_camera_tilt">Tilt: %4d</string>
 	<!-- 映像処理1 -->
 	<string name="trace_config_title_preprocess">Preprocess settings1</string>
 	<string name="trace_use_exposure">Exposure: %6.3f</string>

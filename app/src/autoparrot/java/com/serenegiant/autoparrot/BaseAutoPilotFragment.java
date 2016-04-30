@@ -154,6 +154,9 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		mCameraAutoWhiteBlance = getInt(mPref, KEY_CAMERA_WHITE_BLANCE, DEFAULT_CAMERA_WHITE_BLANCE);
 		mCameraExposure = mPref.getFloat(KEY_CAMERA_EXPOSURE, DEFAULT_CAMERA_EXPOSURE);
 		mCameraSaturation = mPref.getFloat(KEY_CAMERA_SATURATION, DEFAULT_CAMERA_SATURATION);
+		mCameraPan = getInt(mPref, KEY_CAMERA_PAN, DEFAULT_CAMERA_PAN);
+		mCameraTilt = getInt(mPref, KEY_CAMERA_TILT, DEFAULT_CAMERA_TILT);
+		//
 //		mAutoWhiteBlance = mPref.getBoolean(KEY_AUTO_WHITE_BLANCE, false);
 		mExposure = mPref.getFloat(KEY_EXPOSURE, DEFAULT_EXPOSURE);
 		mSaturation = mPref.getFloat(KEY_SATURATION, DEFAULT_SATURATION);
@@ -515,7 +518,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 			originalExposure = camera.exposure();
 			originalSaturation = camera.saturation();
 			originalAutoWhiteBlance = camera.autoWhiteBalance();
-			camera.sendCameraOrientation(-100, 0);
+			camera.sendCameraOrientation(mCameraTilt, mCameraPan);
 			camera.sendExposure(mCameraExposure);
 			camera.sendSaturation(mCameraSaturation);
 			camera.sendAutoWhiteBalance(mCameraAutoWhiteBlance);
@@ -802,7 +805,6 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 	private boolean mReqUpdateParams;
 	/** パラメータの排他制御用 */
 	private final Object mParamSync = new Object();
-	private volatile int mLostCnt;
 
 	protected void prepareQueue() {
 		synchronized (mQueue) {
@@ -974,11 +976,11 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 			try {
 				mIsRunning = mReqUpdateParams = true;
 				mAutoPilot = false;
-				mLostCnt = 0;
+				int mLostCnt = 0;
 				final PilotVector mPilotValue = new PilotVector();		// roll,pitch,gaz,yaw制御量
 				final PilotVector mPrevPilotValue = new PilotVector();	// roll,pitch,gazの前回制御量
 				long startTime = -1L, lostTime = -1L;
-				LineRec rec = null;
+				LineRec rec;
 				for ( ; mIsRunning ; ) {
 					synchronized (mParamSync) {
 						if (mReqUpdateParams) {	// パラメータ変更指示?
@@ -1206,7 +1208,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 			}
 		}
 
-	};
+	}
 
 //================================================================================
 // ここから下はパラメータ関係
@@ -1439,6 +1441,26 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 					updateCameraSaturation(camera_saturation);
 				}
 				break;
+			case R.id.camera_pan_seekbar:
+				final int camera_pan = progressToPanTilt(progress);
+				if (mCameraPan != camera_pan) {
+					mCameraPan = camera_pan;
+					if (mController instanceof ICameraController) {
+						((ICameraController)mController).sendCameraOrientation(mCameraTilt, camera_pan);
+					}
+					updateCameraPan(camera_pan);
+				}
+				break;
+			case R.id.camera_tilt_seekbar:
+				final int camera_tilt = progressToPanTilt(progress);
+				if (mCameraTilt != camera_tilt) {
+					mCameraTilt = camera_tilt;
+					if (mController instanceof ICameraController) {
+						((ICameraController)mController).sendCameraOrientation(camera_tilt, mCameraPan);
+					}
+					updateCameraTilt(camera_tilt);
+				}
+				break;
 			case R.id.exposure_seekbar:
 				final float exposure = progressToExposure(progress);	// [0,3000] => [-1.5f, +1.5f]
 				if (mExposure != exposure) {
@@ -1653,6 +1675,16 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 					mPref.edit().putFloat(KEY_CAMERA_SATURATION, mCameraSaturation).apply();
 				}
 				break;
+			case R.id.camera_pan_seekbar:
+				if (mPref != null) {
+					mPref.edit().putInt(KEY_CAMERA_PAN, mCameraPan).apply();
+				}
+				break;
+			case R.id.camera_tilt_seekbar:
+				if (mPref != null) {
+					mPref.edit().putInt(KEY_CAMERA_TILT, mCameraTilt).apply();
+				}
+				break;
 			case R.id.exposure_seekbar:
 				if (mPref != null) {
 					mPref.edit().putFloat(KEY_EXPOSURE, mExposure).apply();
@@ -1855,18 +1887,28 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 //--------------------------------------------------------------------------------
 	private String mCameraExposureFormat;
 	private String mCameraSaturationFormat;
+	private String mCameraPanFormat;
+	private String mCameraTiltFormat;
 	private TextView mCameraExposureLabel;
 	private TextView mCameraSaturationLabel;
+	private TextView mCameraPanLabel;
+	private TextView mCameraTiltLabel;
 	/** ホワイトバランス */
 	protected int mCameraAutoWhiteBlance;
 	/** 露出 */
 	protected float mCameraExposure;
 	/** 彩度 */
 	protected float mCameraSaturation;
+	/** パン */
+	protected int mCameraPan;
+	/** チルト */
+	protected int mCameraTilt;
 
 	private void initCamera(final View rootView) {
 		mCameraExposureFormat = getString(R.string.trace_camera_exposure);
 		mCameraSaturationFormat = getString(R.string.trace_camera_saturation);
+		mCameraPanFormat = getString(R.string.trace_camera_pan);
+		mCameraTiltFormat = getString(R.string.trace_camera_tilt);
 
 		SeekBar sb;
 		// ホワイトバランス
@@ -1891,6 +1933,22 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		sb.setProgress((int)(mCameraSaturation * 10.0f) + 1000);	// [-100.0f, +100.0f] => [0, 2000]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateCameraSaturation(mCameraSaturation);
+		// パン
+		mCameraPan = getInt(mPref, KEY_CAMERA_PAN, DEFAULT_CAMERA_PAN);
+		mCameraPanLabel = (TextView)rootView.findViewById(R.id.camera_pan_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.camera_pan_seekbar);
+		sb.setMax(40);
+		sb.setProgress(cameraPanTiltToProgress(mCameraPan));	// [-100,+100] => [0, 40]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateCameraPan(mCameraPan);
+		// チルト
+		mCameraTilt = getInt(mPref, KEY_CAMERA_TILT, DEFAULT_CAMERA_TILT);
+		mCameraTiltLabel = (TextView)rootView.findViewById(R.id.camera_tilt_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.camera_tilt_seekbar);
+		sb.setMax(40);
+		sb.setProgress(cameraPanTiltToProgress(mCameraTilt));	// [-100,+100] => [0, 40]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateCameraTilt(mCameraTilt);
 	}
 
 	private void releaseCamera(final View rootView) {
@@ -1919,6 +1977,25 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		}
 	}
 
+	private int cameraPanTiltToProgress(final int pantilt) {
+		return (pantilt + 100) / 5;
+	}
+
+	private int progressToPanTilt(final int progress) {
+		return progress * 5 - 100;
+	}
+
+	private void updateCameraPan(final int pan) {
+		if (mCameraPanLabel != null) {
+			mCameraPanLabel.setText(String.format(mCameraPanFormat, pan));
+		}
+	}
+
+	private void updateCameraTilt(final int pan) {
+		if (mCameraTiltLabel != null) {
+			mCameraTiltLabel.setText(String.format(mCameraTiltFormat, pan));
+		}
+	}
 //--------------------------------------------------------------------------------
 	private String mExposureFormat;
 	private String mSaturationFormat;
