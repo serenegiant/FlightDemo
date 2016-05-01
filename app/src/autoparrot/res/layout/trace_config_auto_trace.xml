@@ -98,6 +98,22 @@
 			android:paddingBottom="@dimen/min_padding"
 			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 減衰率 -->
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/trace_config_decay_rate"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:id="@+id/trace_flight_decay_rate_textview"
+			android:textColor="@color/trace_config"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/trace_flight_decay_rate_seekbar"
+			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
 		<!-- 曲率補正 -->
 <!--	<Switch
 			android:layout_width="match_parent"

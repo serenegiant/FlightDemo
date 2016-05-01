@@ -62,6 +62,7 @@
 	<string name="trace_config_trace_curvature">Curvature correction</string>
 	<string name="trace_config_trace_reverse_bias">Directional reverse bias rate: %5.2f</string>
 	<string name="trace_config_moving_ave_tap">Moving average tap: %d</string>
+	<string name="trace_config_decay_rate">Decay rate: %6.3f</string>
 
 	<!-- 平滑化 -->
 	<array name="trace_smooth_entries">

@@ -89,8 +89,8 @@ public class AutoPilotFragment2 extends BaseAutoPilotFragment {
 		private final Vector offset = new Vector();
 		private final Vector work = new Vector();
 		private final Vector work2 = new Vector();
-		float flightAngleYaw = 0.0f;	// カメラの上方向に対する移動方向の角度
-		float flightSpeed = 50.0f;		// 前進速度の1/2(負なら後進)
+		float flightAngleYaw = mTraceAttitudeYaw;										// カメラの上方向に対する移動方向の角度
+		float flightSpeed = mTraceSpeed / 2.0f * (float)(mMaxControlValue / 100.0);		// 前進速度の1/2(負なら後進)
 		final Vector scale = new Vector((float)mScaleX, (float)mScaleY, (float)mScaleZ);
 		float scaleR = (float)mScaleR;
 		float directionalReverseBias = mTraceDirectionalReverseBias;

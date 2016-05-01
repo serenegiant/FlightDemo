@@ -195,6 +195,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 //		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
 		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
 		mTraceMovingAveTap = mPref.getInt(KEY_TRACE_MOVING_AVE_TAP, DEFAULT_TRACE_MOVING_AVE_TAP);
+		mTraceDecayRate = mPref.getFloat(KEY_TRACE_DECAY_RATE, DEFAULT_TRACE_DECAY_RATE);
 
 		// Viewの取得・初期化
 		mActionViews.clear();
@@ -873,7 +874,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		}
 	}
 
-	protected void setMove(final float roll, final float pitch, final float gaz, final float yaw) {
+	protected void setMove(final float roll, final float pitch, final float gaz, final float yaw, final float decay_rate) {
 //		if (DEBUG) Log.v(TAG, String.format("ControlTask#setMove:%f,%f,%f,%f", roll, pitch, gaz, yaw));
 		if (mControlTask != null) {
 			synchronized (mControlTask) {
@@ -881,6 +882,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 				mControlTask.pitch = pitch;
 				mControlTask.gaz = gaz;
 				mControlTask.yaw = yaw;
+				mControlTask.decayRate = decay_rate;
 				mControlTask.requested = true;
 				mControlTask.notify();
 			}
@@ -980,6 +982,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 				final PilotVector mPilotValue = new PilotVector();		// roll,pitch,gaz,yaw制御量
 				final PilotVector mPrevPilotValue = new PilotVector();	// roll,pitch,gazの前回制御量
 				long startTime = -1L, lostTime = -1L;
+				float decayRate = mTraceDecayRate;												// 減衰率
 				LineRec rec;
 				for ( ; mIsRunning ; ) {
 					synchronized (mParamSync) {
@@ -990,6 +993,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 							if (flightAltitude < 0.5f) {
 								flightAltitude = 0.5f;
 							}
+							decayRate = mTraceDecayRate;
 							onUpdateParams();
 						}
 					}
@@ -999,7 +1003,9 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 						try {
 							// 解析データを取得できた＼(^o^)／
 							if (rec.type >= 0) {
+								// ラインを検出した時
 								lostTime = -1;
+								// 下位クラスで制御量を計算したのをmPilotValueへセット
 								mPilotValue.set(onCalc(rec));
 							} else {
 								// ラインを見失った時
@@ -1009,7 +1015,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 								if (mAutoPilot) {
 									if (lostTime < 0) {
 										lostTime = System.currentTimeMillis();
-										setMove(0.0f, 0.0f, 0.0f, 0.0f);
+										setMove(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 										clearMovingAve();	// オフセットの移動平均をクリア
 									}
 									final long t = System.currentTimeMillis() - lostTime;
@@ -1018,7 +1024,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 										mAutoPilot = false;
 										startTime = -1L;
 										mLostCnt = 0;
-										setMove(0.0f, 0.0f, 0.0f, 0.0f);
+										setMove(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 									}
 								}
 							}
@@ -1036,14 +1042,14 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 								final boolean b = !altitudeControl || Math.abs(rec.linePos.z - flightAltitude) < 0.1f;	// 10センチ以内
 								if (b || (System.currentTimeMillis() - startTime > 5000)) {
 									// 制御コマンド送信
-									setMove(mPilotValue.x, mPilotValue.y, mPilotValue.z, mPilotValue.angle);
+									setMove(mPilotValue.x, mPilotValue.y, mPilotValue.z, mPilotValue.angle, decayRate);
 									// 今回の制御量を保存
 									if ((lostTime < 0) || (System.currentTimeMillis() - lostTime < 50)) {	// ラインを見失っても50ミリ秒以内なら保持する
 										mPrevPilotValue.set(mPilotValue);
 									}
 								} else {
 									// 制御コマンド送信
-									setMove(0.0f, 0.0f, mPilotValue.z, 0.0f);
+									setMove(0.0f, 0.0f, mPilotValue.z, 0.0f, decayRate);
 									mPrevPilotValue.set(0.0f, 0.0f, mPilotValue.z);
 								}
 							} else {
@@ -1067,7 +1073,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 					}
 				}	// for ( ; mIsRunning ; )
 				try {
-					setMove(0.0f, 0.0f, 0.0f, 0.0f);
+					setMove(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 				} catch (final Exception e) {
 					// ignore
 				}
@@ -1082,6 +1088,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		private final IFlightController mController;
 		private boolean requested;
 		private float roll, pitch, gaz, yaw;
+		private float decayRate;
 		public ControlTask(final IFlightController controller) {
 			mController = controller;
 			requested = false;
@@ -1097,22 +1104,29 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		@Override
 		public void run() {
 			if (DEBUG) Log.v(TAG, "ControlTask#run:start");
-			float local_roll, local_pitch, local_gaz, local_yaw;
+			float local_roll = 0.0f, local_pitch = 0.0f, local_gaz = 0.0f, local_yaw = 0.0f;
 			// 少しスレッドの優先順位を上げる
 			Process.setThreadPriority(Process. THREAD_PRIORITY_DISPLAY);	// -4
 			for (; mIsRunning ; ) {
 				synchronized (this) {
 					try {
-						wait(70);
+						wait(50);
 					} catch (final InterruptedException e) {
 						break;
 					}
 					if (!mIsRunning) break;
-					if (requested && mAutoPilot) {
-						local_roll = roll;
-						local_pitch = pitch;
-						local_gaz = gaz;
-						local_yaw = yaw;
+					if (mAutoPilot) {
+						if (requested) {
+							local_roll = roll;
+							local_pitch = pitch;
+							local_gaz = gaz;
+							local_yaw = yaw;
+						} else {
+							local_roll *= decayRate;
+							local_pitch *= decayRate;
+							local_yaw *= decayRate;
+							local_gaz = 0.0f;
+						}
 					} else {
 						local_roll = local_pitch = local_gaz = local_yaw = 0.0f;
 					}
@@ -1655,6 +1669,9 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 			case R.id.trace_flight_moving_ave_tap_seekbar:
 				updateTraceMovingAveTap(progress + 1);
 				break;
+			case R.id.trace_flight_decay_rate_seekbar:
+				updateTraceDecayRate(progress / 1000.0f);
+				break;
 			}
 		}
 
@@ -1880,6 +1897,15 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 					mPref.edit().putInt(KEY_TRACE_MOVING_AVE_TAP, notch).apply();
 				}
 				break;
+			case R.id.trace_flight_decay_rate_seekbar:
+				final float decay_rate = seekBar.getProgress() / 1000.0f;
+				if (decay_rate != mTraceDecayRate) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mTraceDecayRate = decay_rate;
+					}
+					mPref.edit().putFloat(KEY_TRACE_DECAY_RATE, decay_rate).apply();
+				}
 			}
 		}
 	};
@@ -2527,11 +2553,13 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 	private TextView mTraceAltitudeLabel;
 	private TextView mTraceDirectionalReverseBiasLabel;
 	private TextView mTraceMovingAveTapLabel;
+	private TextView mTraceDecayRateLabel;
 	private String mTraceAttitudeYawFormat;
 	private String mTraceSpeedFormat;
 	private String mTraceAltitudeFormat;
 	private String mTraceDirectionalReverseBiasFormat;
 	private String mTraceMovingAveTapFormat;
+	private String mTraceDecayRateFormat;
 	protected float mTraceAttitudeYaw = 0.0f;
 	protected float mTraceSpeed = 100.0f;
 	protected boolean mTraceAltitudeEnabled = true;
@@ -2539,6 +2567,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 	protected float mTraceDirectionalReverseBias = 0.3f;
 //	private float mTraceCurvature = 0.0f;
 	protected int mTraceMovingAveTap = DEFAULT_TRACE_MOVING_AVE_TAP;
+	protected float mTraceDecayRate = DEFAULT_TRACE_DECAY_RATE;
 
 	private void initAutoTrace(final View rootView) {
 		SeekBar sb;
@@ -2549,6 +2578,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		mTraceAltitudeFormat = getString(R.string.trace_config_trace_altitude);
 		mTraceDirectionalReverseBiasFormat = getString(R.string.trace_config_trace_reverse_bias);
 		mTraceMovingAveTapFormat = getString(R.string.trace_config_moving_ave_tap);
+		mTraceDecayRateFormat = getString(R.string.trace_config_decay_rate);
 		// 飛行姿勢(yaw)
 		mTraceAttitudeYaw = mPref.getFloat(KEY_TRACE_ATTITUDE_YAW, DEFAULT_TRACE_ATTITUDE_YAW);
 		mTraceAttitudeYawLabel = (TextView)rootView.findViewById(R.id.trace_flight_attitude_yaw_textview);
@@ -2594,6 +2624,14 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		sb.setProgress(mTraceMovingAveTap - 1);	// [1, 20] => [0, 19]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateTraceMovingAveTap(mTraceMovingAveTap);
+		// 減衰率
+		mTraceDecayRate = mPref.getFloat(KEY_TRACE_DECAY_RATE, DEFAULT_TRACE_DECAY_RATE);
+		mTraceDecayRateLabel = (TextView)rootView.findViewById(R.id.trace_flight_decay_rate_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_decay_rate_seekbar);
+		sb.setMax(1000);
+		sb.setProgress((int)(mTraceDecayRate * 1000.0f));	// [0.000f, 1.000f] => [0, 1000]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateTraceDecayRate(mTraceDecayRate);
 //		// 曲率補正
 //		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
 //		sw = (Switch)rootView.findViewById(R.id.curvature_sw);
@@ -2637,6 +2675,11 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		}
 	}
 
+	private void updateTraceDecayRate(final float decay_rate) {
+		if (mTraceDecayRateLabel != null) {
+			mTraceDecayRateLabel.setText(String.format(mTraceDecayRateFormat, decay_rate));
+		}
+	}
 //--------------------------------------------------------------------------------
 	private String mMaxAltitudeFormat;
 	private String mMaxTiltFormat;
