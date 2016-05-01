@@ -96,7 +96,7 @@ public interface ICameraController extends IVideoStreamController {
 	 * @param enabled
 	 * @return
 	 */
-	public boolean sendWobbleCancellation(final boolean enabled);
+	public boolean sendVideoStabilization(final boolean enabled);
 
 	/**
 	 * 映像のブレ補正用のジャイロ設定

@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- カメラ選択ダイアログのメッセージ -->
-	<string name="select">Select USB Web camera</string>
-    <string name="camera">Camera</string>
-    <string name="video">Video</string>
-    <string name="refresh">Refresh</string>
-
 	<string name="freespace_limit">Free space of primary storage fail in.</string>
     
 	<string name="permission_title">Regarding permission</string>

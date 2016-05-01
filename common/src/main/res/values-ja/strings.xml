@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- カメラ選択ダイアログのメッセージ -->
-	<string name="select">USBカメラを選択してください</string>
-    <string name="camera">カメラ</string>
-    <string name="video">ビデオ</string>
-    <string name="refresh">更新</string>
-
 	<string name="freespace_limit">プライマリストレージの空き容量が不足しています</string>
 	
 	<string name="permission_title">アクセス許可について</string>

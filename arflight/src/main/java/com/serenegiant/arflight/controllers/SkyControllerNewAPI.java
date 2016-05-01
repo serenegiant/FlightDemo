@@ -571,11 +571,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 			if (DEBUG) Log.v(TAG, "onButtonEventsSettingsUpdate:");
 			break;
 		}
-		case ARCONTROLLER_DICTIONARY_KEY_SKYCONTROLLERDEBUG:	// (156, "Key used to define the feature <code>SkyControllerDebug</code>"),
-		{	// FIXME 未実装
-			if (DEBUG) Log.v(TAG, "SKYCONTROLLERDEBUG:");
-			break;
-		}
 		default:
 			break;
 		}
@@ -1331,12 +1326,6 @@ public class SkyControllerNewAPI extends FlightControllerBebopNewAPI implements 
 	@Override
 	public boolean requestButtonEventsSettings() {
 		if (DEBUG) Log.d(TAG, "requestButtonEventsSettings:");
-		return false;
-	}
-
-	@Override
-	public boolean setDebugTest1(final byte t1Args) {
-		if (DEBUG) Log.d(TAG, "setDebugTest1:");
 		return false;
 	}
 

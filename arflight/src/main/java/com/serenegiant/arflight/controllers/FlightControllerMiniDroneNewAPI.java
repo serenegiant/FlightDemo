@@ -223,10 +223,6 @@ public class FlightControllerMiniDroneNewAPI extends FlightControllerNewAPI {
 			if (DEBUG) Log.v(TAG, "onMiniDroneFloodControlStateFloodControlChangedUpdate:delay=" + delay);
 			break;
 		}
-		case ARCONTROLLER_DICTIONARY_KEY_MINIDRONEDEBUG:	// (118, "Key used to define the feature <code>MiniDroneDebug</code>"),
-		{	// FIXME 未実装
-			break;
-		}
 		default:
 			break;
 		}

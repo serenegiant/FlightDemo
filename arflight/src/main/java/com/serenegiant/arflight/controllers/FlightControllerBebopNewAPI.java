@@ -811,19 +811,6 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		{	// FIXME 未実装
 			break;
 		}
-		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3DEBUG:	// (65, "Key used to define the feature <code>ARDrone3Debug</code>"),
-		{	// FIXME 未実装
-			break;
-		}
-		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3DEBUG_BATTERYDEBUGSETTINGSSTATE_USEDRONE2BATTERYCHANGED:	// (66, "Key used to define the command <code>UseDrone2BatteryChanged</code> of class <code>BatteryDebugSettingsState</code> in project <code>ARDrone3Debug</code>"),
-		{	// FIXME 未実装
-			break;
-		}
-//		case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3DEBUG_GPSDEBUGSTATE_NBSATELLITECHANGED:	// (67, "Key used to define the command <code>NbSatelliteChanged</code> of class <code>GPSDebugState</code> in project <code>ARDrone3Debug</code>"),
-//		{	// 捕捉しているGPS衛星の数を受信した時
-// 			XXX これは定義だけかも? ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_GPSSTATE_NUMBEROFSATELLITECHANGEDが代わりにある
-//			break;
-//		}
 		default:
 			break;
 		}
@@ -923,15 +910,10 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 						= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM.getFromValue(auto_white_balance);
 					result = mARDeviceController.getFeatureARDrone3().sendPictureSettingsAutoWhiteBalanceSelection(awb);
 				} else {
-					try {
-						// これはヌルポになる(getFeatureARDrone3Debugがnullを返す)
-						result = mARDeviceController.getFeatureARDrone3Debug().sendVideoManualWhiteBalance();
-					} catch (final NullPointerException e) {
-						// とりあえずTYPE_CLOUDYにする
-						result = mARDeviceController.getFeatureARDrone3().sendPictureSettingsAutoWhiteBalanceSelection(
-							ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM
-								.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_CLOUDY);
-					}
+					// とりあえずTYPE_COOL_WHITE(フラッシュ)にする
+					result = mARDeviceController.getFeatureARDrone3().sendPictureSettingsAutoWhiteBalanceSelection(
+						ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM
+							.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_COOL_WHITE);
 					mSettings.autoWhiteBalance(-1);
 				}
 			} catch (final Exception e) {
@@ -1011,10 +993,19 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		return result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK;
 	}
 
+//	ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ROLL_PITCH (0, "Video flat on roll and pitch"),
+//	ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_PITCH (1, "Video flat on pitch only"),
+//	ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ROLL (2, "Video flat on roll only"),
+//	ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_NONE (3, "Video follows drone angles"),
 	@Override
-	public boolean sendWobbleCancellation(final boolean enabled) {
+	public boolean sendVideoStabilization(final boolean enabled) {
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
+			result = mARDeviceController.getFeatureARDrone3().sendPictureSettingsVideoStabilizationMode(
+				enabled
+				? ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ENUM.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ROLL_PITCH
+				: ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ENUM.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_NONE
+			);
 		}
 		if (result != ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
 			Log.e(TAG, "#sendWobbleCancellation failed:" + result);

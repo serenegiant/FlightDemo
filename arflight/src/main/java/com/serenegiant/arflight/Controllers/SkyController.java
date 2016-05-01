@@ -56,7 +56,6 @@ import com.parrot.arsdk.arcommands.ARCommandSkyControllerCalibrationStateMagneto
 import com.parrot.arsdk.arcommands.ARCommandSkyControllerCameraResetOrientationListener;
 import com.parrot.arsdk.arcommands.ARCommandSkyControllerCoPilotingStatePilotingSourceListener;
 import com.parrot.arsdk.arcommands.ARCommandSkyControllerCommonStateAllStatesChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandSkyControllerDebugDebugTest1Listener;
 import com.parrot.arsdk.arcommands.ARCommandSkyControllerDeviceConnectToDeviceListener;
 import com.parrot.arsdk.arcommands.ARCommandSkyControllerDeviceRequestCurrentDeviceListener;
 import com.parrot.arsdk.arcommands.ARCommandSkyControllerDeviceRequestDeviceListListener;
@@ -352,7 +351,6 @@ public class SkyController extends DeviceController implements ISkyController, I
 		ARCommand.setSkyControllerCalibrationStateMagnetoCalibrationStateListener(mARCommandSkyControllerCalibrationStateMagnetoCalibrationStateListener);
 		ARCommand.setSkyControllerCalibrationStateMagnetoCalibrationQualityUpdatesStateListener(mARCommandSkyControllerCalibrationStateMagnetoCalibrationQualityUpdatesStateListener);
 		ARCommand.setSkyControllerButtonEventsSettingsListener(mARCommandSkyControllerButtonEventsSettingsListener);
-		ARCommand.setSkyControllerDebugDebugTest1Listener(mARCommandSkyControllerDebugDebugTest1Listener);
 		// スカイコントローラー自体のアプリで使用するコールバックリスナーみたい
 //		ARCommand.setSkyControllerCoPilotingSetPilotingSourceListener(mARCommandSkyControllerCoPilotingSetPilotingSourceListener);
 //		ARCommand.setSkyControllerCommonAllStatesListener(mARCommandSkyControllerCommonAllStatesListener);
@@ -426,7 +424,6 @@ public class SkyController extends DeviceController implements ISkyController, I
 		ARCommand.setSkyControllerCalibrationStateMagnetoCalibrationStateListener(null);
 		ARCommand.setSkyControllerCalibrationStateMagnetoCalibrationQualityUpdatesStateListener(null);
 		ARCommand.setSkyControllerButtonEventsSettingsListener(null);
-		ARCommand.setSkyControllerDebugDebugTest1Listener(null);
 		// スカイコントローラー自体のアプリで使用するコールバックリスナーみたい
 //		ARCommand.setSkyControllerCoPilotingSetPilotingSourceListener(null);
 //		ARCommand.setSkyControllerCommonAllStatesListener(null);
@@ -1508,16 +1505,6 @@ public class SkyController extends DeviceController implements ISkyController, I
 		}
 	};
 
-	private final ARCommandSkyControllerDebugDebugTest1Listener
-		mARCommandSkyControllerDebugDebugTest1Listener
-			= new ARCommandSkyControllerDebugDebugTest1Listener() {
-		@Override
-		public void onSkyControllerDebugDebugTest1Update(final byte t1Args) {
-
-			if (DEBUG) Log.v(TAG, "onDebugDebugTest1Update:t1Args=" + t1Args);
-		}
-	};
-
 //********************************************************************************
 // データ送受信関係
 //********************************************************************************
@@ -2356,33 +2343,6 @@ public class SkyController extends DeviceController implements ISkyController, I
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send requestButtonEventsSettings command.");
-		}
-
-		return sentStatus;
-	}
-
-	/**
-	 * なんかわからんけどデバッグフラグセットするんでしょうきっと
-	 * @param t1Args
-	 * @return
-	 */
-	@Override
-	public boolean setDebugTest1(final byte t1Args) {
-		if (DEBUG) Log.v(TAG, "setDebugTest1:");
-
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setSkyControllerDebugDebugTest1(t1Args);
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "Failed to send setDebugTest1 command.");
 		}
 
 		return sentStatus;

@@ -33,6 +33,7 @@ import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PICTURESETTINGSSTATE_AUTO
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PICTURESETTINGSSTATE_PICTUREFORMATCHANGED_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_PICTUREFORMATSELECTION_TYPE_ENUM;
+import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_ALERTSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_ENUM;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_ARDRONE3_PILOTINGSTATE_NAVIGATEHOMESTATECHANGED_REASON_ENUM;
@@ -45,8 +46,6 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3AntiflickeringStateElectricF
 import com.parrot.arsdk.arcommands.ARCommandARDrone3AntiflickeringStateModeChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3CameraStateDefaultCameraOrientationListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3CameraStateOrientationListener;
-import com.parrot.arsdk.arcommands.ARCommandARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsHomeTypeListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsReturnHomeDelayListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateGPSFixStateChangedListener;
@@ -54,6 +53,7 @@ import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateGPSUpdateSta
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateHomeChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSSettingsStateResetHomeChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSStateHomeTypeChosenChangedListener;
+import com.parrot.arsdk.arcommands.ARCommandARDrone3GPSStateNumberOfSatelliteChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordEventPictureEventChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordEventVideoEventChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandARDrone3MediaRecordStatePictureStateChangedListener;
@@ -203,8 +203,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		ARCommand.setARDrone3AntiflickeringStateElectricFrequencyChangedListener(mARCommandARDrone3AntiflickeringStateElectricFrequencyChangedListener);
 		ARCommand.setARDrone3AntiflickeringStateModeChangedListener(mARCommandARDrone3AntiflickeringStateModeChangedListener);
 		ARCommand.setARDrone3GPSStateHomeTypeChosenChangedListener(mARCommandARDrone3GPSStateHomeTypeChosenChangedListener);
-		ARCommand.setARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener(mDebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener);
-		ARCommand.setARDrone3DebugGPSDebugStateNbSatelliteChangedListener(mDebugGPSDebugStateNbSatelliteChangedListener);
+		ARCommand.setARDrone3GPSStateNumberOfSatelliteChangedListener(mARCommandARDrone3GPSStateNumberOfSatelliteChangedListener);
 	}
 
 	/**
@@ -263,8 +262,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 		ARCommand.setARDrone3AntiflickeringStateElectricFrequencyChangedListener(null);
 		ARCommand.setARDrone3AntiflickeringStateModeChangedListener(null);
 		ARCommand.setARDrone3GPSStateHomeTypeChosenChangedListener(null);
-		ARCommand.setARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener(null);
-		ARCommand.setARDrone3DebugGPSDebugStateNbSatelliteChangedListener(null);
+		ARCommand.setARDrone3GPSStateNumberOfSatelliteChangedListener(null);
 
 		super.unregisterARCommandsListener();
 	}
@@ -814,6 +812,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			// FIXME 未実装
 		}
 	};
+
 	/**
 	 * ナビゲーションホーム状態を受信した時
 	 */
@@ -892,17 +891,13 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	/**
 	 * 捕捉しているGPS衛星の数を受信した時
 	 */
-	private final ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener
-		mDebugGPSDebugStateNbSatelliteChangedListener
-			= new ARCommandARDrone3DebugGPSDebugStateNbSatelliteChangedListener() {
-		/**
-		 * @param nbSatellite Amount of satellite used by gps location
-		 */
+	private final ARCommandARDrone3GPSStateNumberOfSatelliteChangedListener
+		mARCommandARDrone3GPSStateNumberOfSatelliteChangedListener
+			= new ARCommandARDrone3GPSStateNumberOfSatelliteChangedListener() {
 		@Override
-		public void onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate(final byte nbSatellite) {
-
-			if (DEBUG) Log.v(TAG, "onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate:nbSatellite=" + nbSatellite);
-			mGPS.numGpsSatellite(nbSatellite);
+		public void onARDrone3GPSStateNumberOfSatelliteChangedUpdate(final byte numberOfSatellite) {
+			if (DEBUG) Log.v(TAG, "onARDrone3DebugGPSDebugStateNbSatelliteChangedUpdate:numberOfSatellite=" + numberOfSatellite);
+			mGPS.numGpsSatellite(numberOfSatellite);
 		}
 	};
 
@@ -1276,23 +1271,6 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 			case ARCOMMANDS_ARDRONE3_ANTIFLICKERINGSTATE_MODECHANGED_MODE_FIXEDSIXTYHERTZ: // (2, "Anti flickering based on a fixed frequency of 60Hz")
 			}
 			mSettings.getCamera().antiflickeringMode(mode.getValue());
-		}
-	};
-
-	/**
-	 * 使用しているバッテリーの種類設定を受信した時
-	 */
-	private final ARCommandARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener
-		mDebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener
-			= new ARCommandARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedListener() {
-		/**
-		 * @param drone2BatteryUsed 1 if the drone2 battery is used, 0 if the drone3 battery is used
-		 */
-		@Override
-		public void onARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedUpdate(final byte drone2BatteryUsed) {
-
-			if (DEBUG) Log.v(TAG, "onARDrone3DebugBatteryDebugSettingsStateUseDrone2BatteryChangedUpdate:drone2BatteryUsed=" + drone2BatteryUsed);
-			// FIXME 未実装
 		}
 	};
 
@@ -1844,8 +1822,12 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 
 			cmdError = cmd.setARDrone3PictureSettingsAutoWhiteBalanceSelection(type);
 		} else {
-			// このコマンドを送った時の映像からホワイトバランスを調整するみたい
-			cmdError = cmd.setARDrone3DebugVideoManualWhiteBalance();
+			// とりあえずTYPE_COOL_WHITEにしておく
+			final ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM type
+				= ARCOMMANDS_ARDRONE3_PICTURESETTINGS_AUTOWHITEBALANCESELECTION_TYPE_ENUM.getFromValue(4);
+
+			cmdError = cmd.setARDrone3PictureSettingsAutoWhiteBalanceSelection(type);
+//			cmdError = cmd.setARDrone3DebugVideoManualWhiteBalance();	// ARSDK3.9.0でこれがなくなってもうた(´・ω・｀)
 			mSettings.autoWhiteBalance(-1);
 		}
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
@@ -1983,11 +1965,19 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	 * @return
 	 */
 	@Override
-	public boolean sendWobbleCancellation(final boolean enabled) {
+	public boolean sendVideoStabilization(final boolean enabled) {
 		boolean sentStatus = true;
 		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugVideoEnableWobbleCancellation((byte)(enabled ? 1 : 0));
+//		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugVideoEnableWobbleCancellation((byte)(enabled ? 1 : 0));
+//		ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ROLL_PITCH (0, "Video flat on roll and pitch"),
+//		ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_PITCH (1, "Video flat on pitch only"),
+//		ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ROLL (2, "Video flat on roll only"),
+//		ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_NONE (3, "Video follows drone angles"),
+		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3PictureSettingsVideoStabilizationMode(
+			enabled
+				? ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ENUM.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ROLL_PITCH
+				: ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_ENUM.ARCOMMANDS_ARDRONE3_PICTURESETTINGS_VIDEOSTABILIZATIONMODE_MODE_NONE
+		);
 		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
 			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
 				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
@@ -2010,14 +2000,14 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	@Override
 	public boolean sendVideoSyncAnglesGyros(final float anglesDelay_s, final float gyrosDelay_s) {
 		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugVideoSyncAnglesGyros(anglesDelay_s, gyrosDelay_s);
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-			cmd.dispose();
-		}
+//		final ARCommand cmd = new ARCommand();
+//
+//		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugVideoSyncAnglesGyros(anglesDelay_s, gyrosDelay_s);
+//		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
+//			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
+//				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
+//			cmd.dispose();
+//		}
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send Exposure command.");
@@ -2246,29 +2236,6 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 
 		if (!sentStatus) {
 			Log.e(TAG, "Failed to send NavigateHome command.");
-		}
-
-		return sentStatus;
-	}
-
-	/**
-	 * drone2バッテリーを使用するかどうか
-	 * @param use_drone2Battery
-	 * @return
-	 */
-	public boolean sendUseDrone2Battery(final boolean use_drone2Battery) {
-		boolean sentStatus = true;
-		final ARCommand cmd = new ARCommand();
-
-		final ARCOMMANDS_GENERATOR_ERROR_ENUM cmdError = cmd.setARDrone3DebugBatteryDebugSettingsUseDrone2Battery((byte)(use_drone2Battery ? 1 : 0));
-		if (cmdError == ARCOMMANDS_GENERATOR_ERROR_ENUM.ARCOMMANDS_GENERATOR_OK) {
-			sentStatus = sendData(mNetConfig.getC2dAckId(), cmd,
-				ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM.ARNETWORK_MANAGER_CALLBACK_RETURN_DATA_POP, null);
-			cmd.dispose();
-		}
-
-		if (!sentStatus) {
-			Log.e(TAG, "Failed to send Exposure command.");
 		}
 
 		return sentStatus;

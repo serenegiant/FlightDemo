@@ -166,12 +166,6 @@ public interface ISkyController extends IDeviceController {
 	 * @return
 	 */
 	public boolean requestButtonEventsSettings();
-	/**
-	 * なんかわからんけどデバッグフラグセットするんでしょうきっと
-	 * @param t1Args
-	 * @return
-	 */
-	public boolean setDebugTest1(final byte t1Args);
 
 	public boolean isGPSFixedSkyController();
 	public int getBatterySkyController();
