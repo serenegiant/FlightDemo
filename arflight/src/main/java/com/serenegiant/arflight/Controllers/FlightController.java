@@ -1315,7 +1315,7 @@ public abstract class FlightController extends DeviceController implements IFlig
 			for ( ; mIsRunning ; ) {
 				final long lastTime = SystemClock.elapsedRealtime();
 				synchronized (mDataPCMD) {
-					if (mIsRunning && isConnected()) {
+					if (mIsRunning && isFlying()) {
 						flag = mDataPCMD.flag;
 						roll = (int)mDataPCMD.roll;
 						pitch = (int)mDataPCMD.pitch;

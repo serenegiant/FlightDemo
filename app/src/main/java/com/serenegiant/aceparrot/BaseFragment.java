@@ -142,7 +142,11 @@ public class BaseFragment extends Fragment {
 	 */
 	protected void popBackStack() {
 		mIsReplacing = false;
-		getFragmentManager().popBackStack();
+		try {
+			getFragmentManager().popBackStack();
+		} catch (final Exception e) {
+			//
+		}
 	}
 
 	/**

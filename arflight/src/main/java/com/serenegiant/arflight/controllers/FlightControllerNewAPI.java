@@ -665,7 +665,7 @@ public abstract class FlightControllerNewAPI extends DeviceControllerNewAPI impl
 			for ( ; mIsRunning ; ) {
 				final long lastTime = SystemClock.elapsedRealtime();
 				synchronized (mDataPCMD) {
-					if (mIsRunning && isConnected()) {
+					if (mIsRunning && isFlying()) {
 						if (mDataPCMD.requestSend) {
 							flag = mDataPCMD.flag;
 							roll = (int)mDataPCMD.roll;

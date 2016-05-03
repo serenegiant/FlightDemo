@@ -50,23 +50,23 @@ public class AttitudeScreenCargodrone extends AttitudeScreenBase {
 		// 機体
 		switch (mCtrlType) {
 		case CTRL_PILOT:
-			droneObj = new DroneObjectCargodrone(0, 0, 0, 1.5f);
-			lookAtCamera.setPosition(0, 16, -18f);
+			droneObj = new DroneObjectCargodrone(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(0, 8, -9f);
 			mShowGround = false;
 			break;
 		case CTRL_ATTITUDE:
-			droneObj = new DroneObjectCargodrone(0, 0, 0, 1.5f);
-			lookAtCamera.setPosition(0, 16, -18f);
+			droneObj = new DroneObjectCargodrone(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(0, 8, -9f);
 			mShowGround = false;
 			break;
 		case CTRL_CALIBRATION:	// 多分これはこない
-			droneObj = new DroneObjectCargodrone(0, 0, 0, 1.5f);
-			lookAtCamera.setPosition(0, 16, -18f);
+			droneObj = new DroneObjectCargodrone(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(0, 8, -9f);
 			mShowGround = false;
 			break;
 		case CTRL_RANDOM:
 		default:
-			droneObj = new DroneObjectCargodroneRandom(0, 0, 0, 1.5f);
+			droneObj = new DroneObjectCargodroneRandom(0, 0, 0, 1.0f);
 			lookAtCamera.setPosition(-9, 8, -9);
 			mShowGround = false;
 			break;
@@ -78,7 +78,7 @@ public class AttitudeScreenCargodrone extends AttitudeScreenBase {
 			droneTexture = new StaticTexture(mModelView, "cargo_drone_tex.png");
 		} catch (final Exception e) {
 			Log.w(TAG, e);
-			droneTexture = new StaticTexture(mModelView, "model/cargo_drone_tex_yellow.png");
+			droneTexture = new StaticTexture(mModelView, "model/cargo_drone_tex_blue.png");
 		}
 		droneModel = loadModel(io, "model/cargo_drone_body.obj");
 		droneModel.setTexture(droneTexture);

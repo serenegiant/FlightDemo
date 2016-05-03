@@ -34,7 +34,7 @@ public class TextureHelper {
 			"bebop_drone_bumper_tex.png", "model/bebop_drone_bumper_tex_mask.png",
 		},
 		{	// Cargodrone用
-			"cargo_drone_tex_blue.png", "model/cargo_drone_tex_mask.png",
+			"cargo_drone_tex.png", "model/cargo_drone_tex_mask.png",
 		},
 	};
 
