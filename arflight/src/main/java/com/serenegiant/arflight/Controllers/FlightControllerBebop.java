@@ -268,7 +268,7 @@ public class FlightControllerBebop extends FlightController implements ICameraCo
 	}
 
 	/**
-	 * フラットトリム変更を受信した時のコールバックリスナー
+	 * フラットトリムが実行された時のコールバックリスナー
 	 */
 	private final ARCommandARDrone3PilotingStateFlatTrimChangedListener
 		mPilotingStateFlatTrimChangedListener

@@ -1218,7 +1218,7 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		ARCONTROLLER_ERROR_ENUM result = ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_ERROR;
 		if (isConnected()) {
 			try {
-				/** sendPilotingPCMD
+				/** setPilotingPCMD/sendPilotingPCMD
 				 * @param _flag Boolean flag to activate roll/pitch movement
 				 * @param _roll Roll consign for the drone [-100;100]
 				 * @param _pitch Pitch consign for the drone [-100;100]
@@ -1228,6 +1228,9 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 				 */
 				final int timestampAndSeqNum = (int)(System.currentTimeMillis() & 0xffffff) + (seqNum ++) << 24;
 				result = mARDeviceController.getFeatureARDrone3().setPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, timestampAndSeqNum);
+				if (result == ARCONTROLLER_ERROR_ENUM.ARCONTROLLER_OK) {
+					result = mARDeviceController.getFeatureARDrone3().sendPilotingPCMD((byte) flag, (byte) roll, (byte) pitch, (byte) yaw, (byte) gaz, timestampAndSeqNum);
+				}
 			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}
@@ -1426,10 +1429,13 @@ public class FlightControllerBebopNewAPI extends FlightControllerNewAPI implemen
 		final int channel) {
 		Log.d(TAG, String.format("onWifiScanListChangedUpdate:ssid=%s,rssi=%d,band=%s,channel=%d", ssid, rssi, band.toString(), channel));
 		final String key = band.toString() + Integer.toString(channel);
-		WiFiStatus status = mWifiStatus.get(key);
-		if (status == null) {
-			status = new WiFiStatus(-66);
-			mWifiStatus.put(key, status);
+		WiFiStatus status;
+		synchronized (mWifiStatus) {
+			status = mWifiStatus.get(key);
+			if (status == null) {
+				status = new WiFiStatus(-66);
+				mWifiStatus.put(key, status);
+			}
 		}
 		status.ssid = ssid;
 		status.rssi = rssi;
