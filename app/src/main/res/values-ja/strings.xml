@@ -37,6 +37,9 @@
 	<string name="stick_text_down">下</string>
 	<string name="stick_text_back">後</string>
 
+	<string name="config_app_title_color">機体色設定</string>
+	<string name="config_app_title_license">ライセンス</string>
+
 	<string name="config_sw_on">有</string>
 	<string name="config_sw_off">無</string>
 

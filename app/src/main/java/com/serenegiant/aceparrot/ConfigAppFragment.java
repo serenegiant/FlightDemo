@@ -3,6 +3,9 @@ package com.serenegiant.aceparrot;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,10 +17,29 @@ import com.serenegiant.widget.RelativeRadioGroup;
 import static com.serenegiant.aceparrot.AppConst.*;
 
 public class ConfigAppFragment extends BaseFragment {
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static String TAG = ConfigAppFragment.class.getSimpleName();
 
 	public static ConfigAppFragment newInstance() {
 		final ConfigAppFragment fragment = new ConfigAppFragment();
 		return fragment;
+	}
+
+	private static PagerAdapterConfig[] PAGER_CONFIG_APP;
+	static {
+		PAGER_CONFIG_APP = new PagerAdapterConfig[2];
+		PAGER_CONFIG_APP[0] = new PagerAdapterConfig(R.string.config_app_title_color, R.layout.config_app_color, new PagerAdapterItemHandler() {
+			@Override
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigAppFragment)parent).initColor(view);
+			}
+		});
+		PAGER_CONFIG_APP[1] = new PagerAdapterConfig(R.string.config_app_title_license, R.layout.config_app_license, new PagerAdapterItemHandler() {
+			@Override
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigAppFragment)parent).initLicense(view);
+			}
+		});
 	}
 
 	private SharedPreferences mPref;
@@ -40,6 +62,13 @@ public class ConfigAppFragment extends BaseFragment {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
      	final View rootView = local_inflater.inflate(R.layout.fragment_config_app, container, false);
+		final ConfigPagerAdapter adapter = new ConfigPagerAdapter(this, inflater, PAGER_CONFIG_APP);
+		final ViewPager pager = (ViewPager)rootView.findViewById(R.id.pager);
+		pager.setAdapter(adapter);
+		return rootView;
+	}
+
+	private void initColor(final View rootView) {
 		final RelativeRadioGroup group = (RelativeRadioGroup)rootView.findViewById(R.id.icon_radiogroup);
 
 		switch (mPref.getInt(KEY_ICON_TYPE, 100)) {
@@ -66,7 +95,9 @@ public class ConfigAppFragment extends BaseFragment {
 		final Switch sw = (Switch)rootView.findViewById(R.id.icon_auto_hide_switch);
 		sw.setChecked(mAutoHide);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
-		return rootView;
+	}
+
+	private void initLicense(final View rootView) {
 	}
 
 	private final RelativeRadioGroup.OnCheckedChangeListener mOnRadioButtonCheckedChangeListener

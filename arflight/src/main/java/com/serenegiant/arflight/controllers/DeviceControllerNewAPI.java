@@ -341,7 +341,7 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 					}
 				}
 			} catch (final InterruptedException e) {
-				//
+				failed = true;
 			} finally {
 				mRequestConnect = false;
 			}

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+	<string name="license_arsdk" tools:ignore="MissingTranslation" >
+		********************************************************************************\n
+		ARSDK\n
+		********************************************************************************\n
+		Copyright (C) 2014 Parrot SA\n
+		\n
+		Redistribution and use in source and binary forms, with or without\n
+		modification, are permitted provided that the following conditions\n
+		are met:\n
+		* Redistributions of source code must retain the above copyright\n
+		  notice, this list of conditions and the following disclaimer.\n
+		* Redistributions in binary form must reproduce the above copyright\n
+		  notice, this list of conditions and the following disclaimer in\n
+		  the documentation and/or other materials provided with the\n
+		  distribution.\n
+		* Neither the name of Parrot nor the names\n
+		  of its contributors may be used to endorse or promote products\n
+		  derived from this software without specific prior written\n
+		  permission.\n
+		\n
+		THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n
+		"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\n
+		LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS\n
+		FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE\n
+		COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,\n
+		INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,\n
+		BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS\n
+		OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED\n
+		AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\n
+		OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT\n
+		OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF\n
+		SUCH DAMAGE.\n
+	</string>
+	<string name="license_opencv" tools:ignore="MissingTranslation" >
+		********************************************************************************\n
+		OpenCV\n
+		********************************************************************************\n
+		By downloading, copying, installing or using the software you agree to this license.\n
+		If you do not agree to this license, do not download, install,\n
+		copy or use the software.\n
+		\n
+		\n
+		                          License Agreement\n
+		               For Open Source Computer Vision Library\n
+		                       (3-clause BSD License)\n
+		\n
+		Copyright (C) 2000-2015, Intel Corporation, all rights reserved.\n
+		Copyright (C) 2009-2011, Willow Garage Inc., all rights reserved.\n
+		Copyright (C) 2009-2015, NVIDIA Corporation, all rights reserved.\n
+		Copyright (C) 2010-2013, Advanced Micro Devices, Inc., all rights reserved.\n
+		Copyright (C) 2015, OpenCV Foundation, all rights reserved.\n
+		Copyright (C) 2015, Itseez Inc., all rights reserved.\n
+		Third party copyrights are property of their respective owners.\n
+		\n
+		Redistribution and use in source and binary forms, with or without modification,\n
+		are permitted provided that the following conditions are met:\n
+		\n
+		  * Redistributions of source code must retain the above copyright notice,\n
+		    this list of conditions and the following disclaimer.\n
+		\n
+		  * Redistributions in binary form must reproduce the above copyright notice,\n
+		    this list of conditions and the following disclaimer in the documentation\n
+		    and/or other materials provided with the distribution.\n
+		\n
+		  * Neither the names of the copyright holders nor the names of the contributors\n
+		    may be used to endorse or promote products derived from this software\n
+		    without specific prior written permission.\n
+		\n
+		This software is provided by the copyright holders and contributors "as is" and\n
+		any express or implied warranties, including, but not limited to, the implied\n
+		warranties of merchantability and fitness for a particular purpose are disclaimed.\n
+		In no event shall copyright holders or contributors be liable for any direct,\n
+		indirect, incidental, special, exemplary, or consequential damages\n
+		(including, but not limited to, procurement of substitute goods or services;\n
+		loss of use, data, or profits; or business interruption) however caused\n
+		and on any theory of liability, whether in contract, strict liability,\n
+		or tort (including negligence or otherwise) arising in any way out of\n
+		the use of this software, even if advised of the possibility of such damage.\n
+	</string>
+</resources>

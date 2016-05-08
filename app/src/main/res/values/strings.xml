@@ -19,6 +19,9 @@
 	<string name="parent_dir">Up‥</string>
 	<string name="file_empty">No file</string>
 
+	<string name="config_app_title_color">Color</string>
+	<string name="config_app_title_license">License</string>
+
 	<string name="config_sw_on">on</string>
 	<string name="config_sw_off">off</string>
 

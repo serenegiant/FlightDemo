@@ -115,7 +115,7 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 		mProduct = getProduct();
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
 		final View rootView = local_inflater.inflate(R.layout.fragment_config, container, false);
-		final ConfigPagerAdapter adapter = new ConfigPagerAdapter(inflater);
+		final ConfigPagerAdapter adapter = new ConfigPagerAdapter(this, inflater, getConfigs(mProduct));
 		final ViewPager pager = (ViewPager)rootView.findViewById(R.id.pager);
 		pager.setAdapter(adapter);
 		return rootView;
@@ -1006,92 +1006,76 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 		}
 	};
 
-	private static interface AdapterItemHandler {
-		public void initialize(final ConfigFragment parent, final View view);
-	}
-
-	private static final class PagerAdapterConfig {
-		public final int title_id;
-		public final int layout_id;
-		public final AdapterItemHandler handler;
-
-		public PagerAdapterConfig(final int _title_id, final int _layout_id, final AdapterItemHandler _handler) {
-			title_id = _title_id;
-			layout_id = _layout_id;
-			handler = _handler;
-		}
-	}
-
 	private static PagerAdapterConfig[] PAGER_CONFIG_MINIDRONE;
 	private static PagerAdapterConfig[] PAGER_CONFIG_BEBOP;
 	private static PagerAdapterConfig[] PAGER_CONFIG_BEBOP2;
 	static {
 		// Minidrone(RollingSpider用)
 		PAGER_CONFIG_MINIDRONE = new PagerAdapterConfig[8];
-		PAGER_CONFIG_MINIDRONE[0] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.config_flight, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[0] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.config_flight, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigFlight(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigFlight(view);
 			}
 		});
-		PAGER_CONFIG_MINIDRONE[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_minidrone, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_minidrone, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigMinidrone1(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigMinidrone1(view);
 			}
 		});
-		PAGER_CONFIG_MINIDRONE[2] = new PagerAdapterConfig(R.string.config_title_operation, R.layout.config_operation, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[2] = new PagerAdapterConfig(R.string.config_title_operation, R.layout.config_operation, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigOperation(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigOperation(view);
 			}
 		});
-		PAGER_CONFIG_MINIDRONE[3] = new PagerAdapterConfig(R.string.config_title_gamepad, R.layout.config_gamepad, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[3] = new PagerAdapterConfig(R.string.config_title_gamepad, R.layout.config_gamepad, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigGamepad(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigGamepad(view);
 			}
 		});
-		PAGER_CONFIG_MINIDRONE[4] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.config_autopilot, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[4] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.config_autopilot, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigAutopilot(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigAutopilot(view);
 			}
 		});
-		PAGER_CONFIG_MINIDRONE[5] = new PagerAdapterConfig(R.string.config_title_icon, R.layout.config_icon, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[5] = new PagerAdapterConfig(R.string.config_title_icon, R.layout.config_icon, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigIcon(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigIcon(view);
 			}
 		});
-		PAGER_CONFIG_MINIDRONE[6] = new PagerAdapterConfig(R.string.config_title_color, R.layout.config_color, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[6] = new PagerAdapterConfig(R.string.config_title_color, R.layout.config_color, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigColor(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigColor(view);
 			}
 		});
-		PAGER_CONFIG_MINIDRONE[7] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new AdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[7] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigInfo(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigInfo(view);
 			}
 		});
 // ここからbebop用
 		PAGER_CONFIG_BEBOP = new PagerAdapterConfig[9];
 		PAGER_CONFIG_BEBOP[0] = PAGER_CONFIG_MINIDRONE[0];
-		PAGER_CONFIG_BEBOP[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_bebop, new AdapterItemHandler() {
+		PAGER_CONFIG_BEBOP[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_bebop, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigBebop(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigBebop(view);
 			}
 		});
 		PAGER_CONFIG_BEBOP[2] = PAGER_CONFIG_MINIDRONE[2];
 		PAGER_CONFIG_BEBOP[3] = PAGER_CONFIG_MINIDRONE[3];
 		PAGER_CONFIG_BEBOP[4] = PAGER_CONFIG_MINIDRONE[4];
-		PAGER_CONFIG_BEBOP[5] = new PagerAdapterConfig(R.string.config_title_network, R.layout.config_network, new AdapterItemHandler() {
+		PAGER_CONFIG_BEBOP[5] = new PagerAdapterConfig(R.string.config_title_network, R.layout.config_network, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigNetwork(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigNetwork(view);
 			}
 		});
 		PAGER_CONFIG_BEBOP[6] = PAGER_CONFIG_MINIDRONE[5];
@@ -1103,95 +1087,44 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 		PAGER_CONFIG_BEBOP2[1] = PAGER_CONFIG_MINIDRONE[2];
 		PAGER_CONFIG_BEBOP2[2] = PAGER_CONFIG_MINIDRONE[3];
 		PAGER_CONFIG_BEBOP2[3] = PAGER_CONFIG_MINIDRONE[4];
-		PAGER_CONFIG_BEBOP2[4] = new PagerAdapterConfig(R.string.config_title_network, R.layout.config_network, new AdapterItemHandler() {
+		PAGER_CONFIG_BEBOP2[4] = new PagerAdapterConfig(R.string.config_title_network, R.layout.config_network, new PagerAdapterItemHandler() {
 			@Override
-			public void initialize(final ConfigFragment parent, final View view) {
-				parent.initConfigNetwork(view);
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigFragment)parent).initConfigNetwork(view);
 			}
 		});
 		PAGER_CONFIG_BEBOP2[5] = PAGER_CONFIG_MINIDRONE[5];
 		PAGER_CONFIG_BEBOP2[6] = PAGER_CONFIG_MINIDRONE[6];
 		PAGER_CONFIG_BEBOP2[7] = PAGER_CONFIG_MINIDRONE[7];
-	};
-
-	/**
-	 * 設定画面の各ページ用のViewを提供するためのPagerAdapterクラス
-	 */
-	private class ConfigPagerAdapter extends PagerAdapter {
-		private final LayoutInflater mInflater;
-		private final PagerAdapterConfig[] mConfigs;
-		public ConfigPagerAdapter(final LayoutInflater inflater) {
-			super();
-			mInflater = inflater;
-			switch(mProduct) {
-			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-				mConfigs = PAGER_CONFIG_BEBOP;
-				break;
-			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				mConfigs = PAGER_CONFIG_BEBOP2;
-				break;
-			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
-			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
-//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
-				mConfigs = PAGER_CONFIG_MINIDRONE;
-				break;
-			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
-				// FIXME SkyController用の設定画面を追加する?
-				mConfigs = null;
-				break;
-			case ARDISCOVERY_PRODUCT_NSNETSERVICE:
-			case ARDISCOVERY_PRODUCT_JS:		// FIXME JumpingSumoは未対応
-			case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
-			case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
-			default:
-				mConfigs = null;
-			}
-		}
-
-		@Override
-		public synchronized Object instantiateItem(final ViewGroup container, final int position) {
-			if (DEBUG) Log.v(TAG, "instantiateItem:position=" + position);
-			View view = null;
-			final int n = mConfigs != null ? mConfigs.length : 0;
-			if ((position >= 0) && (position < n)) {
-				final PagerAdapterConfig config = mConfigs[position];
-				view = mInflater.inflate(config.layout_id, container, false);
-				config.handler.initialize(ConfigFragment.this, view);
-			}
-			if (view != null) {
-				container.addView(view);
-			}
-			return view;
-		}
-
-		@Override
-		public synchronized void destroyItem(final ViewGroup container, final int position, final Object object) {
-			if (DEBUG) Log.v(TAG, "destroyItem:position=" + position);
-			if (object instanceof View) {
-				container.removeView((View)object);
-			}
-		}
-
-		@Override
-		public int getCount() {
-			return mConfigs != null ? mConfigs.length : 0;
-		}
-
-		@Override
-		public boolean isViewFromObject(final View view, final Object object) {
-			return view.equals(object);
-		}
-
-		@Override
-		public CharSequence getPageTitle(final int position) {
-			if (DEBUG) Log.v(TAG, "getPageTitle:position=" + position);
-			CharSequence result = null;
-			final int n = mConfigs != null ? mConfigs.length : 0;
-			if ((position >= 0) && (position < n)) {
-				result = getString(mConfigs[position].title_id);
-			}
-			return result;
-		}
 	}
+
+	private static PagerAdapterConfig[] getConfigs(final ARDISCOVERY_PRODUCT_ENUM product) {
+		PagerAdapterConfig[] result;
+		switch(product) {
+		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+			result = PAGER_CONFIG_BEBOP;
+			break;
+		case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+			result = PAGER_CONFIG_BEBOP2;
+			break;
+		case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
+			result = PAGER_CONFIG_MINIDRONE;
+			break;
+		case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
+			// FIXME SkyController用の設定画面を追加する?
+			result = null;
+			break;
+		case ARDISCOVERY_PRODUCT_NSNETSERVICE:
+		case ARDISCOVERY_PRODUCT_JS:		// FIXME JumpingSumoは未対応
+		case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
+		case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
+		default:
+			result = null;
+		}
+		return result;
+	}
+
 }
