@@ -84,4 +84,6 @@ public class AutoPilotConst {
 	public static final int DEFAULT_TRACE_MOVING_AVE_TAP = 5;
 	public static final String KEY_TRACE_DECAY_RATE = "KEY_TRACE_DECAY_RATE";
 	public static final float DEFAULT_TRACE_DECAY_RATE = 0.0f;
+	public static final String KEY_TRACE_SENSITIVITY = "KEY_TRACE_SENSITIVITY";
+	public static final float DEFAULT_TRACE_SENSITIVITY = 50.0f;
 }

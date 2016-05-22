@@ -13,8 +13,8 @@ android {
 		targetSdkVersion 22
 		manifestPlaceholders = [appName:"@string/app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
-		versionCode 50
-		versionName '0.69.2'
+		versionCode 51
+		versionName '0.69.3'
 	}
 	signingConfigs {
 		debugKey {
@@ -63,8 +63,8 @@ android {
 
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
-	compile project(':arflight')
 	compile project(':common')
+	compile project(':arflight')
 	compile project(':gamepad')
 	compile project(':graphics_common')
 	compile project(':animations')

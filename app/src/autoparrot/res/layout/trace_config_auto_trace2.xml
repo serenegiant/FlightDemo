@@ -7,66 +7,61 @@
 		android:orientation="vertical"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content">
-		<!-- 移動方向逆バイアス -->
+		<!-- 飛行姿勢(yaw) -->
 		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_config_trace_reverse_bias"
+			android:text="@string/trace_config_trace_attitude_yaw"
 			android:textSize="@dimen/text_sz_trace_config_list"
-			android:id="@+id/trace_flight_reverse_bias_textview"
+			android:id="@+id/trace_flight_attitude_yaw_textview"
 			android:textColor="@color/trace_config"/>
 		<SeekBar
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:id="@+id/trace_flight_reverse_bias_seekbar"
+			android:id="@+id/trace_flight_attitude_yaw_seekbar"
 			android:layout_gravity="center_horizontal"
 			android:paddingBottom="@dimen/min_padding"
 			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
-		<!-- 移動平均数 -->
+		<!-- 飛行速度 -->
 		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_config_moving_ave_tap"
+			android:text="@string/trace_config_trace_speed"
 			android:textSize="@dimen/text_sz_trace_config_list"
-			android:id="@+id/trace_flight_moving_ave_tap_textview"
+			android:id="@+id/trace_flight_speed_textview"
 			android:textColor="@color/trace_config"/>
 		<SeekBar
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:id="@+id/trace_flight_moving_ave_tap_seekbar"
+			android:id="@+id/trace_flight_speed_seekbar"
 			android:layout_gravity="center_horizontal"
 			android:paddingBottom="@dimen/min_padding"
 			android:thumb="@drawable/custom_thumb"
 			android:minHeight="@dimen/text_sz_trace_config_list"/>
-		<!-- 減衰率 -->
-		<TextView
+		<!-- 高度制御 -->
+		<Switch
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_config_decay_rate"
+			android:text="@string/trace_config_trace_altitude_enable"
+			android:textColor="@color/trace_config"
 			android:textSize="@dimen/text_sz_trace_config_list"
-			android:id="@+id/trace_flight_decay_rate_textview"
-			android:textColor="@color/trace_config"/>
-		<SeekBar
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:id="@+id/trace_flight_decay_rate_seekbar"
-			android:layout_gravity="center_horizontal"
+			android:textOn="@string/config_sw_on"
+			android:textOff="@string/config_sw_off"
 			android:paddingBottom="@dimen/min_padding"
-			android:thumb="@drawable/custom_thumb"
-			android:minHeight="@dimen/text_sz_trace_config_list"/>
-		<!-- 制御感度 -->
+			android:id="@+id/trace_flight_altitude_enable_switch"/>
+		<!-- 飛行高度 -->
 		<TextView
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:text="@string/trace_config_trace_sensitivity"
+			android:text="@string/trace_config_trace_altitude"
 			android:textSize="@dimen/text_sz_trace_config_list"
-			android:id="@+id/trace_flight_sensitivity_textview"
+			android:id="@+id/trace_flight_altitude_textview"
 			android:textColor="@color/trace_config"/>
 		<SeekBar
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:id="@+id/trace_flight_sensitivity_seekbar"
+			android:id="@+id/trace_flight_altitude_seekbar"
 			android:layout_gravity="center_horizontal"
 			android:paddingBottom="@dimen/min_padding"
 			android:thumb="@drawable/custom_thumb"

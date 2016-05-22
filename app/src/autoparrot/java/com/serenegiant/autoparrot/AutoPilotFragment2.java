@@ -95,6 +95,7 @@ public class AutoPilotFragment2 extends BaseAutoPilotFragment {
 		float scaleR = (float)mScaleR;
 		float directionalReverseBias = mTraceDirectionalReverseBias;
 //		float curvature = 0.0f; // mTraceCurvature;
+		float sensitivity = mTraceSensitivity;
 		//
 		final Vector dir = new Vector(0.0f, flightSpeed, 0.0f).rotate(0.0f, 0.0f, flightAngleYaw);
 		final Vector prevOffset = new Vector();
@@ -112,7 +113,8 @@ public class AutoPilotFragment2 extends BaseAutoPilotFragment {
 			scaleR = (float)mScaleR;
 			dir.set(0.0f, flightSpeed, 0.0f).rotateXY(flightAngleYaw);
 			directionalReverseBias = mTraceDirectionalReverseBias;
-//						curvature = mTraceCurvature;
+//			curvature = mTraceCurvature;
+			sensitivity = mTraceSensitivity;
 			if (mMovingAveTap != mTraceMovingAveTap) {
 				createMovingAve(mTraceMovingAveTap);
 			}
@@ -161,9 +163,9 @@ public class AutoPilotFragment2 extends BaseAutoPilotFragment {
 			if (offset.y != 0.0f) { if (offset.y == work.y) { work.y = directionalReverseBias; } else { work.y = -directionalReverseBias; } } else { offset.y = 0.0f; }
 			if (offset.z != 0.0f) { if (offset.z == work.z) { work.z = directionalReverseBias; } else { work.z = -directionalReverseBias; } } else { offset.z = 0.0f; }
 			work.add(1.0f, 1.0f, 1.0f);	// この時点でworkの各成分は1.0f±directionalReverseBias
-			// 機体のオフセットと反対向き動かすので-1倍, ±1を±50に換算するので50倍, 前進速度を加算
+			// 機体のオフセットと反対向き動かすので-1倍, ±1を±sensitivityに換算するのでsensitivity倍, 前進速度を加算
 			// オフセットy(ピッチ, 前後方向)はラインの中心点が中央より前だと負、中央より後ろだと正なので符号反転はしない
-			calcValue.mult(work).mult(-50.0f, 50.0f, 50.0f);
+			calcValue.mult(work).mult(-sensitivity, sensitivity, sensitivity);
 			// 実際の機体の進行方向に合わせて回転, これで機体の実際の進行方向に対する制御量になる
 			// でも角度の変えながらなのでとりあえず半分だけ回転させる
 			calcValue.rotateXY(line_angle / 2.0f);

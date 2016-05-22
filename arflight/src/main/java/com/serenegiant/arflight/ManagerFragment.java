@@ -203,12 +203,13 @@ public class ManagerFragment extends Fragment {
 	private final List<ManagerCallback> mCallbacks = new ArrayList<ManagerCallback>();
 
 	public ManagerFragment() {
+		super();
 		// デフォルトコンストラクタが必要
-//		setRetainInstance(true);	// Activityから切り離されても破棄されないようにする
+//		setRetainInstance(true);	// Activityから切り離されても破棄されないようにする時
 	}
 
 	@Override
-	public void onAttach(Activity activity) {
+	public void onAttach(final Activity activity) {
 		super.onAttach(activity);
 		if (DEBUG) Log.i(TAG, "onAttach:");
 		synchronized (mSync) {

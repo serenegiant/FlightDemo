@@ -196,6 +196,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
 		mTraceMovingAveTap = mPref.getInt(KEY_TRACE_MOVING_AVE_TAP, DEFAULT_TRACE_MOVING_AVE_TAP);
 		mTraceDecayRate = mPref.getFloat(KEY_TRACE_DECAY_RATE, DEFAULT_TRACE_DECAY_RATE);
+		mTraceSensitivity = mPref.getFloat(KEY_TRACE_SENSITIVITY, DEFAULT_TRACE_SENSITIVITY);
 
 		// Viewの取得・初期化
 		mActionViews.clear();
@@ -1672,6 +1673,9 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 			case R.id.trace_flight_decay_rate_seekbar:
 				updateTraceDecayRate(progress / 1000.0f);
 				break;
+			case R.id.trace_flight_sensitivity_seekbar:
+				updateTraceSensitivity(progress);
+				break;
 			}
 		}
 
@@ -1906,6 +1910,17 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 					}
 					mPref.edit().putFloat(KEY_TRACE_DECAY_RATE, decay_rate).apply();
 				}
+				break;
+			case R.id.trace_flight_sensitivity_seekbar:
+				final float sensitivity = seekBar.getProgress();
+				if (sensitivity != mTraceSensitivity) {
+					synchronized (mParamSync) {
+						mReqUpdateParams = true;
+						mTraceSensitivity = sensitivity;
+					}
+					mPref.edit().putFloat(KEY_TRACE_SENSITIVITY, sensitivity).apply();
+				}
+				break;
 			}
 		}
 	};
@@ -2548,37 +2563,110 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		}
 	}
 //--------------------------------------------------------------------------------
-	private TextView mTraceAttitudeYawLabel;
-	private TextView mTraceSpeedLabel;
-	private TextView mTraceAltitudeLabel;
 	private TextView mTraceDirectionalReverseBiasLabel;
 	private TextView mTraceMovingAveTapLabel;
 	private TextView mTraceDecayRateLabel;
-	private String mTraceAttitudeYawFormat;
-	private String mTraceSpeedFormat;
-	private String mTraceAltitudeFormat;
+	private TextView mTraceSensitivityLabel;
 	private String mTraceDirectionalReverseBiasFormat;
 	private String mTraceMovingAveTapFormat;
 	private String mTraceDecayRateFormat;
+	private String mTraceSensitivityFormat;
+	protected float mTraceDirectionalReverseBias = 0.3f;
+	protected int mTraceMovingAveTap = DEFAULT_TRACE_MOVING_AVE_TAP;
+	protected float mTraceDecayRate = DEFAULT_TRACE_DECAY_RATE;
+	protected float mTraceSensitivity = DEFAULT_TRACE_SENSITIVITY;
+
+	private void initAutoTrace(final View rootView) {
+		SeekBar sb;
+		Switch sw;
+		//
+		mTraceDirectionalReverseBiasFormat = getString(R.string.trace_config_trace_reverse_bias);
+		mTraceMovingAveTapFormat = getString(R.string.trace_config_moving_ave_tap);
+		mTraceDecayRateFormat = getString(R.string.trace_config_decay_rate);
+		mTraceSensitivityFormat = getString(R.string.trace_config_trace_sensitivity);
+		// 移動方向逆バイアス
+		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
+		mTraceDirectionalReverseBiasLabel = (TextView)rootView.findViewById(R.id.trace_flight_reverse_bias_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_reverse_bias_seekbar);
+		sb.setMax(200);
+		sb.setProgress((int)(mTraceDirectionalReverseBias * 100));	// [0.0f, 2.0f] => [0, 200]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateTraceDirectionalReverseBias(mTraceDirectionalReverseBias);
+		// 移動平均タップ数
+		mTraceMovingAveTap = mPref.getInt(KEY_TRACE_MOVING_AVE_TAP, DEFAULT_TRACE_MOVING_AVE_TAP);
+		mTraceMovingAveTapLabel = (TextView)rootView.findViewById(R.id.trace_flight_moving_ave_tap_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_moving_ave_tap_seekbar);
+		sb.setMax(19);
+		sb.setProgress(mTraceMovingAveTap - 1);	// [1, 20] => [0, 19]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateTraceMovingAveTap(mTraceMovingAveTap);
+		// 減衰率
+		mTraceDecayRate = mPref.getFloat(KEY_TRACE_DECAY_RATE, DEFAULT_TRACE_DECAY_RATE);
+		mTraceDecayRateLabel = (TextView)rootView.findViewById(R.id.trace_flight_decay_rate_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_decay_rate_seekbar);
+		sb.setMax(1000);
+		sb.setProgress((int)(mTraceDecayRate * 1000.0f));	// [0.000f, 1.000f] => [0, 1000]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateTraceDecayRate(mTraceDecayRate);
+		// 制御感度
+		mTraceSensitivity = mPref.getFloat(KEY_TRACE_SENSITIVITY, DEFAULT_TRACE_SENSITIVITY);
+		mTraceSensitivityLabel = (TextView)rootView.findViewById(R.id.trace_flight_sensitivity_textview);
+		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_sensitivity_seekbar);
+		sb.setMax(100);
+		sb.setProgress((int)(mTraceSensitivity));	// [0f, 100f] => [0, 100]
+		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateTraceSensitivity(mTraceSensitivity);
+	}
+
+	private void releaseAutoTrace(final View rootView) {
+		mTraceAttitudeYawLabel = null;
+		mTraceSpeedLabel = null;
+		mTraceDirectionalReverseBiasLabel = null;
+	}
+
+	private void updateTraceDirectionalReverseBias(final float bias) {
+		if (mTraceDirectionalReverseBiasLabel != null) {
+			mTraceDirectionalReverseBiasLabel.setText(String.format(mTraceDirectionalReverseBiasFormat, bias));
+		}
+	}
+
+	private void updateTraceMovingAveTap(final int notch) {
+		if (mTraceMovingAveTapLabel != null) {
+			mTraceMovingAveTapLabel.setText(String.format(mTraceMovingAveTapFormat, notch));
+		}
+	}
+
+	private void updateTraceDecayRate(final float decay_rate) {
+		if (mTraceDecayRateLabel != null) {
+			mTraceDecayRateLabel.setText(String.format(mTraceDecayRateFormat, decay_rate));
+		}
+	}
+
+	private void updateTraceSensitivity(final float sensitivity) {
+		if (mTraceSensitivityLabel != null) {
+			mTraceSensitivityLabel.setText(String.format(mTraceSensitivityFormat, sensitivity));
+		}
+	}
+
+	//--------------------------------------------------------------------------------
+	private TextView mTraceAttitudeYawLabel;
+	private TextView mTraceSpeedLabel;
+	private TextView mTraceAltitudeLabel;
+	private String mTraceAttitudeYawFormat;
+	private String mTraceSpeedFormat;
+	private String mTraceAltitudeFormat;
 	protected float mTraceAttitudeYaw = 0.0f;
 	protected float mTraceSpeed = 100.0f;
 	protected boolean mTraceAltitudeEnabled = true;
 	protected float mTraceAltitude = 0.6f;
-	protected float mTraceDirectionalReverseBias = 0.3f;
-//	private float mTraceCurvature = 0.0f;
-	protected int mTraceMovingAveTap = DEFAULT_TRACE_MOVING_AVE_TAP;
-	protected float mTraceDecayRate = DEFAULT_TRACE_DECAY_RATE;
 
-	private void initAutoTrace(final View rootView) {
+	private void initAutoTrace2(final View rootView) {
 		SeekBar sb;
 		Switch sw;
 		//
 		mTraceAttitudeYawFormat = getString(R.string.trace_config_trace_attitude_yaw);
 		mTraceSpeedFormat = getString(R.string.trace_config_trace_speed);
 		mTraceAltitudeFormat = getString(R.string.trace_config_trace_altitude);
-		mTraceDirectionalReverseBiasFormat = getString(R.string.trace_config_trace_reverse_bias);
-		mTraceMovingAveTapFormat = getString(R.string.trace_config_moving_ave_tap);
-		mTraceDecayRateFormat = getString(R.string.trace_config_decay_rate);
 		// 飛行姿勢(yaw)
 		mTraceAttitudeYaw = mPref.getFloat(KEY_TRACE_ATTITUDE_YAW, DEFAULT_TRACE_ATTITUDE_YAW);
 		mTraceAttitudeYawLabel = (TextView)rootView.findViewById(R.id.trace_flight_attitude_yaw_textview);
@@ -2608,41 +2696,12 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		sb.setProgress((int)((mTraceAltitude - 0.5f) * 10.0f));	// [0.5,+5.0] => [0, 45]
 		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
 		updateTraceAltitude(mTraceAltitude);
-		// 移動方向逆バイアス
-		mTraceDirectionalReverseBias = mPref.getFloat(KEY_TRACE_DIR_REVERSE_BIAS, DEFAULT_TRACE_DIR_REVERSE_BIAS);
-		mTraceDirectionalReverseBiasLabel = (TextView)rootView.findViewById(R.id.trace_flight_reverse_bias_textview);
-		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_reverse_bias_seekbar);
-		sb.setMax(200);
-		sb.setProgress((int)(mTraceDirectionalReverseBias * 100));	// [0.0f, 2.0f] => [0, 200]
-		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		updateTraceDirectionalReverseBias(mTraceDirectionalReverseBias);
-		// 移動平均タップ数
-		mTraceMovingAveTap = mPref.getInt(KEY_TRACE_MOVING_AVE_TAP, DEFAULT_TRACE_MOVING_AVE_TAP);
-		mTraceMovingAveTapLabel = (TextView)rootView.findViewById(R.id.trace_flight_moving_ave_tap_textview);
-		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_moving_ave_tap_seekbar);
-		sb.setMax(19);
-		sb.setProgress(mTraceMovingAveTap - 1);	// [1, 20] => [0, 19]
-		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		updateTraceMovingAveTap(mTraceMovingAveTap);
-		// 減衰率
-		mTraceDecayRate = mPref.getFloat(KEY_TRACE_DECAY_RATE, DEFAULT_TRACE_DECAY_RATE);
-		mTraceDecayRateLabel = (TextView)rootView.findViewById(R.id.trace_flight_decay_rate_textview);
-		sb = (SeekBar)rootView.findViewById(R.id.trace_flight_decay_rate_seekbar);
-		sb.setMax(1000);
-		sb.setProgress((int)(mTraceDecayRate * 1000.0f));	// [0.000f, 1.000f] => [0, 1000]
-		sb.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
-		updateTraceDecayRate(mTraceDecayRate);
-//		// 曲率補正
-//		mTraceCurvature = mPref.getFloat(KEY_TRACE_CURVATURE, DEFAULT_TRACE_CURVATURE);
-//		sw = (Switch)rootView.findViewById(R.id.curvature_sw);
-//		sw.setChecked(mTraceCurvature != 0);
-//		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
-	private void releaseAutoTrace(final View rootView) {
+	private void releaseAutoTrace2(final View rootView) {
 		mTraceAttitudeYawLabel = null;
 		mTraceSpeedLabel = null;
-		mTraceDirectionalReverseBiasLabel = null;
+		mTraceAltitudeLabel = null;
 	}
 
 	private void updateTraceAttitudeYaw(final float attitude_yaw) {
@@ -2663,23 +2722,6 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		}
 	}
 
-	private void updateTraceDirectionalReverseBias(final float bias) {
-		if (mTraceDirectionalReverseBiasLabel != null) {
-			mTraceDirectionalReverseBiasLabel.setText(String.format(mTraceDirectionalReverseBiasFormat, bias));
-		}
-	}
-
-	private void updateTraceMovingAveTap(final int notch) {
-		if (mTraceMovingAveTapLabel != null) {
-			mTraceMovingAveTapLabel.setText(String.format(mTraceMovingAveTapFormat, notch));
-		}
-	}
-
-	private void updateTraceDecayRate(final float decay_rate) {
-		if (mTraceDecayRateLabel != null) {
-			mTraceDecayRateLabel.setText(String.format(mTraceDecayRateFormat, decay_rate));
-		}
-	}
 //--------------------------------------------------------------------------------
 	private String mMaxAltitudeFormat;
 	private String mMaxTiltFormat;
@@ -2974,7 +3016,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 	private static PagerAdapterConfig[] PAGER_CONFIG_TRACE;
 	static {
 		//
-		PAGER_CONFIG_TRACE = new PagerAdapterConfig[8];
+		PAGER_CONFIG_TRACE = new PagerAdapterConfig[9];
 		PAGER_CONFIG_TRACE[0] = new PagerAdapterConfig(R.string.trace_config_title_camera, R.layout.trace_config_camera, new AdapterItemHandler() {
 			@Override
 			public void initialize(final BaseAutoPilotFragment parent, final View view) {
@@ -3035,7 +3077,17 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 				parent.releaseAutoTrace(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[6] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.trace_config_flight, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[6] = new PagerAdapterConfig(R.string.trace_config_title_auto_trace2, R.layout.trace_config_auto_trace2, new AdapterItemHandler() {
+			@Override
+			public void initialize(final BaseAutoPilotFragment parent, final View view) {
+				parent.initAutoTrace2(view);
+			}
+			@Override
+			public void release(final BaseAutoPilotFragment parent, final View view) {
+				parent.releaseAutoTrace2(view);
+			}
+		});
+		PAGER_CONFIG_TRACE[7] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.trace_config_flight, new AdapterItemHandler() {
 			@Override
 			public void initialize(final BaseAutoPilotFragment parent, final View view) {
 				parent.initConfigFlight(view);
@@ -3045,7 +3097,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 				parent.releaseConfigFlight(view);
 			}
 		});
-		PAGER_CONFIG_TRACE[7] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.trace_config_autopilot, new AdapterItemHandler() {
+		PAGER_CONFIG_TRACE[8] = new PagerAdapterConfig(R.string.config_title_autopilot, R.layout.trace_config_autopilot, new AdapterItemHandler() {
 			@Override
 			public void initialize(final BaseAutoPilotFragment parent, final View view) {
 				parent.initConfigAutopilot(view);

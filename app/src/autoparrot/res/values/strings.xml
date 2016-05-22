@@ -55,15 +55,17 @@
 	<string name="trace_config_detect_aspect_limit_min">Min aspect when detect line: %5.1f</string>
 	<!-- 飛行制御設定 -->
 	<string name="trace_config_title_auto_trace">Auto trace settings</string>
-	<string name="trace_config_trace_attitude_yaw">Attitude(yaw): %4.0f</string>
-	<string name="trace_config_trace_speed">Flight speed: %4.0f</string>
-	<string name="trace_config_trace_altitude_enable">Control altitude</string>
-	<string name="trace_config_trace_altitude">Flight altitude: %5.1f</string>
 	<string name="trace_config_trace_curvature">Curvature correction</string>
 	<string name="trace_config_trace_reverse_bias">Directional reverse bias rate: %5.2f</string>
 	<string name="trace_config_moving_ave_tap">Moving average tap: %d</string>
 	<string name="trace_config_decay_rate">Decay rate: %6.3f</string>
-
+	<string name="trace_config_trace_sensitivity">Trace sensitivity: %4.0f</string>
+	<!-- 飛行制御設定2 -->
+	<string name="trace_config_title_auto_trace2">Auto trace settings2</string>
+	<string name="trace_config_trace_attitude_yaw">Attitude(yaw): %4.0f</string>
+	<string name="trace_config_trace_speed">Flight speed: %4.0f</string>
+	<string name="trace_config_trace_altitude_enable">Control altitude</string>
+	<string name="trace_config_trace_altitude">Flight altitude: %5.1f</string>
 	<!-- 平滑化 -->
 	<array name="trace_smooth_entries">
 		<item>@string/trace_smooth_non</item>
