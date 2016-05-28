@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="@dimen/thumbnail_margin"
+	android:paddingTop="@dimen/half_padding"
+	android:paddingBottom="@dimen/half_padding"
     android:background="@drawable/indicator_frame" >
 
     <FrameLayout
