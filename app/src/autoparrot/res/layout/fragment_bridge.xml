@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/blue_gradient"
+    android:background="@color/BLACK"
     android:foreground="?android:windowContentOverlay"
     tools:context=".BaseConnectionFragment">
 
@@ -13,13 +13,19 @@
 		android:layout_height="match_parent"
 		android:id="@+id/videoView"
 		android:layout_centerVertical="true"
-		android:layout_centerHorizontal="true"/>
+		android:layout_centerHorizontal="true"
+		android:layout_margin="@dimen/margin_title_movie"
+		/>
 
     <ListView
         android:id="@+id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/linearLayout2"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+		android:layout_marginRight="@dimen/activity_horizontal_margin"
+		android:layout_marginTop="@dimen/activity_vertical_margin"
+		android:layout_marginBottom="@dimen/activity_vertical_margin"
         android:minHeight="@dimen/text_sz_list"
         >
     </ListView>
@@ -31,7 +37,7 @@
         android:layout_below="@+id/list"
         android:layout_centerHorizontal="true"
         android:gravity="center"
-        android:text="@string/detecting"
+        android:text="@string/detecting_bridge"
         android:textAlignment="center"
         android:textSize="@dimen/text_sz_list"
         android:textColor="@color/WHITE"/>

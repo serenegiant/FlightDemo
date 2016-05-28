@@ -2,6 +2,7 @@ package com.serenegiant.aceparrot;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -23,6 +24,7 @@ import com.serenegiant.arflight.ARDeviceServiceAdapter;
 import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.widget.PlayerTextureView;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.serenegiant.arflight.ARFlightConst.*;
@@ -299,6 +301,8 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 //********************************************************************************
 // 背景動画再生関連
 //********************************************************************************
+	protected abstract void setDataSource(final Context context, final MediaPlayer media_player) throws IOException;
+
 	private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
 
 		@Override
@@ -311,7 +315,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 					mMediaPlayer.setOnCompletionListener(mOnCompletionListener);
 				}
 				if (mMediaPlayer != null) {
-					mMediaPlayer.setDataSource(getActivity(), Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.into_the_sky));
+					setDataSource(getActivity(), mMediaPlayer);
 					mMediaPlayer.prepareAsync();
 				};
 			} catch (final Exception e) {

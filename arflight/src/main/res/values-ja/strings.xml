@@ -12,6 +12,7 @@
 	<string name="video_success">録画終了</string>
 
 	<string name="detecting">ドローンを検出中...</string>
+	<string name="detecting_bridge">スカイコントローラー経由でドローンを検出中...</string>
 	<string name="disconnecting">切断中…</string>
 	<string name="connecting">接続中…</string>
 	<string name="loading">読み込み中…</string>

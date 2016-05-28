@@ -13,8 +13,8 @@ android {
 		targetSdkVersion 22
 		manifestPlaceholders = [appName:"@string/app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
-		versionCode 51
-		versionName '0.69.3'
+		versionCode 52
+		versionName '0.69.4'
 	}
 	signingConfigs {
 		debugKey {
@@ -71,5 +71,5 @@ dependencies {
 	compile project(':icon_buttons')
 	compile project(':icon_buttons001')
 	compile project(':icon_buttons002')
-	compile project(':opencv')
+	autoparrotCompile project(':opencv')
 }

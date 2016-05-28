@@ -1,6 +1,9 @@
 package com.serenegiant.autoparrot;
 
 import android.app.Fragment;
+import android.content.Context;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 
@@ -16,6 +19,8 @@ import com.serenegiant.aceparrot.R;
 import com.serenegiant.aceparrot.ScriptFragment;
 import com.serenegiant.arflight.ARDeviceServiceAdapter;
 import com.serenegiant.arflight.ManagerFragment;
+
+import java.io.IOException;
 
 public class ConnectionFragment extends BaseConnectionFragment {
 
@@ -131,5 +136,10 @@ public class ConnectionFragment extends BaseConnectionFragment {
 	@Override
 	protected BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device, final boolean newAPI) {
 		return BridgeFragment.newInstance(device, true);
+	}
+
+	@Override
+	protected void setDataSource(final Context context, final MediaPlayer media_player) throws IOException {
+		media_player.setDataSource(context, Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.autoparrot));
 	}
 }

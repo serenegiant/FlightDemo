@@ -1,6 +1,9 @@
 package com.serenegiant.aceparrot;
 
 import android.app.Fragment;
+import android.content.Context;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 
@@ -16,6 +19,8 @@ import com.serenegiant.aceparrot.ScriptFragment;
 import com.serenegiant.arflight.ARDeviceInfoAdapter;
 import com.serenegiant.arflight.DeviceInfo;
 import com.serenegiant.arflight.ManagerFragment;
+
+import java.io.IOException;
 
 
 /**
@@ -66,6 +71,11 @@ public class BridgeFragment extends BaseBridgeFragment {
 	@Override
 	protected boolean onLongClick(final View view) {
 		return false;
+	}
+
+	@Override
+	protected void setDataSource(final Context context, final MediaPlayer media_player) throws IOException {
+		media_player.setDataSource(context, Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.into_the_sky));
 	}
 
 }
