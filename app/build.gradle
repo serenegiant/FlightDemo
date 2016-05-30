@@ -61,11 +61,16 @@ android {
 	}
 }
 
+repositories {
+    maven { url 'http://raw.github.com/saki4510t/AndroGamepad/master/repository/' }
+}
+
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
 	compile project(':common')
 	compile project(':arflight')
-	compile project(':gamepad')
+//	compile project(':gamepad')
+	compile 'com.serenegiant:gamepad:0.1.0'
 	compile project(':graphics_common')
 	compile project(':animations')
 	compile project(':icon_buttons')

@@ -28,11 +28,16 @@ android {
 	}
 }
 
+repositories {
+    maven { url 'http://raw.github.com/saki4510t/AndroGamepad/master/repository/' }
+}
+
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
 	testCompile 'junit:junit:4.12'
 	compile project(':common')
 	compile project(':graphics_common')
-	compile project(':gamepad')
+//	compile project(':gamepad')
+	compile 'com.serenegiant:gamepad:0.1.0'
 //	compile project(':dualshock')
 }
