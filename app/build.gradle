@@ -69,7 +69,6 @@ dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
 	compile project(':common')
 	compile project(':arflight')
-//	compile project(':gamepad')
 	compile 'com.serenegiant:gamepad:0.1.1'
 	compile project(':graphics_common')
 	compile project(':animations')
