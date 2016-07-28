@@ -19,10 +19,8 @@
             <option value="$PROJECT_DIR$/icon_buttons" />
             <option value="$PROJECT_DIR$/icon_buttons001" />
             <option value="$PROJECT_DIR$/icon_buttons002" />
-            <option value="$PROJECT_DIR$/libraries" />
-            <option value="$PROJECT_DIR$/libraries/ScriptEngine" />
-            <option value="$PROJECT_DIR$/libraries/ScriptEngine/core" />
             <option value="$PROJECT_DIR$/opencv" />
+            <option value="$PROJECT_DIR$/scriptengine" />
           </set>
         </option>
         <option name="myModules">
@@ -37,10 +35,8 @@
             <option value="$PROJECT_DIR$/icon_buttons" />
             <option value="$PROJECT_DIR$/icon_buttons001" />
             <option value="$PROJECT_DIR$/icon_buttons002" />
-            <option value="$PROJECT_DIR$/libraries" />
-            <option value="$PROJECT_DIR$/libraries/ScriptEngine" />
-            <option value="$PROJECT_DIR$/libraries/ScriptEngine/core" />
             <option value="$PROJECT_DIR$/opencv" />
+            <option value="$PROJECT_DIR$/scriptengine" />
           </set>
         </option>
       </GradleProjectSettings>

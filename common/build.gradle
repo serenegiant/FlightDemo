@@ -27,5 +27,5 @@ dependencies {
 		exclude module: 'support-v4'
 		exclude module: 'appcompat-v7'
 	}
-	compile project(':libraries:ScriptEngine:core')
+	compile project(':scriptengine')
 }
