@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-	compileSdkVersion 23
-	buildToolsVersion '23.0.3'
+	compileSdkVersion versionCompiler
+	buildToolsVersion versionBuildTool
 	compileOptions {
 		sourceCompatibility JavaVersion.VERSION_1_7
 		targetCompatibility JavaVersion.VERSION_1_7
@@ -10,7 +10,7 @@ android {
 
 	defaultConfig {
 		minSdkVersion 18
-		targetSdkVersion 22
+		targetSdkVersion versionTarget
 		manifestPlaceholders = [appName:"@string/app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
 		versionCode 52

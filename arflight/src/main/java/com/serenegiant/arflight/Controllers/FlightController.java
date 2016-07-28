@@ -28,7 +28,7 @@ import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageInfoRema
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageInfoStateListChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateMassStorageStateListChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonCommonStateSensorsStatesListChangedListener;
-import com.parrot.arsdk.arcommands.ARCommandCommonDebugStatsEventSendPacketListener;
+//import com.parrot.arsdk.arcommands.ARCommandCommonDebugStatsEventSendPacketListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonHeadlightsIntensityListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonHeadlightsStateIntensityChangedListener;
 import com.parrot.arsdk.arcommands.ARCommandCommonMavlinkStateMavlinkFilePlayingStateChangedListener;
@@ -206,7 +206,8 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 		ARCommand.setCommonCameraSettingsStateCameraSettingsChangedListener(mARCommandCommonCameraSettingsStateCameraSettingsChangedListener);
 
-		ARCommand.setCommonDebugStatsEventSendPacketListener(mARCommandCommonDebugStatsEventSendPacketListener);
+// ARSDK3.9.2で削除された
+//		ARCommand.setCommonDebugStatsEventSendPacketListener(mARCommandCommonDebugStatsEventSendPacketListener);
 
 		// LED
 		ARCommand.setCommonHeadlightsIntensityListener(mARCommandCommonHeadlightsIntensityListener);
@@ -246,7 +247,8 @@ public abstract class FlightController extends DeviceController implements IFlig
 
 		ARCommand.setCommonCameraSettingsStateCameraSettingsChangedListener(null);
 
-		ARCommand.setCommonDebugStatsEventSendPacketListener(null);
+// ARSDK3.9.2で削除された
+//		ARCommand.setCommonDebugStatsEventSendPacketListener(null);
 
 		// LED関係
 		ARCommand.setCommonHeadlightsIntensityListener(null);
@@ -518,17 +520,18 @@ public abstract class FlightController extends DeviceController implements IFlig
 		}
 	};
 
-	private final ARCommandCommonDebugStatsEventSendPacketListener
-		mARCommandCommonDebugStatsEventSendPacketListener
-			= new ARCommandCommonDebugStatsEventSendPacketListener() {
-		/**
-		 * @param packet packet from drone
-		 */
-		@Override
-		public void onCommonDebugStatsEventSendPacketUpdate(final String packet) {
-			// XXX
-		}
-	};
+// ARSDK3.9.2で削除された
+//	private final ARCommandCommonDebugStatsEventSendPacketListener
+//		mARCommandCommonDebugStatsEventSendPacketListener
+//			= new ARCommandCommonDebugStatsEventSendPacketListener() {
+//		/**
+//		 * @param packet packet from drone
+//		 */
+//		@Override
+//		public void onCommonDebugStatsEventSendPacketUpdate(final String packet) {
+//			// XXX
+//		}
+//	};
 
 	/**
 	 * LED強度の変更通知?

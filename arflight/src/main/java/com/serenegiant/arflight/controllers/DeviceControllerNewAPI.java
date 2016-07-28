@@ -1038,26 +1038,26 @@ public abstract class DeviceControllerNewAPI implements IDeviceController {
 			final String runID = (String) args.get(ARFeatureCommon.ARCONTROLLER_DICTIONARY_KEY_COMMON_RUNSTATE_RUNIDCHANGED_RUNID);
 			break;
 		}
-		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG:	// (206, "Key used to define the feature <code>CommonDebug</code>"),
-		{	// FIXME 未実装
-			if (DEBUG) Log.v(TAG, "COMMONDEBUG:");
-			break;
-		}
-		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG_STATSEVENT_SENDPACKET:	// (207, "Key used to define the command <code>SendPacket</code> of class <code>StatsEvent</code> in project <code>CommonDebug</code>"),
-		{	// FIXME 未実装
-			if (DEBUG) Log.v(TAG, "COMMONDEBUG_STATSEVENT_SENDPACKET:");
-			break;
-		}
-		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG_DEBUGSETTINGSSTATE_INFO:	// (208, "Key used to define the command <code>Info</code> of class <code>DebugSettingsState</code> in project <code>CommonDebug</code>"),
-		{	// FIXME 未実装
-			if (DEBUG) Log.v(TAG, "COMMONDEBUG_DEBUGSETTINGSSTATE_INFO:");
-			break;
-		}
-		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG_DEBUGSETTINGSSTATE_LISTCHANGED:	// (209, "Key used to define the command <code>ListChanged</code> of class <code>DebugSettingsState</code> in project <code>CommonDebug</code>"),
-		{	// FIXME 未実装
-			if (DEBUG) Log.v(TAG, "COMMONDEBUG_DEBUGSETTINGSSTATE_LISTCHANGED:");
-			break;
-		}
+//		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG:	// (206, "Key used to define the feature <code>CommonDebug</code>"),
+//		{	// ARSDK3.9.2で削除された
+//			if (DEBUG) Log.v(TAG, "COMMONDEBUG:");
+//			break;
+//		}
+//		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG_STATSEVENT_SENDPACKET:	// (207, "Key used to define the command <code>SendPacket</code> of class <code>StatsEvent</code> in project <code>CommonDebug</code>"),
+//		{	// ARSDK3.9.2で削除された
+//			if (DEBUG) Log.v(TAG, "COMMONDEBUG_STATSEVENT_SENDPACKET:");
+//			break;
+//		}
+//		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG_DEBUGSETTINGSSTATE_INFO:	// (208, "Key used to define the command <code>Info</code> of class <code>DebugSettingsState</code> in project <code>CommonDebug</code>"),
+//		{	// ARSDK3.9.2で削除された
+//			if (DEBUG) Log.v(TAG, "COMMONDEBUG_DEBUGSETTINGSSTATE_INFO:");
+//			break;
+//		}
+//		case ARCONTROLLER_DICTIONARY_KEY_COMMONDEBUG_DEBUGSETTINGSSTATE_LISTCHANGED:	// (209, "Key used to define the command <code>ListChanged</code> of class <code>DebugSettingsState</code> in project <code>CommonDebug</code>"),
+//		{	// ARSDK3.9.2で削除された
+//			if (DEBUG) Log.v(TAG, "COMMONDEBUG_DEBUGSETTINGSSTATE_LISTCHANGED:");
+//			break;
+//		}
 		}
 	}
 
