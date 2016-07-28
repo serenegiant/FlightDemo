@@ -1,3 +1,0 @@
-[submodule "libraries/ScriptEngine"]
-	path = libraries/ScriptEngine
-	url = ssh://gitserver/ScriptEngine
