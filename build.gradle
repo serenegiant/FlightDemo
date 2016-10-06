@@ -5,7 +5,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:2.1.2'
+		classpath 'com.android.tools.build:gradle:2.2.0'
 
 		// NOTE: Do not place your application dependencies here; they belong
 		// in the individual module build.gradle files
@@ -14,6 +14,7 @@ buildscript {
 
 allprojects {
 	repositories {
+		maven { url 'http://raw.github.com/saki4510t/libcommon/master/repository/' }
 		jcenter()
 	}
 }
@@ -23,8 +24,12 @@ task clean(type: Delete) {
 }
 
 ext {
-	supportLibVersion = '23.4.0'  // variable that can be referenced to keep support libs consistent
-	versionBuildTool = "23.0.3"
-	versionCompiler = 23
+	supportLibVersion = '24.2.1'  // variable that can be referenced to keep support libs consistent
+	commonLibVersion= '1.0.6'
+	versionBuildTool = '24.0.2'
+	versionCompiler = 24
 	versionTarget = 22
+	versionNameString = '1.0.0'
+	javaSourceCompatibility = JavaVersion.VERSION_1_7
+	javaTargetCompatibility = JavaVersion.VERSION_1_7
 }

@@ -21,7 +21,7 @@ android {
 
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
+	compile 'com.parrot:arsdk:3.10.1'
 	compile project(':common')
 	compile project(':scriptengine')
-	compile 'com.parrot:arsdk:3.9.2'
 }
