@@ -30,5 +30,6 @@ dependencies {
 	compile("com.serenegiant:common:${commonLibVersion}") {
 		exclude module: 'support-v4'
 	}
+	compile project(':gameengine')
 	compile project(':scriptengine')
 }
