@@ -5,7 +5,6 @@ import android.app.Fragment;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -317,7 +316,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 				if (mMediaPlayer != null) {
 					setDataSource(getActivity(), mMediaPlayer);
 					mMediaPlayer.prepareAsync();
-				};
+				}
 			} catch (final Exception e) {
 				Log.w(TAG, e);
 			}

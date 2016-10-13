@@ -208,6 +208,7 @@ public class ManagerFragment extends Fragment {
 //		setRetainInstance(true);	// Activityから切り離されても破棄されないようにする時
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onAttach(final Activity activity) {
 		super.onAttach(activity);
@@ -650,7 +651,7 @@ public class ManagerFragment extends Fragment {
 			localBroadcastMgr.registerReceiver(mDevicesListUpdatedReceiver,
 				new IntentFilter(ARDiscoveryService.kARDiscoveryServiceNotificationServicesDevicesListUpdated));
 			if (mNetworkChangedReceiver == null) {
-				mNetworkChangedReceiver = NetworkChangedReceiver.registerNetworkChangedReceiver(getActivity(), mOnNetworkChangedListener);
+				mNetworkChangedReceiver = NetworkChangedReceiver.registerGlobal(getActivity(), mOnNetworkChangedListener);
 			}
 		}
 	}
@@ -662,7 +663,7 @@ public class ManagerFragment extends Fragment {
 			getActivity().getApplicationContext());
 		localBroadcastMgr.unregisterReceiver(mDevicesListUpdatedReceiver);
 		if (mNetworkChangedReceiver != null) {
-			NetworkChangedReceiver.unregisterNetworkChangedReceiver(getActivity(), mNetworkChangedReceiver);
+			NetworkChangedReceiver.unregisterGlobal(getActivity(), mNetworkChangedReceiver);
 			mNetworkChangedReceiver = null;
 		}
 	}

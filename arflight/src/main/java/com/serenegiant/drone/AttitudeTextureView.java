@@ -4,8 +4,8 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
 
-import com.serenegiant.gameengine1.GLTextureModelView;
-import com.serenegiant.gameengine1.IScreen;
+import com.serenegiant.gameengine.v1.GLTextureModelView;
+import com.serenegiant.gameengine.v1.IScreen;
 
 public class AttitudeTextureView extends GLTextureModelView {
 	private static final boolean DEBUG = false;    // FIXME 実働時はfalseにすること

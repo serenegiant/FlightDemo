@@ -28,7 +28,6 @@ import com.serenegiant.arflight.IAutoFlight;
 import com.serenegiant.arflight.ICameraController;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
-import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.arflight.TouchFlight;
@@ -37,8 +36,8 @@ import com.serenegiant.arflight.controllers.FlightControllerMiniDrone;
 import com.serenegiant.arflight.controllers.FlightControllerMiniDroneNewAPI;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.drone.IVideoScreen;
-import com.serenegiant.gameengine1.IModelView;
-import com.serenegiant.gameengine1.IScreen;
+import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.v1.IScreen;
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.math.Vector;
@@ -621,7 +620,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		if (mFlightRecorder.isRecording()) {
 			mFlightRecorder.stop();
 			// ファイルへ保存
-			final String path = FileUtils.getCaptureFile(getActivity(), "Documents", ".fcr", false).getAbsolutePath();
+			final String path = FileUtils.getCaptureFile(getActivity(), "Documents", ".fcr", 0).getAbsolutePath();
 			if (!TextUtils.isEmpty(path)) {
 				mFlightRecorder.save(path);
 				updateButtons();

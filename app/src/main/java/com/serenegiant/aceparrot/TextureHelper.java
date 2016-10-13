@@ -7,7 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.Log;
 
-import com.serenegiant.gameengine1.IModelView;
+import com.serenegiant.gameengine.v1.IModelView;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

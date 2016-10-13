@@ -32,7 +32,7 @@ import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.drone.AttitudeScreenBase;
-import com.serenegiant.gameengine1.IModelView;
+import com.serenegiant.gameengine.v1.IModelView;
 import com.serenegiant.utils.FileUtils;
 import com.serenegiant.widget.OrientationView;
 import com.serenegiant.widget.SideMenuListView;
@@ -553,7 +553,7 @@ public class PilotFragment2 extends BasePilotFragment {
 			case R.id.load_btn:
 				// 読み込みボタンの処理
 				setColorFilter((ImageView)view);
-				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", false);
+				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", 0);
 				SelectFileDialogFragment.showDialog(PilotFragment2.this, root.getAbsolutePath(), false, "fcr");
 				break;
 			case R.id.record_btn:

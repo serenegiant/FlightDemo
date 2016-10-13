@@ -1,7 +1,7 @@
 package com.serenegiant.drone;
 
-import com.serenegiant.gameengine1.DynamicGameObject;
-import com.serenegiant.gameengine1.RotorObject;
+import com.serenegiant.gameengine.v1.DynamicGameObject;
+import com.serenegiant.gameengine.v1.RotorObject;
 import com.serenegiant.math.CylinderBounds;
 import com.serenegiant.math.Vector;
 

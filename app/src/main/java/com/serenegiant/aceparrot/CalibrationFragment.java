@@ -12,7 +12,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.drone.AttitudeScreenBase;
-import com.serenegiant.gameengine1.IModelView;
+import com.serenegiant.gameengine.v1.IModelView;
 
 import static com.serenegiant.aceparrot.AppConst.*;
 

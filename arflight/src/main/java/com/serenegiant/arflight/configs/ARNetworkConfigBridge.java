@@ -4,8 +4,6 @@ import com.parrot.arsdk.arnetwork.ARNetworkIOBufferParam;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_FRAME_TYPE_ENUM;
 import com.serenegiant.arflight.BuildConfig;
 
-import org.json.JSONObject;
-
 import java.util.Iterator;
 
 public class ARNetworkConfigBridge extends ARNetworkConfig {

@@ -4,10 +4,6 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.parrot.arsdk.arcontroller.ARCONTROLLER_DICTIONARY_KEY_ENUM;
-import com.parrot.arsdk.arcontroller.ARControllerArgumentDictionary;
-import com.parrot.arsdk.arcontroller.ARControllerDictionary;
-import com.parrot.arsdk.arcontroller.ARDeviceController;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.DeviceConnectionListener;
 import com.serenegiant.arflight.FlightControllerListener;
@@ -15,7 +11,6 @@ import com.serenegiant.arflight.DataPCMD;
 import com.serenegiant.arflight.DroneSettings;
 import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.IFlightController;
-import com.serenegiant.arflight.LooperThread;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.configs.ARNetworkConfig;

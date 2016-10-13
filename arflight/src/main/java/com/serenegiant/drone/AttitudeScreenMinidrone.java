@@ -1,9 +1,9 @@
 package com.serenegiant.drone;
 
-import com.serenegiant.gameengine1.FileIO;
-import com.serenegiant.gameengine1.GLLoadableModel;
-import com.serenegiant.gameengine1.IModelView;
-import com.serenegiant.gameengine1.StaticTexture;
+import com.serenegiant.gameengine.v1.FileIO;
+import com.serenegiant.gameengine.v1.GLLoadableModel;
+import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.v1.StaticTexture;
 
 public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 

@@ -3,14 +3,14 @@ package com.serenegiant.drone;
 import android.graphics.SurfaceTexture;
 import android.util.Log;
 
-import com.serenegiant.gameengine1.DynamicTexture;
-import com.serenegiant.gameengine1.GLCamera2D;
-import com.serenegiant.gameengine1.GLScreen;
-import com.serenegiant.gameengine1.IModelView;
-import com.serenegiant.gameengine1.StaticTexture;
-import com.serenegiant.gameengine1.TextureDrawer2D;
-import com.serenegiant.gameengine1.TextureRegion;
-import com.serenegiant.gameengine1.TouchEvent;
+import com.serenegiant.gameengine.v1.DynamicTexture;
+import com.serenegiant.gameengine.v1.GLCamera2D;
+import com.serenegiant.gameengine.v1.GLScreen;
+import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.v1.StaticTexture;
+import com.serenegiant.gameengine.v1.TextureDrawer2D;
+import com.serenegiant.gameengine.v1.TextureRegion;
+import com.serenegiant.gameengine.v1.TouchEvent;
 
 import javax.microedition.khronos.opengles.GL10;
 

@@ -16,10 +16,9 @@ import com.parrot.arsdk.arsal.ARNativeData;
 import com.parrot.arsdk.arstream2.ARSTREAM2_H264_FILTER_AU_SYNC_TYPE_ENUM;
 import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.EglTask;
-import com.serenegiant.glutils.FullFrameRect;
 import com.serenegiant.glutils.GLDrawer2D;
 import com.serenegiant.glutils.GLHelper;
-import com.serenegiant.glutils.Texture2dProgram;
+import com.serenegiant.glutils.ShaderConst;
 import com.serenegiant.utils.FpsCounter;
 
 import java.io.IOException;
@@ -183,6 +182,7 @@ public class VideoStream implements IVideoStreamNew {
 //--------------------------------------------------------------------------------
 
 	/** 受信したh.264映像をデコードして描画タスクにキューイングするタスク */
+	@SuppressWarnings("deprecation")
 	private final class DecodeTask implements Runnable {
 		private MediaCodec mediaCodec;
 		/** デコーダーが初期化出来たかどうか */
@@ -407,7 +407,7 @@ public class VideoStream implements IVideoStreamNew {
 		/** 映像の分配描画先を保持&描画するためのホルダークラス */
 		private static final class RendererSurfaceRec {
 			private Object mSurface;
-			private EGLBase.EglSurface mTargetSurface;
+			private EGLBase.IEglSurface mTargetSurface;
 			final float[] mMvpMatrix = new float[16];
 
 			public RendererSurfaceRec(final EGLBase egl, final Object surface) {
@@ -431,8 +431,7 @@ public class VideoStream implements IVideoStreamNew {
 		/** 分配描画先 */
 		private final SparseArray<RendererSurfaceRec> mClients = new SparseArray<RendererSurfaceRec>();
 
-//		private GLDrawer2D mDrawer;
-		private FullFrameRect mDrawer;
+		private GLDrawer2D mDrawer;
 		/** MediaCodecでデコードした映像を受け取るためのテクスチャのテクスチャ名(SurfaceTexture生成時/分配描画に使用) */
 		private int mTexId;
 		/** MediaCodecでデコードした映像を受け取るためのSurfaceTexture */
@@ -455,22 +454,17 @@ public class VideoStream implements IVideoStreamNew {
 			mVideoHeight = VIDEO_HEIGHT;
 		}
 
+		private float mTexWidth;
+		private float mTexHeight;
+		private float[] mTexOffset;
+		private int muTexOffsetLoc;			// テクスチャオフセット(カーネル行列用)
 		@Override
 		protected void onStart() {
-			if (DEBUG) Log.v(TAG, "onStart:");
-//			mDrawer = new GLDrawer2D(true);
-			mDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3));
-			mDrawer.getProgram().setTexSize(mVideoWidth, mVideoHeight);
-//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EMBOSS, 0.5f);		// エンボス
-//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL_H, 0.1f);		// ソーベル(エッジ検出, 1次微分)
-//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL2_H, 0.1f);		// ソーベル(エッジ検出, 1次微分)
-//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EDGE_DETECT, 0.0f);	// エッジ検出
-//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SHARPNESS, 0.0f);	// シャープ
-//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SMOOTH, 0.0f);		// 移動平均
-//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化,ノイズ除去)
-//			mDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, 0.0f);	// ラプラシアン(エッジ検出, 2次微分)
+			mDrawer = new GLDrawer2D(true);
+			mDrawer.updateShader(ShaderConst.FRAGMENT_SHADER_EXT_FILT3x3);
+			setTexSize(mVideoWidth, mVideoHeight);
 
-			mTexId = GLHelper.initTex(GLDrawer2D.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_NEAREST);
+			mTexId = GLHelper.initTex(ShaderConst.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_NEAREST);
 			mMasterTexture = new SurfaceTexture(mTexId);
 			mMasterSurface = new Surface(mMasterTexture);
 			mMasterTexture.setDefaultBufferSize(mVideoWidth, mVideoHeight);
@@ -481,6 +475,25 @@ public class VideoStream implements IVideoStreamNew {
 			}
 			mParent.mFps.reset();
 			if (DEBUG) Log.v(TAG, "onStart:finished");
+		}
+
+		private void setTexSize(final int width, final int height) {
+			mTexHeight = height;
+			mTexWidth = width;
+			final float rw = 1.0f / width;
+			final float rh = 1.0f / height;
+
+			// Don't need to create a new array here, but it's syntactically convenient.
+			mTexOffset = new float[] {
+				-rw, -rh,   0f, -rh,    rw, -rh,
+				-rw, 0f,    0f, 0f,     rw, 0f,
+				-rw, rh,    0f, rh,     rw, rh
+			};
+			muTexOffsetLoc = mDrawer.glGetUniformLocation("uTexOffset");
+			// テクセルオフセット
+			if ((muTexOffsetLoc >= 0) && (mTexOffset != null)) {
+				GLES20.glUniform2fv(muTexOffsetLoc, ShaderConst.KERNEL_SIZE3x3, mTexOffset, 0);
+			}
 		}
 
 		@Override
@@ -505,7 +518,7 @@ public class VideoStream implements IVideoStreamNew {
 		}
 
 		@Override
-		protected boolean processRequest(int request, int arg1, int arg2, Object obj) {
+		protected Object processRequest(int request, int arg1, int arg2, Object obj) {
 			switch (request) {
 			case REQUEST_DRAW:
 				handleDraw();
@@ -520,7 +533,7 @@ public class VideoStream implements IVideoStreamNew {
 				handleRemoveSurface(arg1);
 				break;
 			}
-			return false;
+			return null;
 		}
 
 		/** 映像受け取り用Surfaceを取得 */
@@ -714,5 +727,5 @@ public class VideoStream implements IVideoStreamNew {
 				offer(REQUEST_DRAW);
 			}
 		};
-	};
+	}
 }

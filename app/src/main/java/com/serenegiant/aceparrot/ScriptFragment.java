@@ -224,7 +224,7 @@ public class ScriptFragment extends BaseFragment implements SelectFileDialogFrag
 			switch (view.getId()) {
 			case R.id.load_btn:
 				setColorFilter((ImageView)view);
-				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", false);
+				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", 0);
 				SelectFileDialogFragment.showDialog(ScriptFragment.this, root.getAbsolutePath(), false, "script");
 				break;
 			case R.id.delete_btn:

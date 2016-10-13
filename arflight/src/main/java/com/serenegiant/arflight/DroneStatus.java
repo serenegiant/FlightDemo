@@ -2,11 +2,9 @@ package com.serenegiant.arflight;
 
 import android.util.SparseArray;
 
-import com.serenegiant.arflight.attribute.AttributeCalibration;
 import com.serenegiant.arflight.attribute.AttributeFlightDuration;
 import com.serenegiant.arflight.attribute.AttributeMassStorage;
 import com.serenegiant.arflight.attribute.AttributeMotor;
-import com.serenegiant.arflight.attribute.AttributePosition;
 import com.serenegiant.math.Vector;
 
 public class DroneStatus extends CommonStatus {

@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:foreground="?android:windowContentOverlay"
-    tools:context="com.serenegiant.FlightDemo.MainActivity"
+    tools:context=".MainActivity"
     tools:ignore="MergeRootFrame">
 
     <!--本体部 -->
@@ -30,6 +30,13 @@
         <!--android:layout_below="@+id/sample_toolbar"-->
 
         </FrameLayout>
+
+        <view
+       		android:layout_width="match_parent"
+       		android:layout_height="match_parent"
+       		class="jp.co.rediscovery.widget.DroneNoticeView"
+       		android:background="@color/ALICEBLUE"
+       		android:id="@+id/drone_notice_view"/>
 
         <FrameLayout
             android:id="@+id/ad_parent"

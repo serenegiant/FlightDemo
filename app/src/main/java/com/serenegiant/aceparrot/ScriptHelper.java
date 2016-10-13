@@ -138,7 +138,7 @@ public class ScriptHelper {
 	 * @param force
 	 */
 	public static void copyScripts(final Context context, final boolean force) {
-		final File root = FileUtils.getCaptureDir(context, "Documents", false);
+		final File root = FileUtils.getCaptureDir(context, "Documents", 0);
 		final int n = SCRIPTS.length;
 		final byte[] buffer = new byte[1024];
 		for (int i = 0; i < n; i++) {
@@ -349,7 +349,7 @@ public class ScriptHelper {
 	 */
 	public static void appendLog(final Context context, final String message) {
 		try {
-			final File root = FileUtils.getCaptureDir(context, "Documents", false);
+			final File root = FileUtils.getCaptureDir(context, "Documents", 0);
 			final File log = new File(new File(root, "log"), "script" + FileUtils.getDateTimeString() + ".log");
 			log.mkdirs();
 			final OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(log, true));

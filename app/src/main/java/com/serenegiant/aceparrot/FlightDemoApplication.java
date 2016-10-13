@@ -2,11 +2,11 @@ package com.serenegiant.aceparrot;
 
 import android.app.Application;
 
-import com.serenegiant.gameengine1.FileIO;
-import com.serenegiant.gameengine1.IModelViewApplication;
-import com.serenegiant.gameengine1.MPAssetIO;
-import com.serenegiant.gameengine1.MPExtFileIO;
-import com.serenegiant.gameengine1.MPFileIO;
+import com.serenegiant.gameengine.v1.FileIO;
+import com.serenegiant.gameengine.v1.IModelViewApplication;
+import com.serenegiant.gameengine.v1.MPAssetIO;
+import com.serenegiant.gameengine.v1.MPExtFileIO;
+import com.serenegiant.gameengine.v1.MPFileIO;
 
 public class FlightDemoApplication extends Application implements IModelViewApplication {
 	private FileIO mFileIO;

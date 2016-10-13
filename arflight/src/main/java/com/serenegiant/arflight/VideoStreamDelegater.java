@@ -5,6 +5,7 @@ import android.util.Log;
 import com.parrot.arsdk.arcommands.ARCOMMANDS_GENERATOR_ERROR_ENUM;
 import com.parrot.arsdk.arcommands.ARCommand;
 import com.parrot.arsdk.arnetwork.ARNETWORK_MANAGER_CALLBACK_RETURN_ENUM;
+import com.parrot.arsdk.arsal.ARSAL_SOCKET_CLASS_SELECTOR_ENUM;
 import com.parrot.arsdk.arstream2.ARStream2Manager;
 import com.parrot.arsdk.arstream2.ARStream2Receiver;
 import com.serenegiant.arflight.controllers.DeviceController;
@@ -163,7 +164,8 @@ public class VideoStreamDelegater implements IVideoStreamController {
 								mNetConfig.getMaxPacketSize(),
 								mNetConfig.getMaxBitrate(),
 								mNetConfig.getMaxLatency(),
-								mNetConfig.getMaxNetworkLatency()
+								mNetConfig.getMaxNetworkLatency(),
+								ARSAL_SOCKET_CLASS_SELECTOR_ENUM.ARSAL_SOCKET_CLASS_SELECTOR_CS0	// これ何するもん?
 							);
 							if (DEBUG) Log.v(TAG, "ARStream2Manager開始");
 							streamManager.start();

@@ -2,21 +2,21 @@ package com.serenegiant.drone;
 
 import android.util.Log;
 
-import com.serenegiant.gameengine1.FileIO;
-import com.serenegiant.gameengine1.GLAmbientLight;
-import com.serenegiant.gameengine1.GLCamera2D;
-import com.serenegiant.gameengine1.GLCubeModel;
-import com.serenegiant.gameengine1.GLDirectionLight;
-import com.serenegiant.gameengine1.GLLoadableModel;
-import com.serenegiant.gameengine1.GLLookAtCamera;
-import com.serenegiant.gameengine1.GLPointLight;
-import com.serenegiant.gameengine1.GLScreen;
-import com.serenegiant.gameengine1.IModelView;
-import com.serenegiant.gameengine1.StaticTexture;
-import com.serenegiant.gameengine1.TextureDrawer2D;
-import com.serenegiant.gameengine1.TextureRegion;
-import com.serenegiant.gameengine1.TouchEvent;
-import com.serenegiant.gameengine1.Vertex;
+import com.serenegiant.gameengine.v1.FileIO;
+import com.serenegiant.gameengine.v1.GLAmbientLight;
+import com.serenegiant.gameengine.v1.GLCamera2D;
+import com.serenegiant.gameengine.v1.GLCubeModel;
+import com.serenegiant.gameengine.v1.GLDirectionLight;
+import com.serenegiant.gameengine.v1.GLLoadableModel;
+import com.serenegiant.gameengine.v1.GLLookAtCamera;
+import com.serenegiant.gameengine.v1.GLPointLight;
+import com.serenegiant.gameengine.v1.GLScreen;
+import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.v1.StaticTexture;
+import com.serenegiant.gameengine.v1.TextureDrawer2D;
+import com.serenegiant.gameengine.v1.TextureRegion;
+import com.serenegiant.gameengine.v1.TouchEvent;
+import com.serenegiant.gameengine.v1.Vertex;
 import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
 

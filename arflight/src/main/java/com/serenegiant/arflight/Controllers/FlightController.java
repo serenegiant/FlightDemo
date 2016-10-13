@@ -44,7 +44,6 @@ import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightControllerListener;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.ISkyController;
-import com.serenegiant.arflight.LooperThread;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.arflight.attribute.AttributeMotor;
 import com.serenegiant.arflight.configs.ARNetworkConfig;

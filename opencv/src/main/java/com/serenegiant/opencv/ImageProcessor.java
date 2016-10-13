@@ -1,30 +1,27 @@
 package com.serenegiant.opencv;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.media.effect.EffectContext;
 import android.opengl.GLES20;
-import android.os.Build;
+import android.opengl.Matrix;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 
 import com.serenegiant.glutils.EglTask;
-import com.serenegiant.glutils.FullFrameRect;
-import com.serenegiant.glutils.Texture2dProgram;
+import com.serenegiant.glutils.GLDrawer2D;
+import com.serenegiant.glutils.GLHelper;
+import com.serenegiant.glutils.ShaderConst;
 import com.serenegiant.mediaeffect.IEffect;
 import com.serenegiant.mediaeffect.MediaEffectAutoFix;
 import com.serenegiant.mediaeffect.MediaEffectBrightness;
-import com.serenegiant.mediaeffect.MediaEffectCanny;
 import com.serenegiant.mediaeffect.MediaEffectDilation;
 import com.serenegiant.mediaeffect.MediaEffectErosion;
 import com.serenegiant.mediaeffect.MediaEffectExposure;
 import com.serenegiant.mediaeffect.MediaEffectExtraction;
-import com.serenegiant.mediaeffect.MediaEffectGrayScale;
-import com.serenegiant.mediaeffect.MediaEffectKernel;
 import com.serenegiant.mediaeffect.MediaEffectPosterize;
 import com.serenegiant.mediaeffect.MediaEffectSaturate;
 import com.serenegiant.mediaeffect.MediaSource;
@@ -730,7 +727,7 @@ public class ImageProcessor {
 		private int mVideoWidth, mVideoHeight;
 		// プレフィルタ処理用
 		private EffectContext mEffectContext;
-		private FullFrameRect mSrcDrawer;
+		private GLDrawer2D mSrcDrawer;
 		private MediaEffectExtraction mExtraction;
 //		private MediaEffectKernel mSmooth;
 		private MediaEffectDilation mDilation;
@@ -760,24 +757,21 @@ public class ImageProcessor {
 			return mSourceTexture;
 		}
 
+		private float mTexWidth;
+		private float mTexHeight;
+		private float[] mTexOffset;
+		private int muTexOffsetLoc;			// テクスチャオフセット(カーネル行列用)
 		@SuppressLint("NewApi")
 		@Override
 		protected void onStart() {
 //			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:");
 			// ソース映像の描画用
-			mSrcDrawer = new FullFrameRect(new Texture2dProgram(Texture2dProgram.ProgramType.TEXTURE_EXT_FILT3x3));
-			mSrcDrawer.getProgram().setTexSize(WIDTH, HEIGHT);
-			mSrcDrawer.flipMatrix(true);	// 上下入れ替え
-//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EMBOSS, 0.5f);		// エンボス
-//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL_H, 0.0f);		// ソ-ベル(エッジ検出, 1次微分)
-//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SOBEL2_H, 0.0f);		// ソ-ベル2(エッジ検出, 1次微分)
-//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_EDGE_DETECT, 0.0f);	// エッジ検出
-//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SHARPNESS, 0.0f);		// シャープ
-//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_SMOOTH, 0.0f);		// 移動平均(平滑化)
-			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化)
-//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_BRIGHTEN, 0.0f);		//
-//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_LAPLACIAN, 0.0f);		// ラプラシアン(2次微分)
-			mTexId = mSrcDrawer.createTextureObject();
+			mSrcDrawer = new GLDrawer2D(true);
+			mSrcDrawer.updateShader(ShaderConst.FRAGMENT_SHADER_EXT_FILT3x3);
+			setTexSize(WIDTH, HEIGHT);
+			flipMatrix(true);	// 上下入れ替え
+//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化)
+			mTexId = GLHelper.initTex(ShaderConst.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_NEAREST);
 			mSourceTexture = new SurfaceTexture(mTexId);
 			mSourceTexture.setDefaultBufferSize(WIDTH, HEIGHT);
 			mSourceSurface = new Surface(mSourceTexture);
@@ -851,6 +845,38 @@ public class ImageProcessor {
 //			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:finished");
 		}
 
+		private void setTexSize(final int width, final int height) {
+			mTexHeight = height;
+			mTexWidth = width;
+			final float rw = 1.0f / width;
+			final float rh = 1.0f / height;
+
+			// Don't need to create a new array here, but it's syntactically convenient.
+			mTexOffset = new float[] {
+				-rw, -rh,   0f, -rh,    rw, -rh,
+				-rw, 0f,    0f, 0f,     rw, 0f,
+				-rw, rh,    0f, rh,     rw, rh
+			};
+			muTexOffsetLoc = mSrcDrawer.glGetUniformLocation("uTexOffset");
+			// テクセルオフセット
+			if ((muTexOffsetLoc >= 0) && (mTexOffset != null)) {
+				GLES20.glUniform2fv(muTexOffsetLoc, ShaderConst.KERNEL_SIZE3x3, mTexOffset, 0);
+			}
+		}
+
+		private void flipMatrix(final boolean verticalFlip) {
+			final float[] mat = new float[32];
+			final float[] mvpMatrix = mSrcDrawer.getMvpMatrix();
+			System.arraycopy(mvpMatrix, 0, mat, 16, 16);
+			Matrix.setIdentityM(mat, 0);
+			if (verticalFlip) {
+				Matrix.scaleM(mat, 0, 1f, -1f, 1f);
+			} else {
+				Matrix.scaleM(mat, 0, -1f, 1f, 1f);
+			}
+			Matrix.multiplyMM(mvpMatrix, 0, mat, 0, mat, 16);
+		}
+
 		@Override
 		protected void onStop() {
 //			if (DEBUG) Log.v(TAG, "ProcessingTask#onStop");
@@ -907,7 +933,7 @@ public class ImageProcessor {
 		}
 
 		@Override
-		protected boolean processRequest(final int request, final int arg1, final int arg2, final Object obj) {
+		protected Object processRequest(final int request, final int arg1, final int arg2, final Object obj) {
 			switch (request) {
 			case REQUEST_DRAW:
 				handleDraw();
@@ -916,7 +942,7 @@ public class ImageProcessor {
 				handleResize(arg1, arg2);
 				break;
 			}
-			return false;
+			return null;
 		}
 
 		@Override

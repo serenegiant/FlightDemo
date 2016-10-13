@@ -3,11 +3,11 @@ package com.serenegiant.drone;
 import android.graphics.SurfaceTexture;
 import android.util.Log;
 
-import com.serenegiant.gameengine1.DynamicTexture;
-import com.serenegiant.gameengine1.FileIO;
-import com.serenegiant.gameengine1.GLLoadableModel;
-import com.serenegiant.gameengine1.IModelView;
-import com.serenegiant.gameengine1.StaticTexture;
+import com.serenegiant.gameengine.v1.DynamicTexture;
+import com.serenegiant.gameengine.v1.FileIO;
+import com.serenegiant.gameengine.v1.GLLoadableModel;
+import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.v1.StaticTexture;
 
 import javax.microedition.khronos.opengles.GL10;
 
