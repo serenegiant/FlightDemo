@@ -75,7 +75,5 @@ dependencies {
 	compile project(':graphics_common')
 	compile project(':animations')
 	compile project(':icon_buttons')
-	compile project(':icon_buttons001')
-	compile project(':icon_buttons002')
 	autoparrotCompile project(':opencv')
 }

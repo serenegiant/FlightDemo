@@ -10,8 +10,6 @@
       <module fileurl="file://$PROJECT_DIR$/gameengine/gameengine.iml" filepath="$PROJECT_DIR$/gameengine/gameengine.iml" />
       <module fileurl="file://$PROJECT_DIR$/graphics_common/graphics_common.iml" filepath="$PROJECT_DIR$/graphics_common/graphics_common.iml" />
       <module fileurl="file://$PROJECT_DIR$/icon_buttons/icon_buttons.iml" filepath="$PROJECT_DIR$/icon_buttons/icon_buttons.iml" />
-      <module fileurl="file://$PROJECT_DIR$/icon_buttons001/icon_buttons001.iml" filepath="$PROJECT_DIR$/icon_buttons001/icon_buttons001.iml" />
-      <module fileurl="file://$PROJECT_DIR$/icon_buttons002/icon_buttons002.iml" filepath="$PROJECT_DIR$/icon_buttons002/icon_buttons002.iml" />
       <module fileurl="file://$PROJECT_DIR$/opencv/opencv.iml" filepath="$PROJECT_DIR$/opencv/opencv.iml" />
       <module fileurl="file://$PROJECT_DIR$/scriptengine/scriptengine.iml" filepath="$PROJECT_DIR$/scriptengine/scriptengine.iml" />
     </modules>

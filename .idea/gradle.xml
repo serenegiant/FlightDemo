@@ -17,8 +17,6 @@
             <option value="$PROJECT_DIR$/gameengine" />
             <option value="$PROJECT_DIR$/graphics_common" />
             <option value="$PROJECT_DIR$/icon_buttons" />
-            <option value="$PROJECT_DIR$/icon_buttons001" />
-            <option value="$PROJECT_DIR$/icon_buttons002" />
             <option value="$PROJECT_DIR$/opencv" />
             <option value="$PROJECT_DIR$/scriptengine" />
           </set>
