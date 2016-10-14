@@ -16,9 +16,9 @@
 		<item name="flightdemo_icon_gps">@mipmap/ic_gps_002</item>
 		<item name="flightdemo_icon_landing">@mipmap/ic_landing_002</item>
 		<item name="flightdemo_icon_list2">@mipmap/ic_gallery_002</item>
-		<!--<item name="flightdemo_icon_list_thumbnail_device">@mipmap/ic_launcher</item>-->
-		<!--<item name="flightdemo_icon_list_thumbnail_media">@mipmap/ic_launcher</item>-->
-		<!--<item name="flightdemo_icon_list_thumbnail_script">@mipmap/ic_launcher</item>-->
+		<!--<item name="flightdemo_icon_list_thumbnail_device">@mipmap/ic_default</item>-->
+		<!--<item name="flightdemo_icon_list_thumbnail_media">@mipmap/ic_default</item>-->
+		<!--<item name="flightdemo_icon_list_thumbnail_script">@mipmap/ic_default</item>-->
 		<item name="flightdemo_icon_movie">@mipmap/ic_movie_002</item>
 		<item name="flightdemo_icon_plane">@mipmap/ic_plane_002</item>
 		<item name="flightdemo_icon_play">@mipmap/ic_play_002</item>
