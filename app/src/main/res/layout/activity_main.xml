@@ -31,24 +31,18 @@
 
         </FrameLayout>
 
-        <view
-       		android:layout_width="match_parent"
-       		android:layout_height="match_parent"
-       		class="jp.co.rediscovery.widget.DroneNoticeView"
-       		android:background="@color/ALICEBLUE"
-       		android:id="@+id/drone_notice_view"/>
-
-        <FrameLayout
-            android:id="@+id/ad_parent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@id/container"
-            android:layout_centerHorizontal="true"
-            android:layout_gravity="top|center_horizontal"
-            android:layout_marginTop="@dimen/half_padding"
-            android:gravity="top" >
-
-        </FrameLayout>
+		<FrameLayout
+			android:id="@+id/instructions"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:background="@null">
+			<view
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				class="jp.co.rediscovery.widget.DroneNoticeView"
+				android:background="@color/ALICEBLUE"
+				android:id="@+id/drone_notice_view"/>
+		</FrameLayout>
 
 	</RelativeLayout>
 
