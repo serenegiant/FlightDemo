@@ -73,6 +73,5 @@ dependencies {
 	compile 'com.serenegiant:gamepad:0.1.1'
 	compile 'jp.co.rediscovery.widget:drone-notice-view:1.0.0'
 	compile project(':graphics_common')
-	compile project(':icon_buttons')
 	autoparrotCompile project(':opencv')
 }
