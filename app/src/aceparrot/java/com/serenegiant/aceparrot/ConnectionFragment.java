@@ -47,7 +47,7 @@ public class ConnectionFragment extends BaseConnectionFragment {
 	}
 
 	@Override
-	protected BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device, final boolean newAPI) {
+	protected BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device) {
 		return BridgeFragment.newInstance(device);
 	}
 

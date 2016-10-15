@@ -4,6 +4,11 @@ android {
 	compileSdkVersion versionCompiler
 	buildToolsVersion versionBuildTool
 
+	compileOptions {
+		sourceCompatibility javaSourceCompatibility
+		targetCompatibility javaTargetCompatibility
+	}
+
 	defaultConfig {
 		minSdkVersion 16
 		targetSdkVersion versionTarget

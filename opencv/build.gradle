@@ -5,6 +5,11 @@ android {
 	compileSdkVersion versionCompiler
 	buildToolsVersion versionBuildTool
 
+	compileOptions {
+		sourceCompatibility javaSourceCompatibility
+		targetCompatibility javaTargetCompatibility
+	}
+
 	defaultConfig {
 		minSdkVersion 18
 		targetSdkVersion versionTarget
@@ -59,4 +64,7 @@ clean.dependsOn 'ndkClean'
 
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
+	compile("com.serenegiant:common:${commonLibVersion}") {
+		exclude module: 'support-v4'
+	}
 }

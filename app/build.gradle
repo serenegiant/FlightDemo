@@ -3,9 +3,10 @@ apply plugin: 'com.android.application'
 android {
 	compileSdkVersion versionCompiler
 	buildToolsVersion versionBuildTool
+
 	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_1_7
-		targetCompatibility JavaVersion.VERSION_1_7
+		sourceCompatibility javaSourceCompatibility
+		targetCompatibility javaTargetCompatibility
 	}
 
 	defaultConfig {
@@ -66,5 +67,7 @@ dependencies {
 	compile project(':arflight')
 	compile 'com.serenegiant:gamepad:0.1.1'
 	compile project(':graphics_common')
+	compile project(':scriptengine')
+	compile project(':gameengine')
 	autoparrotCompile project(':opencv')
 }
