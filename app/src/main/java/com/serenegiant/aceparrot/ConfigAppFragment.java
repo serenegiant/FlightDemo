@@ -3,9 +3,7 @@ package com.serenegiant.aceparrot;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,6 +66,7 @@ public class ConfigAppFragment extends BaseFragment {
 		return rootView;
 	}
 
+	@SuppressWarnings("deprecation")
 	private void initColor(final View rootView) {
 		final RelativeRadioGroup group = (RelativeRadioGroup)rootView.findViewById(R.id.icon_radiogroup);
 

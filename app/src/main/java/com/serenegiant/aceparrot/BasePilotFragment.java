@@ -22,18 +22,10 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.serenegiant.arflight.AutoFlightListener;
-import com.serenegiant.arflight.DroneStatus;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.IAutoFlight;
-import com.serenegiant.arflight.ICameraController;
-import com.serenegiant.arflight.IDeviceController;
-import com.serenegiant.arflight.IFlightController;
-import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.arflight.TouchFlight;
-import com.serenegiant.arflight.VideoStream;
-import com.serenegiant.arflight.controllers.FlightControllerMiniDrone;
-import com.serenegiant.arflight.controllers.FlightControllerMiniDroneNewAPI;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.arflight.drone.IVideoScreen;
 import com.serenegiant.gameengine.v1.IModelView;
@@ -48,6 +40,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import jp.co.rediscovery.arflight.DroneStatus;
+import jp.co.rediscovery.arflight.ICameraController;
+import jp.co.rediscovery.arflight.IDeviceController;
+import jp.co.rediscovery.arflight.IFlightController;
+import jp.co.rediscovery.arflight.IVideoStreamController;
+import jp.co.rediscovery.arflight.VideoStream;
+import jp.co.rediscovery.arflight.controllers.FlightControllerMiniDrone;
 
 import static com.serenegiant.aceparrot.AppConst.*;
 
@@ -268,15 +268,14 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		super.onConnect(controller);
 
 		mVideoRecording = false;
-		if (mModelView != null) {
-			mModelView.hasGuard((controller instanceof IFlightController) && ((IFlightController)controller).hasGuard());
-		}
+		if (mModelView != null)
+			mModelView.hasGuard((controller instanceof IFlightController) && ((IFlightController) controller).hasGuard());
 		startGamePadTask();
 		startUpdateStatusTask();
 		updateButtons();
 		// キャリブレーションが必要ならCalibrationFragmentへ遷移させる
 		if ((controller instanceof IFlightController) && ((IFlightController)controller).needCalibration()) {
-			replace(CalibrationFragment.newInstance(getDevice(), isNewAPI()));
+			replace(CalibrationFragment.newInstance(getDevice()));
 		}
 	}
 
@@ -416,7 +415,8 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		stopPlay();
 		stopScript();
 		stopTouchMove();
-		stopAnimationActionAll();
+//		stopAnimationActionAll();
+		updateButtons();
 	}
 
 	private static final int[] SENSOR_TYPES = {
@@ -443,8 +443,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 			mMagnetValues[i] = mGravityValues[i] = mAzimuthValues[i] = 0;
 //			mAccelValues[i] = mGyroValues[i] = 0;
 		}
-		if ((mController instanceof FlightControllerMiniDrone)
-			|| (mController instanceof FlightControllerMiniDroneNewAPI)) return;
+		if (mController instanceof FlightControllerMiniDrone) return;
 		final Display display = getActivity().getWindowManager().getDefaultDisplay();
 		mRotation = display.getRotation();
 		// 重力センサーがあればそれを使う。なければ加速度センサーで代用する
@@ -762,36 +761,35 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		}
 	}
 
-	/**
-	 * アニメーション動作開始指示
-	 * @param anim
-	 */
-	protected void startAnimationAction(final int anim) {
-		if (!mFlightRecorder.isPlaying()) {
-			mFlightController.startAnimation(anim);
-			updateButtons();
-		}
-	}
-
-	/**
-	 * アニメーション動作停止指示
-	 * @param anim
-	 */
-	protected void stopAnimationAction(final int anim) {
-		if (mFlightController != null) {
-			mFlightController.stopAnimation(anim);
-		}
-	}
-
-	/**
-	 * アニメーション動作を全て停止
-	 */
-	protected void stopAnimationActionAll() {
-		if (mFlightController != null) {
-			mFlightController.stopAllAnimation();
-		}
-		updateButtons();
-	}
+//	/**
+//	 * アニメーション動作開始指示
+//	 * @param anim
+//	 */
+//	protected void startAnimationAction(final int anim) {
+//		if (!mFlightRecorder.isPlaying()) {
+//			mFlightController.startAnimation(anim);
+//			updateButtons();
+//		}
+//	}
+//
+//	/**
+//	 * アニメーション動作停止指示
+//	 * @param anim
+//	 */
+//	protected void stopAnimationAction(final int anim) {
+//		if (mFlightController != null) {
+//			mFlightController.stopAnimation(anim);
+//		}
+//	}
+//
+//	/**
+//	 * アニメーション動作を全て停止
+//	 */
+//	protected void stopAnimationActionAll() {
+//		if (mFlightController != null) {
+//			mFlightController.stopAllAnimation();
+//		}
+//	}
 
 	protected static final String asString(final int[] values) {
 		final int n = values != null ? values.length : 0;

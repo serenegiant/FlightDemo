@@ -6,11 +6,15 @@ import android.util.Log;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.arflight.*;
-import com.serenegiant.arflight.controllers.FlightControllerBebop;
-import com.serenegiant.arflight.controllers.FlightControllerBebop2;
+import jp.co.rediscovery.arflight.*;
 
-import static com.serenegiant.arflight.ARFlightConst.*;
+import jp.co.rediscovery.arflight.DeviceInfo;
+import jp.co.rediscovery.arflight.IDeviceController;
+import jp.co.rediscovery.arflight.controllers.FlightControllerBebop;
+import jp.co.rediscovery.arflight.controllers.FlightControllerBebop2;
+
+import static jp.co.rediscovery.arflight.ARFlightConst.*;
+import static com.serenegiant.aceparrot.AppConst.*;
 
 public abstract class BaseControllerFragment extends BaseFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
@@ -22,7 +26,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	private ARDiscoveryDeviceService mDevice;
 	private DeviceInfo mDeviceInfo;
 	protected IDeviceController mController;
-	private boolean mNewAPI;
 
 	public BaseControllerFragment() {
 		super();
@@ -47,7 +50,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		if (args != null) {
 			mDevice = args.getParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE);
 			mDeviceInfo = args.getParcelable(ARFLIGHT_EXTRA_DEVICE_INFO);
-			mNewAPI = args.getBoolean(ARFLIGHT_EXTRA_NEWAPI, false);
 			getController();
 		}
 		if (DEBUG) Log.v(TAG, "onCreate:mController=" + mController);
@@ -109,32 +111,28 @@ public abstract class BaseControllerFragment extends BaseFragment {
 		super.onDetach();
 	}
 
-	protected Bundle setDevice(final ARDiscoveryDeviceService device, final boolean newAPI) {
+	protected Bundle setDevice(final ARDiscoveryDeviceService device) {
 		if (DEBUG) Log.v(TAG, "setDevice:" + device);
 		mDevice = device;
 		mDeviceInfo = null;
-		mNewAPI = newAPI;
 		Bundle args = getArguments();
 		if (args == null) {
 			args = new Bundle();
 		}
-		args.putBoolean(ARFLIGHT_EXTRA_NEWAPI, newAPI);
 		args.putParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE, device);
 		args.remove(ARFLIGHT_EXTRA_DEVICE_INFO);
 		setArguments(args);
 		return args;
 	}
 
-	protected Bundle setDevice(final ARDiscoveryDeviceService bridge, final DeviceInfo info, final boolean newAPI) {
+	protected Bundle setDevice(final ARDiscoveryDeviceService bridge, final DeviceInfo info) {
 		if ((info != null) && !BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		mDevice = bridge;
 		mDeviceInfo = info;
-		mNewAPI = newAPI;
 		Bundle args = getArguments();
 		if (args == null) {
 			args = new Bundle();
 		}
-		args.putBoolean(ARFLIGHT_EXTRA_NEWAPI, newAPI);
 		args.putParcelable(ARFLIGHT_EXTRA_DEVICE_SERVICE, bridge);
 		if (info != null) {
 			args.putParcelable(ARFLIGHT_EXTRA_DEVICE_INFO, info);
@@ -151,10 +149,6 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	 */
 	protected boolean canReleaseController() {
 		return !isReplacing();
-	}
-
-	protected boolean isNewAPI() {
-		return mNewAPI;
 	}
 
 	protected ARDiscoveryDeviceService getDevice() {
@@ -187,7 +181,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 
 	protected IDeviceController getController() {
 		if (mController == null) {
-			final IDeviceController controller = ManagerFragment.getController(getActivity(), mDevice, mNewAPI);
+			final IDeviceController controller = ManagerFragment.getController(getActivity(), mDevice);
 			if (BuildConfig.USE_SKYCONTROLLER) {
 				if ((mDeviceInfo != null) && (controller instanceof ISkyController)) {
 					if (DEBUG) Log.d(TAG, "ブリッジ接続");
@@ -197,19 +191,11 @@ public abstract class BaseControllerFragment extends BaseFragment {
 					switch (product) {
 					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 						bridge.connectToDevice(mDeviceInfo);
-						if (mNewAPI) {
-							mController = controller;
-						} else {
-							mController = new FlightControllerBebop(getActivity(), bridge);
-						}
+						mController = controller;
 						break;
 					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 						bridge.connectToDevice(mDeviceInfo);
-						if (mNewAPI) {
-							mController = controller;
-						} else {
-							mController = new FlightControllerBebop2(getActivity(), bridge);
-						}
+						mController = controller;
 						break;
 					}
 				}

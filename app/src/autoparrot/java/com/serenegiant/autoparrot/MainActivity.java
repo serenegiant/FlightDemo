@@ -2,6 +2,8 @@ package com.serenegiant.autoparrot;
 
 import android.app.Fragment;
 
+import com.serenegiant.aceparrot.AbstractMainActivity;
+
 public class MainActivity extends AbstractMainActivity {
 	// ActionBarActivityを継承するとPilotFragmentから戻る際にクラッシュする
 	// Fragmentが切り替わらずに処理中にもかかわらずActivityが破棄されてしまう
@@ -9,7 +11,7 @@ public class MainActivity extends AbstractMainActivity {
 	private static String TAG = MainActivity.class.getSimpleName();
 
 	protected Fragment createConnectionFragment() {
-		return ConnectionFragment.newInstance(true);	// XXX NewAPIを使うかどうか
+		return ConnectionFragment.newInstance();
 	}
 
 }

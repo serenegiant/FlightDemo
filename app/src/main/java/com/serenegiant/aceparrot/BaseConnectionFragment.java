@@ -19,20 +19,20 @@ import android.widget.ListView;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.arflight.ARDeviceServiceAdapter;
-import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.widget.PlayerTextureView;
 
 import java.io.IOException;
 import java.util.List;
 
-import static com.serenegiant.arflight.ARFlightConst.*;
+import jp.co.rediscovery.arflight.ARDeviceServiceAdapter;
+import jp.co.rediscovery.arflight.ManagerFragment;
+
+import static jp.co.rediscovery.arflight.ARFlightConst.*;
 
 public abstract class BaseConnectionFragment extends BaseFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = BaseConnectionFragment.class.getSimpleName();
 
-	private boolean mIsNewAPI;
 	private PlayerTextureView mVideoView;
 	protected ImageButton mDownloadBtn, mPilotBtn, mGalleyBrn, mScriptBtn;
 	private MediaPlayer mMediaPlayer;
@@ -92,32 +92,6 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			mMediaPlayer = null;
 		}
 		super.onDestroy();
-	}
-
-	protected void loadArguments(final Bundle _args) {
-		super.loadArguments(_args);
-		Bundle args = _args;
-		if (args == null) {
-			args = getArguments();
-		}
-		if (args != null) {
-			mIsNewAPI = args.getBoolean(ARFLIGHT_EXTRA_NEWAPI, false);
-		}
-	}
-
-	protected Bundle setNewAPI(final boolean newAPI) {
-		mIsNewAPI = newAPI;
-		Bundle args = getArguments();
-		if (args == null) {
-			args = new Bundle();
-		}
-		args.putBoolean(ARFLIGHT_EXTRA_NEWAPI, newAPI);
-		setArguments(args);
-		return args;
-	}
-
-	public boolean isNewAPI() {
-		return mIsNewAPI;
 	}
 
 	/**
@@ -213,7 +187,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 					adapter.add(service);
 					break;
 				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
-					if (isNewAPI() && BuildConfig.USE_SKYCONTROLLER) {
+					if (BuildConfig.USE_SKYCONTROLLER) {
 						adapter.add(service);
 					}
 					break;
@@ -273,7 +247,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			switch (product) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-				fragment = isPiloting ? PilotFragment2.newInstance(device, null, isNewAPI()) : MediaFragment.newInstance(device, null, isNewAPI());
+				fragment = isPiloting ? PilotFragment2.newInstance(device, null) : MediaFragment.newInstance(device, null);
 				break;
 			case ARDISCOVERY_PRODUCT_JS:        // JumpingSumo
 				//FIXME JumpingSumoは未実装
@@ -282,12 +256,11 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
 //			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
-				// XXX MinidroneをNewAPIで動かすと機体が滑らかに飛行しないので常に従来APIにする
-				fragment = isPiloting ? PilotFragment2.newInstance(device, null, false) : MediaFragment.newInstance(device, null, false);
+				fragment = isPiloting ? PilotFragment2.newInstance(device, null) : MediaFragment.newInstance(device, null);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
 				if (BuildConfig.USE_SKYCONTROLLER) {
-					fragment = newBridgetFragment(device, true);	// NewAPIを使う
+					fragment = newBridgetFragment(device);
 				}
 				break;
 			}
@@ -295,7 +268,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 		return fragment;
 	}
 
-	protected abstract BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device, final boolean newAPI);
+	protected abstract BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device);
 
 //********************************************************************************
 // 背景動画再生関連

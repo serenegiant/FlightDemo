@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Bundle;
 import android.view.View;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -13,10 +12,8 @@ import java.io.IOException;
 
 public class ConnectionFragment extends BaseConnectionFragment {
 
-	public static ConnectionFragment newInstance(final boolean newAPI) {
-		ConnectionFragment fragment = new ConnectionFragment();
-		final Bundle args = fragment.setNewAPI(newAPI);
-		return fragment;
+	public static ConnectionFragment newInstance() {
+		return new ConnectionFragment();
 	}
 
 	public ConnectionFragment() {
@@ -51,7 +48,7 @@ public class ConnectionFragment extends BaseConnectionFragment {
 
 	@Override
 	protected BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device, final boolean newAPI) {
-		return BridgeFragment.newInstance(device, true);
+		return BridgeFragment.newInstance(device);
 	}
 
 	@Override

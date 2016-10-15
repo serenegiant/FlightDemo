@@ -1,6 +1,5 @@
 package com.serenegiant.aceparrot;
 
-import android.animation.Animator;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -10,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
@@ -23,14 +21,12 @@ import android.view.View;
 import com.parrot.arsdk.ARSDK;
 import com.parrot.arsdk.arsal.ARSALPrint;
 import com.parrot.arsdk.arsal.ARSAL_PRINT_LEVEL_ENUM;
-import com.serenegiant.arflight.ManagerFragment;
 import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.net.NetworkChangedReceiver;
-import com.serenegiant.utils.ViewAnimationHelper;
 import com.serenegiant.widget.ISideMenuView;
 import com.serenegiant.widget.SideMenuFrameLayout;
 
-import jp.co.rediscovery.widget.DroneNoticeView;
+import jp.co.rediscovery.arflight.ManagerFragment;
 
 /**
  * Created by saki on 2016/10/13.
@@ -63,7 +59,6 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 	private ActionBarDrawerToggle mDrawerToggle;
 	private final Handler mUiHandler = new Handler();
 	/*package*/Joystick mJoystick;
-	private DroneNoticeView mDroneNoticeView;
 
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
@@ -91,8 +86,6 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 			}
 		}).start();
 		mJoystick = Joystick.getInstance(this);
-		mDroneNoticeView = (DroneNoticeView)findViewById(R.id.drone_notice_view);
-		mDroneNoticeView.setOnClickListener(mOnClickListener);
 	}
 
 	protected abstract Fragment createConnectionFragment();
@@ -114,7 +107,6 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 		if (mJoystick != null) {
 			mJoystick.register();
 		}
-		showNoticeView();
 	}
 
 	@Override
@@ -384,45 +376,4 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 		return mJoystick;
 	}
 
-	protected void showNoticeView() {
-		mDroneNoticeView.setVisibility(View.VISIBLE);
-		// 自動で切り替えないように切替時間を0にセット
-		mDroneNoticeView.setAutoNextDuration(0);
-		mDroneNoticeView.next();
-		// 10秒後にフェードアウトさせる
-		ViewAnimationHelper.fadeOut(mDroneNoticeView, 0, 10000, mViewAnimationListener);
-	}
-
-	private final View.OnClickListener mOnClickListener
-		= new View.OnClickListener() {
-		@Override
-		public void onClick(final View view) {
-			switch (view.getId()) {
-			case R.id.drone_notice_view:
-				// 直ぐにフェードアウトさせる
-				ViewAnimationHelper.fadeOut(view, 0, 0, mViewAnimationListener);
-				break;
-			}
-		}
-	};
-
-	private final ViewAnimationHelper.ViewAnimationListener
-		mViewAnimationListener = new ViewAnimationHelper.ViewAnimationListener() {
-		@Override
-		public void onAnimationStart(@NonNull final Animator animator, @NonNull final View target, final int animationType) {
-		}
-
-		@Override
-		public void onAnimationEnd(@NonNull final Animator animator, @NonNull final View target, final int animationType) {
-			switch(target.getId()) {
-			case R.id.drone_notice_view:
-				target.setVisibility(View.GONE);
-				break;
-			}
-		}
-
-		@Override
-		public void onAnimationCancel(@NonNull final Animator animator, @NonNull final View target, final int animationType) {
-		}
-	};
 }

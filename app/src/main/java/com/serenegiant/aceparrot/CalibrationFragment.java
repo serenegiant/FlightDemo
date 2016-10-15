@@ -9,10 +9,11 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.arflight.IDeviceController;
-import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine.v1.IModelView;
+
+import jp.co.rediscovery.arflight.IDeviceController;
+import jp.co.rediscovery.arflight.IFlightController;
 
 import static com.serenegiant.aceparrot.AppConst.*;
 
@@ -20,9 +21,9 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = CalibrationFragment.class.getSimpleName();
 
-	public static CalibrationFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
+	public static CalibrationFragment newInstance(final ARDiscoveryDeviceService device) {
 		final CalibrationFragment fragment = new CalibrationFragment();
-		fragment.setDevice(device, newAPI);
+		fragment.setDevice(device);
 		return fragment;
 	}
 

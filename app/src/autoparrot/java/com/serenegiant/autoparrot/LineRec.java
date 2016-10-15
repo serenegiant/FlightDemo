@@ -1,4 +1,4 @@
-package com.serenegiant.aceparrot;
+package com.serenegiant.autoparrot;
 
 import com.serenegiant.math.Vector;
 

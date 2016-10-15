@@ -4,21 +4,9 @@ import android.app.Fragment;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.util.Log;
 import android.view.View;
 
-import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.aceparrot.BaseBridgeFragment;
-import com.serenegiant.aceparrot.BuildConfig;
-import com.serenegiant.aceparrot.ConfigAppFragment;
-import com.serenegiant.aceparrot.GalleyFragment;
-import com.serenegiant.aceparrot.R;
-import com.serenegiant.aceparrot.ScriptFragment;
-import com.serenegiant.arflight.ARDeviceInfoAdapter;
-import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.ManagerFragment;
 
 import java.io.IOException;
 
@@ -31,9 +19,9 @@ public class BridgeFragment extends BaseBridgeFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = BridgeFragment.class.getSimpleName();
 
-	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
+	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device) {
 		final BridgeFragment fragment = new BridgeFragment();
-		fragment.setDevice(device, newAPI);
+		fragment.setDevice(device);
 		return fragment;
 	}
 

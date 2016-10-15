@@ -11,17 +11,15 @@ import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.aceparrot.BaseBridgeFragment;
-import com.serenegiant.aceparrot.BuildConfig;
-import com.serenegiant.aceparrot.ConfigAppFragment;
-import com.serenegiant.aceparrot.GalleyFragment;
 import com.serenegiant.aceparrot.PilotFragment2;
 import com.serenegiant.aceparrot.R;
-import com.serenegiant.aceparrot.ScriptFragment;
-import com.serenegiant.arflight.ARDeviceInfoAdapter;
-import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.ManagerFragment;
 
 import java.io.IOException;
+
+import jp.co.rediscovery.arflight.ARDeviceInfoAdapter;
+import jp.co.rediscovery.arflight.BuildConfig;
+import jp.co.rediscovery.arflight.DeviceInfo;
+import jp.co.rediscovery.arflight.ManagerFragment;
 
 
 /**
@@ -32,9 +30,9 @@ public class BridgeFragment extends BaseBridgeFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = BridgeFragment.class.getSimpleName();
 
-	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device, final boolean newAPI) {
+	public static BridgeFragment newInstance(final ARDiscoveryDeviceService device) {
 		final BridgeFragment fragment = new BridgeFragment();
-		fragment.setDevice(device, newAPI);
+		fragment.setDevice(device);
 		return fragment;
 	}
 
@@ -95,16 +93,16 @@ public class BridgeFragment extends BaseBridgeFragment {
 				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 					switch (id) {
 					case R.id.pilot_button:
-						fragment = AutoPilotFragment2.newInstance(device, info, "test001", AutoPilotFragment2.MODE_TRACE, mController.isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, info, "test001", AutoPilotFragment2.MODE_TRACE);
 						break;
 					case R.id.download_button:
-						fragment = AutoPilotFragment2.newInstance(device, info, "test002", AutoPilotFragment2.MODE_TRACE, mController.isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, info, "test002", AutoPilotFragment2.MODE_TRACE);
 						break;
 					case R.id.gallery_button:
-						fragment = AutoPilotFragment2.newInstance(device, info, "test003", AutoPilotFragment2.MODE_TRACE, mController.isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, info, "test003", AutoPilotFragment2.MODE_TRACE);
 						break;
 					case R.id.script_button:
-						fragment = AutoPilotFragment2.newInstance(device, info, "test004", AutoPilotFragment2.MODE_TRACKING, mController.isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, info, "test004", AutoPilotFragment2.MODE_TRACKING);
 						break;
 					default:
 						Log.w(TAG, "未知のview idが来た。なんでやねん:" + id);
@@ -147,7 +145,7 @@ public class BridgeFragment extends BaseBridgeFragment {
 				switch (product) {
 				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-					fragment = PilotFragment2.newInstance(device, info, mController.isNewAPI());
+					fragment = PilotFragment2.newInstance(device, info);
 					break;
 				default:
 					Log.w(TAG, "未知の機体が来た:" + product);

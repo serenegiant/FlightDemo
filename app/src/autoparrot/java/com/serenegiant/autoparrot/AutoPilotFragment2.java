@@ -6,12 +6,12 @@ import android.util.Log;
 import android.view.Surface;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
-import com.serenegiant.aceparrot.BuildConfig;
-import com.serenegiant.aceparrot.LineRec;
-import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.math.Vector;
 import com.serenegiant.opencv.ImageProcessor;
+
+import jp.co.rediscovery.arflight.BuildConfig;
+import jp.co.rediscovery.arflight.DeviceInfo;
+import jp.co.rediscovery.arflight.VideoStream;
 
 import static com.serenegiant.autoparrot.AutoPilotConst.*;
 
@@ -19,11 +19,11 @@ public class AutoPilotFragment2 extends BaseAutoPilotFragment {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = AutoPilotFragment2.class.getSimpleName();
 
-	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final String pref_name, final int mode, final boolean newAPI) {
+	public static AutoPilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final String pref_name, final int mode) {
 
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final AutoPilotFragment2 fragment = new AutoPilotFragment2();
-		final Bundle args = fragment.setDevice(device, info, newAPI);
+		final Bundle args = fragment.setDevice(device, info);
 		fragment.mPrefName =  TextUtils.isEmpty(pref_name) ? TAG : pref_name;
 		fragment.mMode = mode;
 		args.putString(KEY_PREF_NAME_AUTOPILOT, fragment.mPrefName);
@@ -49,7 +49,7 @@ public class AutoPilotFragment2 extends BaseAutoPilotFragment {
 		if (mImageProcessor == null) {
 			mImageProcessor = new ImageProcessor(VideoStream.VIDEO_WIDTH, VideoStream.VIDEO_HEIGHT,	// こっちは元映像のサイズ
 				new MyImageProcessorCallback(processing_width, processing_height));	// こっちは処理サイズ
-			mImageProcessor.enableAutoFix(!isNewAPI());
+			mImageProcessor.enableAutoFix(false);
 			mImageProcessor.setExposure(mExposure);
 			mImageProcessor.setSaturation(mSaturation);
 			mImageProcessor.setBrightness(mBrightness);

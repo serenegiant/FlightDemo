@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,19 +21,18 @@ import android.widget.ListView;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.arflight.ARDeviceInfoAdapter;
-import com.serenegiant.arflight.ARDeviceServiceAdapter;
-import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.IDeviceController;
-import com.serenegiant.arflight.ISkyController;
-import com.serenegiant.arflight.ManagerFragment;
-import com.serenegiant.arflight.SkyControllerListener;
 import com.serenegiant.widget.PlayerTextureView;
 
 import java.io.IOException;
 
-import static com.serenegiant.arflight.ARFlightConst.ARFLIGHT_ACTION_DEVICE_LIST_CHANGED;
-import static com.serenegiant.arflight.ARFlightConst.ARFLIGHT_EXTRA_DEVICE_LIST;
+import jp.co.rediscovery.arflight.ARDeviceInfoAdapter;
+import jp.co.rediscovery.arflight.DeviceInfo;
+import jp.co.rediscovery.arflight.IDeviceController;
+import jp.co.rediscovery.arflight.ISkyController;
+import jp.co.rediscovery.arflight.ManagerFragment;
+import jp.co.rediscovery.arflight.SkyControllerListener;
+
+import static jp.co.rediscovery.arflight.ARFlightConst.*;
 
 /**
  * スカイコントローラーに接続してスカイコントローラーが
@@ -493,8 +491,8 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 		case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 			mIsConnectToDevice = mNeedRequestDeviceList = true;
-			fragment = isPiloting ? PilotFragment2.newInstance(mController.getDeviceService(), info, mController.isNewAPI())
-				: MediaFragment.newInstance(mController.getDeviceService(), info, mController.isNewAPI());
+			fragment = isPiloting ? PilotFragment2.newInstance(mController.getDeviceService(), info)
+				: MediaFragment.newInstance(mController.getDeviceService(), info);
 			break;
 		}
 		return fragment;

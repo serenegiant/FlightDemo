@@ -21,15 +21,7 @@ import android.widget.Toast;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.arflight.CameraControllerListener;
-import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.FlightRecorder;
-import com.serenegiant.arflight.ICameraController;
-import com.serenegiant.arflight.IDeviceController;
-import com.serenegiant.arflight.IFlightController;
-import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.arflight.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine.v1.IModelView;
@@ -45,6 +37,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.co.rediscovery.arflight.CameraControllerListener;
+import jp.co.rediscovery.arflight.DeviceInfo;
+import jp.co.rediscovery.arflight.DroneStatus;
+import jp.co.rediscovery.arflight.ICameraController;
+import jp.co.rediscovery.arflight.IDeviceController;
+import jp.co.rediscovery.arflight.IFlightController;
+import jp.co.rediscovery.arflight.ISkyController;
+import jp.co.rediscovery.arflight.IVideoStreamController;
+
 import static com.serenegiant.aceparrot.AppConst.*;
 
 public class PilotFragment2 extends BasePilotFragment {
@@ -55,10 +56,10 @@ public class PilotFragment2 extends BasePilotFragment {
 	private static final long HIDE_PILOTING_DELAY_MS = 5000;		// アイコン等をすべて隠すまでの時間[ミリ秒]
 
 
-	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final boolean newAPI) {
+	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final PilotFragment2 fragment = new PilotFragment2();
-		fragment.setDevice(device, info, newAPI);
+		fragment.setDevice(device, info);
 		return fragment;
 	}
 
@@ -579,7 +580,7 @@ public class PilotFragment2 extends BasePilotFragment {
 				setColorFilter((ImageView)view);
 				if (isStarted()) {
 					if ((getState() & IFlightController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
-						replace(ConfigFragment.newInstance(getDevice(), getDeviceInfo(), isNewAPI()));
+						replace(ConfigFragment.newInstance(getDevice(), getDeviceInfo()));
 					} else {
 						landing();
 					}
@@ -735,7 +736,7 @@ public class PilotFragment2 extends BasePilotFragment {
 			case R.id.flat_trim_btn:
 				setColorFilter((ImageView)view);
 				if ((mFlightController != null) && (getState() == IFlightController.STATE_STARTED)) {
-					replace(CalibrationFragment.newInstance(getDevice(), isNewAPI()));
+					replace(CalibrationFragment.newInstance(getDevice()));
 					return true;
 				}
 				break;

@@ -41,6 +41,7 @@ public class BaseFragment extends Fragment {
 		// デフォルトコンストラクタが必要
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onAttach(final Activity activity) {
 		super.onAttach(activity);

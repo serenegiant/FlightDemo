@@ -31,4 +31,7 @@ public class AppConst {
 	public static final float SCALE_FACTOR = 250f;
 	public static final int SCALE_OFFSET = 500;
 
+	public static final String ARFLIGHT_EXTRA_DEVICE_SERVICE = "ARFLIGHT_EXTRA_DEVICE_SERVICE";
+	public static final String ARFLIGHT_EXTRA_DEVICE_INFO = "ARFLIGHT_EXTRA_DEVICE_INFO";
+
 }

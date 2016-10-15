@@ -32,14 +32,7 @@ import android.widget.Toast;
 import com.serenegiant.aceparrot.BasePilotFragment;
 import com.serenegiant.aceparrot.CalibrationFragment;
 import com.serenegiant.aceparrot.ConfigFragment;
-import com.serenegiant.aceparrot.LineRec;
 import com.serenegiant.aceparrot.R;
-import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.ICameraController;
-import com.serenegiant.arflight.IDeviceController;
-import com.serenegiant.arflight.IFlightController;
-import com.serenegiant.arflight.ISkyController;
-import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.dialog.ColorPickerDialog;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.arflight.drone.AttitudeScreenBase;
@@ -53,6 +46,13 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import jp.co.rediscovery.arflight.DroneStatus;
+import jp.co.rediscovery.arflight.ICameraController;
+import jp.co.rediscovery.arflight.IDeviceController;
+import jp.co.rediscovery.arflight.IFlightController;
+import jp.co.rediscovery.arflight.ISkyController;
+import jp.co.rediscovery.arflight.attribute.AttributeFloat;
 
 import static com.serenegiant.aceparrot.AppConst.*;
 import static com.serenegiant.autoparrot.AutoPilotConst.*;
@@ -311,7 +311,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 			case R.id.load_btn:
 				// 読み込みボタンの処理
 				setColorFilter((ImageView)view);
-				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", false);
+				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", 0);
 				try {
 					SelectFileDialogFragment.showDialog(BaseAutoPilotFragment.this, root.getAbsolutePath(), false, "fcr");
 				} catch (final NullPointerException e) {
@@ -332,7 +332,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 				setColorFilter((ImageView)view);
 				if (isStarted()) {
 					if ((getState() & IFlightController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
-						replace(ConfigFragment.newInstance(getDevice(), getDeviceInfo(), isNewAPI()));
+						replace(ConfigFragment.newInstance(getDevice(), getDeviceInfo()));
 					} else {
 						landing();
 					}
@@ -441,7 +441,7 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 				clearAutoPilot();	// 自動操縦解除
 				setColorFilter((ImageView)view);
 				if ((mFlightController != null) && (getState() == IFlightController.STATE_STARTED)) {
-					replace(CalibrationFragment.newInstance(getDevice(), isNewAPI()));
+					replace(CalibrationFragment.newInstance(getDevice()));
 					return true;
 				}
 				break;

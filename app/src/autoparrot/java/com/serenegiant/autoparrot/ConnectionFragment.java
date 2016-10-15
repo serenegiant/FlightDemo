@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Bundle;
 import android.view.View;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
@@ -14,20 +13,17 @@ import com.serenegiant.aceparrot.BaseBridgeFragment;
 import com.serenegiant.aceparrot.BaseConnectionFragment;
 import com.serenegiant.aceparrot.BuildConfig;
 import com.serenegiant.aceparrot.ConfigAppFragment;
-import com.serenegiant.aceparrot.GalleyFragment;
 import com.serenegiant.aceparrot.R;
-import com.serenegiant.aceparrot.ScriptFragment;
-import com.serenegiant.arflight.ARDeviceServiceAdapter;
-import com.serenegiant.arflight.ManagerFragment;
 
 import java.io.IOException;
 
+import jp.co.rediscovery.arflight.ARDeviceServiceAdapter;
+import jp.co.rediscovery.arflight.ManagerFragment;
+
 public class ConnectionFragment extends BaseConnectionFragment {
 
-	public static ConnectionFragment newInstance(final boolean newAPI) {
-		ConnectionFragment fragment = new ConnectionFragment();
-		final Bundle args = fragment.setNewAPI(newAPI);
-		return fragment;
+	public static ConnectionFragment newInstance() {
+		return new ConnectionFragment();
 	}
 
 	public ConnectionFragment() {
@@ -82,38 +78,38 @@ public class ConnectionFragment extends BaseConnectionFragment {
 				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 					switch (id) {
 					case R.id.pilot_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test001", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test001", AutoPilotFragment2.MODE_TRACE);
 						break;
 					case R.id.download_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test002", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test002", AutoPilotFragment2.MODE_TRACE);
 						break;
 					case R.id.gallery_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test003", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test003", AutoPilotFragment2.MODE_TRACE);
 						break;
 					case R.id.script_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test004", AutoPilotFragment2.MODE_TRACKING, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test004", AutoPilotFragment2.MODE_TRACKING);
 						break;
 					}
 					break;
 				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 					switch (id) {
 					case R.id.pilot_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test011", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test011", AutoPilotFragment2.MODE_TRACE);
 						break;
 					case R.id.download_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test012", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test012", AutoPilotFragment2.MODE_TRACE);
 						break;
 					case R.id.gallery_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test013", AutoPilotFragment2.MODE_TRACE, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test013", AutoPilotFragment2.MODE_TRACE);
 						break;
 					case R.id.script_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test014", AutoPilotFragment2.MODE_TRACKING, isNewAPI());
+						fragment = AutoPilotFragment2.newInstance(device, null, "test014", AutoPilotFragment2.MODE_TRACKING);
 						break;
 					}
 					break;
 				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
 					if (BuildConfig.USE_SKYCONTROLLER) {
-						fragment = newBridgetFragment(device, true);	// NewAPIを使う
+						fragment = newBridgetFragment(device);
 					}
 					break;
 				}
@@ -134,8 +130,8 @@ public class ConnectionFragment extends BaseConnectionFragment {
 	}
 
 	@Override
-	protected BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device, final boolean newAPI) {
-		return BridgeFragment.newInstance(device, true);
+	protected BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device) {
+		return BridgeFragment.newInstance(device);
 	}
 
 	@Override

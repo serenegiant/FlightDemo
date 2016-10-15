@@ -22,5 +22,8 @@ android {
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
 	compile 'com.parrot:arsdk:3.10.1'
-	compile project(':common')
+	compile("com.serenegiant:common:${commonLibVersion}") {
+		exclude module: 'support-v4'
+	}
+	compile 'jp.co.rediscovery.widget:drone-notice-view:1.1.1'
 }

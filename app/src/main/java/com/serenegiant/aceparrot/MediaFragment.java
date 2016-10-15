@@ -20,9 +20,6 @@ import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.armedia.ARMediaObject;
-import com.serenegiant.arflight.DeviceInfo;
-import com.serenegiant.arflight.FTPController;
-import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.dialog.ConfirmDialog;
 import com.serenegiant.dialog.OnDialogResultIntListener;
 import com.serenegiant.dialog.TransferProgressDialogFragment;
@@ -30,6 +27,10 @@ import com.serenegiant.dialog.TransferProgressDialogFragment;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import jp.co.rediscovery.arflight.DeviceInfo;
+import jp.co.rediscovery.arflight.FTPController;
+import jp.co.rediscovery.arflight.IDeviceController;
 
 public class MediaFragment extends BaseFlightControllerFragment
 	implements TransferProgressDialogFragment.TransferProgressDialogListener, OnDialogResultIntListener {
@@ -39,10 +40,10 @@ public class MediaFragment extends BaseFlightControllerFragment
 	private static final int REQUEST_DELETE = 1;
 	private static final int REQUEST_FETCH = 2;
 
-	public static MediaFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info, final boolean newAPI) {
+	public static MediaFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final MediaFragment fragment = new MediaFragment();
-		fragment.setDevice(device, info, newAPI);
+		fragment.setDevice(device, info);
 		return fragment;
 	}
 
@@ -302,7 +303,7 @@ public class MediaFragment extends BaseFlightControllerFragment
 	 * 選択されているファイルを取得する
 	 */
 	private void transferMedias() {
-		final boolean needDelete = mDeleteAfterFetchCheckBox != null ? mDeleteAfterFetchCheckBox.isChecked() : false;
+		final boolean needDelete = mDeleteAfterFetchCheckBox != null && mDeleteAfterFetchCheckBox.isChecked();
 		final ARMediaObject[] medias = getSelectedMedias();
 		if (medias != null) {
 			mTransferProgressDialogFragment = TransferProgressDialogFragment.showDialog(this, getString(R.string.loading), null);
@@ -344,7 +345,7 @@ public class MediaFragment extends BaseFlightControllerFragment
 		@Override
 		public void run() {
 			if (DEBUG) Log.v(TAG, "mUpdateMediaListTask:count=" + mMediaListView.getCheckedItemCount());
-			final boolean selected = mMediaListView != null ? mMediaListView.getCheckedItemCount() > 0 : false;
+			final boolean selected = mMediaListView != null && mMediaListView.getCheckedItemCount() > 0;
 			final int visibility = selected ? View.VISIBLE : View.INVISIBLE;
 			if (mDeleteBtn != null) {
 				mDeleteBtn.setVisibility(visibility);

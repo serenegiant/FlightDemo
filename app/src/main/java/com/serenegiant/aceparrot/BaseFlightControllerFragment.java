@@ -5,12 +5,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.serenegiant.arflight.DroneStatus;
-import com.serenegiant.arflight.FlightControllerListener;
-import com.serenegiant.arflight.IDeviceController;
-import com.serenegiant.arflight.IFlightController;
-import com.serenegiant.arflight.IVideoStreamController;
-import com.serenegiant.arflight.SkyControllerListener;
+import jp.co.rediscovery.arflight.DroneStatus;
+import jp.co.rediscovery.arflight.FlightControllerListener;
+import jp.co.rediscovery.arflight.IDeviceController;
+import jp.co.rediscovery.arflight.IFlightController;
+import jp.co.rediscovery.arflight.IVideoStreamController;
+import jp.co.rediscovery.arflight.SkyControllerListener;
 
 public abstract class BaseFlightControllerFragment extends BaseControllerFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
