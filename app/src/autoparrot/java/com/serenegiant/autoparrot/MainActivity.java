@@ -11,7 +11,7 @@ public class MainActivity extends AbstractMainActivity {
 	private static String TAG = MainActivity.class.getSimpleName();
 
 	protected Fragment createConnectionFragment() {
-		return ConnectionFragment.newInstance();
+		return MyInstructionsFragment.newInstance();
 	}
 
 }

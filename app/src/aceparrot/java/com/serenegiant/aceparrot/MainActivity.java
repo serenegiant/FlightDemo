@@ -2,6 +2,8 @@ package com.serenegiant.aceparrot;
 
 import android.app.Fragment;
 
+import jp.co.rediscovery.arflight.InstructionsFragment;
+
 public class MainActivity extends AbstractMainActivity {
 	// ActionBarActivityを継承するとPilotFragmentから戻る際にクラッシュする
 	// Fragmentが切り替わらずに処理中にもかかわらずActivityが破棄されてしまう
@@ -9,7 +11,7 @@ public class MainActivity extends AbstractMainActivity {
 	private static String TAG = MainActivity.class.getSimpleName();
 
 	protected Fragment createConnectionFragment() {
-		return ConnectionFragment.newInstance();
+		return MyInstructionsFragment.newInstance();
 	}
 
 }
