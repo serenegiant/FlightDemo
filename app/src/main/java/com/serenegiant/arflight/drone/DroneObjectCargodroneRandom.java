@@ -1,15 +1,15 @@
-package com.serenegiant.drone;
+package com.serenegiant.arflight.drone;
 
 import com.serenegiant.math.Vector;
 
 
-public class DroneObjectMinidroneRandom extends DroneObjectMinidrone {
+public class DroneObjectCargodroneRandom extends DroneObjectCargodrone {
 
-	public DroneObjectMinidroneRandom(final Vector position, final float scale) {
+	public DroneObjectCargodroneRandom(final Vector position, final float scale) {
 		this(position.x, position.y, position.z, scale);
 	}
 
-	public DroneObjectMinidroneRandom(final float x, final float y, final float z, final float scale) {
+	public DroneObjectCargodroneRandom(final float x, final float y, final float z, final float scale) {
 		super(x, y, z, scale);
 	}
 

@@ -1,24 +1,26 @@
-package com.serenegiant.drone;
+package com.serenegiant.arflight.drone;
 
 import android.util.Log;
 
 import com.serenegiant.math.Vector;
 
-public class SkyControllerObjectCalibration extends SkyControllerObject implements ICalibrationModelObject {
+
+public class DroneObjectBebopCalibration extends DroneObjectBebop implements ICalibrationModelObject {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
-	private static final String TAG = SkyControllerObjectCalibration.class.getSimpleName();
+	private static final String TAG = DroneObjectBebopCalibration.class.getSimpleName();
 
 	private static final float ROTATION_SPEED = 180.0f;
 	private int mAxis = -1;
 	private volatile int mRequestAxis = -1;
 	private float mDirection = ROTATION_SPEED;
 
-	public SkyControllerObjectCalibration(final Vector position, final float scale) {
-		super(position, scale);
+	public DroneObjectBebopCalibration(final Vector position, final float scale) {
+		this(position.x, position.y, position.z, scale);
 	}
 
-	public SkyControllerObjectCalibration(final float x, final float y, final float z, final float scale) {
+	public DroneObjectBebopCalibration(final float x, final float y, final float z, final float scale) {
 		super(x, y, z, scale);
+		stopEngine();
 	}
 
 	@Override
@@ -44,7 +46,7 @@ public class SkyControllerObjectCalibration extends SkyControllerObject implemen
 	}
 
 	@Override
-	public void setAxis(final int axis) {
+	public void setAxis(int axis) {
 		if (DEBUG) Log.v(TAG, "setAxis:" + axis);
 		mRequestAxis = axis;
 	}

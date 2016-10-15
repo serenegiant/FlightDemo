@@ -1,16 +1,13 @@
-package com.serenegiant.drone;
-
-import android.util.Log;
+package com.serenegiant.arflight.drone;
 
 import com.serenegiant.gameengine.v1.FileIO;
 import com.serenegiant.gameengine.v1.GLLoadableModel;
 import com.serenegiant.gameengine.v1.IModelView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 
-public class AttitudeScreenCargodrone extends AttitudeScreenBase {
-	private static final String TAG = "AttitudeScreenCargodrone";
+public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 
-	public AttitudeScreenCargodrone(final IModelView modelView, final int ctrl_type) {
+	public AttitudeScreenMinidrone(final IModelView modelView, final int ctrl_type) {
 		super(modelView, ctrl_type);
 	}
 
@@ -50,23 +47,23 @@ public class AttitudeScreenCargodrone extends AttitudeScreenBase {
 		// 機体
 		switch (mCtrlType) {
 		case CTRL_PILOT:
-			droneObj = new DroneObjectCargodrone(0, 0, 0, 1.0f);
-			lookAtCamera.setPosition(0, 8, -9f);
+			droneObj = new DroneObjectMinidrone(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(0, 16, -18f);
 			mShowGround = false;
 			break;
 		case CTRL_ATTITUDE:
-			droneObj = new DroneObjectCargodrone(0, 0, 0, 1.0f);
-			lookAtCamera.setPosition(0, 8, -9f);
+			droneObj = new DroneObjectMinidrone(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(0, 16, -18f);
 			mShowGround = false;
 			break;
 		case CTRL_CALIBRATION:	// 多分これはこない
-			droneObj = new DroneObjectCargodrone(0, 0, 0, 1.0f);
-			lookAtCamera.setPosition(0, 8, -9f);
+			droneObj = new DroneObjectMinidrone(0, 0, 0, 1.0f);
+			lookAtCamera.setPosition(0, 16, -18f);
 			mShowGround = false;
 			break;
 		case CTRL_RANDOM:
 		default:
-			droneObj = new DroneObjectCargodroneRandom(0, 0, 0, 1.0f);
+			droneObj = new DroneObjectMinidroneRandom(0, 0, 0, 1.0f);
 			lookAtCamera.setPosition(-9, 8, -9);
 			mShowGround = false;
 			break;
@@ -75,21 +72,20 @@ public class AttitudeScreenCargodrone extends AttitudeScreenBase {
 		final FileIO io = mModelView.getFileIO();
 		StaticTexture droneTexture = null;
 		try {
-			droneTexture = new StaticTexture(mModelView, "cargo_drone_tex.png");
+			droneTexture = new StaticTexture(mModelView, "minidrone_tex.png");
 		} catch (final Exception e) {
-			Log.w(TAG, e);
-			droneTexture = new StaticTexture(mModelView, "model/cargo_drone_tex_blue.png");
+			droneTexture = new StaticTexture(mModelView, "model/minidrone_tex_red.png");
 		}
-		droneModel = loadModel(io, "model/cargo_drone_body.obj");
+		droneModel = loadModel(io, "model/minidrone_body.obj");
 		droneModel.setTexture(droneTexture);
 		// ガード(ハル)
-		guardModel = loadModel(io, "model/cargo_drone_bumper.obj");
+		guardModel = loadModel(io, "model/minidrone_bumper.obj");
 		guardModel.setTexture(droneTexture);
 		// 左前ローター
-		frontLeftRotorModel = loadModel(io, "model/cargo_drone_rotor_cw.obj");
+		frontLeftRotorModel = loadModel(io, "model/minidrone_rotor_cw.obj");
 		frontLeftRotorModel.setTexture(droneTexture);	// テクスチャは今は共通
 		// 右前ローター
-		frontRightRotorModel = loadModel(io, "model/cargo_drone_rotor_ccw.obj");
+		frontRightRotorModel = loadModel(io, "model/minidrone_rotor_ccw.obj");
 		frontRightRotorModel.setTexture(droneTexture);	// テクスチャは今は共通
 		// 左後ローター
 		rearLeftRotorModel = new GLLoadableModel(frontRightRotorModel);	// コピーコンストラクタ

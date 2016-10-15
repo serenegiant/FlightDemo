@@ -1,4 +1,4 @@
-package com.serenegiant.drone;
+package com.serenegiant.arflight.drone;
 
 import android.content.Context;
 import android.util.AttributeSet;

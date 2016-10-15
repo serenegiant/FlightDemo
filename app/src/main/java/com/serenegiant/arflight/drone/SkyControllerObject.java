@@ -1,4 +1,4 @@
-package com.serenegiant.drone;
+package com.serenegiant.arflight.drone;
 
 import com.serenegiant.math.CylinderBounds;
 import com.serenegiant.math.Vector;

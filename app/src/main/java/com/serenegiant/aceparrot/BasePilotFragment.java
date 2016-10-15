@@ -35,7 +35,7 @@ import com.serenegiant.arflight.VideoStream;
 import com.serenegiant.arflight.controllers.FlightControllerMiniDrone;
 import com.serenegiant.arflight.controllers.FlightControllerMiniDroneNewAPI;
 import com.serenegiant.dialog.SelectFileDialogFragment;
-import com.serenegiant.drone.IVideoScreen;
+import com.serenegiant.arflight.drone.IVideoScreen;
 import com.serenegiant.gameengine.v1.IModelView;
 import com.serenegiant.gameengine.v1.IScreen;
 import com.serenegiant.gamepad.GamePadConst;

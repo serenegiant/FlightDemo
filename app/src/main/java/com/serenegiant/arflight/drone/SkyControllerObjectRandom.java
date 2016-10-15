@@ -1,6 +1,4 @@
-package com.serenegiant.drone;
-
-import android.util.Log;
+package com.serenegiant.arflight.drone;
 
 import com.serenegiant.math.Vector;
 

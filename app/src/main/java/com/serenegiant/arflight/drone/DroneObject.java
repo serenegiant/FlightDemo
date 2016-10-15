@@ -1,4 +1,4 @@
-package com.serenegiant.drone;
+package com.serenegiant.arflight.drone;
 
 import com.serenegiant.gameengine.v1.DynamicGameObject;
 import com.serenegiant.gameengine.v1.RotorObject;

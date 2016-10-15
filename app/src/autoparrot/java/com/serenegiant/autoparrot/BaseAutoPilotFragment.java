@@ -42,7 +42,7 @@ import com.serenegiant.arflight.ISkyController;
 import com.serenegiant.arflight.attribute.AttributeFloat;
 import com.serenegiant.dialog.ColorPickerDialog;
 import com.serenegiant.dialog.SelectFileDialogFragment;
-import com.serenegiant.drone.AttitudeScreenBase;
+import com.serenegiant.arflight.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine.v1.IModelView;
 import com.serenegiant.math.Vector;
 import com.serenegiant.opencv.ImageProcessor;

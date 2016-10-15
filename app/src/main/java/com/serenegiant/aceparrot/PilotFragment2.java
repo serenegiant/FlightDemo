@@ -31,7 +31,7 @@ import com.serenegiant.arflight.IDeviceController;
 import com.serenegiant.arflight.IFlightController;
 import com.serenegiant.arflight.IVideoStreamController;
 import com.serenegiant.dialog.SelectFileDialogFragment;
-import com.serenegiant.drone.AttitudeScreenBase;
+import com.serenegiant.arflight.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine.v1.IModelView;
 import com.serenegiant.utils.FileUtils;
 import com.serenegiant.widget.OrientationView;
