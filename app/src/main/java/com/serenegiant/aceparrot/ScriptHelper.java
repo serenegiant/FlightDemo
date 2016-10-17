@@ -1,5 +1,6 @@
 package com.serenegiant.aceparrot;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
@@ -134,39 +135,54 @@ public class ScriptHelper {
 
 	/**
 	 * アセット内のスクリプトファイルをストレージにコピーする
-	 * @param context
+	 * @param activity
 	 * @param force
 	 */
-	public static void copyScripts(final Context context, final boolean force) {
-		final File root = FileUtils.getCaptureDir(context, "Documents", 0);
-		final int n = SCRIPTS.length;
-		final byte[] buffer = new byte[1024];
-		for (int i = 0; i < n; i++) {
-			final File path = new File(root, SCRIPTS[i]);
-			if (force || !path.exists()) {
-				try {
-					final InputStream in = new BufferedInputStream(context.getResources().getAssets().open(SCRIPTS[i]));
+	public static void copyScripts(final Activity activity, final boolean force) {
+		File root = FileUtils.getCaptureDir(activity, "Documents", 0);
+		if ((root == null) || !root.canWrite()) {
+			// パーミッションが無い
+			root = activity.getFilesDir();
+		}
+		final SharedPreferences pref = activity.getPreferences(0);
+		final SharedPreferences.Editor editor = pref.edit();
+		try {
+			final int n = SCRIPTS.length;
+			final byte[] buffer = new byte[1024];
+			for (int i = 0; i < n; i++) {
+				final File path = new File(root, SCRIPTS[i]);
+				if (force || !path.exists()) {
 					try {
-						final OutputStream out = new BufferedOutputStream(new FileOutputStream(path));
+						final InputStream in = new BufferedInputStream(activity.getResources().getAssets().open(SCRIPTS[i]));
 						try {
-							for (;;) {
-								final int bytes = in.read(buffer);
-								if (bytes > 0) {
-									out.write(buffer, 0, bytes);
-								} else {
-									break;
+							final OutputStream out = new BufferedOutputStream(new FileOutputStream(path));
+							try {
+								for (;;) {
+									final int bytes = in.read(buffer);
+									if (bytes > 0) {
+										out.write(buffer, 0, bytes);
+									} else {
+										break;
+									}
 								}
+							} finally {
+								out.close();
 							}
 						} finally {
-							out.close();
+							in.close();
 						}
-					} finally {
-						in.close();
+						try {
+							final ScriptRec script = loadScript(path, 0);
+							saveScript(editor, script, i);
+						} catch (final ParseException e) {
+						}
+					} catch (final IOException e) {
+						Log.w(TAG, e);
 					}
-				} catch (final IOException e) {
-					Log.w(TAG, e);
 				}
 			}
+		} finally {
+			editor.apply();
 		}
 	}
 
@@ -215,13 +231,17 @@ public class ScriptHelper {
 			editor.putInt(KEY_SCRIPT_NUM, n);
 			for (int i = 0; i < n; i++) {
 				final ScriptRec script = scripts.get(i);
-				editor.putString(KEY_SCRIPT_PATH + i, script.path.getAbsolutePath())
-					.putString(KEY_SCRIPT_NAME + i, script.name)
-					.putInt(KEY_SCRIPT_CRC + i, script.crc);
+				saveScript(editor, script, i);
 			}
 		} finally {
 			editor.apply();
 		}
+	}
+
+	public static void saveScript(final SharedPreferences.Editor editor, final ScriptRec script, final int ix) {
+		editor.putString(KEY_SCRIPT_PATH + ix, script.path.getAbsolutePath())
+			.putString(KEY_SCRIPT_NAME + ix, script.name)
+			.putInt(KEY_SCRIPT_CRC + ix, script.crc);
 	}
 
 	/**

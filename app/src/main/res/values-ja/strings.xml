@@ -127,4 +127,9 @@
 	<string name="anim_slalome">スラローム</string>
 	<string name="anim_boost">ブースト</string>
 
+	<string name="permission_location">位置情報へのアクセス許可がありません。</string>
+	<string name="permission_location_finish">位置情報へのアクセス許可がありません。\n終了します。</string>
+	<string name="permission_location_reason">ドローンを検出するためには位置情報へのアクセス許可が必要です。</string>
+	<string name="permission_location_request">ドローンを検出するためには位置情報へのアクセス許可が必要です。</string>
+
 </resources>

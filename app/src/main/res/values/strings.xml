@@ -126,4 +126,9 @@
 	<string name="anim_slalome">Slalom</string>
 	<string name="anim_boost">Boost</string>
 
+	<string name="permission_location">No location access permission</string>
+	<string name="permission_location_finish">No location access permission. \nApp will finish soon</string>
+	<string name="permission_location_reason">Permission to access location needs to discover drone(s)</string>
+	<string name="permission_location_request">Permission to access location needs to discover drone(s)</string>
+
 </resources>

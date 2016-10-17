@@ -67,51 +67,53 @@ public class ConnectionFragment extends BaseConnectionFragment {
 		case R.id.download_button:
 		case R.id.gallery_button:
 		case R.id.script_button:
-			final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
-			final String itemValue = adapter.getItemName(position);
-			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-			final ARDiscoveryDeviceService device = manager.getDevice(itemValue);
-			if (device != null) {
-				// 製品名を取得
-				final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
-				switch (product) {
-				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
-					switch (id) {
-					case R.id.pilot_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test001", AutoPilotFragment2.MODE_TRACE);
+			if (checkPermissionLocation()) {
+				final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+				final String itemValue = adapter.getItemName(position);
+				final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+				final ARDiscoveryDeviceService device = manager.getDevice(itemValue);
+				if (device != null) {
+					// 製品名を取得
+					final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
+					switch (product) {
+					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+						switch (id) {
+						case R.id.pilot_button:
+							fragment = AutoPilotFragment2.newInstance(device, null, "test001", AutoPilotFragment2.MODE_TRACE);
+							break;
+						case R.id.download_button:
+							fragment = AutoPilotFragment2.newInstance(device, null, "test002", AutoPilotFragment2.MODE_TRACE);
+							break;
+						case R.id.gallery_button:
+							fragment = AutoPilotFragment2.newInstance(device, null, "test003", AutoPilotFragment2.MODE_TRACE);
+							break;
+						case R.id.script_button:
+							fragment = AutoPilotFragment2.newInstance(device, null, "test004", AutoPilotFragment2.MODE_TRACKING);
+							break;
+						}
 						break;
-					case R.id.download_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test002", AutoPilotFragment2.MODE_TRACE);
+					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+						switch (id) {
+						case R.id.pilot_button:
+							fragment = AutoPilotFragment2.newInstance(device, null, "test011", AutoPilotFragment2.MODE_TRACE);
+							break;
+						case R.id.download_button:
+							fragment = AutoPilotFragment2.newInstance(device, null, "test012", AutoPilotFragment2.MODE_TRACE);
+							break;
+						case R.id.gallery_button:
+							fragment = AutoPilotFragment2.newInstance(device, null, "test013", AutoPilotFragment2.MODE_TRACE);
+							break;
+						case R.id.script_button:
+							fragment = AutoPilotFragment2.newInstance(device, null, "test014", AutoPilotFragment2.MODE_TRACKING);
+							break;
+						}
 						break;
-					case R.id.gallery_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test003", AutoPilotFragment2.MODE_TRACE);
-						break;
-					case R.id.script_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test004", AutoPilotFragment2.MODE_TRACKING);
+					case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
+						if (BuildConfig.USE_SKYCONTROLLER) {
+							fragment = newBridgetFragment(device);
+						}
 						break;
 					}
-					break;
-				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-					switch (id) {
-					case R.id.pilot_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test011", AutoPilotFragment2.MODE_TRACE);
-						break;
-					case R.id.download_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test012", AutoPilotFragment2.MODE_TRACE);
-						break;
-					case R.id.gallery_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test013", AutoPilotFragment2.MODE_TRACE);
-						break;
-					case R.id.script_button:
-						fragment = AutoPilotFragment2.newInstance(device, null, "test014", AutoPilotFragment2.MODE_TRACKING);
-						break;
-					}
-					break;
-				case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
-					if (BuildConfig.USE_SKYCONTROLLER) {
-						fragment = newBridgetFragment(device);
-					}
-					break;
 				}
 			}
 			break;

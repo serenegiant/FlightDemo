@@ -57,9 +57,11 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	public void onResume() {
 		super.onResume();
 		if (DEBUG) Log.d(TAG, "onResume:");
-		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-		manager.startDiscovery();
-		manager.addCallback(mManagerCallback);
+		if (checkPermissionLocation()) {
+			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+			manager.startDiscovery();
+			manager.addCallback(mManagerCallback);
+		}
 		updateButtons(false);
 		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
 			mMediaPlayer.start();

@@ -24,16 +24,24 @@ public class ConnectionFragment extends BaseConnectionFragment {
 		Fragment fragment = null;
 		switch (view.getId()) {
 		case R.id.pilot_button:
-			fragment = getFragment(position, true);
+			if (checkPermissionLocation()) {
+				fragment = getFragment(position, true);
+			}
 			break;
 		case R.id.download_button:
-			fragment = getFragment(position, false);
+			if (checkPermissionWriteExternalStorage()) {
+				fragment = getFragment(position, false);
+			}
 			break;
 		case R.id.gallery_button:
-			fragment = GalleyFragment.newInstance();
+			if (checkPermissionWriteExternalStorage()) {
+				fragment = GalleyFragment.newInstance();
+			}
 			break;
 		case R.id.script_button:
-			fragment = ScriptFragment.newInstance();
+			if (checkPermissionWriteExternalStorage()) {
+				fragment = ScriptFragment.newInstance();
+			}
 			break;
 		case R.id.config_show_btn:
 			fragment = ConfigAppFragment.newInstance();

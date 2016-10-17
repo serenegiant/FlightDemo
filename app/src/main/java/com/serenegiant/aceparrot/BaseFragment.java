@@ -1,5 +1,6 @@
 package com.serenegiant.aceparrot;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
@@ -8,24 +9,29 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.serenegiant.dialog.MessageDialogFragment;
 import com.serenegiant.utils.BuildCheck;
 import com.serenegiant.utils.HandlerThreadHandler;
+import com.serenegiant.utils.PermissionCheck;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class BaseFragment extends Fragment {
+public class BaseFragment extends Fragment implements MessageDialogFragment.MessageDialogListener {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = BaseFragment.class.getSimpleName();
 
@@ -552,5 +558,184 @@ public class BaseFragment extends Fragment {
 			break;
 		}
 		return result;
+	}
+
+//================================================================================
+// Android6以降の動的パーミッション関係の処理
+//================================================================================
+
+	/**
+	 * Callback listener from MessageDialogFragmentV4
+	 * @param dialog
+	 * @param requestCode
+	 * @param permissions
+	 * @param result
+	 */
+	@SuppressLint("NewApi")
+	@Override
+	public void onMessageDialogResult(final MessageDialogFragment dialog, final int requestCode, final String[] permissions, final boolean result) {
+		if (result) {
+			// request permission(s) when user touched/clicked OK
+			if (BuildCheck.isMarshmallow()) {
+				requestPermissions(permissions, requestCode);
+				return;
+			}
+		}
+		// check permission and call #checkPermissionResult when user canceled or not Android6
+		final Context context = getActivity();
+		for (final String permission: permissions) {
+			checkPermissionResult(requestCode, permission, PermissionCheck.hasPermission(context, permission));
+		}
+	}
+
+	/**
+	 * callback method when app(Fragment) receive the result of permission result from ANdroid system
+	 * @param requestCode
+	 * @param permissions
+	 * @param grantResults
+	 */
+	@Override
+	public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions, @NonNull final int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);	// 何もしてないけど一応呼んどく
+		final int n = Math.min(permissions.length, grantResults.length);
+		for (int i = 0; i < n; i++) {
+			checkPermissionResult(requestCode, permissions[i], grantResults[i] == PackageManager.PERMISSION_GRANTED);
+		}
+	}
+
+	/**
+	 * check the result of permission request
+	 * if app still has no permission, just show Toast
+	 * @param requestCode
+	 * @param permission
+	 * @param result
+	 */
+	protected void checkPermissionResult(final int requestCode, final String permission, final boolean result) {
+		// show Toast when there is no permission
+		if (Manifest.permission.RECORD_AUDIO.equals(permission)) {
+			onUpdateAudioPermission(result);
+			if (!result) {
+				Toast.makeText(getActivity().getApplicationContext(), R.string.permission_audio, Toast.LENGTH_SHORT).show();
+			}
+		}
+		if (Manifest.permission.WRITE_EXTERNAL_STORAGE.equals(permission)) {
+			onUpdateExternalStoragePermission(result);
+			if (!result) {
+				Toast.makeText(getActivity().getApplicationContext(), R.string.permission_ext_storage, Toast.LENGTH_SHORT).show();
+			}
+		}
+		if (Manifest.permission.INTERNET.equals(permission)) {
+			onUpdateNetworkPermission(result);
+			if (!result) {
+				Toast.makeText(getActivity().getApplicationContext(), R.string.permission_network, Toast.LENGTH_SHORT).show();
+			}
+		}
+	}
+
+	protected void onUpdateAudioPermission(final boolean hasPermission) {
+	}
+
+	protected void onUpdateExternalStoragePermission(final boolean hasPermission) {
+	}
+
+	protected void onUpdateNetworkPermission(final boolean hasPermission) {
+	}
+
+	protected static final int REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE = 0x01;
+	protected static final int REQUEST_PERMISSION_AUDIO_RECORDING = 0x02;
+	protected static final int REQUEST_PERMISSION_NETWORK = 0x03;
+	protected static final int REQUEST_PERMISSION_LOCATION = 0x04;
+	protected static final int REQUEST_PERMISSION_LOCATION_COARSE = 0x05;
+	protected static final int REQUEST_PERMISSION_LOCATION_FINE = 0x06;
+
+	/**
+	 * check whether this app has write external storage
+	 * if this app has no permission, show dialog
+	 * @return true this app has permission
+	 */
+	protected boolean checkPermissionWriteExternalStorage() {
+		if (!PermissionCheck.hasWriteExternalStorage(getActivity())) {
+			MessageDialogFragment.showDialog(this, REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE,
+				R.string.permission_title, R.string.permission_ext_storage_request,
+				new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE});
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * check whether this app has permission of audio recording
+	 * if this app has no permission, show dialog
+	 * @return true this app has permission
+	 */
+	protected boolean checkPermissionAudio() {
+		if (!PermissionCheck.hasAudio(getActivity())) {
+			MessageDialogFragment.showDialog(this, REQUEST_PERMISSION_AUDIO_RECORDING,
+				R.string.permission_title, R.string.permission_audio_recording_request,
+				new String[] {Manifest.permission.RECORD_AUDIO});
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * check whether this app has permission of network access
+	 * if this app has no permission, show dialog
+	 * @return true this app has permission
+	 */
+	protected boolean checkPermissionNetwork() {
+		if (!PermissionCheck.hasNetwork(getActivity())) {
+			MessageDialogFragment.showDialog(this, REQUEST_PERMISSION_NETWORK,
+				R.string.permission_title, R.string.permission_network_request,
+				new String[] {Manifest.permission.INTERNET});
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * check whether this app has permission to access to coarse and fine location
+	 * if this app has no permission, show dialog
+	 * @return true this app has permission
+	 */
+	protected boolean checkPermissionLocation() {
+		if (!PermissionCheck.hasAccessLocation(getActivity())) {
+			MessageDialogFragment.showDialog(this, REQUEST_PERMISSION_LOCATION,
+				R.string.permission_title, R.string.permission_location_reason,
+				new String[] { Manifest.permission.ACCESS_COARSE_LOCATION,
+							  Manifest.permission.ACCESS_FINE_LOCATION});
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * check whether this app has permission to access to coarse location
+	 * if this app has no permission, show dialog
+	 * @return true this app has permission
+	 */
+	protected boolean checkPermissionLocationCoarse() {
+		if (!PermissionCheck.hasAccessLocation(getActivity())) {
+			MessageDialogFragment.showDialog(this, REQUEST_PERMISSION_LOCATION,
+				R.string.permission_title, R.string.permission_location_reason,
+				new String[] { Manifest.permission.ACCESS_COARSE_LOCATION});
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * check whether this app has permission to access to fine location
+	 * if this app has no permission, show dialog
+	 * @return true this app has permission
+	 */
+	protected boolean checkPermissionLocationFine() {
+		if (!PermissionCheck.hasAccessLocation(getActivity())) {
+			MessageDialogFragment.showDialog(this, REQUEST_PERMISSION_LOCATION,
+				R.string.permission_title, R.string.permission_location_reason,
+				new String[] { Manifest.permission.ACCESS_FINE_LOCATION});
+			return false;
+		}
+		return true;
 	}
 }

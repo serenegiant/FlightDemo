@@ -26,7 +26,10 @@ android {
 
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
-	compile 'com.parrot:arsdk:3.10.1'
+	compile "com.android.support:appcompat-v7:${supportLibVersion}"
+	compile ('com.parrot:arsdk:3.10.1') {
+		exclude group: 'com.android.support'
+	}
 	compile("com.serenegiant:common:${commonLibVersion}") {
 		exclude module: 'support-v4'
 	}
