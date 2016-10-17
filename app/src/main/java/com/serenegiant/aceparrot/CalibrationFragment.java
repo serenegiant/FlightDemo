@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.drone.AttitudeScreenBase;
-import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.IModelView;
 
 import jp.co.rediscovery.arflight.IDeviceController;
 import jp.co.rediscovery.arflight.IFlightController;

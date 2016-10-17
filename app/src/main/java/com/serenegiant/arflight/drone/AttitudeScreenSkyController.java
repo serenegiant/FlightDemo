@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.serenegiant.gameengine.v1.DynamicTexture;
 import com.serenegiant.gameengine.v1.FileIO;
-import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.IModelView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -25,7 +25,7 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 		super.resume();
 		droneModel.resume();
 		if (mVideoFrameTexture == null) {
-			mVideoFrameTexture = new DynamicTexture(mModelView);
+			mVideoFrameTexture = new DynamicTexture(getView());
 			mVideoFrameTexture.setSize(640, 368);
 		}
 	}
@@ -52,7 +52,7 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 	@Override
 	protected void initModel() {
 		if (mVideoFrameTexture == null) {
-			mVideoFrameTexture = new DynamicTexture(mModelView);
+			mVideoFrameTexture = new DynamicTexture(getView());
 			mVideoFrameTexture.setSize(640, 368);
 		}
 		// 機体
@@ -77,12 +77,12 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 		}
 		mShowGround = false;
 		// 3Dモデルの読み込み
-		final FileIO io = mModelView.getFileIO();
+		final FileIO io = getView().getFileIO();
 		StaticTexture droneTexture = null;
 		try {
-			droneTexture = new StaticTexture(mModelView, "skycontroller_tex.png");
+			droneTexture = new StaticTexture(getView(), "skycontroller_tex.png");
 		} catch (final Exception e) {
-			droneTexture = new StaticTexture(mModelView, "model/skycontroller_tex.png");
+			droneTexture = new StaticTexture(getView(), "model/skycontroller_tex.png");
 		}
 		droneModel = loadModel(io, "model/skycontroller.obj");
 		droneModel.setTexture(droneTexture);

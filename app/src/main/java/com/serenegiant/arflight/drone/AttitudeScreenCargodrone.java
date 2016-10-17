@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.serenegiant.gameengine.v1.FileIO;
 import com.serenegiant.gameengine.v1.GLLoadableModel;
-import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.IModelView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 
 public class AttitudeScreenCargodrone extends AttitudeScreenBase {
@@ -72,13 +72,13 @@ public class AttitudeScreenCargodrone extends AttitudeScreenBase {
 			break;
 		}
 		// 3Dモデルの読み込み
-		final FileIO io = mModelView.getFileIO();
+		final FileIO io = getView().getFileIO();
 		StaticTexture droneTexture = null;
 		try {
-			droneTexture = new StaticTexture(mModelView, "cargo_drone_tex.png");
+			droneTexture = new StaticTexture(getView(), "cargo_drone_tex.png");
 		} catch (final Exception e) {
 			Log.w(TAG, e);
-			droneTexture = new StaticTexture(mModelView, "model/cargo_drone_tex_blue.png");
+			droneTexture = new StaticTexture(getView(), "model/cargo_drone_tex_blue.png");
 		}
 		droneModel = loadModel(io, "model/cargo_drone_body.obj");
 		droneModel.setTexture(droneTexture);

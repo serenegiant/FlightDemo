@@ -11,7 +11,7 @@ import com.serenegiant.gameengine.v1.GLLoadableModel;
 import com.serenegiant.gameengine.v1.GLLookAtCamera;
 import com.serenegiant.gameengine.v1.GLPointLight;
 import com.serenegiant.gameengine.v1.GLScreen;
-import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.IModelView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 import com.serenegiant.gameengine.v1.TextureDrawer2D;
 import com.serenegiant.gameengine.v1.TextureRegion;
@@ -67,12 +67,12 @@ public abstract class AttitudeScreenBase extends GLScreen {
 
 	public AttitudeScreenBase(final IModelView modelView, final int ctrl_type) {
 		super(modelView);
-		if (DEBUG) Log.v(TAG, String.format("コンストラクタ(%d,%d)", screenWidth, screenHeight));
+		if (DEBUG) Log.v(TAG, String.format("コンストラクタ(%d,%d)", getWidth(), getHeight()));
 		mCtrlType = ctrl_type;
 		// 背景
 		backgroundTexture = new StaticTexture(modelView, "background.png");
-		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, screenWidth, screenHeight);
-		mFullScreenDrawer = new TextureDrawer2D(glGraphics, screenWidth, screenHeight);
+		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, getWidth(), getHeight());
+		mFullScreenDrawer = new TextureDrawer2D(glGraphics, getWidth(), getHeight());
 
 		// 地面
 		// テクスチャは正方形で2の乗数サイズでないとだめ
@@ -91,10 +91,10 @@ public abstract class AttitudeScreenBase extends GLScreen {
 //		material = new GLMaterial();
 
 		// 2Dカメラ
-		guiCamera = new GLCamera2D(glGraphics, screenWidth, screenHeight);
+		guiCamera = new GLCamera2D(glGraphics, getWidth(), getHeight());
 		// 視線カメラ
 		lookAtCamera = new GLLookAtCamera(
-			67, screenWidth / (float)screenHeight, 0.01f, 30f);
+			67, getWidth() / (float)getHeight(), 0.01f, 30f);
 		lookAtCamera.setPosition(0, 4, -6.4f);
 
 		mAlpha = 1.0f;
@@ -405,7 +405,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			model.setVertex(Vertex.load(glGraphics, io.readFile(path)));
 		} catch (final Exception e) {
 			// キャッチュからの読み込みができなかったのでassetsから読み込む
-			model.loadModel(mModelView, file_name);
+			model.loadModel(getView(), file_name);
 			try {
 				model.getVertex().save(io.writeFile(path));
 			} catch (final IOException e2) {

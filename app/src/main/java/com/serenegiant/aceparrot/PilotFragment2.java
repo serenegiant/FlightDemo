@@ -24,7 +24,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.arflight.drone.AttitudeScreenBase;
-import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.IModelView;
 import com.serenegiant.utils.FileUtils;
 import com.serenegiant.widget.OrientationView;
 import com.serenegiant.widget.SideMenuListView;

@@ -6,7 +6,7 @@ import android.util.Log;
 import com.serenegiant.gameengine.v1.DynamicTexture;
 import com.serenegiant.gameengine.v1.GLCamera2D;
 import com.serenegiant.gameengine.v1.GLScreen;
-import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.IModelView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 import com.serenegiant.gameengine.v1.TextureDrawer2D;
 import com.serenegiant.gameengine.v1.TextureRegion;
@@ -31,15 +31,15 @@ public class AttitudeScreenNull extends GLScreen implements IVideoScreen {
 
 	public AttitudeScreenNull(final IModelView modelView) {
 		super(modelView);
-		if (DEBUG) Log.v(TAG, String.format("コンストラクタ(%d,%d)", screenWidth, screenHeight));
+		if (DEBUG) Log.v(TAG, String.format("コンストラクタ(%d,%d)", getWidth(), getHeight()));
 		// 背景
 		backgroundTexture = new StaticTexture(modelView, "background.png");
-		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, screenWidth, screenHeight);
-		mFullScreenDrawer = new TextureDrawer2D(glGraphics, screenWidth, screenHeight);
+		backgroundRegion = new TextureRegion(backgroundTexture, 0, 0, getWidth(), getHeight());
+		mFullScreenDrawer = new TextureDrawer2D(glGraphics, getWidth(), getHeight());
 		// 2Dカメラ
-		guiCamera = new GLCamera2D(glGraphics, screenWidth, screenHeight);
+		guiCamera = new GLCamera2D(glGraphics, getWidth(), getHeight());
 		// ライブ映像受け取り用のテクスチャオブジェクトを生成
-		mVideoFrameTexture = new DynamicTexture(mModelView);
+		mVideoFrameTexture = new DynamicTexture(getView());
 		mVideoFrameTexture.setSize(640, 368);
 	}
 

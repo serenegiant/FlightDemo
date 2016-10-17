@@ -28,7 +28,7 @@ import com.serenegiant.arflight.ScriptFlight;
 import com.serenegiant.arflight.TouchFlight;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.arflight.drone.IVideoScreen;
-import com.serenegiant.gameengine.v1.IModelView;
+import com.serenegiant.gameengine.IModelView;
 import com.serenegiant.gameengine.v1.IScreen;
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.Joystick;
