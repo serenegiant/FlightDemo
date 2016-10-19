@@ -2,15 +2,15 @@ package com.serenegiant.arflight.drone;
 
 import android.util.Log;
 
-import com.serenegiant.gameengine.v1.FileIO;
+import com.serenegiant.gameengine.FileIO;
 import com.serenegiant.gameengine.v1.GLLoadableModel;
-import com.serenegiant.gameengine.IModelView;
+import com.serenegiant.gameengine.v1.IGLGameView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 
 public class AttitudeScreenCargodrone extends AttitudeScreenBase {
 	private static final String TAG = "AttitudeScreenCargodrone";
 
-	public AttitudeScreenCargodrone(final IModelView modelView, final int ctrl_type) {
+	public AttitudeScreenCargodrone(final IGLGameView modelView, final int ctrl_type) {
 		super(modelView, ctrl_type);
 	}
 
@@ -75,10 +75,10 @@ public class AttitudeScreenCargodrone extends AttitudeScreenBase {
 		final FileIO io = getView().getFileIO();
 		StaticTexture droneTexture = null;
 		try {
-			droneTexture = new StaticTexture(getView(), "cargo_drone_tex.png");
+			droneTexture = new StaticTexture((IGLGameView)getView(), "cargo_drone_tex.png");
 		} catch (final Exception e) {
 			Log.w(TAG, e);
-			droneTexture = new StaticTexture(getView(), "model/cargo_drone_tex_blue.png");
+			droneTexture = new StaticTexture((IGLGameView)getView(), "model/cargo_drone_tex_blue.png");
 		}
 		droneModel = loadModel(io, "model/cargo_drone_body.obj");
 		droneModel.setTexture(droneTexture);

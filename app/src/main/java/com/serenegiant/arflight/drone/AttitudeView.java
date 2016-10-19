@@ -5,7 +5,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 
 import com.serenegiant.gameengine.v1.GLModelView;
-import com.serenegiant.gameengine.v1.IScreen;
+import com.serenegiant.gameengine.IScreen;
 
 public class AttitudeView extends GLModelView {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること

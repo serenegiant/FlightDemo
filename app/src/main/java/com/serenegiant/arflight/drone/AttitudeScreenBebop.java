@@ -3,9 +3,9 @@ package com.serenegiant.arflight.drone;
 import android.graphics.SurfaceTexture;
 
 import com.serenegiant.gameengine.v1.DynamicTexture;
-import com.serenegiant.gameengine.v1.FileIO;
+import com.serenegiant.gameengine.FileIO;
 import com.serenegiant.gameengine.v1.GLLoadableModel;
-import com.serenegiant.gameengine.IModelView;
+import com.serenegiant.gameengine.v1.IGLGameView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -15,7 +15,7 @@ public class AttitudeScreenBebop extends AttitudeScreenBase implements IVideoScr
 
 	private DynamicTexture mVideoFrameTexture;
 
-	public AttitudeScreenBebop(final IModelView modelView, final int ctrl_type) {
+	public AttitudeScreenBebop(final IGLGameView modelView, final int ctrl_type) {
 		super(modelView, ctrl_type);
 	}
 
@@ -31,7 +31,7 @@ public class AttitudeScreenBebop extends AttitudeScreenBase implements IVideoScr
 		rearLeftRotorModel.resume();
 		rearRightRotorModel.resume(false);	// テクスチャを共有しているのでテクスチャのリロードは不要
 		if (mVideoFrameTexture == null) {
-			mVideoFrameTexture = new DynamicTexture(getView());
+			mVideoFrameTexture = new DynamicTexture((IGLGameView)getView());
 			mVideoFrameTexture.setSize(640, 368);
 		}
 	}
@@ -65,7 +65,7 @@ public class AttitudeScreenBebop extends AttitudeScreenBase implements IVideoScr
 	@Override
 	protected void initModel() {
 		if (mVideoFrameTexture == null) {
-			mVideoFrameTexture = new DynamicTexture(getView());
+			mVideoFrameTexture = new DynamicTexture((IGLGameView)getView());
 			mVideoFrameTexture.setSize(640, 368);
 		}
 		// 機体
@@ -96,20 +96,20 @@ public class AttitudeScreenBebop extends AttitudeScreenBase implements IVideoScr
 		final FileIO io = getView().getFileIO();
 		StaticTexture droneTexture = null;
 		try {
-			droneTexture = new StaticTexture(getView(), "bebop_drone_body_tex.png");
+			droneTexture = new StaticTexture((IGLGameView)getView(), "bebop_drone_body_tex.png");
 		} catch (final Exception e) {
 			// assetsからデフォルトのテクスチャを読み込む
-			droneTexture = new StaticTexture(getView(), "model/bebop_drone_body_tex.png");
+			droneTexture = new StaticTexture((IGLGameView)getView(), "model/bebop_drone_body_tex.png");
 		}
 		droneModel = loadModel(io, "model/bebop_drone_body.obj");
 		droneModel.setTexture(droneTexture);
 		// ガード(ハル)
 		StaticTexture guardTexture = null;
 		try {
-			guardTexture = new StaticTexture(getView(), "bebop_drone_bumper_tex.png");
+			guardTexture = new StaticTexture((IGLGameView)getView(), "bebop_drone_bumper_tex.png");
 		} catch (final Exception e) {
 			// assetsからデフォルトのテクスチャを読み込む
-			guardTexture = new StaticTexture(getView(), "model/bebop_drone_bumper_tex2.png");
+			guardTexture = new StaticTexture((IGLGameView)getView(), "model/bebop_drone_bumper_tex2.png");
 		}
 		guardModel = loadModel(io, "model/bebop_drone_bumper.obj");
 		guardModel.setTexture(guardTexture);
@@ -117,9 +117,9 @@ public class AttitudeScreenBebop extends AttitudeScreenBase implements IVideoScr
 		// 左前ローター
 		StaticTexture frontTexture = null;
 		try {
-			frontTexture = new StaticTexture(getView(), "bebop_drone_rotor_front_tex.png");
+			frontTexture = new StaticTexture((IGLGameView)getView(), "bebop_drone_rotor_front_tex.png");
 		} catch (final Exception e) {
-			frontTexture = new StaticTexture(getView(), "model/bebop_drone_rotor_front_tex.png");
+			frontTexture = new StaticTexture((IGLGameView)getView(), "model/bebop_drone_rotor_front_tex.png");
 		}
 		frontLeftRotorModel = loadModel(io, "model/bebop_drone_rotor_cw.obj");
 		frontLeftRotorModel.setTexture(frontTexture);
@@ -127,7 +127,7 @@ public class AttitudeScreenBebop extends AttitudeScreenBase implements IVideoScr
 		frontRightRotorModel = loadModel(io, "model/bebop_drone_rotor_ccw.obj");
 		frontRightRotorModel.setTexture(frontTexture);	// テクスチャは左前と共通
 		// 左後ローター
-		final StaticTexture rearTexture = new StaticTexture(getView(), "model/bebop_drone_rotor_rear_tex.png");
+		final StaticTexture rearTexture = new StaticTexture((IGLGameView)getView(), "model/bebop_drone_rotor_rear_tex.png");
 		rearLeftRotorModel = new GLLoadableModel(frontRightRotorModel);	// コピーコンストラクタ
 		rearLeftRotorModel.setTexture(rearTexture);
 		// 右後ローター

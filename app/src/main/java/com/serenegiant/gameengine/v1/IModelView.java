@@ -1,8 +1,6 @@
-package com.serenegiant.gameengine;
+package com.serenegiant.gameengine.v1;
 
-import com.serenegiant.gameengine.v1.IGameView;
-
-public interface IModelView extends IGameView {
+public interface IModelView extends IGLGameView {
 	public static final int MODEL_NON = 0;
 	public static final int MODEL_BEBOP = 1;
 	public static final int MODEL_MINIDRONE = 2;

@@ -2,7 +2,7 @@ package com.serenegiant.arflight.drone;
 
 import android.util.Log;
 
-import com.serenegiant.gameengine.v1.FileIO;
+import com.serenegiant.gameengine.FileIO;
 import com.serenegiant.gameengine.v1.GLAmbientLight;
 import com.serenegiant.gameengine.v1.GLCamera2D;
 import com.serenegiant.gameengine.v1.GLCubeModel;
@@ -11,11 +11,11 @@ import com.serenegiant.gameengine.v1.GLLoadableModel;
 import com.serenegiant.gameengine.v1.GLLookAtCamera;
 import com.serenegiant.gameengine.v1.GLPointLight;
 import com.serenegiant.gameengine.v1.GLScreen;
-import com.serenegiant.gameengine.IModelView;
+import com.serenegiant.gameengine.v1.IGLGameView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 import com.serenegiant.gameengine.v1.TextureDrawer2D;
 import com.serenegiant.gameengine.v1.TextureRegion;
-import com.serenegiant.gameengine.v1.TouchEvent;
+import com.serenegiant.gameengine.TouchEvent;
 import com.serenegiant.gameengine.v1.Vertex;
 import com.serenegiant.glutils.GLHelper;
 import com.serenegiant.math.Vector;
@@ -65,7 +65,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	protected TextureDrawer2D mFullScreenDrawer;
 	protected volatile float mAlpha;
 
-	public AttitudeScreenBase(final IModelView modelView, final int ctrl_type) {
+	public AttitudeScreenBase(final IGLGameView modelView, final int ctrl_type) {
 		super(modelView);
 		if (DEBUG) Log.v(TAG, String.format("コンストラクタ(%d,%d)", getWidth(), getHeight()));
 		mCtrlType = ctrl_type;
@@ -405,7 +405,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			model.setVertex(Vertex.load(glGraphics, io.readFile(path)));
 		} catch (final Exception e) {
 			// キャッチュからの読み込みができなかったのでassetsから読み込む
-			model.loadModel(getView(), file_name);
+			model.loadModel((IGLGameView)getView(), file_name);
 			try {
 				model.getVertex().save(io.writeFile(path));
 			} catch (final IOException e2) {

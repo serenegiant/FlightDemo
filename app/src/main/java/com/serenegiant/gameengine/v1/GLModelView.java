@@ -5,7 +5,10 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 
-import com.serenegiant.gameengine.IModelView;
+import com.serenegiant.gameengine.FileIO;
+import com.serenegiant.gameengine.IGameViewApplication;
+import com.serenegiant.gameengine.IScreen;
+import com.serenegiant.gameengine.LoadableInterface;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;

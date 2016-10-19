@@ -4,8 +4,11 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
 
-import com.serenegiant.gameengine.IModelView;
-import com.serenegiant.gameengine.v1.FileIO;import com.serenegiant.gameengine.v1.GLGraphics;import com.serenegiant.gameengine.v1.GLTextureView;import com.serenegiant.gameengine.v1.IGameViewApplication;import com.serenegiant.gameengine.v1.IScreen;import com.serenegiant.gameengine.v1.LoadableInterface;import javax.microedition.khronos.egl.EGLConfig;
+import com.serenegiant.gameengine.FileIO;
+import com.serenegiant.gameengine.IGameViewApplication;
+import com.serenegiant.gameengine.IScreen;
+import com.serenegiant.gameengine.LoadableInterface;
+import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public abstract class GLTextureModelView extends GLTextureView implements IModelView {

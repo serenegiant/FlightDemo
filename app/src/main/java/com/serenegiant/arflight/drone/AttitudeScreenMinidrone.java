@@ -1,13 +1,13 @@
 package com.serenegiant.arflight.drone;
 
-import com.serenegiant.gameengine.v1.FileIO;
+import com.serenegiant.gameengine.FileIO;
 import com.serenegiant.gameengine.v1.GLLoadableModel;
-import com.serenegiant.gameengine.IModelView;
+import com.serenegiant.gameengine.v1.IGLGameView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 
 public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 
-	public AttitudeScreenMinidrone(final IModelView modelView, final int ctrl_type) {
+	public AttitudeScreenMinidrone(final IGLGameView modelView, final int ctrl_type) {
 		super(modelView, ctrl_type);
 	}
 
@@ -72,9 +72,9 @@ public class AttitudeScreenMinidrone extends AttitudeScreenBase {
 		final FileIO io = getView().getFileIO();
 		StaticTexture droneTexture = null;
 		try {
-			droneTexture = new StaticTexture(getView(), "minidrone_tex.png");
+			droneTexture = new StaticTexture((IGLGameView)getView(), "minidrone_tex.png");
 		} catch (final Exception e) {
-			droneTexture = new StaticTexture(getView(), "model/minidrone_tex_red.png");
+			droneTexture = new StaticTexture((IGLGameView)getView(), "model/minidrone_tex_red.png");
 		}
 		droneModel = loadModel(io, "model/minidrone_body.obj");
 		droneModel.setTexture(droneTexture);

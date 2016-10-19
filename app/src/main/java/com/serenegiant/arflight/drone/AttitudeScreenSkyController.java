@@ -4,8 +4,8 @@ import android.graphics.SurfaceTexture;
 import android.util.Log;
 
 import com.serenegiant.gameengine.v1.DynamicTexture;
-import com.serenegiant.gameengine.v1.FileIO;
-import com.serenegiant.gameengine.IModelView;
+import com.serenegiant.gameengine.FileIO;
+import com.serenegiant.gameengine.v1.IGLGameView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -16,7 +16,7 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 
 	private DynamicTexture mVideoFrameTexture;
 
-	public AttitudeScreenSkyController(final IModelView modelView, final int ctrl_type) {
+	public AttitudeScreenSkyController(final IGLGameView modelView, final int ctrl_type) {
 		super(modelView, ctrl_type);
 	}
 
@@ -25,7 +25,7 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 		super.resume();
 		droneModel.resume();
 		if (mVideoFrameTexture == null) {
-			mVideoFrameTexture = new DynamicTexture(getView());
+			mVideoFrameTexture = new DynamicTexture((IGLGameView)getView());
 			mVideoFrameTexture.setSize(640, 368);
 		}
 	}
@@ -52,7 +52,7 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 	@Override
 	protected void initModel() {
 		if (mVideoFrameTexture == null) {
-			mVideoFrameTexture = new DynamicTexture(getView());
+			mVideoFrameTexture = new DynamicTexture((IGLGameView)getView());
 			mVideoFrameTexture.setSize(640, 368);
 		}
 		// 機体
@@ -80,9 +80,9 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 		final FileIO io = getView().getFileIO();
 		StaticTexture droneTexture = null;
 		try {
-			droneTexture = new StaticTexture(getView(), "skycontroller_tex.png");
+			droneTexture = new StaticTexture((IGLGameView)getView(), "skycontroller_tex.png");
 		} catch (final Exception e) {
-			droneTexture = new StaticTexture(getView(), "model/skycontroller_tex.png");
+			droneTexture = new StaticTexture((IGLGameView)getView(), "model/skycontroller_tex.png");
 		}
 		droneModel = loadModel(io, "model/skycontroller.obj");
 		droneModel.setTexture(droneTexture);
