@@ -9,8 +9,6 @@ import com.serenegiant.gameengine.v1.GLLoadableModel;
 import com.serenegiant.gameengine.v1.IGLGameView;
 import com.serenegiant.gameengine.v1.StaticTexture;
 
-import javax.microedition.khronos.opengles.GL10;
-
 public class AttitudeScreenBebop2 extends AttitudeScreenBase implements IVideoScreen {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "AttitudeScreenBebop2";
@@ -33,7 +31,7 @@ public class AttitudeScreenBebop2 extends AttitudeScreenBase implements IVideoSc
 		rearLeftRotorModel.resume();
 		rearRightRotorModel.resume(false);	// テクスチャを共有しているのでテクスチャのリロードは不要
 		if (mVideoFrameTexture == null) {
-			mVideoFrameTexture = new DynamicTexture((IGLGameView)getView());
+			mVideoFrameTexture = new DynamicTexture();
 			mVideoFrameTexture.setSize(640, 368);
 		}
 	}
@@ -67,7 +65,7 @@ public class AttitudeScreenBebop2 extends AttitudeScreenBase implements IVideoSc
 	@Override
 	protected void initModel() {
 		if (mVideoFrameTexture == null) {
-			mVideoFrameTexture = new DynamicTexture((IGLGameView)getView());
+			mVideoFrameTexture = new DynamicTexture();
 			mVideoFrameTexture.setSize(640, 368);
 		}
 		// 機体
@@ -150,7 +148,7 @@ public class AttitudeScreenBebop2 extends AttitudeScreenBase implements IVideoSc
 	}
 
 	@Override
-	protected void drawBackground(final GL10 gl) {
+	protected void drawBackground() {
 		if (mVideoEnabled && (mVideoFrameTexture != null) && mVideoFrameTexture.isAvailable()) {
 //			gl.glPushMatrix();
 			mVideoFrameTexture.bind();
@@ -159,7 +157,7 @@ public class AttitudeScreenBebop2 extends AttitudeScreenBase implements IVideoSc
 			mVideoFrameTexture.unbind();
 //			gl.glPopMatrix();
 		} else {
-			super.drawBackground(gl);
+			super.drawBackground();
 		}
 	}
 }

@@ -1,14 +1,13 @@
 package com.serenegiant.arflight.drone;
 
 import android.graphics.SurfaceTexture;
+import android.opengl.GLES10;
 import android.util.Log;
 
 import com.serenegiant.gameengine.v1.DynamicTexture;
 import com.serenegiant.gameengine.FileIO;
 import com.serenegiant.gameengine.v1.IGLGameView;
 import com.serenegiant.gameengine.v1.StaticTexture;
-
-import javax.microedition.khronos.opengles.GL10;
 
 public class AttitudeScreenSkyController extends AttitudeScreenBase implements IVideoScreen {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
@@ -25,7 +24,7 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 		super.resume();
 		droneModel.resume();
 		if (mVideoFrameTexture == null) {
-			mVideoFrameTexture = new DynamicTexture((IGLGameView)getView());
+			mVideoFrameTexture = new DynamicTexture();
 			mVideoFrameTexture.setSize(640, 368);
 		}
 	}
@@ -52,7 +51,7 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 	@Override
 	protected void initModel() {
 		if (mVideoFrameTexture == null) {
-			mVideoFrameTexture = new DynamicTexture((IGLGameView)getView());
+			mVideoFrameTexture = new DynamicTexture();
 			mVideoFrameTexture.setSize(640, 368);
 		}
 		// 機体
@@ -103,7 +102,7 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 	}
 
 	@Override
-	protected void drawBackground(final GL10 gl) {
+	protected void drawBackground() {
 		if (mVideoEnabled && (mVideoFrameTexture != null) && mVideoFrameTexture.isAvailable()) {
 //			gl.glPushMatrix();
 			mVideoFrameTexture.bind();
@@ -112,22 +111,22 @@ public class AttitudeScreenSkyController extends AttitudeScreenBase implements I
 			mVideoFrameTexture.unbind();
 //			gl.glPopMatrix();
 		} else {
-			super.drawBackground(gl);
+			super.drawBackground();
 		}
 	}
 
-	protected void drawModel(final GL10 gl) {
-		moveDrone(gl);
+	protected void drawModel() {
+		moveDrone();
 
-//		gl.glEnable(GL10.GL_BLEND);
-		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		gl.glEnable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
-		gl.glColor4f(1.0f, 1.0f, 1.0f, mAlpha);
+//		GLES10.glEnable(GL10.GL_BLEND);
+		GLES10.glBlendFunc(GLES10.GL_SRC_ALPHA, GLES10.GL_ONE_MINUS_SRC_ALPHA);
+		GLES10.glEnable(GLES10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
+		GLES10.glColor4f(1.0f, 1.0f, 1.0f, mAlpha);
 //--------------------------------------------------------------------------------
 		droneModel.draw();
 //--------------------------------------------------------------------------------
-		gl.glDisable(GL10.GL_COLOR_MATERIAL);
-		gl.glDisable(GL10.GL_BLEND);
+		GLES10.glDisable(GLES10.GL_COLOR_MATERIAL);
+		GLES10.glDisable(GLES10.GL_BLEND);
 	}
 
 }

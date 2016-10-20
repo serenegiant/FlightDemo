@@ -1,6 +1,7 @@
 package com.serenegiant.gameengine.v1;
 
 import android.content.Context;
+import android.opengl.GLES10;
 import android.util.AttributeSet;
 import android.util.Log;
 
@@ -8,11 +9,12 @@ import com.serenegiant.gameengine.FileIO;
 import com.serenegiant.gameengine.IGameViewApplication;
 import com.serenegiant.gameengine.IScreen;
 import com.serenegiant.gameengine.LoadableInterface;
+import com.serenegiant.glutils.EGLBase;
+
 import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
 
 public abstract class GLTextureModelView extends GLTextureView implements IModelView {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "GLTextureModelView";
 
 	protected static final int IDLE = 0;
@@ -54,10 +56,10 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 		setRenderer(renderer);
 	}
 
-	@Override
-	public void onResume() {
-		super.onResume();
-	}
+//	@Override
+//	public void onResume() {
+//		super.onResume();
+//	}
 
 	@Override
 	public void onPause() {
@@ -163,7 +165,7 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 	private final Renderer renderer = new Renderer() {
 		private float deltaTime;
 		@Override
-		public void onDrawFrame(final GL10 gl) {
+		public void onDrawFrame() {
 			if ((isInEditMode())) return;
 
 			int localState;
@@ -223,8 +225,8 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 		}
 
 		@Override
-		public void onSurfaceDestroyed(final GL10 gl) {
-			if (DEBUG) Log.v(TAG, "onSurfaceDestroyed:gl=" + gl);
+		public void onSurfaceDestroyed() {
+			if (DEBUG) Log.v(TAG, "onSurfaceDestroyed:");
 			int localState;
 			synchronized (mStateSyncObj) {
 				localState = mState;
@@ -236,12 +238,11 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 		}
 
 		@Override
-		public void onSurfaceChanged(final GL10 gl, final int width, final int height) {
-			if (DEBUG) Log.v(TAG, "onSurfaceChanged:width=" + width + ",height=" + height + ",gl=" + gl);
+		public void onSurfaceChanged(final int width, final int height) {
+			if (DEBUG) Log.v(TAG, "onSurfaceChanged:width=" + width + ",height=" + height);
 			if ((isInEditMode())) return;
 
 			mIsLandscape = (width > height);
-			glGraphics.setGL(gl);
 			synchronized (mStateSyncObj) {
 				if (mState == RUNNING) {
 					setScreenSize(mScreen, width, height);
@@ -250,17 +251,16 @@ public abstract class GLTextureModelView extends GLTextureView implements IModel
 					mState = RUNNING;
 				}
 			}
-			gl.glViewport(0, 0, width, height);
+			GLES10.glViewport(0, 0, width, height);
 		}
 
 		@Override
-		public void onSurfaceCreated(final GL10 gl, final EGLConfig config) {
-			if (DEBUG) Log.v(TAG, "onSurfaceCreated:gl=" + gl);
+		public void onSurfaceCreated(final EGLBase.IConfig config) {
+			if (DEBUG) Log.v(TAG, "onSurfaceCreated:");
 			if ((isInEditMode())) return;
 
 			int localState;
 			glActive = true;
-			glGraphics.setGL(gl);
 			synchronized (mStateSyncObj) {
 				mRendererThreadID = Thread.currentThread().getId();
 				if (mScreen == null) {

@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.serenegiant.math.Vector;
 
-
 public class DroneObjectBebopCalibration extends DroneObjectBebop implements ICalibrationModelObject {
 	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = DroneObjectBebopCalibration.class.getSimpleName();

@@ -2,6 +2,7 @@ package com.serenegiant.arflight.drone;
 
 /**
  * Created by saki on 2015/09/17.
+ *
  */
 public interface ICalibrationModelObject {
 	/**

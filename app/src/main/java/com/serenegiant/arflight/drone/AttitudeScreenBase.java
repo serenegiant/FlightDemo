@@ -1,5 +1,6 @@
 package com.serenegiant.arflight.drone;
 
+import android.opengl.GLES10;
 import android.util.Log;
 
 import com.serenegiant.gameengine.FileIO;
@@ -17,12 +18,10 @@ import com.serenegiant.gameengine.v1.TextureDrawer2D;
 import com.serenegiant.gameengine.v1.TextureRegion;
 import com.serenegiant.gameengine.TouchEvent;
 import com.serenegiant.gameengine.v1.Vertex;
-import com.serenegiant.glutils.GLHelper;
+import com.serenegiant.glutils.es1.GLHelper;
 import com.serenegiant.math.Vector;
 
 import java.io.IOException;
-
-import javax.microedition.khronos.opengles.GL10;
 
 public abstract class AttitudeScreenBase extends GLScreen {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
@@ -77,7 +76,7 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		// 地面
 		// テクスチャは正方形で2の乗数サイズでないとだめ
 		plateTexture = new StaticTexture(modelView, "model/ichimatsu_arrow.png");
-		plateModel = new GLCubeModel(glGraphics, Vector.zeroVector, 30, 0.01f, 30, 10);
+		plateModel = new GLCubeModel(Vector.zeroVector, 30, 0.01f, 30, 10);
 		plateModel.setTexture(plateTexture);
 
 		ambientLight = new GLAmbientLight();
@@ -137,20 +136,20 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		lookAtCamera.setLookAt(droneModel.getPosition());
 	}
 
-	protected void drawBackground(final GL10 gl) {
+	protected void drawBackground() {
 		// 背景を描画
 		backgroundTexture.bind();
 		mFullScreenDrawer.draw();
 		backgroundTexture.unbind();
 	}
 
-	protected void drawModel(final GL10 gl) {
-		moveDrone(gl);
+	protected void drawModel() {
+		moveDrone();
 
-//		gl.glEnable(GL10.GL_BLEND);
-		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		gl.glEnable(GL10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
-		gl.glColor4f(1.0f, 1.0f, 1.0f, mAlpha);
+//		GLES10.glEnable(GL10.GL_BLEND);
+		GLES10.glBlendFunc(GLES10.GL_SRC_ALPHA, GLES10.GL_ONE_MINUS_SRC_ALPHA);
+		GLES10.glEnable(GLES10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
+		GLES10.glColor4f(1.0f, 1.0f, 1.0f, mAlpha);
 //--------------------------------------------------------------------------------
 		droneModel.draw();
 		if (mHasGuard && (guardModel != null)) {
@@ -161,34 +160,32 @@ public abstract class AttitudeScreenBase extends GLScreen {
 		rearLeftRotorModel.draw();
 		rearRightRotorModel.draw();
 //--------------------------------------------------------------------------------
-		gl.glDisable(GL10.GL_COLOR_MATERIAL);
-		gl.glDisable(GL10.GL_BLEND);
+		GLES10.glDisable(GLES10.GL_COLOR_MATERIAL);
+		GLES10.glDisable(GLES10.GL_BLEND);
 	}
 
 	@Override
 	public void draw(final float deltaTime) {
 //		if (DEBUG) Log.v(TAG_SCREEN, "draw");
-		// 画面表示更新
-		final GL10 gl = glGraphics.getGL();
 
 		// ここから2Dの描画処理
 		guiCamera.setMatrix();
-		gl.glDisable(GL10.GL_LIGHTING);				// ライティングを無効化
-		gl.glDisable(GL10.GL_CULL_FACE);			// ポリゴンのカリングを無効にする
-		gl.glDisable(GL10.GL_DEPTH_TEST);			// デプステストを無効にする
+		GLES10.glDisable(GLES10.GL_LIGHTING);				// ライティングを無効化
+		GLES10.glDisable(GLES10.GL_CULL_FACE);			// ポリゴンのカリングを無効にする
+		GLES10.glDisable(GLES10.GL_DEPTH_TEST);			// デプステストを無効にする
 //		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		// 背景を描画
-		drawBackground(gl);
+		drawBackground();
 
 		// ここから3Dの描画処理
-		lookAtCamera.setMatrix(gl);
-		gl.glEnable(GL10.GL_BLEND);
-		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);	// アルファブレンド
-//		gl.glBlendFunc(GL10.GL_ONE, GL10.GL_ZERO);	// 上書き
-//		gl.glColor4f(1f, 1f, 1f, 0f);
-		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
-		gl.glEnable(GL10.GL_DEPTH_TEST);			// デプステストを有効にする
-		gl.glClear(GL10.GL_DEPTH_BUFFER_BIT);		// デプスバッファをクリアする
+		lookAtCamera.setMatrix();
+		GLES10.glEnable(GLES10.GL_BLEND);
+		GLES10.glBlendFunc(GLES10.GL_SRC_ALPHA, GLES10.GL_ONE_MINUS_SRC_ALPHA);	// アルファブレンド
+//		GLES10.glBlendFunc(GLES10.GL_ONE, GL10.GL_ZERO);	// 上書き
+//		GLES10.glColor4f(1f, 1f, 1f, 0f);
+		GLES10.glEnable(GLES10.GL_LIGHTING);		// ライティングを有効化
+		GLES10.glEnable(GLES10.GL_DEPTH_TEST);		// デプステストを有効にする
+		GLES10.glClear(GLES10.GL_DEPTH_BUFFER_BIT);	// デプスバッファをクリアする
 
 		// 床を描画
 		if (mShowGround) {
@@ -197,53 +194,53 @@ public abstract class AttitudeScreenBase extends GLScreen {
 			plateModel.draw();
 //			plateTexture.unbind();
 		}
-		gl.glEnable(GL10.GL_LIGHTING);				// ライティングを有効化
-		gl.glEnable(GL10.GL_CULL_FACE);         	// ポリゴンのカリングを有効にする
-		gl.glCullFace(GL10.GL_BACK);				// 裏面を描画しない
-		gl.glEnable(GL10.GL_DEPTH_TEST);			// デプステストを有効にする
-		ambientLight.enable(gl);					// 環境光を有効にする
-		pointLight.enable(gl, GL10.GL_LIGHT0);		// 点光源を有効にする
-		directionLight.enable(gl, GL10.GL_LIGHT1);	// 平行光源を有効にする
-//		material.enable(gl);						// これを入れると影が出なくなる
-//		gl.glEnable(GL10.GL_COLOR_MATERIAL);		// 環境光と拡散光のマテリアル色として頂点色を使うとき
+		GLES10.glEnable(GLES10.GL_LIGHTING);		// ライティングを有効化
+		GLES10.glEnable(GLES10.GL_CULL_FACE);       // ポリゴンのカリングを有効にする
+		GLES10.glCullFace(GLES10.GL_BACK);			// 裏面を描画しない
+		GLES10.glEnable(GLES10.GL_DEPTH_TEST);		// デプステストを有効にする
+		ambientLight.enable();						// 環境光を有効にする
+		pointLight.enable(GLES10.GL_LIGHT0);		// 点光源を有効にする
+		directionLight.enable(GLES10.GL_LIGHT1);	// 平行光源を有効にする
+//		material.enable();							// これを入れると影が出なくなる
+//		GLES10.glEnable(GLES10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
 		// モデルを描画
-		gl.glPushMatrix();							// 現在のマトリックスを保存
-		drawModel(gl);
-		gl.glPopMatrix();							// マトリックスを復元
+		GLES10.glPushMatrix();						// 現在のマトリックスを保存
+		drawModel();
+		GLES10.glPopMatrix();						// マトリックスを復元
 
 		// 3D描画処理終了
-		ambientLight.disable(gl);
-		pointLight.disable(gl);
-		directionLight.disable(gl);
-		gl.glDisable(GL10.GL_LIGHTING);				// ライティングを無効化
-//		material.disable(gl);
-//		gl.glDisable(GL10.GL_COLOR_MATERIAL);		// 環境光と拡散光のマテリアル色として頂点色を使うとき
-		gl.glDisable(GL10.GL_BLEND);				// ブレンディングを無効
+		ambientLight.disable();
+		pointLight.disable();
+		directionLight.disable();
+		GLES10.glDisable(GLES10.GL_LIGHTING);		// ライティングを無効化
+//		material.disable();
+//		GLES10.glDisable(GLES10.GL_COLOR_MATERIAL);	// 環境光と拡散光のマテリアル色として頂点色を使うとき
+		GLES10.glDisable(GLES10.GL_BLEND);			// ブレンディングを無効
 	}
 
 	public void setAlpha(final float alpha) {
 		mAlpha = alpha;
 	}
 
-	protected void moveDrone(final GL10 gl) {
+	protected void moveDrone() {
 		synchronized (mDroneSync) {
 			final Vector position = droneObj.position;
-			gl.glTranslatef(position.x, position.y, position.z);
+			GLES10.glTranslatef(position.x, position.y, position.z);
 			final Vector angle = droneObj.angle;
 			if (angle.x != 0) {	// pitch
-				gl.glRotatef(-angle.x, 1, 0, 0);
-				if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+				GLES10.glRotatef(-angle.x, 1, 0, 0);
+				if (DEBUG) GLHelper.checkGlError("GLPolygonModel#glRotatef");
 			}
 			if (angle.y != 0) {	// yaw
-				gl.glRotatef(angle.y, 0, 1, 0);
-				if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+				GLES10.glRotatef(angle.y, 0, 1, 0);
+				if (DEBUG) GLHelper.checkGlError("GLPolygonModel#glRotatef");
 			}
 			if (angle.z != 0) {	// roll
-				gl.glRotatef(angle.z, 0, 0, 1);
-				if (DEBUG) GLHelper.checkGlError(gl, "GLPolygonModel#glRotatef");
+				GLES10.glRotatef(angle.z, 0, 0, 1);
+				if (DEBUG) GLHelper.checkGlError("GLPolygonModel#glRotatef");
 			}
 			final Vector offset = droneObj.getOffset();
-			gl.glTranslatef(-offset.x, -offset.y, -offset.z);
+			GLES10.glTranslatef(-offset.x, -offset.y, -offset.z);
 		}
 	}
 
@@ -399,10 +396,10 @@ public abstract class AttitudeScreenBase extends GLScreen {
 	 */
 	protected GLLoadableModel loadModel(final FileIO io, final String file_name) {
 		final String path = file_name.replace("/", "$");
-		final GLLoadableModel model = new GLLoadableModel(glGraphics);
+		final GLLoadableModel model = new GLLoadableModel();
 		try {
 			// プライベートストレージからキャッシュしてあるモデルデータの読み込みを試みる
-			model.setVertex(Vertex.load(glGraphics, io.readFile(path)));
+			model.setVertex(Vertex.load(io.readFile(path)));
 		} catch (final Exception e) {
 			// キャッチュからの読み込みができなかったのでassetsから読み込む
 			model.loadModel((IGLGameView)getView(), file_name);

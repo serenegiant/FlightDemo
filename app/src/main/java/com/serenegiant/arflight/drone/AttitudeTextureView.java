@@ -8,7 +8,7 @@ import com.serenegiant.gameengine.v1.GLTextureModelView;
 import com.serenegiant.gameengine.IScreen;
 
 public class AttitudeTextureView extends GLTextureModelView {
-	private static final boolean DEBUG = false;    // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;    // FIXME 実働時はfalseにすること
 	private static final String TAG = "AttitudeTextureView";
 
 	private int mModel = MODEL_BEBOP;

@@ -1,6 +1,7 @@
 package com.serenegiant.arflight.drone;
 
 import android.graphics.SurfaceTexture;
+import android.opengl.GLES10;
 import android.util.Log;
 
 import com.serenegiant.gameengine.v1.DynamicTexture;
@@ -11,8 +12,6 @@ import com.serenegiant.gameengine.v1.StaticTexture;
 import com.serenegiant.gameengine.v1.TextureDrawer2D;
 import com.serenegiant.gameengine.v1.TextureRegion;
 import com.serenegiant.gameengine.TouchEvent;
-
-import javax.microedition.khronos.opengles.GL10;
 
 public class AttitudeScreenNull extends GLScreen implements IVideoScreen {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
@@ -39,7 +38,7 @@ public class AttitudeScreenNull extends GLScreen implements IVideoScreen {
 		// 2Dカメラ
 		guiCamera = new GLCamera2D(glGraphics, getWidth(), getHeight());
 		// ライブ映像受け取り用のテクスチャオブジェクトを生成
-		mVideoFrameTexture = new DynamicTexture(modelView);
+		mVideoFrameTexture = new DynamicTexture();
 		mVideoFrameTexture.setSize(640, 368);
 	}
 
@@ -51,22 +50,20 @@ public class AttitudeScreenNull extends GLScreen implements IVideoScreen {
 	public void draw(final float deltaTime) {
 //		if (DEBUG) Log.v(TAG_SCREEN, "draw");
 		// 画面表示更新
-		final GL10 gl = glGraphics.getGL();
-
 		// ここから2Dの描画処理
 		guiCamera.setMatrix();
-		gl.glDisable(GL10.GL_LIGHTING);				// ライティングを無効化
-		gl.glDisable(GL10.GL_CULL_FACE);			// ポリゴンのカリングを無効にする
-		gl.glDisable(GL10.GL_DEPTH_TEST);			// デプステストを無効にする
+		GLES10.glDisable(GLES10.GL_LIGHTING);				// ライティングを無効化
+		GLES10.glDisable(GLES10.GL_CULL_FACE);			// ポリゴンのカリングを無効にする
+		GLES10.glDisable(GLES10.GL_DEPTH_TEST);			// デプステストを無効にする
 //		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		// 背景を描画
 		if (mVideoEnabled && (mVideoFrameTexture != null) && mVideoFrameTexture.isAvailable()) {
-//			gl.glPushMatrix();
+//			GLES10.glPushMatrix();
 			mVideoFrameTexture.bind();
-//			gl.glMultMatrixf(mVideoFrameTexture.texMatrix(), 0);	// これを入れると表示サイズがおかしい
+//			GLES10.glMultMatrixf(mVideoFrameTexture.texMatrix(), 0);	// これを入れると表示サイズがおかしい
 			mFullScreenDrawer.draw();
 			mVideoFrameTexture.unbind();
-//			gl.glPopMatrix();
+//			GLES10.glPopMatrix();
 		} else {
 			backgroundTexture.bind();
 			mFullScreenDrawer.draw();

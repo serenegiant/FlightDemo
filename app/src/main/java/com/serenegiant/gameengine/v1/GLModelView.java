@@ -321,7 +321,6 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 			if ((isInEditMode())) return;
 
 			mIsLandscape = (width > height);
-			glGraphics.setGL(gl);	// 2013/11/20追加 なぜかonSurfaceCreatedで正しくセットされてない時がある
 			synchronized (mStateSyncObj) {
 				if (mState == RUNNING) {
 					setScreenSize(mScreen, width, height);
@@ -340,7 +339,6 @@ public abstract class GLModelView extends GLSurfaceView implements IModelView {
 
 			int localState;
 			glActive = true;
-			glGraphics.setGL(gl);
 			synchronized (mStateSyncObj) {
 				mGameThreadID = Thread.currentThread().getId(); // 2013/07/22
 				if (mScreen == null) {	// 2013/06/05

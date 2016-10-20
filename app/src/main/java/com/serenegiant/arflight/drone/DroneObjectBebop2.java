@@ -2,7 +2,6 @@ package com.serenegiant.arflight.drone;
 
 import com.serenegiant.math.Vector;
 
-
 public class DroneObjectBebop2 extends DroneObject {
 
 	private static final Vector OFFSET = new Vector(0, 1.7f, 0);

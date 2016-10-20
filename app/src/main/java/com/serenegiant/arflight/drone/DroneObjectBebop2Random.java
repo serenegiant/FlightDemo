@@ -2,7 +2,6 @@ package com.serenegiant.arflight.drone;
 
 import com.serenegiant.math.Vector;
 
-
 public class DroneObjectBebop2Random extends DroneObjectBebop2 {
 
 	public DroneObjectBebop2Random(final Vector position, final float scale) {
