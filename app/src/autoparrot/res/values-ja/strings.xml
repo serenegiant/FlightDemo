@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">Autoparrot</string>
+	<string name="app_name">オートパロット</string>
 
 	<!-- ライントレース画面の文字列 -->
 	<!-- カメラ設定 -->

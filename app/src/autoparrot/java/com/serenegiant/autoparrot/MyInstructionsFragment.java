@@ -20,6 +20,6 @@ public class MyInstructionsFragment extends InstructionsFragment {
 
 	@Override
 	protected Fragment getConnectionFragment() {
-		return InstructionsFragment();
+		return new ConnectionFragment();
 	}
 }

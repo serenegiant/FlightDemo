@@ -35,21 +35,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ImageProcessor {
-//	private static final boolean DEBUG = true; // FIXME 実働時はfalseにすること
+//	private static final boolean DEBUG = false; // FIXME 実働時はfalseにすること
 	private static final String TAG = ImageProcessor.class.getSimpleName();
 
 	private static final int REQUEST_DRAW = 1;
 	private static final int REQUEST_UPDATE_SIZE = 2;
 
+	/**
+	 * 処理結果を通知するためのコールバックリスナー
+	 */
 	public interface ImageProcessorCallback {
+		/**
+		 * 結果映像を受け取った時の処理
+		 * @param frame
+		 */
 		public void onFrame(final ByteBuffer frame);
+
+		/**
+		 * 処理結果データを受け取った時の処理
+		 * @param type
+		 * @param result
+		 */
 		public void onResult(final int type, final float[] result);
 	}
 
+	/** 排他制御用 */
 	private final Object mSync = new Object();
 	private final ImageProcessorCallback mCallback;
 	private List<IEffect> mEffects = new ArrayList<IEffect>();
-	private volatile boolean isProcessingRunning;
+	private volatile boolean isProcessingRunning;	// XXX ProcessingTask#isRunningを使えばこれはいらんかも
 	private ProcessingTask mProcessingTask;
 	private Handler mAsyncHandler;
 
@@ -75,6 +89,7 @@ public class ImageProcessor {
 
 	private final int mSrcWidth, mSrcHeight;
 	private volatile boolean requestUpdateExtractionColor;
+	/** 映像処理のフレームレート計算用 */
 	private final FpsCounter mResultFps = new FpsCounter();
 
 	/** native側のインスタンスポインタ, 名前を変えたりしちゃダメ */
@@ -85,9 +100,11 @@ public class ImageProcessor {
 	 * @param src_width ソース映像サイズ
 	 * @param src_height  ソース映像サイズ
 	 * @param callback
+	 * @throws NullPointerException
 	 */
-	public ImageProcessor(final int src_width, final int src_height, final ImageProcessorCallback callback) {
-//		if (DEBUG) Log.v(TAG, "コンストラクタ");
+	public ImageProcessor(final int src_width, final int src_height, final ImageProcessorCallback callback)
+		throws NullPointerException {
+
 		if (callback == null) {
 			throw new NullPointerException("callback should not be null");
 		}
@@ -95,6 +112,9 @@ public class ImageProcessor {
 		mSrcHeight = src_height;
 		mCallback = callback;
 		mNativePtr = nativeCreate(new WeakReference<ImageProcessor>(this));
+		final HandlerThread thread = new HandlerThread("OnFrameAvailable");
+		thread.start();
+		mAsyncHandler = new Handler(thread.getLooper());
 	}
 
 	/**
@@ -103,11 +123,7 @@ public class ImageProcessor {
 	 * @param height 処理画像サイズ
 	 */
 	public void start(final int width, final int height) {
-//		if (DEBUG) Log.v(TAG, "start:");
 		if (mProcessingTask == null) {
-			final HandlerThread thread = new HandlerThread("OnFrameAvailable");
-			thread.start();
-			mAsyncHandler = new Handler(thread.getLooper());
 			mProcessingTask = new ProcessingTask(this, mSrcWidth, mSrcHeight, width, height);
 			new Thread(mProcessingTask, "VideoStream$rendererTask").start();
 			mProcessingTask.waitReady();
@@ -123,8 +139,10 @@ public class ImageProcessor {
 		}
 	}
 
+	/**
+	 * ImageProcessorの処理スレッドを停止
+	 */
 	public void stop() {
-//		if (DEBUG) Log.v(TAG, "stop:");
 		final ProcessingTask task = mProcessingTask;
 		mProcessingTask = null;
 		if (task != null) {
@@ -134,6 +152,13 @@ public class ImageProcessor {
 			}
 			task.release();
 		}
+	}
+
+	/**
+	 * 関連するリソースをすべて破棄する
+	 */
+	public void release() {
+		stop();
 		if (mAsyncHandler != null) {
 			try {
 				mAsyncHandler.getLooper().quit();
@@ -141,16 +166,7 @@ public class ImageProcessor {
 			}
 			mAsyncHandler = null;
 		}
-	}
-
-	/**
-	 * 関連するリソースをすべて破棄する
-	 */
-	public void release() {
-//		if (DEBUG) Log.v(TAG, "release");
-		stop();
 		nativeRelease(mNativePtr);
-//		if (DEBUG) Log.v(TAG, "release:finished");
 	}
 
 	/** 映像受け取り用Surfaceを取得 */
@@ -163,23 +179,43 @@ public class ImageProcessor {
 		return mProcessingTask.getSurfaceTexture();
 	}
 
+	/**
+	 * 処理フレームレートを更新
+	 */
 	public void updateFps() {
 		mResultFps.update();
 	}
 
+	/**
+	 * 前回#getFpsを呼び出してから現在までの処理フレームレートを取得
+	 * @return
+	 */
 	public float getFps() {
 		return mResultFps.getFps();
 	}
 
+	/**
+	 * 測定開始からの処理フレームレートを取得
+	 * @return
+	 */
 	public float getTotalFps() {
 		return mResultFps.getTotalFps();
 	}
 //================================================================================
+	// 結果映像の種類定数
+	/** 結果映像として元映像を返す */
 	public static final int RESULT_FRAME_TYPE_SRC = 0;
+	/** 結果映像として処理後映像を返す */
 	public static final int RESULT_FRAME_TYPE_DST = 1;
+	/** 結果映像として元映像に解析結果を書き込んで返す */
 	public static final int RESULT_FRAME_TYPE_SRC_LINE = 2;
+	/** 結果映像として処理後映像に解析結果を書き込んで返す */
 	public static final int RESULT_FRAME_TYPE_DST_LINE = 3;
 
+	/**
+	 * 結果映像の種類を変更
+	 * @param result_frame_type
+	 */
 	public void setResultFrameType(final int result_frame_type) {
 		final int result = nativeSetResultFrameType(mNativePtr, result_frame_type);
 		if (result != 0) {
@@ -187,7 +223,12 @@ public class ImageProcessor {
 		}
 	}
 
-	public int getResultFrameType() {
+	/**
+	 * 結果映像の種類を取得
+	 * @return
+	 * @throws IllegalStateException
+	 */
+	public int getResultFrameType() throws IllegalStateException {
 		final int result = nativeGetResultFrameType(mNativePtr);
 		if (result < 0) {
 			throw new IllegalStateException("nativeGetResultFrameType:result=" + result);
@@ -195,6 +236,11 @@ public class ImageProcessor {
 		return result;
 	}
 
+	/**
+	 * 自動補正を有効にするかどうかを設定
+	 * 諸般の事情で実際には常時ON
+	 * @param enable
+	 */
 	public void enableAutoFix(final boolean enable) {
 		if (mEnableAutoFix != enable) {
 			mEnableAutoFix = enable;
@@ -210,10 +256,19 @@ public class ImageProcessor {
 		}
 	}
 
+	/**
+	 * 自動補正が有効かどうかを取得
+	 * @return
+	 */
 	public boolean enableAutoFix() {
 		return mEnableAutoFix;
 	}
 
+	/**
+	 * 露出調整を有効にするかどうかを設定
+	 * 機体側のカメラ設定で露出調整してそれでもダメな時のみ使うこと
+	 * @param enable
+	 */
 	public void enableExposure(final boolean enable) {
 		if (mEnableExposure != enable) {
 			mEnableExposure = enable;
@@ -227,6 +282,10 @@ public class ImageProcessor {
 		}
 	}
 
+	/***
+	 * 露出調整が有効かどうかを取得
+	 * @return
+	 */
 	public boolean enableExposure() {
 		return mEnableExposure;
 	}
@@ -249,10 +308,19 @@ public class ImageProcessor {
 		}
 	}
 
+	/**
+	 * 露出調整値を取得
+	 * @return
+	 */
 	public float getExposure() {
 		return mExposure;
 	}
 
+	/**
+	 * 明るさ調整の有効にするかどうかを設定
+	 * 機体側のカメラ設定で明るさ調整してそれでもダメな時のみ使うこと
+	 * @param enable
+	 */
 	public void enableBrightness(final boolean enable) {
 		if (mEnableBrightness != enable) {
 			mEnableBrightness = enable;
@@ -266,6 +334,10 @@ public class ImageProcessor {
 		}
 	}
 
+	/**
+	 * 明るさ調整が有効かどうかを取得
+	 * @return
+	 */
 	public boolean enableBrightness() {
 		return mEnableBrightness;
 	}
@@ -288,10 +360,19 @@ public class ImageProcessor {
 		}
 	}
 
+	/**
+	 * 明るさ調整の設定値を取得
+	 * @return
+	 */
 	public float getBrightness() {
 		return mBrightness;
 	}
 
+	/**
+	 * 彩度調整を有効にするかどうかを設定
+	 * 機体側のカメラ設定で彩度調整してそれでもダメな時のみ使うこと
+	 * @param enable
+	 */
 	public void enableSaturation(final boolean enable) {
 		if (mEnableSaturation != enable) {
 			mEnableSaturation = enable;
@@ -308,6 +389,10 @@ public class ImageProcessor {
 		}
 	}
 
+	/**
+	 * 彩度調整が有効かどうかを取得
+	 * @return
+	 */
 	public boolean enableSaturation() {
 		return mEnableSaturation;
 	}
@@ -333,6 +418,10 @@ public class ImageProcessor {
 		}
 	}
 
+	/**
+	 * 現在の彩度設定値
+	 * @return
+	 */
 	public float getSaturation() {
 		return mSaturation;
 	}
@@ -378,25 +467,33 @@ public class ImageProcessor {
 	}
 
 	/**
-	 * OpenGL|ESでの色抽出の有効/無効切り替え
+	 * 色抽出の有効/無効切り替え
+	 * 基本的には常時有効やろな
 	 * @param enable
 	 */
 	public void enableExtraction(final boolean enable) {
 		if (mEnableExtraction != enable) {
-//			if (DEBUG) Log.v(TAG, "setExtraction:" + enable);
 			synchronized (mSync) {
 				mEnableExtraction = enable;
 			}
 		}
 	}
 
+	/**
+	 * 色抽出が有効かどうかを取得
+	 * @return
+	 */
 	public boolean enableExtraction() {
 		return mEnableExtraction;
 	}
 
+	/**
+	 * 二値化のしきい値をセット
+	 * 今は色抽出時にのみ使っている
+	 * @param binarize_threshold
+	 */
 	public void setBinarizeThreshold(final float binarize_threshold) {
 		if (mBinarizeThreshold != binarize_threshold) {
-//			if (DEBUG) Log.v(TAG, "setBinarizeThreshold:" + binarize_threshold);
 			synchronized (mSync) {
 				mBinarizeThreshold = binarize_threshold;
 				applyExtractionColor();
@@ -404,6 +501,10 @@ public class ImageProcessor {
 		}
 	}
 
+	/**
+	 * 二値化しきい値を取得
+	 * @return
+	 */
 	public float binarizeThreshold() {
 		return mBinarizeThreshold;
 	}
@@ -461,10 +562,10 @@ public class ImageProcessor {
 
 	/**
 	 * 抽出色を映像中央部から取得して適用
+	 * 色抽出が完了するまで呼び出し元をブロックするので注意
 	 * @return
 	 */
 	public int[] requestUpdateExtractionColor() {
-//		if (DEBUG) Log.v(TAG, "requestUpdateExtractionColor:");
 		final int[] temp = new int[6];
 		synchronized (mSync) {
 			requestUpdateExtractionColor = true;
@@ -522,11 +623,11 @@ public class ImageProcessor {
 		if ((mProcessingTask != null) && (mProcessingTask.mExtraction != null)) {
 			// 指定色範囲を抽出(OpenGL|ES側)
 			mProcessingTask.mExtraction.setParameter(
-				EXTRACT_COLOR_HSV_LIMIT[0] / 180.0f,    // H(色相) 制限なし(0-180),
+				EXTRACT_COLOR_HSV_LIMIT[0] / 180.0f,    // H(色相)
 				EXTRACT_COLOR_HSV_LIMIT[1] / 180.0f,
-				EXTRACT_COLOR_HSV_LIMIT[2] / 255.0f,    // S(彩度) 0-10,
+				EXTRACT_COLOR_HSV_LIMIT[2] / 255.0f,    // S(彩度)
 				EXTRACT_COLOR_HSV_LIMIT[3] / 255.0f,
-				EXTRACT_COLOR_HSV_LIMIT[4] / 255.0f,    // V(明度) 200-255,
+				EXTRACT_COLOR_HSV_LIMIT[4] / 255.0f,    // V(明度)
 				EXTRACT_COLOR_HSV_LIMIT[5] / 255.0f,
 				0.00f, 0.00f, 0.00f,    // 抽出後加算値(HSV)
 				mBinarizeThreshold);	// 2値化時のしきい値, 0なら2値化なし
@@ -675,7 +776,6 @@ public class ImageProcessor {
 	 */
 	private static void callFromNative(final WeakReference<ImageProcessor> weakSelf,
 		final int type, final ByteBuffer frame, final float[] result) {
-//		if (DEBUG) Log.v(TAG, "callFromNative");
 		final ImageProcessor self = weakSelf != null ? weakSelf.get() : null;
 		if (self != null) {
 			try {
@@ -687,7 +787,6 @@ public class ImageProcessor {
 				Log.w(TAG, e);
 			}
 		}
-//		if (DEBUG) Log.v(TAG, "callFromNative:finished");
 	}
 
 	/**
@@ -695,7 +794,6 @@ public class ImageProcessor {
 	 * @param result
 	 */
 	private void handleResult(final int type, final float[] result) {
-//		if (DEBUG) Log.v(TAG, "handleResult");
 		mResultFps.count();
 		try {
 			mCallback.onResult(type, result);
@@ -708,7 +806,6 @@ public class ImageProcessor {
 	 * @param frame
 	 */
 	private void handleOpenCVFrame(final ByteBuffer frame) {
-//		if (DEBUG) Log.v(TAG, "handleOpenCVFrame");
 		mCallback.onFrame(frame);
 	}
 
@@ -717,10 +814,10 @@ public class ImageProcessor {
 		private int mTexId;
 		/** 映像を受け取るtsめのSurfaceTexture */
 		private SurfaceTexture mSourceTexture;
-		/** mMasterTextureのテクスチャ変換行列 */
-		final float[] mTexMatrix = new float[16];
 		/** 映像を受け取るためのSurfaceTextureから取得したSurface */
 		private Surface mSourceSurface;
+		/** mSourceTextureのテクスチャ変換行列 */
+		final float[] mTexMatrix = new float[16];
 		/** ソース映像サイズ */
 		private final int WIDTH, HEIGHT;
 		/** 映像サイズ */
@@ -747,30 +844,20 @@ public class ImageProcessor {
 
 		/** 映像受け取り用Surfaceを取得 */
 		public Surface getSurface() {
-//			if (DEBUG) Log.v(TAG, "getSurface:" + mSourceSurface);
 			return mSourceSurface;
 		}
 
 		/** 映像受け取り用SurfaceTextureを取得 */
 		public SurfaceTexture getSurfaceTexture() {
-//			if (DEBUG) Log.v(TAG, "ProcessingTask:getSurfaceTexture:" + mSourceTexture);
 			return mSourceTexture;
 		}
 
-		private float mTexWidth;
-		private float mTexHeight;
-		private float[] mTexOffset;
-		private int muTexOffsetLoc;			// テクスチャオフセット(カーネル行列用)
 		@SuppressLint("NewApi")
 		@Override
 		protected void onStart() {
-//			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:");
 			// ソース映像の描画用
-			mSrcDrawer = new GLDrawer2D(true);
-			mSrcDrawer.updateShader(ShaderConst.FRAGMENT_SHADER_EXT_FILT3x3);
-			setTexSize(WIDTH, HEIGHT);
+			mSrcDrawer = new GLDrawer2D(true/*isOES*/);	// GL_TEXTURE_EXTERNAL_OESを使う
 			flipMatrix(true);	// 上下入れ替え
-//			mSrcDrawer.getProgram().setKernel(Texture2dProgram.KERNEL_GAUSSIAN, 0.0f);		// ガウシアン(平滑化)
 			mTexId = GLHelper.initTex(ShaderConst.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_NEAREST);
 			mSourceTexture = new SurfaceTexture(mTexId);
 			mSourceTexture.setDefaultBufferSize(WIDTH, HEIGHT);
@@ -784,9 +871,9 @@ public class ImageProcessor {
 			// プレフィルタの準備
 			mEffectContext = EffectContext.createWithCurrentGlContext();
 			synchronized (mSync) {
-				// 自動調整(0〜1.0f, 0なら変化なし) FIXME これを有効にするとNewAPIで取得した映像がかなり暗くなってしまう, でも無効にするとGPUのドライバーがエラーを吐く
+				// 自動調整(0〜1.0f, 0なら変化なし) これを有効にするとNewAPIで取得した映像がかなり暗くなってしまう
 				final MediaEffectAutoFix autofix = new MediaEffectAutoFix(mEffectContext, mEnableAutoFix ? 1.0f : 0.0f);
-				autofix.setEnable(true);
+				autofix.setEnable(true);	// FIXME 無効にするとGPUのドライバーがエラーを吐くので有効にして値を0にする
 				mEffects.add(autofix);
 				// 露出調整
 				final MediaEffectExposure exposure = new MediaEffectExposure(mExposure);
@@ -842,28 +929,12 @@ public class ImageProcessor {
 				mSync.notifyAll();
 			}
 			mResultFps.reset();
-//			if (DEBUG) Log.v(TAG, "ProcessingTask#onStart:finished");
 		}
 
-		private void setTexSize(final int width, final int height) {
-			mTexHeight = height;
-			mTexWidth = width;
-			final float rw = 1.0f / width;
-			final float rh = 1.0f / height;
-
-			// Don't need to create a new array here, but it's syntactically convenient.
-			mTexOffset = new float[] {
-				-rw, -rh,   0f, -rh,    rw, -rh,
-				-rw, 0f,    0f, 0f,     rw, 0f,
-				-rw, rh,    0f, rh,     rw, rh
-			};
-			muTexOffsetLoc = mSrcDrawer.glGetUniformLocation("uTexOffset");
-			// テクセルオフセット
-			if ((muTexOffsetLoc >= 0) && (mTexOffset != null)) {
-				GLES20.glUniform2fv(muTexOffsetLoc, ShaderConst.KERNEL_SIZE3x3, mTexOffset, 0);
-			}
-		}
-
+		/**
+		 * 諸般の事情で上下をひっくり返すために射影行列を計算
+		 * @param verticalFlip
+		 */
 		private void flipMatrix(final boolean verticalFlip) {
 			final float[] mat = new float[32];
 			final float[] mvpMatrix = mSrcDrawer.getMvpMatrix();
@@ -879,7 +950,6 @@ public class ImageProcessor {
 
 		@Override
 		protected void onStop() {
-//			if (DEBUG) Log.v(TAG, "ProcessingTask#onStop");
 			synchronized (mSync) {
 				isProcessingRunning = false;
 				mSync.notifyAll();
@@ -929,7 +999,6 @@ public class ImageProcessor {
 				mSrcDrawer.release();
 				mSrcDrawer = null;
 			}
-//			if (DEBUG) Log.v(TAG, "ProcessingTask#onStop:finished");
 		}
 
 		@Override
@@ -955,7 +1024,6 @@ public class ImageProcessor {
 		 * 実際の描画処理(ワーカースレッド上で実行)
 		 */
 		private void handleDraw() {
-//			if (DEBUG) Log.v(TAG, "ProcessingTask#handleDraw:");
 			try {
 				makeCurrent();
 				mSourceTexture.updateTexImage();
@@ -1017,25 +1085,29 @@ public class ImageProcessor {
 			// PBOのピンポンバッファを使うと約1/10の0.5ミリ秒で返ってくる
 			nativeHandleFrame(mNativePtr, mVideoWidth, mVideoHeight, 0);
 			mMediaSource.getOutputTexture().unbind();
-			// 何も描画しないとハングアップする機種があるので塗りつぶす(と言っても1x1だから気にしなくて良い?)
+			// 何も描画しないとハングアップする機種があるので塗りつぶす(と言っても1x1だから負荷は気にしなくて良い)
 			makeCurrent();
 			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 			GLES20.glFlush();
-//			if (DEBUG) Log.v(TAG, "ProcessingTask#handleDraw:finished");
 		}
 
+		/**
+		 * 映像の中心40x40ピクセルの値を読み込んでRGB→HSV変換して色抽出のパラメータを計算する
+		 */
 		private void updateExtractionColor() {
 			final int n = 40 * 40;
 			final int sz = n * 4;
+			// 最終的にbyte[]に取り出すのでDirectBufferの代わりにbyte[]をwrapした方がトータル的にはいいかも
 			final ByteBuffer temp = ByteBuffer.allocateDirect(sz);
 			temp.order(ByteOrder.nativeOrder());
 			mMediaSource.getOutputTexture().bind();
+			// これは遅いのでここもPBOにした方がいいねんけど滅多に呼ばれへんからそのままでええやろ
 			GLES20.glReadPixels(mVideoWidth / 2 - 20, mVideoHeight / 2 - 20, 40, 40, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, temp);
 			mMediaSource.getOutputTexture().unbind();
 			final byte[] rgba = new byte[sz];
 			temp.clear();
 			temp.get(rgba);
-			//
+			// 加重平均を計算するための準備
 			final float[] hsv = new float[3];
 			final int[] h_cnt = new int[256];	// 0..255
 			final int[] s_cnt = new int[256];	// 0..255
@@ -1046,16 +1118,17 @@ public class ImageProcessor {
 				s_cnt[(int)(hsv[1] * 255) % 256]++;
 				v_cnt[(int)(hsv[2] * 255) % 256]++;
 			}
+			// 荷重平均を計算
 			float h = 0, s = 0, v = 0;
 			for (int i = 0; i < 256; i++) {
 				h += i * h_cnt[i];
 				s += i * s_cnt[i];
 				v += i * v_cnt[i];
 			}
-			// 平均
 			h /= n;
 			s /= n;
 			v /= n;
+			// 標準偏差を計算
 			float h_sd = 0, s_sd = 0, v_sd = 0;
 			for (int i = 0; i < 256; i++) {
 				h_sd += (i - h) * (i - h) * h_cnt[i];
@@ -1063,10 +1136,11 @@ public class ImageProcessor {
 				v_sd += (i - v) * (i - v) * v_cnt[i];
 			}
 			// 標準偏差で抽出色の範囲を設定する(H=2σ, S=3σ, V=6σ)
+			// 赤付近はちょっと考えんとあかんねんけど
 			h_sd = (float)Math.sqrt(h_sd / n); if (h_sd < 0.5f) h_sd= 1;	h_sd *= 2;	// 2σ
 			s_sd = (float)Math.sqrt(s_sd / n); if (s_sd < 0.5f) s_sd= 1;	s_sd *= 3;	// 3σ
 			v_sd = (float)Math.sqrt(v_sd / n); if (v_sd < 0.5f) v_sd= 1;	v_sd *= 6;	// 6σ
-
+			// 抽出色をセット
 			EXTRACT_COLOR_HSV_LIMIT[0] = sat((int)((h - h_sd) / 250 * 180), 0, 180);
 			EXTRACT_COLOR_HSV_LIMIT[1] = sat((int)((h + h_sd) / 250 * 180), 0, 180);
 			EXTRACT_COLOR_HSV_LIMIT[2] = sat((int)((s - s_sd)), 0, 255);
@@ -1089,11 +1163,8 @@ public class ImageProcessor {
 		 * @param height
 		 */
 		private void handleResize(final int width, final int height) {
-//			if (DEBUG) Log.v(TAG, String.format("ProcessingTask#handleResize:(%d,%d)", width, height));
 			mVideoWidth = width;
 			mVideoHeight = height;
-//			mSourceTexture.setDefaultBufferSize(WIDTH, HEIGHT);	// FIXME ここは別扱いにして640x368固定にしとかないとだめかも
-//			mSrcDrawer.getProgram().setTexSize(WIDTH, HEIGHT);	// FIXME ここは別扱いにして640x368固定にしとかないとだめかも
 			// プレフィルタ用
 			if (mMediaSource != null) {
 				mMediaSource.resize(width, height);
@@ -1127,10 +1198,24 @@ public class ImageProcessor {
 		};
 	}
 
+	/**
+	 * 飽和計算(int)
+	 * @param v
+	 * @param min
+	 * @param max
+	 * @return
+	 */
 	public static final int sat(final int v, final int min, final int max) {
 		return v <= min ? min : (v >= max ? max : v);
 	}
 
+	/**
+	 * 飽和計算(float)
+	 * @param v
+	 * @param min
+	 * @param max
+	 * @return
+	 */
 	public static final float sat(final float v, final float min, final float max) {
 		return v <= min ? min : (v >= max ? max : v);
 	}

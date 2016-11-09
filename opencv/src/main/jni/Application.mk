@@ -1,4 +1,4 @@
-NDK_TOOLCHAIN_VERSION := 4.9
+NDK_TOOLCHAIN_VERSION := clang
 #OpenGL|ES3を使うため API>=18とする
 APP_PLATFORM := android-18
 
