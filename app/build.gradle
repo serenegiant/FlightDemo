@@ -40,9 +40,9 @@ android {
 	buildTypes {
 		debug {
 			debuggable true
-			applicationIdSuffix = '.debug'  // パッケージ名の末尾に .debug をつける
+//			applicationIdSuffix = '.debug'  // パッケージ名の末尾に .debug をつける
 			versionNameSuffix = 'a'
-			signingConfig signingConfigs.debugKey
+//			signingConfig signingConfigs.debugKey
 		}
 		release {
 			debuggable false
