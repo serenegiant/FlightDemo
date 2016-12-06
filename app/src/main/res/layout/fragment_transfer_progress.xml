@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent"
+			  android:background="@color/ALICEBLUE"
+			  android:orientation="vertical"
+			  android:padding="@dimen/half_padding">
+
+	<RelativeLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<ProgressBar
+			android:id="@+id/progressBar1"
+			style="@android:style/Widget.ProgressBar.Horizontal"
+			android:layout_width="match_parent"
+			android:layout_height="@dimen/progress_height"
+			android:layout_gravity="center_vertical"
+			android:layout_marginBottom="@dimen/quater_padding"
+			android:max="100"
+			android:progress="20"
+			android:progressDrawable="@drawable/progress_blue"/>
+
+		<TextView
+			android:id="@+id/progress_textview1"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:gravity="center"
+			android:text="20%"
+			android:textColor="@color/WHITE"
+			android:textSize="@dimen/text_sz_progress"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentStart="true"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentEnd="true"
+			android:layout_alignParentTop="true"/>
+	</RelativeLayout>
+
+	<RelativeLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<ProgressBar
+			android:id="@+id/progressBar2"
+			style="@android:style/Widget.ProgressBar.Horizontal"
+			android:layout_width="match_parent"
+			android:layout_height="@dimen/progress_height"
+			android:layout_gravity="center_vertical"
+			android:layout_marginBottom="@dimen/quater_padding"
+			android:max="100"
+			android:progress="20"
+			android:progressDrawable="@drawable/progress_blue"/>
+
+		<TextView
+			android:id="@+id/progress_textview2"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerHorizontal="true"
+			android:gravity="center"
+			android:text="20%"
+			android:textColor="@color/WHITE"
+			android:textSize="@dimen/text_sz_progress"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentStart="true"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentEnd="true"
+			android:layout_alignParentTop="true"/>
+	</RelativeLayout>
+
+	<Button
+		android:id="@+id/cancel_btn"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center_horizontal"
+		android:text="@android:string/cancel"
+		android:textSize="@dimen/text_sz_list"/>
+
+</LinearLayout>

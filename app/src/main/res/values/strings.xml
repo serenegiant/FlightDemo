@@ -1,0 +1,134 @@
+<resources>
+	<string name="action_settings">Settings</string>
+	<string name="action_takeoff">takeoff</string>
+	<string name="action_landing">landing</string>
+	<string name="action_emergency">emergency</string>
+	<string name="action_flat_trim">FlatTrim</string>
+	<string name="action_flat_trim_finished">FlatTrim finished</string>
+	<string name="action_flip">Flip</string>
+	<string name="action_load">load</string>
+	<string name="action_play">play</string>
+	<string name="action_record">Record</string>
+	<string name="action_stop">stop</string>
+	<string name="action_clear">Clear</string>
+	<string name="action_move">Move</string>
+	<string name="action_delete_after_fetch">Delete after load</string>
+
+	<string name="select">Select file</string>
+	<string name="not_selected">No file selected!</string>
+	<string name="parent_dir">Up‥</string>
+	<string name="file_empty">No file</string>
+
+	<string name="config_app_title_color">Color</string>
+	<string name="config_app_title_license">License</string>
+
+	<string name="config_sw_on">on</string>
+	<string name="config_sw_off">off</string>
+
+	<string name="confirm_fetch">Do you want to transfer selected file(s)?</string>
+	<string name="confirm_fetch_delete">Transfer completed\nDo you want to delete transfered file?</string>
+	<string name="confirm_delete">Do you want to delete selected file(s)?</string>
+	<string name="confirm_delete_after_fetch">Do you want to delete selected file(s) after transfering?</string>
+	<string name="confirm_remove_script">Do you want to remove script(s) from list?</string>
+
+	<string name="notify_takeoff">Needs long click to takeoff</string>
+
+	<string name="stick_text_back">back</string>
+	<string name="stick_text_left">left</string>
+	<string name="stick_text_up">up</string>
+	<string name="stick_text_down">down</string>
+	<string name="stick_text_turn_right">turn\nleft</string>
+	<string name="stick_text_turn_left">turn\nright</string>
+	<string name="stick_text_right">right</string>
+	<string name="stick_text_forward">forward</string>
+
+	<string name="config_title_flight">Flight settings</string>
+	<string name="config_title_drone">Drone settings</string>
+	<string name="config_title_operation">Operation settings</string>
+	<string name="config_title_gamepad">Gamepad settings</string>
+	<string name="config_title_keymap">Keymap of gamepad</string>
+	<string name="config_title_autopilot">Autopilot settings</string>
+	<string name="config_title_network">Network settings</string>
+	<string name="config_title_icon">Icon settings</string>
+	<string name="config_title_color">Drone color</string>
+	<string name="config_title_app_button_hide">Automatically hide icons on piloting</string>
+	<string name="config_title_info">Info</string>
+
+	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>
+	<string name="config_max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
+	<string name="config_max_altitude">Max altitude: %5.1f[m]</string>
+	<string name="config_max_rotating_speed">Max rotating speed: %5.0f[deg./s]</string>
+	<string name="config_has_wheel">with wheel</string>
+	<string name="config_has_hull">with Hull</string>
+	<string name="config_cut_out">Cutout</string>
+	<string name="config_auto_takeoff">Enable auto take-off</string>
+	<string name="config_scale_x">X scale: %5.2f</string>
+	<string name="config_scale_y">Y scale: %5.2f</string>
+	<string name="config_scale_z">Z scale: %5.2f</string>
+	<string name="config_scale_r">R scale: %5.2f</string>
+	<string name="config_control_max">Max control value: %5.1f</string>
+	<string name="config_control_max_gamepad">Max control value: %5.2f</string>
+
+	<string name="config_gamepad_sensitivity">Sensitivity</string>
+	<string name="config_gamepad_use_driver">Use USB driver</string>
+
+	<string name="config_operation_normal">Normal operation screen</string>
+	<string name="config_operation_reverse">Reverse pad</string>
+	<string name="config_operation_mode1">Mode1</string>
+	<string name="config_operation_mode2">Mode2</string>
+	<string name="config_operation_touch">Touch drawing control</string>
+
+	<string name="config_network_mode">WiFi mode</string>
+	<string name="config_network_freq">WiFi band</string>
+	<string name="config_network_outdoor">outdoor</string>
+	<string name="config_network_indoor">indoor</string>
+
+	<string name="info_product_name">Product name:</string>
+	<string name="info_version_software">Software version:</string>
+	<string name="info_version_hardware">Hardware version:</string>
+	<string name="info_version_app">App version:</string>
+
+	<string name="calibration_title">Calibration of magneto sensor</string>
+	<string name="calibration_axis_z">Rotate drone vertically\n(Ref.animation on screen)</string>
+	<string name="calibration_axis_y">Rotate drone back and forth\n(Ref.animation on screen)</string>
+	<string name="calibration_axis_x">Rotate drone right and left\n(Ref.animation on screen)</string>
+	<string name="calibration_success">Calibration successfully finished.</string>
+	<string name="calibration_failed">Calibration failed.</string>
+
+	<string name="media_title_list">Media of internal storage</string>
+	<string name="media_title_galley">Media list</string>
+	<string name="media_empty">No media file</string>
+	<string name="media_free_space">%s free</string>
+
+	<string name="script_list">List of script</string>
+	<string name="script_error">Script error</string>
+	<string name="script_error_non">No error</string>
+	<string name="script_empty">No script registered</string>
+
+	<!-- サイドメニューの項目 -->
+	<string name="script_circle_xy">circle_xy</string>
+	<string name="script_circle_xz">circle_xz</string>
+	<string name="script_revolution_xr">revolution_xr</string>
+	<string name="script_revolution_yr">revolution_yr</string>
+	<string name="script_revolution_xr2">revolution_xr2</string>
+	<string name="script_revolution_yr2">revolution_yr2</string>
+	<string name="anim_headlights_flash">LED flash</string>
+	<string name="anim_headlights_blink">LED blink</string>
+	<string name="anim_headlights_oscillation">LED oscillation</string>
+	<string name="anim_spin">Spin</string>
+	<string name="anim_tap">Tap</string>
+	<string name="anim_slow_shake">Slow shake</string>
+	<string name="anim_metronome">Metronome</string>
+	<string name="anim_ondulation">Ondulation</string>
+	<string name="anim_spin_jump">Spin jump</string>
+	<string name="anim_spin_to_posture">Spin to posture</string>
+	<string name="anim_spiral">Spiral</string>
+	<string name="anim_slalome">Slalom</string>
+	<string name="anim_boost">Boost</string>
+
+	<string name="permission_location">No location access permission</string>
+	<string name="permission_location_finish">No location access permission. \nApp will finish soon</string>
+	<string name="permission_location_reason">Permission to access location needs to discover drone(s)</string>
+	<string name="permission_location_request">Permission to access location needs to discover drone(s)</string>
+
+</resources>

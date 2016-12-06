@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:id="@+id/left_panel"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_alignParentBottom="true"
+				android:layout_alignParentLeft="true"
+				android:layout_alignParentTop="true"
+				android:layout_weight="1">
+
+	<ImageView
+		android:id="@+id/left_stick_image"
+		android:layout_width="@dimen/stick_size"
+		android:layout_height="@dimen/stick_size"
+		android:layout_centerHorizontal="true"
+		android:layout_centerVertical="true"
+		android:src="@mipmap/ic_stick_front"/>
+
+	<TextView
+		android:id="@+id/textView1"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_above="@+id/left_stick_image"
+		android:layout_centerHorizontal="true"
+		android:text="@string/stick_text_up"
+		android:textAppearance="?android:attr/textAppearanceMedium"
+		android:textSize="@dimen/text_sz_button"
+		android:gravity="center"
+		android:textColor="@color/DARKVIOLET"/>
+
+	<TextView
+		android:id="@+id/textView2"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_centerVertical="true"
+		android:layout_toEndOf="@+id/left_stick_image"
+		android:layout_toRightOf="@+id/left_stick_image"
+		android:text="@string/stick_text_turn_right"
+		android:textAppearance="?android:attr/textAppearanceMedium"
+		android:textSize="@dimen/text_sz_button"
+		android:gravity="center"
+		android:textColor="@color/DARKVIOLET"/>
+
+	<TextView
+		android:id="@+id/textView3"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_centerVertical="true"
+		android:layout_toLeftOf="@+id/left_stick_image"
+		android:layout_toStartOf="@+id/left_stick_image"
+		android:text="@string/stick_text_turn_left"
+		android:textAppearance="?android:attr/textAppearanceMedium"
+		android:textSize="@dimen/text_sz_button"
+		android:gravity="center"
+		android:textColor="@color/DARKVIOLET"/>
+
+	<TextView
+		android:id="@+id/textView4"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/left_stick_image"
+		android:layout_centerHorizontal="true"
+		android:text="@string/stick_text_down"
+		android:textAppearance="?android:attr/textAppearanceMedium"
+		android:textSize="@dimen/text_sz_button"
+		android:gravity="center"
+		android:textColor="@color/DARKVIOLET"/>
+
+</RelativeLayout>

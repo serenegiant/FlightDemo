@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<dimen name="button_radius">8dp</dimen>
+	<dimen name="button_padding">2dp</dimen>
+	<dimen name="button_stroke_width">4dp</dimen>
+	<dimen name="progress_corner">8dp</dimen>
+</resources>

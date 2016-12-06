@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<declare-styleable name="StickView">
+		<attr name="stick_image_layout" format="reference" />
+		<attr name="stick_width" format="dimension" />
+		<attr name="stick_height" format="dimension" />
+		<attr name="disable_color" format="reference|color|integer" />
+	</declare-styleable>
+
+	<declare-styleable name="FlightDemoAttribute">
+		<attr name="flightdemo_icon_camera" format="reference" />
+		<attr name="flightdemo_icon_cloud_down" format="reference" />
+		<attr name="flightdemo_icon_cloud_up" format="reference" />
+		<attr name="flightdemo_icon_delete" format="reference" />
+		<attr name="flightdemo_icon_emergency" format="reference" />
+		<attr name="flightdemo_icon_favorite" format="reference" />
+		<attr name="flightdemo_icon_flag" format="reference" />
+		<attr name="flightdemo_icon_folder" format="reference" />
+		<attr name="flightdemo_icon_gallery" format="reference" />
+		<attr name="flightdemo_icon_gps" format="reference" />
+		<attr name="flightdemo_icon_landing" format="reference" />
+		<attr name="flightdemo_icon_list2" format="reference" />
+		<attr name="flightdemo_icon_list_thumbnail_device" format="reference" />
+		<attr name="flightdemo_icon_list_thumbnail_media" format="reference" />
+		<attr name="flightdemo_icon_list_thumbnail_script" format="reference" />
+		<attr name="flightdemo_icon_movie" format="reference" />
+		<attr name="flightdemo_icon_plane" format="reference" />
+		<attr name="flightdemo_icon_play" format="reference" />
+		<attr name="flightdemo_icon_rec" format="reference" />
+		<attr name="flightdemo_icon_rec_2" format="reference" />
+		<attr name="flightdemo_icon_settings" format="reference" />
+		<attr name="flightdemo_icon_flip_back" format="reference" />
+		<attr name="flightdemo_icon_flip_front" format="reference" />
+		<attr name="flightdemo_icon_flip_left" format="reference" />
+		<attr name="flightdemo_icon_flip_right" format="reference" />
+		<attr name="flightdemo_icon_script_edit" format="reference" />
+		<attr name="flightdemo_icon_stick_front" format="reference" />
+		<attr name="flightdemo_icon_stick_top" format="reference" />
+		<attr name="flightdemo_icon_takeoff" format="reference" />
+		<attr name="flightdemo_icon_trim" format="reference" />
+		<attr name="flightdemo_icon_turn_left" format="reference" />
+		<attr name="flightdemo_icon_turn_right" format="reference" />
+		<attr name="flightdemo_icon_dropdown" format="reference" />
+		<!--  -->
+		<attr name="flightdemo_icon_auto_condition1" format="reference" />
+		<attr name="flightdemo_icon_auto_condition2" format="reference" />
+		<attr name="flightdemo_icon_auto_condition3" format="reference" />
+		<attr name="flightdemo_icon_auto_condition4" format="reference" />
+		<attr name="flightdemo_icon_auto_condition5" format="reference" />
+	</declare-styleable>
+</resources>

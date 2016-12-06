@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	tools:context="com.serenegiant.aceparrot.PilotFragment2"
+	android:id="@+id/screen_frame">
+
+	<LinearLayout
+		android:id="@+id/controller_frame"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:foreground="?android:windowContentOverlay"
+		android:orientation="vertical"
+		android:background="@drawable/blue_gradient">
+
+		<RelativeLayout
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_weight="10"
+			android:id="@+id/pilot_frame"
+			android:orientation="horizontal">
+
+		</RelativeLayout>
+
+
+	</LinearLayout>
+
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="@dimen/bottom_panel_height"
+		android:layout_marginLeft="@dimen/half_padding"
+		android:text="cpu:100/100/100"
+		android:id="@+id/cpu_load_textview"
+		android:layout_alignParentBottom="true"
+		android:layout_toEndOf="@id/take_onoff_btn"
+		android:gravity="center_vertical"
+		android:textSize="@dimen/text_sz_cpu_load"/>
+
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:background="@null">
+
+		<LinearLayout
+			android:orientation="vertical"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:layout_weight="1">
+
+			<RelativeLayout
+				android:layout_width="match_parent"
+				android:layout_height="0dp"
+				android:layout_weight="1"
+				android:background="@null" >
+				<!-- 機体からのライブ映像表示用 -->
+				<com.serenegiant.arflight.drone.AttitudeTextureView
+					android:id="@+id/drone_view"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:visibility="visible"
+					android:background="@null"/>
+				<!-- 色抽出用ターゲットマーカー -->
+				<ImageView
+					android:layout_width="60dp"
+					android:layout_height="60dp"
+					android:layout_centerInParent="true"
+					android:src="@null"
+					android:background="@drawable/frame"/>
+			</RelativeLayout>
+
+			<RelativeLayout
+				android:layout_width="match_parent"
+				android:layout_height="0dp"
+				android:layout_weight="1"
+				android:background="@null" >
+				<!-- 処理中の映像確認用 -->
+				<SurfaceView
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:id="@+id/detect_view"
+					android:visibility="visible"
+					android:background="@drawable/frame"/>
+				<!-- 色抽出用ターゲットマーカー -->
+				<ImageView
+					android:layout_width="60dp"
+					android:layout_height="60dp"
+					android:layout_centerInParent="true"
+					android:src="@null"
+					android:background="@drawable/frame"/>
+
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:id="@+id/trace1_tv"
+					android:textColor="@color/GREEN"
+					android:typeface="monospace"/>
+
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_below="@id/trace1_tv"
+					android:id="@+id/trace2_tv"
+					android:textColor="@color/GREEN"
+					android:typeface="monospace"/>
+				<TextView
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content"
+					android:layout_below="@id/trace2_tv"
+					android:id="@+id/trace3_tv"
+					android:textColor="@color/GREEN"
+					android:typeface="monospace"/>
+			</RelativeLayout>
+
+		</LinearLayout>
+
+		<android.support.v4.view.ViewPager
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:id="@+id/pager"
+			android:layout_weight="1"
+			android:layout_marginRight="@dimen/btn_size_action"
+			android:layout_marginLeft="@dimen/half_padding"
+			android:layout_marginTop="@dimen/top_panel_height"
+			android:layout_marginBottom="@dimen/bottom_panel_height">
+
+			<android.support.v4.view.PagerTitleStrip
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_gravity="top"
+				android:textColor="@color/trace_config"
+				android:textSize="@dimen/text_sz_trace_config_title"
+				android:paddingTop="@dimen/half_padding"
+				android:paddingBottom="@dimen/min_padding"/>
+				<!--<include android:layout="@layout/trace_config_preprocess" /> -->
+		</android.support.v4.view.ViewPager>
+
+	</LinearLayout>
+
+	<LinearLayout
+		android:id="@+id/right_side_panel"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center_vertical|right"
+		android:orientation="vertical"
+		android:layout_alignParentRight="true"
+		android:layout_centerVertical="true">
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="15.3"
+			android:id="@+id/fps_src_textview"
+			android:textSize="@dimen/text_sz_fps"
+			android:gravity="center_horizontal"
+			android:textColor="@color/GRAY"/>
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="15.3"
+			android:id="@+id/fps_result_textview"
+			android:textSize="@dimen/text_sz_fps"
+			android:gravity="center_horizontal"
+			android:textColor="@color/GRAY"/>
+
+		<ImageButton
+			android:layout_width="@dimen/btn_size_action"
+			android:layout_height="@dimen/btn_size_action"
+			android:id="@+id/copilot_btn"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_favorite"/>
+
+		<ImageButton
+			android:id="@+id/still_capture_btn"
+			android:layout_width="@dimen/btn_size_action"
+			android:layout_height="@dimen/btn_size_action"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_camera"
+			android:layout_marginTop="@dimen/quater_padding"/>
+
+		<ImageButton
+			android:id="@+id/video_capture_btn"
+			android:layout_width="@dimen/btn_size_action"
+			android:layout_height="@dimen/btn_size_action"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_movie"/>
+
+		<ImageButton
+			android:id="@+id/trace_btn"
+			android:layout_width="@dimen/btn_size_action"
+			android:layout_height="@dimen/btn_size_action"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_plane"/>
+
+	</LinearLayout>
+
+	<RelativeLayout
+		android:id="@+id/top_panel"
+		android:layout_width="match_parent"
+		android:layout_height="@dimen/top_panel_height"
+		android:gravity="top"
+		android:background="@drawable/top_frame"
+		android:layout_alignParentTop="true">
+
+<!--	<TextView
+			android:id="@+id/keymap_stick_left_button"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentStart="true"
+			android:layout_centerVertical="true"
+			android:text="@string/battery"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:textColor="@color/DARKVIOLET"/> -->
+
+<!--		android:layout_toEndOf="@+id/keymap_stick_left_button"
+			android:layout_toRightOf="@+id/keymap_stick_left_button" -->
+		<TextView
+			android:id="@+id/batteryLabel"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerVertical="true"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentStart="true"
+			android:text="@string/battery"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:textColor="@color/DARKVIOLET"/>
+
+		<ImageButton
+			android:id="@+id/flat_trim_btn"
+			android:layout_width="@dimen/top_panel_height"
+			android:layout_height="@dimen/top_panel_height"
+			android:layout_centerInParent="true"
+			android:background="@null"
+			android:scaleType="centerCrop"
+			android:src="?attr/flightdemo_icon_trim"/>
+
+		<TextView
+			android:id="@+id/alert_message"
+			android:layout_width="wrap_content"
+			android:layout_height="@dimen/top_panel_height"
+			android:layout_centerVertical="true"
+			android:layout_toLeftOf="@+id/config_show_btn"
+			android:layout_toRightOf="@+id/flat_trim_btn"
+			android:layout_toStartOf="@+id/config_show_btn"
+			android:gravity="center_vertical"
+			android:text="message"
+			android:textColor="#ffff0000"
+			android:textSize="@dimen/text_sz_message"
+			android:visibility="invisible"/>
+
+		<ImageButton
+			android:id="@+id/config_show_btn"
+			android:layout_width="@dimen/top_panel_height"
+			android:layout_height="@dimen/top_panel_height"
+			android:layout_alignParentEnd="true"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentTop="true"
+			android:background="@null"
+			android:scaleType="fitXY"
+			android:src="?attr/flightdemo_icon_settings"
+			android:layout_marginRight="@dimen/half_padding"/>
+
+	</RelativeLayout>
+
+	<ImageButton
+		android:id="@+id/take_onoff_btn"
+		android:layout_width="@dimen/bottom_panel_height"
+		android:layout_height="@dimen/bottom_panel_height"
+		android:layout_centerHorizontal="true"
+		android:layout_alignParentBottom="true"
+		android:background="@null"
+		android:scaleType="fitCenter"
+		android:src="?attr/flightdemo_icon_takeoff"/>
+
+	<ImageButton
+		android:id="@+id/emergency_btn"
+		android:layout_width="@dimen/bottom_panel_height"
+		android:layout_height="@dimen/bottom_panel_height"
+		android:layout_alignParentRight="true"
+		android:layout_alignParentBottom="true"
+		android:layout_marginRight="@dimen/quater_padding"
+		android:background="@null"
+		android:scaleType="fitXY"
+		android:src="?attr/flightdemo_icon_emergency"/>
+
+	<RelativeLayout
+		android:id="@+id/bottom_panel"
+		android:layout_width="match_parent"
+		android:layout_height="@dimen/bottom_panel_height"
+		android:gravity="bottom"
+		android:layout_alignParentBottom="true"
+		android:layout_toStartOf="@+id/take_onoff_btn">
+
+
+		<TextView
+			android:id="@+id/time_label"
+			android:layout_width="100sp"
+			android:layout_height="wrap_content"
+			android:layout_alignParentLeft="true"
+			android:layout_centerVertical="true"
+			android:text="###:##"
+			android:textSize="@dimen/text_sz_button"
+			android:textColor="@color/WHITE"/>
+
+		<FrameLayout
+			android:id="@+id/record_btn_frame"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentLeft="true"
+			android:layout_marginLeft="120dp"
+			android:background="@null">
+
+			<ImageButton
+				android:id="@+id/record_btn"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:background="@null"
+				android:scaleType="fitXY"
+				android:src="?attr/flightdemo_icon_rec" />
+
+			<TextView
+				android:id="@+id/record_label"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal|bottom"
+				android:gravity="fill_horizontal|fill"
+				android:text="@string/action_record"
+				android:textSize="@dimen/text_sz_on_image_button"/>
+		</FrameLayout>
+
+		<FrameLayout
+			android:id="@+id/load_btn_frame"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_toEndOf="@+id/record_btn_frame"
+			android:layout_toRightOf="@+id/record_btn_frame"
+			android:background="@null">
+
+			<ImageButton
+				android:id="@+id/load_btn"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:background="@null"
+				android:scaleType="fitXY"
+				android:src="?attr/flightdemo_icon_folder"/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal|bottom"
+				android:gravity="fill_horizontal|fill"
+				android:text="@string/action_load"
+				android:textSize="@dimen/text_sz_on_image_button"/>
+		</FrameLayout>
+
+	</RelativeLayout>
+
+</RelativeLayout>

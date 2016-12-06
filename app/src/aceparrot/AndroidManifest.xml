@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<uses-feature android:name="android.hardware.usb.host" android:required="false"/>
+
+	<application
+		android:name="com.serenegiant.aceparrot.FlightDemoApplication"
+		android:allowBackup="true"
+		android:hardwareAccelerated="true"
+		android:icon="@mipmap/ic_launcher"
+		android:label="${appName}"
+		android:largeHeap="true"
+		android:theme="@style/AppTheme">
+
+		<activity
+			android:name="com.serenegiant.aceparrot.MainActivity"
+			android:label="${appName}"
+			android:screenOrientation="userLandscape"
+			android:launchMode="singleTask" >
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
+				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+
+		</activity>
+
+		<service android:name="com.parrot.arsdk.ardiscovery.ARDiscoveryService"/>
+
+		<receiver
+			android:name="com.serenegiant.net.NetworkChangedReceiver"
+			android:enabled="false">
+			<intent-filter>
+				<action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+			</intent-filter>
+		</receiver>
+	</application>
+
+</manifest>

@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<title>FlightDemo ver.1.0</title>
+</head>
+<body>
+<br />
+double sin(double radian);<br />
+double cos(double radian);<br />
+double tan(double radian);<br />
+double asin(double value);<br />
+double acos(double value);<br />
+double atan(double value);<br />
+double atan2(double value1, doublevalue2);<br />
+double sinh(double value);<br />
+double cosh(double value);<br />
+double tanh(double value);<br />
+double sqrt(double value);<br />
+double abs(double value);<br />
+double exp(double value);<br />
+double log(double value);<br />
+double log10(double value);<br />
+double hypot(double x, double y);<br />
+double pow(double value);<br />
+double  random(void);<br />
+void wait(long msecs);<br />
+void emergency(void);<br />
+void takeoff(void);<br />
+void landing(void);<br />
+void move(int roll, int pitch, int gaz, int yaw);	roll/pitch/gaz/yaw=[-100,+100]<br />
+void updown(int gaz);		gaz=[-100,+100]<br />
+void rightleft(int roll);		roll=[-100,+100]<br />
+void frontback(int pitch);		pitch=[-100,+100]<br />
+void turn(int yaw);			yaw=[-100,+100]<br />
+void compass(int degree);		degree=[-360,+360]<br />
+void flip(int mode);			mode=[1:front, 2:back, 3:right, 4:left]<br />
+void cap(int degree);		degree=[-180,+180]<br />
+float getRoll();			return current roll angle as degree<br />
+float getPitch();			return current pitch angle as degree<br />
+float getYaw();			return current yaw angle as degree<br />
+float getGaz();			return current height as meter<br />
+float getCompass();			return always zero now<br />
+float getMaxTilt();			return max tilt angle as degree for roll/pitch<br />
+float getMaxRotationSpeed();	return max rotation speed [degree/sec]<br />
+float getMaxVerticalSpeed();	return max vertical speed [m/s]<br />
+<br />
+  Copyright(c) 2015 saki.<br />
+<br />
+</body>
+</html>

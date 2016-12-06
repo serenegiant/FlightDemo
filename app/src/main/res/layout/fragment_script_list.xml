@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent">
+
+	<RelativeLayout
+		android:id="@+id/linearLayout3"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+
+		<ImageButton
+			android:id="@+id/load_btn"
+			android:layout_width="@dimen/top_panel_height"
+			android:layout_height="@dimen/top_panel_height"
+			android:adjustViewBounds="true"
+			android:background="@null"
+			android:scaleType="fitCenter"
+			android:src="@mipmap/ic_dropdown"
+			android:layout_alignParentLeft="true"/>
+
+		<ImageButton
+			android:layout_width="@dimen/top_panel_height"
+			android:layout_height="@dimen/top_panel_height"
+			android:id="@+id/delete_btn"
+			android:src="@android:drawable/ic_menu_delete"
+			android:layout_alignParentTop="true"
+			android:layout_toRightOf="@+id/load_btn"
+			android:layout_toEndOf="@+id/load_btn"
+			android:background="@null"
+			android:scaleType="fitCenter"
+			android:layout_marginLeft="@dimen/activity_horizontal_margin"
+			android:visibility="invisible"/>
+
+		<ImageButton
+			android:id="@+id/help_btn"
+			android:layout_width="@dimen/top_panel_height"
+			android:layout_height="@dimen/top_panel_height"
+			android:layout_alignParentTop="false"
+			android:adjustViewBounds="true"
+			android:background="@null"
+			android:scaleType="fitCenter"
+			android:src="@mipmap/ic_question"
+			android:layout_alignParentRight="true"/>
+
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/script_list"
+			android:id="@+id/textView7"
+			android:layout_centerVertical="true"
+			android:layout_centerHorizontal="true"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"/>
+	</RelativeLayout>
+
+	<ListView
+		android:id="@+id/script_listview"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/linearLayout3"
+		android:layout_centerHorizontal="true"
+		android:choiceMode="multipleChoice"/>
+
+	<TextView
+		android:id="@+id/empty_view"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/list"
+		android:layout_centerHorizontal="true"
+		android:layout_centerVertical="true"
+		android:gravity="center"
+		android:text="@string/script_empty"
+		android:textAlignment="center"
+		android:textSize="@dimen/text_sz_list"
+		android:textColor="@color/WHITE"/>
+</RelativeLayout>

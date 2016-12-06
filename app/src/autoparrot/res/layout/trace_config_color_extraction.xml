@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<!-- 色抽出(OpenGL|ES) -->
+	<Switch
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:paddingBottom="@dimen/min_padding"
+		android:textSize="@dimen/text_sz_trace_config_list"
+		android:textColor="@color/trace_config"
+		android:text="@string/trace_config_extract_use"
+		android:id="@+id/use_extract_sw"/>
+	<!-- 色抽出(OpenCV) -->
+<!--<Switch
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:paddingBottom="@dimen/min_padding"
+		android:textSize="@dimen/text_sz_trace_config_list"
+		android:textColor="@color/trace_config"
+		android:text="@string/trace_config_extract_use_opencv"
+		android:id="@+id/use_native_extract_sw"/> -->
+	<!-- 抽出色更新 -->
+	<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+		<Button
+			style="?android:attr/buttonStyleSmall"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:textColor="@color/BLACK"
+			android:text="@string/trace_config_extract_color_update"
+			android:id="@+id/update_extraction_color_btn"
+			android:layout_weight="1"/>
+		<!-- 抽出色選択 -->
+		<Button
+			style="?android:attr/buttonStyleSmall"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:textColor="@color/BLACK"
+			android:text="@string/trace_config_extract_color_select"
+			android:id="@+id/select_extraction_color_btn"
+			android:layout_weight="1"/>
+		<!-- 抽出色リセット -->
+		<Button
+			style="?android:attr/buttonStyleSmall"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:textColor="@color/BLACK"
+			android:text="@string/trace_config_extract_color_reset"
+			android:id="@+id/reset_extraction_color_btn"
+			android:layout_weight="1"/>
+	</LinearLayout>
+
+	<!-- 抽出色の範囲(H) -->
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/trace_config_extract_range_h"
+		android:textSize="@dimen/text_sz_trace_config_list"
+		android:textColor="@color/trace_config"
+		android:id="@+id/extract_range_h_textview"/>
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/extract_range_h_seekbar"
+		android:paddingBottom="@dimen/min_padding"
+		android:thumb="@drawable/custom_thumb"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+	<!-- 抽出色の範囲(S) -->
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/trace_config_extract_range_h"
+		android:textSize="@dimen/text_sz_trace_config_list"
+		android:textColor="@color/trace_config"
+		android:id="@+id/extract_range_s_textview"/>
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/extract_range_s_seekbar"
+		android:paddingBottom="@dimen/min_padding"
+		android:thumb="@drawable/custom_thumb"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+	<!-- 抽出色の範囲(V) -->
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/trace_config_extract_range_h"
+		android:textSize="@dimen/text_sz_trace_config_list"
+		android:textColor="@color/trace_config"
+		android:id="@+id/extract_range_v_textview"/>
+	<SeekBar
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/extract_range_v_seekbar"
+		android:paddingBottom="@dimen/min_padding"
+		android:thumb="@drawable/custom_thumb"
+		android:minHeight="@dimen/text_sz_trace_config_list"/>
+</LinearLayout>

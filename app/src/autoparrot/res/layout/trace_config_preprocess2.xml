@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical">
+		<!-- 輪郭内塗りつぶし -->
+		<Switch
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/min_padding"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_fill_contour"
+			android:id="@+id/use_fill_contour_sw"/>
+		<!-- 平滑化(OpenGL|ES) -->
+<!--	<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_smooth"/>
+		<Spinner
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/min_padding"
+			android:id="@+id/use_smooth_spinner"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:textColor="@color/trace_config"
+			android:layout_gravity="center_horizontal"/> -->
+		<!-- エッジ検出(OpenGL|ES,Canny) -->
+<!--	<Switch
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/min_padding"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_use_canny"
+			android:id="@+id/use_canny_sw"/> -->
+		<!-- 平滑化(OpenCV) -->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_smooth_opencv"/>
+		<Spinner
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/use_native_smooth_spinner"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:textColor="@color/trace_config"
+			android:paddingBottom="@dimen/min_padding"
+			android:layout_gravity="center_horizontal"/>
+		<!-- 細線化(OpenCV) -->
+		<TextView
+			android:id="@+id/max_thinning_loop_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_max_thinning_loop"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/max_thinning_loop_seekbar"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- エッジ検出(OpenCV,Canny) -->
+<!--	<Switch
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_use_native_canny"
+			android:paddingBottom="@dimen/min_padding"
+			android:id="@+id/use_native_canny_sw"/> -->
+	</LinearLayout>
+</ScrollView>

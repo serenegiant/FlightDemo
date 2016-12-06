@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:orientation="vertical">
+
+	<LinearLayout
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_centerInParent="true"
+		android:gravity="center|center_vertical|center_horizontal"
+		android:orientation="vertical">
+
+		<CheckBox
+			android:id="@+id/cutout_checkbox"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="left"
+			android:layout_marginBottom="@dimen/half_padding"
+			android:text="@string/config_cut_out"
+			android:textColor="@color/WHITE"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<CheckBox
+			android:id="@+id/wheel_checkbox"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="left"
+			android:layout_marginBottom="@dimen/half_padding"
+			android:text="@string/config_has_wheel"
+			android:textColor="@color/WHITE"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<CheckBox
+			android:id="@+id/auto_takeoff_checkbox"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="left"
+			android:layout_marginBottom="@dimen/half_padding"
+			android:text="@string/config_auto_takeoff"
+			android:textColor="@color/WHITE"
+			android:textSize="@dimen/text_sz_list"/>
+	</LinearLayout>
+</RelativeLayout>

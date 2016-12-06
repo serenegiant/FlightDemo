@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent">
+
+	<com.serenegiant.arflight.drone.AttitudeTextureView
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:id="@+id/drone_view"
+		android:layout_gravity="center"
+		android:visibility="visible"
+		android:layout_centerInParent="true"
+		android:background="@null"/>
+
+	<TextView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/calibration_title"
+		android:id="@+id/textView9"
+		android:layout_alignParentRight="true"
+		android:layout_alignParentEnd="true"
+		android:textSize="@dimen/text_sz_message"
+		android:textColor="@color/BLANCHEDALMOND"
+		android:gravity="center_horizontal"/>
+
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/calibration_axis_x"
+		android:id="@+id/cal_msg_textview"
+		android:textSize="@dimen/text_sz_message"
+		android:textColor="@color/RED"
+		android:gravity="center_horizontal"
+		android:layout_below="@+id/textView9"
+		android:layout_centerHorizontal="true"
+		android:layout_marginTop="@dimen/half_padding"/>
+
+</RelativeLayout>

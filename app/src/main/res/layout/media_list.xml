@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent">
+
+	<RelativeLayout
+		android:id="@+id/top_panel"
+		android:orientation="horizontal"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="false"
+		android:layout_alignParentTop="true"
+		android:padding="@dimen/quater_padding">
+
+		<ImageButton
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/action_clear"
+			android:id="@+id/delete_btn"
+			android:layout_alignParentLeft="true"
+			android:gravity="center"
+			android:background="@null"
+			android:src="@mipmap/ic_delete"/>
+
+		<ImageButton
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/action_load"
+				android:id="@+id/fetch_btn"
+				android:layout_toRightOf="@+id/delete_btn"
+				android:gravity="center"
+				android:layout_marginLeft="@dimen/half_padding"
+				android:src="@mipmap/ic_cloud_down"
+				android:background="@null"/>
+
+		<CheckBox
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/action_delete_after_fetch"
+			android:id="@+id/delete_after_fetch_checkbox"
+			android:layout_centerVertical="true"
+			android:layout_toRightOf="@+id/fetch_btn"
+			android:layout_toEndOf="@+id/fetch_btn"
+			android:layout_marginLeft="@dimen/half_padding"
+			android:textColor="@color/WHITE"/>
+
+		<ProgressBar
+				style="@android:style/Widget.ProgressBar.Horizontal"
+				android:layout_width="@dimen/progress_sz_freespace"
+				android:layout_height="match_parent"
+				android:id="@+id/frees_pace_progress"
+				android:indeterminate="false"
+				android:max="100"
+				android:progress="45"
+				android:progressDrawable="@drawable/progress_blue"
+				android:layout_marginLeft="@dimen/quater_padding"
+				android:layout_alignParentEnd="true"
+				android:layout_alignParentRight="true"
+				android:layout_alignBottom="@+id/delete_btn"/>
+
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/free_space_textview"
+			android:layout_alignParentTop="true"
+			android:layout_alignBottom="@+id/frees_pace_progress"
+			android:layout_alignRight="@+id/frees_pace_progress"
+			android:layout_alignEnd="@+id/frees_pace_progress"
+			android:layout_alignLeft="@+id/frees_pace_progress"
+			android:layout_alignStart="@+id/frees_pace_progress"
+			android:gravity="center"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"/>
+
+	</RelativeLayout>
+
+
+	<ListView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:id="@+id/listView"
+		android:layout_below="@+id/top_panel"
+		/>
+	<TextView
+		android:id="@+id/empty_view"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/list"
+		android:gravity="center"
+		android:text="@string/media_empty"
+		android:textAlignment="center"
+		android:textSize="@dimen/text_sz_list"
+		android:layout_centerInParent="true"
+		android:textColor="@color/WHITE"/>
+
+</RelativeLayout>

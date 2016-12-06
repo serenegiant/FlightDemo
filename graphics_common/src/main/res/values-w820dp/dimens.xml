@@ -1,0 +1,6 @@
+<resources>
+	<dimen name="button_radius">16dp</dimen>
+	<dimen name="button_padding">4dp</dimen>
+	<dimen name="button_stroke_width">8dp</dimen>
+	<dimen name="progress_corner">18dp</dimen>
+</resources>

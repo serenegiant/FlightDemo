@@ -1,0 +1,66 @@
+// extern sin/cos/tan/asin/acos/atan/atan2/sinh/cosh/tanhsqrt/abs/exp/log/log10/hypot/pow/random/wait
+// extern void emergency(void);
+// extern void takeoff(void);
+// extern void landing(void);
+// extern void move(int roll, int pitch, int gaz, int yaw);
+//		roll/pitch/gaz/yaw=[-100,+100]
+// extern void updown(int gaz);
+// 		gaz=[-100,+100]
+// extern void rightleft(int roll);
+//		roll=[-100,+100]
+// extern void frontback(int pitch);
+//		pitch=[-100,+100]
+// extern void turn(int yaw);
+//		yaw=[-100,+100]
+// extern void compass(int degree);
+//		degree=[-360,+360]
+// extern void flip(int mode);
+//		mode=[1:front, 2:back, 3:right, 4:left]
+// extern void cap(int degree);
+//		degree=[-180,+180]
+// extern float getRoll();
+//		return current roll angle as degree
+// extern float getPitch();
+//		return current pitch angle as degree
+// extern float getYaw();
+//		return current yaw angle as degree
+// extern float getGaz();
+//		return current height as meter
+// extern float getCompass();
+//		return always zero now
+// extern float getMaxTilt();
+//		return max tilt angle as degree for roll/pitch
+// extern float getMaxRotationSpeed();
+//		return max rotation speed [degree/sec]
+// extern float getMaxVerticalSpeed();
+//		return max vertical speed [m/s]
+
+double speed_factor = 0.2;	// 0.46;
+
+void main(const double radius, const double scale_x, const double scale_y, const double scale_z, const double scale_r) {
+	takeoff();
+	wait(1000);
+	move(0, 0, 100, 0);
+	wait(radius);
+	move(0, 0, 0, 0);
+	double radian = PI / 2;
+	double sf = speed_factor * scale_x;
+	double r = radius / 100;
+	double tilt_max = getMaxTilt();
+	double t_max1 = 2 * PI * r / tilt_max / sf;
+	double vr_max = getMaxRotationSpeed();
+	double t_max2 = 360 / vr_max;
+	double t_max = t_max1;
+	if (t_max2 > t_max) t_max = t_max2;
+	double tilt100 = 2 * PI * r / t_max / sf / tilt_max * 100 * scale_x;
+	double vr100 = 360 / t_max / vr_max * 100;
+
+	for (int c = 0; c < 3; c++) {
+		wait(1000);
+		move(tilt100, 0, 0, vr100);
+		wait(t_max * 1000);
+		move(0, 0, 0, 0);
+	}
+	wait(1000);
+	landing();
+}

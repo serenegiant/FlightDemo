@@ -1,0 +1,49 @@
+<resources>
+
+	<!-- Base application theme. -->
+<!--<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar"> -->
+<!--<style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">-->
+	<style name="AppTheme" parent="android:Theme.DeviceDefault.Light.NoActionBar">
+		<!-- Customize your theme here. -->
+		<item name="flightdemo_icon_camera">@mipmap/ic_camera</item>
+		<item name="flightdemo_icon_cloud_down">@mipmap/ic_cloud_down</item>
+		<item name="flightdemo_icon_cloud_up">@mipmap/ic_cloud_up</item>
+		<item name="flightdemo_icon_delete">@mipmap/ic_delete</item>
+		<item name="flightdemo_icon_emergency">@mipmap/ic_emergency</item>
+		<item name="flightdemo_icon_favorite">@mipmap/ic_favorite</item>
+		<item name="flightdemo_icon_flag">@mipmap/ic_flag</item>
+		<item name="flightdemo_icon_folder">@mipmap/ic_folder</item>
+		<item name="flightdemo_icon_gallery">@mipmap/ic_gallery</item>
+		<item name="flightdemo_icon_gps">@mipmap/ic_gps</item>
+		<item name="flightdemo_icon_landing">@mipmap/ic_landing</item>
+		<item name="flightdemo_icon_list2">@mipmap/ic_gallery</item>
+		<item name="flightdemo_icon_list_thumbnail_device">@mipmap/ic_default</item>
+		<item name="flightdemo_icon_list_thumbnail_media">@mipmap/ic_default</item>
+		<item name="flightdemo_icon_list_thumbnail_script">@mipmap/ic_default</item>
+		<item name="flightdemo_icon_movie">@mipmap/ic_movie</item>
+		<item name="flightdemo_icon_plane">@mipmap/ic_plane</item>
+		<item name="flightdemo_icon_play">@mipmap/ic_play</item>
+		<item name="flightdemo_icon_rec">@mipmap/ic_rec</item>
+		<item name="flightdemo_icon_rec_2">@mipmap/ic_rec</item>
+		<item name="flightdemo_icon_settings">@mipmap/ic_settings</item>
+		<item name="flightdemo_icon_flip_back">@mipmap/ic_flip_back</item>
+		<item name="flightdemo_icon_flip_front">@mipmap/ic_flip_front</item>
+		<item name="flightdemo_icon_flip_right">@mipmap/ic_flip_right</item>
+		<item name="flightdemo_icon_flip_left">@mipmap/ic_flip_left</item>
+		<item name="flightdemo_icon_takeoff">@mipmap/ic_takeoff</item>
+		<item name="flightdemo_icon_script_edit">@mipmap/ic_script_edit</item>
+		<item name="flightdemo_icon_stick_front">@mipmap/ic_stick_front</item>
+		<item name="flightdemo_icon_stick_top">@mipmap/ic_stick_top</item>
+		<item name="flightdemo_icon_trim">@mipmap/ic_trim</item>
+		<item name="flightdemo_icon_turn_right">@mipmap/ic_turn_right45</item>
+		<item name="flightdemo_icon_turn_left">@mipmap/ic_turn_left45</item>
+		<item name="flightdemo_icon_dropdown">@mipmap/ic_dropdown</item>
+		<!--  -->
+		<item name="flightdemo_icon_auto_condition1">@mipmap/ic_default</item>
+		<item name="flightdemo_icon_auto_condition2">@mipmap/ic_default</item>
+		<item name="flightdemo_icon_auto_condition3">@mipmap/ic_default</item>
+		<item name="flightdemo_icon_auto_condition4">@mipmap/ic_default</item>
+		<item name="flightdemo_icon_auto_condition5">@mipmap/ic_default</item>
+	</style>
+
+</resources>

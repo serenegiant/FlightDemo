@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="action_settings">設定</string>
+	<string name="action_takeoff">離陸</string>
+	<string name="action_landing">着陸</string>
+	<string name="action_emergency">非常停止</string>
+	<string name="action_flat_trim">水平調整</string>
+	<string name="action_flat_trim_finished">水平調整完了</string>
+	<string name="action_flip">フリップ</string>
+	<string name="action_load">読込</string>
+	<string name="action_play">再生</string>
+	<string name="action_record">記録</string>
+	<string name="action_stop">停止</string>
+	<string name="action_clear">消去</string>
+	<string name="action_move">移動</string>
+	<string name="action_delete_after_fetch">読み込み後に削除</string>
+
+	<string name="select">選択</string>
+	<string name="not_selected">ファイルが選択されていません！</string>
+	<string name="parent_dir">上へ‥</string>
+	<string name="file_empty">ファイルがありません</string>
+
+	<string name="confirm_fetch">選択したファイルを転送してもよろしいですか?</string>
+	<string name="confirm_fetch_delete">転送が完了しました。\n転送したファイルを削除してもよろしいですか?</string>
+	<string name="confirm_delete">選択したファイルを削除してもよろしいですか?</string>
+	<string name="confirm_delete_after_fetch">選択したファイルを転送後に削除しますか?</string>
+	<string name="confirm_remove_script">選択したスクリプトをリストから取り除いてよろしいですか?</string>
+
+	<string name="notify_takeoff">長押しすると離陸します</string>
+
+	<string name="stick_text_up">上</string>
+	<string name="stick_text_turn_right">右\n回転</string>
+	<string name="stick_text_turn_left">左\n回転</string>
+	<string name="stick_text_right">右</string>
+	<string name="stick_text_left">左</string>
+	<string name="stick_text_forward">前</string>
+	<string name="stick_text_down">下</string>
+	<string name="stick_text_back">後</string>
+
+	<string name="config_app_title_color">機体色設定</string>
+	<string name="config_app_title_license">ライセンス</string>
+
+	<string name="config_sw_on">有</string>
+	<string name="config_sw_off">無</string>
+
+	<string name="config_title_flight">飛行設定</string>
+	<string name="config_title_drone">ドローン設定</string>
+	<string name="config_title_operation">操縦設定</string>
+	<string name="config_title_gamepad">ゲームパッド設定</string>
+	<string name="config_title_keymap">ゲームパッドキー設定</string>
+	<string name="config_title_autopilot">自動操縦設定</string>
+	<string name="config_title_network">ネットワーク設定</string>
+	<string name="config_title_icon">アイコン設定</string>
+	<string name="config_title_color">機体色設定</string>
+	<string name="config_title_app_button_hide">操縦画面のアイコンを自動的に非表示</string>
+	<string name="config_title_info">ドローン情報</string>
+
+	<string name="config_max_tilt">最大斜度: %5.1f[°]</string>
+	<string name="config_max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>
+	<string name="config_max_altitude">最大高度: %5.1f[m]</string>
+	<string name="config_max_rotating_speed">最大回転速度: %5.0f[°/s]</string>
+	<string name="config_has_wheel">車輪有り</string>
+	<string name="config_has_hull">バンパー有り</string>
+	<string name="config_cut_out">カットアウト</string>
+	<string name="config_auto_takeoff">自動離陸モード</string>
+	<string name="config_scale_x">Xスケール: %5.2f</string>
+	<string name="config_scale_y">Yスケール: %5.2f</string>
+	<string name="config_scale_z">Zスケール: %5.2f</string>
+	<string name="config_scale_r">Rスケール: %5.2f</string>
+	<string name="config_control_max">最大制御値: %5.1f</string>
+	<string name="config_control_max_gamepad">最大制御値: %5.2f</string>
+
+	<string name="config_gamepad_sensitivity">操作感度</string>
+	<string name="config_gamepad_use_driver">USBドライバーを使う</string>
+
+	<string name="config_operation_normal">標準操作画面</string>
+	<string name="config_operation_reverse">左右反転</string>
+	<string name="config_operation_mode1">モード1</string>
+	<string name="config_operation_mode2">モード2</string>
+	<string name="config_operation_touch">タッチ描画で操縦</string>
+
+	<string name="config_network_mode">WiFiモード</string>
+	<string name="config_network_freq">周波数帯</string>
+	<string name="config_network_outdoor">屋外</string>
+	<string name="config_network_indoor">屋内</string>
+
+	<string name="info_product_name">製品名:</string>
+	<string name="info_version_software">ソフトウエアバージョン:</string>
+	<string name="info_version_hardware">ハードウエアバージョン:</string>
+	<string name="info_version_app">アプリバージョン:</string>
+
+	<string name="calibration_title">磁気センサーのキャリブレーション</string>
+	<string name="calibration_axis_z">機体を水平に回転させてください。\n(アニメーションを参照)</string>
+	<string name="calibration_axis_y">機体を縦に回転させてください。\n(アニメーションを参照)</string>
+	<string name="calibration_axis_x">機体を横に回転させてください。\n(アニメーションを参照)</string>
+	<string name="calibration_success">キャリブレーションが正常終了しました。</string>
+	<string name="calibration_failed">キャリブレーションが失敗しました。</string>
+
+	<string name="media_title_list">内蔵メモリ</string>
+	<string name="media_title_galley">メディア一覧</string>
+	<string name="media_empty">メディアファイルがありません</string>
+	<string name="media_free_space">%s 空き</string>
+
+	<string name="script_list">スクリプト一覧</string>
+	<string name="script_error">スクリプトエラー</string>
+	<string name="script_error_non">エラーはありません</string>
+	<string name="script_empty">スクリプトが登録されていません</string>
+
+	<!-- サイドメニューの項目 -->
+	<string name="script_circle_xy">circle_xy</string>
+	<string name="script_circle_xz">circle_xz</string>
+	<string name="script_revolution_xr">revolution_xr</string>
+	<string name="script_revolution_yr">revolution_yr</string>
+	<string name="script_revolution_xr2">revolution_xr2</string>
+	<string name="script_revolution_yr2">revolution_yr2</string>
+	<string name="anim_headlights_flash">LED点滅1</string>
+	<string name="anim_headlights_blink">LED点滅2</string>
+	<string name="anim_headlights_oscillation">LED点滅3</string>
+	<string name="anim_spin">スピン</string>
+	<string name="anim_tap">タップ</string>
+	<string name="anim_slow_shake">シェイク</string>
+	<string name="anim_metronome">メトロノーム</string>
+	<string name="anim_ondulation">Ondulation</string>
+	<string name="anim_spin_jump">スピンジャンプ</string>
+	<string name="anim_spin_to_posture">Spin to posture</string>
+	<string name="anim_spiral">スパイラル</string>
+	<string name="anim_slalome">スラローム</string>
+	<string name="anim_boost">ブースト</string>
+
+	<string name="permission_location">位置情報へのアクセス許可がありません。</string>
+	<string name="permission_location_finish">位置情報へのアクセス許可がありません。\n終了します。</string>
+	<string name="permission_location_reason">ドローンを検出するためには位置情報へのアクセス許可が必要です。</string>
+	<string name="permission_location_request">ドローンを検出するためには位置情報へのアクセス許可が必要です。</string>
+
+</resources>

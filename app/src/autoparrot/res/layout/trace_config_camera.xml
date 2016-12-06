@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical">
+		<!-- ホワイトバランス -->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_camera_white_blance"/>
+		<Spinner
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:paddingBottom="@dimen/min_padding"
+			android:id="@+id/camera_white_blance_spinner"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:textColor="@color/trace_config"
+			android:layout_gravity="center_horizontal"/>
+		<!-- 露出 -->
+		<TextView
+			android:id="@+id/camera_exposure_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_camera_exposure"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/camera_exposure_seekbar"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 彩度 -->
+		<TextView
+			android:id="@+id/camera_saturation_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_camera_saturation"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/camera_saturation_seekbar"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- パン -->
+		<TextView
+			android:id="@+id/camera_pan_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_camera_pan"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/camera_pan_seekbar"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- チルト -->
+		<TextView
+			android:id="@+id/camera_tilt_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:textColor="@color/trace_config"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:text="@string/trace_camera_tilt"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/camera_tilt_seekbar"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+	</LinearLayout>
+</ScrollView>

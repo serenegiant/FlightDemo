@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+		<!-- 移動方向逆バイアス -->
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/trace_config_trace_reverse_bias"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:id="@+id/trace_flight_reverse_bias_textview"
+			android:textColor="@color/trace_config"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/trace_flight_reverse_bias_seekbar"
+			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 移動平均数 -->
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/trace_config_moving_ave_tap"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:id="@+id/trace_flight_moving_ave_tap_textview"
+			android:textColor="@color/trace_config"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/trace_flight_moving_ave_tap_seekbar"
+			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 減衰率 -->
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/trace_config_decay_rate"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:id="@+id/trace_flight_decay_rate_textview"
+			android:textColor="@color/trace_config"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/trace_flight_decay_rate_seekbar"
+			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+		<!-- 制御感度 -->
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/trace_config_trace_sensitivity"
+			android:textSize="@dimen/text_sz_trace_config_list"
+			android:id="@+id/trace_flight_sensitivity_textview"
+			android:textColor="@color/trace_config"/>
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/trace_flight_sensitivity_seekbar"
+			android:layout_gravity="center_horizontal"
+			android:paddingBottom="@dimen/min_padding"
+			android:thumb="@drawable/custom_thumb"
+			android:minHeight="@dimen/text_sz_trace_config_list"/>
+	</LinearLayout>
+</ScrollView>

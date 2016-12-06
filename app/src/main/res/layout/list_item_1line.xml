@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@id/title"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:gravity="center_vertical"
+	android:textSize="@dimen/text_sz_list"
+	android:paddingLeft="@dimen/abc_list_item_padding_horizontal_material"
+	android:paddingRight="@dimen/abc_list_item_padding_horizontal_material"
+	android:minHeight="?android:attr/listPreferredItemHeightSmall" />

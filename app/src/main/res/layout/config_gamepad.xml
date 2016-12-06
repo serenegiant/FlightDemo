@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:orientation="vertical"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent"
+				android:minHeight="@dimen/switch_height">
+
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_centerInParent="true"
+		android:id="@+id/linearLayout"
+		android:weightSum="1">
+
+<!--	<CheckBox
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_gamepad_use_driver"
+			android:id="@+id/usb_driver_checkbox"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"/> -->
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_gamepad_sensitivity"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
+			android:id="@+id/gamepad_sensitivity_textview"/>
+
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/gamepad_sensitivity_seekbar"
+			android:thumb="@drawable/custom_thumb"
+			android:layout_gravity="center_horizontal"
+			/>
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_scale_x"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
+			android:id="@+id/gamepad_scale_x_textview"/>
+
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/gamepad_scale_seekbar_x"
+			android:thumb="@drawable/custom_thumb"
+			android:layout_gravity="center_horizontal"
+			/>
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_scale_y"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
+			android:id="@+id/gamepad_scale_y_textview"/>
+
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:thumb="@drawable/custom_thumb"
+			android:id="@+id/gamepad_scale_seekbar_y"
+			/>
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_scale_z"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
+			android:id="@+id/gamepad_scale_z_textview"/>
+
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:thumb="@drawable/custom_thumb"
+			android:id="@+id/gamepad_scale_seekbar_z"
+			/>
+
+		<TextView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/config_scale_r"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/WHITE"
+			android:id="@+id/gamepad_scale_r_textview"/>
+
+		<SeekBar
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:thumb="@drawable/custom_thumb"
+			android:id="@+id/gamepad_scale_seekbar_r"
+			/>
+
+	</LinearLayout>
+
+</RelativeLayout>

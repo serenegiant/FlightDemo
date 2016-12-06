@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent">
+
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:gravity="center"
+		android:weightSum="1">
+
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/config_network_mode"
+			android:id="@+id/textView"
+			android:textColor="@color/WHITE"
+			android:textSize="@dimen/text_sz_list"/>
+
+		<RadioGroup
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			android:id="@+id/network_wifi_mode_radiogroup"
+			android:layoutMode="opticalBounds">
+			<RadioButton
+				android:id="@+id/network_outdoor_radiobutton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="@dimen/half_padding"
+				android:text="@string/config_network_outdoor"
+				android:textColor="@color/WHITE"
+				android:textSize="@dimen/text_sz_list"/>
+
+			<RadioButton
+				android:id="@+id/network_indoor_radiobutton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="@dimen/half_padding"
+				android:text="@string/config_network_indoor"
+				android:textColor="@color/WHITE"
+				android:textSize="@dimen/text_sz_list"/>
+		</RadioGroup>
+	</LinearLayout>
+
+</RelativeLayout>

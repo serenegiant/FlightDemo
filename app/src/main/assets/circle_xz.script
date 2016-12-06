@@ -1,0 +1,70 @@
+// extern sin/cos/tan/asin/acos/atan/atan2/sinh/cosh/tanhsqrt/abs/exp/log/log10/hypot/pow/random/wait
+// extern void emergency(void);
+// extern void takeoff(void);
+// extern void landing(void);
+// extern void move(int roll, int pitch, int gaz, int yaw);
+//		roll/pitch/gaz/yaw=[-100,+100]
+// extern void updown(int gaz);
+// 		gaz=[-100,+100]
+// extern void rightleft(int roll);
+//		roll=[-100,+100]
+// extern void frontback(int pitch);
+//		pitch=[-100,+100]
+// extern void turn(int yaw);
+//		yaw=[-100,+100]
+// extern void compass(int degree);
+//		degree=[-360,+360]
+// extern void flip(int mode);
+//		mode=[1:front, 2:back, 3:right, 4:left]
+// extern void cap(int degree);
+//		degree=[-180,+180]
+// extern float getRoll();
+//		return current roll angle as degree
+// extern float getPitch();
+//		return current pitch angle as degree
+// extern float getYaw();
+//		return current yaw angle as degree
+// extern float getGaz();
+//		return current height as meter
+// extern float getCompass();
+//		return always zero now
+// extern float getMaxTilt();
+//		return max tilt angle as degree for roll/pitch
+// extern float getMaxRotationSpeed();
+//		return max rotation speed [degree/sec]
+// extern float getMaxVerticalSpeed();
+//		return max vertical speed [m/s]
+
+int step_num = 12;
+
+void main(const double radius, const double scale_x, const double scale_y, const double scale_z, const double scale_r) {
+	takeoff();
+	wait(1000);
+	move(0, 0, 100, 0);
+	wait(radius);
+	move(0, 0, 0, 0);
+	double radian = PI / 2;
+	for (int c = 0; c < 3; c++) {
+		wait(1000);
+		int n = step_num;
+		long wait_time = 5000 / n;
+		double step_radian = 360 / n * TO_RADIAN;
+		double prev_x = radius * sin(radian) * scale_x;
+		double prev_z = radius * cos(radian) * scale_z;
+		double x, z;
+		for (int i = 0; i <= n; i++) {
+			x = radius * sin(radian) * scale_x;
+			z = radius * cos(radian) * scale_z;
+			double dx = x - prev_x;
+			double dz = z - prev_z;
+			move(dx, 0, dz, 0);
+			wait(wait_time);
+			radian += step_radian;
+			prev_x = x;
+			prev_z = z;
+		}
+		move(0, 0, 0, 0);
+	}
+	wait(1000);
+	landing();
+}
