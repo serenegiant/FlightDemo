@@ -14,8 +14,8 @@ android {
 		targetSdkVersion versionTarget
 		manifestPlaceholders = [appName:"@string/app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
-		versionCode 54
-		versionName '0.70.1'
+		versionCode 55
+		versionName '0.71.0'
 	}
 
 	applicationVariants.all { variant ->

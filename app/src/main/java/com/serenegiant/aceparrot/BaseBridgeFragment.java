@@ -422,22 +422,6 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 			case ARDISCOVERY_PRODUCT_BEBOP_2:	// bebop2
 				adapter.add(info);
 				break;
-//			case ARDISCOVERY_PRODUCT_JS:		// JumpingSumo
-//			case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
-//			case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
-//				// FIXME JumpingSumoは未実装
-//				break;
-//			case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
-//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
-//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
-//				adapter.add(info);
-//				break;
-//			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyController
-//				adapter.add(info);
-//				break;
-//			case ARDISCOVERY_PRODUCT_NSNETSERVICE:
-//				break;
 			}
 		}
 		adapter.notifyDataSetChanged();

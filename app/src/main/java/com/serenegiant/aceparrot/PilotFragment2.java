@@ -325,16 +325,20 @@ public class PilotFragment2 extends BasePilotFragment {
 			model = IModelView.MODEL_NON;
 			ctrl = AttitudeScreenBase.CTRL_PILOT;
 			break;
-		case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
+		case ARDISCOVERY_PRODUCT_MINIDRONE:				// DELOS product
 			model = IModelView.MODEL_MINIDRONE;
 			ctrl = AttitudeScreenBase.CTRL_PILOT;
 			break;
-		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
-		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:	// Delos EVO Light product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:	// Delos EVO Brick product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:// Delos EVO Hydrofoil product これと
+		case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:		// Delos3 product これと
+		case ARDISCOVERY_PRODUCT_MINIDRONE_WINGX:		// WingX product これはモデルが違うけど
 			model = IModelView.MODEL_CARGO;
 			ctrl = AttitudeScreenBase.CTRL_PILOT;
 			break;
-		case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
+		case ARDISCOVERY_PRODUCT_SKYCONTROLLER:			// Sky controller product
+		case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:		// Sky controller 2 product
 			model = IModelView.MODEL_SKYCONTROLLER;
 			ctrl = AttitudeScreenBase.CTRL_PILOT;
 			break;

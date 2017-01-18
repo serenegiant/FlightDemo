@@ -65,18 +65,23 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 		onBeforeCreateView();
 		final int model;
 		switch (getProduct()) {
-		case ARDISCOVERY_PRODUCT_BEBOP_2:
+		case ARDISCOVERY_PRODUCT_BEBOP_2:				// Bebop drone 2.0 product
 			model = IModelView.MODEL_BEBOP2;
 			break;
-		case ARDISCOVERY_PRODUCT_ARDRONE:
+		case ARDISCOVERY_PRODUCT_ARDRONE:				// Bebop Drone product
 			model = IModelView.MODEL_BEBOP;
 			break;
-		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
-		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
-		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
+//		case ARDISCOVERY_PRODUCT_BLESERVICE:			// BlueTooth products category
+		case ARDISCOVERY_PRODUCT_MINIDRONE:				// DELOS product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:	// Delos EVO Light product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:	// Delos EVO Brick product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:// Delos EVO Hydrofoil product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:		// Delos3 product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_WINGX:		// WingX product
 			model = IModelView.MODEL_CARGO;
 			break;
-		case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+		case ARDISCOVERY_PRODUCT_SKYCONTROLLER:			// Sky controller product
+		case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:		// Sky controller 2 product
 			model = IModelView.MODEL_SKYCONTROLLER;
 			break;
 		default:

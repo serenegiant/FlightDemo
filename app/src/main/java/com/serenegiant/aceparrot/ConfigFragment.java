@@ -1102,26 +1102,36 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 	private static PagerAdapterConfig[] getConfigs(final ARDISCOVERY_PRODUCT_ENUM product) {
 		PagerAdapterConfig[] result;
 		switch(product) {
-		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+		case ARDISCOVERY_PRODUCT_ARDRONE:				// Bebop Drone product
 			result = PAGER_CONFIG_BEBOP;
 			break;
-		case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+		case ARDISCOVERY_PRODUCT_BEBOP_2:				// Bebop drone 2.0 product
 			result = PAGER_CONFIG_BEBOP2;
 			break;
-		case ARDISCOVERY_PRODUCT_MINIDRONE:	// RollingSpider
-		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
-		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
-//			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL: // ハイドロフォイルもいる?
+//		case ARDISCOVERY_PRODUCT_BLESERVICE:			// BlueTooth products category
+		case ARDISCOVERY_PRODUCT_MINIDRONE:				// DELOS product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:	// Delos EVO Light product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:	// Delos EVO Brick product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:// Delos EVO Hydrofoil product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:		// Delos3 product
+		case ARDISCOVERY_PRODUCT_MINIDRONE_WINGX:		// WingX product
 			result = PAGER_CONFIG_MINIDRONE;
 			break;
-		case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
+		case ARDISCOVERY_PRODUCT_SKYCONTROLLER:			// Sky controller product
+		case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:		// Sky controller 2 product
 			// FIXME SkyController用の設定画面を追加する?
 			result = null;
 			break;
-		case ARDISCOVERY_PRODUCT_NSNETSERVICE:
-		case ARDISCOVERY_PRODUCT_JS:		// FIXME JumpingSumoは未対応
-		case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
-		case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
+		case ARDISCOVERY_PRODUCT_JS:					// JUMPING SUMO product
+		case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:			// Jumping Sumo EVO Light product
+		case ARDISCOVERY_PRODUCT_JS_EVO_RACE:			// Jumping Sumo EVO Race product
+//		case ARDISCOVERY_PRODUCT_POWER_UP:				// Power up product
+//		case ARDISCOVERY_PRODUCT_EVINRUDE:				// Evinrude product
+//		case ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4:		// Unknownproduct_4 product
+//		case ARDISCOVERY_PRODUCT_USBSERVICE:			// AOA/iAP usb product category
+//		case ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE:	// Service is unsupported:
+//		case ARDISCOVERY_PRODUCT_TINOS:					// Tinos product
+//		case ARDISCOVERY_PRODUCT_MAX:					// Max of products
 		default:
 			result = null;
 		}

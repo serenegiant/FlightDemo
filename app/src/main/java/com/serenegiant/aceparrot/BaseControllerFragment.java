@@ -10,10 +10,7 @@ import jp.co.rediscovery.arflight.*;
 
 import jp.co.rediscovery.arflight.DeviceInfo;
 import jp.co.rediscovery.arflight.IDeviceController;
-import jp.co.rediscovery.arflight.controllers.FlightControllerBebop;
-import jp.co.rediscovery.arflight.controllers.FlightControllerBebop2;
 
-import static jp.co.rediscovery.arflight.ARFlightConst.*;
 import static com.serenegiant.aceparrot.AppConst.*;
 
 public abstract class BaseControllerFragment extends BaseFragment {

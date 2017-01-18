@@ -76,7 +76,7 @@ public class ConnectionFragment extends BaseConnectionFragment {
 					// 製品名を取得
 					final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(device.getProductID());
 					switch (product) {
-					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
+					case ARDISCOVERY_PRODUCT_ARDRONE:				// Bebop Drone product
 						switch (id) {
 						case R.id.pilot_button:
 							fragment = AutoPilotFragment2.newInstance(device, null, "test001", AutoPilotFragment2.MODE_TRACE);
@@ -92,7 +92,7 @@ public class ConnectionFragment extends BaseConnectionFragment {
 							break;
 						}
 						break;
-					case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
+					case ARDISCOVERY_PRODUCT_BEBOP_2:				// Bebop drone 2.0 product
 						switch (id) {
 						case R.id.pilot_button:
 							fragment = AutoPilotFragment2.newInstance(device, null, "test011", AutoPilotFragment2.MODE_TRACE);
@@ -108,7 +108,8 @@ public class ConnectionFragment extends BaseConnectionFragment {
 							break;
 						}
 						break;
-					case ARDISCOVERY_PRODUCT_SKYCONTROLLER:	// SkyControllerNewAPI
+					case ARDISCOVERY_PRODUCT_SKYCONTROLLER:			// Sky controller product
+					case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:		// Sky controller 2 product
 						if (BuildConfig.USE_SKYCONTROLLER) {
 							fragment = newBridgetFragment(device);
 						}
