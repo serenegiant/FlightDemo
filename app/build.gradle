@@ -39,7 +39,7 @@ android {
 			File keystoreFile = file(properties.getProperty('KEYSTORE_ACE_PARROT'))
 			storeFile file(keystoreFile)
 			storePassword = properties.getProperty('STORE_PASSWORD_ACE_PARROT')
-			keyPassword = properties.getProperty('KEY_PASSWORD_ACE_PARROT')
+			keyPassword = properties.getProperty('KEY_PASSWORD_ACEPARROT')
 			keyAlias properties.getProperty('ALIAS_ACEPARROT')
 		}
 		autoparrot_releaseKey {
@@ -75,6 +75,14 @@ android {
 			applicationId "com.serenegiant.autoparrot"
 			signingConfig signingConfigs.autoparrot_releaseKey
 		}
+	}
+
+	packagingOptions {
+		exclude 'lib/armeabi/*.so'
+		exclude 'lib/arm64-v8a/*.so'
+		exclude 'lib/mips/**.so'
+		exclude 'lib/mips64/*.so'
+		exclude 'lib/x86_64/*.so'
 	}
 }
 

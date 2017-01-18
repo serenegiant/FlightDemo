@@ -35,6 +35,7 @@ LOCAL_LDLIBS += -lm
 #LOCAL_LDLIBS += -lEGL -lGLESv1_CM			# OpenGL|ES 1.1ライブラリ
 #LOCAL_LDLIBS += -lEGL -lGLESv2				# OpenGL|ES 2.0ライブラリ
 LOCAL_LDLIBS += -lEGL -lGLESv3				# OpenGL|ES 2.0|ES 3ライブラリ
+LOCAL_LDLIBS += -latomic
 
 LOCAL_SHARED_LIBRARIES += common
 

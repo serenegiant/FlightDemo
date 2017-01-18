@@ -89,6 +89,7 @@ LOCAL_EXPORT_LDLIBS += -llog						# log output library
 LOCAL_EXPORT_LDLIBS += -landroid					# Android native related library(when you use nativeActivity etc.)
 #LOCAL_EXPORT_LDLIBS += -lEGL -lGLESv1_CM			# OpenGL|ES 1.1ライブラリ
 LOCAL_EXPORT_LDLIBS += -lEGL -lGLESv2				# OpenGL|ES 2.0ライブラリ
+LOCAL_EXPORT_LDLIBS += -latomic
 
 LOCAL_ARM_MODE := arm
 
