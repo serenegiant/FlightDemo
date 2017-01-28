@@ -48,17 +48,17 @@ import jp.co.rediscovery.arflight.IVideoStreamController;
 
 import static com.serenegiant.aceparrot.AppConst.*;
 
-public class PilotFragment2 extends BasePilotFragment {
+public class PilotFragment extends BasePilotFragment {
 //	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static String TAG = PilotFragment2.class.getSimpleName();
+	private static String TAG = PilotFragment.class.getSimpleName();
 
 	private static final long ALPHA_PILOTING_DELAY_MS = 2500;		// アイコン等のアルファを落とすまでの時間[ミリ秒]
 	private static final long HIDE_PILOTING_DELAY_MS = 5000;		// アイコン等をすべて隠すまでの時間[ミリ秒]
 
 
-	public static PilotFragment2 newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
+	public static PilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
-		final PilotFragment2 fragment = new PilotFragment2();
+		final PilotFragment fragment = new PilotFragment();
 		fragment.setDevice(device, info);
 		return fragment;
 	}
@@ -108,7 +108,7 @@ public class PilotFragment2 extends BasePilotFragment {
 	/** 操縦に使用するボタン等の一括変更用。自動で隠す設定の時に使用  */
 	private final List<View> mAlphaHideList = new ArrayList<View>();
 
-	public PilotFragment2() {
+	public PilotFragment() {
 		super();
 	}
 
@@ -546,7 +546,7 @@ public class PilotFragment2 extends BasePilotFragment {
 		public void onClick(final View view) {
 //			if (DEBUG) Log.v(TAG, "onClick:" + view);
 			cancelAlphaHide();
-			if (PilotFragment2.this.onClick(view)) return;
+			if (PilotFragment.this.onClick(view)) return;
 			switch (view.getId()) {
 			case R.id.flat_trim_btn:
 				// フラットトリム
@@ -559,7 +559,7 @@ public class PilotFragment2 extends BasePilotFragment {
 				// 読み込みボタンの処理
 				setColorFilter((ImageView)view);
 				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", 0);
-				SelectFileDialogFragment.showDialog(PilotFragment2.this, root.getAbsolutePath(), false, "fcr");
+				SelectFileDialogFragment.showDialog(PilotFragment.this, root.getAbsolutePath(), false, "fcr");
 				break;
 			case R.id.record_btn:
 				// 操縦記録ボタンの処理
@@ -572,7 +572,7 @@ public class PilotFragment2 extends BasePilotFragment {
 				break;
 			case R.id.play_btn:
 				// 再生ボタンの処理
-				PilotFragment2.super.stopMove();
+				PilotFragment.super.stopMove();
 				if (!mFlightRecorder.isPlaying()) {
 					startPlay();
 				} else {
@@ -602,7 +602,7 @@ public class PilotFragment2 extends BasePilotFragment {
 				// タッチ描画で操縦開始
 				setColorFilter((ImageView)view);
 				// 再生ボタンの処理
-				PilotFragment2.super.stopMove();
+				PilotFragment.super.stopMove();
 				if (!mTouchFlight.isPlaying()) {
 					startTouchMove();
 				} else {

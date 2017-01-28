@@ -27,8 +27,6 @@ import java.util.List;
 import jp.co.rediscovery.arflight.ARDeviceServiceAdapter;
 import jp.co.rediscovery.arflight.ManagerFragment;
 
-import static jp.co.rediscovery.arflight.ARFlightConst.*;
-
 public abstract class BaseConnectionFragment extends BaseFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = BaseConnectionFragment.class.getSimpleName();
@@ -261,7 +259,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			switch (product) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:				// Bebop Drone product
 			case ARDISCOVERY_PRODUCT_BEBOP_2:				// Bebop drone 2.0 product
-				fragment = isPiloting ? PilotFragment2.newInstance(device, null) : MediaFragment.newInstance(device, null);
+				fragment = isPiloting ? PilotFragment.newInstance(device, null) : MediaFragment.newInstance(device, null);
 				break;
 			case ARDISCOVERY_PRODUCT_JS:					// JUMPING SUMO product
 			case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:			// Jumping Sumo EVO Light product
@@ -274,7 +272,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:// Delos EVO Hydrofoil product
 			case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:		// Delos3 product
 			case ARDISCOVERY_PRODUCT_MINIDRONE_WINGX:		// WingX product
-				fragment = isPiloting ? PilotFragment2.newInstance(device, null) : MediaFragment.newInstance(device, null);
+				fragment = isPiloting ? PilotFragment.newInstance(device, null) : MediaFragment.newInstance(device, null);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:			// Sky controller product
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:		// Sky controller 2 product

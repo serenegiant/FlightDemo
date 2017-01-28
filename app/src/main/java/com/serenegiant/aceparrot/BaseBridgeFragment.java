@@ -338,7 +338,7 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 							if (DEBUG) Log.v(TAG, "既に1機だけ検出&接続されていたら操縦画面へ");
 							// 検出している機体が1機でそれに接続している時は操縦画面へ
 							// FIXME ただし今はアイコン長押しでトレース/トラッキングモードに移行できるようにしているので自動では遷移しない
-//							replace(PilotFragment2.newInstance(controller.getDeviceService(), info));
+//							replace(PilotFragment.newInstance(controller.getDeviceService(), info));
 						}
 					} catch (final Exception e) {
 					}
@@ -475,7 +475,7 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 		case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 		case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
 			mIsConnectToDevice = mNeedRequestDeviceList = true;
-			fragment = isPiloting ? PilotFragment2.newInstance(mController.getDeviceService(), info)
+			fragment = isPiloting ? PilotFragment.newInstance(mController.getDeviceService(), info)
 				: MediaFragment.newInstance(mController.getDeviceService(), info);
 			break;
 		}
