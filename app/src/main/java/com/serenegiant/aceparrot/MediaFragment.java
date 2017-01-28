@@ -94,17 +94,11 @@ public class MediaFragment extends BaseFlightControllerFragment
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
-		if (DEBUG) Log.v(TAG, "onResume:");
+	protected void internalOnResume() {
+		super.internalOnResume();
+		if (DEBUG) Log.v(TAG, "internalOnResume:");
 		startDeviceController();
 	}
-
-/*	@Override
-	public void onPause() {
-		if (DEBUG) Log.v(TAG, "onPause:");
-		super.onPause();
-	} */
 
 	@Override
 	protected void onConnect(final IDeviceController controller) {
@@ -433,11 +427,11 @@ public class MediaFragment extends BaseFlightControllerFragment
 	}
 
 	private static final class PagerAdapterConfig {
-		public final int title_id;
-		public final int layout_id;
-		public final AdapterItemHandler handler;
+		final int title_id;
+		final int layout_id;
+		final AdapterItemHandler handler;
 
-		public PagerAdapterConfig(final int _title_id, final int _layout_id, final AdapterItemHandler _handler) {
+		PagerAdapterConfig(final int _title_id, final int _layout_id, final AdapterItemHandler _handler) {
 			title_id = _title_id;
 			layout_id = _layout_id;
 			handler = _handler;

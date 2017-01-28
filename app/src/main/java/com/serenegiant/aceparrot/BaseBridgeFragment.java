@@ -81,9 +81,9 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
-		if (DEBUG) Log.d(TAG, "onResume:");
+	protected void internalOnResume() {
+		super.internalOnResume();
+		if (DEBUG) Log.d(TAG, "internalOnResume:");
 		mIsConnectToDevice = false;
 		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
 			mMediaPlayer.start();
@@ -100,8 +100,8 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 	}
 
 	@Override
-	public void onPause() {
-		if (DEBUG) Log.d(TAG, "onPause:");
+	protected void internalOnPause() {
+		if (DEBUG) Log.d(TAG, "internalOnPause:");
 
 		updateButtons(false);
 		if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
@@ -118,11 +118,11 @@ public abstract class BaseBridgeFragment extends BaseControllerFragment {
 			}
 			mController = null;
 		}
-		if (DEBUG) Log.v(TAG, "onPause:isAdded=" + isAdded() + ",isDetached=" + isDetached()
+		if (DEBUG) Log.v(TAG, "internalOnPause:isAdded=" + isAdded() + ",isDetached=" + isDetached()
 			+ ",isHidden=" + isHidden() + ",isInLayout=" + isInLayout()
 			+ ",isRemoving=" + isRemoving() + ",isResumed=" + isResumed()
 			+ ",isVisible=" + isVisible() + ",mIsConnectToDevice=" + mIsConnectToDevice);
-		super.onPause();
+		super.internalOnPause();
 	}
 
 	@Override

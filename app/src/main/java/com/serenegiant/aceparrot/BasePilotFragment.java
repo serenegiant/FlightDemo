@@ -148,9 +148,9 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
-//		if (DEBUG) Log.v(TAG, "onResume:");
+	protected void internalOnResume() {
+		super.internalOnResume();
+//		if (DEBUG) Log.v(TAG, "internalOnResume:");
 		final Activity activity = getActivity();
 		if (activity instanceof IMainActivity) {
 			mJoystick = ((IMainActivity)activity).getJoystick();
@@ -167,8 +167,8 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	}
 
 	@Override
-	public void onPause() {
-//		if (DEBUG) Log.v(TAG, "onPause:");
+	protected void internalOnPause() {
+//		if (DEBUG) Log.v(TAG, "internalOnPause:");
 		mJoystick = null;
 		if (mModelView != null) {
 			mModelView.onPause();
@@ -185,7 +185,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		removeEvent(mGamePadTask);
 		removeEvent(mUpdateStatusTask);
 //		mControllerFrame.setKeepScreenOn(false);
-		super.onPause();
+		super.internalOnPause();
 	}
 
 //	@Override

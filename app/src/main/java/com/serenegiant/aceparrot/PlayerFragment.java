@@ -49,12 +49,6 @@ public class PlayerFragment extends BaseFragment {
 		setRetainInstance(true);
 	}
 
-/*	@Override
-	public void onCreate(final Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		loadArguments(savedInstanceState);
-	} */
-
 	@Override
 	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 		loadArguments(savedInstanceState);
@@ -67,22 +61,22 @@ public class PlayerFragment extends BaseFragment {
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
-		if (DEBUG) Log.v(TAG, "onResume:");
+	protected void internalOnResume() {
+		super.internalOnResume();
+		if (DEBUG) Log.v(TAG, "internalOnResume:");
 		if (mPlayerView != null) {
 			mPlayerView.onResume();
 		}
 	}
 
 	@Override
-	public void onPause() {
-		if (DEBUG) Log.v(TAG, "onPause:");
+	protected void internalOnPause() {
+		if (DEBUG) Log.v(TAG, "internalOnPause:");
 		stopPlay();
 		if (mPlayerView != null) {
 			mPlayerView.onPause();
 		}
-		super.onPause();
+		super.internalOnPause();
 	}
 
 	@Override

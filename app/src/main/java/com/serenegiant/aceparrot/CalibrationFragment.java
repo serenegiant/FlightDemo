@@ -103,16 +103,10 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 		return rootView;
 	}
 
-/*	@Override
-	public void onDestroy() {
-		if (DEBUG) Log.v(TAG, "onDestroy:");
-		super.onDestroy();
-	} */
-
 	@Override
-	public void onResume() {
-		super.onResume();
-		if (DEBUG) Log.v(TAG, "onResume:");
+	protected void internalOnResume() {
+		super.internalOnResume();
+		if (DEBUG) Log.v(TAG, "internalOnResume:");
 		mModelView.onResume();
 		if (mFlightController != null) {
 			runOnUiThread(new Runnable() {
@@ -128,14 +122,14 @@ public class CalibrationFragment extends BaseFlightControllerFragment {
 	}
 
 	@Override
-	public void onPause() {
-		if (DEBUG) Log.v(TAG, "onPause:");
+	protected void internalOnPause() {
+		if (DEBUG) Log.v(TAG, "internalOnPause:");
 		if ((mState != STATE_STOPPED) && (mController instanceof IFlightController)) {
 			((IFlightController)mController).startCalibration(false);
 		}
 		removeEvent(mUpdateStateTask);
 		mModelView.onPause();
-		super.onPause();
+		super.internalOnPause();
 	}
 
 	@Override

@@ -126,19 +126,19 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
+	protected void internalOnResume() {
+		super.internalOnResume();
 		runOnUiThread(mCPUMonitorTask, 1000);
 		runOnUiThread(mFpsTask, 1000);
 		clearAutoPilot();
 	}
 
 	@Override
-	public void onPause() {
+	protected void internalOnPause() {
 		removeFromUIThread(mFpsTask);
 		removeFromUIThread(mCPUMonitorTask);
 		clearAutoPilot();
-		super.onPause();
+		super.internalOnPause();
 	}
 
 	@Override

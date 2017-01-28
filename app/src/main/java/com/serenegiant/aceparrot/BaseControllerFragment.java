@@ -68,15 +68,15 @@ public abstract class BaseControllerFragment extends BaseFragment {
 //	}
 
 	@Override
-	public synchronized void onResume() {
-		super.onResume();
+	protected void internalOnResume() {
+		super.internalOnResume();
 		getController();
-		if (DEBUG) Log.v(TAG, "onResume:");
+		if (DEBUG) Log.v(TAG, "internalOnResume:");
 	}
 
 	@Override
-	public synchronized void onPause() {
-		if (DEBUG) Log.v(TAG, "onPause:isFinishing=" + getActivity().isFinishing());
+	protected void internalOnPause() {
+		if (DEBUG) Log.v(TAG, "internalOnPause:isFinishing=" + getActivity().isFinishing());
 		if (mController instanceof ISkyController) {
 			((ISkyController)mController).disconnectFrom();
 		} else if ((mController != null) && canReleaseController()) {
@@ -87,25 +87,7 @@ public abstract class BaseControllerFragment extends BaseFragment {
 			}
 		}
 		mController = null;
-		super.onPause();
-	}
-
-//	@Override
-//	public synchronized void onStop() {
-//		if (DEBUG) Log.v(TAG, "onStop:");
-//		super.onStop();
-//	}
-
-	@Override
-	public void onDestroy() {
-		if (DEBUG) Log.v(TAG, "onDestroy:");
-		super.onDestroy();
-	}
-
-	@Override
-	public void onDetach() {
-		if (DEBUG) Log.v(TAG, "onDetach:");
-		super.onDetach();
+		super.internalOnPause();
 	}
 
 	protected Bundle setDevice(final ARDiscoveryDeviceService device) {

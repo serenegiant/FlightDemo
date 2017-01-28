@@ -14,7 +14,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -28,6 +30,8 @@ import com.serenegiant.utils.BuildCheck;
 import com.serenegiant.utils.HandlerThreadHandler;
 import com.serenegiant.utils.PermissionCheck;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +45,7 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	private Handler mAsyncHandler;
 	protected LocalBroadcastManager mLocalBroadcastManager;
 	protected Vibrator mVibrator;
+	private Toast mToast;
 
 	public BaseFragment() {
 		super();
@@ -67,6 +72,7 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	@Override
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
+		cancelToast();
 		if (mAsyncHandler != null) {
 			try {
 				mAsyncHandler.getLooper().quit();
@@ -102,18 +108,46 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	}
 
 	@Override
-	public synchronized void onResume() {
-		super.onResume();
-		if (DEBUG) Log.v(TAG, "onResume:");
-		mIsReplacing = false;
+	public final void onStart() {
+		super.onStart();
+		if (BuildCheck.isAndroid7()) {
+			internalOnResume();
+		}
 	}
 
 	@Override
-	public synchronized void onPause() {
-		if (DEBUG) Log.v(TAG, "onPause:");
+	public synchronized final void onResume() {
+		super.onResume();
+		if (!BuildCheck.isAndroid7()) {
+			internalOnResume();
+		}
+	}
+
+	@Override
+	public synchronized final void onPause() {
+		if (!BuildCheck.isAndroid7()) {
+			internalOnPause();
+		}
+		super.onPause();
+	}
+
+	@Override
+	public final void onStop() {
+		if (BuildCheck.isAndroid7()) {
+			internalOnPause();
+		}
+		super.onStop();
+	}
+
+	protected void internalOnResume() {
+		if (DEBUG) Log.v(TAG, "internalOnResume:");
+		mIsReplacing = false;
+	}
+
+	protected void internalOnPause() {
+		if (DEBUG) Log.v(TAG, "internalOnPause:");
 		removeRequestPopBackStack();
 		mResetColorFilterTasks.clear();
-		super.onPause();
 	}
 
 	protected void loadArguments(final Bundle savedInstanceState) {
@@ -308,7 +342,7 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	 */
 	private static class ResetColorFilterTask implements Runnable {
 		private final ImageView mImage;
-		public ResetColorFilterTask(final ImageView image) {
+		ResetColorFilterTask(final ImageView image) {
 			mImage = image;
 		}
 		@Override
@@ -737,5 +771,53 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 			return false;
 		}
 		return true;
+	}
+
+//================================================================================
+	@IntDef({Toast.LENGTH_SHORT, Toast.LENGTH_LONG})
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Duration {}
+
+	protected void showToast(final String message, @Duration final int duration) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (mToast != null) {
+					mToast.cancel();
+					mToast = null;
+				}
+				final Activity activity = getActivity();
+				if ((activity == null) || activity.isFinishing()) return;
+				mToast = Toast.makeText(activity, message, duration);
+				mToast.show();
+			}
+		});
+	}
+
+	protected void showToast(@StringRes final int messageId, @Duration final int duration) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (mToast != null) {
+					mToast.cancel();
+					mToast = null;
+				}
+				final Activity activity = getActivity();
+				if ((activity == null) || activity.isFinishing()) return;
+				mToast = Toast.makeText(activity, messageId, duration);
+				mToast.show();
+			}
+		});
+	}
+
+	protected void cancelToast() {
+		if (mToast != null) {
+			try {
+				mToast.cancel();
+			} catch (final Exception e) {
+				// ignore
+			}
+		}
+		mToast = null;
 	}
 }

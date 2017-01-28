@@ -52,9 +52,9 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
-		if (DEBUG) Log.d(TAG, "onResume:");
+	protected void internalOnResume() {
+		super.internalOnResume();
+		if (DEBUG) Log.d(TAG, "internalOnResume:");
 		if (checkPermissionLocation()) {
 			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 			manager.startDiscovery();
@@ -67,8 +67,8 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	}
 
 	@Override
-	public void onPause() {
-		if (DEBUG) Log.d(TAG, "onPause:");
+	protected void internalOnPause() {
+		if (DEBUG) Log.d(TAG, "internalOnPause:");
 
 		updateButtons(false);
 		if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
@@ -79,7 +79,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			manager.removeCallback(mManagerCallback);
 			manager.stopDiscovery();
 		}
-		super.onPause();
+		super.internalOnPause();
 	}
 
 	@Override

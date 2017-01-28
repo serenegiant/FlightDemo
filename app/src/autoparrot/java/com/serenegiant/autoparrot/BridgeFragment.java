@@ -12,7 +12,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
 import com.serenegiant.aceparrot.BaseBridgeFragment;
 import com.serenegiant.aceparrot.BuildConfig;
-import com.serenegiant.aceparrot.PilotFragment2;
+import com.serenegiant.aceparrot.PilotFragment;
 import com.serenegiant.aceparrot.R;
 
 import java.io.IOException;
@@ -145,7 +145,7 @@ public class BridgeFragment extends BaseBridgeFragment {
 				switch (product) {
 				case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 				case ARDISCOVERY_PRODUCT_BEBOP_2:	// Bebop2
-					fragment = PilotFragment2.newInstance(device, info);
+					fragment = PilotFragment.newInstance(device, info);
 					break;
 				default:
 					Log.w(TAG, "未知の機体が来た:" + product);

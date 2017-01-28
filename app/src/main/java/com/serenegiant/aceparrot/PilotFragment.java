@@ -128,20 +128,20 @@ public class PilotFragment extends BasePilotFragment {
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
-//		if (DEBUG) Log.v(TAG, "onResume:");
+	protected void internalOnResume() {
+		super.internalOnResume();
+//		if (DEBUG) Log.v(TAG, "internalOnResume:");
 		mControllerFrame.setKeepScreenOn(true);
 		cancelAlphaHide();
 	}
 
 	@Override
-	public void onPause() {
-//		if (DEBUG) Log.v(TAG, "onPause:");
+	protected void internalOnPause() {
+//		if (DEBUG) Log.v(TAG, "internalOnPause:");
 		clearAlphaHide();
 		removeSideMenu();
 		mControllerFrame.setKeepScreenOn(false);
-		super.onPause();
+		super.internalOnPause();
 	}
 
 	@Override

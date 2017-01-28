@@ -72,9 +72,9 @@ public class ScriptFragment extends BaseFragment implements SelectFileDialogFrag
     }
 
 	@Override
-	public synchronized void onPause() {
+	protected void internalOnPause() {
 		ScriptHelper.saveScripts(mPref, mScripts);
-		super.onPause();
+		super.internalOnPause();
 	}
 
 	/**

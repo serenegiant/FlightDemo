@@ -52,34 +52,22 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 //	}
 
 	@Override
-	public synchronized void onResume() {
-		super.onResume();
-		if (DEBUG) Log.v(TAG, "onResume:");
+	protected void internalOnResume() {
+		super.internalOnResume();
+		if (DEBUG) Log.v(TAG, "internalOnResume:");
 		if (mController != null) {
 			mController.addListener(mFlightControllerListener);
 		}
 	}
 
 	@Override
-	public synchronized void onPause() {
-		if (DEBUG) Log.v(TAG, "onPause:");
+	protected void internalOnPause() {
+		if (DEBUG) Log.v(TAG, "internalOnPause:");
 		if (mController != null) {
 			mController.removeListener(mFlightControllerListener);
 		}
-		super.onPause();
+		super.internalOnPause();
 	}
-
-//	@Override
-//	public void onDestroy() {
-//		if (DEBUG) Log.v(TAG, "onDestroy:");
-//		super.onDestroy();
-//	}
-
-//	@Override
-//	public void onDetach() {
-//		if (DEBUG) Log.v(TAG, "onDetach:");
-//		super.onDetach();
-//	}
 
 	protected boolean isFlying() {
 		return mController instanceof IFlightController && ((IFlightController)mController).isFlying();
