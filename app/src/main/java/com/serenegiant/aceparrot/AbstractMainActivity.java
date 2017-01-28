@@ -23,6 +23,7 @@ import com.parrot.arsdk.arsal.ARSALPrint;
 import com.parrot.arsdk.arsal.ARSAL_PRINT_LEVEL_ENUM;
 import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.net.NetworkChangedReceiver;
+import com.serenegiant.utils.BuildCheck;
 import com.serenegiant.widget.ISideMenuView;
 import com.serenegiant.widget.SideMenuFrameLayout;
 
@@ -91,6 +92,38 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 	protected abstract Fragment createConnectionFragment();
 
 	@Override
+	protected final void onStart() {
+		super.onStart();
+		if (BuildCheck.isAndroid7()) {
+			internalOnResume();
+		}
+	}
+
+	@Override
+	protected final void onResume() {
+		super.onResume();
+		if (!BuildCheck.isAndroid7()) {
+			internalOnResume();
+		}
+	}
+
+	@Override
+	protected final void onPause() {
+		if (!BuildCheck.isAndroid7()) {
+			internalOnPause();
+		}
+		super.onPause();
+	}
+
+	@Override
+	protected final void onStop() {
+		if (BuildCheck.isAndroid7()) {
+			internalOnPause();
+		}
+		super.onStop();
+	}
+
+	@Override
 	protected void onDestroy() {
 		releaseJoystick();
 		hideProgress();
@@ -98,9 +131,7 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 		super.onDestroy();
 	}
 
-	@Override
-	public void onResume() {
-		super.onResume();
+	protected void internalOnResume() {
 		if (mDrawerToggle != null) {
 			mDrawerToggle.syncState();
 		}
@@ -109,15 +140,13 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 		}
 	}
 
-	@Override
-	public void onPause() {
+	protected void internalOnPause() {
 		if (mJoystick != null) {
 			mJoystick.unregister();
 		}
 		if (isFinishing()) {
 			ManagerFragment.releaseAll(this);
 		}
-		super.onPause();
 	}
 
 	@Override
