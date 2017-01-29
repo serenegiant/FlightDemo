@@ -16,54 +16,85 @@
 		android:layout_centerVertical="true"
 		android:src="@mipmap/ic_stick_front"/>
 
-	<TextView
-		android:id="@+id/up_textview"
+	<RelativeLayout
+		android:id="@+id/up_feedback_view"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_above="@+id/left_stick_image"
 		android:layout_centerHorizontal="true"
-		android:text="@string/stick_text_up"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"
+		android:layout_above="@+id/left_stick_image"
+		android:padding="@dimen/padding_cmd_feedback"
 		android:gravity="center"
-		android:textColor="@color/DARKVIOLET"/>
+		android:background="@drawable/cmd_feedback">
+		<TextView
+			android:id="@+id/up_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stick_text_up"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:gravity="center"
+			android:textColor="@color/DARKVIOLET"/>
+	</RelativeLayout>
 
-	<TextView
-		android:id="@+id/turn_left_textview"
+	<RelativeLayout
+		android:id="@+id/turn_left_feedback_view"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_centerVertical="true"
 		android:layout_toEndOf="@+id/left_stick_image"
 		android:layout_toRightOf="@+id/left_stick_image"
-		android:text="@string/stick_text_turn_right"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"
+		android:padding="@dimen/padding_cmd_feedback"
 		android:gravity="center"
-		android:textColor="@color/DARKVIOLET"/>
+		android:background="@drawable/cmd_feedback">
+		<TextView
+			android:id="@+id/turn_left_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stick_text_turn_right"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:gravity="center"
+			android:textColor="@color/DARKVIOLET"/>
+	</RelativeLayout>
 
-	<TextView
-		android:id="@+id/turn_right_textview"
+	<RelativeLayout
+		android:id="@+id/turn_right_feedback_view"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_centerVertical="true"
 		android:layout_toLeftOf="@+id/left_stick_image"
 		android:layout_toStartOf="@+id/left_stick_image"
-		android:text="@string/stick_text_turn_left"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"
+		android:padding="@dimen/padding_cmd_feedback"
 		android:gravity="center"
-		android:textColor="@color/DARKVIOLET"/>
+		android:background="@drawable/cmd_feedback">
+		<TextView
+			android:id="@+id/turn_right_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stick_text_turn_left"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:gravity="center"
+			android:textColor="@color/DARKVIOLET"/>
+	</RelativeLayout>
 
-	<TextView
-		android:id="@+id/down_textview"
+	<RelativeLayout
+		android:id="@+id/down_feedback_view"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_below="@+id/left_stick_image"
 		android:layout_centerHorizontal="true"
-		android:text="@string/stick_text_down"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"
+		android:padding="@dimen/padding_cmd_feedback"
 		android:gravity="center"
-		android:textColor="@color/DARKVIOLET"/>
-
+		android:background="@drawable/cmd_feedback">
+		<TextView
+			android:id="@+id/down_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stick_text_down"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:gravity="center"
+			android:textColor="@color/DARKVIOLET"/>
+	</RelativeLayout>
 </RelativeLayout>

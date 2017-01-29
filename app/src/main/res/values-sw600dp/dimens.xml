@@ -46,4 +46,6 @@
 	<dimen name="radiobutton_width_icon_list">120dp</dimen>
 	<dimen name="radiobutton_height_icon_list">76dp</dimen>
 	<dimen name="margin_record_frame_left">120dp</dimen>
+
+	<dimen name="padding_cmd_feedback">22dp</dimen>
 </resources>

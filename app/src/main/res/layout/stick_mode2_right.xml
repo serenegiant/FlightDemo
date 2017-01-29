@@ -16,54 +16,86 @@
 		android:layout_centerVertical="true"
 		android:src="@mipmap/ic_stick_top" />
 
-	<TextView
-		android:id="@+id/forward_textview"
+	<RelativeLayout
+		android:id="@+id/forward_feedback_view"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_above="@+id/right_stick_image"
 		android:layout_centerHorizontal="true"
-		android:text="@string/stick_text_forward"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"
+		android:padding="@dimen/padding_cmd_feedback"
 		android:gravity="center"
-		android:textColor="@color/DARKVIOLET"/>
+		android:background="@drawable/cmd_feedback">
+		<TextView
+			android:id="@+id/forward_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stick_text_forward"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:gravity="center"
+			android:textColor="@color/DARKVIOLET"/>
+	</RelativeLayout>
 
-	<TextView
-		android:id="@+id/right_textview"
+	<RelativeLayout
+		android:id="@+id/right_feedback_view"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_centerVertical="true"
 		android:layout_toEndOf="@+id/right_stick_image"
 		android:layout_toRightOf="@+id/right_stick_image"
-		android:text="@string/stick_text_right"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"
+		android:padding="@dimen/padding_cmd_feedback"
 		android:gravity="center"
-		android:textColor="@color/DARKVIOLET"/>
+		android:background="@drawable/cmd_feedback">
+		<TextView
+			android:id="@+id/right_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stick_text_right"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:gravity="center"
+			android:textColor="@color/DARKVIOLET"/>
+	</RelativeLayout>
 
-	<TextView
-		android:id="@+id/back_textview"
+	<RelativeLayout
+		android:id="@+id/back_feedback_view"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_below="@+id/right_stick_image"
 		android:layout_centerHorizontal="true"
-		android:text="@string/stick_text_back"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"
+		android:padding="@dimen/padding_cmd_feedback"
 		android:gravity="center"
-		android:textColor="@color/DARKVIOLET"/>
+		android:background="@drawable/cmd_feedback">
+		<TextView
+			android:id="@+id/back_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stick_text_back"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:gravity="center"
+			android:textColor="@color/DARKVIOLET"/>
+	</RelativeLayout>
 
-	<TextView
-		android:id="@+id/left_textview"
+	<RelativeLayout
+		android:id="@+id/left_feedback_view"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_centerVertical="true"
 		android:layout_toLeftOf="@+id/right_stick_image"
 		android:layout_toStartOf="@+id/right_stick_image"
-		android:text="@string/stick_text_left"
-		android:textAppearance="?android:attr/textAppearanceMedium"
-		android:textSize="@dimen/text_sz_button"
+		android:padding="@dimen/padding_cmd_feedback"
 		android:gravity="center"
-		android:textColor="@color/DARKVIOLET"/>
+		android:background="@drawable/cmd_feedback">
+		<TextView
+			android:id="@+id/left_textview"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/stick_text_left"
+			android:textAppearance="?android:attr/textAppearanceMedium"
+			android:textSize="@dimen/text_sz_button"
+			android:gravity="center"
+			android:textColor="@color/DARKVIOLET"/>
+	</RelativeLayout>
 
 </RelativeLayout>

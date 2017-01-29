@@ -16,7 +16,7 @@ import java.util.Set;
  */
 
 public class VoiceConst {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = "VoiceConst"; // VoiceConst.class.getSimpleName();
 
 	public static final long MAX_COUNT			= 0x00000003;
@@ -343,6 +343,8 @@ public class VoiceConst {
 		DIR_MAP.put("上昇", DIR_UP);
 		DIR_MAP.put("じょうしょう", DIR_UP);
 		DIR_MAP.put("ジョウショウ", DIR_UP);
+		DIR_MAP.put("うぇい", DIR_UP);
+		DIR_MAP.put("ウェイ", DIR_UP);
 
 		DIR_MAP.put("down", DIR_DOWN);
 		DIR_MAP.put("だうん", DIR_DOWN);

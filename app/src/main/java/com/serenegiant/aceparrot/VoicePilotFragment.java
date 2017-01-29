@@ -25,7 +25,7 @@ import jp.co.rediscovery.arflight.IFlightController;
  */
 
 public class VoicePilotFragment extends PilotFragment {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private static final String TAG = VoicePilotFragment.class.getSimpleName();
 
 	public static VoicePilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
