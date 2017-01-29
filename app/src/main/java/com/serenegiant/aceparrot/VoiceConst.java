@@ -248,6 +248,8 @@ public class VoiceConst {
 		CMD_MAP.put("離陸", CMD_TAKEOFF);
 		CMD_MAP.put("りりく", CMD_TAKEOFF);
 		CMD_MAP.put("リリク", CMD_TAKEOFF);
+		CMD_MAP.put("りりっく", CMD_TAKEOFF);
+		CMD_MAP.put("リリック", CMD_TAKEOFF);
 		CMD_MAP.put("飛べ", CMD_TAKEOFF);
 		CMD_MAP.put("とべ", CMD_TAKEOFF);
 		CMD_MAP.put("トベ", CMD_TAKEOFF);
@@ -327,6 +329,35 @@ public class VoiceConst {
 		DIR_MAP.put("イナリ", DIR_LEFT);
 		DIR_MAP.put("いいなり", DIR_LEFT);
 		DIR_MAP.put("イイナリ", DIR_LEFT);
+
+		DIR_MAP.put("up", DIR_UP);
+		DIR_MAP.put("あっぷ", DIR_UP);
+		DIR_MAP.put("アップ", DIR_UP);
+		DIR_MAP.put("上", DIR_UP);
+		DIR_MAP.put("うえ", DIR_UP);
+		DIR_MAP.put("ウエ", DIR_UP);
+		DIR_MAP.put("上がれ", DIR_UP);
+		DIR_MAP.put("あがれ", DIR_UP);
+		DIR_MAP.put("アガレ", DIR_UP);
+		DIR_MAP.put("上昇", DIR_UP);
+		DIR_MAP.put("じょうしょう", DIR_UP);
+		DIR_MAP.put("ジョウショウ", DIR_UP);
+
+		DIR_MAP.put("down", DIR_DOWN);
+		DIR_MAP.put("だうん", DIR_DOWN);
+		DIR_MAP.put("ダウン", DIR_DOWN);
+		DIR_MAP.put("下", DIR_DOWN);
+		DIR_MAP.put("した", DIR_DOWN);
+		DIR_MAP.put("シタ", DIR_DOWN);
+		DIR_MAP.put("下がれ", DIR_DOWN);
+		DIR_MAP.put("さがれ", DIR_DOWN);
+		DIR_MAP.put("サガレ", DIR_DOWN);
+		DIR_MAP.put("降下", DIR_DOWN);
+		DIR_MAP.put("こうか", DIR_DOWN);
+		DIR_MAP.put("コウカ", DIR_DOWN);
+		DIR_MAP.put("下降", DIR_DOWN);
+		DIR_MAP.put("かこう", DIR_DOWN);
+		DIR_MAP.put("カコウ", DIR_DOWN);
 
 		DIR_MAP.put("々", DIR_SAME);
 	}
