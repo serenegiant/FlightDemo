@@ -3,7 +3,9 @@ package com.serenegiant.aceparrot;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -35,7 +37,9 @@ import com.serenegiant.widget.TouchableLinearLayout;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jp.co.rediscovery.arflight.CameraControllerListener;
 import jp.co.rediscovery.arflight.DeviceInfo;
@@ -100,10 +104,10 @@ public class PilotFragment extends BasePilotFragment {
 	private StickView mRightStickPanel;		// 右スティックパネル
 	private StickView mLeftStickPanel;		// 左スティックパネル
 	private TouchPilotView mTouchPilotView;	// タッチ描画パネル
-	private View mForwardTv, mBackTv;
-	private View mRightTv, mLeftTv;
-	private View mDownTv, mUpTv;
-	private View mTurnLeftTv, mTurnRightTv;
+	private View mForwardView, mBackView;
+	private View mRightView, mLeftView;
+	private View mDownView, mUpView;
+	private View mTurnLeftView, mTurnRightView;
 	private View mHeartBeatView;
 
 	// サイドメニュー
@@ -146,6 +150,7 @@ public class PilotFragment extends BasePilotFragment {
 		stopHeartBeat();
 		clearAlphaHide();
 		removeSideMenu();
+		mResetLevelTasks.clear();
 		mControllerFrame.setKeepScreenOn(false);
 		super.internalOnPause();
 	}
@@ -300,14 +305,14 @@ public class PilotFragment extends BasePilotFragment {
 			mActionViews.add(mRightStickPanel);
 
 			final View stickView = mRightStickPanel.getStickView();
-			mForwardTv = stickView.findViewById(R.id.forward_textview);
-			mRightTv = stickView.findViewById(R.id.right_textview);
-			mBackTv = stickView.findViewById(R.id.back_textview);
-			mLeftTv = stickView.findViewById(R.id.left_textview);
-			mDownTv = stickView.findViewById(R.id.down_textview);
-			mUpTv = stickView.findViewById(R.id.up_textview);
-			mTurnLeftTv = stickView.findViewById(R.id.turn_left_textview);
-			mTurnRightTv = stickView.findViewById(R.id.turn_right_textview);
+			mForwardView = stickView.findViewById(R.id.forward_feedback_view);
+			mRightView = stickView.findViewById(R.id.right_feedback_view);
+			mBackView = stickView.findViewById(R.id.back_feedback_view);
+			mLeftView = stickView.findViewById(R.id.left_feedback_view);
+			mDownView = stickView.findViewById(R.id.down_feedback_view);
+			mUpView = stickView.findViewById(R.id.up_feedback_view);
+			mTurnLeftView = stickView.findViewById(R.id.turn_left_feedback_view);
+			mTurnRightView = stickView.findViewById(R.id.turn_right_feedback_view);
 		}
 
 		// 左スティックパネル
@@ -317,29 +322,29 @@ public class PilotFragment extends BasePilotFragment {
 			mActionViews.add(mRightStickPanel);
 
 			final View stickView = mLeftStickPanel.getStickView();
-			if (mForwardTv == null) {
-				mForwardTv = stickView.findViewById(R.id.forward_textview);
+			if (mForwardView == null) {
+				mForwardView = stickView.findViewById(R.id.forward_feedback_view);
 			}
-			if (mRightTv == null) {
-				mRightTv = stickView.findViewById(R.id.right_textview);
+			if (mRightView == null) {
+				mRightView = stickView.findViewById(R.id.right_feedback_view);
 			}
-			if (mBackTv == null) {
-				mBackTv = stickView.findViewById(R.id.back_textview);
+			if (mBackView == null) {
+				mBackView = stickView.findViewById(R.id.back_feedback_view);
 			}
-			if (mLeftTv == null) {
-				mLeftTv = stickView.findViewById(R.id.left_textview);
+			if (mLeftView == null) {
+				mLeftView = stickView.findViewById(R.id.left_feedback_view);
 			}
-			if (mDownTv == null) {
-				mDownTv = stickView.findViewById(R.id.down_textview);
+			if (mDownView == null) {
+				mDownView = stickView.findViewById(R.id.down_feedback_view);
 			}
-			if (mUpTv == null) {
-				mUpTv = stickView.findViewById(R.id.up_textview);
+			if (mUpView == null) {
+				mUpView = stickView.findViewById(R.id.up_feedback_view);
 			}
-			if (mTurnLeftTv == null) {
-				mTurnLeftTv = stickView.findViewById(R.id.turn_left_textview);
+			if (mTurnLeftView == null) {
+				mTurnLeftView = stickView.findViewById(R.id.turn_left_feedback_view);
 			}
-			if (mTurnRightTv == null) {
-				mTurnRightTv = stickView.findViewById(R.id.turn_right_textview);
+			if (mTurnRightView == null) {
+				mTurnRightView = stickView.findViewById(R.id.turn_right_feedback_view);
 			}
 		}
 
@@ -594,14 +599,14 @@ public class PilotFragment extends BasePilotFragment {
 			switch (view.getId()) {
 			case R.id.flat_trim_btn:
 				// フラットトリム
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if ((mFlightController != null) && (getState() == IFlightController.STATE_STARTED)) {
 					mFlightController.requestFlatTrim();
 				}
 				break;
 			case R.id.load_btn:
 				// 読み込みボタンの処理
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				final File root = FileUtils.getCaptureDir(getActivity(), "Documents", 0);
 				SelectFileDialogFragment.showDialog(PilotFragment.this, root.getAbsolutePath(), false, "fcr");
 				break;
@@ -625,7 +630,7 @@ public class PilotFragment extends BasePilotFragment {
 				break;
 			case R.id.config_show_btn:
 				// 設定パネル表示処理
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if (isStarted()) {
 					if ((getState() & IFlightController.STATE_MASK_FLYING) == DroneStatus.STATE_FLYING_LANDED) {
 						replace(ConfigFragment.newInstance(getDevice(), getDeviceInfo()));
@@ -636,7 +641,7 @@ public class PilotFragment extends BasePilotFragment {
 				break;
 			case R.id.clear_btn:
 				// タッチ描画データの消去
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if (mTouchPilotView != null) {
 					mTouchPilotView.clear();
 				}
@@ -644,7 +649,7 @@ public class PilotFragment extends BasePilotFragment {
 				break;
 			case R.id.move_btn:
 				// タッチ描画で操縦開始
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				// 再生ボタンの処理
 				PilotFragment.super.stopMove();
 				if (!mTouchFlight.isPlaying()) {
@@ -655,7 +660,7 @@ public class PilotFragment extends BasePilotFragment {
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
-				setColorFilter((ImageView) view);
+				setColorFilter( view);
 				emergencyStop();
 				break;
 			case R.id.copilot_btn:
@@ -668,7 +673,7 @@ public class PilotFragment extends BasePilotFragment {
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸指示/着陸指示ボタンの処理
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if (!isFlying()) {
 //					takeOff();
 					Toast.makeText(getActivity(), R.string.notify_takeoff, Toast.LENGTH_SHORT).show();
@@ -678,28 +683,28 @@ public class PilotFragment extends BasePilotFragment {
 				updateButtons();
 				break;
 			case R.id.flip_front_btn:
-				setColorFilter((ImageView) view);
+				setColorFilter(view);
 				if (mFlightController != null) {
 					mFlightController.requestAnimationsFlip(IFlightController.FLIP_FRONT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_FRONT);
 				}
 				break;
 			case R.id.flip_back_btn:
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if (mFlightController != null) {
 					mFlightController.requestAnimationsFlip(IFlightController.FLIP_BACK);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_BACK);
 				}
 				break;
 			case R.id.flip_right_btn:
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if (mFlightController != null) {
 					mFlightController.requestAnimationsFlip(IFlightController.FLIP_RIGHT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_RIGHT);
 				}
 				break;
 			case R.id.flip_left_btn:
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if (mFlightController != null) {
 					mFlightController.requestAnimationsFlip(IFlightController.FLIP_LEFT);
 					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_LEFT);
@@ -708,7 +713,7 @@ public class PilotFragment extends BasePilotFragment {
 			case R.id.still_capture_btn:
 				// 静止画撮影ボタンの処理
 				if (getStillCaptureState() == DroneStatus.MEDIA_READY) {
-					setColorFilter((ImageView) view);
+					setColorFilter( view);
 					if (mFlightController != null) {
 						mFlightController.requestTakePicture();
 					}
@@ -716,49 +721,49 @@ public class PilotFragment extends BasePilotFragment {
 				break;
 			case R.id.video_capture_btn:
 				// 動画撮影ボタンの処理
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if (mController instanceof ICameraController) {
 					mVideoRecording = !mVideoRecording;
 					((ICameraController)mController).sendVideoRecording(mVideoRecording);
 				}
 				break;
 			case R.id.cap_p45_btn:
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if (mFlightController != null) {
 					mFlightController.requestAnimationsCap(45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, 45);
 				}
 				break;
 			case R.id.cap_m45_btn:
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if (mFlightController != null) {
 					mFlightController.requestAnimationsCap(-45);
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -45);
 				}
 				break;
 /*			case R.id.north_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter(view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mFlightController != null) {
 					mFlightController.setHeading(0);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 0);
 				}
 				break;
 			case R.id.south_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter(view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mFlightController != null) {
 					mFlightController.setHeading(180);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 180);
 				}
 				break;
 			case R.id.west_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter(view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mFlightController != null) {
 					mFlightController.setHeading(-90);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, -90);
 				}
 				break;
 			case R.id.east_btn:
-				setColorFilter((ImageView)view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+				setColorFilter(view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mFlightController != null) {
 					mFlightController.setHeading(90);
 					mFlightRecorder.record(FlightRecorder.CMD_COMPASS, 90);
@@ -782,7 +787,7 @@ public class PilotFragment extends BasePilotFragment {
 				}
 				return true;
 			case R.id.flat_trim_btn:
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if ((mFlightController != null) && (getState() == IFlightController.STATE_STARTED)) {
 					replace(CalibrationFragment.newInstance(getDevice()));
 					return true;
@@ -790,7 +795,7 @@ public class PilotFragment extends BasePilotFragment {
 				break;
 			case R.id.take_onoff_btn:
 				// 離陸/着陸ボタンを長押しした時の処理
-				setColorFilter((ImageView)view);
+				setColorFilter(view);
 				if (!isFlying()) {
 					takeOff();
 					return true;
@@ -1361,47 +1366,103 @@ public class PilotFragment extends BasePilotFragment {
 		mModelView.setAlpha(1.0f);
 	}
 
+	private final Map<View, ResetLevelTask> mResetLevelTasks = new HashMap<View, ResetLevelTask>();
+
+	/**
+	 *
+	 * @param view
+	 * @param level
+	 */
+	private void setLevel(@NonNull final View view, final int level) {
+		setLevel(view, level, TOUCH_RESPONSE_TIME_MS);
+	}
+
+	/**
+	 * 指定したViewの背景Drawableにレベルをセットする
+	 * reset_delayが正ならば指定時間後に0リセットする
+	 * @param view
+	 * @param level
+	 * @param reset_delay ミリ秒
+	 */
+	private void setLevel(@NonNull final View view, final int level, final long reset_delay) {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				final Drawable bk = view.getBackground();
+				if (bk != null) {
+					bk.setLevel(level);
+				}
+			}
+		});
+		if (reset_delay > 0) {
+			ResetLevelTask task = mResetLevelTasks.get(view);
+			if (task == null) {
+				task = new ResetLevelTask(view);
+				mResetLevelTasks.put(view, task);
+			}
+			removeFromUIThread(task);
+			runOnUiThread(task, reset_delay);	// UIスレッド上で遅延実行
+		}
+	}
+
+	/**
+	 * 一定時間後にlevelをリセット(0)するためのRunnable
+	 */
+	private static class ResetLevelTask implements Runnable {
+		private final View mView;
+		ResetLevelTask(final View view) {
+			mView = view;
+		}
+		@Override
+		public void run() {
+			final Drawable bk = mView.getBackground();
+			if (bk != null) {
+				bk.setLevel(0);
+			}
+		}
+	}
+
 	@Override
 	protected void onSendMove(final float roll, final float pitch, final float gaz, final float yaw) {
 		super.onSendMove(roll, pitch, gaz, yaw);
 		// 左右
-		if ((mLeftTv != null) && (mRightTv != null)) {
+		if ((mLeftView!= null) && (mRightView != null)) {
 			if (roll < 0.0f) {
-				setColorFilter(mLeftTv);
-				mRightTv.setBackgroundColor(0);
+				setLevel(mLeftView, 1);
+				setLevel(mRightView, 0, 0);
 			} else if (roll > 0.0f) {
-				setColorFilter(mRightTv);
-				mLeftTv.setBackgroundColor(0);
+				setLevel(mRightView, 1);
+				setLevel(mLeftView, 0, 0);
 			}
 		}
 		// 前後
-		if ((mForwardTv != null) && (mBackTv != null)) {
+		if ((mForwardView != null) && (mBackView != null)) {
 			if (pitch > 0.0f) {
-				setColorFilter(mForwardTv);
-				mBackTv.setBackgroundColor(0);
+				setLevel(mForwardView, 1);
+				setLevel(mBackView, 0, 0);
 			} else if (pitch < 0.0f) {
-				setColorFilter(mBackTv);
-				mForwardTv.setBackgroundColor(0);
+				setLevel(mBackView, 1);
+				setLevel(mForwardView, 0, 0);
 			}
 		}
 		// 上下
-		if ((mDownTv != null) && (mUpTv != null)) {
+		if ((mDownView != null) && (mUpView != null)) {
 			if (gaz < 0.0f) {
-				setColorFilter(mDownTv);
-				mUpTv.setBackgroundColor(0);
+				setLevel(mDownView, 1);
+				setLevel(mUpView, 0, 0);
 			} else if (gaz > 0.0f) {
-				setColorFilter(mUpTv);
-				mDownTv.setBackgroundColor(0);
+				setLevel(mUpView, 1);
+				setLevel(mDownView, 0, 0);
 			}
 		}
 		// 左右回転
-		if ((mTurnLeftTv != null) && (mTurnRightTv != null)) {
+		if ((mTurnLeftView != null) && (mTurnRightView != null)) {
 			if (yaw > 0.0f) {
-				setColorFilter(mTurnLeftTv);
-				mTurnRightTv.setBackgroundColor(0);
+				setLevel(mTurnLeftView, 1);
+				setLevel(mTurnRightView, 0, 0);
 			} else if (yaw < 0.0f) {
-				setColorFilter(mTurnRightTv);
-				mTurnLeftTv.setBackgroundColor(0);
+				setLevel(mTurnRightView, 1);
+				setLevel(mTurnLeftView, 0, 0);
 			}
 		}
 	}

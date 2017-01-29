@@ -338,6 +338,7 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 				ResetColorFilterTask task = mResetColorFilterTasks.get(view);
 				if (task == null) {
 					task = new ResetColorFilterTask(((ImageView)view));
+					mResetColorFilterTasks.put(view, task);
 				}
 				removeFromUIThread(task);
 				runOnUiThread(task, reset_delay);	// UIスレッド上で遅延実行

@@ -33,7 +33,7 @@
 			android:textAppearance="?android:attr/textAppearanceMedium"
 			android:textSize="@dimen/text_sz_button"
 			android:gravity="center"
-			android:textColor="@color/DARKVIOLET"/>
+			android:textColor="@color/THISTLE"/>
 	</RelativeLayout>
 
 	<RelativeLayout
@@ -54,7 +54,7 @@
 			android:textAppearance="?android:attr/textAppearanceMedium"
 			android:textSize="@dimen/text_sz_button"
 			android:gravity="center"
-			android:textColor="@color/DARKVIOLET"/>
+			android:textColor="@color/THISTLE"/>
 	</RelativeLayout>
 
 	<RelativeLayout
@@ -75,7 +75,7 @@
 			android:textAppearance="?android:attr/textAppearanceMedium"
 			android:textSize="@dimen/text_sz_button"
 			android:gravity="center"
-			android:textColor="@color/DARKVIOLET"/>
+			android:textColor="@color/THISTLE"/>
 	</RelativeLayout>
 
 	<RelativeLayout
@@ -95,6 +95,6 @@
 			android:textAppearance="?android:attr/textAppearanceMedium"
 			android:textSize="@dimen/text_sz_button"
 			android:gravity="center"
-			android:textColor="@color/DARKVIOLET"/>
+			android:textColor="@color/THISTLE"/>
 	</RelativeLayout>
 </RelativeLayout>

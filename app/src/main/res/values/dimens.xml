@@ -48,5 +48,5 @@
 
 	<dimen name="margin_title_movie">0dp</dimen>
 
-	<dimen name="padding_cmd_feedback">8dp</dimen>
+	<dimen name="padding_cmd_feedback">4dp</dimen>
 </resources>
