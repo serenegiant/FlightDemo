@@ -204,6 +204,10 @@ public class StickView extends FrameLayout {
 		setChildColorFilter(this, enabled);
 	}
 
+	public View getStickView() {
+		return mStickView;
+	}
+
 	/**
 	 * 再帰的に子ViewのsetColorFilterを呼び出す
 	 * @param root

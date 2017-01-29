@@ -25,12 +25,17 @@ public class ConnectionFragment extends BaseConnectionFragment {
 		switch (view.getId()) {
 		case R.id.pilot_button:
 			if (checkPermissionLocation()) {
-				fragment = getFragment(position, true);
+				fragment = getFragment(position, true, false);
+			}
+			break;
+		case R.id.voice_pilot_button:
+			if (checkPermissionLocation() && checkPermissionAudio()) {
+				fragment = getFragment(position, true, true);
 			}
 			break;
 		case R.id.download_button:
 			if (checkPermissionWriteExternalStorage()) {
-				fragment = getFragment(position, false);
+				fragment = getFragment(position, false, false);
 			}
 			break;
 		case R.id.gallery_button:

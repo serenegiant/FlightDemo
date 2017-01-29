@@ -75,8 +75,8 @@ public class PilotFragment extends BasePilotFragment {
 	private String mBatteryFmt;
 	// 下パネル
 	private View mBottomPanel;
-	private ImageButton mEmergencyBtn;		// 非常停止ボタン
-	private ImageButton mTakeOnOffBtn;		// 離陸/着陸ボタン
+	protected ImageButton mEmergencyBtn;	// 非常停止ボタン
+	protected ImageButton mTakeOnOffBtn;	// 離陸/着陸ボタン
 	private ImageButton mRecordBtn;			// 記録ボタン
 	private TextView mRecordLabel;
 	private ImageButton mPlayBtn;			// 再生ボタン
@@ -100,6 +100,10 @@ public class PilotFragment extends BasePilotFragment {
 	private StickView mRightStickPanel;		// 右スティックパネル
 	private StickView mLeftStickPanel;		// 左スティックパネル
 	private TouchPilotView mTouchPilotView;	// タッチ描画パネル
+	private View mForwardTv, mBackTv;
+	private View mRightTv, mLeftTv;
+	private View mDownTv, mUpTv;
+	private View mTurnLeftTv, mTurnRightTv;
 
 	// サイドメニュー
 	private SideMenuListView mSideMenuListView;
@@ -290,6 +294,16 @@ public class PilotFragment extends BasePilotFragment {
 		if (mRightStickPanel != null) {
 			mRightStickPanel.setOnStickMoveListener(mOnStickMoveListener);
 			mActionViews.add(mRightStickPanel);
+
+			final View stickView = mRightStickPanel.getStickView();
+			mForwardTv = stickView.findViewById(R.id.forward_textview);
+			mRightTv = stickView.findViewById(R.id.right_textview);
+			mBackTv = stickView.findViewById(R.id.back_textview);
+			mLeftTv = stickView.findViewById(R.id.left_textview);
+			mDownTv = stickView.findViewById(R.id.down_textview);
+			mUpTv = stickView.findViewById(R.id.up_textview);
+			mTurnLeftTv = stickView.findViewById(R.id.turn_left_textview);
+			mTurnRightTv = stickView.findViewById(R.id.turn_right_textview);
 		}
 
 		// 左スティックパネル
@@ -297,6 +311,32 @@ public class PilotFragment extends BasePilotFragment {
 		if (mLeftStickPanel != null) {
 			mLeftStickPanel.setOnStickMoveListener(mOnStickMoveListener);
 			mActionViews.add(mRightStickPanel);
+
+			final View stickView = mLeftStickPanel.getStickView();
+			if (mForwardTv == null) {
+				mForwardTv = stickView.findViewById(R.id.forward_textview);
+			}
+			if (mRightTv == null) {
+				mRightTv = stickView.findViewById(R.id.right_textview);
+			}
+			if (mBackTv == null) {
+				mBackTv = stickView.findViewById(R.id.back_textview);
+			}
+			if (mLeftTv == null) {
+				mLeftTv = stickView.findViewById(R.id.left_textview);
+			}
+			if (mDownTv == null) {
+				mDownTv = stickView.findViewById(R.id.down_textview);
+			}
+			if (mUpTv == null) {
+				mUpTv = stickView.findViewById(R.id.up_textview);
+			}
+			if (mTurnLeftTv == null) {
+				mTurnLeftTv = stickView.findViewById(R.id.turn_left_textview);
+			}
+			if (mTurnRightTv == null) {
+				mTurnRightTv = stickView.findViewById(R.id.turn_right_textview);
+			}
 		}
 
 		// タッチパイロットView(タッチ描画操縦)
@@ -794,11 +834,12 @@ public class PilotFragment extends BasePilotFragment {
 			if ((_mx != mPrevRightMX) || ((_my != mPrevRightMY))) {
 				mPrevRightMX = _mx;
 				mPrevRightMY = _my;
-				if (mFlightController != null) {
-					mFlightController.setMove(_mx, -_my);
-					mFlightRecorder.record(FlightRecorder.CMD_MOVE2, _mx, -_my);
-//					if (DEBUG) Log.v(TAG, String.format("stick_normal:LR%d,FB%d", _mx, -_my));
-				}
+				sendMove(_mx, -_my, 0, 0);
+//				if (mFlightController != null) {
+//					mFlightController.setMove(_mx, -_my);
+//					mFlightRecorder.record(FlightRecorder.CMD_MOVE2, _mx, -_my);
+////					if (DEBUG) Log.v(TAG, String.format("stick_normal:LR%d,FB%d", _mx, -_my));
+//				}
 			}
 			break;
 		}
@@ -807,19 +848,21 @@ public class PilotFragment extends BasePilotFragment {
 			if ((Math.abs(_mx) < 20)) mx = 0;
 			if (mx != mPrevLeftMX) {	// 左右回転
 				mPrevLeftMX = mx;
-				if (mFlightController != null) {
-					mFlightController.setYaw(mx);
-					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
-//					if (DEBUG) Log.v(TAG, String.format("stick_normal:T%d", _mx));
-				}
+				sendMove(0, 0, 0, mx);
+//				if (mFlightController != null) {
+//					mFlightController.setYaw(mx);
+//					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
+////					if (DEBUG) Log.v(TAG, String.format("stick_normal:T%d", _mx));
+//				}
 			}
 			if (_my != mPrevLeftMY) {	// 上昇下降
 				mPrevLeftMY = _my;
-				if (mFlightController != null) {
-					mFlightController.setGaz(-_my);
-					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
-//					if (DEBUG) Log.v(TAG, String.format("stick_normal:UD%d", -_my));
-				}
+				sendMove(0, 0, -_my, 0);
+//				if (mFlightController != null) {
+//					mFlightController.setGaz(-_my);
+//					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
+////					if (DEBUG) Log.v(TAG, String.format("stick_normal:UD%d", -_my));
+//				}
 			}
 			break;
 		}
@@ -834,40 +877,44 @@ public class PilotFragment extends BasePilotFragment {
 		case R.id.stick_view_right: {
 			if (_my != mPrevRightMY) {	// 上昇下降
 				mPrevRightMY = _my;
-				if (mFlightController != null) {
-					mFlightController.setGaz(-_my);
-					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
-//					if (DEBUG) Log.v(TAG, String.format("stick_mode1:UD%d", -_my));
-				}
+				sendMove(0, 0, -_my, 0);
+//				if (mFlightController != null) {
+//					mFlightController.setGaz(-_my);
+//					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
+////					if (DEBUG) Log.v(TAG, String.format("stick_mode1:UD%d", -_my));
+//				}
 			}
 			int mx = _mx;
 			if ((Math.abs(_mx) < 20)) mx = 0;
 			if (mx != mPrevRightMX) {	// 左右移動
 				mPrevRightMX = mx;
-				if (mFlightController != null) {
-					mFlightController.setRoll(mx, true);
-					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, mx);
-//					if (DEBUG) Log.v(TAG, String.format("stick_mode1:LR%d", mx));
-				}
+				sendMove(mx, 0, 0, 0);
+//				if (mFlightController != null) {
+//					mFlightController.setRoll(mx, true);
+//					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, mx);
+////					if (DEBUG) Log.v(TAG, String.format("stick_mode1:LR%d", mx));
+//				}
 			}
 			break;
 		}
 		case R.id.stick_view_left: {
 			if (_mx != mPrevLeftMX) {	// 左右回転
 				mPrevLeftMX = _mx;
-				if (mFlightController != null) {
-					mFlightController.setYaw(_mx);
-					mFlightRecorder.record(FlightRecorder.CMD_TURN, _mx);
-//					if (DEBUG) Log.v(TAG, String.format("stick_mode1:T%d", _mx));
-				}
+				sendMove(0, 0, 0, _mx);
+//				if (mFlightController != null) {
+//					mFlightController.setYaw(_mx);
+//					mFlightRecorder.record(FlightRecorder.CMD_TURN, _mx);
+////					if (DEBUG) Log.v(TAG, String.format("stick_mode1:T%d", _mx));
+//				}
 			}
 			if (_my != mPrevLeftMY) {	// 前後移動
 				mPrevLeftMY = _my;
-				if (mFlightController != null) {
-					mFlightController.setPitch(-_my, true);
-					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -_my);
-//					if (DEBUG) Log.v(TAG, String.format("stick_mode1:FB%d", -_my));
-				}
+				sendMove(0, -_my, 0, 0);
+//				if (mFlightController != null) {
+//					mFlightController.setPitch(-_my, true);
+//					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -_my);
+////					if (DEBUG) Log.v(TAG, String.format("stick_mode1:FB%d", -_my));
+//				}
 			}
 			break;
 		}
@@ -882,19 +929,21 @@ public class PilotFragment extends BasePilotFragment {
 		case R.id.stick_view_right: {
 			if (_my != mPrevRightMY) {	// 前後移動
 				mPrevRightMY = _my;
-				if (mFlightController != null) {
-					mFlightController.setPitch(-_my, true);
-					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -_my);
-//					if (DEBUG) Log.v(TAG, String.format("stick_mode2:FB%d", -_my));
-				}
+				sendMove(0, -_my, 0, 0);
+//				if (mFlightController != null) {
+//					mFlightController.setPitch(-_my, true);
+//					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -_my);
+////					if (DEBUG) Log.v(TAG, String.format("stick_mode2:FB%d", -_my));
+//				}
 			}
 			if (_mx != mPrevRightMX) {	// 左右移動
 				mPrevRightMX = _mx;
-				if (mFlightController != null) {
-					mFlightController.setRoll(_mx, true);
-					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, _mx);
-//					if (DEBUG) Log.v(TAG, String.format("stick_mode2:LR%d", _mx));
-				}
+				sendMove(_mx, 0, 0, 0);
+//				if (mFlightController != null) {
+//					mFlightController.setRoll(_mx, true);
+//					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, _mx);
+////					if (DEBUG) Log.v(TAG, String.format("stick_mode2:LR%d", _mx));
+//				}
 			}
 			break;
 		}
@@ -903,19 +952,21 @@ public class PilotFragment extends BasePilotFragment {
 			if ((Math.abs(_mx) < 20)) mx = 0;
 			if (mx != mPrevLeftMX) {	// 左右回転
 				mPrevLeftMX = mx;
-				if (mFlightController != null) {
-					mFlightController.setYaw(mx);
-					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
-//					if (DEBUG) Log.v(TAG, String.format("stick_mode2:T%d", _mx));
-				}
+				sendMove(0, 0, 0, mx);
+//				if (mFlightController != null) {
+//					mFlightController.setYaw(mx);
+//					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
+////					if (DEBUG) Log.v(TAG, String.format("stick_mode2:T%d", _mx));
+//				}
 			}
 			if (_my != mPrevLeftMY) {	// 上昇下降
 				mPrevLeftMY = _my;
-				if (mFlightController != null) {
-					mFlightController.setGaz(-_my);
-					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
-//					if (DEBUG) Log.v(TAG, String.format("stick_mode2:UD%d", -_my));
-				}
+				sendMove(0, 0, -_my, 0);
+//				if (mFlightController != null) {
+//					mFlightController.setGaz(-_my);
+//					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
+////					if (DEBUG) Log.v(TAG, String.format("stick_mode2:UD%d", -_my));
+//				}
 			}
 			break;
 		}
@@ -1305,4 +1356,50 @@ public class PilotFragment extends BasePilotFragment {
 		}
 		mModelView.setAlpha(1.0f);
 	}
+
+	@Override
+	protected void onSendMove(final float roll, final float pitch, final float gaz, final float yaw) {
+		super.onSendMove(roll, pitch, gaz, yaw);
+		// 左右
+		if ((mLeftTv != null) && (mRightTv != null)) {
+			if (roll < 0.0f) {
+				setColorFilter(mLeftTv);
+				mRightTv.setBackgroundColor(0);
+			} else if (roll > 0.0f) {
+				setColorFilter(mRightTv);
+				mLeftTv.setBackgroundColor(0);
+			}
+		}
+		// 前後
+		if ((mForwardTv != null) && (mBackTv != null)) {
+			if (pitch > 0.0f) {
+				setColorFilter(mForwardTv);
+				mBackTv.setBackgroundColor(0);
+			} else if (pitch < 0.0f) {
+				setColorFilter(mBackTv);
+				mForwardTv.setBackgroundColor(0);
+			}
+		}
+		// 上下
+		if ((mDownTv != null) && (mUpTv != null)) {
+			if (gaz < 0.0f) {
+				setColorFilter(mDownTv);
+				mUpTv.setBackgroundColor(0);
+			} else if (gaz > 0.0f) {
+				setColorFilter(mUpTv);
+				mDownTv.setBackgroundColor(0);
+			}
+		}
+		// 左右回転
+		if ((mTurnLeftTv != null) && (mTurnRightTv != null)) {
+			if (yaw > 0.0f) {
+				setColorFilter(mTurnLeftTv);
+				mTurnRightTv.setBackgroundColor(0);
+			} else if (yaw < 0.0f) {
+				setColorFilter(mTurnRightTv);
+				mTurnLeftTv.setBackgroundColor(0);
+			}
+		}
+	}
+
 }

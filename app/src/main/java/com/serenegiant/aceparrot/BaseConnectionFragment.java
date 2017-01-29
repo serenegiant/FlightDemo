@@ -32,7 +32,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	private static String TAG = BaseConnectionFragment.class.getSimpleName();
 
 	private PlayerTextureView mVideoView;
-	protected ImageButton mDownloadBtn, mPilotBtn, mGalleyBrn, mScriptBtn;
+	protected ImageButton mDownloadBtn, mPilotBtn, mVoicePilotBtn, mGalleyBrn, mScriptBtn;
 	private MediaPlayer mMediaPlayer;
 	protected ListView mDeviceListView;
 
@@ -119,6 +119,10 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 		mPilotBtn.setOnClickListener(mOnClickListener);
 		mPilotBtn.setOnLongClickListener(mOnLongClickListener);
 
+		mVoicePilotBtn = (ImageButton)rootView.findViewById(R.id.voice_pilot_button);
+		mVoicePilotBtn.setOnClickListener(mOnClickListener);
+		mVoicePilotBtn.setOnLongClickListener(mOnLongClickListener);
+
 		mGalleyBrn = (ImageButton)rootView.findViewById(R.id.gallery_button);
 		mGalleyBrn.setOnClickListener(mOnClickListener);
 		mGalleyBrn.setOnLongClickListener(mOnLongClickListener);
@@ -156,6 +160,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 		final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
 		mDownloadBtn.setVisibility(visibility);
 		mPilotBtn.setVisibility(visibility);
+		mVoicePilotBtn.setVisibility(visibility);
 	}
 
 	/**
@@ -246,7 +251,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 
 	protected abstract boolean onLongClick(final View view, final int position);
 
-	protected Fragment getFragment(final int position, final boolean isPiloting) {
+	protected Fragment getFragment(final int position, final boolean isPiloting, final boolean isVoiceControl) {
 		final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
 		final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
 		final String itemValue = adapter.getItemName(position);
@@ -272,7 +277,9 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:// Delos EVO Hydrofoil product
 			case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:		// Delos3 product
 			case ARDISCOVERY_PRODUCT_MINIDRONE_WINGX:		// WingX product
-				fragment = isPiloting ? PilotFragment.newInstance(device, null) : MediaFragment.newInstance(device, null);
+				fragment = isPiloting ?
+					(isVoiceControl ? VoicePilotFragment.newInstance(device, null) : PilotFragment.newInstance(device, null))
+					: MediaFragment.newInstance(device, null);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:			// Sky controller product
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:		// Sky controller 2 product

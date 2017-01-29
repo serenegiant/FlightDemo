@@ -17,7 +17,7 @@
 		android:src="@mipmap/ic_stick_front"/>
 
 	<TextView
-		android:id="@+id/textView1"
+		android:id="@+id/up_textview"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_above="@+id/left_stick_image"
@@ -29,7 +29,7 @@
 		android:textColor="@color/DARKVIOLET"/>
 
 	<TextView
-		android:id="@+id/textView2"
+		android:id="@+id/turn_left_textview"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_centerVertical="true"
@@ -42,7 +42,7 @@
 		android:textColor="@color/DARKVIOLET"/>
 
 	<TextView
-		android:id="@+id/textView3"
+		android:id="@+id/turn_right_textview"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_centerVertical="true"
@@ -55,7 +55,7 @@
 		android:textColor="@color/DARKVIOLET"/>
 
 	<TextView
-		android:id="@+id/textView4"
+		android:id="@+id/down_textview"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_below="@+id/left_stick_image"

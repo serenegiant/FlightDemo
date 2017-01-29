@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<uses-feature android:name="android.hardware.usb.host" android:required="false"/>
+	<uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
 	<application
 		android:name="com.serenegiant.aceparrot.FlightDemoApplication"

@@ -213,7 +213,9 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	 * @param task
 	 */
 	protected void removeFromUIThread(final Runnable task) {
-		mUIHandler.removeCallbacks(task);
+		if (task != null) {
+			mUIHandler.removeCallbacks(task);
+		}
 	}
 
 	/**
@@ -222,10 +224,12 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	 * @param delay_msec 0以下ならrunOnUiThreadと同じ
 	 */
 	protected void runOnUiThread(final Runnable task, final long delay_msec) {
-		if (delay_msec <= 0) {
-			runOnUiThread(task);
-		} else if (task != null) {
-			mUIHandler.postDelayed(task, delay_msec);
+		if (task != null) {
+			if (delay_msec <= 0) {
+				runOnUiThread(task);
+			} else if (task != null) {
+				mUIHandler.postDelayed(task, delay_msec);
+			}
 		}
 	}
 
@@ -234,10 +238,12 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	 * @param task
 	 */
 	protected void removeEvent(final Runnable task) {
-		if (mAsyncHandler != null) {
-			mAsyncHandler.removeCallbacks(task);
-		} else {
-			removeFromUIThread(task);
+		if (task != null) {
+			if (mAsyncHandler != null) {
+				mAsyncHandler.removeCallbacks(task);
+			} else {
+				removeFromUIThread(task);
+			}
 		}
 	}
 	/**
@@ -246,14 +252,16 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	 * @param delay_msec
 	 */
 	protected void queueEvent(final Runnable task, final long delay_msec) {
-		if (mAsyncHandler != null) {
-			if (delay_msec <= 0) {
-				mAsyncHandler.post(task);
+		if (task != null) {
+			if (mAsyncHandler != null) {
+				if (delay_msec <= 0) {
+					mAsyncHandler.post(task);
+				} else {
+					mAsyncHandler.postDelayed(task, delay_msec);
+				}
 			} else {
-				mAsyncHandler.postDelayed(task, delay_msec);
+				runOnUiThread(task, delay_msec);
 			}
-		} else {
-			runOnUiThread(task, delay_msec);
 		}
 	}
 
@@ -301,35 +309,50 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	/**
 	 * カラーフィルタクリア用のRunnableのキャッシュ
 	 */
-	private final Map<ImageView, ResetColorFilterTask> mResetColorFilterTasks = new HashMap<ImageView, ResetColorFilterTask>();
+	private final Map<View, ResetColorFilterTask> mResetColorFilterTasks = new HashMap<View, ResetColorFilterTask>();
 
 	/**
 	 * タッチレスポンス用のカラーフィルターを規定時間適用する
-	 * @param image
+	 * @param view
 	 */
-	protected void setColorFilter(final ImageView image) {
-		setColorFilter(image, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
+	protected void setColorFilter(final View view) {
+		setColorFilter(view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 	}
 
 	/**
 	 * 指定したImageViewに指定した色でカラーフィルターを適用する。
 	 * reset_delayが0より大きければその時間経過後にカラーフィルターをクリアする
-	 * @param image
+	 * @param view
 	 * @param color
 	 * @param reset_delay ミリ秒
 	 */
-	protected void setColorFilter(final ImageView image, final int color, final long reset_delay) {
-		if (image != null) {
+	protected void setColorFilter(final View view, final int color, final long reset_delay) {
+		if (view instanceof ImageView) {
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					image.setColorFilter(color);
+					((ImageView)view).setColorFilter(color);
 				}
 			});
 			if (reset_delay > 0) {
-				ResetColorFilterTask task = mResetColorFilterTasks.get(image);
+				ResetColorFilterTask task = mResetColorFilterTasks.get(view);
 				if (task == null) {
-					task = new ResetColorFilterTask(image);
+					task = new ResetColorFilterTask(((ImageView)view));
+				}
+				removeFromUIThread(task);
+				runOnUiThread(task, reset_delay);	// UIスレッド上で遅延実行
+			}
+		} else {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					view.setBackgroundColor(color);
+				}
+			});
+			if (reset_delay > 0) {
+				ResetColorFilterTask task = mResetColorFilterTasks.get(view);
+				if (task == null) {
+					task = new ResetColorFilterTask(view);
 				}
 				removeFromUIThread(task);
 				runOnUiThread(task, reset_delay);	// UIスレッド上で遅延実行
@@ -341,13 +364,17 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	 * 一定時間後にImageView(とImageButton)のカラーフィルターをクリアするためのRunnable
 	 */
 	private static class ResetColorFilterTask implements Runnable {
-		private final ImageView mImage;
-		ResetColorFilterTask(final ImageView image) {
-			mImage = image;
+		private final View mView;
+		ResetColorFilterTask(final View view) {
+			mView = view;
 		}
 		@Override
 		public void run() {
-			mImage.setColorFilter(0);
+			if (mView instanceof ImageView) {
+				((ImageView)mView).setColorFilter(0);
+			} else {
+				mView.setBackgroundColor(0);
+			}
 		}
 	}
 

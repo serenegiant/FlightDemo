@@ -11,6 +11,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.annotation.IntDef;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
@@ -38,6 +39,8 @@ import com.serenegiant.utils.FileUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -592,6 +595,20 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		if (mFlightController != null) {
 			mFlightController.requestLanding();
 			mFlightRecorder.record(FlightRecorder.CMD_LANDING);
+		}
+	}
+	@IntDef({IFlightController.FLIP_FRONT, IFlightController.FLIP_BACK, IFlightController.FLIP_RIGHT, IFlightController.FLIP_LEFT})
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface FlipDirection {}
+
+	/**
+	 * フリップ
+	 * @param dir
+	 */
+	protected void flip(@FlipDirection final int dir) {
+		if (mFlightController != null) {
+			mFlightController.requestAnimationsFlip(dir);
+			mFlightRecorder.record(FlightRecorder.CMD_FLIP, dir);
 		}
 	}
 
@@ -1252,6 +1269,13 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		sendMove(roll, pitch, gaz, yaw, true);
 	}
 
+	/**
+	 * 画面操作での移動コマンド発行処理
+	 * @param roll
+	 * @param pitch
+	 * @param gaz
+	 * @param yaw
+	 */
 	protected void sendMove(final float roll, final float pitch, final float gaz, final float yaw) {
 		sendMove(roll, pitch, gaz, yaw, false);
 	}
@@ -1259,6 +1283,14 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	private static final float DEAD_ZONE = 2.0f;
 	private int prev_r, prev_p, prev_g, prev_y;
 
+	/**
+	 * 実際の移動コマンド発行
+	 * @param roll
+	 * @param pitch
+	 * @param gaz
+	 * @param yaw
+	 * @param moveByGamepad
+	 */
 	private void sendMove(final float roll, final float pitch, final float gaz, final float yaw, final boolean moveByGamepad) {
 		if (isMoveByGamepad() && !moveByGamepad) return;
 		final int r = (int)(Math.abs(roll) > DEAD_ZONE ? roll : 0.0f);
@@ -1284,7 +1316,11 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				}
 				moved = mMoveByGamepad = false;
 			}
+			onSendMove(r, p, g, y);
 		}
+	}
+
+	protected void onSendMove(final float roll, final float pitch, final float gaz, final float yaw) {
 	}
 
 	/** 通常操作モードでのゲームパッド入力処理 */

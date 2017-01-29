@@ -11,7 +11,12 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
+
 import java.util.List;
+
+import jp.co.rediscovery.arflight.DeviceInfo;
+import jp.co.rediscovery.arflight.IFlightController;
 
 /**
  * Created by saki on 2017/01/28.
@@ -21,6 +26,13 @@ import java.util.List;
 public class VoicePilotFragment extends PilotFragment {
 	private static final boolean DEBUG = true;
 	private static final String TAG = VoicePilotFragment.class.getSimpleName();
+
+	public static VoicePilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
+		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
+		final VoicePilotFragment fragment = new VoicePilotFragment();
+		fragment.setDevice(device, info);
+		return fragment;
+	}
 
 	private SpeechRecognizer mSpeechRecognizer;
 	private AudioManager mAudioManager;
@@ -162,15 +174,74 @@ public class VoicePilotFragment extends PilotFragment {
 
 	    @Override
 	    public void onResults(final Bundle results) {
-			if (DEBUG) Log.v(TAG, "onResults:" + results);
-	        final List<String> recData = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-	        final float[] conf = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
-	        int i = 0;
-	        for (final String data: recData) {
-	        	Log.v(TAG, "onResults:" + (conf != null ? conf[i] : "?") + "/" + data);
-				i++;
+	    	// FIXME 飛行可能で無い時は無視する
+			final List<String> recData = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+			final float[] conf = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
+			long cmd = VoiceConst.CMD_NON;
+			if (conf != null) {
+				// confidenceがある時
+				int i = 0;
+				for (final String data: recData) {
+					final long found = VoiceConst.findCommand(data);
+					if (found != VoiceConst.CMD_NON) {
+						if (conf[i] > 0.7f) {
+							cmd = found;
+							break;
+						} else if (cmd == VoiceConst.CMD_NON) {
+							cmd = found;
+						}
+					}
+					i++;
+				}
+			} else {
+				// confidenceが無い時
+				for (final String data: recData) {
+					cmd = VoiceConst.findCommand(data);
+					if (cmd != VoiceConst.CMD_NON) {
+						break;
+					}
+				}
 			}
 			runOnUiThread(mStartSpeechRecognizerTask, 100);
+			switch ((int)(cmd & VoiceConst.CMD_MASK)) {
+			case VoiceConst.CMD_STOP:
+				sendMove(0, 0, 0, 0);
+				setColorFilter(mEmergencyBtn);
+				break;
+			case VoiceConst.CMD_TAKEOFF:
+				takeOff();
+				setColorFilter(mTakeOnOffBtn);
+				break;
+			case VoiceConst.CMD_LANDING:
+				landing();
+				setColorFilter(mTakeOnOffBtn);
+				break;
+			case VoiceConst.CMD_FLIP:
+				// FIXME setColorFilterは未処理
+				switch ((int)(cmd & 0xff)) {
+				case VoiceConst.DIR_FORWARD:
+					flip(IFlightController.FLIP_FRONT);
+					break;
+				case VoiceConst.DIR_RIGHT:
+					flip(IFlightController.FLIP_RIGHT);
+					break;
+				case VoiceConst.DIR_BACKWARD:
+					flip(IFlightController.FLIP_BACK);
+					break;
+				case VoiceConst.DIR_LEFT:
+					flip(IFlightController.FLIP_LEFT);
+					break;
+				}
+				break;
+			case VoiceConst.CMD_MOVE:
+				// 操縦動作
+				float roll = VoiceConst.getRoll(cmd);
+				float pitch = VoiceConst.getPitch(cmd);
+				float gaz = VoiceConst.getGaz(cmd);
+				float yaw = VoiceConst.getYaw(cmd);
+				sendMove(roll, pitch, gaz, yaw);
+				break;
+			}
 	    }
 
 		@Override
