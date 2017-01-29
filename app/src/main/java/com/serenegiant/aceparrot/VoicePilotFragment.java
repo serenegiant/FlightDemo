@@ -156,33 +156,40 @@ public class VoicePilotFragment extends PilotFragment {
 			stopHeartBeat();
 			switch (error) {
 			case SpeechRecognizer.ERROR_AUDIO:
-				Log.e(TAG, "音声データ保存失敗");
+				// 音声データ保存失敗
+				showToast(R.string.error_voice_audio, Toast.LENGTH_SHORT);
 				break;
 			case SpeechRecognizer.ERROR_CLIENT:
-				Log.e(TAG, "Android端末内のエラー(その他)");
+				// Android端末内のエラー(その他)
+				showToast(R.string.error_voice_system, Toast.LENGTH_SHORT);
 				break;
 			case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
-				Log.e(TAG, "権限無し");
-				break;
+				// 権限無し
+				showToast(R.string.error_voice_no_permission, Toast.LENGTH_LONG);
+				return;
 			case SpeechRecognizer.ERROR_NETWORK:
-				Log.e(TAG, "ネットワークエラー(その他)");
+				// ネットワークエラー(その他)
+				showToast(R.string.error_voice_network, Toast.LENGTH_SHORT);
 				break;
 			case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
-				Log.e(TAG, "ネットワークタイムアウトエラー");
+				// ネットワークタイムアウトエラー
+				showToast(R.string.error_voice_network_timeout, Toast.LENGTH_SHORT);
 				break;
 			case SpeechRecognizer.ERROR_NO_MATCH:
-				Log.d(TAG, "音声認識結果無し");
-				showToast("no match Text data", Toast.LENGTH_LONG);
+				// 音声認識結果無し
+				showToast(R.string.error_voice_no_command, Toast.LENGTH_LONG);
 				break;
 			case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
-				Log.e(TAG, "RecognitionServiceへ要求出せず");
+				// RecognitionServiceへ要求出せず
+				showToast(R.string.error_voice_unavailable, Toast.LENGTH_SHORT);
 				break;
 			case SpeechRecognizer.ERROR_SERVER:
-				Log.e(TAG, "Server側からエラー通知");
+				// Server側からエラー通知
+				showToast(R.string.error_voice_network_server, Toast.LENGTH_SHORT);
 				break;
 			case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-				Log.e(TAG, "音声入力無し");
-				showToast("no input ?", Toast.LENGTH_LONG);
+				// 音声入力無し
+				showToast(R.string.error_voice_no_input, Toast.LENGTH_SHORT);
 				break;
 			default:
 				break;
@@ -262,6 +269,9 @@ public class VoicePilotFragment extends PilotFragment {
 				float gaz = VoiceConst.getGaz(cmd);
 				float yaw = VoiceConst.getYaw(cmd);
 				sendMove(roll, pitch, gaz, yaw);
+				break;
+			default:
+				showToast(R.string.error_voice_no_command, Toast.LENGTH_SHORT);
 				break;
 			}
 	    }

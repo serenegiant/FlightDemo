@@ -132,4 +132,13 @@
 	<string name="permission_location_reason">ドローンを検出するためには位置情報へのアクセス許可が必要です。</string>
 	<string name="permission_location_request">ドローンを検出するためには位置情報へのアクセス許可が必要です。</string>
 
+	<string name="error_voice_audio">音声を取り込めませんでした</string>
+	<string name="error_voice_system">音声に認識システム内でエラーが発生しました</string>
+	<string name="error_voice_no_permission">音声読み込みのパーミッションがありません</string>
+	<string name="error_voice_network">ネットワークエラー</string>
+	<string name="error_voice_network_timeout">ネットワークから応答がありません</string>
+	<string name="error_voice_network_server">サーバーエラー</string>
+	<string name="error_voice_unavailable">音声認識を使用できません</string>
+	<string name="error_voice_no_command">コマンドを認識できません</string>
+	<string name="error_voice_no_input">音声コマンド入力を検出できません</string>
 </resources>

@@ -131,4 +131,13 @@
 	<string name="permission_location_reason">Permission to access location needs to discover drone(s)</string>
 	<string name="permission_location_request">Permission to access location needs to discover drone(s)</string>
 
+	<string name="error_voice_audio">failed to get voice input</string>
+	<string name="error_voice_system">System error</string>
+	<string name="error_voice_no_permission">No permission for voice recognition</string>
+	<string name="error_voice_network">Network error</string>
+	<string name="error_voice_network_timeout">No response from network</string>
+	<string name="error_voice_network_server">Server error</string>
+	<string name="error_voice_unavailable">Voice recognition is unavailable</string>
+	<string name="error_voice_no_command">Unrecognized command</string>
+	<string name="error_voice_no_input">No voice input</string>
 </resources>
