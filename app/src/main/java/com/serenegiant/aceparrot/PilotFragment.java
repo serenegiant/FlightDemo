@@ -104,6 +104,7 @@ public class PilotFragment extends BasePilotFragment {
 	private View mRightTv, mLeftTv;
 	private View mDownTv, mUpTv;
 	private View mTurnLeftTv, mTurnRightTv;
+	private View mHeartBeatView;
 
 	// サイドメニュー
 	private SideMenuListView mSideMenuListView;
@@ -142,6 +143,7 @@ public class PilotFragment extends BasePilotFragment {
 	@Override
 	protected void internalOnPause() {
 //		if (DEBUG) Log.v(TAG, "internalOnPause:");
+		stopHeartBeat();
 		clearAlphaHide();
 		removeSideMenu();
 		mControllerFrame.setKeepScreenOn(false);
@@ -204,6 +206,8 @@ public class PilotFragment extends BasePilotFragment {
 		mTakeOnOffBtn.setOnClickListener(mOnClickListener);
 		mTakeOnOffBtn.setOnLongClickListener(mOnLongClickListener);
 		mActionViews.add(mTakeOnOffBtn);
+		// ハートビート
+		mHeartBeatView = rootView.findViewById(R.id.heart_beat_view);
 		// 記録ボタン
 		mRecordBtn = (ImageButton) rootView.findViewById(R.id.record_btn);
 		mRecordBtn.setOnClickListener(mOnClickListener);
@@ -1401,5 +1405,36 @@ public class PilotFragment extends BasePilotFragment {
 			}
 		}
 	}
+
+	protected void startHeartBeat() {
+		if (mHeartBeatView != null) {
+			runOnUiThread(mHeartBeatShowTask);
+		}
+	}
+
+	protected void stopHeartBeat() {
+		removeFromUIThread(mHeartBeatShowTask);
+		removeFromUIThread(mHearBeatHideTask);
+		if (mHeartBeatView != null) {
+			runOnUiThread(mHearBeatHideTask);
+		}
+	}
+
+	private final Runnable mHeartBeatShowTask = new Runnable() {
+		@Override
+		public void run() {
+			mHeartBeatView.setVisibility(View.VISIBLE);
+			runOnUiThread(mHearBeatHideTask, 800);
+		}
+	};
+
+	private final Runnable mHearBeatHideTask = new Runnable() {
+		@Override
+		public void run() {
+			mHeartBeatView.setVisibility(View.INVISIBLE);
+			runOnUiThread(mHeartBeatShowTask, 200);
+		}
+	};
+
 
 }

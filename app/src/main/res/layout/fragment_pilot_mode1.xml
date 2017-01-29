@@ -263,6 +263,15 @@
 				android:scaleType="fitCenter"
 				android:src="?attr/flightdemo_icon_takeoff"/>
 
+			<ImageView
+				android:id="@+id/heart_beat_view"
+				android:layout_width="@dimen/bottom_panel_height"
+				android:layout_height="@dimen/bottom_panel_height"
+				android:layout_toRightOf="@id/take_onoff_btn"
+				android:src="@mipmap/ic_heart"
+				android:scaleType="fitCenter"
+				android:visibility="invisible"/>
+
 			<ImageButton
 				android:id="@+id/emergency_btn"
 				android:layout_width="@dimen/bottom_panel_height"

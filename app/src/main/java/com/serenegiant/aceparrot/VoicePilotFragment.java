@@ -16,6 +16,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import java.util.List;
 
 import jp.co.rediscovery.arflight.DeviceInfo;
+import jp.co.rediscovery.arflight.IDeviceController;
 import jp.co.rediscovery.arflight.IFlightController;
 
 /**
@@ -43,11 +44,10 @@ public class VoicePilotFragment extends PilotFragment {
 		// デフォルトコンストラクタが必要
 	}
 
-	@Override
-	protected void internalOnResume() {
-		super.internalOnResume();
-		startSpeechRecognizer();
-	}
+//	@Override
+//	protected void internalOnResume() {
+//		super.internalOnResume();
+//	}
 
 	@Override
 	protected void internalOnPause() {
@@ -55,12 +55,27 @@ public class VoicePilotFragment extends PilotFragment {
 		super.internalOnPause();
 	}
 
+	@Override
+	protected void onConnect(final IDeviceController controller) {
+		super.onConnect(controller);
+		runOnUiThread(mStartSpeechRecognizerTask);
+	}
+
+	@Override
+	protected void onDisconnect(final IDeviceController controller) {
+		stopSpeechRecognizer();
+		super.onDisconnect(controller);
+	}
+
 	private Intent mRecognizerIntent;
 	private void startSpeechRecognizer() {
 		if (DEBUG) Log.v(TAG, "startSpeechRecognizer:");
 		final Activity activity = getActivity();
 		if ((activity == null) || activity.isFinishing()) return;
-		if (!SpeechRecognizer.isRecognitionAvailable(activity)) return;
+		if (!SpeechRecognizer.isRecognitionAvailable(activity)) {
+			Log.w(TAG, "isRecognitionAvailable=false");
+			return;
+		}
 		if (mAudioManager == null) {
 			mAudioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
 			mStreamVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
@@ -116,26 +131,29 @@ public class VoicePilotFragment extends PilotFragment {
 		@Override
 		public void onBeginningOfSpeech() {
 			if (DEBUG) Log.v(TAG, "onBeginningOfSpeech:");
+			startHeartBeat();
 		}
 
 		@Override
 		public void onRmsChanged(final float rmsdB) {
-			if (DEBUG) Log.v(TAG, "onRmsChanged:");
+//			if (DEBUG) Log.v(TAG, "onRmsChanged:");
 		}
 
 		@Override
 		public void onBufferReceived(final byte[] buffer) {
-			if (DEBUG) Log.v(TAG, "onBufferReceived:");
+//			if (DEBUG) Log.v(TAG, "onBufferReceived:");
 		}
 
 		@Override
 		public void onEndOfSpeech() {
 			if (DEBUG) Log.v(TAG, "onEndOfSpeech:");
+			stopHeartBeat();
 		}
 
 		@Override
 		public void onError(final int error) {
 			if (DEBUG) Log.v(TAG, "onError:");
+			stopHeartBeat();
 			switch (error) {
 			case SpeechRecognizer.ERROR_AUDIO:
 				Log.e(TAG, "音声データ保存失敗");
@@ -205,18 +223,22 @@ public class VoicePilotFragment extends PilotFragment {
 			runOnUiThread(mStartSpeechRecognizerTask, 100);
 			switch ((int)(cmd & VoiceConst.CMD_MASK)) {
 			case VoiceConst.CMD_STOP:
+				if (DEBUG) Log.v(TAG, "ボイスコントロール:stop");
 				sendMove(0, 0, 0, 0);
 				setColorFilter(mEmergencyBtn);
 				break;
 			case VoiceConst.CMD_TAKEOFF:
+				if (DEBUG) Log.v(TAG, "ボイスコントロール:離陸");
 				takeOff();
 				setColorFilter(mTakeOnOffBtn);
 				break;
 			case VoiceConst.CMD_LANDING:
+				if (DEBUG) Log.v(TAG, "ボイスコントロール:着陸");
 				landing();
 				setColorFilter(mTakeOnOffBtn);
 				break;
 			case VoiceConst.CMD_FLIP:
+				if (DEBUG) Log.v(TAG, "ボイスコントロール:フリップ");
 				// FIXME setColorFilterは未処理
 				switch ((int)(cmd & 0xff)) {
 				case VoiceConst.DIR_FORWARD:
@@ -234,7 +256,7 @@ public class VoicePilotFragment extends PilotFragment {
 				}
 				break;
 			case VoiceConst.CMD_MOVE:
-				// 操縦動作
+				if (DEBUG) Log.v(TAG, "ボイスコントロール:移動");
 				float roll = VoiceConst.getRoll(cmd);
 				float pitch = VoiceConst.getPitch(cmd);
 				float gaz = VoiceConst.getGaz(cmd);
