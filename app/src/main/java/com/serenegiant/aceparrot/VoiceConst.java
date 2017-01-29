@@ -45,14 +45,6 @@ public class VoiceConst {
 	private static final long CMD_UP_MAX		= CMD_MOVE | DIR_UP | (MAX_COUNT << 48);
 	private static final long CMD_DOWN_MAX		= CMD_MOVE | DIR_DOWN | (MAX_COUNT << 52);
 
-	private static final long CMD_FLIP_FORWARD	= CMD_FLIP | DIR_FORWARD;
-	private static final long CMD_FLIP_RIGHT	= CMD_FLIP | DIR_RIGHT;
-	private static final long CMD_FLIP_BACKWARD	= CMD_FLIP | DIR_BACKWARD;
-	private static final long CMD_FLIP_LEFT		= CMD_FLIP | DIR_LEFT;
-
-	private static final long CMD_TURN_RIGHT	= CMD_TURN | DIR_RIGHT;
-	private static final long CMD_TURN_LEFT		= CMD_TURN | DIR_LEFT;
-
 	public static float getRoll(final long cmd) {
 		return ((cmd & CMD_MOVE) == CMD_MOVE) ?
 			((float)((cmd >>> 36) & 0x03) * (((cmd & DIR_RIGHT) == DIR_RIGHT) ? 1 : 0)
@@ -115,12 +107,21 @@ public class VoiceConst {
 		for (final String action: actions) {
 			final int pos = text.indexOf(action);
 			if (pos >= 0) {
+				final int actionCmd = ACTION_MAP.get(action);
 				final Set<String> dirs = DIR_MAP.keySet();
 				for (final String dir: dirs) {
 					final int dirPos = text.lastIndexOf(dir);
 					if (dirPos >= 0) {
-						cmd = ACTION_MAP.get(action);
-						break;
+						final int flipDir = DIR_MAP.get(dir);
+						switch (flipDir) {
+						case DIR_FORWARD:
+						case DIR_BACKWARD:
+							if (actionCmd == CMD_TURN) continue;
+							// pass through
+						case DIR_RIGHT:
+						case DIR_LEFT:
+							return actionCmd | flipDir;
+						}
 					}
 				}
 			}
@@ -209,7 +210,7 @@ public class VoiceConst {
 	}
 
 	private static final Map<String, Integer> CMD_MAP = new LinkedHashMap<String, Integer>();
-	private static final Map<String, Long> ACTION_MAP = new LinkedHashMap<String, Long>();
+	private static final Map<String, Integer> ACTION_MAP = new LinkedHashMap<String, Integer>();
 	private static final Map<String, Integer> DIR_MAP = new HashMap<String, Integer>();
 	static {
 		CMD_MAP.put("stop", CMD_STOP);
@@ -257,12 +258,12 @@ public class VoiceConst {
 		CMD_MAP.put("とぶ", CMD_TAKEOFF);
 		CMD_MAP.put("トブ", CMD_TAKEOFF);
 //--------------------------------------------------------------------------------
-		ACTION_MAP.put("flip", CMD_FLIP_RIGHT);
-		ACTION_MAP.put("ふりっぷ", CMD_FLIP_RIGHT);
-		ACTION_MAP.put("フリップ", CMD_FLIP_RIGHT);
-		ACTION_MAP.put("turn", CMD_TURN_RIGHT);
-		ACTION_MAP.put("ターン", CMD_TURN_RIGHT);
-		ACTION_MAP.put("たーん", CMD_TURN_RIGHT);
+		ACTION_MAP.put("flip", CMD_FLIP);
+		ACTION_MAP.put("ふりっぷ", CMD_FLIP);
+		ACTION_MAP.put("フリップ", CMD_FLIP);
+		ACTION_MAP.put("turn", CMD_TURN);
+		ACTION_MAP.put("ターン", CMD_TURN);
+		ACTION_MAP.put("たーん", CMD_TURN);
 //--------------------------------------------------------------------------------
 		DIR_MAP.put("前", DIR_FORWARD);
 		DIR_MAP.put("まえ", DIR_FORWARD);
