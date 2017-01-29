@@ -52,6 +52,9 @@ public class AttitudeView extends GLModelView {
 		case MODEL_SKYCONTROLLER:
 			result = new AttitudeScreenSkyController(this, mCtrlType);
 			break;
+		case MODEL_MAMBO:
+			result = new AttitudeScreenMambo(this, mCtrlType);
+			break;
 		case MODEL_BEBOP:
 		default:
 			result = new AttitudeScreenBebop(this, mCtrlType);

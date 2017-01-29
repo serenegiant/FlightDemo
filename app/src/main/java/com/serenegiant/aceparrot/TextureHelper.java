@@ -36,6 +36,9 @@ public class TextureHelper {
 		{	// Cargodrone用
 			"cargo_drone_tex.png", "model/cargo_drone_tex_mask.png",
 		},
+		{	// Mambo用
+			"mambo_drone_tex.png", "model/mambo_tex_mask.png",
+		},
 	};
 
 	public static void genTexture(final Context context, final int model, final int color) {
@@ -50,6 +53,10 @@ public class TextureHelper {
 		case IModelView.MODEL_CARGO:
 			// model/cargo_drone_tex_blue.png
 			genTexture(context, PATH[3][0], PATH[3][1], color);
+			break;
+		case IModelView.MODEL_MAMBO:
+			// model/cargo_drone_tex_blue.png
+			genTexture(context, PATH[4][0], PATH[4][1], color);
 			break;
 		case IModelView.MODEL_BEBOP2:
 			// model/bebop_drone2_body_tex.png
