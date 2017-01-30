@@ -266,6 +266,18 @@ public class VoiceConst {
 		ACTION_MAP.put("turn", CMD_TURN);
 		ACTION_MAP.put("ターン", CMD_TURN);
 		ACTION_MAP.put("たーん", CMD_TURN);
+		ACTION_MAP.put("タン", CMD_TURN);
+		ACTION_MAP.put("たん", CMD_TURN);
+		ACTION_MAP.put("回転", CMD_TURN);
+		ACTION_MAP.put("開店", CMD_TURN);
+		ACTION_MAP.put("かいてん", CMD_TURN);
+		ACTION_MAP.put("カイテン", CMD_TURN);
+		ACTION_MAP.put("回る", CMD_TURN);
+		ACTION_MAP.put("まわる", CMD_TURN);
+		ACTION_MAP.put("マワル", CMD_TURN);
+		ACTION_MAP.put("回り", CMD_TURN);
+		ACTION_MAP.put("まわり", CMD_TURN);
+		ACTION_MAP.put("マワリ", CMD_TURN);
 //--------------------------------------------------------------------------------
 		DIR_MAP.put("前", DIR_FORWARD);
 		DIR_MAP.put("まえ", DIR_FORWARD);

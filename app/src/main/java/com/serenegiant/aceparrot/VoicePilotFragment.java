@@ -267,6 +267,7 @@ public class VoicePilotFragment extends PilotFragment {
 					break;
 				}
 				break;
+			case VoiceConst.CMD_TURN:
 			case VoiceConst.CMD_MOVE:
 				if (DEBUG) Log.v(TAG, "ボイスコントロール:移動");
 				float roll = VoiceConst.getRoll(cmd) * mGamepadSensitivity * mGamepadScaleX;
