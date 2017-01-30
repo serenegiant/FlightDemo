@@ -114,6 +114,9 @@ public class VoiceConst {
 					if (dirPos >= 0) {
 						final int flipDir = DIR_MAP.get(dir);
 						switch (flipDir) {
+						case DIR_UP:
+						case DIR_DOWN:
+							if (actionCmd == CMD_FLIP) continue;
 						case DIR_FORWARD:
 						case DIR_BACKWARD:
 							if (actionCmd == CMD_TURN) continue;
@@ -286,6 +289,19 @@ public class VoiceConst {
 		ACTION_MAP.put("回り", CMD_TURN);
 		ACTION_MAP.put("まわり", CMD_TURN);
 		ACTION_MAP.put("マワリ", CMD_TURN);
+
+		ACTION_MAP.put("move", CMD_MOVE);
+		ACTION_MAP.put("むーぶ", CMD_MOVE);
+		ACTION_MAP.put("ムーブ", CMD_MOVE);
+		ACTION_MAP.put("移動", CMD_MOVE);
+		ACTION_MAP.put("いどう", CMD_MOVE);
+		ACTION_MAP.put("イドウ", CMD_MOVE);
+		ACTION_MAP.put("動く", CMD_MOVE);
+		ACTION_MAP.put("うごく", CMD_MOVE);
+		ACTION_MAP.put("ウゴク", CMD_MOVE);
+		ACTION_MAP.put("動け", CMD_MOVE);
+		ACTION_MAP.put("うごけ", CMD_MOVE);
+		ACTION_MAP.put("ウゴケ", CMD_MOVE);
 //--------------------------------------------------------------------------------
 		DIR_MAP.put("前", DIR_FORWARD);
 		DIR_MAP.put("まえ", DIR_FORWARD);
