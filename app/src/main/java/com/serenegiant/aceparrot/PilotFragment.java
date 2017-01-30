@@ -847,11 +847,6 @@ public class PilotFragment extends BasePilotFragment {
 				mPrevRightMX = _mx;
 				mPrevRightMY = _my;
 				sendMove(_mx, -_my, 0, 0);
-//				if (mFlightController != null) {
-//					mFlightController.setMove(_mx, -_my);
-//					mFlightRecorder.record(FlightRecorder.CMD_MOVE2, _mx, -_my);
-////					if (DEBUG) Log.v(TAG, String.format("stick_normal:LR%d,FB%d", _mx, -_my));
-//				}
 			}
 			break;
 		}
@@ -861,20 +856,10 @@ public class PilotFragment extends BasePilotFragment {
 			if (mx != mPrevLeftMX) {	// 左右回転
 				mPrevLeftMX = mx;
 				sendMove(0, 0, 0, mx);
-//				if (mFlightController != null) {
-//					mFlightController.setYaw(mx);
-//					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
-////					if (DEBUG) Log.v(TAG, String.format("stick_normal:T%d", _mx));
-//				}
 			}
 			if (_my != mPrevLeftMY) {	// 上昇下降
 				mPrevLeftMY = _my;
 				sendMove(0, 0, -_my, 0);
-//				if (mFlightController != null) {
-//					mFlightController.setGaz(-_my);
-//					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
-////					if (DEBUG) Log.v(TAG, String.format("stick_normal:UD%d", -_my));
-//				}
 			}
 			break;
 		}
