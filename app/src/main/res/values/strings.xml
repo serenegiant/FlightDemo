@@ -130,10 +130,12 @@
 	<string name="permission_location_finish">No location access permission. \nApp will finish soon</string>
 	<string name="permission_location_reason">Permission to access location needs to discover drone(s)</string>
 	<string name="permission_location_request">Permission to access location needs to discover drone(s)</string>
+	<string name="permission_audio_recording_reason">Permission to record audio needs for voice control.</string>
+	<string name="permission_audio_recording_request">Permission to record audio needs for voice control.</string>
 
 	<string name="error_voice_audio">failed to get voice input</string>
 	<string name="error_voice_system">System error</string>
-	<string name="error_voice_no_permission">No permission for voice recognition</string>
+	<string name="error_voice_no_permission">No permission for voice control</string>
 	<string name="error_voice_network">Network error</string>
 	<string name="error_voice_network_timeout">No response from network</string>
 	<string name="error_voice_network_server">Server error</string>
