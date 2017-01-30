@@ -49,20 +49,6 @@
 			android:gravity="top"
 			android:background="@drawable/top_frame">
 
-<!--		<TextView
-				android:id="@+id/keymap_stick_left_button"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_alignParentLeft="true"
-				android:layout_alignParentStart="true"
-				android:layout_centerVertical="true"
-				android:text="@string/battery"
-				android:textAppearance="?android:attr/textAppearanceMedium"
-				android:textSize="@dimen/text_sz_button"
-				android:textColor="@color/DARKVIOLET"/> -->
-
-<!--			android:layout_toEndOf="@+id/keymap_stick_left_button"
-				android:layout_toRightOf="@+id/keymap_stick_left_button" -->
 			<TextView
 				android:id="@+id/batteryLabel"
 				android:layout_width="wrap_content"

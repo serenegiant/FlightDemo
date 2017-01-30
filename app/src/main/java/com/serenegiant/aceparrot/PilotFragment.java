@@ -890,22 +890,12 @@ public class PilotFragment extends BasePilotFragment {
 			if (_my != mPrevRightMY) {	// 上昇下降
 				mPrevRightMY = _my;
 				sendMove(0, 0, -_my, 0);
-//				if (mFlightController != null) {
-//					mFlightController.setGaz(-_my);
-//					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
-////					if (DEBUG) Log.v(TAG, String.format("stick_mode1:UD%d", -_my));
-//				}
 			}
 			int mx = _mx;
 			if ((Math.abs(_mx) < 20)) mx = 0;
 			if (mx != mPrevRightMX) {	// 左右移動
 				mPrevRightMX = mx;
 				sendMove(mx, 0, 0, 0);
-//				if (mFlightController != null) {
-//					mFlightController.setRoll(mx, true);
-//					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, mx);
-////					if (DEBUG) Log.v(TAG, String.format("stick_mode1:LR%d", mx));
-//				}
 			}
 			break;
 		}
@@ -913,20 +903,10 @@ public class PilotFragment extends BasePilotFragment {
 			if (_mx != mPrevLeftMX) {	// 左右回転
 				mPrevLeftMX = _mx;
 				sendMove(0, 0, 0, _mx);
-//				if (mFlightController != null) {
-//					mFlightController.setYaw(_mx);
-//					mFlightRecorder.record(FlightRecorder.CMD_TURN, _mx);
-////					if (DEBUG) Log.v(TAG, String.format("stick_mode1:T%d", _mx));
-//				}
 			}
 			if (_my != mPrevLeftMY) {	// 前後移動
 				mPrevLeftMY = _my;
 				sendMove(0, -_my, 0, 0);
-//				if (mFlightController != null) {
-//					mFlightController.setPitch(-_my, true);
-//					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -_my);
-////					if (DEBUG) Log.v(TAG, String.format("stick_mode1:FB%d", -_my));
-//				}
 			}
 			break;
 		}
@@ -942,20 +922,10 @@ public class PilotFragment extends BasePilotFragment {
 			if (_my != mPrevRightMY) {	// 前後移動
 				mPrevRightMY = _my;
 				sendMove(0, -_my, 0, 0);
-//				if (mFlightController != null) {
-//					mFlightController.setPitch(-_my, true);
-//					mFlightRecorder.record(FlightRecorder.CMD_FORWARD_BACK, -_my);
-////					if (DEBUG) Log.v(TAG, String.format("stick_mode2:FB%d", -_my));
-//				}
 			}
 			if (_mx != mPrevRightMX) {	// 左右移動
 				mPrevRightMX = _mx;
 				sendMove(_mx, 0, 0, 0);
-//				if (mFlightController != null) {
-//					mFlightController.setRoll(_mx, true);
-//					mFlightRecorder.record(FlightRecorder.CMD_RIGHT_LEFT, _mx);
-////					if (DEBUG) Log.v(TAG, String.format("stick_mode2:LR%d", _mx));
-//				}
 			}
 			break;
 		}
@@ -965,20 +935,10 @@ public class PilotFragment extends BasePilotFragment {
 			if (mx != mPrevLeftMX) {	// 左右回転
 				mPrevLeftMX = mx;
 				sendMove(0, 0, 0, mx);
-//				if (mFlightController != null) {
-//					mFlightController.setYaw(mx);
-//					mFlightRecorder.record(FlightRecorder.CMD_TURN, mx);
-////					if (DEBUG) Log.v(TAG, String.format("stick_mode2:T%d", _mx));
-//				}
 			}
 			if (_my != mPrevLeftMY) {	// 上昇下降
 				mPrevLeftMY = _my;
 				sendMove(0, 0, -_my, 0);
-//				if (mFlightController != null) {
-//					mFlightController.setGaz(-_my);
-//					mFlightRecorder.record(FlightRecorder.CMD_UP_DOWN, -_my);
-////					if (DEBUG) Log.v(TAG, String.format("stick_mode2:UD%d", -_my));
-//				}
 			}
 			break;
 		}
