@@ -139,7 +139,10 @@ public abstract class BaseControllerFragment extends BaseFragment {
 	}
 
 	protected int getProductId() {
-		return mDeviceInfo != null ? mDeviceInfo.productId() : (mDevice != null ? mDevice.getProductID() : ARDISCOVERY_PRODUCT_ENUM.eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE.getValue());
+		return mDeviceInfo != null ? mDeviceInfo.productId()
+			: (mDevice != null
+				? mDevice.getProductID()
+				: ARDISCOVERY_PRODUCT_ENUM.eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE.getValue());
 	}
 
 	protected ARDISCOVERY_PRODUCT_ENUM getProduct() {
@@ -166,7 +169,8 @@ public abstract class BaseControllerFragment extends BaseFragment {
 					if (DEBUG) Log.d(TAG, "ブリッジ接続");
 					// スカイコントローラー経由のブリッジ接続の時
 					final ISkyController bridge = (ISkyController)controller;
-					final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(mDeviceInfo.productId());
+					final ARDISCOVERY_PRODUCT_ENUM product
+						= ARDiscoveryService.getProductFromProductID(mDeviceInfo.productId());
 					switch (product) {
 					case ARDISCOVERY_PRODUCT_ARDRONE:	// Bebop
 						bridge.connectToDevice(mDeviceInfo);

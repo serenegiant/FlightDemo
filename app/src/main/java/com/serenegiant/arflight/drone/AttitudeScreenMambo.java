@@ -79,13 +79,13 @@ public class AttitudeScreenMambo extends AttitudeScreenBase {
 		droneModel = loadModel(io, "model/mambo_body.obj");
 		droneModel.setTexture(droneTexture);
 		// ガード(ハル)
-		guardModel = loadModel(io, "model/minidrone_bumper.obj");
+		guardModel = loadModel(io, "model/cargo_drone_bumper.obj");
 		guardModel.setTexture(droneTexture);
 		// 左前ローター
-		frontLeftRotorModel = loadModel(io, "model/minidrone_rotor_cw.obj");
+		frontLeftRotorModel = loadModel(io, "model/mambo_rotor_cw.obj");
 		frontLeftRotorModel.setTexture(droneTexture);	// テクスチャは今は共通
 		// 右前ローター
-		frontRightRotorModel = loadModel(io, "model/minidrone_rotor_ccw.obj");
+		frontRightRotorModel = loadModel(io, "model/mambo_rotor_ccw.obj");
 		frontRightRotorModel.setTexture(droneTexture);	// テクスチャは今は共通
 		// 左後ローター
 		rearLeftRotorModel = new GLLoadableModel(frontRightRotorModel);	// コピーコンストラクタ

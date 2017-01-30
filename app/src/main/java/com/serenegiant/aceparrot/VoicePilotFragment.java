@@ -25,7 +25,7 @@ import jp.co.rediscovery.arflight.IFlightController;
  */
 
 public class VoicePilotFragment extends PilotFragment {
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = VoicePilotFragment.class.getSimpleName();
 
 	public static VoicePilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
@@ -231,7 +231,7 @@ public class VoicePilotFragment extends PilotFragment {
 			switch ((int)(cmd & VoiceConst.CMD_MASK)) {
 			case VoiceConst.CMD_STOP:
 				if (DEBUG) Log.v(TAG, "ボイスコントロール:stop");
-				sendMove(0, 0, 0, 0);
+				stopMove();
 				setColorFilter(mEmergencyBtn);
 				break;
 			case VoiceConst.CMD_TAKEOFF:
