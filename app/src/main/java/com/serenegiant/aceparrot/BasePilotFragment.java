@@ -1295,20 +1295,32 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	}
 
 	/**
+	 * 前回の出力を減衰させて出力
+	 * 出力が全て0になったらfalse
+	 * @param dampRate 減衰率
+	 * @return
+	 */
+	protected boolean damp(final float dampRate) {
+		return sendMove(prev_r * dampRate, prev_p * dampRate, prev_g * dampRate, prev_y * dampRate, isMoveByGamepad());
+	}
+
+	/**
 	 * 実際の移動コマンド発行
 	 * @param roll
 	 * @param pitch
 	 * @param gaz
 	 * @param yaw
 	 * @param moveByGamepad
+	 * @return 移動要求した時はtrue
 	 */
-	private void sendMove(final float roll, final float pitch, final float gaz, final float yaw, final boolean moveByGamepad) {
-		if (isMoveByGamepad() && !moveByGamepad) return;
+	private boolean sendMove(final float roll, final float pitch, final float gaz, final float yaw, final boolean moveByGamepad) {
+		if (isMoveByGamepad() && !moveByGamepad) return false;
 		final int r = (int)(Math.abs(roll) > DEAD_ZONE ? roll : 0.0f);
 		final int p = (int)(Math.abs(pitch) > DEAD_ZONE ? pitch : 0.0f);
 		final int g = (int)(Math.abs(gaz) > DEAD_ZONE ? gaz : 0.0f);
 		final int y = (int)(Math.abs(yaw) > DEAD_ZONE ? yaw : 0.0f);
-		if ((r != prev_r) || (p != prev_p) || (g != prev_g) || (y != prev_y)) {
+		final boolean move = (r != prev_r) || (p != prev_p) || (g != prev_g) || (y != prev_y);
+		if (move) {
 			prev_r = r;
 			prev_p = p;
 			prev_g = g;
@@ -1329,6 +1341,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 			}
 			onSendMove(r, p, g, y);
 		}
+		return move;
 	}
 
 	protected void onSendMove(final float roll, final float pitch, final float gaz, final float yaw) {
