@@ -27,6 +27,8 @@ public class AppConst {
 	public static final String KEY_COLOR = "CONFIG_COLOR_COLOR";
 	// 操縦画面のアイコンを自動的に隠すかどうか
 	public static final String KEY_AUTO_HIDE = "CONFIG_AUTO_HIDE";
+	// オフラインの音声認識を優先するかどうか
+	public static final String KEY_CONFIG_OFFLINE_VOICE_RECOGNITION = "CONFIG_OFFLINE_VOICE_RECOGNITION";
 
 	public static final float SCALE_FACTOR = 250f;
 	public static final int SCALE_OFFSET = 500;

@@ -27,6 +27,7 @@
 	<dimen name="text_sz_button">28sp</dimen>
 	<dimen name="text_sz_on_image_button">12sp</dimen>
 	<dimen name="text_sz_list">40sp</dimen>
+	<dimen name="text_sz_list_small">28sp</dimen>
 	<dimen name="text_sz_list_device">42sp</dimen>
 	<dimen name="text_sz_list_scale">28sp</dimen>
 	<dimen name="text_sz_side_menu_item">18sp</dimen>

@@ -54,6 +54,8 @@
 	<string name="config_title_color">機体色設定</string>
 	<string name="config_title_app_button_hide">操縦画面のアイコンを自動的に非表示</string>
 	<string name="config_title_info">ドローン情報</string>
+	<string name="config_title_voice_offline">オフライン音声認識を優先する(Android >= 6.0)</string>
+	<string name="config_notice_voice_offline">Google音声認識のオフライン言語(日本語・英語)のインストールが必要です</string>
 
 	<string name="config_max_tilt">最大斜度: %5.1f[°]</string>
 	<string name="config_max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>
@@ -143,4 +145,5 @@
 	<string name="error_voice_unavailable">音声認識を使用できません</string>
 	<string name="error_voice_no_command">コマンドを認識できません</string>
 	<string name="error_voice_no_input">音声コマンド入力を検出できません</string>
+	<string name="error_voice_offline">オフラインの音声認識を使用できません</string>
 </resources>

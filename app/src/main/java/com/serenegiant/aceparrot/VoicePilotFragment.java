@@ -3,12 +3,15 @@ package com.serenegiant.aceparrot;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -18,6 +21,8 @@ import java.util.List;
 import jp.co.rediscovery.arflight.DeviceInfo;
 import jp.co.rediscovery.arflight.IDeviceController;
 import jp.co.rediscovery.arflight.IFlightController;
+
+import static com.serenegiant.aceparrot.AppConst.KEY_CONFIG_OFFLINE_VOICE_RECOGNITION;
 
 /**
  * Created by saki on 2017/01/28.
@@ -38,16 +43,19 @@ public class VoicePilotFragment extends PilotFragment {
 	private SpeechRecognizer mSpeechRecognizer;
 	private AudioManager mAudioManager;
 	private int mStreamVolume = 0;
+	private boolean mOfflineVoiceRecognition;
 
 	public VoicePilotFragment() {
 		super();
 		// デフォルトコンストラクタが必要
 	}
-
-//	@Override
-//	protected void internalOnResume() {
-//		super.internalOnResume();
-//	}
+	@Override
+	protected void internalOnResume() {
+		super.internalOnResume();
+		final SharedPreferences pref = getActivity().getPreferences(0);
+		mOfflineVoiceRecognition = pref.getBoolean(KEY_CONFIG_OFFLINE_VOICE_RECOGNITION, false)
+			&& (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M);
+	}
 
 	@Override
 	protected void internalOnPause() {
@@ -90,6 +98,23 @@ public class VoicePilotFragment extends PilotFragment {
 			mRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
 			mRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, activity.getPackageName());
 		}
+		if (mOfflineVoiceRecognition) {
+			try {
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+					mRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
+					mSpeechRecognizer.startListening(mRecognizerIntent);
+					return;
+				}
+			} catch (final Exception e) {
+				showToast(R.string.error_voice_offline, Toast.LENGTH_LONG);
+			}
+		}
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			mRecognizerIntent.removeExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE);
+		}
+		mOfflineVoiceRecognition = false;
+		final SharedPreferences pref = getActivity().getPreferences(0);
+		pref.edit().putBoolean(KEY_CONFIG_OFFLINE_VOICE_RECOGNITION, false).apply();
 		mSpeechRecognizer.startListening(mRecognizerIntent);
 	}
 
@@ -154,6 +179,7 @@ public class VoicePilotFragment extends PilotFragment {
 		public void onError(final int error) {
 			if (DEBUG) Log.v(TAG, "onError:");
 			stopHeartBeat();
+			stopMove();
 			switch (error) {
 			case SpeechRecognizer.ERROR_AUDIO:
 				// 音声データ保存失敗
@@ -181,11 +207,22 @@ public class VoicePilotFragment extends PilotFragment {
 				break;
 			case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
 				// RecognitionServiceへ要求出せず
+				// 性能が低い端末の場合に起こるらしいので、一旦破棄してから1秒後に再チャレンジ
 				showToast(R.string.error_voice_unavailable, Toast.LENGTH_SHORT);
-				break;
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						stopSpeechRecognizer();
+						runOnUiThread(mStartSpeechRecognizerTask, 1000);
+					}
+				});
+				return;
 			case SpeechRecognizer.ERROR_SERVER:
 				// Server側からエラー通知
 				showToast(R.string.error_voice_network_server, Toast.LENGTH_SHORT);
+				final SharedPreferences pref = getActivity().getPreferences(0);
+				pref.edit().putBoolean(KEY_CONFIG_OFFLINE_VOICE_RECOGNITION, false).apply();
+				mOfflineVoiceRecognition = false;
 				break;
 			case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
 				// 音声入力無し
@@ -194,7 +231,6 @@ public class VoicePilotFragment extends PilotFragment {
 			default:
 				break;
 			}
-			stopMove();
 			runOnUiThread(mStartSpeechRecognizerTask, 100);
 		}
 
@@ -305,7 +341,7 @@ public class VoicePilotFragment extends PilotFragment {
 	private final Runnable mVoiceResetTask = new Runnable() {
 		@Override
 		public void run() {
-			if (damp(0.4f)) {
+			if (damp(0.5f)) {
 				queueEvent(this, 100);
 				return;
 			}

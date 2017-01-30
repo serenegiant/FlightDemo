@@ -13,6 +13,22 @@
 		android:textColor="@color/WHITE"
 		android:id="@+id/icon_auto_hide_switch"
 		android:paddingBottom="@dimen/half_padding"/>
+	<Switch
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:textSize="@dimen/text_sz_list"
+		android:text="@string/config_title_voice_offline"
+		android:textColor="@color/WHITE"
+		android:id="@+id/enable_offline_voice_recognition_switch"
+		android:paddingBottom="@dimen/half_padding"/>
+	<TextView
+		android:id="@+id/textView12"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center_horizontal"
+		android:text="@string/config_notice_voice_offline"
+		android:textSize="@dimen/text_sz_list_small"
+		android:textColor="@color/WHITE"/>
 	<LinearLayout
 		android:orientation="horizontal"
 		android:layout_width="match_parent"

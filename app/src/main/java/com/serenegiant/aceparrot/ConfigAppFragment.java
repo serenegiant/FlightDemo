@@ -2,6 +2,7 @@ package com.serenegiant.aceparrot;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
@@ -43,6 +44,7 @@ public class ConfigAppFragment extends BaseFragment {
 	private SharedPreferences mPref;
 	private int mColor;
 	private boolean mAutoHide;
+	private boolean mOfflineVoiceRecognition;
 
 	public ConfigAppFragment() {
 		super();
@@ -91,8 +93,15 @@ public class ConfigAppFragment extends BaseFragment {
 		picker.setColorPickerListener(mColorPickerListener);
 // アイコンを自動的に隠す設定
 		mAutoHide = mPref.getBoolean(KEY_AUTO_HIDE, false);
-		final Switch sw = (Switch)rootView.findViewById(R.id.icon_auto_hide_switch);
+		Switch sw = (Switch)rootView.findViewById(R.id.icon_auto_hide_switch);
 		sw.setChecked(mAutoHide);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+// オフライン音声認識を優先するかどうか(Android>=6)
+		mOfflineVoiceRecognition = mPref.getBoolean(KEY_CONFIG_OFFLINE_VOICE_RECOGNITION, false)
+			&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+		sw = (Switch)rootView.findViewById(R.id.enable_offline_voice_recognition_switch);
+		sw.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M);
+		sw.setChecked(mOfflineVoiceRecognition);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
@@ -140,6 +149,14 @@ public class ConfigAppFragment extends BaseFragment {
 				if (mAutoHide != isChecked) {
 					mAutoHide = isChecked;
 					mPref.edit().putBoolean(KEY_AUTO_HIDE, isChecked).apply();
+				}
+				break;
+			}
+			case R.id.enable_offline_voice_recognition_switch:
+			{
+				if (mOfflineVoiceRecognition != isChecked) {
+					mOfflineVoiceRecognition = isChecked;
+					mPref.edit().putBoolean(KEY_CONFIG_OFFLINE_VOICE_RECOGNITION, isChecked).apply();
 				}
 				break;
 			}

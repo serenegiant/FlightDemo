@@ -54,6 +54,9 @@
 	<string name="config_title_app_button_hide">Automatically hide icons on piloting</string>
 	<string name="config_title_info">Info</string>
 
+	<string name="config_title_voice_offline">Prefer offline voice recognition(Android >= 6.0)</string>
+	<string name="config_notice_voice_offline">Need to install offline languages of Japanese and English for Google Voice typing</string>
+
 	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>
 	<string name="config_max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
 	<string name="config_max_altitude">Max altitude: %5.1f[m]</string>
@@ -142,4 +145,5 @@
 	<string name="error_voice_unavailable">Voice recognition is unavailable</string>
 	<string name="error_voice_no_command">Unrecognized command</string>
 	<string name="error_voice_no_input">No voice input</string>
+	<string name="error_voice_offline">Could not use offline voice recognition</string>
 </resources>
