@@ -236,6 +236,8 @@ public class VoiceConst {
 		CMD_MAP.put("ワー", CMD_STOP);
 //
 		CMD_MAP.put("land", CMD_LANDING);
+		CMD_MAP.put("らんど", CMD_LANDING);
+		CMD_MAP.put("ランド", CMD_LANDING);
 		CMD_MAP.put("landing", CMD_LANDING);
 		CMD_MAP.put("らんでぃんぐ", CMD_LANDING);
 		CMD_MAP.put("ランディング", CMD_LANDING);
@@ -263,6 +265,12 @@ public class VoiceConst {
 		ACTION_MAP.put("flip", CMD_FLIP);
 		ACTION_MAP.put("ふりっぷ", CMD_FLIP);
 		ACTION_MAP.put("フリップ", CMD_FLIP);
+		ACTION_MAP.put("宙返り", CMD_FLIP);
+		ACTION_MAP.put("ちゅうがえり", CMD_FLIP);
+		ACTION_MAP.put("チュウガエリ", CMD_FLIP);
+		ACTION_MAP.put("ちゅうかえり", CMD_FLIP);
+		ACTION_MAP.put("チュウカエリ", CMD_FLIP);
+
 		ACTION_MAP.put("turn", CMD_TURN);
 		ACTION_MAP.put("ターン", CMD_TURN);
 		ACTION_MAP.put("たーん", CMD_TURN);
