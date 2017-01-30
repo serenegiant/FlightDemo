@@ -264,11 +264,12 @@ public class VoicePilotFragment extends PilotFragment {
 				break;
 			case VoiceConst.CMD_MOVE:
 				if (DEBUG) Log.v(TAG, "ボイスコントロール:移動");
-				float roll = VoiceConst.getRoll(cmd);
-				float pitch = VoiceConst.getPitch(cmd);
-				float gaz = VoiceConst.getGaz(cmd);
-				float yaw = VoiceConst.getYaw(cmd);
+				float roll = VoiceConst.getRoll(cmd) * mGamepadSensitivity * mGamepadScaleX;
+				float pitch = VoiceConst.getPitch(cmd) * mGamepadSensitivity * mGamepadScaleY;
+				float gaz = VoiceConst.getGaz(cmd) * mGamepadSensitivity * mGamepadScaleZ;
+				float yaw = VoiceConst.getYaw(cmd) * mGamepadSensitivity * mGamepadScaleR;
 				sendMove(roll, pitch, gaz, yaw);
+				queueEvent(mVoiceResetTask, 500);
 				break;
 			default:
 				showToast(R.string.error_voice_no_command, Toast.LENGTH_SHORT);
@@ -289,6 +290,16 @@ public class VoicePilotFragment extends PilotFragment {
 		@Override
 		public void onEvent(final int eventType, final Bundle params) {
 			if (DEBUG) Log.v(TAG, "onEvent:" + params);
+		}
+	};
+
+	/**
+	 * 一定時間後に音声制御による移動を停止させるためのRunnable
+	 */
+	private final Runnable mVoiceResetTask = new Runnable() {
+		@Override
+		public void run() {
+			stopMove();
 		}
 	};
 }
