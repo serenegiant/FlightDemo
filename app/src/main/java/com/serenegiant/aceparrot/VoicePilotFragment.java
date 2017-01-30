@@ -11,7 +11,6 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -30,7 +29,7 @@ import static com.serenegiant.aceparrot.AppConst.KEY_CONFIG_OFFLINE_VOICE_RECOGN
  */
 
 public class VoicePilotFragment extends PilotFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = VoicePilotFragment.class.getSimpleName();
 
 	public static VoicePilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
@@ -327,6 +326,7 @@ public class VoicePilotFragment extends PilotFragment {
 		@Override
 		public void onPartialResults(final Bundle partialResults) {
 			if (DEBUG) Log.v(TAG, "onPartialResults:" + partialResults);
+			// これ来たこと無い(Android 7.x @Nexus6p/Nexus5x)
 		}
 
 		@Override
