@@ -98,9 +98,6 @@ public class PilotFragment extends BasePilotFragment {
 	// 左サイドパネル
 	private View mLeftSidePanel;
 	// 操縦用
-	private int mOperationType;				// 操縦スティックのモード
-	private boolean mOperationTouch;		// タッチ描画で操縦モードかどうか
-
 	private StickView mRightStickPanel;		// 右スティックパネル
 	private StickView mLeftStickPanel;		// 左スティックパネル
 	private TouchPilotView mTouchPilotView;	// タッチ描画パネル
