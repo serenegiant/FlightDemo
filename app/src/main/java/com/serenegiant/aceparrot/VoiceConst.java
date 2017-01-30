@@ -17,7 +17,7 @@ import java.util.Set;
 
 public class VoiceConst {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static final String TAG = "VoiceConst"; // VoiceConst.class.getSimpleName();
+	private static final String TAG = VoiceConst.class.getSimpleName();
 
 	public static final long MAX_COUNT			= 0x00000003;
 
@@ -257,6 +257,8 @@ public class VoiceConst {
 		CMD_MAP.put("飛ぶ", CMD_TAKEOFF);
 		CMD_MAP.put("とぶ", CMD_TAKEOFF);
 		CMD_MAP.put("トブ", CMD_TAKEOFF);
+		CMD_MAP.put("いりく", CMD_TAKEOFF);
+		CMD_MAP.put("イリク", CMD_TAKEOFF);
 //--------------------------------------------------------------------------------
 		ACTION_MAP.put("flip", CMD_FLIP);
 		ACTION_MAP.put("ふりっぷ", CMD_FLIP);
