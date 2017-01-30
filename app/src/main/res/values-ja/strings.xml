@@ -132,7 +132,7 @@
 	<string name="permission_location_reason">ドローンを検出するためには位置情報へのアクセス許可が必要です。</string>
 	<string name="permission_location_request">ドローンを検出するためには位置情報へのアクセス許可が必要です。</string>
 	<string name="permission_audio_recording_reason">音声コントロールを行うには音声読み込み許可が必要です。</string>
-	<string name="permission_audio_recording_request">音声コントロールを行う音声読み込み許可が必要です。</string>
+	<string name="permission_audio_recording_request">音声コントロールを行うには音声読み込み許可が必要です。</string>
 
 	<string name="error_voice_audio">音声を取り込めませんでした</string>
 	<string name="error_voice_system">音声に認識システム内でエラーが発生しました</string>
