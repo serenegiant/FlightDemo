@@ -1258,6 +1258,10 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		return mMoveByGamepad;
 	}
 
+	private static final float DEAD_ZONE = 2.0f;
+	private int prev_r, prev_p, prev_g, prev_y;
+	private int gamepad_r, gamepad_p, gamepad_g, gamepad_y;
+
 	/**
 	 * ゲームパッド操作時の実際の移動コマンド発行処理
 	 * @param roll
@@ -1266,7 +1270,17 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param yaw
 	 */
 	private void gamepad_move(final float roll, final float pitch, final float gaz, final float yaw) {
-		sendMove(roll, pitch, gaz, yaw, true);
+		final int r = (int)(Math.abs(roll) > DEAD_ZONE ? roll : 0.0f);
+		final int p = (int)(Math.abs(pitch) > DEAD_ZONE ? pitch : 0.0f);
+		final int g = (int)(Math.abs(gaz) > DEAD_ZONE ? gaz : 0.0f);
+		final int y = (int)(Math.abs(yaw) > DEAD_ZONE ? yaw : 0.0f);
+		if ((gamepad_r != r) || (gamepad_p != p) || (gamepad_g != g) || (gamepad_y != y)) {
+			gamepad_r = r;
+			gamepad_p = p;
+			gamepad_g = g;
+			gamepad_y = y;
+			sendMove(roll, pitch, gaz, yaw, true);
+		}
 	}
 
 	/**
@@ -1279,9 +1293,6 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	protected void sendMove(final float roll, final float pitch, final float gaz, final float yaw) {
 		sendMove(roll, pitch, gaz, yaw, false);
 	}
-
-	private static final float DEAD_ZONE = 2.0f;
-	private int prev_r, prev_p, prev_g, prev_y;
 
 	/**
 	 * 実際の移動コマンド発行
