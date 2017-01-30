@@ -304,7 +304,7 @@ public class VoicePilotFragment extends PilotFragment {
 	private final Runnable mVoiceResetTask = new Runnable() {
 		@Override
 		public void run() {
-			if (damp(0.6f)) {
+			if (damp(0.4f)) {
 				queueEvent(this, 100);
 				return;
 			}
