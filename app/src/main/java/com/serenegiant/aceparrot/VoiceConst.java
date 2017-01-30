@@ -47,29 +47,29 @@ public class VoiceConst {
 
 	public static float getRoll(final long cmd) {
 		return ((cmd & CMD_MOVE) == CMD_MOVE) ?
-			((float)((cmd >>> 36) & 0x03) * (((cmd & DIR_RIGHT) == DIR_RIGHT) ? 1 : 0)
-			- (float)((cmd >>> 44) & 0x03) * (((cmd & DIR_LEFT) == DIR_LEFT) ? 1 : 0)) / 3.0f
+			((float)((cmd >>> 36) & 0x03) * (((cmd & DIR_RIGHT) == DIR_RIGHT) ? 100 : 0)
+			- (float)((cmd >>> 44) & 0x03) * (((cmd & DIR_LEFT) == DIR_LEFT) ? 100 : 0))  * 0.333f
 			: 0.0f;
 	}
 
 	public static float getPitch(final long cmd) {
 		return ((cmd & CMD_MOVE) == CMD_MOVE) ?
-			((float)((cmd >>> 32) & 0x03) * (((cmd & DIR_FORWARD) == DIR_FORWARD) ? 1 : 0)
-			- (float)((cmd >>> 40) & 0x03) * (((cmd & DIR_BACKWARD) == DIR_BACKWARD) ? 1 : 0)) / 3.0f
+			((float)((cmd >>> 32) & 0x03) * (((cmd & DIR_FORWARD) == DIR_FORWARD) ? 100 : 0)
+			- (float)((cmd >>> 40) & 0x03) * (((cmd & DIR_BACKWARD) == DIR_BACKWARD) ? 100 : 0)) * 0.333f
 			: 0.0f;
 	}
 
 	public static float getGaz(final long cmd) {
 		return ((cmd & CMD_MOVE) == CMD_MOVE) ?
-			((float)((cmd >>> 48) & 0x03) * (((cmd & DIR_UP) == DIR_UP) ? 1 : 0)
-			- (float)((cmd >>> 52) & 0x03) * (((cmd & DIR_DOWN) == DIR_DOWN) ? 1 : 0)) / 3.0f
+			((float)((cmd >>> 48) & 0x03) * (((cmd & DIR_UP) == DIR_UP) ? 100 : 0)
+			- (float)((cmd >>> 52) & 0x03) * (((cmd & DIR_DOWN) == DIR_DOWN) ? 100 : 0)) * 0.333f
 			: 0.0f;
 	}
 
 	public static float getYaw(final long cmd) {
 		return ((cmd & CMD_TURN) == CMD_TURN) ?
-			(((cmd & DIR_RIGHT) == DIR_RIGHT) ? 1 : 0)
-			- (((cmd & DIR_LEFT) == DIR_LEFT) ? 1 : 0)
+			(((cmd & DIR_RIGHT) == DIR_RIGHT) ? 100 : 0)
+			- (((cmd & DIR_LEFT) == DIR_LEFT) ? 100 : 0)
 			: 0.0f;
 	}
 
