@@ -272,6 +272,11 @@ public class VoicePilotFragment extends PilotFragment {
 				break;
 			default:
 				showToast(R.string.error_voice_no_command, Toast.LENGTH_SHORT);
+				if (DEBUG) {
+					for (final String data: recData) {
+						Log.i(TAG, "onResults=" + data);
+					}
+				}
 				break;
 			}
 	    }
