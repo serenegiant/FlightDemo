@@ -660,7 +660,7 @@ public class PilotFragment extends BasePilotFragment {
 				break;
 			case R.id.emergency_btn:
 				// 非常停止指示ボタンの処理
-				setColorFilter( view);
+				setColorFilter(view);
 				emergencyStop();
 				break;
 			case R.id.copilot_btn:

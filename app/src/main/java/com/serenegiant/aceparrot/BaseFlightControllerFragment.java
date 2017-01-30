@@ -69,6 +69,16 @@ public abstract class BaseFlightControllerFragment extends BaseControllerFragmen
 		super.internalOnPause();
 	}
 
+	@Override
+	public void onDestroy() {
+		try {
+			emergencyStop();
+		} catch (final Exception e) {
+			// ignore
+		}
+		super.onDestroy();
+	}
+
 	protected boolean isFlying() {
 		return mController instanceof IFlightController && ((IFlightController)mController).isFlying();
 	}
