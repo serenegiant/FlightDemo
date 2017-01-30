@@ -684,31 +684,19 @@ public class PilotFragment extends BasePilotFragment {
 				break;
 			case R.id.flip_front_btn:
 				setColorFilter(view);
-				if (mFlightController != null) {
-					mFlightController.requestAnimationsFlip(IFlightController.FLIP_FRONT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_FRONT);
-				}
+				flip(IFlightController.FLIP_FRONT);
 				break;
 			case R.id.flip_back_btn:
 				setColorFilter(view);
-				if (mFlightController != null) {
-					mFlightController.requestAnimationsFlip(IFlightController.FLIP_BACK);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_BACK);
-				}
+				flip(IFlightController.FLIP_BACK);
 				break;
 			case R.id.flip_right_btn:
 				setColorFilter(view);
-				if (mFlightController != null) {
-					mFlightController.requestAnimationsFlip(IFlightController.FLIP_RIGHT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_RIGHT);
-				}
+				flip(IFlightController.FLIP_RIGHT);
 				break;
 			case R.id.flip_left_btn:
 				setColorFilter(view);
-				if (mFlightController != null) {
-					mFlightController.requestAnimationsFlip(IFlightController.FLIP_LEFT);
-					mFlightRecorder.record(FlightRecorder.CMD_FLIP, IFlightController.FLIP_LEFT);
-				}
+				flip(IFlightController.FLIP_LEFT);
 				break;
 			case R.id.still_capture_btn:
 				// 静止画撮影ボタンの処理

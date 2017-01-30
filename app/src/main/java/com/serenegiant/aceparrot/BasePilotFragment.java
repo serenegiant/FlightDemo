@@ -1187,16 +1187,16 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				// R2押しながら左スティックでフリップ
 				if (downs[GamePadConst.KEY_RIGHT_2]) {
 					if (downs[GamePadConst.KEY_LEFT_LEFT]) {
-						mFlightController.requestAnimationsFlip(IFlightController.FLIP_LEFT);
+						flip(IFlightController.FLIP_LEFT);
 						return;
 					} if (downs[GamePadConst.KEY_LEFT_RIGHT]) {
-						mFlightController.requestAnimationsFlip(IFlightController.FLIP_RIGHT);
+						flip(IFlightController.FLIP_RIGHT);
 						return;
 					} if (downs[GamePadConst.KEY_LEFT_UP]) {
-						mFlightController.requestAnimationsFlip(IFlightController.FLIP_FRONT);
+						flip(IFlightController.FLIP_FRONT);
 						return;
 					} if (downs[GamePadConst.KEY_LEFT_DOWN]) {
-						mFlightController.requestAnimationsFlip(IFlightController.FLIP_BACK);
+						flip(IFlightController.FLIP_BACK);
 						return;
 					}
 				}
