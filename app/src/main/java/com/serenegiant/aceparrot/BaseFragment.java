@@ -196,6 +196,7 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	 */
 	protected void runOnUiThread(final Runnable task) {
 		if (task != null) {
+			mUIHandler.removeCallbacks(task);
 			try {
 				if (mUIThreadId != Thread.currentThread().getId()) {
 					mUIHandler.post(task);
@@ -225,6 +226,7 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	 */
 	protected void runOnUiThread(final Runnable task, final long delay_msec) {
 		if (task != null) {
+			mUIHandler.removeCallbacks(task);
 			if (delay_msec <= 0) {
 				runOnUiThread(task);
 			} else if (task != null) {
@@ -254,6 +256,7 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	protected void queueEvent(final Runnable task, final long delay_msec) {
 		if (task != null) {
 			if (mAsyncHandler != null) {
+				mAsyncHandler.removeCallbacks(task);
 				if (delay_msec <= 0) {
 					mAsyncHandler.post(task);
 				} else {
