@@ -43,6 +43,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import jp.co.rediscovery.arflight.DroneStatus;
 import jp.co.rediscovery.arflight.ICameraController;
@@ -678,9 +679,23 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		final SharedPreferences pref = getActivity().getPreferences(0);
 		try {
 			ScriptHelper.loadScripts(pref, mScripts);
-			final int n = mScripts.size();
-			for (int i = 0; i < n; i++) {
-				result.add(mScripts.get(i).name);
+			synchronized (VoiceConst.SCRIPT_MAP) {
+				final Map<String, Integer> map = VoiceConst.SCRIPT_MAP;
+				map.clear();
+				final int n = mScripts.size();
+				for (int i = 0; i < n; i++) {
+					final ScriptHelper.ScriptRec script = mScripts.get(i);
+					result.add(script.name);
+					// if script name contains "|", use split texts as name for voice recognition
+					if (script.name.contains("|")) {
+						final String[] na = script.name.split("|");
+						for (final String s: na) {
+							map.put(s, i);
+						}
+					} else {
+						map.put(script.name, i);
+					}
+				}
 			}
 /*			for (int i = 0; i < SIDE_MENU_ITEMS.length; i++) {
 				result.add(getString(SIDE_MENU_ITEMS[i]));

@@ -36,6 +36,7 @@ public class VoiceConst {
 	public static final int CMD_MOVE			= 0x00000800;
 	public static final int CMD_FLIP			= 0x00001000;
 	public static final int CMD_TURN			= 0x00002000;
+	public static final int CMD_SCRIPT			= 0x00004000;
 	public static final int CMD_MASK			= 0x00ffff00;
 
 	private static final long CMD_FORWARD_MAX	= CMD_MOVE | DIR_FORWARD | (MAX_COUNT << 32);
@@ -73,6 +74,10 @@ public class VoiceConst {
 			: 0.0f;
 	}
 
+	public static int getScript(final long cmd) {
+		return ((cmd & CMD_SCRIPT) == CMD_SCRIPT) ? (int)(cmd >>> 32) : -1;
+	}
+
 	public static long findCommand(final String text) {
 		long cmd = CMD_NON;
 
@@ -82,6 +87,13 @@ public class VoiceConst {
 				cmd = findAction(text);
 				if (cmd == CMD_NON) {
 					cmd = findMove(text);
+					// If you un-comment following lines,
+					// app will recognize script name as command.
+					// But be careful use this because false recognition
+					// will raise unexpected fly
+//					if (cmd == CMD_NON) {
+//						cmd = findScript(text);
+//					}
 				}
 			}
 		}
@@ -212,9 +224,26 @@ public class VoiceConst {
 		return cmd;
 	}
 
+	private static long findScript(@NonNull final String text) {
+		long cmd = CMD_NON;
+
+		synchronized (SCRIPT_MAP) {
+			final Set<String> names = SCRIPT_MAP.keySet();
+			for (final String name: names) {
+				if (text.contains(name)) {
+					cmd = CMD_SCRIPT | (((long)SCRIPT_MAP.get(name)) << 32);
+					break;
+				}
+			}
+		}
+
+		return cmd;
+	}
+
 	private static final Map<String, Integer> CMD_MAP = new LinkedHashMap<String, Integer>();
 	private static final Map<String, Integer> ACTION_MAP = new LinkedHashMap<String, Integer>();
 	private static final Map<String, Integer> DIR_MAP = new LinkedHashMap<String, Integer>();
+	public static final Map<String, Integer> SCRIPT_MAP = new LinkedHashMap<String, Integer>();
 	static {
 		CMD_MAP.put("stop", CMD_STOP);
 		CMD_MAP.put("すとっぷ", CMD_STOP);

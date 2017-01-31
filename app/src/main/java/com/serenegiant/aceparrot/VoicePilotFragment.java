@@ -312,6 +312,13 @@ public class VoicePilotFragment extends PilotFragment {
 				sendMove(roll, pitch, gaz, yaw);
 				queueEvent(mVoiceResetTask, 300);
 				break;
+			case VoiceConst.CMD_SCRIPT:
+				try {
+					startScript(VoiceConst.getScript(cmd));
+				} catch (final Exception e) {
+					showToast(R.string.error_voice_no_command, Toast.LENGTH_SHORT);
+				}
+				break;
 			default:
 				showToast(R.string.error_voice_no_command, Toast.LENGTH_SHORT);
 				if (DEBUG) {
