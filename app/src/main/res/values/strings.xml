@@ -60,10 +60,10 @@
 	<string name="config_title_voice_enable_script">Enable script flight by voice control</string>
 	<string name="config_summary_voice_enable_script">This setting is automatically disabled every time when app starts.</string>
 	<string name="config_notice_voice_enable_script">
-		音声認識によるスクリプト飛行が可能になります。
+		この設定を有効にすることで音声認識によるスクリプト飛行が可能になります。
 		ただし意図しないスクリプトが、意図しないタイミングで選択されたり、
 		操縦者の意図しない飛行をすることがあります。\n
-		万一ドローン自体、ドローンの操作者、第三者に何らかの損傷、損耗、 怪我等が発生したとしても、
+		その結果ドローン自体・ドローンの操作者・第三者その他に何らかの損傷、損耗、 怪我等が発生したとしても、
 		エースパロットの提供元はその責任を負うことができません。\n
 		万が一エースパロットによってコントロールされたドローンが第三者に損害を与え、
 		当該第三者がエースパロットの提供元に損害賠償請求をした場合には、エースパロットの使用者が先立って全額の補償をし、
