@@ -214,7 +214,7 @@ public class VoiceConst {
 
 	private static final Map<String, Integer> CMD_MAP = new LinkedHashMap<String, Integer>();
 	private static final Map<String, Integer> ACTION_MAP = new LinkedHashMap<String, Integer>();
-	private static final Map<String, Integer> DIR_MAP = new HashMap<String, Integer>();
+	private static final Map<String, Integer> DIR_MAP = new LinkedHashMap<String, Integer>();
 	static {
 		CMD_MAP.put("stop", CMD_STOP);
 		CMD_MAP.put("すとっぷ", CMD_STOP);
@@ -320,6 +320,8 @@ public class VoiceConst {
 		DIR_MAP.put("行け", DIR_FORWARD);
 		DIR_MAP.put("いけ", DIR_FORWARD);
 		DIR_MAP.put("イケ", DIR_FORWARD);
+		DIR_MAP.put("いっけ", DIR_FORWARD);
+		DIR_MAP.put("イッケ", DIR_FORWARD);
 		DIR_MAP.put("まい", DIR_FORWARD);
 		DIR_MAP.put("マイ", DIR_FORWARD);
 		DIR_MAP.put("my", DIR_FORWARD);
@@ -327,7 +329,7 @@ public class VoiceConst {
 		DIR_MAP.put("後", DIR_BACKWARD);
 		DIR_MAP.put("うしろ", DIR_BACKWARD);
 		DIR_MAP.put("ウシロ", DIR_BACKWARD);
-		DIR_MAP.put("backward", DIR_FORWARD);
+		DIR_MAP.put("backward", DIR_BACKWARD);
 		DIR_MAP.put("ばっくわーど", DIR_BACKWARD);
 		DIR_MAP.put("バックワード", DIR_BACKWARD);
 		DIR_MAP.put("back", DIR_BACKWARD);
