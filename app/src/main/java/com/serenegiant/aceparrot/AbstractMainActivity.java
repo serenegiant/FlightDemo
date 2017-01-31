@@ -29,6 +29,8 @@ import com.serenegiant.widget.SideMenuFrameLayout;
 
 import jp.co.rediscovery.arflight.ManagerFragment;
 
+import static com.serenegiant.aceparrot.AppConst.*;
+
 /**
  * Created by saki on 2016/10/13.
  *
@@ -79,7 +81,10 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 		prepareSideMenu();
 		final SharedPreferences pref = getPreferences(0);
 		final boolean firstTime = pref.getBoolean(KEY_SCRIPTS_FIRST_TIME, true);
-		pref.edit().putBoolean(KEY_SCRIPTS_FIRST_TIME, false).apply();
+		pref.edit()
+			.putBoolean(KEY_SCRIPTS_FIRST_TIME, false)
+			.putBoolean(KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT, false)
+			.apply();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {

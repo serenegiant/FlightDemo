@@ -35,6 +35,8 @@
 // extern float getMaxVerticalSpeed();
 //		return max vertical speed [m/s]
 
+#define token "丸|まる|マル|○"
+
 double speed_factor = 0.2;	// 0.46;
 
 void main(const double radius, const double scale_x, const double scale_y, const double scale_z, const double scale_r) {

@@ -34,6 +34,9 @@
 //		return max rotation speed [degree/sec]
 // extern float getMaxVerticalSpeed();
 //		return max vertical speed [m/s]
+
+#define token "円|円運動|えん|エン"
+
 int step_num = 12;	// 12角形で近似
 
 void main(const double radius, const double scale_x, const double scale_y, const double scale_z, const double scale_r) {

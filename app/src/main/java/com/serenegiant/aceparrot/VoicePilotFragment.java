@@ -16,12 +16,13 @@ import android.widget.Toast;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 
 import java.util.List;
+import java.util.Map;
 
 import jp.co.rediscovery.arflight.DeviceInfo;
 import jp.co.rediscovery.arflight.IDeviceController;
 import jp.co.rediscovery.arflight.IFlightController;
 
-import static com.serenegiant.aceparrot.AppConst.KEY_CONFIG_OFFLINE_VOICE_RECOGNITION;
+import static com.serenegiant.aceparrot.AppConst.*;
 
 /**
  * Created by saki on 2017/01/28.
@@ -43,6 +44,7 @@ public class VoicePilotFragment extends PilotFragment {
 	private AudioManager mAudioManager;
 	private int mStreamVolume = 0;
 	private boolean mOfflineVoiceRecognition;
+	private boolean mScriptVoiceRecognition;
 
 	public VoicePilotFragment() {
 		super();
@@ -52,8 +54,9 @@ public class VoicePilotFragment extends PilotFragment {
 	protected void internalOnResume() {
 		super.internalOnResume();
 		final SharedPreferences pref = getActivity().getPreferences(0);
-		mOfflineVoiceRecognition = pref.getBoolean(KEY_CONFIG_OFFLINE_VOICE_RECOGNITION, false)
+		mOfflineVoiceRecognition = pref.getBoolean(KEY_CONFIG_VOICE_RECOGNITION_PREFER_OFFLINE, false)
 			&& (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M);
+		mScriptVoiceRecognition = pref.getBoolean(KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT, false);
 	}
 
 	@Override
@@ -72,6 +75,33 @@ public class VoicePilotFragment extends PilotFragment {
 	protected void onDisconnect(final IDeviceController controller) {
 		stopSpeechRecognizer();
 		super.onDisconnect(controller);
+	}
+
+	@Override
+	protected List<String> setupScript() {
+		final List<String> result = super.setupScript();
+
+		if (mScriptVoiceRecognition) {
+			synchronized (VoiceConst.SCRIPT_MAP) {
+				final Map<String, Integer> map = VoiceConst.SCRIPT_MAP;
+				map.clear();
+				final int n = mScripts.size();
+				for (int i = 0; i < n; i++) {
+					final ScriptHelper.ScriptRec script = mScripts.get(i);
+					// if script name contains "|", use split texts as name for voice recognition
+					if (script.name.contains("|")) {
+						final String[] na = script.name.split("|");
+						for (final String s: na) {
+							map.put(s, i);
+						}
+					} else {
+						map.put(script.name, i);
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 
 	private Intent mRecognizerIntent;
@@ -113,7 +143,7 @@ public class VoicePilotFragment extends PilotFragment {
 		}
 		mOfflineVoiceRecognition = false;
 		final SharedPreferences pref = getActivity().getPreferences(0);
-		pref.edit().putBoolean(KEY_CONFIG_OFFLINE_VOICE_RECOGNITION, false).apply();
+		pref.edit().putBoolean(KEY_CONFIG_VOICE_RECOGNITION_PREFER_OFFLINE, false).apply();
 		mSpeechRecognizer.startListening(mRecognizerIntent);
 	}
 
@@ -220,7 +250,7 @@ public class VoicePilotFragment extends PilotFragment {
 				// Server側からエラー通知
 				showToast(R.string.error_voice_network_server, Toast.LENGTH_SHORT);
 				final SharedPreferences pref = getActivity().getPreferences(0);
-				pref.edit().putBoolean(KEY_CONFIG_OFFLINE_VOICE_RECOGNITION, false).apply();
+				pref.edit().putBoolean(KEY_CONFIG_VOICE_RECOGNITION_PREFER_OFFLINE, false).apply();
 				mOfflineVoiceRecognition = false;
 				break;
 			case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:

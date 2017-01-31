@@ -28,7 +28,9 @@ public class AppConst {
 	// 操縦画面のアイコンを自動的に隠すかどうか
 	public static final String KEY_AUTO_HIDE = "CONFIG_AUTO_HIDE";
 	// オフラインの音声認識を優先するかどうか
-	public static final String KEY_CONFIG_OFFLINE_VOICE_RECOGNITION = "CONFIG_OFFLINE_VOICE_RECOGNITION";
+	public static final String KEY_CONFIG_VOICE_RECOGNITION_PREFER_OFFLINE = "KEY_CONFIG_VOICE_RECOGNITION_PREFER_OFFLINE";
+	// 音声認識でのスクリプト飛行を有効にするかどうか
+	public static final String KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT = "KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT";
 
 	public static final float SCALE_FACTOR = 250f;
 	public static final int SCALE_OFFSET = 500;

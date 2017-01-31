@@ -38,6 +38,7 @@
 	<string name="stick_text_back">後</string>
 
 	<string name="config_app_title_color">機体色設定</string>
+	<string name="config_app_title_others">その他</string>
 	<string name="config_app_title_license">ライセンス</string>
 
 	<string name="config_sw_on">有</string>
@@ -56,6 +57,19 @@
 	<string name="config_title_info">ドローン情報</string>
 	<string name="config_title_voice_offline">オフライン音声認識を優先する(Android >= 6.0)</string>
 	<string name="config_notice_voice_offline">Google音声認識のオフライン言語(日本語・英語)のインストールが必要です</string>
+	<string name="config_title_voice_enable_script">音声認識でスクリプト飛行を有効にする</string>
+	<string name="config_summary_voice_enable_script">この設定はアプリ起動のたびに自動的に無効になります。</string>
+	<string name="config_notice_voice_enable_script">
+		音声認識によるスクリプト飛行が可能になります。
+		ただし意図しないスクリプトが、意図しないタイミングで選択されたり、
+		操縦者の意図しない飛行をすることがあります。\n
+		万一ドローン自体、ドローンの操作者、第三者に何らかの損傷、損耗、 怪我等が発生したとしても、
+		エースパロットの提供元はその責任を負うことができません。\n
+		万が一エースパロットによってコントロールされたドローンが第三者に損害を与え、
+		当該第三者がエースパロットの提供元に損害賠償請求をした場合には、エースパロットの使用者が先立って全額の補償をし、
+		エースパロットの提供者を完全に免責していただきます。\n
+		このことを了承できる場合にのみ、	十分に周囲の安全確認を行った上で	エースパロットならびに本機能を使用してください。
+	</string>
 
 	<string name="config_max_tilt">最大斜度: %5.1f[°]</string>
 	<string name="config_max_vertical_speed">最大垂直速度: %5.1f[m/s]</string>

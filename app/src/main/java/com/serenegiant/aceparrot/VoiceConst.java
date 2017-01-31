@@ -1,5 +1,6 @@
 package com.serenegiant.aceparrot;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -91,9 +92,9 @@ public class VoiceConst {
 					// app will recognize script name as command.
 					// But be careful use this because false recognition
 					// will raise unexpected fly
-//					if (cmd == CMD_NON) {
-//						cmd = findScript(text);
-//					}
+					if (cmd == CMD_NON) {
+						cmd = findScript(text);
+					}
 				}
 			}
 		}
@@ -224,15 +225,39 @@ public class VoiceConst {
 		return cmd;
 	}
 
+	private static final String[] SCRIPTS = {
+		"script",
+		"すくりぷと",
+		"スクリプト",
+	};
+
 	private static long findScript(@NonNull final String text) {
 		long cmd = CMD_NON;
 
-		synchronized (SCRIPT_MAP) {
-			final Set<String> names = SCRIPT_MAP.keySet();
-			for (final String name: names) {
-				if (text.contains(name)) {
-					cmd = CMD_SCRIPT | (((long)SCRIPT_MAP.get(name)) << 32);
-					break;
+		for (final String s: SCRIPTS) {
+			// script/すくりぷと/スクリプトを含むかどうかをチェック
+			int ix = text.indexOf(s);
+			if (ix >= 0) {
+				// 含んでいる時
+				try {
+					// 末尾に数字があればそれをスクリプトのインデックスとする
+					final String sub = text.substring(ix + s.length());
+					cmd = CMD_SCRIPT | (((long) Integer.parseInt(sub)) << 32);
+				} catch (final Exception e) {
+					// ignore
+				}
+				if (cmd == CMD_NON) {
+					// 末尾に数字がついていない時はスクリプトトークンを探す
+					synchronized (SCRIPT_MAP) {
+						final Set<String> tokens = SCRIPT_MAP.keySet();
+						for (final String token: tokens) {
+							if (text.contains(token)) {
+								// 最初に見つかったものを返す
+								cmd = CMD_SCRIPT | (((long)SCRIPT_MAP.get(token)) << 32);
+								break;
+							}
+						}
+					}
 				}
 			}
 		}

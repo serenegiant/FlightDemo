@@ -42,6 +42,7 @@ public class ScriptHelper {
 	public static class ScriptRec {
         public File path;
         public String name;
+        public String token;
 		public int crc;
         public boolean checked;
 
@@ -287,6 +288,8 @@ public class ScriptHelper {
 
 	/** スクリプトファイル内からスクリプト名定義を探すための正規表現 */
     private static final Pattern NAME_PREFIX = Pattern.compile("^#define\\s+name\\s+(\\S+)");
+    /** スクリプトファイル内から音声認識用語句を探すための正規表現 */
+	private static final Pattern TOKEN_PREFIX = Pattern.compile("^#define\\s+token\"\\s+(\\S+)\"");
 
 	/**
 	 * スクリプトファイル内からスクリプト名を取得しcrc32を計算して返す
@@ -302,27 +305,45 @@ public class ScriptHelper {
 		final CRC32 crc = new CRC32();
 		final LineNumberReader in = new LineNumberReader(new BufferedReader(new FileReader(file)));
 		String line;
-		Matcher matcher = null;
+		Matcher nameMatcher = null, tokenMatcher = null;
+		final StringBuilder tokens = new StringBuilder();
 		boolean found = false;
 		do {
 			line = in.readLine();	// nullが返ってきたらファイルの終端
 			if (line != null) {
 				crc.update(line);	// crc32を計算
 				if (!found) {		// 最初に見つかったのを採用する
-					if (matcher == null) {
-						matcher = NAME_PREFIX.matcher(line);
+					if (nameMatcher == null) {
+						nameMatcher = NAME_PREFIX.matcher(line);
 					} else {
-						matcher.reset(line);
+						nameMatcher.reset(line);
 					}
-					if (matcher.find()) {
-						result.name = matcher.group(1);
+					if (nameMatcher.find()) {
+						result.name = nameMatcher.group(1);
 						found = true;	// 見つかった
+					}
+				}
+				if (tokenMatcher == null) {
+					tokenMatcher = TOKEN_PREFIX.matcher(line);
+				} else {
+					tokenMatcher.reset(line);
+				}
+				if (tokenMatcher.find()) {
+					if (tokens.length() == 0) {
+						tokens.append(tokenMatcher.group(1));
+					} else {
+						tokens.append("|").append(tokenMatcher.group(1));
 					}
 				}
 			}
 		} while (line != null);
 		result.path = file;
 		result.crc = crc.getCrc();
+		if (tokens.length() == 0) {
+			result.token = result.name;
+		} else {
+			result.token = tokens.toString();
+		}
         return result;
     }
 
