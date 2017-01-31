@@ -56,7 +56,7 @@
 	<string name="config_title_info">Info</string>
 
 	<string name="config_title_voice_offline">Prefer offline voice recognition(Android >= 6.0)</string>
-	<string name="config_notice_voice_offline">Need to install offline languages of Japanese and English for Google Voice typing</string>
+	<string name="config_notice_voice_offline">Need to install offline languages of Japanese and English for Google Voice typing. Whether this setting works depends on each Android device.</string>
 	<string name="config_title_voice_enable_script">Enable script flight by voice control</string>
 	<string name="config_summary_voice_enable_script">This setting is automatically disabled every time when app starts.</string>
 	<string name="config_notice_voice_enable_script">
@@ -70,6 +70,7 @@
 		エースパロットの提供者を完全に免責していただきます。\n
 		このことを了承できる場合にのみ、	十分に周囲の安全確認を行った上で	エースパロットならびに本機能を使用してください。
 	</string>
+	<string name="config_title_damping_rate">Damping rate for voice control:%4.2f</string>
 
 	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>
 	<string name="config_max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>

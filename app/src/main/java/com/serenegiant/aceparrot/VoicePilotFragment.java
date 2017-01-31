@@ -45,6 +45,7 @@ public class VoicePilotFragment extends PilotFragment {
 	private int mStreamVolume = 0;
 	private boolean mOfflineVoiceRecognition;
 	private boolean mScriptVoiceRecognition;
+	private float mDampingRate;
 
 	public VoicePilotFragment() {
 		super();
@@ -57,6 +58,7 @@ public class VoicePilotFragment extends PilotFragment {
 		mOfflineVoiceRecognition = pref.getBoolean(KEY_CONFIG_VOICE_RECOGNITION_PREFER_OFFLINE, false)
 			&& (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M);
 		mScriptVoiceRecognition = pref.getBoolean(KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT, false);
+		mDampingRate = pref.getInt(KEY_CONFIG_VOICE_RECOGNITION_DAMPING_RATE, DEFAULT_VOICE_RECOGNITION_DAMPING_RATE) / 100.0f;
 	}
 
 	@Override
@@ -340,7 +342,9 @@ public class VoicePilotFragment extends PilotFragment {
 				float gaz = VoiceConst.getGaz(cmd) * mGamepadSensitivity * mGamepadScaleZ;
 				float yaw = VoiceConst.getYaw(cmd) * mGamepadSensitivity * mGamepadScaleR;
 				sendMove(roll, pitch, gaz, yaw);
-				queueEvent(mVoiceResetTask, 300);
+				if ((mDampingRate > 0.0f) && (mDampingRate < 1.0f)) {
+					queueEvent(mVoiceResetTask, 300);
+				}
 				break;
 			case VoiceConst.CMD_SCRIPT:
 				try {
@@ -378,7 +382,7 @@ public class VoicePilotFragment extends PilotFragment {
 	private final Runnable mVoiceResetTask = new Runnable() {
 		@Override
 		public void run() {
-			if (damp(0.5f)) {
+			if (damp(mDampingRate)) {
 				queueEvent(this, 100);
 				return;
 			}

@@ -9,7 +9,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.SeekBar;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.serenegiant.widget.ColorPickerView;
 import com.serenegiant.widget.RelativeRadioGroup;
@@ -52,6 +54,8 @@ public class ConfigAppFragment extends BaseFragment {
 	private boolean mAutoHide;
 	private boolean mOfflineVoiceRecognition;
 	private boolean mScriptVoiceRecognition;
+	private int mDampingRate;
+	private TextView mDampingRateTv;
 
 	public ConfigAppFragment() {
 		super();
@@ -113,6 +117,13 @@ public class ConfigAppFragment extends BaseFragment {
 		sw.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M);
 		sw.setChecked(mOfflineVoiceRecognition);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+// 減衰率
+		mDampingRateTv = (TextView) rootView.findViewById(R.id.damping_rate_textview);
+		mDampingRate = mPref.getInt(KEY_CONFIG_VOICE_RECOGNITION_DAMPING_RATE, DEFAULT_VOICE_RECOGNITION_DAMPING_RATE);
+		final SeekBar seekBar = (SeekBar) rootView.findViewById(R.id.damping_rate_seekbar);
+		seekBar.setProgress(mDampingRate);
+		seekBar.setOnSeekBarChangeListener(mOnSeekBarChangeListener);
+		updateDampingRate(mDampingRate);
 // 音声認識でのスクリプト飛行を有効にするかどうか
 		mScriptVoiceRecognition = mPref.getBoolean(KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT, false);
 		sw = (Switch)rootView.findViewById(R.id.enable_voice_recognition_script_switch);
@@ -175,7 +186,43 @@ public class ConfigAppFragment extends BaseFragment {
 				}
 				break;
 			}
+			case R.id.enable_voice_recognition_script_switch:
+			{
+				if (mScriptVoiceRecognition != isChecked) {
+					mScriptVoiceRecognition = isChecked;
+					mPref.edit().putBoolean(KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT, isChecked).apply();
+				}
+			}
 			}
 		}
 	};
+
+	private final SeekBar.OnSeekBarChangeListener mOnSeekBarChangeListener
+		= new SeekBar.OnSeekBarChangeListener() {
+		@Override
+		public void onProgressChanged(final SeekBar seekBar, final int progress, final boolean fromUser) {
+			updateDampingRate(progress);
+		}
+
+		@Override
+		public void onStartTrackingTouch(final SeekBar seekBar) {
+		}
+
+		@Override
+		public void onStopTrackingTouch(final SeekBar seekBar) {
+			final int progress = seekBar.getProgress();
+			updateDampingRate(progress);
+			if (mDampingRate != progress) {
+				mDampingRate = progress;
+				mPref.edit().putInt(KEY_CONFIG_VOICE_RECOGNITION_DAMPING_RATE, progress).apply();
+			}
+		}
+	};
+
+	private void updateDampingRate(final int progress) {
+		if (mDampingRateTv != null) {
+			final String txt = getString(R.string.config_title_damping_rate, progress / 100.0f);
+			mDampingRateTv.setText(txt);
+		}
+	}
 }
