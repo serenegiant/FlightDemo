@@ -21,6 +21,7 @@ import java.util.Map;
 import jp.co.rediscovery.arflight.DeviceInfo;
 import jp.co.rediscovery.arflight.IDeviceController;
 import jp.co.rediscovery.arflight.IFlightController;
+import jp.co.rediscovery.arflight.controllers.FlightControllerMambo;
 
 import static com.serenegiant.aceparrot.AppConst.*;
 
@@ -70,12 +71,17 @@ public class VoicePilotFragment extends PilotFragment {
 	@Override
 	protected void onConnect(final IDeviceController controller) {
 		super.onConnect(controller);
+		if (mFlightController instanceof FlightControllerMambo) {
+			final FlightControllerMambo mambo = (FlightControllerMambo)mFlightController;
+			VoiceConst.setEnableMambo(mambo.hasClaw(), mambo.hasGun());
+		}
 		runOnUiThread(mStartSpeechRecognizerTask);
 	}
 
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
 		stopSpeechRecognizer();
+		VoiceConst.setEnableMambo(false, false);
 		super.onDisconnect(controller);
 	}
 
@@ -351,6 +357,30 @@ public class VoicePilotFragment extends PilotFragment {
 					startScript(VoiceConst.getScript(cmd));
 				} catch (final Exception e) {
 					showToast(R.string.error_voice_no_command, Toast.LENGTH_SHORT);
+				}
+				break;
+			case VoiceConst.CMD_CLAW_OPEN:
+				if ((mFlightController instanceof FlightControllerMambo)
+					&& ((FlightControllerMambo) mFlightController).hasClaw()) {
+					((FlightControllerMambo) mFlightController).requestClawOpen();
+				}
+				break;
+			case VoiceConst.CMD_CLAW_CLOSE:
+				if ((mFlightController instanceof FlightControllerMambo)
+					&& ((FlightControllerMambo) mFlightController).hasClaw()) {
+					((FlightControllerMambo) mFlightController).requestClawClose();
+				}
+				break;
+			case VoiceConst.CMD_CLAW_TOGGLE:
+				if ((mFlightController instanceof FlightControllerMambo)
+					&& ((FlightControllerMambo) mFlightController).hasClaw()) {
+					actionToggle();
+				}
+				break;
+			case VoiceConst.CMD_FIRE:
+				if ((mFlightController instanceof FlightControllerMambo)
+					&& ((FlightControllerMambo) mFlightController).hasGun()) {
+					actionToggle();
 				}
 				break;
 			default:

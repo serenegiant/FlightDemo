@@ -1,12 +1,10 @@
 package com.serenegiant.aceparrot;
 
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseIntArray;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +36,11 @@ public class VoiceConst {
 	public static final int CMD_FLIP			= 0x00001000;
 	public static final int CMD_TURN			= 0x00002000;
 	public static final int CMD_SCRIPT			= 0x00004000;
+	public static final int CMD_FIRE			= 0x00008000;
+	public static final int CMD_CLAW_OPEN		= 0x00010000;
+	public static final int CMD_CLAW_CLOSE		= 0x00020000;
+	public static final int CMD_CLAW_TOGGLE		= 0x00040000;
+	public static final int CMD_MASK_CLAW		= CMD_CLAW_OPEN | CMD_CLAW_CLOSE | CMD_CLAW_TOGGLE;
 	public static final int CMD_MASK			= 0x00ffff00;
 
 	private static final long CMD_FORWARD_MAX	= CMD_MOVE | DIR_FORWARD | (MAX_COUNT << 32);
@@ -265,8 +268,33 @@ public class VoiceConst {
 		return cmd;
 	}
 
+	/**
+	 * Mambo固有機能の有効・無効をセット
+	 * @param hasClaw
+	 * @param hasGun
+	 */
+	public static void setEnableMambo(final boolean hasClaw, final boolean hasGun) {
+		for (final String key: ACTION_MAP_MAMBO.keySet()) {
+			final int cmd = ACTION_MAP_MAMBO.get(key);
+			if ((cmd & CMD_MASK_CLAW) != 0) {
+				if (hasClaw) {
+					ACTION_MAP.put(key, cmd);
+				} else {
+					ACTION_MAP.remove(key);
+				}
+			} else {
+				if (hasGun) {
+					ACTION_MAP.put(key, cmd);
+				} else {
+					ACTION_MAP.remove(key);
+				}
+			}
+		}
+	}
+
 	private static final Map<String, Integer> CMD_MAP = new LinkedHashMap<String, Integer>();
 	private static final Map<String, Integer> ACTION_MAP = new LinkedHashMap<String, Integer>();
+	private static final Map<String, Integer> ACTION_MAP_MAMBO = new LinkedHashMap<String, Integer>();
 	private static final Map<String, Integer> DIR_MAP = new LinkedHashMap<String, Integer>();
 	public static final Map<String, Integer> SCRIPT_MAP = new LinkedHashMap<String, Integer>();
 	static {
@@ -356,6 +384,63 @@ public class VoiceConst {
 		ACTION_MAP.put("動け", CMD_MOVE);
 		ACTION_MAP.put("うごけ", CMD_MOVE);
 		ACTION_MAP.put("ウゴケ", CMD_MOVE);
+
+//--------------------------------------------------------------------------------
+		ACTION_MAP_MAMBO.put("開け", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ひらけ", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ヒラケ", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("あけ", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("アケ", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ごま", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ゴマ", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("open", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("おーぷん", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("オープン", CMD_CLAW_OPEN);
+
+		ACTION_MAP_MAMBO.put("閉じろ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("とじろ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("トジロ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("close", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("くろーず", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("クローズ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("掴め", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("つかめ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("ツカメ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("きゃっち", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("キャッチ", CMD_CLAW_CLOSE);
+
+		ACTION_MAP_MAMBO.put("とぐる", CMD_CLAW_TOGGLE);
+		ACTION_MAP_MAMBO.put("トグル", CMD_CLAW_TOGGLE);
+		ACTION_MAP_MAMBO.put("反転", CMD_CLAW_TOGGLE);
+		ACTION_MAP_MAMBO.put("はんてん", CMD_CLAW_TOGGLE);
+		ACTION_MAP_MAMBO.put("ハンテン", CMD_CLAW_TOGGLE);
+
+		ACTION_MAP_MAMBO.put("打て", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("撃て", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("うて", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ウテ", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("発射", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("はっしゃ", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ハッシャ", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("fire", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ふぁいや", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ファイヤ", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ふぁいあ", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ファイア", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("shoot", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("しゅーと", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("シュート", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ばーん", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("バーン", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ぱーん", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("パーン", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ちゅどーん", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("チュドーン", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ばきゅーん", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("バキューン", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ばきゅ〜ん", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("バキュ〜ン", CMD_FIRE);
+
 //--------------------------------------------------------------------------------
 		DIR_MAP.put("前", DIR_FORWARD);
 		DIR_MAP.put("まえ", DIR_FORWARD);
