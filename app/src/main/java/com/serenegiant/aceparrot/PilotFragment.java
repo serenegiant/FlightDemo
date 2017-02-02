@@ -49,6 +49,7 @@ import jp.co.rediscovery.arflight.IDeviceController;
 import jp.co.rediscovery.arflight.IFlightController;
 import jp.co.rediscovery.arflight.ISkyController;
 import jp.co.rediscovery.arflight.IVideoStreamController;
+import jp.co.rediscovery.arflight.controllers.FlightControllerMambo;
 
 import static com.serenegiant.aceparrot.AppConst.*;
 
@@ -106,6 +107,7 @@ public class PilotFragment extends BasePilotFragment {
 	private View mDownView, mUpView;
 	private View mTurnLeftView, mTurnRightView;
 	private View mHeartBeatView;
+	private View mActionBtn;
 
 	// サイドメニュー
 	private SideMenuListView mSideMenuListView;
@@ -351,6 +353,9 @@ public class PilotFragment extends BasePilotFragment {
 			mTouchPilotView.setTouchPilotListener(mTouchPilotListener);
 			mActionViews.add(mTouchPilotView);
 		}
+
+		mActionBtn = rootView.findViewById(R.id.action_button);
+		mActionBtn.setOnClickListener(mOnClickListener);
 
 		final ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(getProductId());
 		// 機体モデル表示
@@ -729,6 +734,10 @@ public class PilotFragment extends BasePilotFragment {
 					mFlightRecorder.record(FlightRecorder.CMD_CAP, -45);
 				}
 				break;
+			case R.id.action_button:
+				setColorFilter(view);
+				actionToggle();
+				break;
 /*			case R.id.north_btn:
 				setColorFilter(view, TOUCH_RESPONSE_COLOR, TOUCH_RESPONSE_TIME_MS);
 				if (mFlightController != null) {
@@ -760,6 +769,20 @@ public class PilotFragment extends BasePilotFragment {
 			}
 		}
 	};
+
+	protected void actionToggle() {
+		if (mFlightController instanceof FlightControllerMambo) {
+			final FlightControllerMambo mambo = (FlightControllerMambo) mFlightController;
+			if (mambo.hasClaw()) {
+				mambo.toggleClaw();
+			} else if (mambo.hasGun()) {
+				Log.i(TAG, "requestFireGun");
+				mambo.requestFireGun(0);
+			} else {
+				Log.i(TAG, "なんでやねん");
+			}
+		}
+	}
 
 	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
 		@Override
@@ -937,6 +960,13 @@ public class PilotFragment extends BasePilotFragment {
 			@Override
 			public void run() {
 				setChildVisibility(mVideoRecordingBtn, controller instanceof IVideoStreamController ? View.VISIBLE : View.INVISIBLE);
+				if (mController instanceof FlightControllerMambo) {
+					final FlightControllerMambo mambo = (FlightControllerMambo)mController;
+					mActionBtn.setVisibility(
+						mambo.hasClaw() || mambo.hasGun() ? View.VISIBLE : View.GONE);
+				} else {
+					mActionBtn.setVisibility(View.GONE);
+				}
 			}
 		});
 		setSideMenu();

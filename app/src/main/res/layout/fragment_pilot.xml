@@ -113,141 +113,156 @@
 
 		</RelativeLayout>
 
-		<com.serenegiant.widget.TouchableLinearLayout
+		<RelativeLayout
 			android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:layout_weight="10"
-			android:id="@+id/pilot_frame"
-			android:orientation="horizontal"
-			>
+			android:layout_height="match_parent">
 
-			<LinearLayout
-				android:id="@+id/left_side_panel"
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_alignParentLeft="true"
-				android:layout_alignParentStart="true"
-				android:layout_alignParentTop="true"
-				android:orientation="vertical"
-				android:layout_gravity="center_vertical">
-
-				<ImageButton
-					android:id="@+id/flip_front_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:layout_marginTop="@dimen/quater_padding"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_flip_front"/>
-
-				<ImageButton
-					android:id="@+id/flip_back_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_flip_back"/>
-
-				<ImageButton
-					android:id="@+id/flip_right_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_flip_right"/>
-
-				<ImageButton
-					android:id="@+id/flip_left_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_flip_left"/>
-
-			</LinearLayout>
-
-			<com.serenegiant.widget.StickView
-				android:id="@+id/stick_view_left"
+			<com.serenegiant.widget.TouchableLinearLayout
 				android:layout_width="match_parent"
 				android:layout_height="match_parent"
-				android:layout_alignParentBottom="true"
-				android:layout_alignParentLeft="true"
-				android:layout_alignParentTop="true"
-				android:layout_centerHorizontal="true"
-				android:layout_weight="1"
-				app:stick_height="@dimen/stick_frame_width"
-				app:stick_image_layout="@layout/stick_mode0_left"
-				app:stick_width="@dimen/stick_frame_width">
-			</com.serenegiant.widget.StickView>
+				android:layout_weight="10"
+				android:id="@+id/pilot_frame"
+				android:orientation="horizontal"
+				>
 
-			<com.serenegiant.widget.StickView
-				android:id="@+id/stick_view_right"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:layout_alignParentBottom="true"
-				android:layout_alignParentRight="true"
-				android:layout_alignParentTop="true"
-				android:layout_centerHorizontal="true"
-				android:layout_weight="1"
-				app:stick_height="@dimen/stick_frame_width"
-				app:stick_image_layout="@layout/stick_mode0_right"
-				app:stick_width="@dimen/stick_frame_width">
-			</com.serenegiant.widget.StickView>
+				<LinearLayout
+					android:id="@+id/left_side_panel"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_alignParentLeft="true"
+					android:layout_alignParentStart="true"
+					android:layout_alignParentTop="true"
+					android:orientation="vertical"
+					android:layout_gravity="center_vertical">
 
-			<LinearLayout
-				android:id="@+id/right_side_panel"
+					<ImageButton
+						android:id="@+id/flip_front_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:layout_marginTop="@dimen/quater_padding"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="?attr/flightdemo_icon_flip_front"/>
+
+					<ImageButton
+						android:id="@+id/flip_back_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="?attr/flightdemo_icon_flip_back"/>
+
+					<ImageButton
+						android:id="@+id/flip_right_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="?attr/flightdemo_icon_flip_right"/>
+
+					<ImageButton
+						android:id="@+id/flip_left_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="?attr/flightdemo_icon_flip_left"/>
+
+				</LinearLayout>
+
+				<com.serenegiant.widget.StickView
+					android:id="@+id/stick_view_left"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:layout_alignParentBottom="true"
+					android:layout_alignParentLeft="true"
+					android:layout_alignParentTop="true"
+					android:layout_centerHorizontal="true"
+					android:layout_weight="1"
+					app:stick_height="@dimen/stick_frame_width"
+					app:stick_image_layout="@layout/stick_mode0_left"
+					app:stick_width="@dimen/stick_frame_width">
+				</com.serenegiant.widget.StickView>
+
+				<com.serenegiant.widget.StickView
+					android:id="@+id/stick_view_right"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:layout_alignParentBottom="true"
+					android:layout_alignParentRight="true"
+					android:layout_alignParentTop="true"
+					android:layout_centerHorizontal="true"
+					android:layout_weight="1"
+					app:stick_height="@dimen/stick_frame_width"
+					app:stick_image_layout="@layout/stick_mode0_right"
+					app:stick_width="@dimen/stick_frame_width">
+				</com.serenegiant.widget.StickView>
+
+				<LinearLayout
+					android:id="@+id/right_side_panel"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_alignParentLeft="true"
+					android:layout_alignParentStart="true"
+					android:layout_alignParentTop="true"
+					android:orientation="vertical"
+					android:background="@null"
+					android:layout_gravity="center_vertical">
+
+					<ImageButton
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:id="@+id/copilot_btn"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="?attr/flightdemo_icon_favorite"/>
+
+					<ImageButton
+						android:id="@+id/still_capture_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="?attr/flightdemo_icon_camera"/>
+
+					<ImageButton
+						android:id="@+id/video_capture_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="?attr/flightdemo_icon_movie"/>
+
+					<ImageButton
+						android:id="@+id/cap_p45_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="?attr/flightdemo_icon_turn_right"/>
+
+					<ImageButton
+						android:id="@+id/cap_m45_btn"
+						android:layout_width="@dimen/btn_size_action"
+						android:layout_height="@dimen/btn_size_action"
+						android:background="@null"
+						android:scaleType="fitXY"
+						android:src="?attr/flightdemo_icon_turn_left"/>
+
+				</LinearLayout>
+
+			</com.serenegiant.widget.TouchableLinearLayout>
+
+			<ImageButton
+				android:src="@android:drawable/star_big_on"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
-				android:layout_alignParentLeft="true"
-				android:layout_alignParentStart="true"
-				android:layout_alignParentTop="true"
-				android:orientation="vertical"
+				android:id="@+id/action_button"
 				android:background="@null"
-				android:layout_gravity="center_vertical">
+				android:layout_centerInParent="true"
+				android:visibility="gone"/>
 
-				<ImageButton
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:id="@+id/copilot_btn"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_favorite"/>
-
-				<ImageButton
-					android:id="@+id/still_capture_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_camera"/>
-
-				<ImageButton
-					android:id="@+id/video_capture_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_movie"/>
-
-				<ImageButton
-					android:id="@+id/cap_p45_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_turn_right"/>
-
-				<ImageButton
-					android:id="@+id/cap_m45_btn"
-					android:layout_width="@dimen/btn_size_action"
-					android:layout_height="@dimen/btn_size_action"
-					android:background="@null"
-					android:scaleType="fitXY"
-					android:src="?attr/flightdemo_icon_turn_left"/>
-
-			</LinearLayout>
-
-		</com.serenegiant.widget.TouchableLinearLayout>
+		</RelativeLayout>
 
 
 		<RelativeLayout
