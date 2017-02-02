@@ -41,6 +41,7 @@ public class VoiceConst {
 	public static final int CMD_CLAW_CLOSE		= 0x00020000;
 	public static final int CMD_CLAW_TOGGLE		= 0x00040000;
 	public static final int CMD_MASK_CLAW		= CMD_CLAW_OPEN | CMD_CLAW_CLOSE | CMD_CLAW_TOGGLE;
+	public static final int CMD_MASK_MAMBO		= CMD_FIRE | CMD_MASK_CLAW;
 	public static final int CMD_MASK			= 0x00ffff00;
 
 	private static final long CMD_FORWARD_MAX	= CMD_MOVE | DIR_FORWARD | (MAX_COUNT << 32);
@@ -85,6 +86,7 @@ public class VoiceConst {
 	public static long findCommand(final String text) {
 		long cmd = CMD_NON;
 
+		Log.i(TAG, "findCommand:" + text);
 		if (!TextUtils.isEmpty(text)) {
 			cmd = findCmd(text);
 			if (cmd == CMD_NON) {
@@ -117,35 +119,38 @@ public class VoiceConst {
 	}
 
 	private static long findAction(@NonNull final String text) {
-		long cmd = CMD_NON;
 		final int len = text.length();
 		final Set<String> actions = ACTION_MAP.keySet();
 		for (final String action: actions) {
 			final int pos = text.indexOf(action);
 			if (pos >= 0) {
 				final int actionCmd = ACTION_MAP.get(action);
-				final Set<String> dirs = DIR_MAP.keySet();
-				for (final String dir: dirs) {
-					final int dirPos = text.lastIndexOf(dir);
-					if (dirPos >= 0) {
-						final int flipDir = DIR_MAP.get(dir);
-						switch (flipDir) {
-						case DIR_UP:
-						case DIR_DOWN:
-							if (actionCmd == CMD_FLIP) continue;
-						case DIR_FORWARD:
-						case DIR_BACKWARD:
-							if (actionCmd == CMD_TURN) continue;
-							// pass through
-						case DIR_RIGHT:
-						case DIR_LEFT:
-							return actionCmd | flipDir;
+				if ((actionCmd & CMD_MASK_MAMBO) != 0) {
+					return actionCmd;
+				} else {
+					final Set<String> dirs = DIR_MAP.keySet();
+					for (final String dir: dirs) {
+						final int dirPos = text.lastIndexOf(dir);
+						if (dirPos >= 0) {
+							final int flipDir = DIR_MAP.get(dir);
+							switch (flipDir) {
+							case DIR_UP:
+							case DIR_DOWN:
+								if (actionCmd == CMD_FLIP) continue;
+							case DIR_FORWARD:
+							case DIR_BACKWARD:
+								if (actionCmd == CMD_TURN) continue;
+								// pass through
+							case DIR_RIGHT:
+							case DIR_LEFT:
+								return actionCmd | flipDir;
+							}
 						}
 					}
 				}
 			}
 		}
-		return cmd;
+		return CMD_NON;
 	}
 
 	private static long findMove(@NonNull final String text) {
@@ -406,8 +411,21 @@ public class VoiceConst {
 		ACTION_MAP_MAMBO.put("掴め", CMD_CLAW_CLOSE);
 		ACTION_MAP_MAMBO.put("つかめ", CMD_CLAW_CLOSE);
 		ACTION_MAP_MAMBO.put("ツカメ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("catch", CMD_CLAW_CLOSE);
 		ACTION_MAP_MAMBO.put("きゃっち", CMD_CLAW_CLOSE);
 		ACTION_MAP_MAMBO.put("キャッチ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("grab", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("ぐらぶ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("グラブ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("chuck", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("ちゃっく", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("チャック", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("take", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("ていく", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("テイク", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("clamp", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("くらんぷ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("クランプ", CMD_CLAW_CLOSE);
 
 		ACTION_MAP_MAMBO.put("とぐる", CMD_CLAW_TOGGLE);
 		ACTION_MAP_MAMBO.put("トグル", CMD_CLAW_TOGGLE);
@@ -417,8 +435,12 @@ public class VoiceConst {
 
 		ACTION_MAP_MAMBO.put("打て", CMD_FIRE);
 		ACTION_MAP_MAMBO.put("撃て", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("打つ", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("撃つ", CMD_FIRE);
 		ACTION_MAP_MAMBO.put("うて", CMD_FIRE);
 		ACTION_MAP_MAMBO.put("ウテ", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("うつ", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ウツ", CMD_FIRE);
 		ACTION_MAP_MAMBO.put("発射", CMD_FIRE);
 		ACTION_MAP_MAMBO.put("はっしゃ", CMD_FIRE);
 		ACTION_MAP_MAMBO.put("ハッシャ", CMD_FIRE);

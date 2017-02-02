@@ -366,18 +366,21 @@ public class VoicePilotFragment extends PilotFragment {
 				}
 				break;
 			case VoiceConst.CMD_CLAW_CLOSE:
+				Log.i(TAG, "CMD_CLAW_CLOSE");
 				if ((mFlightController instanceof FlightControllerMambo)
 					&& ((FlightControllerMambo) mFlightController).hasClaw()) {
 					((FlightControllerMambo) mFlightController).requestClawClose();
 				}
 				break;
 			case VoiceConst.CMD_CLAW_TOGGLE:
+				Log.i(TAG, "CMD_CLAW_TOGGLE");
 				if ((mFlightController instanceof FlightControllerMambo)
 					&& ((FlightControllerMambo) mFlightController).hasClaw()) {
 					actionToggle();
 				}
 				break;
 			case VoiceConst.CMD_FIRE:
+				Log.i(TAG, "CMD_FIRE");
 				if ((mFlightController instanceof FlightControllerMambo)
 					&& ((FlightControllerMambo) mFlightController).hasGun()) {
 					actionToggle();
