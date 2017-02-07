@@ -115,12 +115,12 @@
 
 		<RelativeLayout
 			android:layout_width="match_parent"
-			android:layout_height="match_parent">
+			android:layout_height="0dp"
+			android:layout_weight="1">
 
 			<com.serenegiant.widget.TouchableLinearLayout
 				android:layout_width="match_parent"
 				android:layout_height="match_parent"
-				android:layout_weight="10"
 				android:id="@+id/pilot_frame"
 				android:orientation="horizontal"
 				>
@@ -268,8 +268,7 @@
 		<RelativeLayout
 			android:id="@+id/bottom_panel"
 			android:layout_width="match_parent"
-			android:layout_height="@dimen/bottom_panel_height"
-			android:gravity="bottom">
+			android:layout_height="@dimen/bottom_panel_height">
 
 			<ImageButton
 				android:id="@+id/take_onoff_btn"
