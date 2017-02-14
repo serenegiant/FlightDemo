@@ -55,12 +55,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	protected void internalOnResume() {
 		super.internalOnResume();
 		if (DEBUG) Log.d(TAG, "internalOnResume:");
-		if (checkPermissionLocation()) {
-			final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
-			manager.startDiscovery();
-			manager.addCallback(mManagerCallback);
-		}
-		updateButtons(false);
+		runOnUiThread(mStartDiscoveryOnUITask);
 		if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
 			mMediaPlayer.start();
 		}
@@ -93,6 +88,25 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 		}
 		super.onDestroy();
 	}
+
+	@Override
+	protected void onUpdateLocationPermission(final String permission, final boolean hasPermission) {
+		if (hasPermission) {
+			runOnUiThread(mStartDiscoveryOnUITask, 100);
+		}
+	}
+
+	private final Runnable mStartDiscoveryOnUITask = new Runnable() {
+		@Override
+		public void run() {
+			if (checkPermissionLocation()) {
+				final ManagerFragment manager = ManagerFragment.getInstance(getActivity());
+				manager.startDiscovery();
+				manager.addCallback(mManagerCallback);
+			}
+			updateButtons(false);
+		}
+	};
 
 	/**
 	 * Viewを初期化
