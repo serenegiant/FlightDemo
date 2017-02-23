@@ -47,6 +47,7 @@ public class VoicePilotFragment extends PilotFragment {
 	private boolean mOfflineVoiceRecognition;
 	private boolean mScriptVoiceRecognition;
 	private float mDampingRate;
+	private VoiceFeedback mVoiceFeedback;
 
 	public VoicePilotFragment() {
 		super();
@@ -60,10 +61,16 @@ public class VoicePilotFragment extends PilotFragment {
 			&& (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M);
 		mScriptVoiceRecognition = pref.getBoolean(KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT, false);
 		mDampingRate = pref.getInt(KEY_CONFIG_VOICE_RECOGNITION_DAMPING_RATE, DEFAULT_VOICE_RECOGNITION_DAMPING_RATE) / 100.0f;
+		mVoiceFeedback = new VoiceFeedback();
+		mVoiceFeedback.init(getActivity());
 	}
 
 	@Override
 	protected void internalOnPause() {
+		if (mVoiceFeedback != null) {
+			mVoiceFeedback.release();
+			mVoiceFeedback = null;
+		}
 		stopSpeechRecognizer();
 		super.internalOnPause();
 	}

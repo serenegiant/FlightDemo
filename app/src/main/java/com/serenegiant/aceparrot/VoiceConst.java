@@ -1,5 +1,6 @@
 package com.serenegiant.aceparrot;
 
+import android.speech.SpeechRecognizer;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,6 +21,7 @@ public class VoiceConst {
 
 	public static final long MAX_COUNT			= 0x00000003;
 
+	// 方向フラグ...下位8ビット
 	public static final int DIR_FORWARD			= 0x00000001;
 	public static final int DIR_RIGHT			= 0x00000002;
 	public static final int DIR_BACKWARD		= 0x00000004;
@@ -27,7 +29,7 @@ public class VoiceConst {
 	public static final int DIR_UP				= 0x00000010;
 	public static final int DIR_DOWN			= 0x00000020;
 	private static final int DIR_SAME			= 0x10000000;
-
+	// コマンド...上位24ビット
 	public static final int CMD_NON				= 0x00000000;
 	public static final int CMD_STOP			= 0x00000100;
 	public static final int CMD_TAKEOFF			= 0x00000200;
@@ -40,16 +42,28 @@ public class VoiceConst {
 	public static final int CMD_CLAW_OPEN		= 0x00010000;
 	public static final int CMD_CLAW_CLOSE		= 0x00020000;
 	public static final int CMD_CLAW_TOGGLE		= 0x00040000;
+	public static final int CMD_ERROR			= 0x00080000;
+	// コマンドマスク
 	public static final int CMD_MASK_CLAW		= CMD_CLAW_OPEN | CMD_CLAW_CLOSE | CMD_CLAW_TOGGLE;
 	public static final int CMD_MASK_MAMBO		= CMD_FIRE | CMD_MASK_CLAW;
 	public static final int CMD_MASK			= 0x00ffff00;
-
+	// 回数フラグの上限値
 	private static final long CMD_FORWARD_MAX	= CMD_MOVE | DIR_FORWARD | (MAX_COUNT << 32);
 	private static final long CMD_RIGHT_MAX		= CMD_MOVE | DIR_RIGHT | (MAX_COUNT << 36);
 	private static final long CMD_BACKWARD_MAX	= CMD_MOVE | DIR_BACKWARD | (MAX_COUNT << 40);
 	private static final long CMD_LEFT_MAX		= CMD_MOVE | DIR_LEFT | (MAX_COUNT << 44);
 	private static final long CMD_UP_MAX		= CMD_MOVE | DIR_UP | (MAX_COUNT << 48);
 	private static final long CMD_DOWN_MAX		= CMD_MOVE | DIR_DOWN | (MAX_COUNT << 52);
+	// エラーコマンド
+	public static final int CMD_SR_ERROR_AUDIO	= CMD_ERROR | SpeechRecognizer.ERROR_AUDIO;
+	public static final int CMD_SR_ERROR_CLIENT	= CMD_ERROR | SpeechRecognizer.ERROR_CLIENT;
+	public static final int CMD_SR_ERROR_INSUFFICIENT_PERMISSIONS	= CMD_ERROR | SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS;
+	public static final int CMD_SR_ERROR_NETWORK	= CMD_ERROR | SpeechRecognizer.ERROR_NETWORK;
+	public static final int CMD_SR_ERROR_NETWORK_TIMEOUT	= CMD_ERROR | SpeechRecognizer.ERROR_NETWORK_TIMEOUT;
+	public static final int CMD_SR_ERROR_NO_MATCH	= CMD_ERROR | SpeechRecognizer.ERROR_NO_MATCH;
+	public static final int CMD_SR_ERROR_RECOGNIZER_BUSY	= CMD_ERROR | SpeechRecognizer.ERROR_RECOGNIZER_BUSY;
+	public static final int CMD_SR_ERROR_SERVER	= CMD_ERROR | SpeechRecognizer.ERROR_SERVER;
+	public static final int CMD_SR_ERROR_SPEECH_TIMEOUT	= CMD_ERROR | SpeechRecognizer.ERROR_SPEECH_TIMEOUT;
 
 	public static float getRoll(final long cmd) {
 		return ((cmd & CMD_MOVE) == CMD_MOVE) ?
@@ -324,6 +338,11 @@ public class VoiceConst {
 		CMD_MAP.put("キャ", CMD_STOP);
 		CMD_MAP.put("わー", CMD_STOP);
 		CMD_MAP.put("ワー", CMD_STOP);
+		CMD_MAP.put("arrêtez", CMD_STOP);
+		CMD_MAP.put("fermata", CMD_STOP);
+		CMD_MAP.put("detener", CMD_STOP);
+		CMD_MAP.put("halt", CMD_STOP);
+
 //
 		CMD_MAP.put("land", CMD_LANDING);
 		CMD_MAP.put("らんど", CMD_LANDING);
@@ -336,6 +355,10 @@ public class VoiceConst {
 		CMD_MAP.put("着陸", CMD_LANDING);
 		CMD_MAP.put("ちゃくりく", CMD_LANDING);
 		CMD_MAP.put("チャクリク", CMD_LANDING);
+		CMD_MAP.put("debarquer", CMD_LANDING);
+		CMD_MAP.put("atterraggio", CMD_LANDING);
+		CMD_MAP.put("aterrizar", CMD_LANDING);
+		CMD_MAP.put("landung", CMD_LANDING);
 //
 		CMD_MAP.put("take off", CMD_TAKEOFF);
 		CMD_MAP.put("離陸", CMD_TAKEOFF);
@@ -351,6 +374,11 @@ public class VoiceConst {
 		CMD_MAP.put("トブ", CMD_TAKEOFF);
 		CMD_MAP.put("いりく", CMD_TAKEOFF);
 		CMD_MAP.put("イリク", CMD_TAKEOFF);
+		CMD_MAP.put("décollage", CMD_TAKEOFF);
+		CMD_MAP.put("decollare", CMD_TAKEOFF);
+		CMD_MAP.put("despegue", CMD_TAKEOFF);
+		CMD_MAP.put("abfliegen", CMD_TAKEOFF);
+
 //--------------------------------------------------------------------------------
 		ACTION_MAP.put("flip", CMD_FLIP);
 		ACTION_MAP.put("ふりっぷ", CMD_FLIP);
@@ -360,6 +388,9 @@ public class VoiceConst {
 		ACTION_MAP.put("チュウガエリ", CMD_FLIP);
 		ACTION_MAP.put("ちゅうかえり", CMD_FLIP);
 		ACTION_MAP.put("チュウカエリ", CMD_FLIP);
+		ACTION_MAP.put("capovolgere", CMD_FLIP);
+		ACTION_MAP.put("capirotazo", CMD_FLIP);
+		ACTION_MAP.put("purzelbaum", CMD_FLIP);
 
 		ACTION_MAP.put("turn", CMD_TURN);
 		ACTION_MAP.put("ターン", CMD_TURN);
@@ -376,6 +407,10 @@ public class VoiceConst {
 		ACTION_MAP.put("回り", CMD_TURN);
 		ACTION_MAP.put("まわり", CMD_TURN);
 		ACTION_MAP.put("マワリ", CMD_TURN);
+		ACTION_MAP.put("tour", CMD_TURN);
+		ACTION_MAP.put("turno", CMD_TURN);
+		ACTION_MAP.put("giro", CMD_TURN);
+		ACTION_MAP.put("drehen", CMD_TURN);
 
 		ACTION_MAP.put("move", CMD_MOVE);
 		ACTION_MAP.put("むーぶ", CMD_MOVE);
@@ -389,11 +424,18 @@ public class VoiceConst {
 		ACTION_MAP.put("動け", CMD_MOVE);
 		ACTION_MAP.put("うごけ", CMD_MOVE);
 		ACTION_MAP.put("ウゴケ", CMD_MOVE);
+		ACTION_MAP.put("mouvement", CMD_MOVE);
+		ACTION_MAP.put("mossa", CMD_MOVE);
+		ACTION_MAP.put("movimiento", CMD_MOVE);
+		ACTION_MAP.put("bewegung", CMD_MOVE);
 
 //--------------------------------------------------------------------------------
 		ACTION_MAP_MAMBO.put("開け", CMD_CLAW_OPEN);
 		ACTION_MAP_MAMBO.put("ひらけ", CMD_CLAW_OPEN);
 		ACTION_MAP_MAMBO.put("ヒラケ", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("開く", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ひらく", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ヒラク", CMD_CLAW_OPEN);
 		ACTION_MAP_MAMBO.put("あけ", CMD_CLAW_OPEN);
 		ACTION_MAP_MAMBO.put("アケ", CMD_CLAW_OPEN);
 		ACTION_MAP_MAMBO.put("ごま", CMD_CLAW_OPEN);
@@ -462,6 +504,8 @@ public class VoiceConst {
 		ACTION_MAP_MAMBO.put("バキューン", CMD_FIRE);
 		ACTION_MAP_MAMBO.put("ばきゅ〜ん", CMD_FIRE);
 		ACTION_MAP_MAMBO.put("バキュ〜ン", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ばっきゅーん", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("バッキューン", CMD_FIRE);
 
 //--------------------------------------------------------------------------------
 		DIR_MAP.put("前", DIR_FORWARD);
@@ -486,6 +530,10 @@ public class VoiceConst {
 		DIR_MAP.put("まい", DIR_FORWARD);
 		DIR_MAP.put("マイ", DIR_FORWARD);
 		DIR_MAP.put("my", DIR_FORWARD);
+		DIR_MAP.put("devant", DIR_FORWARD);
+		DIR_MAP.put("davanti", DIR_FORWARD);
+		DIR_MAP.put("frente", DIR_FORWARD);
+		DIR_MAP.put("vorderseite", DIR_FORWARD);
 
 		DIR_MAP.put("後", DIR_BACKWARD);
 		DIR_MAP.put("うしろ", DIR_BACKWARD);
@@ -502,6 +550,10 @@ public class VoiceConst {
 		DIR_MAP.put("come", DIR_BACKWARD);
 		DIR_MAP.put("カム", DIR_BACKWARD);
 		DIR_MAP.put("かむ", DIR_BACKWARD);
+		DIR_MAP.put("arrière", DIR_BACKWARD);
+		DIR_MAP.put("indietro", DIR_BACKWARD);
+		DIR_MAP.put("espalda", DIR_BACKWARD);
+		DIR_MAP.put("zurück", DIR_BACKWARD);
 
 		DIR_MAP.put("右", DIR_RIGHT);
 		DIR_MAP.put("みぎ", DIR_RIGHT);
@@ -519,6 +571,10 @@ public class VoiceConst {
 		DIR_MAP.put("ミキ", DIR_RIGHT);
 		DIR_MAP.put("みに", DIR_RIGHT);
 		DIR_MAP.put("ミニ", DIR_RIGHT);
+		DIR_MAP.put("droite", DIR_RIGHT);
+		DIR_MAP.put("destra", DIR_RIGHT);
+		DIR_MAP.put("derecho", DIR_RIGHT);
+		DIR_MAP.put("recht", DIR_RIGHT);
 
 		DIR_MAP.put("左", DIR_LEFT);
 		DIR_MAP.put("ひだり", DIR_LEFT);
@@ -531,6 +587,10 @@ public class VoiceConst {
 		DIR_MAP.put("イナリ", DIR_LEFT);
 		DIR_MAP.put("いいなり", DIR_LEFT);
 		DIR_MAP.put("イイナリ", DIR_LEFT);
+		DIR_MAP.put("gauche", DIR_LEFT);
+		DIR_MAP.put("sinistra", DIR_LEFT);
+		DIR_MAP.put("izquierda", DIR_LEFT);
+		DIR_MAP.put("links", DIR_LEFT);
 
 		DIR_MAP.put("up", DIR_UP);
 		DIR_MAP.put("あっぷ", DIR_UP);
@@ -546,6 +606,10 @@ public class VoiceConst {
 		DIR_MAP.put("ジョウショウ", DIR_UP);
 		DIR_MAP.put("うぇい", DIR_UP);
 		DIR_MAP.put("ウェイ", DIR_UP);
+		DIR_MAP.put("s'élever", DIR_UP);
+		DIR_MAP.put("su", DIR_UP);
+		DIR_MAP.put("arriba", DIR_UP);
+		DIR_MAP.put("hoch", DIR_UP);
 
 		DIR_MAP.put("down", DIR_DOWN);
 		DIR_MAP.put("だうん", DIR_DOWN);
@@ -562,6 +626,10 @@ public class VoiceConst {
 		DIR_MAP.put("下降", DIR_DOWN);
 		DIR_MAP.put("かこう", DIR_DOWN);
 		DIR_MAP.put("カコウ", DIR_DOWN);
+		DIR_MAP.put("dessous", DIR_DOWN);
+		DIR_MAP.put("giu", DIR_DOWN);
+		DIR_MAP.put("abajo", DIR_DOWN);
+		DIR_MAP.put("unten", DIR_DOWN);
 
 		DIR_MAP.put("々", DIR_SAME);
 	}
