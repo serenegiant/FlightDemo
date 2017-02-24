@@ -1,0 +1,42 @@
+apply plugin: 'com.android.library'
+
+android {
+	compileSdkVersion versionCompiler
+	buildToolsVersion versionBuildTool
+
+	compileOptions {
+		sourceCompatibility javaSourceCompatibility
+		targetCompatibility javaTargetCompatibility
+	}
+
+	defaultConfig {
+		minSdkVersion 18
+		targetSdkVersion versionTarget
+		versionCode 1
+		versionName "1.0"
+		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
+	}
+	buildTypes {
+		release {
+			minifyEnabled false
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+		}
+	}
+}
+
+dependencies {
+	compile fileTree(dir: 'libs', include: ['*.jar'])
+
+	compile("com.serenegiant:common:${commonLibVersion}") {
+		exclude group: 'com.android.support'
+	}
+	compile "com.serenegiant:gamepad:${gamepadLibVersion}"
+	compile("jp.co.rediscovery:arflight:${arflightLibVersion}") {
+		exclude group: 'com.android.support'
+	}
+	compile 'jp.co.rediscovery.widget:drone-notice-view:1.1.1'
+
+	compile project(':graphics_common')
+	compile project(':scriptengine')
+	compile project(':gameengine')
+}
