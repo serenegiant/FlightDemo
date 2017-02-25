@@ -6,6 +6,7 @@ import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Build;
+import android.util.Log;
 import android.util.SparseIntArray;
 
 import com.serenegiant.utils.CollectionMap;
@@ -22,6 +23,8 @@ import static com.serenegiant.aceparrot.VoiceConst.*;
  */
 
 public class VoiceFeedback {
+	private static final String TAG = VoiceFeedback.class.getSimpleName();
+
 	public static final CollectionMap<Long, Integer> ID_MAP = new CollectionMap<Long, Integer>();
 
 	private static Random sRandom = new Random();
@@ -60,22 +63,30 @@ public class VoiceFeedback {
 	@SuppressWarnings("deprecation")
 	public synchronized void init(final Context context) {
 		if (mSoundPool == null) {
-			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-				mSoundPool = new SoundPool(2, AudioManager.STREAM_MUSIC, 0);
-			} else {
-				final AudioAttributes.Builder attr = new AudioAttributes.Builder();
-				attr.setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION);
-				attr.setLegacyStreamType(AudioManager.STREAM_MUSIC);
-				attr.setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION);
-				final SoundPool.Builder builder = new SoundPool.Builder();
-				builder.setAudioAttributes(attr.build());
-				builder.setMaxStreams(2);
-				mSoundPool = builder.build();
+			SoundPool pool = null;
+			try {
+				if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+					mSoundPool = new SoundPool(2, AudioManager.STREAM_MUSIC, 0);
+				} else {
+					final AudioAttributes.Builder attr = new AudioAttributes.Builder();
+					attr.setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION);
+					attr.setLegacyStreamType(AudioManager.STREAM_MUSIC);
+					attr.setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION);
+					final SoundPool.Builder builder = new SoundPool.Builder();
+					builder.setAudioAttributes(attr.build());
+					builder.setMaxStreams(2);
+					mSoundPool = builder.build();
+				}
+			} catch (final Exception e) {
+				Log.w(TAG, e);
 			}
-			final Collection<Integer> ids = VoiceFeedback.ID_MAP.valuesAll();
-			for (final int id: ids) {
-				if ((id != 0) && (mSoundIds.get(id, 0) == 0)) {
-					mSoundIds.put(id, mSoundPool.load(context, id, 1));
+			mSoundPool = pool;
+			if (pool != null) {
+				final Collection<Integer> ids = VoiceFeedback.ID_MAP.valuesAll();
+				for (final int id: ids) {
+					if ((id != 0) && (mSoundIds.get(id, 0) == 0)) {
+						mSoundIds.put(id, mSoundPool.load(context, id, 1));
+					}
 				}
 			}
 		}
@@ -89,15 +100,26 @@ public class VoiceFeedback {
 		}
 	}
 
-	public synchronized void playVoiceFeedback(final long cmd) {
+	/**
+	 * 音声フィーフォバックを再生時はtrueを返す
+	 * @param cmd
+	 * @return true 音声フィードバックを再生した
+	 */
+	public synchronized boolean playVoiceFeedback(final long cmd) {
 		int id = VoiceFeedback.getVoiceFeedbackId(cmd);
 		if (id == 0) {
 			id = VoiceFeedback.getVoiceFeedbackId(CMD_ERROR);
 		}
 		final int soundId = mSoundIds.get(id, 0);
 		if ((mSoundPool != null) && (id != 0)) {
-			mSoundPool.play(soundId, 1.0f, 1.0f, 0, 0, 1.0f);
+			try {
+				mSoundPool.play(soundId, 1.0f, 1.0f, 0, 0, 1.0f);
+				return true;
+			} catch (final Exception e) {
+				// ignore
+			}
 		}
+		return false;
 	}
 
 }

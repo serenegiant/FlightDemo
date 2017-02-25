@@ -11,7 +11,6 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -343,8 +342,8 @@ public class VoicePilotFragment extends PilotFragment {
 				cmd = CMD_SR_ERROR_SPEECH_TIMEOUT;
 				break;
 			}
-			mVoiceFeedback.playVoiceFeedback(cmd);
-			runOnUiThread(mStartSpeechRecognizerTask, 100);
+			final boolean played = mVoiceFeedback.playVoiceFeedback(cmd);
+			runOnUiThread(mStartSpeechRecognizerTask, played ? 600 : 100);
 		}
 
 	    @Override
@@ -377,7 +376,6 @@ public class VoicePilotFragment extends PilotFragment {
 					}
 				}
 			}
-			runOnUiThread(mStartSpeechRecognizerTask, 100);
 			if (cmd != VoiceConst.CMD_NON) {
 				stopMove();
 				removeEvent(mVoiceResetTask);
@@ -471,7 +469,8 @@ public class VoicePilotFragment extends PilotFragment {
 				}
 				break;
 			}
-			mVoiceFeedback.playVoiceFeedback(cmd);
+			final boolean played = mVoiceFeedback.playVoiceFeedback(cmd);
+			runOnUiThread(mStartSpeechRecognizerTask, played ? 600 : 100);
 	    }
 
 		@Override
