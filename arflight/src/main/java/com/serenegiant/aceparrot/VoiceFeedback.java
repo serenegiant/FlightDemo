@@ -26,21 +26,36 @@ public class VoiceFeedback {
 	private static final boolean DEBUG = false;	// 実働時はfalseにすること
 	private static final String TAG = VoiceFeedback.class.getSimpleName();
 
+	/**
+	 * cmdから音声フィードバック用の音声rawリソースの対応を保持するためのCollectionMap
+	 * key=cmd, value=音声RAWリソースID
+	 * CollectionMapのデフォルトのコレクションはArrayList
+	 */
 	public static final CollectionMap<Long, Integer> ID_MAP = new CollectionMap<Long, Integer>();
 
 	private static Random sRandom = new Random();
 
+	/**
+	 * cmdから対応する音声rawリソースIDを取得する
+	 * @param cmd
+	 * @return
+	 */
 	public static int getVoiceFeedbackId(final long cmd) {
+		if (DEBUG) Log.v(TAG, String.format("getVoiceFeedbackId:cmd=%16x", cmd));
 		int result = selectFeedbackId((ArrayList<Integer>)ID_MAP.get(cmd));
+		if (DEBUG) Log.v(TAG, "selectFeedbackId:result=" + result);
 		if (result == 0) {
+			if (DEBUG) Log.v(TAG, "selectFeedbackId retry:result=" + result);
 			result = selectFeedbackId((ArrayList<Integer>)ID_MAP.get(cmd & CMD_MASK));
 		}
 		return result;
 	}
 
 	private static int selectFeedbackId(final ArrayList<Integer> ids) {
+		if (DEBUG) Log.v(TAG, "selectFeedbackId:ids=" + ids);
 		if (ids != null) {
 			final int n = ids != null ? ids.size() : 0;
+			if (DEBUG) Log.v(TAG, "selectFeedbackId:n=" + n);
 			if (n > 0) {
 				return ids.get(sRandom.nextInt(n));
 			}
@@ -48,6 +63,10 @@ public class VoiceFeedback {
 		return 0;
 	}
 
+	/**
+	 * 音声rawリソースIDとサウンドプールのIDの対応を保持するためのSparseIntArray
+	 * key=音声rawリソースID, value=サウンドプールのID
+	 */
 	private final SparseIntArray mSoundIds = new SparseIntArray();
 	private SoundPool mSoundPool;
 
@@ -68,7 +87,7 @@ public class VoiceFeedback {
 			SoundPool pool = null;
 			try {
 				if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-					mSoundPool = new SoundPool(2, AudioManager.STREAM_MUSIC, 0);
+					pool = new SoundPool(2, AudioManager.STREAM_MUSIC, 0);
 				} else {
 					final AudioAttributes.Builder attr = new AudioAttributes.Builder();
 					attr.setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION);
@@ -77,7 +96,7 @@ public class VoiceFeedback {
 					final SoundPool.Builder builder = new SoundPool.Builder();
 					builder.setAudioAttributes(attr.build());
 					builder.setMaxStreams(2);
-					mSoundPool = builder.build();
+					pool = builder.build();
 				}
 			} catch (final Exception e) {
 				Log.w(TAG, e);
@@ -88,6 +107,7 @@ public class VoiceFeedback {
 				for (final int id: ids) {
 					if ((id != 0) && (mSoundIds.get(id, 0) == 0)) {
 						mSoundIds.put(id, mSoundPool.load(context, id, 1));
+						if (DEBUG) Log.v(TAG, "init:id=" + id + ",soundId=" + mSoundIds.get(id));
 					}
 				}
 			}
@@ -110,10 +130,12 @@ public class VoiceFeedback {
 	 */
 	public synchronized boolean playVoiceFeedback(final long cmd) {
 		if (DEBUG) Log.v(TAG, String.format("playVoiceFeedback:cmd=%16x", cmd));
-		int id = VoiceFeedback.getVoiceFeedbackId(cmd);
+		// cmdから対応する音声rawリソースIDを取得する
+		int id = getVoiceFeedbackId(cmd);
 		if (id == 0) {
-			id = VoiceFeedback.getVoiceFeedbackId(CMD_ERROR);
+			id = getVoiceFeedbackId(CMD_ERROR);
 		}
+		// 音声rawリソースIDからサウンドプールIDを取得する
 		final int soundId = mSoundIds.get(id, 0);
 		if (DEBUG) Log.v(TAG, "playVoiceFeedback:id=" + id + ",soundId=" + soundId);
 		if ((mSoundPool != null) && (soundId != 0)) {
