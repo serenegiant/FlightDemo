@@ -48,7 +48,7 @@ public class VoiceConst {
 	// コマンドマスク
 	public static final int CMD_MASK_CLAW		= CMD_CLAW_OPEN | CMD_CLAW_CLOSE | CMD_CLAW_TOGGLE;
 	public static final int CMD_MASK_MAMBO		= CMD_FIRE | CMD_MASK_CLAW;
-	public static final int CMD_MASK			= 0x00ffff00;
+	public static final int CMD_MASK			= 0xffffff00;
 	// 回数フラグの上限値
 	private static final long CMD_FORWARD_MAX	= CMD_MOVE | DIR_FORWARD | (MAX_COUNT << 32);
 	private static final long CMD_RIGHT_MAX		= CMD_MOVE | DIR_RIGHT | (MAX_COUNT << 36);
