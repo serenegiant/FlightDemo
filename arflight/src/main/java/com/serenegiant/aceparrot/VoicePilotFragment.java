@@ -26,6 +26,7 @@ import jp.co.rediscovery.arflight.IFlightController;
 import jp.co.rediscovery.arflight.controllers.FlightControllerMambo;
 
 import static com.serenegiant.aceparrot.AppConst.*;
+import static com.serenegiant.aceparrot.VoiceConst.*;
 
 /**
  * Created by saki on 2017/01/28.
@@ -226,34 +227,42 @@ public class VoicePilotFragment extends PilotFragment {
 			if (DEBUG) Log.v(TAG, "onError:");
 			stopHeartBeat();
 			stopMove();
+			long cmd;
 			switch (error) {
 			case SpeechRecognizer.ERROR_AUDIO:
 				// 音声データ保存失敗
+				cmd = CMD_SR_ERROR_AUDIO;
 				showToast(R.string.error_voice_audio, Toast.LENGTH_SHORT);
 				break;
 			case SpeechRecognizer.ERROR_CLIENT:
 				// Android端末内のエラー(その他)
+				cmd = CMD_SR_ERROR_CLIENT;
 				showToast(R.string.error_voice_system, Toast.LENGTH_SHORT);
 				break;
 			case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
 				// 権限無し
+				cmd = CMD_SR_ERROR_INSUFFICIENT_PERMISSIONS;
 				showToast(R.string.error_voice_no_permission, Toast.LENGTH_LONG);
 				return;
 			case SpeechRecognizer.ERROR_NETWORK:
 				// ネットワークエラー(その他)
+				cmd = CMD_SR_ERROR_NETWORK;
 				showToast(R.string.error_voice_network, Toast.LENGTH_SHORT);
 				break;
 			case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
 				// ネットワークタイムアウトエラー
+				cmd = CMD_SR_ERROR_NETWORK_TIMEOUT;
 				showToast(R.string.error_voice_network_timeout, Toast.LENGTH_SHORT);
 				break;
 			case SpeechRecognizer.ERROR_NO_MATCH:
 				// 音声認識結果無し
+				cmd = CMD_SR_ERROR_NO_MATCH;
 				showToast(R.string.error_voice_no_command, Toast.LENGTH_LONG);
 				break;
 			case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
 				// RecognitionServiceへ要求出せず
 				// 性能が低い端末の場合に起こるらしいので、一旦破棄してから1秒後に再チャレンジ
+				cmd = CMD_SR_ERROR_RECOGNIZER_BUSY;
 				showToast(R.string.error_voice_unavailable, Toast.LENGTH_SHORT);
 				runOnUiThread(new Runnable() {
 					@Override
@@ -265,6 +274,7 @@ public class VoicePilotFragment extends PilotFragment {
 				return;
 			case SpeechRecognizer.ERROR_SERVER:
 				// Server側からエラー通知
+				cmd = CMD_SR_ERROR_SERVER;
 				showToast(R.string.error_voice_network_server, Toast.LENGTH_SHORT);
 				final SharedPreferences pref = getActivity().getPreferences(0);
 				pref.edit().putBoolean(KEY_CONFIG_VOICE_RECOGNITION_PREFER_OFFLINE, false).apply();
@@ -272,11 +282,14 @@ public class VoicePilotFragment extends PilotFragment {
 				break;
 			case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
 				// 音声入力無し
+				cmd = CMD_SR_ERROR_SPEECH_TIMEOUT;
 				showToast(R.string.error_voice_no_input, Toast.LENGTH_SHORT);
 				break;
 			default:
+				cmd = CMD_SR_ERROR_SPEECH_TIMEOUT;
 				break;
 			}
+			mVoiceFeedback.playVoiceFeedback(cmd);
 			runOnUiThread(mStartSpeechRecognizerTask, 100);
 		}
 
@@ -404,6 +417,7 @@ public class VoicePilotFragment extends PilotFragment {
 				}
 				break;
 			}
+			mVoiceFeedback.playVoiceFeedback(cmd);
 	    }
 
 		@Override
