@@ -23,6 +23,7 @@ import static com.serenegiant.aceparrot.VoiceConst.*;
  */
 
 public class VoiceFeedback {
+	private static final boolean DEBUG = false;	// 実働時はfalseにすること
 	private static final String TAG = VoiceFeedback.class.getSimpleName();
 
 	public static final CollectionMap<Long, Integer> ID_MAP = new CollectionMap<Long, Integer>();
@@ -62,6 +63,7 @@ public class VoiceFeedback {
 	@SuppressLint("NewApi")
 	@SuppressWarnings("deprecation")
 	public synchronized void init(final Context context) {
+		if (DEBUG) Log.v(TAG, "init:");
 		if (mSoundPool == null) {
 			SoundPool pool = null;
 			try {
@@ -82,7 +84,7 @@ public class VoiceFeedback {
 			}
 			mSoundPool = pool;
 			if (pool != null) {
-				final Collection<Integer> ids = VoiceFeedback.ID_MAP.valuesAll();
+				final Collection<Integer> ids = ID_MAP.valuesAll();
 				for (final int id: ids) {
 					if ((id != 0) && (mSoundIds.get(id, 0) == 0)) {
 						mSoundIds.put(id, mSoundPool.load(context, id, 1));
@@ -93,6 +95,7 @@ public class VoiceFeedback {
 	}
 
 	public synchronized void release() {
+		if (DEBUG) Log.v(TAG, "release:");
 		mSoundIds.clear();
 		if (mSoundPool != null) {
 			mSoundPool.release();
@@ -106,6 +109,7 @@ public class VoiceFeedback {
 	 * @return true 音声フィードバックを再生した
 	 */
 	public synchronized boolean playVoiceFeedback(final long cmd) {
+		if (DEBUG) Log.v(TAG, String.format("playVoiceFeedback:cmd=%16x", cmd));
 		int id = VoiceFeedback.getVoiceFeedbackId(cmd);
 		if (id == 0) {
 			id = VoiceFeedback.getVoiceFeedbackId(CMD_ERROR);
@@ -114,6 +118,7 @@ public class VoiceFeedback {
 		if ((mSoundPool != null) && (id != 0)) {
 			try {
 				mSoundPool.play(soundId, 1.0f, 1.0f, 0, 0, 1.0f);
+				if (DEBUG) Log.v(TAG, "playVoiceFeedback:play");
 				return true;
 			} catch (final Exception e) {
 				// ignore
