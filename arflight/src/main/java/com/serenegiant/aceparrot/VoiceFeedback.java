@@ -115,7 +115,8 @@ public class VoiceFeedback {
 			id = VoiceFeedback.getVoiceFeedbackId(CMD_ERROR);
 		}
 		final int soundId = mSoundIds.get(id, 0);
-		if ((mSoundPool != null) && (id != 0)) {
+		if (DEBUG) Log.v(TAG, "playVoiceFeedback:id=" + id + ",soundId=" + soundId);
+		if ((mSoundPool != null) && (soundId != 0)) {
 			try {
 				mSoundPool.play(soundId, 1.0f, 1.0f, 0, 0, 1.0f);
 				if (DEBUG) Log.v(TAG, "playVoiceFeedback:play");

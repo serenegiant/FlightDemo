@@ -354,7 +354,7 @@ public class VoicePilotFragment extends PilotFragment {
 				cmd = CMD_SR_ERROR_SPEECH_TIMEOUT;
 				break;
 			}
-			resetVolume();
+			stopSpeechRecognizer();
 			final boolean played = mVoiceFeedback.playVoiceFeedback(cmd);
 			runOnUiThread(mStartSpeechRecognizerTask, played ? 600 : 100);
 		}
@@ -392,6 +392,7 @@ public class VoicePilotFragment extends PilotFragment {
 			if (cmd != VoiceConst.CMD_NON) {
 				stopMove();
 				removeEvent(mVoiceResetTask);
+				stopSpeechRecognizer();
 			}
 			switch ((int)(cmd & VoiceConst.CMD_MASK)) {
 			case VoiceConst.CMD_STOP:
@@ -482,7 +483,6 @@ public class VoicePilotFragment extends PilotFragment {
 				}
 				break;
 			}
-			resetVolume();
 			final boolean played = mVoiceFeedback.playVoiceFeedback(cmd);
 			runOnUiThread(mStartSpeechRecognizerTask, played ? 600 : 100);
 	    }
