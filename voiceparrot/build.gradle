@@ -1,0 +1,75 @@
+apply plugin: 'com.android.application'
+
+android {
+	compileSdkVersion versionCompiler
+	buildToolsVersion versionBuildTool
+
+	compileOptions {
+		sourceCompatibility javaSourceCompatibility
+		targetCompatibility javaTargetCompatibility
+	}
+
+	defaultConfig {
+		minSdkVersion 18
+		targetSdkVersion versionTarget
+		applicationId "com.serenegiant.voiceparrot"
+		manifestPlaceholders = [appName:"@string/app_name"]
+		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
+		versionCode 59
+		versionName '0.73.1'
+	}
+
+	applicationVariants.all { variant ->
+		if (variant.buildType.name.equals("release")) {
+			variant.outputs.each { output ->
+				if (output.outputFile != null && output.outputFile.name.endsWith('.apk')) {
+					def list = applicationId.split("\\.")
+					def appName = list[list.length - 1]
+//					def date = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())
+					def apkName = "${appName}_r${versionName}_v${versionCode}.apk"
+					output.outputFile = new File(output.outputFile.parent, apkName)
+				}
+			}
+		}
+	}
+
+	signingConfigs {
+		releaseKey {
+			Properties properties = new Properties()
+			properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
+			File keystoreFile = file(properties.getProperty('KEYSTORE_ACE_PARROT'))
+			storeFile file(keystoreFile)
+			storePassword = properties.getProperty('STORE_PASSWORD_ACE_PARROT')
+			keyPassword = properties.getProperty('KEY_PASSWORD_ACEPARROT')
+			keyAlias properties.getProperty('ALIAS_ACEPARROT')
+		}
+	}
+
+	buildTypes {
+		debug {
+			debuggable true
+//			applicationIdSuffix = '.debug'  // パッケージ名の末尾に .debug をつける
+			versionNameSuffix = 'a'
+		}
+		release {
+			debuggable false
+			minifyEnabled false
+			signingConfig signingConfigs.releaseKey
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+		}
+	}
+
+	packagingOptions {
+		exclude 'lib/armeabi/*.so'
+		exclude 'lib/arm64-v8a/*.so'
+		exclude 'lib/mips/**.so'
+		exclude 'lib/mips64/*.so'
+		exclude 'lib/x86_64/*.so'
+	}
+}
+
+dependencies {
+	compile fileTree(dir: 'libs', include: ['*.jar'])
+
+	compile project(':arflight')
+}

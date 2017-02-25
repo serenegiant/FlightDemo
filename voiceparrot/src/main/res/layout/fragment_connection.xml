@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="@color/BLACK"
+	android:foreground="?android:windowContentOverlay"
+	tools:context=".BaseConnectionFragment"
+	>
+
+	<com.serenegiant.widget.PlayerTextureView
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:id="@+id/videoView"
+		android:layout_centerVertical="true"
+		android:layout_margin="@dimen/margin_title_movie"/>
+<!--    <VideoView
+   		android:layout_width="match_parent"
+   		android:layout_height="match_parent"
+   		android:id="@+id/videoView"
+   		android:layout_centerVertical="true"
+   		android:layout_centerHorizontal="true"/>-->
+
+<!--    <com.serenegiant.arflight.drone.AttitudeTextureView
+        android:id="@+id/drone_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:background="@null"
+        android:visibility="visible"/>-->
+
+    <ListView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/linearLayout2"
+		android:layout_below="@+id/top_panel"
+        android:minHeight="@dimen/text_sz_list"
+        >
+    </ListView>
+
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/list"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:text="@string/detecting"
+        android:textAlignment="center"
+        android:textSize="@dimen/text_sz_list"
+        android:textColor="@color/WHITE"/>
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/half_padding"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/pilot_button"
+            android:layout_width="@dimen/btn_sz_connection"
+            android:layout_height="@dimen/btn_sz_connection"
+            android:layout_weight="1"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:src="?attr/flightdemo_icon_stick_front"/>
+
+		<ImageButton
+			android:id="@+id/voice_pilot_button"
+			android:layout_width="@dimen/btn_sz_connection"
+			android:layout_height="@dimen/btn_sz_connection"
+			android:layout_weight="1"
+			android:background="@null"
+			android:scaleType="fitCenter"
+			android:src="@drawable/voice_control"/>
+
+<!--	<ImageButton
+            android:id="@+id/download_button"
+            android:layout_width="@dimen/btn_sz_connection"
+            android:layout_height="@dimen/btn_sz_connection"
+            android:layout_weight="1"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:src="?attr/flightdemo_icon_cloud_down" /> -->
+
+<!--	<ImageButton
+            android:id="@+id/gallery_button"
+            android:layout_width="@dimen/btn_sz_connection"
+            android:layout_height="@dimen/btn_sz_connection"
+            android:layout_weight="1"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:src="?attr/flightdemo_icon_gallery"/> -->
+
+<!--	<ImageButton
+            android:id="@+id/script_button"
+            android:layout_width="@dimen/btn_sz_connection"
+            android:layout_height="@dimen/btn_sz_connection"
+            android:layout_weight="1"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:src="?attr/flightdemo_icon_script_edit"/> -->
+
+    </LinearLayout>
+
+	<RelativeLayout
+		android:id="@+id/top_panel"
+		android:layout_width="match_parent"
+		android:layout_height="@dimen/top_panel_height"
+		android:layout_alignParentTop="true"
+		android:background="@drawable/top_frame">
+
+		<ImageButton
+			android:layout_width="@dimen/top_panel_height"
+			android:layout_height="@dimen/top_panel_height"
+			android:id="@+id/config_show_btn"
+			android:layout_alignParentTop="true"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentEnd="true"
+			android:background="@null"
+			android:src="?attr/flightdemo_icon_settings"
+			android:scaleType="fitXY"
+			android:layout_marginRight="@dimen/half_padding"/>
+	</RelativeLayout>
+</RelativeLayout>
