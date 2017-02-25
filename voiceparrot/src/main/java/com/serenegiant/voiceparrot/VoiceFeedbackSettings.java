@@ -1,5 +1,7 @@
 package com.serenegiant.voiceparrot;
 
+import android.util.Log;
+
 import com.serenegiant.aceparrot.VoiceFeedback;
 import com.serenegiant.utils.CollectionMap;
 
@@ -10,9 +12,13 @@ import static com.serenegiant.aceparrot.VoiceConst.*;
  *
  */
 public class VoiceFeedbackSettings {
+	private static final boolean DEBUG = true;	// 実働時はfalseにすること
+	private static final String TAG = VoiceFeedbackSettings.class.getSimpleName();
 
 	public static void init() {
+		if (DEBUG) Log.v(TAG, "init:");
 		final CollectionMap<Long, Integer> ids = VoiceFeedback.ID_MAP;
+		ids.clear();
 
 // CMD_STOP
 //		ids.add((long)CMD_STOP, R.raw.stop_001);
