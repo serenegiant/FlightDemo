@@ -241,12 +241,12 @@ public class VoicePilotFragment extends PilotFragment {
 		}
 		mRecognizerIntent = null;
 		resetVolume();
+		mAudioManager = null;
 	}
 
 	private void resetVolume() {
 		if (mAudioManager != null) {
 			mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, mStreamVolume, 0);
-			mAudioManager = null;
 		}
 	}
 
