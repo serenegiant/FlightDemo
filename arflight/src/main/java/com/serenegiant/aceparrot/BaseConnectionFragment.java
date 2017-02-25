@@ -128,24 +128,34 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 		mVideoView.setSurfaceTextureListener(mSurfaceTextureListener);
 
 		mDownloadBtn = (ImageButton)rootView.findViewById(R.id.download_button);
-		mDownloadBtn.setOnClickListener(mOnClickListener);
-		mDownloadBtn.setOnLongClickListener(mOnLongClickListener);
+		if (mDownloadBtn != null) {
+			mDownloadBtn.setOnClickListener(mOnClickListener);
+			mDownloadBtn.setOnLongClickListener(mOnLongClickListener);
+		}
 
 		mPilotBtn = (ImageButton)rootView.findViewById(R.id.pilot_button);
-		mPilotBtn.setOnClickListener(mOnClickListener);
-		mPilotBtn.setOnLongClickListener(mOnLongClickListener);
+		if (mPilotBtn != null) {
+			mPilotBtn.setOnClickListener(mOnClickListener);
+			mPilotBtn.setOnLongClickListener(mOnLongClickListener);
+		}
 
 		mVoicePilotBtn = (ImageButton)rootView.findViewById(R.id.voice_pilot_button);
-		mVoicePilotBtn.setOnClickListener(mOnClickListener);
-		mVoicePilotBtn.setOnLongClickListener(mOnLongClickListener);
+		if (mVoicePilotBtn != null) {
+			mVoicePilotBtn.setOnClickListener(mOnClickListener);
+			mVoicePilotBtn.setOnLongClickListener(mOnLongClickListener);
+		}
 
 		mGalleyBrn = (ImageButton)rootView.findViewById(R.id.gallery_button);
-		mGalleyBrn.setOnClickListener(mOnClickListener);
-		mGalleyBrn.setOnLongClickListener(mOnLongClickListener);
+		if (mGalleyBrn != null) {
+			mGalleyBrn.setOnClickListener(mOnClickListener);
+			mGalleyBrn.setOnLongClickListener(mOnLongClickListener);
+		}
 
 		mScriptBtn = (ImageButton)rootView.findViewById(R.id.script_button);
-		mScriptBtn.setOnClickListener(mOnClickListener);
-		mScriptBtn.setOnLongClickListener(mOnLongClickListener);
+		if (mScriptBtn != null) {
+			mScriptBtn.setOnClickListener(mOnClickListener);
+			mScriptBtn.setOnLongClickListener(mOnLongClickListener);
+		}
 
 		ImageButton button = (ImageButton)rootView.findViewById(R.id.config_show_btn);
 		button.setOnClickListener(mOnClickListener);
@@ -174,9 +184,15 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			}
 		}
 		final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
-		mDownloadBtn.setVisibility(visibility);
-		mPilotBtn.setVisibility(visibility);
-		mVoicePilotBtn.setVisibility(visibility);
+		if (mDownloadBtn != null) {
+			mDownloadBtn.setVisibility(visibility);
+		}
+		if (mPilotBtn != null) {
+			mPilotBtn.setVisibility(visibility);
+		}
+		if (mVoicePilotBtn != null) {
+			mVoicePilotBtn.setVisibility(visibility);
+		}
 	}
 
 	/**
@@ -260,7 +276,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
 		@Override
 		public boolean onLongClick(final View view) {
-			if (mPilotBtn.getVisibility() != View.VISIBLE) return false;
+			if ((mPilotBtn != null) && (mPilotBtn.getVisibility() != View.VISIBLE)) return false;
 			return BaseConnectionFragment.this.onLongClick(view, mDeviceListView.getCheckedItemPosition());
 		}
 	};
