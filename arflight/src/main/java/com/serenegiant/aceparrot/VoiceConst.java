@@ -37,12 +37,14 @@ public class VoiceConst {
 	public static final int CMD_MOVE			= 0x00000800;
 	public static final int CMD_FLIP			= 0x00001000;
 	public static final int CMD_TURN			= 0x00002000;
-	public static final int CMD_SCRIPT			= 0x00004000;
-	public static final int CMD_FIRE			= 0x00008000;
-	public static final int CMD_CLAW_OPEN		= 0x00010000;
-	public static final int CMD_CLAW_CLOSE		= 0x00020000;
-	public static final int CMD_CLAW_TOGGLE		= 0x00040000;
-	public static final int CMD_ERROR			= 0x00080000;
+	public static final int CMD_SPIN			= 0x00004000;
+	public static final int CMD_SCRIPT			= 0x00008000;
+	public static final int CMD_FIRE			= 0x00010000;
+	public static final int CMD_CLAW_OPEN		= 0x00020000;
+	public static final int CMD_CLAW_CLOSE		= 0x00040000;
+	public static final int CMD_CLAW_TOGGLE		= 0x00080000;
+	public static final int CMD_ERROR			= 0x00100000;
+	public static final int CMD_GREETINGS		= 0x00200000;
 	// コマンドマスク
 	public static final int CMD_MASK_CLAW		= CMD_CLAW_OPEN | CMD_CLAW_CLOSE | CMD_CLAW_TOGGLE;
 	public static final int CMD_MASK_MAMBO		= CMD_FIRE | CMD_MASK_CLAW;
@@ -54,6 +56,8 @@ public class VoiceConst {
 	private static final long CMD_LEFT_MAX		= CMD_MOVE | DIR_LEFT | (MAX_COUNT << 44);
 	private static final long CMD_UP_MAX		= CMD_MOVE | DIR_UP | (MAX_COUNT << 48);
 	private static final long CMD_DOWN_MAX		= CMD_MOVE | DIR_DOWN | (MAX_COUNT << 52);
+	// 挨拶コマンド
+	public static final int CMD_GREETINGS_HELLO	= CMD_GREETINGS | 0x00000001;
 	// エラーコマンド
 	public static final int CMD_SR_ERROR_AUDIO	= CMD_ERROR | SpeechRecognizer.ERROR_AUDIO;
 	public static final int CMD_SR_ERROR_CLIENT	= CMD_ERROR | SpeechRecognizer.ERROR_CLIENT;
@@ -64,6 +68,10 @@ public class VoiceConst {
 	public static final int CMD_SR_ERROR_RECOGNIZER_BUSY	= CMD_ERROR | SpeechRecognizer.ERROR_RECOGNIZER_BUSY;
 	public static final int CMD_SR_ERROR_SERVER	= CMD_ERROR | SpeechRecognizer.ERROR_SERVER;
 	public static final int CMD_SR_ERROR_SPEECH_TIMEOUT	= CMD_ERROR | SpeechRecognizer.ERROR_SPEECH_TIMEOUT;
+
+	public static final int CMD_ERROR_BATTERY_LOW_CRITICAL = CMD_ERROR | 0x00000100;
+	public static final int CMD_ERROR_BATTERY_LOW = CMD_ERROR | 0x00000200;
+	public static final int CMD_ERROR_MOTOR = CMD_ERROR | 0x00000400;
 
 	public static float getRoll(final long cmd) {
 		return ((cmd & CMD_MOVE) == CMD_MOVE) ?
@@ -151,9 +159,11 @@ public class VoiceConst {
 							case DIR_UP:
 							case DIR_DOWN:
 								if (actionCmd == CMD_FLIP) continue;
+								// pass through
 							case DIR_FORWARD:
 							case DIR_BACKWARD:
-								if (actionCmd == CMD_TURN) continue;
+								if ((actionCmd == CMD_TURN)
+									|| (actionCmd == CMD_SPIN)) continue;
 								// pass through
 							case DIR_RIGHT:
 							case DIR_LEFT:
@@ -411,6 +421,12 @@ public class VoiceConst {
 		ACTION_MAP.put("turno", CMD_TURN);
 		ACTION_MAP.put("giro", CMD_TURN);
 		ACTION_MAP.put("drehen", CMD_TURN);
+
+		ACTION_MAP.put("すぴん", CMD_SPIN);
+		ACTION_MAP.put("スピン", CMD_SPIN);
+		ACTION_MAP.put("すっぴん", CMD_SPIN);
+		ACTION_MAP.put("スッピン", CMD_SPIN);
+		ACTION_MAP.put("spin", CMD_SPIN);
 
 		ACTION_MAP.put("move", CMD_MOVE);
 		ACTION_MAP.put("むーぶ", CMD_MOVE);
