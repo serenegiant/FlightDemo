@@ -41,6 +41,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import jp.co.rediscovery.arflight.CameraControllerListener;
@@ -997,7 +998,7 @@ public class PilotFragment extends BasePilotFragment {
 
 	@Override
 	protected void updateTimeOnUIThread(final int minutes, final int seconds) {
-		mTimeLabelTv.setText(String.format("%3d:%02d", minutes, seconds));
+		mTimeLabelTv.setText(String.format(Locale.US, "%3d:%02d", minutes, seconds));
 	}
 
 	/**
@@ -1284,6 +1285,7 @@ public class PilotFragment extends BasePilotFragment {
 		mModelView.setAlpha(1.0f);
 	}
 
+	@SuppressWarnings("WrongConstant")
 	private void clearAlphaHide() {
 		removeFromUIThread(mAlphaTask);
 		removeFromUIThread(mHideTask);

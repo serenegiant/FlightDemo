@@ -11,6 +11,7 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import jp.co.rediscovery.arflight.DeviceInfo;
+import jp.co.rediscovery.arflight.DroneStatus;
 import jp.co.rediscovery.arflight.IDeviceController;
 import jp.co.rediscovery.arflight.IFlightController;
 import jp.co.rediscovery.arflight.controllers.FlightControllerMambo;
@@ -120,6 +122,58 @@ public class VoicePilotFragment extends PilotFragment {
 		}
 
 		return result;
+	}
+
+	private int batteryAlarmCnt = -1;
+	private int batteryCriticalCnt = -1;
+	@Override
+	protected void updateBatteryOnUIThread(final int battery) {
+		super.updateBatteryOnUIThread(battery);
+		if (battery > 30) {
+			batteryAlarmCnt = batteryCriticalCnt = -1;
+		} else if (mVoiceFeedback != null) {
+		 	if ((battery < 10) && ((++batteryCriticalCnt) % 1000) == 0) {
+				mVoiceFeedback.playVoiceFeedback(CMD_ERROR_BATTERY_LOW_CRITICAL);
+			} else if ((battery < 30) && ((++batteryAlarmCnt) % 1000) == 0) {
+				mVoiceFeedback.playVoiceFeedback(CMD_ERROR_BATTERY_LOW);
+			}
+		}
+	}
+
+	@Override
+	protected void updateAlarmMessageOnUIThread(final int alarm) {
+		super.updateAlarmMessageOnUIThread(alarm);
+		switch (alarm) {
+		case DroneStatus.ALARM_NON:					// No alert
+			break;
+		case DroneStatus.ALARM_USER_EMERGENCY:		// User emergency alert
+			if (mVoiceFeedback != null) {
+				mVoiceFeedback.playVoiceFeedback(CMD_ERROR_MOTOR);
+			}
+			break;
+		case DroneStatus.ALARM_CUTOUT:				// Cut out alert
+			if (mVoiceFeedback != null) {
+				mVoiceFeedback.playVoiceFeedback(CMD_ERROR_MOTOR);
+			}
+			break;
+		case DroneStatus.ALARM_BATTERY_CRITICAL:	// Critical battery alert
+			if (mVoiceFeedback != null) {
+				mVoiceFeedback.playVoiceFeedback(CMD_ERROR_BATTERY_LOW_CRITICAL);
+			}
+			batteryCriticalCnt = 1;
+			break;
+		case DroneStatus.ALARM_BATTERY:				// Low battery alert
+			batteryAlarmCnt = 1;
+			if (mVoiceFeedback != null) {
+				mVoiceFeedback.playVoiceFeedback(CMD_ERROR_BATTERY_LOW);
+			}
+			break;
+		case DroneStatus.ALARM_DISCONNECTED:		// 切断された
+			break;
+		default:
+			Log.w(TAG, "unexpected alarm state:" + alarm);
+			break;
+		}
 	}
 
 	private Intent mRecognizerIntent;
