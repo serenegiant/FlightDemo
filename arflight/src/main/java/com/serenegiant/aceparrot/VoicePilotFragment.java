@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.BuildConfig;
+import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.arflight.R;
 
 import java.util.List;
@@ -440,6 +441,12 @@ public class VoicePilotFragment extends PilotFragment {
 					queueEvent(mVoiceResetTask, 300);
 				}
 				break;
+			case VoiceConst.CMD_SPIN:
+				if (mSpinControlTask == null) {
+					mSpinControlTask = new SpinControlTask(VoiceConst.getSpin(cmd));
+					queueEvent(mSpinControlTask, 0);
+				}
+				break;
 			case VoiceConst.CMD_SCRIPT:
 				try {
 					startScript(VoiceConst.getScript(cmd));
@@ -512,4 +519,52 @@ public class VoicePilotFragment extends PilotFragment {
 			stopMove();
 		}
 	};
+
+	private static final int SPIN_CTRL_INTERVALS = 300;
+	private static final int[] SPIN_STEPS = {
+		10, 15, 20, 25, 30, 45, 60, 80, 90, 100, 120, 180,
+	};
+
+	private SpinControlTask mSpinControlTask;
+	/**
+	 * スピン(アニメーションcapの繰り返し)を制御するRunnable
+	 */
+	private class SpinControlTask implements Runnable {
+		private final int degree;
+		private final int step;
+		private int cnt;
+		/**
+		 * コンストラクタ
+		 * 回転角を指定
+		 * @param degree 10, 15, 20, 25, 30, 45, 60, 80, 90, 100, 120, 180のどれかの倍数
+		 */
+		public SpinControlTask(final int degree) {
+			this.degree = degree;
+			int step = 10;
+			for (int i = SPIN_STEPS.length - 1; i >= 0; i--) {
+				step = SPIN_STEPS[i];
+				if ((degree % step) == 0) {
+					break;
+				}
+			}
+			this.step = step;
+			cnt = degree / step;
+		}
+
+		@Override
+		public void run() {
+			if (mFlightController != null) {
+				if (cnt > 0) {
+					cnt--;
+					mFlightController.requestAnimationsCap(step);
+					mFlightRecorder.record(FlightRecorder.CMD_CAP, step);
+					if (cnt > 0) {
+						queueEvent(this, SPIN_CTRL_INTERVALS);
+					}
+				}
+			}
+			mSpinControlTask = null;
+			stopMove();
+		}
+	}
 }

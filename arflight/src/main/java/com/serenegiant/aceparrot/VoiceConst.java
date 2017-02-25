@@ -8,6 +8,7 @@ import android.util.SparseIntArray;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -73,6 +74,8 @@ public class VoiceConst {
 	public static final int CMD_ERROR_BATTERY_LOW = CMD_ERROR | 0x00000200;
 	public static final int CMD_ERROR_MOTOR = CMD_ERROR | 0x00000400;
 
+	private static final Random sRandom = new Random();
+
 	public static float getRoll(final long cmd) {
 		return ((cmd & CMD_MOVE) == CMD_MOVE) ?
 			((float)((cmd >>> 36) & 0x03) * (((cmd & DIR_RIGHT) == DIR_RIGHT) ? 100 : 0)
@@ -99,6 +102,13 @@ public class VoiceConst {
 			(((cmd & DIR_RIGHT) == DIR_RIGHT) ? 100 : 0)
 			- (((cmd & DIR_LEFT) == DIR_LEFT) ? 100 : 0)
 			: 0.0f;
+	}
+
+	public static int getSpin(final long cmd) {
+		return ((cmd & CMD_SPIN) == CMD_SPIN) ?
+			((int)((cmd >>> 32) & 0x03) * (((cmd & DIR_RIGHT) == DIR_RIGHT) ? 360 : 0)
+			- (int)((cmd >>> 40) & 0x03) * (((cmd & DIR_LEFT) == DIR_LEFT) ? 360 : 0))
+			: 0;
 	}
 
 	public static int getScript(final long cmd) {
@@ -149,6 +159,34 @@ public class VoiceConst {
 				final int actionCmd = ACTION_MAP.get(action);
 				if ((actionCmd & CMD_MASK_MAMBO) != 0) {
 					return actionCmd;
+				} else if (actionCmd == CMD_SPIN) {
+					int cnt = 0;
+					final Set<String> dirs = DIR_MAP.keySet();
+					for (final String dir: dirs) {
+						final int dirPos = text.lastIndexOf(dir);
+						if (dirPos >= 0) {
+							final int flipDir = DIR_MAP.get(dir);
+							switch (flipDir) {
+							case DIR_RIGHT:
+								cnt++;
+								break;
+							case DIR_LEFT:
+								cnt--;
+							}
+						}
+					}
+					if (cnt == 0) {
+						cnt = sRandom.nextInt(6) - 3;
+						if (cnt == 0) {
+							cnt = 1;
+						}
+					}
+					if (cnt > 0) {
+						return ((long)(cnt) << 32) | actionCmd;
+					} else {
+						return ((long)(-cnt) << 40) | actionCmd;
+					}
+
 				} else {
 					final Set<String> dirs = DIR_MAP.keySet();
 					for (final String dir: dirs) {
