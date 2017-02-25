@@ -1,1 +1,1 @@
-include ':app', ':graphics_common', ':opencv', ':scriptengine', ':gameengine', ':arflight'
+include ':app', ':graphics_common', ':opencv', ':scriptengine', ':gameengine', ':arflight', ':voiceparrot'

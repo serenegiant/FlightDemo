@@ -16,6 +16,7 @@
             <option value="$PROJECT_DIR$/graphics_common" />
             <option value="$PROJECT_DIR$/opencv" />
             <option value="$PROJECT_DIR$/scriptengine" />
+            <option value="$PROJECT_DIR$/voiceparrot" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
