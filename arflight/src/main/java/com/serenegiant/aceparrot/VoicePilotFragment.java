@@ -195,8 +195,8 @@ public class VoicePilotFragment extends PilotFragment {
 		if (mAudioManager == null) {
 			mAudioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
 			mStreamVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-			mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
 		}
+		mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
 		if (mSpeechRecognizer == null) {
 			mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(activity);
 			mSpeechRecognizer.setRecognitionListener(mRecognitionListener);
