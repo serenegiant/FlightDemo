@@ -147,24 +147,32 @@ public class VoicePilotFragment extends PilotFragment {
 			break;
 		case DroneStatus.ALARM_USER_EMERGENCY:		// User emergency alert
 			if (mVoiceFeedback != null) {
-				mVoiceFeedback.playVoiceFeedback(CMD_ERROR_MOTOR);
+				stopSpeechRecognizer();
+				final boolean played = mVoiceFeedback.playVoiceFeedback(CMD_ERROR_MOTOR);
+				runOnUiThread(mStartSpeechRecognizerTask, played ? 600 : 100);
 			}
 			break;
 		case DroneStatus.ALARM_CUTOUT:				// Cut out alert
 			if (mVoiceFeedback != null) {
-				mVoiceFeedback.playVoiceFeedback(CMD_ERROR_MOTOR);
+				stopSpeechRecognizer();
+				final boolean played = mVoiceFeedback.playVoiceFeedback(CMD_ERROR_MOTOR);
+				runOnUiThread(mStartSpeechRecognizerTask, played ? 600 : 100);
 			}
 			break;
 		case DroneStatus.ALARM_BATTERY_CRITICAL:	// Critical battery alert
 			if (mVoiceFeedback != null) {
-				mVoiceFeedback.playVoiceFeedback(CMD_ERROR_BATTERY_LOW_CRITICAL);
+				stopSpeechRecognizer();
+				final boolean played = mVoiceFeedback.playVoiceFeedback(CMD_ERROR_BATTERY_LOW_CRITICAL);
+				runOnUiThread(mStartSpeechRecognizerTask, played ? 600 : 100);
 			}
 			batteryCriticalCnt = 1;
 			break;
 		case DroneStatus.ALARM_BATTERY:				// Low battery alert
 			batteryAlarmCnt = 1;
 			if (mVoiceFeedback != null) {
-				mVoiceFeedback.playVoiceFeedback(CMD_ERROR_BATTERY_LOW);
+				stopSpeechRecognizer();
+				final boolean played = mVoiceFeedback.playVoiceFeedback(CMD_ERROR_BATTERY_LOW);
+				runOnUiThread(mStartSpeechRecognizerTask, played ? 600 : 100);
 			}
 			break;
 		case DroneStatus.ALARM_DISCONNECTED:		// 切断された
@@ -232,6 +240,10 @@ public class VoicePilotFragment extends PilotFragment {
 			mSpeechRecognizer = null;
 		}
 		mRecognizerIntent = null;
+		resetVolume();
+	}
+
+	private void resetVolume() {
 		if (mAudioManager != null) {
 			mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, mStreamVolume, 0);
 			mAudioManager = null;
@@ -342,6 +354,7 @@ public class VoicePilotFragment extends PilotFragment {
 				cmd = CMD_SR_ERROR_SPEECH_TIMEOUT;
 				break;
 			}
+			resetVolume();
 			final boolean played = mVoiceFeedback.playVoiceFeedback(cmd);
 			runOnUiThread(mStartSpeechRecognizerTask, played ? 600 : 100);
 		}
@@ -469,6 +482,7 @@ public class VoicePilotFragment extends PilotFragment {
 				}
 				break;
 			}
+			resetVolume();
 			final boolean played = mVoiceFeedback.playVoiceFeedback(cmd);
 			runOnUiThread(mStartSpeechRecognizerTask, played ? 600 : 100);
 	    }
