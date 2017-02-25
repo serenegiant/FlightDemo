@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.List;
 
 import jp.co.rediscovery.arflight.ARDeviceServiceAdapter;
+import jp.co.rediscovery.arflight.DeviceInfo;
 import jp.co.rediscovery.arflight.ManagerFragment;
 
 public abstract class BaseConnectionFragment extends BaseFragment {
@@ -296,7 +297,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			switch (product) {
 			case ARDISCOVERY_PRODUCT_ARDRONE:				// Bebop Drone product
 			case ARDISCOVERY_PRODUCT_BEBOP_2:				// Bebop drone 2.0 product
-				fragment = isPiloting ? PilotFragment.newInstance(device, null) : MediaFragment.newInstance(device, null);
+				fragment = isPiloting ? createPilotFragment(device, null) : createMediaFragment(device, null);
 				break;
 			case ARDISCOVERY_PRODUCT_JS:					// JUMPING SUMO product
 			case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:			// Jumping Sumo EVO Light product
@@ -310,8 +311,9 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 			case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:		// Delos3 product
 			case ARDISCOVERY_PRODUCT_MINIDRONE_WINGX:		// WingX product
 				fragment = isPiloting ?
-					(isVoiceControl ? VoicePilotFragment.newInstance(device, null) : PilotFragment.newInstance(device, null))
-					: MediaFragment.newInstance(device, null);
+					(isVoiceControl ? createVoicePilotFragment(device, null)
+						: createPilotFragment(device, null))
+					: createMediaFragment(device, null);
 				break;
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER:			// Sky controller product
 			case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:		// Sky controller 2 product
@@ -325,6 +327,18 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	}
 
 	protected abstract BaseBridgeFragment newBridgetFragment(final ARDiscoveryDeviceService device);
+
+	protected Fragment createPilotFragment(final ARDiscoveryDeviceService device, final DeviceInfo inf) {
+		return PilotFragment.newInstance(device, null);
+	}
+
+	protected Fragment createVoicePilotFragment(final ARDiscoveryDeviceService device, final DeviceInfo inf) {
+		return VoicePilotFragment.newInstance(device, null);
+	}
+
+	protected Fragment createMediaFragment(final ARDiscoveryDeviceService device, final DeviceInfo inf) {
+		return MediaFragment.newInstance(device, null);
+	}
 
 //********************************************************************************
 // 背景動画再生関連
