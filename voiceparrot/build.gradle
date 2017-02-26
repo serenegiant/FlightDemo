@@ -15,8 +15,8 @@ android {
 		applicationId "com.serenegiant.voiceparrot"
 		manifestPlaceholders = [appName:"@string/app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
-		versionCode 59
-		versionName '0.73.1'
+		versionCode 60
+		versionName '0.73.2'
 	}
 
 	applicationVariants.all { variant ->
