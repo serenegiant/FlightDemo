@@ -442,12 +442,14 @@ public class VoicePilotFragment extends PilotFragment {
 				}
 				break;
 			case VoiceConst.CMD_SPIN:
+				if (DEBUG) Log.v(TAG, "ボイスコントロール:スピン");
 				if (mSpinControlTask == null) {
 					mSpinControlTask = new SpinControlTask(VoiceConst.getSpin(cmd));
 					queueEvent(mSpinControlTask, 0);
 				}
 				break;
 			case VoiceConst.CMD_SCRIPT:
+				if (DEBUG) Log.v(TAG, "ボイスコントロール:スピン");
 				try {
 					startScript(VoiceConst.getScript(cmd));
 				} catch (final Exception e) {
@@ -539,6 +541,7 @@ public class VoicePilotFragment extends PilotFragment {
 		 * @param degree 10, 15, 20, 25, 30, 45, 60, 80, 90, 100, 120, 180のどれかの倍数
 		 */
 		public SpinControlTask(final int degree) {
+			if (DEBUG) Log.v(TAG, "SpinControlTask:degree=" + degree);
 			this.degree = degree;
 			int step = 10;
 			for (int i = SPIN_STEPS.length - 1; i >= 0; i--) {
@@ -553,6 +556,7 @@ public class VoicePilotFragment extends PilotFragment {
 
 		@Override
 		public void run() {
+			if (DEBUG) Log.v(TAG, "SpinControlTask#run:cnt=" + cnt);
 			if (mFlightController != null) {
 				if (cnt > 0) {
 					cnt--;
