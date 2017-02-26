@@ -106,8 +106,9 @@ public class VoiceConst {
 
 	public static int getSpin(final long cmd) {
 		return ((cmd & CMD_SPIN) == CMD_SPIN) ?
-			((int)((cmd >>> 32) & 0x03) * (((cmd & DIR_RIGHT) == DIR_RIGHT) ? 360 : 0)
-			- (int)((cmd >>> 40) & 0x03) * (((cmd & DIR_LEFT) == DIR_LEFT) ? 360 : 0))
+			(int)((cmd >>> 32) & 0x03)
+				* ((((cmd & DIR_RIGHT) == DIR_RIGHT) ? 360 : 0)
+					- (((cmd & DIR_LEFT) == DIR_LEFT) ? 360 : 0))
 			: 0;
 	}
 
@@ -180,11 +181,17 @@ public class VoiceConst {
 						if (cnt == 0) {
 							cnt = 1;
 						}
+					} else if (cnt > 3) {
+						cnt = 3;
+					} else if (cnt < -3) {
+						cnt = -3;
 					}
 					if (cnt > 0) {
-						return ((long)(cnt) << 32) | actionCmd;
+						// 右スピン
+						return ((long)(cnt & 0x03) << 32) | actionCmd | DIR_RIGHT;
 					} else {
-						return ((long)(-cnt) << 40) | actionCmd;
+						// 左スピン
+						return ((long)(-cnt & 0x03) << 32) | actionCmd | DIR_LEFT;
 					}
 
 				} else {
