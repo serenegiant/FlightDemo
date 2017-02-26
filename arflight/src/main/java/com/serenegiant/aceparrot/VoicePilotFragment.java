@@ -36,7 +36,7 @@ import static com.serenegiant.aceparrot.VoiceConst.*;
  */
 
 public class VoicePilotFragment extends PilotFragment {
-	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
 	private static final String TAG = VoicePilotFragment.class.getSimpleName();
 
 	public static VoicePilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
