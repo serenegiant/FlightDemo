@@ -119,7 +119,7 @@ public class VoiceConst {
 	public static long findCommand(final String text) {
 		long cmd = CMD_NON;
 
-		Log.i(TAG, "findCommand:" + text);
+		if (DEBUG) Log.v(TAG, "findCommand:" + text);
 		if (!TextUtils.isEmpty(text)) {
 			cmd = findCmd(text);
 			if (cmd == CMD_NON) {

@@ -23,7 +23,7 @@ import static com.serenegiant.aceparrot.VoiceConst.*;
  */
 
 public class VoiceFeedback {
-	private static final boolean DEBUG = true;	// 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// 実働時はfalseにすること
 	private static final String TAG = VoiceFeedback.class.getSimpleName();
 
 	/**

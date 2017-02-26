@@ -36,7 +36,7 @@ import static com.serenegiant.aceparrot.VoiceConst.*;
  */
 
 public class VoicePilotFragment extends PilotFragment {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = VoicePilotFragment.class.getSimpleName();
 
 	public static VoicePilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
@@ -463,21 +463,21 @@ public class VoicePilotFragment extends PilotFragment {
 				}
 				break;
 			case VoiceConst.CMD_CLAW_CLOSE:
-				Log.i(TAG, "CMD_CLAW_CLOSE");
+				if (DEBUG) Log.v(TAG, "CMD_CLAW_CLOSE");
 				if ((mFlightController instanceof FlightControllerMambo)
 					&& ((FlightControllerMambo) mFlightController).hasClaw()) {
 					((FlightControllerMambo) mFlightController).requestClawClose();
 				}
 				break;
 			case VoiceConst.CMD_CLAW_TOGGLE:
-				Log.i(TAG, "CMD_CLAW_TOGGLE");
+				if (DEBUG) Log.v(TAG, "CMD_CLAW_TOGGLE");
 				if ((mFlightController instanceof FlightControllerMambo)
 					&& ((FlightControllerMambo) mFlightController).hasClaw()) {
 					actionToggle();
 				}
 				break;
 			case VoiceConst.CMD_FIRE:
-				Log.i(TAG, "CMD_FIRE");
+				if (DEBUG) Log.v(TAG, "CMD_FIRE");
 				if ((mFlightController instanceof FlightControllerMambo)
 					&& ((FlightControllerMambo) mFlightController).hasGun()) {
 					actionToggle();
@@ -487,7 +487,7 @@ public class VoicePilotFragment extends PilotFragment {
 				showToast(R.string.error_voice_no_command, Toast.LENGTH_SHORT);
 				if (DEBUG) {
 					for (final String data: recData) {
-						Log.i(TAG, "onResults=" + data);
+						if (DEBUG) Log.v(TAG, "onResults=" + data);
 					}
 				}
 				break;
