@@ -33,7 +33,7 @@ public class AppConst {
 	public static final String KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT = "KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT";
 	// 減衰率
 	public static final String KEY_CONFIG_VOICE_RECOGNITION_DAMPING_RATE = "KEY_CONFIG_VOICE_RECOGNITION_DAMPING_RATE";
-	public static final int DEFAULT_VOICE_RECOGNITION_DAMPING_RATE = 50; // = 0.5f
+	public static final int DEFAULT_VOICE_RECOGNITION_DAMPING_RATE = 75; // = 0.75f
 
 	public static final float SCALE_FACTOR = 250f;
 	public static final int SCALE_OFFSET = 500;
