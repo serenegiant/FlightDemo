@@ -69,26 +69,26 @@ public class VoiceFeedbackSettings {
 //		ids.add((long)CMD_FLIP , R.raw.flip_004);
 //		ids.add((long)CMD_FLIP , R.raw.flip_005);
 //		ids.add((long)CMD_FLIP , R.raw.flip_006);
-//		ids.add((long)CMD_FLIP , R.raw.flip_007);
+		ids.add((long)CMD_FLIP , R.raw.flip_007);
 //		ids.add((long)CMD_FLIP , R.raw.flip_008);
 
 
 //		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_001);
 //		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_002);
 //		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_003);
-		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_004);
-		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_005);
+// 		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_004);
+//		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_005);
 //		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_006);
-//		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_007);
-//		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_008);
+		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_007);
+		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_008);
 //		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_009);
-//		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_010);
+		ids.add((long)CMD_MOVE | DIR_FORWARD, R.raw.move_front_010);
 
 //		ids.add((long)CMD_MOVE | DIR_BACKWARD, R.raw.move_back_001);
 		ids.add((long)CMD_MOVE | DIR_BACKWARD, R.raw.move_back_002);
 //		ids.add((long)CMD_MOVE | DIR_BACKWARD, R.raw.move_back_003);
-//		ids.add((long)CMD_MOVE | DIR_BACKWARD, R.raw.move_back_004);
-//		ids.add((long)CMD_MOVE | DIR_BACKWARD, R.raw.move_back_005);
+		ids.add((long)CMD_MOVE | DIR_BACKWARD, R.raw.move_back_004);
+		ids.add((long)CMD_MOVE | DIR_BACKWARD, R.raw.move_back_005);
 //		ids.add((long)CMD_MOVE | DIR_BACKWARD, R.raw.move_back_006);
 
 //		ids.add((long)CMD_MOVE | DIR_DOWN, R.raw.move_down_001);
@@ -96,14 +96,15 @@ public class VoiceFeedbackSettings {
 //		ids.add((long)CMD_MOVE | DIR_DOWN, R.raw.move_down_003);
 //		ids.add((long)CMD_MOVE | DIR_DOWN, R.raw.move_down_004);
 //		ids.add((long)CMD_MOVE | DIR_DOWN, R.raw.move_down_005);
+
 //		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_001);
 //		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_002);
 //		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_003);
 //		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_004);
 //		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_005);
-//		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_006);
+		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_006);
 //		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_007);
-//		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_008);
+		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_008);
 		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_left_009);
 //		ids.add((long)CMD_MOVE | DIR_LEFT, R.raw.move_right_001);
 
@@ -113,10 +114,10 @@ public class VoiceFeedbackSettings {
 //		ids.add((long)CMD_MOVE | DIR_RIGHT, R.raw.move_right_005);
 //		ids.add((long)CMD_MOVE | DIR_RIGHT, R.raw.move_right_006);
 //		ids.add((long)CMD_MOVE | DIR_RIGHT, R.raw.move_right_007);
-//		ids.add((long)CMD_MOVE | DIR_RIGHT, R.raw.move_right_008);
+		ids.add((long)CMD_MOVE | DIR_RIGHT, R.raw.move_right_008);
 //		ids.add((long)CMD_MOVE | DIR_RIGHT, R.raw.move_right_009);
 		ids.add((long)CMD_MOVE | DIR_RIGHT, R.raw.move_right_010);
-//		ids.add((long)CMD_MOVE | DIR_RIGHT, R.raw.move_right_011);
+		ids.add((long)CMD_MOVE | DIR_RIGHT, R.raw.move_right_011);
 
 //		ids.add((long)CMD_MOVE | DIR_UP, R.raw.move_up_001);
 //		ids.add((long)CMD_MOVE | DIR_UP, R.raw.move_up_002);
