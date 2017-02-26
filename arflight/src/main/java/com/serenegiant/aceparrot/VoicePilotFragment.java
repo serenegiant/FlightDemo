@@ -522,7 +522,7 @@ public class VoicePilotFragment extends PilotFragment {
 		}
 	};
 
-	private static final int SPIN_CTRL_INTERVALS = 300;
+	private static final int SPIN_CTRL_INTERVALS = 500;
 	private static final int[] SPIN_STEPS = {
 		10, 15, 20, 25, 30, 45, 60, 80, 90, 100, 120, 180,
 	};
@@ -550,8 +550,8 @@ public class VoicePilotFragment extends PilotFragment {
 					break;
 				}
 			}
-			this.step = step;
-			cnt = degree / step;
+			this.step = (int)Math.signum(degree) * step;
+			cnt = Math.abs(degree / step);
 		}
 
 		@Override
