@@ -438,7 +438,7 @@ public class VoicePilotFragment extends PilotFragment {
 				float yaw = VoiceConst.getYaw(cmd) * mGamepadSensitivity * mGamepadScaleR;
 				sendMove(roll, pitch, gaz, yaw);
 				if ((mDampingRate > 0.0f) && (mDampingRate < 1.0f)) {
-					queueEvent(mVoiceResetTask, 300);
+					queueEvent(mVoiceResetTask, 400);
 				}
 				break;
 			case VoiceConst.CMD_SPIN:
