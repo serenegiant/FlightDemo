@@ -42,10 +42,12 @@ public class VoiceFeedback {
 	 */
 	public static int getVoiceFeedbackId(final long cmd) {
 		if (DEBUG) Log.v(TAG, String.format("getVoiceFeedbackId:cmd=%16x", cmd));
-		int result = selectFeedbackId((ArrayList<Integer>)ID_MAP.get(cmd));
+		// 回数フラグは落として取得
+		int result = selectFeedbackId((ArrayList<Integer>)ID_MAP.get(cmd & 0xffffffffL));
 		if (DEBUG) Log.v(TAG, "selectFeedbackId:result=" + result);
 		if (result == 0) {
-			if (DEBUG) Log.v(TAG, "selectFeedbackId retry:result=" + result);
+			// 方向フラグも落として取得を試みる
+			if (DEBUG) Log.v(TAG, "selectFeedbackId retry with CMD_MASK:result=" + result);
 			result = selectFeedbackId((ArrayList<Integer>)ID_MAP.get(cmd & CMD_MASK));
 		}
 		return result;
