@@ -565,6 +565,7 @@ public class VoicePilotFragment extends PilotFragment {
 						mFlightRecorder.record(FlightRecorder.CMD_CAP, step);
 						if (cnt > 0) {
 							queueEvent(this, SPIN_CTRL_INTERVALS);
+							return;
 						}
 					} catch (final Exception e) {
 						Log.w(TAG, e);
@@ -572,7 +573,6 @@ public class VoicePilotFragment extends PilotFragment {
 				}
 			}
 			mSpinControlTask = null;
-			stopMove();
 		}
 	}
 }
