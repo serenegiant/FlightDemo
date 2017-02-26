@@ -556,10 +556,14 @@ public class VoicePilotFragment extends PilotFragment {
 			if (mFlightController != null) {
 				if (cnt > 0) {
 					cnt--;
-					mFlightController.requestAnimationsCap(step);
-					mFlightRecorder.record(FlightRecorder.CMD_CAP, step);
-					if (cnt > 0) {
-						queueEvent(this, SPIN_CTRL_INTERVALS);
+					try {
+						mFlightController.requestAnimationsCap(step);
+						mFlightRecorder.record(FlightRecorder.CMD_CAP, step);
+						if (cnt > 0) {
+							queueEvent(this, SPIN_CTRL_INTERVALS);
+						}
+					} catch (final Exception e) {
+						Log.w(TAG, e);
 					}
 				}
 			}
