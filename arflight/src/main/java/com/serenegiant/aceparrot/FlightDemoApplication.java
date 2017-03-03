@@ -1,6 +1,6 @@
 package com.serenegiant.aceparrot;
 
-import android.app.Application;
+import android.support.multidex.MultiDexApplication;
 
 import com.serenegiant.gameengine.FileIO;
 import com.serenegiant.gameengine.IGameViewApplication;
@@ -8,7 +8,7 @@ import com.serenegiant.gameengine.MPAssetIO;
 import com.serenegiant.gameengine.MPExtFileIO;
 import com.serenegiant.gameengine.MPFileIO;
 
-public class FlightDemoApplication extends Application implements IGameViewApplication {
+public class FlightDemoApplication extends MultiDexApplication implements IGameViewApplication {
 	private FileIO mFileIO;
 	private FileIO mExtFileIO;
 	private FileIO mAssetIO;

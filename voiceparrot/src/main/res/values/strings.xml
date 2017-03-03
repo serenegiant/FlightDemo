@@ -1,3 +1,4 @@
 <resources>
 	<string name="app_name">VoiceParrot</string>
+	<string name="remote_app_name">RemoteParrot</string>
 </resources>

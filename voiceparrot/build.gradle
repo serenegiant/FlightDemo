@@ -13,10 +13,12 @@ android {
 		minSdkVersion 18
 		targetSdkVersion versionTarget
 		applicationId "com.serenegiant.voiceparrot"
-		manifestPlaceholders = [appName:"@string/app_name"]
+		manifestPlaceholders = [appName:"@string/app_name",remoteAppName:"@string/remote_app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
 		versionCode 60
 		versionName '0.73.2'
+
+		multiDexEnabled true
 	}
 
 	applicationVariants.all { variant ->
@@ -65,11 +67,15 @@ android {
 		exclude 'lib/mips/**.so'
 		exclude 'lib/mips64/*.so'
 		exclude 'lib/x86_64/*.so'
+
+		exclude 'META-INF/INDEX.LIST'
 	}
 }
 
 dependencies {
 	compile fileTree(dir: 'libs', include: ['*.jar'])
+
+	compile 'com.android.support:multidex:1.0.1'
 
 	compile project(':arflight')
 	compile project(':remotegamepad')

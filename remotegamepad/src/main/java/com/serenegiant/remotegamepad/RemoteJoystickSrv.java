@@ -49,6 +49,7 @@ public class RemoteJoystickSrv {
 	private EventLoopGroup mBossGroup;
 	private EventLoopGroup mWorkerGroup;
 	private Channel mChannel;
+	private volatile boolean mReleased;
 
 	public RemoteJoystickSrv(final Context context, final int port)
 		throws CertificateException, SSLException, InterruptedException {
@@ -73,6 +74,7 @@ public class RemoteJoystickSrv {
 					if (mSslContext != null) {
 						p.addLast(mSslContext.newHandler(ch.alloc()));
 					}
+					// プリミティブまたはSerializableを実装したオブジェクトの送受信を可能にする
 					p.addLast(
 						new ObjectEncoder(),
 						new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
@@ -99,17 +101,14 @@ public class RemoteJoystickSrv {
 
 	public void release() {
 		if (DEBUG) Log.v(TAG, "release:");
+		mReleased = true;
 		Channel channel;
 		synchronized (mSync) {
 			channel = mChannel;
 			mChannel = null;
 		}
 		if (channel != null) {
-			try {
-				channel.closeFuture().sync();
-			} catch (final InterruptedException e) {
-				// ignore
-			}
+			channel.close();
 		}
 		if (mBossGroup != null) {
 			mBossGroup.shutdownGracefully();
@@ -123,6 +122,7 @@ public class RemoteJoystickSrv {
 			mJoystick.release();
 			mJoystick = null;
 		}
+		if (DEBUG) Log.v(TAG, "release:finished");
 	}
 
 	public boolean dispatchKeyEvent(final KeyEvent event) {
@@ -142,14 +142,48 @@ public class RemoteJoystickSrv {
 	}
 
 	private class RemoteGamePadServerHandler extends ChannelInboundHandlerAdapter {
+//		@Override
+//		public void channelRegistered(final ChannelHandlerContext ctx) throws Exception {
+//			super.channelRegistered(ctx);
+//			if (DEBUG) Log.v(TAG, "channelRegistered:");
+//		}
+
+//		@Override
+//		public void channelUnregistered(final ChannelHandlerContext ctx) throws Exception {
+//			super.channelUnregistered(ctx);
+//			if (DEBUG) Log.v(TAG, "channelUnregistered:");
+//		}
+
+//		@Override
+//		public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+//			super.channelActive(ctx);
+//			if (DEBUG) Log.v(TAG, "channelActive:");
+//		}
+
+//		@Override
+//		public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
+//			super.channelInactive(ctx);
+//			if (DEBUG) Log.v(TAG, "channelInactive:");
+//		}
+
+//		@Override
+//		public void channelWritabilityChanged(final ChannelHandlerContext ctx) throws Exception {
+//			super.channelWritabilityChanged(ctx);
+//			if (DEBUG) Log.v(TAG, "channelWritabilityChanged:");
+//		}
+
 		@Override
 		public void channelRead(final ChannelHandlerContext ctx, final Object msg) throws Exception {
+//			if (DEBUG) Log.v(TAG, "channelRead:");
 			// 何か送られてきたらRemoteKeyEventを送り返す
-			ctx.writeAndFlush(mEvent);
+			if (!mReleased) {
+				ctx.writeAndFlush(mEvent);
+			}
 		}
 
 		@Override
 		public void channelReadComplete(final ChannelHandlerContext ctx) throws Exception {
+//			if (DEBUG) Log.v(TAG, "channelReadComplete:");
 			ctx.flush();
 		}
 

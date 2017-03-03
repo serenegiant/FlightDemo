@@ -7,11 +7,13 @@ import android.support.annotation.NonNull;
 import com.serenegiant.gamepad.GamePadConst;
 import com.serenegiant.gamepad.Joystick;
 
+import java.io.Serializable;
+
 /**
  * Created by saki on 2017/03/02.
  *
  */
-public class RemoteJoystickEvent implements Parcelable {
+public class RemoteJoystickEvent implements Parcelable, Serializable {
 
 	public static final Creator<RemoteJoystickEvent> CREATOR = new Creator<RemoteJoystickEvent>() {
 		@Override

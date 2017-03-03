@@ -16,6 +16,8 @@ android {
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
 		versionCode 59
 		versionName '0.73.1'
+
+		multiDexEnabled true
 	}
 
 	applicationVariants.all { variant ->
@@ -83,6 +85,8 @@ android {
 		exclude 'lib/mips/**.so'
 		exclude 'lib/mips64/*.so'
 		exclude 'lib/x86_64/*.so'
+
+		exclude 'META-INF/INDEX.LIST'
 	}
 }
 

@@ -38,7 +38,10 @@
 			</intent-filter>
 		</receiver>
 
-		<activity android:name=".RemoteActivity">
+		<activity android:name=".RemoteActivity"
+			  android:label="${remoteAppName}"
+			android:launchMode="singleTask"
+			android:screenOrientation="userLandscape">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
 
