@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	package="com.serenegiant.voiceparrot">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+		  package="com.serenegiant.voiceparrot">
 
-	<uses-feature android:name="android.hardware.usb.host" android:required="false"/>
+	<uses-feature
+		android:name="android.hardware.usb.host"
+		android:required="false"/>
+
 	<uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
 	<application
@@ -14,17 +16,16 @@
 		android:label="${appName}"
 		android:largeHeap="true"
 		android:theme="@style/AppTheme">
-
 		<activity
-			android:name="com.serenegiant.voiceparrot.MainActivity"
+			android:name=".MainActivity"
 			android:label="${appName}"
-			android:screenOrientation="userLandscape"
-			android:launchMode="singleTask" >
+			android:launchMode="singleTask"
+			android:screenOrientation="userLandscape">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
+
 				<category android:name="android.intent.category.LAUNCHER"/>
 			</intent-filter>
-
 		</activity>
 
 		<service android:name="com.parrot.arsdk.ardiscovery.ARDiscoveryService"/>
@@ -36,6 +37,14 @@
 				<action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
 			</intent-filter>
 		</receiver>
+
+		<activity android:name=".RemoteActivity">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
+
+				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+		</activity>
 	</application>
 
 </manifest>
