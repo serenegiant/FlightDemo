@@ -1365,7 +1365,6 @@ public class PilotFragment extends BasePilotFragment {
 
 	@Override
 	protected void onSendMove(final float roll, final float pitch, final float gaz, final float yaw) {
-		super.onSendMove(roll, pitch, gaz, yaw);
 		// 左右
 		if ((mLeftView!= null) && (mRightView != null)) {
 			if (roll < 0.0f) {

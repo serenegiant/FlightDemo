@@ -14,7 +14,7 @@ import java.util.UUID;
 public class MainActivity extends AbstractMainActivity {
 	// ActionBarActivityを継承するとPilotFragmentから戻る際にクラッシュする
 	// Fragmentが切り替わらずに処理中にもかかわらずActivityが破棄されてしまう
-	private static final boolean DEBUG = true;    // FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;    // FIXME 実働時はfalseにすること
 	private static String TAG = MainActivity.class.getSimpleName();
 
 	private UdpBeacon mUdpBeacon;
@@ -112,7 +112,7 @@ public class MainActivity extends AbstractMainActivity {
 
 		@Override
 		public void onUpdate(final RemoteJoystick joystick) {
-			if (DEBUG) Log.v(TAG, "onUpdate:");
+//			if (DEBUG) Log.v(TAG, "onUpdate:");
 		}
 
 		@Override

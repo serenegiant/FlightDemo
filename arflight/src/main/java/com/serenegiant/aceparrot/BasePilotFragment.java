@@ -42,6 +42,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,7 +56,9 @@ import jp.co.rediscovery.arflight.controllers.FlightControllerMiniDrone;
 
 import static com.serenegiant.aceparrot.AppConst.*;
 
-public abstract class BasePilotFragment extends BaseFlightControllerFragment implements SelectFileDialogFragment.OnFileSelectListener {
+public abstract class BasePilotFragment extends BaseFlightControllerFragment
+	implements SelectFileDialogFragment.OnFileSelectListener {
+
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private final String TAG = "BasePilotFragment:" + getClass().getSimpleName();
 
@@ -157,12 +160,15 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 //		if (DEBUG) Log.v(TAG, "internalOnResume:");
 		final Activity activity = getActivity();
 		if (activity instanceof IMainActivity) {
-			mJoystick = ((IMainActivity)activity).getJoystick();
-			mRemoteJoystick = ((IMainActivity)activity).getRemoteJoystick();
+			IGamePad joystick = ((IMainActivity)activity).getJoystick();
+			mJoystick = joystick != null ? new WeakReference<IGamePad>(joystick) : null;
+			joystick = ((IMainActivity)activity).getRemoteJoystick();
+			mRemoteJoystick = joystick != null ? new WeakReference<IGamePad>(joystick) : null;
 		}
 //		mControllerFrame.setKeepScreenOn(true);
 		startDeviceController();
 		startSensor();
+		runOnUiThread(mJoystickCheckTask, 1000);
 		if (mModelView != null) {
 			if ((mFlightController != null) && isStarted()) {
 				mModelView.hasGuard(mFlightController.hasGuard());
@@ -174,6 +180,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	@Override
 	protected void internalOnPause() {
 //		if (DEBUG) Log.v(TAG, "internalOnPause:");
+		removeFromUIThread(mJoystickCheckTask);
 		mJoystick = mRemoteJoystick = null;
 		if (mModelView != null) {
 			mModelView.onPause();
@@ -600,7 +607,12 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 			mFlightRecorder.record(FlightRecorder.CMD_LANDING);
 		}
 	}
-	@IntDef({IFlightController.FLIP_FRONT, IFlightController.FLIP_BACK, IFlightController.FLIP_RIGHT, IFlightController.FLIP_LEFT})
+
+	@IntDef({
+		IFlightController.FLIP_FRONT,
+		IFlightController.FLIP_BACK,
+		IFlightController.FLIP_RIGHT,
+		IFlightController.FLIP_LEFT})
 	@Retention(RetentionPolicy.SOURCE)
 	public @interface FlipDirection {}
 
@@ -1116,8 +1128,23 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		}
 	}
 
+	private static final int MOVE_BY_MANUAL = 0;
+	private static final int MOVE_BY_GAMEPAD = 1;
+	private static final int MOVE_BY_GAMEPAD_REMOTE = 2;
+	@IntDef({MOVE_BY_MANUAL, MOVE_BY_GAMEPAD, MOVE_BY_GAMEPAD_REMOTE})
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface MoveBy {}
+
 	private static final long YAW_LIMIT = 200;
-	private IGamePad mJoystick, mRemoteJoystick;
+
+	/** 0:マニュアル, 1:ローカルゲームパッド, 2:リモートゲームパッド */
+	@MoveBy
+	private volatile int mMoveBy;
+	protected boolean isMoveByGamepad() {
+		return mMoveBy != MOVE_BY_MANUAL;
+	}
+
+	private WeakReference<IGamePad> mJoystick, mRemoteJoystick;
 	private final boolean[] downs = new boolean[GamePadConst.KEY_NUMS];
 	private final long[] down_times = new long[GamePadConst.KEY_NUMS];
 	private final int[] analogSticks = new int[4];
@@ -1134,127 +1161,18 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 			long interval = 50;
 			handler.removeCallbacks(this);
 			try {
-				if (mJoystick != null) {
-					mJoystick.updateState(downs, down_times, analogSticks, false);
+				IGamePad joystick = mJoystick != null ? mJoystick.get() : null;
+				if (joystick != null) {
+					joystick.updateState(downs, down_times, analogSticks, false);
 				}
-				interval = handleInputFromGamepad(1, downs, down_times, analogSticks);
-				if ((mMoveByGamepad == 0) && (mRemoteJoystick != null)) {
-					mRemoteJoystick.updateState(downs, down_times, analogSticks, false);
-					interval = handleInputFromGamepad(2, downs, down_times, analogSticks);
+				interval = handleInputFromGamepad(MOVE_BY_GAMEPAD, downs, down_times, analogSticks);
+				if ((mMoveBy == MOVE_BY_MANUAL) || (mMoveBy == MOVE_BY_GAMEPAD_REMOTE)) {
+					joystick = mRemoteJoystick != null ? mRemoteJoystick.get() : null;
+					if (joystick != null) {
+						joystick.updateState(downs, down_times, analogSticks, false);
+						interval = handleInputFromGamepad(MOVE_BY_GAMEPAD_REMOTE, downs, down_times, analogSticks);
+					}
 				}
-//				// 左右の上端ボタン(手前側)を同時押しすると非常停止
-//				if (((downs[GamePadConst.KEY_RIGHT_RIGHT] || downs[GamePadConst.KEY_RIGHT_1]))
-//					&& (downs[GamePadConst.KEY_RIGHT_LEFT] || downs[GamePadConst.KEY_LEFT_1]) ) {
-//					emergencyStop();
-//					return;
-//				}
-//
-//				// 飛行していない時にL2/R2同時押しするとフラットトリム実行
-//				if ((getState() == IFlightController.STATE_STARTED)
-//					&& (getAlarm() == DroneStatus.ALARM_NON)
-//					&& downs[GamePadConst.KEY_LEFT_2] && downs[GamePadConst.KEY_RIGHT_2]) {
-//
-//					mFlightController.requestFlatTrim();
-//					return;
-//				}
-//
-//				// L2押しながら左アナログスティックでカメラのpan/tilt
-//				if (downs[GamePadConst.KEY_LEFT_2] && (mController instanceof ICameraController)) {
-//					if (mCurrentPan > 100) {
-//						mCurrentPan = ((ICameraController)mController).getPan();
-//						mCurrentTilt = ((ICameraController)mController).getTilt();
-//					}
-//					final int pan = mCurrentPan;
-//					final int tilt = mCurrentTilt;
-//					// 左アナログスティックの左右=左右移動
-//					int p = pan + (int)(analogSticks[0] / 51.2f);
-//					if (p < -100) {
-//						p = -100;
-//					} else if (p > 100) {
-//						p = 100;
-//					}
-//					// 左アナログスティックの上下=前後移動
-//					int t = tilt + (int)(analogSticks[1] / 51.2f);
-//					if (t < -100) {
-//						t = -100;
-//					} else if (t > 100) {
-//						t = 100;
-//					}
-////					if (DEBUG) Log.d(TAG, String.format("(%d,%d),pan=%d/%d,tilt=%d/%d", analogSticks[0], analogSticks[1], pan, p, tilt, t));
-//					if ((p != pan) || (t != tilt)) {
-//						((ICameraController)mController).sendCameraOrientation(t, p);
-//						mCurrentPan = p;
-//						mCurrentTilt = t;
-//						return;
-//					}
-//					interval = 20;
-//				} else {
-//					mCurrentPan = mCurrentTilt = Integer.MAX_VALUE;
-//				}
-//
-//				// R2押しながら左スティックでフリップ
-//				if (downs[GamePadConst.KEY_RIGHT_2]) {
-//					if (downs[GamePadConst.KEY_LEFT_LEFT]) {
-//						flip(IFlightController.FLIP_LEFT);
-//						return;
-//					} if (downs[GamePadConst.KEY_LEFT_RIGHT]) {
-//						flip(IFlightController.FLIP_RIGHT);
-//						return;
-//					} if (downs[GamePadConst.KEY_LEFT_UP]) {
-//						flip(IFlightController.FLIP_FRONT);
-//						return;
-//					} if (downs[GamePadConst.KEY_LEFT_DOWN]) {
-//						flip(IFlightController.FLIP_BACK);
-//						return;
-//					}
-//				}
-//
-//				// 中央の右側ボタン[12]=着陸
-//				if (downs[GamePadConst.KEY_CENTER_RIGHT]) {
-//					landing();
-//					return;
-//				}
-//				// 中央の左側ボタン[11]=離陸
-//				if (downs[GamePadConst.KEY_CENTER_LEFT]) {
-//					takeOff();
-//					return;
-//				}
-//				// ここまでは共通操作の処理
-//
-//				// 操作モード毎の処理
-//				switch (mOperationType) {
-//				case 0:	// 通常
-//					gamepad_normal();
-//					break;
-//				case 1:	// 左右反転
-//					gamepad_reverse();
-//					break;
-//				case 2:	// mode1
-//					gamepad_mode1();
-//					break;
-//				case 3:	// mode2
-//					gamepad_mode2();
-//					break;
-//				default:
-//					gamepad_normal();
-//					break;
-//				}
-////			KeyGamePad.KEY_LEFT_CENTER:		// = 0;
-////			KeyGamePad.KEY_LEFT_UP:			// = 1;
-////			KeyGamePad.KEY_LEFT_RIGHT:		// = 2;
-////			KeyGamePad.KEY_LEFT_DOWN:		// = 3;
-////			KeyGamePad.KEY_LEFT_LEFT:		// = 4;
-////			KeyGamePad.KEY_RIGHT_CENTER:	// = 5;
-////			KeyGamePad.KEY_RIGHT_UP:		// = 6;
-////			KeyGamePad.KEY_RIGHT_RIGHT:		// = 7;
-////			KeyGamePad.KEY_RIGHT_DOWN:		// = 8;
-////			KeyGamePad.KEY_RIGHT_LEFT:		// = 9;
-////			KeyGamePad.KEY_LEFT_1:			// = 10;	// 左上前
-////			KeyGamePad.KEY_LEFT_2:			// = 11;	// 左上後
-////			KeyGamePad.KEY_CENTER_LEFT:		// = 12;	// 中央左
-////			KeyGamePad.KEY_RIGHT_1:			// = 13;	// 右上前
-////			KeyGamePad.KEY_RIGHT_2:			// = 14;	// 右上後
-////			KeyGamePad.KEY_CENTER_RIGHT:	// = 15;	// 中央右
 			} finally {
 				handler.postDelayed(this, interval);
 			}
@@ -1262,7 +1180,16 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	};
 
 	private int mCurrentPan = Integer.MAX_VALUE, mCurrentTilt = Integer.MAX_VALUE;
-	private long handleInputFromGamepad(final int gamepadType,
+
+	/**
+	 *
+	 * @param moveBy 0:マニュアル, 1:ローカルゲームパッド, 2:リモートゲームパッド
+	 * @param downs
+	 * @param down_times
+	 * @param analogSticks
+	 * @return
+	 */
+	private long handleInputFromGamepad(@MoveBy final int moveBy,
 		final boolean[] downs, final long[] down_times, final int[] analogSticks) {
 
 		long interval = 50;
@@ -1348,19 +1275,19 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		// 操作モード毎の処理
 		switch (mOperationType) {
 		case 0:	// 通常
-			gamepad_normal(gamepadType);
+			gamepad_normal(moveBy);
 			break;
 		case 1:	// 左右反転
-			gamepad_reverse(gamepadType);
+			gamepad_reverse(moveBy);
 			break;
 		case 2:	// mode1
-			gamepad_mode1(gamepadType);
+			gamepad_mode1(moveBy);
 			break;
 		case 3:	// mode2
-			gamepad_mode2(gamepadType);
+			gamepad_mode2(moveBy);
 			break;
 		default:
-			gamepad_normal(gamepadType);
+			gamepad_normal(moveBy);
 			break;
 		}
 //		KeyGamePad.KEY_LEFT_CENTER:		// = 0;
@@ -1382,11 +1309,6 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		return interval;
 	}
 
-	private volatile int mMoveByGamepad;
-	protected boolean isMoveByGamepad() {
-		return mMoveByGamepad != 0;
-	}
-
 	private static final float DEAD_ZONE = 2.0f;
 	private int prev_r, prev_p, prev_g, prev_y;
 	private int gamepad_r, gamepad_p, gamepad_g, gamepad_y;
@@ -1397,9 +1319,9 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param pitch
 	 * @param gaz
 	 * @param yaw
-	 * @param gamepadType 1:ローカル, 2:リモート
+	 * @param moveBy 0:マニュアル, 1:ローカルゲームパッド, 2:リモートゲームパッド
 	 */
-	private void gamepad_move(final float roll, final float pitch, final float gaz, final float yaw, final int gamepadType) {
+	private void gamepad_move(final float roll, final float pitch, final float gaz, final float yaw, @MoveBy final int moveBy) {
 		final int r = (int)(Math.abs(roll) > DEAD_ZONE ? roll : 0.0f);
 		final int p = (int)(Math.abs(pitch) > DEAD_ZONE ? pitch : 0.0f);
 		final int g = (int)(Math.abs(gaz) > DEAD_ZONE ? gaz : 0.0f);
@@ -1409,7 +1331,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 			gamepad_p = p;
 			gamepad_g = g;
 			gamepad_y = y;
-			sendMove(roll, pitch, gaz, yaw, gamepadType);
+			sendMove(roll, pitch, gaz, yaw, moveBy);
 		}
 	}
 
@@ -1421,7 +1343,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param yaw
 	 */
 	protected void sendMove(final float roll, final float pitch, final float gaz, final float yaw) {
-		sendMove(roll, pitch, gaz, yaw, 0);
+		sendMove(roll, pitch, gaz, yaw, MOVE_BY_MANUAL);
 	}
 
 	/**
@@ -1431,7 +1353,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @return
 	 */
 	protected boolean damp(final float dampRate) {
-		return sendMove(prev_r * dampRate, prev_p * dampRate, prev_g * dampRate, prev_y * dampRate, mMoveByGamepad);
+		return sendMove(prev_r * dampRate, prev_p * dampRate, prev_g * dampRate, prev_y * dampRate, mMoveBy);
 	}
 
 	/**
@@ -1440,11 +1362,11 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param pitch
 	 * @param gaz
 	 * @param yaw
-	 * @param moveByGamepad
+	 * @param moveBy 0:マニュアル, 1:ローカルゲームパッド, 2:リモートゲームパッド
 	 * @return 移動要求した時はtrue
 	 */
-	private boolean sendMove(final float roll, final float pitch, final float gaz, final float yaw, final int moveByGamepad) {
-		if (isMoveByGamepad() && (moveByGamepad == 0)) return false;
+	private boolean sendMove(final float roll, final float pitch, final float gaz, final float yaw, @MoveBy final int moveBy) {
+		if (isMoveByGamepad() && (moveBy == MOVE_BY_MANUAL)) return false;
 		final int r = (int)(Math.abs(roll) > DEAD_ZONE ? roll : 0.0f);
 		final int p = (int)(Math.abs(pitch) > DEAD_ZONE ? pitch : 0.0f);
 		final int g = (int)(Math.abs(gaz) > DEAD_ZONE ? gaz : 0.0f);
@@ -1458,7 +1380,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 			if ((r != 0) || (p != 0) || (g != 0) || (y != 0)) {
 				if (mFlightController != null) {
 					moved = true;
-					mMoveByGamepad = moveByGamepad;
+					mMoveBy = moveBy;
 					mFlightController.setMove(r, p, g, y);
 					mFlightRecorder.record(FlightRecorder.CMD_MOVE4, r, p, g, y);
 				}
@@ -1468,18 +1390,20 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 					mFlightRecorder.record(FlightRecorder.CMD_MOVE4, 0, 0, 0, 0);
 				}
 				moved = false;
-				mMoveByGamepad = 0;
+				mMoveBy = MOVE_BY_MANUAL;
 			}
 			onSendMove(r, p, g, y);
 		}
 		return move;
 	}
 
-	protected void onSendMove(final float roll, final float pitch, final float gaz, final float yaw) {
-	}
+	protected abstract void onSendMove(final float roll, final float pitch, final float gaz, final float yaw);
 
-	/** 通常操作モードでのゲームパッド入力処理 */
-	private void gamepad_normal(final int gamepadType) {
+	/**
+	 * 通常操作モードでのゲームパッド入力処理
+	 * @param moveBy 0:マニュアル, 1:ローカルゲームパッド, 2:リモートゲームパッド
+	 */
+	private void gamepad_normal(@MoveBy final int moveBy) {
 		// 右アナログスティックの左右=左右移動
 		final float roll = analogSticks[2] * mGamepadSensitivity * mGamepadScaleX;
 		// 右アナログスティックの上下=前後移動
@@ -1495,11 +1419,14 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				? -down_times[GamePadConst.KEY_LEFT_1]
 				: analogSticks[0])
 		);
-		gamepad_move(roll, pitch, gaz, yaw, gamepadType);
+		gamepad_move(roll, pitch, gaz, yaw, moveBy);
 	}
 
-	/** 左右反転操作モードでのゲームパッド入力処理 */
-	private void gamepad_reverse(final int gamepadType) {
+	/**
+	 * 左右反転操作モードでのゲームパッド入力処理
+	 * @param moveBy 0:マニュアル, 1:ローカルゲームパッド, 2:リモートゲームパッド
+	 */
+	private void gamepad_reverse(@MoveBy final int moveBy) {
 		// 左アナログスティックの左右=左右移動
 		final float roll = analogSticks[0] * mGamepadSensitivity * mGamepadScaleX;
 		// 左アナログスティックの上下=前後移動
@@ -1515,11 +1442,14 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				? -down_times[GamePadConst.KEY_LEFT_1]
 				: analogSticks[2])
 		);
-		gamepad_move(roll, pitch, gaz, yaw, gamepadType);
+		gamepad_move(roll, pitch, gaz, yaw, moveBy);
 	}
 
-	/** モード1でのゲームパッド入力処理 */
-	private void gamepad_mode1(final int gamepadType) {
+	/**
+	 * モード1でのゲームパッド入力処理
+	 * @param moveBy
+	 */
+	private void gamepad_mode1(@MoveBy final int moveBy) {
 		// モード1
 		// 右スティック: 左右=左右移動, 上下=上昇下降
 		// 左スティック: 左右=左右回転, 上下=前後移動
@@ -1538,11 +1468,14 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				? -down_times[GamePadConst.KEY_LEFT_1]
 				: analogSticks[0])
 		);
-		gamepad_move(roll, pitch, gaz, yaw, gamepadType);
+		gamepad_move(roll, pitch, gaz, yaw, moveBy);
 	}
 
-	/** モード2でのゲームパッド入力処理 */
-	private void gamepad_mode2(final int gamepadType) {
+	/**
+	 * モード2でのゲームパッド入力処理
+	 * @param moveBy
+	 */
+	private void gamepad_mode2(@MoveBy final int moveBy) {
 		// モード2
 		// 右スティック: 左右=左右移動, 上下=前後移動
 		// 左スティック: 左右=左右回転, 上下=上昇下降
@@ -1561,8 +1494,31 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				? -down_times[GamePadConst.KEY_LEFT_1]
 				: analogSticks[0])
 		);
-		gamepad_move(roll, pitch, gaz, yaw, gamepadType);
+		gamepad_move(roll, pitch, gaz, yaw, moveBy);
 	}
+
+	/**
+	 * ゲームパッドアクセス用のIGamePad参照を更新するためのRunnable
+	 */
+	private final Runnable mJoystickCheckTask = new Runnable() {
+		@Override
+		public void run() {
+			final Activity activity = getActivity();
+			if (activity instanceof IMainActivity) {
+				final IGamePad j1 = mJoystick != null ? mJoystick.get() : null;
+				if (j1 == null) {
+					final IGamePad joystick = ((IMainActivity)activity).getJoystick();
+					mJoystick = joystick != null ? new WeakReference<IGamePad>(joystick) : null;
+				}
+				final IGamePad j2 = mRemoteJoystick != null ? mRemoteJoystick.get() : null;
+				if (j2 == null) {
+					final IGamePad joystick = ((IMainActivity)activity).getRemoteJoystick();
+					mRemoteJoystick = joystick != null ? new WeakReference<IGamePad>(joystick) : null;
+				}
+				runOnUiThread(this, (j1 == null) ? 1000 : 3000);
+			}
+		}
+	};
 
 	private int mSurfaceId = 0;
 	private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {

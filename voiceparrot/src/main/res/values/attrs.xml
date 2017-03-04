@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<declare-styleable name="GamepadView">
+		<attr name="gamepadview_keypad_drawable" format="reference" />
+		<attr name="gamepadview_gamepad_drawable" format="reference" />
+	</declare-styleable>
+</resources>

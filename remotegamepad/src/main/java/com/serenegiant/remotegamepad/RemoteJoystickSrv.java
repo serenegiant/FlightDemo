@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import com.serenegiant.gamepad.IGamePad;
 import com.serenegiant.gamepad.Joystick;
 
 import java.security.cert.CertificateException;
@@ -36,7 +37,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
  * Netty経由でゲームパッド入力を他端末へ送信するためのクラス
  * 当然だけどアプリにネットワークアクセスのパーミッションが必要
  */
-public class RemoteJoystickSrv {
+public class RemoteJoystickSrv extends IGamePad {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = RemoteJoystickSrv.class.getSimpleName();
 
@@ -201,9 +202,22 @@ public class RemoteJoystickSrv {
 		return result;
 	}
 
+	@Override
+	public void updateState(final boolean[] downs, final long[] down_times,
+		final int[] analog_sticks, final boolean force) {
+		if (mJoystick != null) {
+			mJoystick.updateState(downs, down_times, analog_sticks, force);
+		}
+	}
+
+	public String getName() {
+		return mJoystick != null ? mJoystick.getName() : null;
+	}
+
 //================================================================================
 	private void callOnConnect(final String remote) {
 		if (DEBUG) Log.v(TAG, "callOnConnect:");
+		mEvent.clear();
 		try {
 			mListener.onConnect(this, remote);
 		} catch (final Exception e) {
@@ -213,6 +227,7 @@ public class RemoteJoystickSrv {
 
 	private void callOnDisconnect(final String remote) {
 		if (DEBUG) Log.v(TAG, "callOnDisconnect:");
+		mEvent.clear();
 		try {
 			mListener.onDisconnect(this, remote);
 		} catch (final Exception e) {
@@ -222,6 +237,7 @@ public class RemoteJoystickSrv {
 
 	private void callOnError(final Exception e) {
 		if (DEBUG) Log.v(TAG, "callOnError:");
+		mEvent.clear();
 		try {
 			mListener.onError(this, e);
 		} catch (final Exception e1) {

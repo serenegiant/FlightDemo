@@ -110,6 +110,7 @@ public class RemoteJoystick extends IGamePad {
 	public void release() {
 		if (DEBUG) Log.v(TAG, "release:");
 		mReleased = true;
+		mRemoteJoystickEvent.clear();
 		if (mGroup != null) {
 			mGroup.shutdownGracefully();
 			mGroup = null;
@@ -134,6 +135,7 @@ public class RemoteJoystick extends IGamePad {
 //================================================================================
 	private void callOnConnect() {
 		if (DEBUG) Log.v(TAG, "callOnConnect:");
+		mRemoteJoystickEvent.clear();
 		try {
 			mListener.onConnect(this);
 		} catch (final Exception e) {
@@ -143,6 +145,7 @@ public class RemoteJoystick extends IGamePad {
 
 	private void callOnDisconnect() {
 		if (DEBUG) Log.v(TAG, "callOnDisconnect:");
+		mRemoteJoystickEvent.clear();
 		try {
 			mListener.onDisconnect(this);
 		} catch (final Exception e) {
@@ -161,6 +164,7 @@ public class RemoteJoystick extends IGamePad {
 
 	private void callOnError(final Exception e) {
 		if (DEBUG) Log.v(TAG, "callOnError:");
+		mRemoteJoystickEvent.clear();
 		try {
 			mListener.onError(this, e);
 		} catch (final Exception e1) {
