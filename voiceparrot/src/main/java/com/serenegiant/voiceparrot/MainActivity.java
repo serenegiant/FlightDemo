@@ -5,13 +5,11 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.serenegiant.aceparrot.AbstractMainActivity;
-import com.serenegiant.gamepad.Joystick;
+import com.serenegiant.gamepad.IGamePad;
 import com.serenegiant.gamepad.RemoteJoystick;
 import com.serenegiant.net.UdpBeacon;
 
 import java.util.UUID;
-
-import javax.net.ssl.SSLException;
 
 public class MainActivity extends AbstractMainActivity {
 	// ActionBarActivityを継承するとPilotFragmentから戻る際にクラッシュする
@@ -48,10 +46,7 @@ public class MainActivity extends AbstractMainActivity {
 
 	@Override
 	protected void onDestroy() {
-		if (mRemoteJoystick != null) {
-			mRemoteJoystick.release();
-			mRemoteJoystick = null;
-		}
+		releaseJoystick();
 		if (mUdpBeacon != null) {
 			mUdpBeacon.release();
 			mUdpBeacon = null;
@@ -59,8 +54,21 @@ public class MainActivity extends AbstractMainActivity {
 		super.onDestroy();
 	}
 
+	@Override
 	protected Fragment createConnectionFragment() {
 		return MyInstructionsFragment.newInstance();
+	}
+
+	@Override
+	public IGamePad getRemoteJoystick() {
+		return mRemoteJoystick;
+	}
+
+	private void releaseJoystick() {
+		if (mRemoteJoystick != null) {
+			mRemoteJoystick.release();
+			mRemoteJoystick = null;
+		}
 	}
 
 	private final UdpBeacon.UdpBeaconCallback
@@ -83,10 +91,6 @@ public class MainActivity extends AbstractMainActivity {
 		}
 	};
 
-	public RemoteJoystick getRemoteJoystick() {
-		return mRemoteJoystick;
-	}
-
 	private final RemoteJoystick.RemoteJoystickListener
 		mRemoteJoystickListener = new RemoteJoystick.RemoteJoystickListener() {
 		@Override
@@ -100,6 +104,7 @@ public class MainActivity extends AbstractMainActivity {
 		@Override
 		public void onDisconnect(final RemoteJoystick joystick) {
 			if (DEBUG) Log.v(TAG, "onDisconnect:");
+			releaseJoystick();
 			if (mUdpBeacon != null) {
 				mUdpBeacon.start();
 			}
@@ -113,6 +118,7 @@ public class MainActivity extends AbstractMainActivity {
 		@Override
 		public void onError(final RemoteJoystick joystick, final Exception e) {
 			if (DEBUG) Log.v(TAG, "onError:");
+			releaseJoystick();
 		}
 	};
 }

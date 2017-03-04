@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.serenegiant.net.NetworkChangedReceiver;
 import com.serenegiant.net.UdpBeacon;
@@ -19,15 +21,21 @@ public class RemoteActivity extends Activity {
 
 	private UdpBeacon mUdpBeacon;
 	private RemoteJoystickSrv mRemoteJoystickSrv;
+	private ScrollView mScrollView;
+	private TextView mMessageTv;
 
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_remote);
+
+		mScrollView = (ScrollView)findViewById(R.id.scroll_view);
+		mMessageTv = (TextView)findViewById(R.id.message_textview);
+
 		NetworkChangedReceiver.enable(getApplicationContext());
 		mUdpBeacon = new UdpBeacon(mUdpBeaconCallback);
 		try {
-			mRemoteJoystickSrv = new RemoteJoystickSrv(this, 9876);
+			mRemoteJoystickSrv = new RemoteJoystickSrv(this, 9876, mRemoteJoystickSrvListener);
 		} catch (final Exception e) {
 			mRemoteJoystickSrv = null;
 			Log.w(TAG, e);
@@ -79,12 +87,14 @@ public class RemoteActivity extends Activity {
 
 	protected void internalOnResume() {
 		if (mUdpBeacon != null) {
+			addMessage("start beacon");
 			mUdpBeacon.start();
 		}
 	}
 
 	protected void internalOnPause() {
 		if (mUdpBeacon != null) {
+			addMessage("stop beacon");
 			mUdpBeacon.stop();
 		}
 	}
@@ -109,6 +119,7 @@ public class RemoteActivity extends Activity {
 
 	private void releaseJoystick() {
 		if (mRemoteJoystickSrv != null) {
+			addMessage("release joystick");
 			mRemoteJoystickSrv.release();
 			mRemoteJoystickSrv = null;
 		}
@@ -117,13 +128,45 @@ public class RemoteActivity extends Activity {
 	private final UdpBeacon.UdpBeaconCallback
 		mUdpBeaconCallback = new UdpBeacon.UdpBeaconCallback() {
 		@Override
-		public void onReceiveBeacon(final UUID uuid, final String s, final int i) {
-
+		public void onReceiveBeacon(final UUID uuid, final String remote, final int remote_port) {
+			addMessage(String.format("receive beacon from %s", remote));
 		}
 
 		@Override
 		public void onError(final Exception e) {
-
+			Log.w(TAG, e);
 		}
 	};
+
+	private final RemoteJoystickSrv.RemoteJoystickSrvListener
+		mRemoteJoystickSrvListener = new RemoteJoystickSrv.RemoteJoystickSrvListener() {
+		@Override
+		public void onConnect(final RemoteJoystickSrv srv, final String remote) {
+			addMessage(String.format("%s connected", remote));
+		}
+
+		@Override
+		public void onDisconnect(final RemoteJoystickSrv srv, final String remote) {
+			addMessage(String.format("%s disconnected", remote));
+		}
+
+		@Override
+		public void onError(final RemoteJoystickSrv srv, final Exception e) {
+			addMessage("Exception:" + e.getMessage());
+		}
+	};
+
+	private void addMessage(final String msg) {
+		if (mMessageTv != null) {
+			mMessageTv.post(new Runnable() {
+				@Override
+				public void run() {
+					mMessageTv.append(msg + "\n");
+					if (mScrollView != null) {
+						mScrollView.scrollTo(0, mMessageTv.getBottom());
+					}
+				}
+			});
+		}
+	}
 }

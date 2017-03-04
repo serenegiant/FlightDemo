@@ -11,4 +11,14 @@
 	android:paddingTop="@dimen/activity_vertical_margin"
 	tools:context="com.serenegiant.voiceparrot.RemoteActivity">
 
+	<ScrollView
+		android:id="@+id/scroll_view"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+		<TextView
+			android:id="@+id/message_textview"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"/>
+	</ScrollView>
+
 </RelativeLayout>

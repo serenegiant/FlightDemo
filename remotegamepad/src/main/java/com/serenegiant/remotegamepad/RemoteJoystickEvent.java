@@ -10,8 +10,8 @@ import com.serenegiant.gamepad.Joystick;
 import java.io.Serializable;
 
 /**
- * Created by saki on 2017/03/02.
- *
+ * Netty経由でゲームパッド入力を送受信するためのデータホルダークラス
+ * NettyのObjectEncoder/ObjectDecoderへ丸投げなのでSerializableを実装すること
  */
 public class RemoteJoystickEvent implements Parcelable, Serializable {
 
@@ -56,15 +56,15 @@ public class RemoteJoystickEvent implements Parcelable, Serializable {
 		dest.writeIntArray(analog_sticks);
 	}
 
-	public void set(@NonNull final RemoteJoystickEvent other) {
+	public synchronized void set(@NonNull final RemoteJoystickEvent other) {
 		other.updateState(downs, down_times, analog_sticks, false);
 	}
 
-	public void set(@NonNull final Joystick joystick) {
+	public synchronized void set(@NonNull final Joystick joystick) {
 		joystick.updateState(downs, down_times, analog_sticks, false);
 	}
 
-	public void updateState(final boolean[] downs, final long[] down_times,
+	public synchronized void updateState(final boolean[] downs, final long[] down_times,
 		final int[] analog_sticks, final boolean force) {
 
 		int n = downs != null ? downs.length : 0;
@@ -80,6 +80,20 @@ public class RemoteJoystickEvent implements Parcelable, Serializable {
 		n = analog_sticks != null ? analog_sticks.length : 0;
 		for (int i = 0, count = this.analog_sticks.length; (i < n) && (i < count); i++) {
 			analog_sticks[i] = this.analog_sticks[i];
+		}
+	}
+
+	public synchronized void clear() {
+		for (int i = 0, count = downs.length; i < count; i++) {
+			downs[i] = false;
+		}
+
+		for (int i = 0, count = down_times.length; i < count; i++) {
+			down_times[i] = 0;
+		}
+
+		for (int i = 0, count = analog_sticks.length; i < count; i++) {
+			analog_sticks[i] = 0;
 		}
 	}
 }

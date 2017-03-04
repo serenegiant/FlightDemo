@@ -25,12 +25,11 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
 /**
- * Created by saki on 2017/03/02.
- *
+ * Netty経由でリモートからのゲームパッド入力を受信するためのクラス
+ * 当然だけどアプリにネットワークアクセスのパーミッションが必要
  */
-
 public class RemoteJoystick extends IGamePad {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = RemoteJoystick.class.getSimpleName();
 
 	public interface RemoteJoystickListener {
@@ -42,11 +41,34 @@ public class RemoteJoystick extends IGamePad {
 
 //================================================================================
 	private final RemoteJoystickEvent mRemoteJoystickEvent = new RemoteJoystickEvent();
-	private final SslContext mSslContext;
-	private final RemoteJoystickListener mListener;
-	private EventLoopGroup mGroup;
 	private volatile boolean mReleased;
+	private final RemoteJoystickListener mListener;
+	// Netty関係のフィールド
+	private final SslContext mSslContext;
+	private EventLoopGroup mGroup;
 
+	/**
+	 * コンストラクタ
+	 * portはRemoteJoystickSrv#DEFAULT_PORT
+	 * @param host
+	 * @param listener
+	 * @throws SSLException
+	 * @throws InterruptedException
+	 */
+	public RemoteJoystick(final String host, @NonNull final RemoteJoystickListener listener)
+		throws SSLException, InterruptedException {
+
+		this(host, RemoteJoystickSrv.DEFAULT_PORT, listener);
+	}
+
+	/**
+	 * コンストラクタ
+	 * @param host
+	 * @param port
+	 * @param listener
+	 * @throws SSLException
+	 * @throws InterruptedException
+	 */
 	public RemoteJoystick(final String host, final int port, @NonNull final RemoteJoystickListener listener)
 		throws SSLException, InterruptedException {
 
@@ -95,6 +117,13 @@ public class RemoteJoystick extends IGamePad {
 		if (DEBUG) Log.v(TAG, "release:finished");
 	}
 
+	/**
+	 * リモートから送られてきたゲームパッド入力を読み込む
+	 * @param downs
+	 * @param down_times
+	 * @param analog_sticks
+	 * @param force
+	 */
 	@Override
 	public void updateState(final boolean[] downs, final long[] down_times,
 		final int[] analog_sticks, final boolean force) {
@@ -102,6 +131,7 @@ public class RemoteJoystick extends IGamePad {
 		mRemoteJoystickEvent.updateState(downs, down_times, analog_sticks, force);
 	}
 
+//================================================================================
 	private void callOnConnect() {
 		if (DEBUG) Log.v(TAG, "callOnConnect:");
 		try {
@@ -121,7 +151,7 @@ public class RemoteJoystick extends IGamePad {
 	}
 
 	private void callOnUpdate() {
-		if (DEBUG) Log.v(TAG, "callOnUpdate:");
+//		if (DEBUG) Log.v(TAG, "callOnUpdate:");
 		try {
 			mListener.onUpdate(this);
 		} catch (final Exception e) {
@@ -138,6 +168,9 @@ public class RemoteJoystick extends IGamePad {
 		}
 	}
 
+	/**
+	 * Nettyのイベント処理
+	 */
 	private class RemoteGamePadClientHandler extends ChannelInboundHandlerAdapter {
 //		@Override
 //		public void channelRegistered(final ChannelHandlerContext ctx) throws Exception {
@@ -155,7 +188,7 @@ public class RemoteJoystick extends IGamePad {
 		public void channelActive(final ChannelHandlerContext ctx) throws Exception {
 //			if (DEBUG) Log.v(TAG, "channelActive:");
 			if (!mReleased) {
-				ctx.writeAndFlush(1);
+				ctx.writeAndFlush(1);	// 何でもいいけどIntegerを送る
 				callOnConnect();
 			}
 		}
@@ -182,7 +215,7 @@ public class RemoteJoystick extends IGamePad {
 				callOnUpdate();
 			}
 			if (!mReleased) {
-				// 次のデータを要求
+				// 次のデータを要求, 何でもいいけどIntegerを送る
 				ctx.writeAndFlush(1);
 			}
 		}

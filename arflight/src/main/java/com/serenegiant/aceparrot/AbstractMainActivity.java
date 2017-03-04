@@ -21,6 +21,7 @@ import android.view.View;
 import com.parrot.arsdk.ARSDK;
 import com.parrot.arsdk.arsal.ARSALPrint;
 import com.parrot.arsdk.arsal.ARSAL_PRINT_LEVEL_ENUM;
+import com.serenegiant.gamepad.IGamePad;
 import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.net.NetworkChangedReceiver;
 import com.serenegiant.arflight.R;
@@ -407,8 +408,13 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 	}
 
 	@Override
-	public Joystick getJoystick() {
+	public IGamePad getJoystick() {
 		return mJoystick;
+	}
+
+	@Override
+	public IGamePad getRemoteJoystick() {
+		return null;
 	}
 
 }

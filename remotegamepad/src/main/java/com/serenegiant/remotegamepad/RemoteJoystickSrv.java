@@ -1,6 +1,7 @@
 package com.serenegiant.remotegamepad;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -32,27 +33,70 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 
 /**
- * Created by saki on 2017/03/02.
- *
+ * Netty経由でゲームパッド入力を他端末へ送信するためのクラス
+ * 当然だけどアプリにネットワークアクセスのパーミッションが必要
  */
 public class RemoteJoystickSrv {
-	private static final boolean DEBUG = true;	// FIXME 実働時はfalseにすること
+	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = RemoteJoystickSrv.class.getSimpleName();
 
+	/**
+	 * SSLを使うかどうか...今はSSLを使わない
+	 */
 	public static final boolean ENABLE_SSL = false;
+	/**
+	 * デフォルトのポート番号
+	 */
+	public static final int DEFAULT_PORT = 9876;
 
+	/**
+	 * RemoteJoystickSrvからのコールバックリスナー
+	 */
+	public interface RemoteJoystickSrvListener {
+		public void onConnect(final RemoteJoystickSrv srv, final String remote);
+		public void onDisconnect(final RemoteJoystickSrv srv, final String remote);
+		public void onError(final RemoteJoystickSrv srv, final Exception e);
+	}
+
+//================================================================================
 	private final Object mSync = new Object();
 	private final RemoteJoystickEvent mEvent = new RemoteJoystickEvent();
+	private final RemoteJoystickSrvListener mListener;
 	private Joystick mJoystick;
-
+	private volatile boolean mReleased;
+	// Netty関係のフィールド
 	private final SslContext mSslContext;
 	private EventLoopGroup mBossGroup;
 	private EventLoopGroup mWorkerGroup;
 	private Channel mChannel;
-	private volatile boolean mReleased;
 
-	public RemoteJoystickSrv(final Context context, final int port)
+	/**
+	 * コンストラクタ, portはDEFAULT_PORT
+	 * @param context
+	 * @param listener
+	 * @throws CertificateException
+	 * @throws SSLException
+	 * @throws InterruptedException
+	 */
+	public RemoteJoystickSrv(final Context context, @NonNull final RemoteJoystickSrvListener listener)
 		throws CertificateException, SSLException, InterruptedException {
+
+		this(context, DEFAULT_PORT, listener);
+	}
+
+	/**
+	 * コンストラクタ
+	 * @param context
+	 * @param port
+	 * @param listener
+	 * @throws CertificateException
+	 * @throws SSLException
+	 * @throws InterruptedException
+	 */
+	public RemoteJoystickSrv(final Context context, final int port, @NonNull final RemoteJoystickSrvListener listener)
+		throws CertificateException, SSLException, InterruptedException {
+
+		mListener = listener;
 
 		if (ENABLE_SSL) {
 			final SelfSignedCertificate ssc;
@@ -99,6 +143,10 @@ public class RemoteJoystickSrv {
 		super.finalize();
 	}
 
+	/**
+	 * 関連するリソースを開放する
+	 * 再利用は出来ない
+	 */
 	public void release() {
 		if (DEBUG) Log.v(TAG, "release:");
 		mReleased = true;
@@ -125,6 +173,12 @@ public class RemoteJoystickSrv {
 		if (DEBUG) Log.v(TAG, "release:finished");
 	}
 
+	/**
+	 * キー入力イベントの処理
+	 * Activity#dispatchKeyEventから呼ぶこと
+	 * @param event
+	 * @return
+	 */
 	public boolean dispatchKeyEvent(final KeyEvent event) {
 		final boolean result = mJoystick != null && mJoystick.dispatchKeyEvent(event);
 		if (result) {
@@ -133,6 +187,12 @@ public class RemoteJoystickSrv {
 		return result;
 	}
 
+	/**
+	 * モーションイベントの処理
+	 * Activity#dispatchGenericMotionEventから呼ぶこと
+	 * @param event
+	 * @return
+	 */
 	public boolean dispatchGenericMotionEvent(final MotionEvent event) {
 		final boolean result = mJoystick != null && mJoystick.dispatchGenericMotionEvent(event);
 		if (result) {
@@ -141,6 +201,37 @@ public class RemoteJoystickSrv {
 		return result;
 	}
 
+//================================================================================
+	private void callOnConnect(final String remote) {
+		if (DEBUG) Log.v(TAG, "callOnConnect:");
+		try {
+			mListener.onConnect(this, remote);
+		} catch (final Exception e) {
+			Log.w(TAG, e);
+		}
+	}
+
+	private void callOnDisconnect(final String remote) {
+		if (DEBUG) Log.v(TAG, "callOnDisconnect:");
+		try {
+			mListener.onDisconnect(this, remote);
+		} catch (final Exception e) {
+			Log.w(TAG, e);
+		}
+	}
+
+	private void callOnError(final Exception e) {
+		if (DEBUG) Log.v(TAG, "callOnError:");
+		try {
+			mListener.onError(this, e);
+		} catch (final Exception e1) {
+			Log.w(TAG, e1);
+		}
+	}
+
+	/**
+	 * Nettyからのイベント処理
+	 */
 	private class RemoteGamePadServerHandler extends ChannelInboundHandlerAdapter {
 //		@Override
 //		public void channelRegistered(final ChannelHandlerContext ctx) throws Exception {
@@ -154,17 +245,27 @@ public class RemoteJoystickSrv {
 //			if (DEBUG) Log.v(TAG, "channelUnregistered:");
 //		}
 
-//		@Override
-//		public void channelActive(final ChannelHandlerContext ctx) throws Exception {
-//			super.channelActive(ctx);
+		@Override
+		public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+			super.channelActive(ctx);
 //			if (DEBUG) Log.v(TAG, "channelActive:");
-//		}
+			try {
+				callOnConnect(ctx.channel().remoteAddress().toString());
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
+		}
 
-//		@Override
-//		public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
-//			super.channelInactive(ctx);
+		@Override
+		public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
+			super.channelInactive(ctx);
 //			if (DEBUG) Log.v(TAG, "channelInactive:");
-//		}
+			try {
+				callOnDisconnect(ctx.channel().remoteAddress().toString());
+			} catch (final Exception e) {
+				Log.w(TAG, e);
+			}
+		}
 
 //		@Override
 //		public void channelWritabilityChanged(final ChannelHandlerContext ctx) throws Exception {
@@ -191,6 +292,7 @@ public class RemoteJoystickSrv {
 		public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) throws Exception {
 			Log.w(TAG, cause);
 			ctx.close();
+			callOnError(new Exception (cause));
 		}
 	}
 

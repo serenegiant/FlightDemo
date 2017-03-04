@@ -32,7 +32,7 @@ import com.serenegiant.arflight.drone.IVideoScreen;
 import com.serenegiant.gameengine.v1.IModelView;
 import com.serenegiant.gameengine.IScreen;
 import com.serenegiant.gamepad.GamePadConst;
-import com.serenegiant.gamepad.Joystick;
+import com.serenegiant.gamepad.IGamePad;
 import com.serenegiant.math.Vector;
 import com.serenegiant.arflight.R;
 import com.serenegiant.utils.FileUtils;
@@ -94,7 +94,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	@Override
 	public void onDetach() {
 //		if (DEBUG) Log.v(TAG, "onDetach:");
-		mJoystick = null;
+		mJoystick = mRemoteJoystick = null;
 		mFlightRecorder.release();
 		mScriptFlight.release();
 		super.onDetach();
@@ -158,6 +158,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		final Activity activity = getActivity();
 		if (activity instanceof IMainActivity) {
 			mJoystick = ((IMainActivity)activity).getJoystick();
+			mRemoteJoystick = ((IMainActivity)activity).getRemoteJoystick();
 		}
 //		mControllerFrame.setKeepScreenOn(true);
 		startDeviceController();
@@ -173,7 +174,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	@Override
 	protected void internalOnPause() {
 //		if (DEBUG) Log.v(TAG, "internalOnPause:");
-		mJoystick = null;
+		mJoystick = mRemoteJoystick = null;
 		if (mModelView != null) {
 			mModelView.onPause();
 		}
@@ -492,6 +493,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 
 		private final float[] outR = new float[16];
 		private final float[] outR2 = new float[16];
+		@SuppressWarnings("SuspiciousNameCombination")
 		private void getOrientation(final float[] rotateMatrix, final float[] result) {
 
 			switch (mRotation) {
@@ -1115,14 +1117,14 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	}
 
 	private static final long YAW_LIMIT = 200;
-	private Joystick mJoystick;
+	private IGamePad mJoystick, mRemoteJoystick;
 	private final boolean[] downs = new boolean[GamePadConst.KEY_NUMS];
 	private final long[] down_times = new long[GamePadConst.KEY_NUMS];
 	private final int[] analogSticks = new int[4];
 	private volatile boolean moved;
 	/** ゲームパッド読み取りスレッドの実行部 */
 	private final Runnable mGamePadTask = new Runnable() {
-		private int mCurrentPan = Integer.MAX_VALUE, mCurrentTilt = Integer.MAX_VALUE;
+//		private int mCurrentPan = Integer.MAX_VALUE, mCurrentTilt = Integer.MAX_VALUE;
 
 		@Override
 		public void run() {
@@ -1135,129 +1137,254 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				if (mJoystick != null) {
 					mJoystick.updateState(downs, down_times, analogSticks, false);
 				}
-
-				// 左右の上端ボタン(手前側)を同時押しすると非常停止
-				if (((downs[GamePadConst.KEY_RIGHT_RIGHT] || downs[GamePadConst.KEY_RIGHT_1]))
-					&& (downs[GamePadConst.KEY_RIGHT_LEFT] || downs[GamePadConst.KEY_LEFT_1]) ) {
-					emergencyStop();
-					return;
+				interval = handleInputFromGamepad(1, downs, down_times, analogSticks);
+				if ((mMoveByGamepad == 0) && (mRemoteJoystick != null)) {
+					mRemoteJoystick.updateState(downs, down_times, analogSticks, false);
+					interval = handleInputFromGamepad(2, downs, down_times, analogSticks);
 				}
-
-				// 飛行していない時にL2/R2同時押しするとフラットトリム実行
-				if ((getState() == IFlightController.STATE_STARTED)
-					&& (getAlarm() == DroneStatus.ALARM_NON)
-					&& downs[GamePadConst.KEY_LEFT_2] && downs[GamePadConst.KEY_RIGHT_2]) {
-
-					mFlightController.requestFlatTrim();
-					return;
-				}
-
-				// L2押しながら左アナログスティックでカメラのpan/tilt
-				if (downs[GamePadConst.KEY_LEFT_2] && (mController instanceof ICameraController)) {
-					if (mCurrentPan > 100) {
-						mCurrentPan = ((ICameraController)mController).getPan();
-						mCurrentTilt = ((ICameraController)mController).getTilt();
-					}
-					final int pan = mCurrentPan;
-					final int tilt = mCurrentTilt;
-					// 左アナログスティックの左右=左右移動
-					int p = pan + (int)(analogSticks[0] / 51.2f);
-					if (p < -100) {
-						p = -100;
-					} else if (p > 100) {
-						p = 100;
-					}
-					// 左アナログスティックの上下=前後移動
-					int t = tilt + (int)(analogSticks[1] / 51.2f);
-					if (t < -100) {
-						t = -100;
-					} else if (t > 100) {
-						t = 100;
-					}
-//					if (DEBUG) Log.d(TAG, String.format("(%d,%d),pan=%d/%d,tilt=%d/%d", analogSticks[0], analogSticks[1], pan, p, tilt, t));
-					if ((p != pan) || (t != tilt)) {
-						((ICameraController)mController).sendCameraOrientation(t, p);
-						mCurrentPan = p;
-						mCurrentTilt = t;
-						return;
-					}
-					interval = 20;
-				} else {
-					mCurrentPan = mCurrentTilt = Integer.MAX_VALUE;
-				}
-
-				// R2押しながら左スティックでフリップ
-				if (downs[GamePadConst.KEY_RIGHT_2]) {
-					if (downs[GamePadConst.KEY_LEFT_LEFT]) {
-						flip(IFlightController.FLIP_LEFT);
-						return;
-					} if (downs[GamePadConst.KEY_LEFT_RIGHT]) {
-						flip(IFlightController.FLIP_RIGHT);
-						return;
-					} if (downs[GamePadConst.KEY_LEFT_UP]) {
-						flip(IFlightController.FLIP_FRONT);
-						return;
-					} if (downs[GamePadConst.KEY_LEFT_DOWN]) {
-						flip(IFlightController.FLIP_BACK);
-						return;
-					}
-				}
-
-				// 中央の右側ボタン[12]=着陸
-				if (downs[GamePadConst.KEY_CENTER_RIGHT]) {
-					landing();
-					return;
-				}
-				// 中央の左側ボタン[11]=離陸
-				if (downs[GamePadConst.KEY_CENTER_LEFT]) {
-					takeOff();
-					return;
-				}
-				// ここまでは共通操作の処理
-
-				// 操作モード毎の処理
-				switch (mOperationType) {
-				case 0:	// 通常
-					gamepad_normal();
-					break;
-				case 1:	// 左右反転
-					gamepad_reverse();
-					break;
-				case 2:	// mode1
-					gamepad_mode1();
-					break;
-				case 3:	// mode2
-					gamepad_mode2();
-					break;
-				default:
-					gamepad_normal();
-					break;
-				}
-//				KeyGamePad.KEY_LEFT_CENTER:		// = 0;
-//				KeyGamePad.KEY_LEFT_UP:			// = 1;
-//				KeyGamePad.KEY_LEFT_RIGHT:		// = 2;
-//				KeyGamePad.KEY_LEFT_DOWN:		// = 3;
-//				KeyGamePad.KEY_LEFT_LEFT:		// = 4;
-//				KeyGamePad.KEY_RIGHT_CENTER:	// = 5;
-//				KeyGamePad.KEY_RIGHT_UP:		// = 6;
-//				KeyGamePad.KEY_RIGHT_RIGHT:		// = 7;
-//				KeyGamePad.KEY_RIGHT_DOWN:		// = 8;
-//				KeyGamePad.KEY_RIGHT_LEFT:		// = 9;
-//				KeyGamePad.KEY_LEFT_1:			// = 10;	// 左上前
-//				KeyGamePad.KEY_LEFT_2:			// = 11;	// 左上後
-//				KeyGamePad.KEY_CENTER_LEFT:		// = 12;	// 中央左
-//				KeyGamePad.KEY_RIGHT_1:			// = 13;	// 右上前
-//				KeyGamePad.KEY_RIGHT_2:			// = 14;	// 右上後
-//				KeyGamePad.KEY_CENTER_RIGHT:	// = 15;	// 中央右
+//				// 左右の上端ボタン(手前側)を同時押しすると非常停止
+//				if (((downs[GamePadConst.KEY_RIGHT_RIGHT] || downs[GamePadConst.KEY_RIGHT_1]))
+//					&& (downs[GamePadConst.KEY_RIGHT_LEFT] || downs[GamePadConst.KEY_LEFT_1]) ) {
+//					emergencyStop();
+//					return;
+//				}
+//
+//				// 飛行していない時にL2/R2同時押しするとフラットトリム実行
+//				if ((getState() == IFlightController.STATE_STARTED)
+//					&& (getAlarm() == DroneStatus.ALARM_NON)
+//					&& downs[GamePadConst.KEY_LEFT_2] && downs[GamePadConst.KEY_RIGHT_2]) {
+//
+//					mFlightController.requestFlatTrim();
+//					return;
+//				}
+//
+//				// L2押しながら左アナログスティックでカメラのpan/tilt
+//				if (downs[GamePadConst.KEY_LEFT_2] && (mController instanceof ICameraController)) {
+//					if (mCurrentPan > 100) {
+//						mCurrentPan = ((ICameraController)mController).getPan();
+//						mCurrentTilt = ((ICameraController)mController).getTilt();
+//					}
+//					final int pan = mCurrentPan;
+//					final int tilt = mCurrentTilt;
+//					// 左アナログスティックの左右=左右移動
+//					int p = pan + (int)(analogSticks[0] / 51.2f);
+//					if (p < -100) {
+//						p = -100;
+//					} else if (p > 100) {
+//						p = 100;
+//					}
+//					// 左アナログスティックの上下=前後移動
+//					int t = tilt + (int)(analogSticks[1] / 51.2f);
+//					if (t < -100) {
+//						t = -100;
+//					} else if (t > 100) {
+//						t = 100;
+//					}
+////					if (DEBUG) Log.d(TAG, String.format("(%d,%d),pan=%d/%d,tilt=%d/%d", analogSticks[0], analogSticks[1], pan, p, tilt, t));
+//					if ((p != pan) || (t != tilt)) {
+//						((ICameraController)mController).sendCameraOrientation(t, p);
+//						mCurrentPan = p;
+//						mCurrentTilt = t;
+//						return;
+//					}
+//					interval = 20;
+//				} else {
+//					mCurrentPan = mCurrentTilt = Integer.MAX_VALUE;
+//				}
+//
+//				// R2押しながら左スティックでフリップ
+//				if (downs[GamePadConst.KEY_RIGHT_2]) {
+//					if (downs[GamePadConst.KEY_LEFT_LEFT]) {
+//						flip(IFlightController.FLIP_LEFT);
+//						return;
+//					} if (downs[GamePadConst.KEY_LEFT_RIGHT]) {
+//						flip(IFlightController.FLIP_RIGHT);
+//						return;
+//					} if (downs[GamePadConst.KEY_LEFT_UP]) {
+//						flip(IFlightController.FLIP_FRONT);
+//						return;
+//					} if (downs[GamePadConst.KEY_LEFT_DOWN]) {
+//						flip(IFlightController.FLIP_BACK);
+//						return;
+//					}
+//				}
+//
+//				// 中央の右側ボタン[12]=着陸
+//				if (downs[GamePadConst.KEY_CENTER_RIGHT]) {
+//					landing();
+//					return;
+//				}
+//				// 中央の左側ボタン[11]=離陸
+//				if (downs[GamePadConst.KEY_CENTER_LEFT]) {
+//					takeOff();
+//					return;
+//				}
+//				// ここまでは共通操作の処理
+//
+//				// 操作モード毎の処理
+//				switch (mOperationType) {
+//				case 0:	// 通常
+//					gamepad_normal();
+//					break;
+//				case 1:	// 左右反転
+//					gamepad_reverse();
+//					break;
+//				case 2:	// mode1
+//					gamepad_mode1();
+//					break;
+//				case 3:	// mode2
+//					gamepad_mode2();
+//					break;
+//				default:
+//					gamepad_normal();
+//					break;
+//				}
+////			KeyGamePad.KEY_LEFT_CENTER:		// = 0;
+////			KeyGamePad.KEY_LEFT_UP:			// = 1;
+////			KeyGamePad.KEY_LEFT_RIGHT:		// = 2;
+////			KeyGamePad.KEY_LEFT_DOWN:		// = 3;
+////			KeyGamePad.KEY_LEFT_LEFT:		// = 4;
+////			KeyGamePad.KEY_RIGHT_CENTER:	// = 5;
+////			KeyGamePad.KEY_RIGHT_UP:		// = 6;
+////			KeyGamePad.KEY_RIGHT_RIGHT:		// = 7;
+////			KeyGamePad.KEY_RIGHT_DOWN:		// = 8;
+////			KeyGamePad.KEY_RIGHT_LEFT:		// = 9;
+////			KeyGamePad.KEY_LEFT_1:			// = 10;	// 左上前
+////			KeyGamePad.KEY_LEFT_2:			// = 11;	// 左上後
+////			KeyGamePad.KEY_CENTER_LEFT:		// = 12;	// 中央左
+////			KeyGamePad.KEY_RIGHT_1:			// = 13;	// 右上前
+////			KeyGamePad.KEY_RIGHT_2:			// = 14;	// 右上後
+////			KeyGamePad.KEY_CENTER_RIGHT:	// = 15;	// 中央右
 			} finally {
 				handler.postDelayed(this, interval);
 			}
 		}
 	};
 
-	private volatile boolean mMoveByGamepad;
+	private int mCurrentPan = Integer.MAX_VALUE, mCurrentTilt = Integer.MAX_VALUE;
+	private long handleInputFromGamepad(final int gamepadType,
+		final boolean[] downs, final long[] down_times, final int[] analogSticks) {
+
+		long interval = 50;
+		// 左右の上端ボタン(手前側)を同時押しすると非常停止
+		if (((downs[GamePadConst.KEY_RIGHT_RIGHT] || downs[GamePadConst.KEY_RIGHT_1]))
+			&& (downs[GamePadConst.KEY_RIGHT_LEFT] || downs[GamePadConst.KEY_LEFT_1]) ) {
+			emergencyStop();
+			return interval;
+		}
+
+		// 飛行していない時にL2/R2同時押しするとフラットトリム実行
+		if ((getState() == IFlightController.STATE_STARTED)
+			&& (getAlarm() == DroneStatus.ALARM_NON)
+			&& downs[GamePadConst.KEY_LEFT_2] && downs[GamePadConst.KEY_RIGHT_2]) {
+
+			mFlightController.requestFlatTrim();
+			return interval;
+		}
+
+		// L2押しながら左アナログスティックでカメラのpan/tilt
+		if (downs[GamePadConst.KEY_LEFT_2] && (mController instanceof ICameraController)) {
+			if (mCurrentPan > 100) {
+				mCurrentPan = ((ICameraController)mController).getPan();
+				mCurrentTilt = ((ICameraController)mController).getTilt();
+			}
+			final int pan = mCurrentPan;
+			final int tilt = mCurrentTilt;
+			// 左アナログスティックの左右=左右移動
+			int p = pan + (int)(analogSticks[0] / 51.2f);
+			if (p < -100) {
+				p = -100;
+			} else if (p > 100) {
+				p = 100;
+			}
+			// 左アナログスティックの上下=前後移動
+			int t = tilt + (int)(analogSticks[1] / 51.2f);
+			if (t < -100) {
+				t = -100;
+			} else if (t > 100) {
+				t = 100;
+			}
+//					if (DEBUG) Log.d(TAG, String.format("(%d,%d),pan=%d/%d,tilt=%d/%d", analogSticks[0], analogSticks[1], pan, p, tilt, t));
+			if ((p != pan) || (t != tilt)) {
+				((ICameraController)mController).sendCameraOrientation(t, p);
+				mCurrentPan = p;
+				mCurrentTilt = t;
+				return interval;
+			}
+			interval = 20;
+		} else {
+			mCurrentPan = mCurrentTilt = Integer.MAX_VALUE;
+		}
+
+		// R2押しながら左スティックでフリップ
+		if (downs[GamePadConst.KEY_RIGHT_2]) {
+			if (downs[GamePadConst.KEY_LEFT_LEFT]) {
+				flip(IFlightController.FLIP_LEFT);
+				return interval;
+			} if (downs[GamePadConst.KEY_LEFT_RIGHT]) {
+				flip(IFlightController.FLIP_RIGHT);
+				return interval;
+			} if (downs[GamePadConst.KEY_LEFT_UP]) {
+				flip(IFlightController.FLIP_FRONT);
+				return interval;
+			} if (downs[GamePadConst.KEY_LEFT_DOWN]) {
+				flip(IFlightController.FLIP_BACK);
+				return interval;
+			}
+		}
+
+		// 中央の右側ボタン[12]=着陸
+		if (downs[GamePadConst.KEY_CENTER_RIGHT]) {
+			landing();
+			return interval;
+		}
+		// 中央の左側ボタン[11]=離陸
+		if (downs[GamePadConst.KEY_CENTER_LEFT]) {
+			takeOff();
+			return interval;
+		}
+		// ここまでは共通操作の処理
+
+		// 操作モード毎の処理
+		switch (mOperationType) {
+		case 0:	// 通常
+			gamepad_normal(gamepadType);
+			break;
+		case 1:	// 左右反転
+			gamepad_reverse(gamepadType);
+			break;
+		case 2:	// mode1
+			gamepad_mode1(gamepadType);
+			break;
+		case 3:	// mode2
+			gamepad_mode2(gamepadType);
+			break;
+		default:
+			gamepad_normal(gamepadType);
+			break;
+		}
+//		KeyGamePad.KEY_LEFT_CENTER:		// = 0;
+//		KeyGamePad.KEY_LEFT_UP:			// = 1;
+//		KeyGamePad.KEY_LEFT_RIGHT:		// = 2;
+//		KeyGamePad.KEY_LEFT_DOWN:		// = 3;
+//		KeyGamePad.KEY_LEFT_LEFT:		// = 4;
+//		KeyGamePad.KEY_RIGHT_CENTER:	// = 5;
+//		KeyGamePad.KEY_RIGHT_UP:		// = 6;
+//		KeyGamePad.KEY_RIGHT_RIGHT:		// = 7;
+//		KeyGamePad.KEY_RIGHT_DOWN:		// = 8;
+//		KeyGamePad.KEY_RIGHT_LEFT:		// = 9;
+//		KeyGamePad.KEY_LEFT_1:			// = 10;	// 左上前
+//		KeyGamePad.KEY_LEFT_2:			// = 11;	// 左上後
+//		KeyGamePad.KEY_CENTER_LEFT:		// = 12;	// 中央左
+//		KeyGamePad.KEY_RIGHT_1:			// = 13;	// 右上前
+//		KeyGamePad.KEY_RIGHT_2:			// = 14;	// 右上後
+//		KeyGamePad.KEY_CENTER_RIGHT:	// = 15;	// 中央右
+		return interval;
+	}
+
+	private volatile int mMoveByGamepad;
 	protected boolean isMoveByGamepad() {
-		return mMoveByGamepad;
+		return mMoveByGamepad != 0;
 	}
 
 	private static final float DEAD_ZONE = 2.0f;
@@ -1270,8 +1397,9 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param pitch
 	 * @param gaz
 	 * @param yaw
+	 * @param gamepadType 1:ローカル, 2:リモート
 	 */
-	private void gamepad_move(final float roll, final float pitch, final float gaz, final float yaw) {
+	private void gamepad_move(final float roll, final float pitch, final float gaz, final float yaw, final int gamepadType) {
 		final int r = (int)(Math.abs(roll) > DEAD_ZONE ? roll : 0.0f);
 		final int p = (int)(Math.abs(pitch) > DEAD_ZONE ? pitch : 0.0f);
 		final int g = (int)(Math.abs(gaz) > DEAD_ZONE ? gaz : 0.0f);
@@ -1281,7 +1409,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 			gamepad_p = p;
 			gamepad_g = g;
 			gamepad_y = y;
-			sendMove(roll, pitch, gaz, yaw, true);
+			sendMove(roll, pitch, gaz, yaw, gamepadType);
 		}
 	}
 
@@ -1293,7 +1421,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param yaw
 	 */
 	protected void sendMove(final float roll, final float pitch, final float gaz, final float yaw) {
-		sendMove(roll, pitch, gaz, yaw, false);
+		sendMove(roll, pitch, gaz, yaw, 0);
 	}
 
 	/**
@@ -1303,7 +1431,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @return
 	 */
 	protected boolean damp(final float dampRate) {
-		return sendMove(prev_r * dampRate, prev_p * dampRate, prev_g * dampRate, prev_y * dampRate, isMoveByGamepad());
+		return sendMove(prev_r * dampRate, prev_p * dampRate, prev_g * dampRate, prev_y * dampRate, mMoveByGamepad);
 	}
 
 	/**
@@ -1315,8 +1443,8 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	 * @param moveByGamepad
 	 * @return 移動要求した時はtrue
 	 */
-	private boolean sendMove(final float roll, final float pitch, final float gaz, final float yaw, final boolean moveByGamepad) {
-		if (isMoveByGamepad() && !moveByGamepad) return false;
+	private boolean sendMove(final float roll, final float pitch, final float gaz, final float yaw, final int moveByGamepad) {
+		if (isMoveByGamepad() && (moveByGamepad == 0)) return false;
 		final int r = (int)(Math.abs(roll) > DEAD_ZONE ? roll : 0.0f);
 		final int p = (int)(Math.abs(pitch) > DEAD_ZONE ? pitch : 0.0f);
 		final int g = (int)(Math.abs(gaz) > DEAD_ZONE ? gaz : 0.0f);
@@ -1339,7 +1467,8 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 					mFlightController.setMove(0, 0, 0, 0);
 					mFlightRecorder.record(FlightRecorder.CMD_MOVE4, 0, 0, 0, 0);
 				}
-				moved = mMoveByGamepad = false;
+				moved = false;
+				mMoveByGamepad = 0;
 			}
 			onSendMove(r, p, g, y);
 		}
@@ -1350,7 +1479,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	}
 
 	/** 通常操作モードでのゲームパッド入力処理 */
-	private void gamepad_normal() {
+	private void gamepad_normal(final int gamepadType) {
 		// 右アナログスティックの左右=左右移動
 		final float roll = analogSticks[2] * mGamepadSensitivity * mGamepadScaleX;
 		// 右アナログスティックの上下=前後移動
@@ -1366,11 +1495,11 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				? -down_times[GamePadConst.KEY_LEFT_1]
 				: analogSticks[0])
 		);
-		gamepad_move(roll, pitch, gaz, yaw);
+		gamepad_move(roll, pitch, gaz, yaw, gamepadType);
 	}
 
 	/** 左右反転操作モードでのゲームパッド入力処理 */
-	private void gamepad_reverse() {
+	private void gamepad_reverse(final int gamepadType) {
 		// 左アナログスティックの左右=左右移動
 		final float roll = analogSticks[0] * mGamepadSensitivity * mGamepadScaleX;
 		// 左アナログスティックの上下=前後移動
@@ -1386,11 +1515,11 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				? -down_times[GamePadConst.KEY_LEFT_1]
 				: analogSticks[2])
 		);
-		gamepad_move(roll, pitch, gaz, yaw);
+		gamepad_move(roll, pitch, gaz, yaw, gamepadType);
 	}
 
 	/** モード1でのゲームパッド入力処理 */
-	private void gamepad_mode1() {
+	private void gamepad_mode1(final int gamepadType) {
 		// モード1
 		// 右スティック: 左右=左右移動, 上下=上昇下降
 		// 左スティック: 左右=左右回転, 上下=前後移動
@@ -1409,11 +1538,11 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				? -down_times[GamePadConst.KEY_LEFT_1]
 				: analogSticks[0])
 		);
-		gamepad_move(roll, pitch, gaz, yaw);
+		gamepad_move(roll, pitch, gaz, yaw, gamepadType);
 	}
 
 	/** モード2でのゲームパッド入力処理 */
-	private void gamepad_mode2() {
+	private void gamepad_mode2(final int gamepadType) {
 		// モード2
 		// 右スティック: 左右=左右移動, 上下=前後移動
 		// 左スティック: 左右=左右回転, 上下=上昇下降
@@ -1432,7 +1561,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 				? -down_times[GamePadConst.KEY_LEFT_1]
 				: analogSticks[0])
 		);
-		gamepad_move(roll, pitch, gaz, yaw);
+		gamepad_move(roll, pitch, gaz, yaw, gamepadType);
 	}
 
 	private int mSurfaceId = 0;
