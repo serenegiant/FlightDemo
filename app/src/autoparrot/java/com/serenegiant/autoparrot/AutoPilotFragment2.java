@@ -38,7 +38,12 @@ public class AutoPilotFragment2 extends BaseAutoPilotFragment {
 		super();
 		// デフォルトコンストラクタが必要
 	}
-
+	
+	@Override
+	protected void onSendMove(final float roll, final float pitch, final float gaz, final float yaw) {
+		
+	}
+	
 	protected void startImageProcessor(final int processing_width, final int processing_height) {
 		if (DEBUG) Log.v(TAG, "startImageProcessor:");
 		super.startImageProcessor(processing_width, processing_height);
