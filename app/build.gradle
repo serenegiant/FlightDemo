@@ -55,17 +55,17 @@ android {
 	}
 
 	applicationVariants.all { variant ->
-		if (variant.buildType.name.equals("release")) {
+//		if (variant.buildType.name.equals("release")) {
 			variant.outputs.each { output ->
 				if (output.outputFile != null && output.outputFile.name.endsWith('.apk')) {
 					def list = applicationId.split("\\.")
 					def appName = list[list.length - 1]
 //					def date = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())
-					def apkName = "${appName}_r${versionName}_v${versionCode}.apk"
+					def apkName = "${appName}_${variant.buildType.name}_r${versionName}_v${versionCode}.apk"
 					output.outputFile = new File(output.outputFile.parent, apkName)
 				}
 			}
-		}
+//		}
 	}
 
 	signingConfigs {
