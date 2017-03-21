@@ -1,6 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
-	<string name="license_arsdk" tools:ignore="MissingTranslation" >
+<!--
+# By downloading, copying, installing or using the software you agree to this license.
+# If you do not agree to this license, do not download, install,
+# copy or use the software.
+#
+#
+#                           License Agreement
+#                        (3-clause BSD License)
+#
+# Copyright (C) 2015-2017, saki t_saki@serenegiant.com
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#   * Redistributions of source code must retain the above copyright notice,
+#     this list of conditions and the following disclaimer.
+#
+#   * Redistributions in binary form must reproduce the above copyright notice,
+#     this list of conditions and the following disclaimer in the documentation
+#     and/or other materials provided with the distribution.
+#
+#   * Neither the names of the copyright holders nor the names of the contributors
+#     may be used to endorse or promote products derived from this software
+#     without specific prior written permission.
+#
+# This software is provided by the copyright holders and contributors "as is" and
+# any express or implied warranties, including, but not limited to, the implied
+# warranties of merchantability and fitness for a particular purpose are disclaimed.
+# In no event shall copyright holders or contributors be liable for any direct,
+# indirect, incidental, special, exemplary, or consequential damages
+# (including, but not limited to, procurement of substitute goods or services;
+# loss of use, data, or profits; or business interruption) however caused
+# and on any theory of liability, whether in contract, strict liability,
+# or tort (including negligence or otherwise) arising in any way out of
+# the use of this software, even if advised of the possibility of such damage.
+-->
+<resources>
+	<string name="license_arsdk" translatable="false" >
 		********************************************************************************\n
 		ARSDK\n
 		********************************************************************************\n
@@ -33,7 +69,7 @@
 		OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF\n
 		SUCH DAMAGE.\n
 	</string>
-	<string name="license_opencv" tools:ignore="MissingTranslation" >
+	<string name="license_opencv" translatable="false" >
 		********************************************************************************\n
 		OpenCV\n
 		********************************************************************************\n
@@ -78,5 +114,22 @@
 		and on any theory of liability, whether in contract, strict liability,\n
 		or tort (including negligence or otherwise) arising in any way out of\n
 		the use of this software, even if advised of the possibility of such damage.\n
+	</string>
+	<string name="license_android" translatable="false">
+		\n
+		Copyright (C) 2005-2013 The Android Open Source Project\n
+		\n
+		Licensed under the Apache License, Version 2.0 (the "License");\n
+		you may not use this file except in compliance with the License.\n
+		You may obtain a copy of the License at\n
+		\n
+		     http://www.apache.org/licenses/LICENSE-2.0\n
+		\n
+		Unless required by applicable law or agreed to in writing, software\n
+		distributed under the License is distributed on an "AS IS" BASIS,\n
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+		See the License for the specific language governing permissions and\n
+		limitations under the License.\n
+		\n
 	</string>
 </resources>
