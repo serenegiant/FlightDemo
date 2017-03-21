@@ -10,7 +10,7 @@ copy or use the software.
                For Open Source Computer Vision Library
                        (3-clause BSD License)
 
-Copyright (C) 2015-2016, saki t_saki@serenegiant.com
+Copyright (C) 2015-2017, saki t_saki@serenegiant.com
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
