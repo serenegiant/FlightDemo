@@ -5,7 +5,6 @@
 # *
 # *
 # *                           License Agreement
-# *                For Open Source Computer Vision Library
 # *                        (3-clause BSD License)
 # *
 # * Copyright (C) 2014-2017, saki t_saki@serenegiant.com
