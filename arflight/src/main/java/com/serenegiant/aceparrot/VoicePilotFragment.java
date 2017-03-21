@@ -76,7 +76,6 @@ public class VoicePilotFragment extends PilotFragment {
 	private static final String TAG = VoicePilotFragment.class.getSimpleName();
 
 	public static VoicePilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
-		VoiceFeedbackSettings.init();
 		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
 		final VoicePilotFragment fragment = new VoicePilotFragment();
 		fragment.setDevice(device, info);
