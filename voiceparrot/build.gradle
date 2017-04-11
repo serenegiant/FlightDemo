@@ -15,8 +15,8 @@ android {
 		applicationId "com.serenegiant.voiceparrot"
 		manifestPlaceholders = [appName:"@string/app_name",remoteAppName:"@string/remote_app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
-		versionCode 61
-		versionName '0.74.0'
+		versionCode 62
+		versionName '0.74.1'
 
 		multiDexEnabled true
 	}
