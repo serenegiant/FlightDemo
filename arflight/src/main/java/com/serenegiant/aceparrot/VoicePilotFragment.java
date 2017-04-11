@@ -139,7 +139,7 @@ public class VoicePilotFragment extends PilotFragment {
 
 		if (mScriptVoiceRecognition) {
 			synchronized (VoiceConst.SCRIPT_MAP) {
-				final Map<String, Integer> map = VoiceConst.SCRIPT_MAP;
+				final Map<String, Long> map = VoiceConst.SCRIPT_MAP;
 				map.clear();
 				final int n = mScripts.size();
 				for (int i = 0; i < n; i++) {
@@ -148,10 +148,10 @@ public class VoicePilotFragment extends PilotFragment {
 					if (script.name.contains("|")) {
 						final String[] na = script.name.split("|");
 						for (final String s: na) {
-							map.put(s, i);
+							map.put(s, (long)i);
 						}
 					} else {
-						map.put(script.name, i);
+						map.put(script.name, (long)i);
 					}
 				}
 			}
