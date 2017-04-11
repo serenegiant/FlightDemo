@@ -91,6 +91,8 @@ public class VoiceConst {
 	private static final long CMD_DOWN_MAX		= CMD_MOVE | DIR_DOWN | (MAX_COUNT << 52);
 	// 挨拶コマンド
 	public static final long CMD_GREETINGS_HELLO	= CMD_GREETINGS | 0x00000001;
+	// 複合コマンド
+	public static final long CMD_COMPLEX_UP_TURN_LANDING = CMD_COMPLEX | 0x00000001;
 	// エラーコマンド
 	public static final long CMD_SR_ERROR_AUDIO	= CMD_ERROR | SpeechRecognizer.ERROR_AUDIO;
 	public static final long CMD_SR_ERROR_CLIENT	= CMD_ERROR | SpeechRecognizer.ERROR_CLIENT;
@@ -536,6 +538,16 @@ public class VoiceConst {
 		ACTION_MAP.put("movimiento", (long)CMD_MOVE);
 		ACTION_MAP.put("bewegung", (long)CMD_MOVE);
 
+		ACTION_MAP.put("働けよ", CMD_COMPLEX_UP_TURN_LANDING);
+		ACTION_MAP.put("はたらけよ", CMD_COMPLEX_UP_TURN_LANDING);
+		ACTION_MAP.put("ハタラケヨ", CMD_COMPLEX_UP_TURN_LANDING);
+		ACTION_MAP.put("働け", CMD_COMPLEX_UP_TURN_LANDING);
+		ACTION_MAP.put("はたらけ", CMD_COMPLEX_UP_TURN_LANDING);
+		ACTION_MAP.put("ハタラケ", CMD_COMPLEX_UP_TURN_LANDING);
+
+		ACTION_MAP.put("仕事しろ", CMD_FORWARD_MAX);
+		ACTION_MAP.put("シゴトシロ", CMD_FORWARD_MAX);
+		ACTION_MAP.put("しごとしろ", CMD_FORWARD_MAX);
 
 //--------------------------------------------------------------------------------
 		ACTION_MAP_MAMBO.put("開け", (long)CMD_CLAW_OPEN);
