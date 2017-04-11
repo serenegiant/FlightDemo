@@ -227,7 +227,9 @@ public class VoiceConst {
 						// 左スピン
 						return ((long)(-cnt & 0x03) << 32) | actionCmd | DIR_LEFT;
 					}
-
+				} else if ((actionCmd & CMD_MASK) == CMD_COMPLEX) {
+					// 複合コマンドの時はそのまま返す
+					return actionCmd;
 				} else {
 					final Set<String> dirs = DIR_MAP.keySet();
 					for (final String dir: dirs) {
