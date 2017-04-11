@@ -65,7 +65,7 @@ task clean(type: Delete) {
 ext {
 	supportLibVersion = '25.3.1'  // variable that can be referenced to keep support libs consistent
 	commonLibVersion= '1.5.18'
-	gamepadLibVersion='0.1.1'
+	gamepadLibVersion='0.1.2'
 	arflightLibVersion = '0.4.0'
 	versionBuildTool = '25'
 	versionCompiler = 25
