@@ -351,7 +351,7 @@ public class VoicePilotFragment extends PilotFragment {
 				break;
 			case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
 				// 権限無し
-				cmd = CMD_SR_ERROR_INSUFFICIENT_PERMISSIONS;
+//				cmd = CMD_SR_ERROR_INSUFFICIENT_PERMISSIONS;
 				showToast(R.string.error_voice_no_permission, Toast.LENGTH_LONG);
 				return;
 			case SpeechRecognizer.ERROR_NETWORK:
@@ -372,7 +372,7 @@ public class VoicePilotFragment extends PilotFragment {
 			case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
 				// RecognitionServiceへ要求出せず
 				// 性能が低い端末の場合に起こるらしいので、一旦破棄してから1秒後に再チャレンジ
-				cmd = CMD_SR_ERROR_RECOGNIZER_BUSY;
+//				cmd = CMD_SR_ERROR_RECOGNIZER_BUSY;
 				showToast(R.string.error_voice_unavailable, Toast.LENGTH_SHORT);
 				runOnUiThread(new Runnable() {
 					@Override
