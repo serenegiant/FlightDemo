@@ -60,7 +60,7 @@ public class VoiceConst {
 	public static final int DIR_LEFT			= 0x00000008;
 	public static final int DIR_UP				= 0x00000010;
 	public static final int DIR_DOWN			= 0x00000020;
-	private static final int DIR_SAME			= 0x10000000;
+	private static final int DIR_SAME			= 0x00000080;
 	// コマンド...上位24ビット
 	public static final int CMD_NON				= 0x00000000;
 	public static final int CMD_STOP			= 0x00000100;
@@ -77,10 +77,11 @@ public class VoiceConst {
 	public static final int CMD_CLAW_TOGGLE		= 0x00080000;
 	public static final int CMD_ERROR			= 0x00100000;
 	public static final int CMD_GREETINGS		= 0x00200000;
+	public static final int CMD_COMPLEX			= 0x80000000;
 	// コマンドマスク
-	public static final int CMD_MASK_CLAW		= CMD_CLAW_OPEN | CMD_CLAW_CLOSE | CMD_CLAW_TOGGLE;
-	public static final int CMD_MASK_MAMBO		= CMD_FIRE | CMD_MASK_CLAW;
-	public static final int CMD_MASK			= 0xffffff00;
+	public static final long CMD_MASK_CLAW		= CMD_CLAW_OPEN | CMD_CLAW_CLOSE | CMD_CLAW_TOGGLE;
+	public static final long CMD_MASK_MAMBO		= CMD_FIRE | CMD_MASK_CLAW;
+	public static final long CMD_MASK			= 0xffffff00;
 	// 回数フラグの上限値
 	private static final long CMD_FORWARD_MAX	= CMD_MOVE | DIR_FORWARD | (MAX_COUNT << 32);
 	private static final long CMD_RIGHT_MAX		= CMD_MOVE | DIR_RIGHT | (MAX_COUNT << 36);
@@ -89,21 +90,23 @@ public class VoiceConst {
 	private static final long CMD_UP_MAX		= CMD_MOVE | DIR_UP | (MAX_COUNT << 48);
 	private static final long CMD_DOWN_MAX		= CMD_MOVE | DIR_DOWN | (MAX_COUNT << 52);
 	// 挨拶コマンド
-	public static final int CMD_GREETINGS_HELLO	= CMD_GREETINGS | 0x00000001;
+	public static final long CMD_GREETINGS_HELLO	= CMD_GREETINGS | 0x00000001;
+	// 複合コマンド
+	public static final long CMD_COMPLEX_UP_TURN_LANDING = CMD_COMPLEX | 0x00000001;
 	// エラーコマンド
-	public static final int CMD_SR_ERROR_AUDIO	= CMD_ERROR | SpeechRecognizer.ERROR_AUDIO;
-	public static final int CMD_SR_ERROR_CLIENT	= CMD_ERROR | SpeechRecognizer.ERROR_CLIENT;
-	public static final int CMD_SR_ERROR_INSUFFICIENT_PERMISSIONS	= CMD_ERROR | SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS;
-	public static final int CMD_SR_ERROR_NETWORK	= CMD_ERROR | SpeechRecognizer.ERROR_NETWORK;
-	public static final int CMD_SR_ERROR_NETWORK_TIMEOUT	= CMD_ERROR | SpeechRecognizer.ERROR_NETWORK_TIMEOUT;
-	public static final int CMD_SR_ERROR_NO_MATCH	= CMD_ERROR | SpeechRecognizer.ERROR_NO_MATCH;
-	public static final int CMD_SR_ERROR_RECOGNIZER_BUSY	= CMD_ERROR | SpeechRecognizer.ERROR_RECOGNIZER_BUSY;
-	public static final int CMD_SR_ERROR_SERVER	= CMD_ERROR | SpeechRecognizer.ERROR_SERVER;
-	public static final int CMD_SR_ERROR_SPEECH_TIMEOUT	= CMD_ERROR | SpeechRecognizer.ERROR_SPEECH_TIMEOUT;
+	public static final long CMD_SR_ERROR_AUDIO	= CMD_ERROR | SpeechRecognizer.ERROR_AUDIO;
+	public static final long CMD_SR_ERROR_CLIENT	= CMD_ERROR | SpeechRecognizer.ERROR_CLIENT;
+	public static final long CMD_SR_ERROR_INSUFFICIENT_PERMISSIONS	= CMD_ERROR | SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS;
+	public static final long CMD_SR_ERROR_NETWORK	= CMD_ERROR | SpeechRecognizer.ERROR_NETWORK;
+	public static final long CMD_SR_ERROR_NETWORK_TIMEOUT	= CMD_ERROR | SpeechRecognizer.ERROR_NETWORK_TIMEOUT;
+	public static final long CMD_SR_ERROR_NO_MATCH	= CMD_ERROR | SpeechRecognizer.ERROR_NO_MATCH;
+	public static final long CMD_SR_ERROR_RECOGNIZER_BUSY	= CMD_ERROR | SpeechRecognizer.ERROR_RECOGNIZER_BUSY;
+	public static final long CMD_SR_ERROR_SERVER	= CMD_ERROR | SpeechRecognizer.ERROR_SERVER;
+	public static final long CMD_SR_ERROR_SPEECH_TIMEOUT	= CMD_ERROR | SpeechRecognizer.ERROR_SPEECH_TIMEOUT;
 
-	public static final int CMD_ERROR_BATTERY_LOW_CRITICAL = CMD_ERROR | 0x00000100;
-	public static final int CMD_ERROR_BATTERY_LOW = CMD_ERROR | 0x00000200;
-	public static final int CMD_ERROR_MOTOR = CMD_ERROR | 0x00000400;
+	public static final long CMD_ERROR_BATTERY_LOW_CRITICAL = CMD_ERROR | 0x00000100;
+	public static final long CMD_ERROR_BATTERY_LOW = CMD_ERROR | 0x00000200;
+	public static final long CMD_ERROR_MOTOR = CMD_ERROR | 0x00000400;
 
 	private static final Random sRandom = new Random();
 
@@ -188,7 +191,7 @@ public class VoiceConst {
 		for (final String action: actions) {
 			final int pos = text.indexOf(action);
 			if (pos >= 0) {
-				final int actionCmd = ACTION_MAP.get(action);
+				final long actionCmd = ACTION_MAP.get(action);
 				if ((actionCmd & CMD_MASK_MAMBO) != 0) {
 					return actionCmd;
 				} else if (actionCmd == CMD_SPIN) {
@@ -361,7 +364,7 @@ public class VoiceConst {
 						for (final String token: tokens) {
 							if (text.contains(token)) {
 								// 最初に見つかったものを返す
-								cmd = CMD_SCRIPT | (((long)SCRIPT_MAP.get(token)) << 32);
+								cmd = CMD_SCRIPT | (SCRIPT_MAP.get(token) << 32);
 								break;
 							}
 						}
@@ -380,7 +383,7 @@ public class VoiceConst {
 	 */
 	public static void setEnableMambo(final boolean hasClaw, final boolean hasGun) {
 		for (final String key: ACTION_MAP_MAMBO.keySet()) {
-			final int cmd = ACTION_MAP_MAMBO.get(key);
+			final long cmd = ACTION_MAP_MAMBO.get(key);
 			if ((cmd & CMD_MASK_CLAW) != 0) {
 				if (hasClaw) {
 					ACTION_MAP.put(key, cmd);
@@ -397,207 +400,232 @@ public class VoiceConst {
 		}
 	}
 
-	private static final Map<String, Integer> CMD_MAP = new LinkedHashMap<String, Integer>();
-	private static final Map<String, Integer> ACTION_MAP = new LinkedHashMap<String, Integer>();
-	private static final Map<String, Integer> ACTION_MAP_MAMBO = new LinkedHashMap<String, Integer>();
+	private static final Map<String, Long> CMD_MAP = new LinkedHashMap<String, Long>();
+	private static final Map<String, Long> ACTION_MAP = new LinkedHashMap<String, Long>();
+	private static final Map<String, Long> ACTION_MAP_MAMBO = new LinkedHashMap<String, Long>();
 	private static final Map<String, Integer> DIR_MAP = new LinkedHashMap<String, Integer>();
-	public static final Map<String, Integer> SCRIPT_MAP = new LinkedHashMap<String, Integer>();
+	public static final Map<String, Long> SCRIPT_MAP = new LinkedHashMap<String, Long>();
 	static {
-		CMD_MAP.put("stop", CMD_STOP);
-		CMD_MAP.put("すとっぷ", CMD_STOP);
-		CMD_MAP.put("ストップ", CMD_STOP);
-		CMD_MAP.put("止まれ", CMD_STOP);
-		CMD_MAP.put("止れ", CMD_STOP);
-		CMD_MAP.put("停止", CMD_STOP);
-		CMD_MAP.put("停まれ", CMD_STOP);
-		CMD_MAP.put("とまれ", CMD_STOP);
-		CMD_MAP.put("トマレ", CMD_STOP);
-		CMD_MAP.put("あかん", CMD_STOP);
-		CMD_MAP.put("ぶつかる", CMD_STOP);
-		CMD_MAP.put("ブツカル", CMD_STOP);
-		CMD_MAP.put("当たる", CMD_STOP);
-		CMD_MAP.put("当る", CMD_STOP);
-		CMD_MAP.put("あたる", CMD_STOP);
-		CMD_MAP.put("アタル", CMD_STOP);
-		CMD_MAP.put("アカン", CMD_STOP);
-		CMD_MAP.put("きゃ", CMD_STOP);
-		CMD_MAP.put("キャ", CMD_STOP);
-		CMD_MAP.put("わー", CMD_STOP);
-		CMD_MAP.put("ワー", CMD_STOP);
-		CMD_MAP.put("arrêtez", CMD_STOP);
-		CMD_MAP.put("fermata", CMD_STOP);
-		CMD_MAP.put("detener", CMD_STOP);
-		CMD_MAP.put("halt", CMD_STOP);
+		CMD_MAP.put("stop", (long)CMD_STOP);
+		CMD_MAP.put("すとっぷ", (long)CMD_STOP);
+		CMD_MAP.put("ストップ", (long)CMD_STOP);
+		CMD_MAP.put("止まれ", (long)CMD_STOP);
+		CMD_MAP.put("止れ", (long)CMD_STOP);
+		CMD_MAP.put("停止", (long)CMD_STOP);
+		CMD_MAP.put("停まれ", (long)CMD_STOP);
+		CMD_MAP.put("とまれ", (long)CMD_STOP);
+		CMD_MAP.put("トマレ", (long)CMD_STOP);
+		CMD_MAP.put("あかん", (long)CMD_STOP);
+		CMD_MAP.put("ぶつかる", (long)CMD_STOP);
+		CMD_MAP.put("ブツカル", (long)CMD_STOP);
+		CMD_MAP.put("当たる", (long)CMD_STOP);
+		CMD_MAP.put("当る", (long)CMD_STOP);
+		CMD_MAP.put("あたる", (long)CMD_STOP);
+		CMD_MAP.put("アタル", (long)CMD_STOP);
+		CMD_MAP.put("アカン", (long)CMD_STOP);
+		CMD_MAP.put("きゃ", (long)CMD_STOP);
+		CMD_MAP.put("キャ", (long)CMD_STOP);
+		CMD_MAP.put("わー", (long)CMD_STOP);
+		CMD_MAP.put("ワー", (long)CMD_STOP);
+		CMD_MAP.put("arrêtez", (long)CMD_STOP);
+		CMD_MAP.put("fermata", (long)CMD_STOP);
+		CMD_MAP.put("detener", (long)CMD_STOP);
+		CMD_MAP.put("halt", (long)CMD_STOP);
 
 //
-		CMD_MAP.put("land", CMD_LANDING);
-		CMD_MAP.put("らんど", CMD_LANDING);
-		CMD_MAP.put("ランド", CMD_LANDING);
-		CMD_MAP.put("landing", CMD_LANDING);
-		CMD_MAP.put("らんでぃんぐ", CMD_LANDING);
-		CMD_MAP.put("ランディング", CMD_LANDING);
-		CMD_MAP.put("らんにんぐ", CMD_LANDING);
-		CMD_MAP.put("ランニング", CMD_LANDING);
-		CMD_MAP.put("着陸", CMD_LANDING);
-		CMD_MAP.put("ちゃくりく", CMD_LANDING);
-		CMD_MAP.put("チャクリク", CMD_LANDING);
-		CMD_MAP.put("debarquer", CMD_LANDING);
-		CMD_MAP.put("atterraggio", CMD_LANDING);
-		CMD_MAP.put("aterrizar", CMD_LANDING);
-		CMD_MAP.put("landung", CMD_LANDING);
+		CMD_MAP.put("land", (long)CMD_LANDING);
+		CMD_MAP.put("らんど", (long)CMD_LANDING);
+		CMD_MAP.put("ランド", (long)CMD_LANDING);
+		CMD_MAP.put("landing", (long)CMD_LANDING);
+		CMD_MAP.put("らんでぃんぐ", (long)CMD_LANDING);
+		CMD_MAP.put("ランディング", (long)CMD_LANDING);
+		CMD_MAP.put("らんにんぐ", (long)CMD_LANDING);
+		CMD_MAP.put("ランニング", (long)CMD_LANDING);
+		CMD_MAP.put("着陸", (long)CMD_LANDING);
+		CMD_MAP.put("ちゃくりく", (long)CMD_LANDING);
+		CMD_MAP.put("チャクリク", (long)CMD_LANDING);
+		CMD_MAP.put("debarquer", (long)CMD_LANDING);
+		CMD_MAP.put("atterraggio", (long)CMD_LANDING);
+		CMD_MAP.put("aterrizar", (long)CMD_LANDING);
+		CMD_MAP.put("landung", (long)CMD_LANDING);
 //
-		CMD_MAP.put("take off", CMD_TAKEOFF);
-		CMD_MAP.put("離陸", CMD_TAKEOFF);
-		CMD_MAP.put("りりく", CMD_TAKEOFF);
-		CMD_MAP.put("リリク", CMD_TAKEOFF);
-		CMD_MAP.put("りりっく", CMD_TAKEOFF);
-		CMD_MAP.put("リリック", CMD_TAKEOFF);
-		CMD_MAP.put("飛べ", CMD_TAKEOFF);
-		CMD_MAP.put("とべ", CMD_TAKEOFF);
-		CMD_MAP.put("トベ", CMD_TAKEOFF);
-		CMD_MAP.put("飛ぶ", CMD_TAKEOFF);
-		CMD_MAP.put("とぶ", CMD_TAKEOFF);
-		CMD_MAP.put("トブ", CMD_TAKEOFF);
-		CMD_MAP.put("いりく", CMD_TAKEOFF);
-		CMD_MAP.put("イリク", CMD_TAKEOFF);
-		CMD_MAP.put("décollage", CMD_TAKEOFF);
-		CMD_MAP.put("decollare", CMD_TAKEOFF);
-		CMD_MAP.put("despegue", CMD_TAKEOFF);
-		CMD_MAP.put("abfliegen", CMD_TAKEOFF);
+		CMD_MAP.put("take off", (long)CMD_TAKEOFF);
+		CMD_MAP.put("離陸", (long)CMD_TAKEOFF);
+		CMD_MAP.put("りりく", (long)CMD_TAKEOFF);
+		CMD_MAP.put("リリク", (long)CMD_TAKEOFF);
+		CMD_MAP.put("りりっく", (long)CMD_TAKEOFF);
+		CMD_MAP.put("リリック", (long)CMD_TAKEOFF);
+		CMD_MAP.put("飛べ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("とべ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("トベ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("飛ぶ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("とぶ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("トブ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("いりく", (long)CMD_TAKEOFF);
+		CMD_MAP.put("イリク", (long)CMD_TAKEOFF);
+		CMD_MAP.put("wake up", (long)CMD_TAKEOFF);
+		CMD_MAP.put("ウエイク アップ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("ウェイク アップ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("うえいく あっぷ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("うぇいく あっぷ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("wake", (long)CMD_TAKEOFF);
+		CMD_MAP.put("ウエイク", (long)CMD_TAKEOFF);
+		CMD_MAP.put("ウェイク", (long)CMD_TAKEOFF);
+		CMD_MAP.put("うえいく", (long)CMD_TAKEOFF);
+		CMD_MAP.put("うぇいく", (long)CMD_TAKEOFF);
+		CMD_MAP.put("起きろよ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("おきろよ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("起きろ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("おきろ", (long)CMD_TAKEOFF);
+		CMD_MAP.put("décollage", (long)CMD_TAKEOFF);
+		CMD_MAP.put("decollare", (long)CMD_TAKEOFF);
+		CMD_MAP.put("despegue", (long)CMD_TAKEOFF);
+		CMD_MAP.put("abfliegen", (long)CMD_TAKEOFF);
 
 //--------------------------------------------------------------------------------
-		ACTION_MAP.put("flip", CMD_FLIP);
-		ACTION_MAP.put("ふりっぷ", CMD_FLIP);
-		ACTION_MAP.put("フリップ", CMD_FLIP);
-		ACTION_MAP.put("宙返り", CMD_FLIP);
-		ACTION_MAP.put("ちゅうがえり", CMD_FLIP);
-		ACTION_MAP.put("チュウガエリ", CMD_FLIP);
-		ACTION_MAP.put("ちゅうかえり", CMD_FLIP);
-		ACTION_MAP.put("チュウカエリ", CMD_FLIP);
-		ACTION_MAP.put("capovolgere", CMD_FLIP);
-		ACTION_MAP.put("capirotazo", CMD_FLIP);
-		ACTION_MAP.put("purzelbaum", CMD_FLIP);
+		ACTION_MAP.put("flip", (long)CMD_FLIP);
+		ACTION_MAP.put("ふりっぷ", (long)CMD_FLIP);
+		ACTION_MAP.put("フリップ", (long)CMD_FLIP);
+		ACTION_MAP.put("宙返り", (long)CMD_FLIP);
+		ACTION_MAP.put("ちゅうがえり", (long)CMD_FLIP);
+		ACTION_MAP.put("チュウガエリ", (long)CMD_FLIP);
+		ACTION_MAP.put("ちゅうかえり", (long)CMD_FLIP);
+		ACTION_MAP.put("チュウカエリ", (long)CMD_FLIP);
+		ACTION_MAP.put("capovolgere", (long)CMD_FLIP);
+		ACTION_MAP.put("capirotazo", (long)CMD_FLIP);
+		ACTION_MAP.put("purzelbaum", (long)CMD_FLIP);
 
-		ACTION_MAP.put("turn", CMD_TURN);
-		ACTION_MAP.put("ターン", CMD_TURN);
-		ACTION_MAP.put("たーん", CMD_TURN);
-		ACTION_MAP.put("タン", CMD_TURN);
-		ACTION_MAP.put("たん", CMD_TURN);
-		ACTION_MAP.put("回転", CMD_TURN);
-		ACTION_MAP.put("開店", CMD_TURN);
-		ACTION_MAP.put("かいてん", CMD_TURN);
-		ACTION_MAP.put("カイテン", CMD_TURN);
-		ACTION_MAP.put("回る", CMD_TURN);
-		ACTION_MAP.put("まわる", CMD_TURN);
-		ACTION_MAP.put("マワル", CMD_TURN);
-		ACTION_MAP.put("回り", CMD_TURN);
-		ACTION_MAP.put("まわり", CMD_TURN);
-		ACTION_MAP.put("マワリ", CMD_TURN);
-		ACTION_MAP.put("tour", CMD_TURN);
-		ACTION_MAP.put("turno", CMD_TURN);
-		ACTION_MAP.put("giro", CMD_TURN);
-		ACTION_MAP.put("drehen", CMD_TURN);
+		ACTION_MAP.put("turn", (long)CMD_TURN);
+		ACTION_MAP.put("ターン", (long)CMD_TURN);
+		ACTION_MAP.put("たーん", (long)CMD_TURN);
+		ACTION_MAP.put("タン", (long)CMD_TURN);
+		ACTION_MAP.put("たん", (long)CMD_TURN);
+		ACTION_MAP.put("回転", (long)CMD_TURN);
+		ACTION_MAP.put("開店", (long)CMD_TURN);
+		ACTION_MAP.put("かいてん", (long)CMD_TURN);
+		ACTION_MAP.put("カイテン", (long)CMD_TURN);
+		ACTION_MAP.put("回る", (long)CMD_TURN);
+		ACTION_MAP.put("まわる", (long)CMD_TURN);
+		ACTION_MAP.put("マワル", (long)CMD_TURN);
+		ACTION_MAP.put("回り", (long)CMD_TURN);
+		ACTION_MAP.put("まわり", (long)CMD_TURN);
+		ACTION_MAP.put("マワリ", (long)CMD_TURN);
+		ACTION_MAP.put("tour", (long)CMD_TURN);
+		ACTION_MAP.put("turno", (long)CMD_TURN);
+		ACTION_MAP.put("giro", (long)CMD_TURN);
+		ACTION_MAP.put("drehen", (long)CMD_TURN);
 
-		ACTION_MAP.put("すぴん", CMD_SPIN);
-		ACTION_MAP.put("スピン", CMD_SPIN);
-		ACTION_MAP.put("すっぴん", CMD_SPIN);
-		ACTION_MAP.put("スッピン", CMD_SPIN);
-		ACTION_MAP.put("spin", CMD_SPIN);
+		ACTION_MAP.put("すぴん", (long)CMD_SPIN);
+		ACTION_MAP.put("スピン", (long)CMD_SPIN);
+		ACTION_MAP.put("すっぴん", (long)CMD_SPIN);
+		ACTION_MAP.put("スッピン", (long)CMD_SPIN);
+		ACTION_MAP.put("spin", (long)CMD_SPIN);
 
-		ACTION_MAP.put("move", CMD_MOVE);
-		ACTION_MAP.put("むーぶ", CMD_MOVE);
-		ACTION_MAP.put("ムーブ", CMD_MOVE);
-		ACTION_MAP.put("移動", CMD_MOVE);
-		ACTION_MAP.put("いどう", CMD_MOVE);
-		ACTION_MAP.put("イドウ", CMD_MOVE);
-		ACTION_MAP.put("動く", CMD_MOVE);
-		ACTION_MAP.put("うごく", CMD_MOVE);
-		ACTION_MAP.put("ウゴク", CMD_MOVE);
-		ACTION_MAP.put("動け", CMD_MOVE);
-		ACTION_MAP.put("うごけ", CMD_MOVE);
-		ACTION_MAP.put("ウゴケ", CMD_MOVE);
-		ACTION_MAP.put("mouvement", CMD_MOVE);
-		ACTION_MAP.put("mossa", CMD_MOVE);
-		ACTION_MAP.put("movimiento", CMD_MOVE);
-		ACTION_MAP.put("bewegung", CMD_MOVE);
+		ACTION_MAP.put("move", (long)CMD_MOVE);
+		ACTION_MAP.put("むーぶ", (long)CMD_MOVE);
+		ACTION_MAP.put("ムーブ", (long)CMD_MOVE);
+		ACTION_MAP.put("移動", (long)CMD_MOVE);
+		ACTION_MAP.put("いどう", (long)CMD_MOVE);
+		ACTION_MAP.put("イドウ", (long)CMD_MOVE);
+		ACTION_MAP.put("動く", (long)CMD_MOVE);
+		ACTION_MAP.put("うごく", (long)CMD_MOVE);
+		ACTION_MAP.put("ウゴク", (long)CMD_MOVE);
+		ACTION_MAP.put("動け", (long)CMD_MOVE);
+		ACTION_MAP.put("うごけ", (long)CMD_MOVE);
+		ACTION_MAP.put("ウゴケ", (long)CMD_MOVE);
+		ACTION_MAP.put("mouvement", (long)CMD_MOVE);
+		ACTION_MAP.put("mossa", (long)CMD_MOVE);
+		ACTION_MAP.put("movimiento", (long)CMD_MOVE);
+		ACTION_MAP.put("bewegung", (long)CMD_MOVE);
+
+		ACTION_MAP.put("働けよ", CMD_COMPLEX_UP_TURN_LANDING);
+		ACTION_MAP.put("はたらけよ", CMD_COMPLEX_UP_TURN_LANDING);
+		ACTION_MAP.put("ハタラケヨ", CMD_COMPLEX_UP_TURN_LANDING);
+		ACTION_MAP.put("働け", CMD_COMPLEX_UP_TURN_LANDING);
+		ACTION_MAP.put("はたらけ", CMD_COMPLEX_UP_TURN_LANDING);
+		ACTION_MAP.put("ハタラケ", CMD_COMPLEX_UP_TURN_LANDING);
+
+		ACTION_MAP.put("仕事しろ", CMD_FORWARD_MAX);
+		ACTION_MAP.put("シゴトシロ", CMD_FORWARD_MAX);
+		ACTION_MAP.put("しごとしろ", CMD_FORWARD_MAX);
 
 //--------------------------------------------------------------------------------
-		ACTION_MAP_MAMBO.put("開け", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("ひらけ", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("ヒラケ", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("開く", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("ひらく", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("ヒラク", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("あけ", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("アケ", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("ごま", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("ゴマ", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("open", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("おーぷん", CMD_CLAW_OPEN);
-		ACTION_MAP_MAMBO.put("オープン", CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("開け", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ひらけ", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ヒラケ", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("開く", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ひらく", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ヒラク", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("あけ", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("アケ", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ごま", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("ゴマ", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("open", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("おーぷん", (long)CMD_CLAW_OPEN);
+		ACTION_MAP_MAMBO.put("オープン", (long)CMD_CLAW_OPEN);
 
-		ACTION_MAP_MAMBO.put("閉じろ", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("とじろ", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("トジロ", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("close", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("くろーず", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("クローズ", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("掴め", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("つかめ", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("ツカメ", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("catch", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("きゃっち", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("キャッチ", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("grab", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("ぐらぶ", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("グラブ", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("chuck", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("ちゃっく", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("チャック", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("take", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("ていく", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("テイク", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("clamp", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("くらんぷ", CMD_CLAW_CLOSE);
-		ACTION_MAP_MAMBO.put("クランプ", CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("閉じろ", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("とじろ", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("トジロ", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("close", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("くろーず", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("クローズ", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("掴め", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("つかめ", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("ツカメ", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("catch", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("きゃっち", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("キャッチ", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("grab", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("ぐらぶ", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("グラブ", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("chuck", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("ちゃっく", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("チャック", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("take", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("ていく", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("テイク", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("clamp", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("くらんぷ", (long)CMD_CLAW_CLOSE);
+		ACTION_MAP_MAMBO.put("クランプ", (long)CMD_CLAW_CLOSE);
 
-		ACTION_MAP_MAMBO.put("とぐる", CMD_CLAW_TOGGLE);
-		ACTION_MAP_MAMBO.put("トグル", CMD_CLAW_TOGGLE);
-		ACTION_MAP_MAMBO.put("反転", CMD_CLAW_TOGGLE);
-		ACTION_MAP_MAMBO.put("はんてん", CMD_CLAW_TOGGLE);
-		ACTION_MAP_MAMBO.put("ハンテン", CMD_CLAW_TOGGLE);
+		ACTION_MAP_MAMBO.put("とぐる", (long)CMD_CLAW_TOGGLE);
+		ACTION_MAP_MAMBO.put("トグル", (long)CMD_CLAW_TOGGLE);
+		ACTION_MAP_MAMBO.put("反転", (long)CMD_CLAW_TOGGLE);
+		ACTION_MAP_MAMBO.put("はんてん", (long)CMD_CLAW_TOGGLE);
+		ACTION_MAP_MAMBO.put("ハンテン", (long)CMD_CLAW_TOGGLE);
 
-		ACTION_MAP_MAMBO.put("打て", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("撃て", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("打つ", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("撃つ", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("うて", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ウテ", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("うつ", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ウツ", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("発射", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("はっしゃ", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ハッシャ", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("fire", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ふぁいや", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ファイヤ", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ふぁいあ", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ファイア", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("shoot", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("しゅーと", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("シュート", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ばーん", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("バーン", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ぱーん", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("パーン", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ちゅどーん", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("チュドーン", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ばきゅーん", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("バキューン", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ばきゅ〜ん", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("バキュ〜ン", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("ばっきゅーん", CMD_FIRE);
-		ACTION_MAP_MAMBO.put("バッキューン", CMD_FIRE);
+		ACTION_MAP_MAMBO.put("打て", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("撃て", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("打つ", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("撃つ", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("うて", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ウテ", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("うつ", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ウツ", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("発射", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("はっしゃ", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ハッシャ", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("fire", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ふぁいや", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ファイヤ", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ふぁいあ", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ファイア", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("shoot", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("しゅーと", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("シュート", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ばーん", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("バーン", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ぱーん", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("パーン", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ちゅどーん", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("チュドーン", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ばきゅーん", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("バキューン", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ばきゅ〜ん", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("バキュ〜ン", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("ばっきゅーん", (long)CMD_FIRE);
+		ACTION_MAP_MAMBO.put("バッキューン", (long)CMD_FIRE);
 
 //--------------------------------------------------------------------------------
 		DIR_MAP.put("前", DIR_FORWARD);

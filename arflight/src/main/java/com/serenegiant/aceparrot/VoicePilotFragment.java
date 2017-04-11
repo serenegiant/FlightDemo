@@ -108,6 +108,10 @@ public class VoicePilotFragment extends PilotFragment {
 
 	@Override
 	protected void internalOnPause() {
+		removeEvent(mVoiceResetTask);
+		removeEvent(mSpinControlTask);
+		mSpinControlTask = null;
+		stopComplexCmd();
 		if (mVoiceFeedback != null) {
 			mVoiceFeedback.release();
 			mVoiceFeedback = null;
@@ -128,6 +132,10 @@ public class VoicePilotFragment extends PilotFragment {
 
 	@Override
 	protected void onDisconnect(final IDeviceController controller) {
+		removeEvent(mVoiceResetTask);
+		removeEvent(mSpinControlTask);
+		mSpinControlTask = null;
+		stopComplexCmd();
 		stopSpeechRecognizer();
 		VoiceConst.setEnableMambo(false, false);
 		super.onDisconnect(controller);
@@ -139,7 +147,7 @@ public class VoicePilotFragment extends PilotFragment {
 
 		if (mScriptVoiceRecognition) {
 			synchronized (VoiceConst.SCRIPT_MAP) {
-				final Map<String, Integer> map = VoiceConst.SCRIPT_MAP;
+				final Map<String, Long> map = VoiceConst.SCRIPT_MAP;
 				map.clear();
 				final int n = mScripts.size();
 				for (int i = 0; i < n; i++) {
@@ -148,10 +156,10 @@ public class VoicePilotFragment extends PilotFragment {
 					if (script.name.contains("|")) {
 						final String[] na = script.name.split("|");
 						for (final String s: na) {
-							map.put(s, i);
+							map.put(s, (long)i);
 						}
 					} else {
-						map.put(script.name, i);
+						map.put(script.name, (long)i);
 					}
 				}
 			}
@@ -343,7 +351,7 @@ public class VoicePilotFragment extends PilotFragment {
 				break;
 			case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
 				// 権限無し
-				cmd = CMD_SR_ERROR_INSUFFICIENT_PERMISSIONS;
+//				cmd = CMD_SR_ERROR_INSUFFICIENT_PERMISSIONS;
 				showToast(R.string.error_voice_no_permission, Toast.LENGTH_LONG);
 				return;
 			case SpeechRecognizer.ERROR_NETWORK:
@@ -364,7 +372,7 @@ public class VoicePilotFragment extends PilotFragment {
 			case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
 				// RecognitionServiceへ要求出せず
 				// 性能が低い端末の場合に起こるらしいので、一旦破棄してから1秒後に再チャレンジ
-				cmd = CMD_SR_ERROR_RECOGNIZER_BUSY;
+//				cmd = CMD_SR_ERROR_RECOGNIZER_BUSY;
 				showToast(R.string.error_voice_unavailable, Toast.LENGTH_SHORT);
 				runOnUiThread(new Runnable() {
 					@Override
@@ -429,6 +437,8 @@ public class VoicePilotFragment extends PilotFragment {
 			if (cmd != VoiceConst.CMD_NON) {
 				stopMove();
 				removeEvent(mVoiceResetTask);
+				removeEvent(mSpinControlTask);
+				stopComplexCmd();
 				stopSpeechRecognizer();
 			}
 			switch ((int)(cmd & VoiceConst.CMD_MASK)) {
@@ -519,6 +529,10 @@ public class VoicePilotFragment extends PilotFragment {
 					actionToggle();
 				}
 				break;
+			case VoiceConst.CMD_COMPLEX:
+				if (DEBUG) Log.v(TAG, "CMD_COMPLEX");
+				handleComplexCmd(cmd);
+				break;
 			default:
 				showToast(R.string.error_voice_no_command, Toast.LENGTH_SHORT);
 				if (DEBUG) {
@@ -563,7 +577,7 @@ public class VoicePilotFragment extends PilotFragment {
 		10, 15, 20, 25, 30, 45, 60, 80, 90, 100, 120, 180,
 	};
 
-	private SpinControlTask mSpinControlTask;
+	private volatile SpinControlTask mSpinControlTask;
 	/**
 	 * スピン(アニメーションcapの繰り返し)を制御するRunnable
 	 */
@@ -600,7 +614,7 @@ public class VoicePilotFragment extends PilotFragment {
 						mFlightController.requestAnimationsCap(step);
 						mFlightRecorder.record(FlightRecorder.CMD_CAP, step);
 						if (cnt > 0) {
-							queueEvent(this, SPIN_CTRL_INTERVALS);
+							queueEvent(mSpinControlTask, SPIN_CTRL_INTERVALS);
 							return;
 						}
 					} catch (final Exception e) {
@@ -609,6 +623,90 @@ public class VoicePilotFragment extends PilotFragment {
 				}
 			}
 			mSpinControlTask = null;
+		}
+	}
+	
+	/**
+	 * 複合コマンド実行
+	 * @param cmd
+	 * @return 実行予想時間
+	 */
+	private long handleComplexCmd(final long cmd) {
+		long result = 0;
+		stopComplexCmd();
+		switch ((int)(cmd & 0xff)) {
+		case 1:	// CMD_COMPLEX_UP_TURN_LANDING
+			mComplexCmdTask = new ComplexUpTurnLandingTask();
+			result = mComplexCmdTask.duration();
+			queueEvent(mComplexCmdTask, 0);
+			break;
+		}
+		return result;
+	}
+	
+	/**
+	 * 複合コマンド実行中なら停止させる
+	 */
+	private void stopComplexCmd() {
+		if (mComplexCmdTask != null) {
+			mComplexCmdTask.release();
+			mComplexCmdTask = null;
+		}
+	}
+	
+	private ComplexCmdTask mComplexCmdTask;
+	
+	private abstract class ComplexCmdTask implements Runnable {
+		protected volatile boolean mIsRunning = true;
+		protected int step = 0;
+
+		public abstract long duration();
+		
+		public synchronized void release() {
+			removeEvent(this);
+			mIsRunning = false;
+			step = Integer.MAX_VALUE;
+			stopMove();
+		}
+	}
+	 
+	private class ComplexUpTurnLandingTask extends ComplexCmdTask {
+		@Override
+		public synchronized void run() {
+			long delay = 0;
+			switch (step) {
+			case 0:
+				delay = 1;
+				break;
+			case 1:	// up
+				final float gaz = 30.0f * mGamepadSensitivity * mGamepadScaleZ;
+				sendMove(0, 0, gaz, 0);
+				delay = 500;
+				break;
+			case 2:	// turn
+				stopMove();
+				mFlightController.requestAnimationsCap(180);
+				mFlightRecorder.record(FlightRecorder.CMD_CAP, 180);
+				delay = 1000;	// FIXME 回転速度設定から推定する
+				break;
+			case 3:	// turn
+				mFlightController.requestAnimationsCap(180);
+				mFlightRecorder.record(FlightRecorder.CMD_CAP, 180);
+				delay = 1000;	// FIXME 回転速度設定から推定する
+			case 4:	// landing
+				stopMove();
+				landing();
+				break;
+			}
+			if ((delay > 0) && mIsRunning) {
+				step++;
+				queueEvent(this, delay);
+			}
+		}
+		
+		@Override
+		public long duration() {
+			return 3000;
 		}
 	}
 }
