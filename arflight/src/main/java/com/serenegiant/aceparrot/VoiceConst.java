@@ -83,12 +83,12 @@ public class VoiceConst {
 	public static final long CMD_MASK_MAMBO		= CMD_FIRE | CMD_MASK_CLAW;
 	public static final long CMD_MASK			= 0xffffff00;
 	// 回数フラグの上限値
-	private static final long CMD_FORWARD_MAX	= CMD_MOVE | DIR_FORWARD | (MAX_COUNT << 32);
-	private static final long CMD_RIGHT_MAX		= CMD_MOVE | DIR_RIGHT | (MAX_COUNT << 36);
-	private static final long CMD_BACKWARD_MAX	= CMD_MOVE | DIR_BACKWARD | (MAX_COUNT << 40);
-	private static final long CMD_LEFT_MAX		= CMD_MOVE | DIR_LEFT | (MAX_COUNT << 44);
-	private static final long CMD_UP_MAX		= CMD_MOVE | DIR_UP | (MAX_COUNT << 48);
-	private static final long CMD_DOWN_MAX		= CMD_MOVE | DIR_DOWN | (MAX_COUNT << 52);
+	public static final long CMD_FORWARD_MAX	= CMD_MOVE | DIR_FORWARD | (MAX_COUNT << 32);
+	public static final long CMD_RIGHT_MAX		= CMD_MOVE | DIR_RIGHT | (MAX_COUNT << 36);
+	public static final long CMD_BACKWARD_MAX	= CMD_MOVE | DIR_BACKWARD | (MAX_COUNT << 40);
+	public static final long CMD_LEFT_MAX		= CMD_MOVE | DIR_LEFT | (MAX_COUNT << 44);
+	public static final long CMD_UP_MAX		= CMD_MOVE | DIR_UP | (MAX_COUNT << 48);
+	public static final long CMD_DOWN_MAX		= CMD_MOVE | DIR_DOWN | (MAX_COUNT << 52);
 	// 挨拶コマンド
 	public static final long CMD_GREETINGS_HELLO	= CMD_GREETINGS | 0x00000001;
 	// 複合コマンド
@@ -173,7 +173,7 @@ public class VoiceConst {
 		return cmd;
 	}
 
-	private static long findCmd(@NonNull final String text) {
+	protected static long findCmd(@NonNull final String text) {
 		long cmd = CMD_NON;
 		final Set<String> keys = CMD_MAP.keySet();
 		for (final String key: keys) {
@@ -185,7 +185,7 @@ public class VoiceConst {
 		return cmd;
 	}
 
-	private static long findAction(@NonNull final String text) {
+	protected static long findAction(@NonNull final String text) {
 		final int len = text.length();
 		final Set<String> actions = ACTION_MAP.keySet();
 		for (final String action: actions) {
@@ -258,8 +258,8 @@ public class VoiceConst {
 		return CMD_NON;
 	}
 
-	private static long findMove(@NonNull final String text) {
-	if (DEBUG) Log.v(TAG, "findMove:text=" + text);
+	protected static long findMove(@NonNull final String text) {
+		if (DEBUG) Log.v(TAG, "findMove:text=" + text);
 		final SparseIntArray cmds = new SparseIntArray();
 
 		final Set<String> dirs = DIR_MAP.keySet();
@@ -338,13 +338,13 @@ public class VoiceConst {
 		return cmd;
 	}
 
-	private static final String[] SCRIPTS = {
+	protected static final String[] SCRIPTS = {
 		"script",
 		"すくりぷと",
 		"スクリプト",
 	};
 
-	private static long findScript(@NonNull final String text) {
+	protected static long findScript(@NonNull final String text) {
 		long cmd = CMD_NON;
 
 		for (final String s: SCRIPTS) {
@@ -402,6 +402,14 @@ public class VoiceConst {
 		}
 	}
 
+	public Map<String, Long> getCmdMap() {
+		return CMD_MAP;
+	}
+	
+	public static Map<String, Long> getActionMap() {
+		return ACTION_MAP;
+	}
+	
 	private static final Map<String, Long> CMD_MAP = new LinkedHashMap<String, Long>();
 	private static final Map<String, Long> ACTION_MAP = new LinkedHashMap<String, Long>();
 	private static final Map<String, Long> ACTION_MAP_MAMBO = new LinkedHashMap<String, Long>();
@@ -539,17 +547,6 @@ public class VoiceConst {
 		ACTION_MAP.put("mossa", (long)CMD_MOVE);
 		ACTION_MAP.put("movimiento", (long)CMD_MOVE);
 		ACTION_MAP.put("bewegung", (long)CMD_MOVE);
-
-		ACTION_MAP.put("働けよ", CMD_COMPLEX_UP_TURN_LANDING);
-		ACTION_MAP.put("はたらけよ", CMD_COMPLEX_UP_TURN_LANDING);
-		ACTION_MAP.put("ハタラケヨ", CMD_COMPLEX_UP_TURN_LANDING);
-		ACTION_MAP.put("働け", CMD_COMPLEX_UP_TURN_LANDING);
-		ACTION_MAP.put("はたらけ", CMD_COMPLEX_UP_TURN_LANDING);
-		ACTION_MAP.put("ハタラケ", CMD_COMPLEX_UP_TURN_LANDING);
-
-		ACTION_MAP.put("仕事しろ", CMD_FORWARD_MAX);
-		ACTION_MAP.put("シゴトシロ", CMD_FORWARD_MAX);
-		ACTION_MAP.put("しごとしろ", CMD_FORWARD_MAX);
 
 //--------------------------------------------------------------------------------
 		ACTION_MAP_MAMBO.put("開け", (long)CMD_CLAW_OPEN);
