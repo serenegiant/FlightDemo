@@ -60,7 +60,8 @@ public class VoiceConst {
 	public static final int DIR_LEFT			= 0x00000008;
 	public static final int DIR_UP				= 0x00000010;
 	public static final int DIR_DOWN			= 0x00000020;
-	private static final int DIR_SAME			= 0x00000080;
+	public static final int DIR_SAME			= 0x00000080;
+	public static final int DIR_MASK			= 0x000000ff;
 	// コマンド...上位24ビット
 	public static final int CMD_NON				= 0x00000000;
 	public static final int CMD_STOP			= 0x00000100;
@@ -230,7 +231,11 @@ public class VoiceConst {
 				} else if ((actionCmd & CMD_MASK) == CMD_COMPLEX) {
 					// 複合コマンドの時はそのまま返す
 					return actionCmd;
+				} else if ((actionCmd & DIR_MASK) != 0) {
+					// 方向指示付きのアクションはそのまま返す
+					return actionCmd;
 				} else {
+					// それ以外のアクションは方向指示を確認する
 					final Set<String> dirs = DIR_MAP.keySet();
 					for (final String dir: dirs) {
 						final int dirPos = text.lastIndexOf(dir);
