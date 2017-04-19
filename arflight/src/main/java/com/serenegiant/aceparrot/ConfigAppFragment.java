@@ -65,26 +65,32 @@ public class ConfigAppFragment extends BaseFragment {
 
 	private static PagerAdapterConfig[] PAGER_CONFIG_APP;
 	static {
-		PAGER_CONFIG_APP = new PagerAdapterConfig[4];
+		PAGER_CONFIG_APP = new PagerAdapterConfig[5];
 		PAGER_CONFIG_APP[0] = new PagerAdapterConfig(R.string.config_app_title_color, R.layout.config_app_color, new PagerAdapterItemHandler() {
 			@Override
 			public void initialize(final BaseFragment parent, final View view) {
 				((ConfigAppFragment)parent).initColor(view);
 			}
 		});
-		PAGER_CONFIG_APP[1] = new PagerAdapterConfig(R.string.config_app_title_voice, R.layout.config_app_voice, new PagerAdapterItemHandler() {
+		PAGER_CONFIG_APP[1] = new PagerAdapterConfig(R.string.config_app_title_gamepad, R.layout.config_app_gamepad, new PagerAdapterItemHandler() {
+			@Override
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigAppFragment)parent).initGamepad(view);
+			}
+		});
+		PAGER_CONFIG_APP[2] = new PagerAdapterConfig(R.string.config_app_title_voice, R.layout.config_app_voice, new PagerAdapterItemHandler() {
 			@Override
 			public void initialize(final BaseFragment parent, final View view) {
 				((ConfigAppFragment)parent).initVoice(view);
 			}
 		});
-		PAGER_CONFIG_APP[2] = new PagerAdapterConfig(R.string.config_app_title_others, R.layout.config_app_others, new PagerAdapterItemHandler() {
+		PAGER_CONFIG_APP[3] = new PagerAdapterConfig(R.string.config_app_title_others, R.layout.config_app_others, new PagerAdapterItemHandler() {
 			@Override
 			public void initialize(final BaseFragment parent, final View view) {
 				((ConfigAppFragment)parent).initOthers(view);
 			}
 		});
-		PAGER_CONFIG_APP[3] = new PagerAdapterConfig(R.string.config_app_title_license, R.layout.config_app_license, new PagerAdapterItemHandler() {
+		PAGER_CONFIG_APP[4] = new PagerAdapterConfig(R.string.config_app_title_license, R.layout.config_app_license, new PagerAdapterItemHandler() {
 			@Override
 			public void initialize(final BaseFragment parent, final View view) {
 				((ConfigAppFragment)parent).initLicense(view);
@@ -96,6 +102,7 @@ public class ConfigAppFragment extends BaseFragment {
 	private int mColor;
 	private boolean mAutoHide;
 	private boolean mOfflineVoiceRecognition;
+	private boolean mScriptGamepad;
 	private boolean mScriptVoiceRecognition;
 	private int mDampingRate;
 	private TextView mDampingRateTv;
@@ -145,6 +152,14 @@ public class ConfigAppFragment extends BaseFragment {
 		picker.setColor(mColor);
 		picker.showAlpha(false);
 		picker.setColorPickerListener(mColorPickerListener);
+	}
+
+	private void initGamepad(final View rootView) {
+// 音声認識でのスクリプト飛行を有効にするかどうか
+		mScriptGamepad = mPref.getBoolean(KEY_CONFIG_GAMEPAD_ENABLE_SCRIPT, false);
+		Switch sw = (Switch)rootView.findViewById(R.id.enable_gamepad_script_switch);
+		sw.setChecked(mScriptGamepad);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
 	private void initVoice(final View rootView) {
@@ -214,21 +229,26 @@ public class ConfigAppFragment extends BaseFragment {
 		= new CompoundButton.OnCheckedChangeListener() {
 		@Override
 		public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
-			int i = buttonView.getId();
-			if (i == R.id.icon_auto_hide_switch) {
+			final int id = buttonView.getId();
+			if (id == R.id.icon_auto_hide_switch) {
 				if (mAutoHide != isChecked) {
 					mAutoHide = isChecked;
 					mPref.edit().putBoolean(KEY_AUTO_HIDE, isChecked).apply();
 				}
-			} else if (i == R.id.enable_offline_voice_recognition_switch) {
+			} else if (id == R.id.enable_offline_voice_recognition_switch) {
 				if (mOfflineVoiceRecognition != isChecked) {
 					mOfflineVoiceRecognition = isChecked;
 					mPref.edit().putBoolean(KEY_CONFIG_VOICE_RECOGNITION_PREFER_OFFLINE, isChecked).apply();
 				}
-			} else if (i == R.id.enable_voice_recognition_script_switch) {
+			} else if (id == R.id.enable_voice_recognition_script_switch) {
 				if (mScriptVoiceRecognition != isChecked) {
 					mScriptVoiceRecognition = isChecked;
 					mPref.edit().putBoolean(KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT, isChecked).apply();
+				}
+			} else if (id == R.id.enable_gamepad_script_switch) {
+				if (mScriptGamepad != isChecked) {
+					mScriptGamepad = isChecked;
+					mPref.edit().putBoolean(KEY_CONFIG_GAMEPAD_ENABLE_SCRIPT, isChecked).apply();
 				}
 			}
 		}

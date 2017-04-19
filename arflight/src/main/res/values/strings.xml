@@ -57,6 +57,7 @@
 	<string name="file_empty">No file</string>
 
 	<string name="config_app_title_color">Color</string>
+	<string name="config_app_title_gamepad">Gamepad</string>
 	<string name="config_app_title_voice">Voice Recognition</string>
 	<string name="config_app_title_others">Others</string>
 	<string name="config_app_title_license">License</string>
@@ -109,6 +110,19 @@
 		このことを了承できる場合にのみ、	十分に周囲の安全確認を行った上で	エースパロットならびに本機能を使用してください。
 	</string>
 	<string name="config_title_damping_rate">Damping rate for voice control:%4.2f</string>
+	<string name="config_title_gamepad_enable_script">Enable script flight by game pad</string>
+	<string name="config_summary_gamepad_enable_script">This setting is automatically disabled every time when app starts.</string>
+	<string name="config_notice_gamepad_enable_script">
+		この設定を有効にすることでゲームパッドの操作によるスクリプト飛行が可能になります。
+		ただし意図しないスクリプトが、意図しないタイミングで選択されたり、
+		操縦者の意図しない飛行をすることがあります。\n
+		その結果ドローン自体・ドローンの操作者・第三者その他に何らかの損傷、損耗、 怪我等が発生したとしても、
+		エースパロットの提供元はその責任を負うことができません。\n
+		万が一エースパロットによってコントロールされたドローンが第三者に損害を与え、
+		当該第三者がエースパロットの提供元に損害賠償請求をした場合には、エースパロットの使用者が先立って全額の補償をし、
+		エースパロットの提供者を完全に免責していただきます。\n
+		このことを了承できる場合にのみ、	十分に周囲の安全確認を行った上で	エースパロットならびに本機能を使用してください。
+	</string>
 
 	<string name="config_max_tilt">Max Tilt: %5.1f[deg.]</string>
 	<string name="config_max_vertical_speed">Max Vertical Speed: %5.1f[m/s]</string>
