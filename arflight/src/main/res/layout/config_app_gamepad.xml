@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+# By downloading, copying, installing or using the software you agree to this license.
+# If you do not agree to this license, do not download, install,
+# copy or use the software.
+#
+#
+#                           License Agreement
+#                        (3-clause BSD License)
+#
+# Copyright (C) 2015-2017, saki t_saki@serenegiant.com
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#   * Redistributions of source code must retain the above copyright notice,
+#     this list of conditions and the following disclaimer.
+#
+#   * Redistributions in binary form must reproduce the above copyright notice,
+#     this list of conditions and the following disclaimer in the documentation
+#     and/or other materials provided with the distribution.
+#
+#   * Neither the names of the copyright holders nor the names of the contributors
+#     may be used to endorse or promote products derived from this software
+#     without specific prior written permission.
+#
+# This software is provided by the copyright holders and contributors "as is" and
+# any express or implied warranties, including, but not limited to, the implied
+# warranties of merchantability and fitness for a particular purpose are disclaimed.
+# In no event shall copyright holders or contributors be liable for any direct,
+# indirect, incidental, special, exemplary, or consequential damages
+# (including, but not limited to, procurement of substitute goods or services;
+# loss of use, data, or profits; or business interruption) however caused
+# and on any theory of liability, whether in contract, strict liability,
+# or tort (including negligence or otherwise) arising in any way out of
+# the use of this software, even if advised of the possibility of such damage.
+-->
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:padding="@dimen/half_padding"
+	android:background="@drawable/blue_gradient" >
+
+	<Switch
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:paddingBottom="@dimen/quater_padding"
+		android:textSize="@dimen/text_sz_list"
+		android:text="@string/config_title_voice_offline"
+		android:textColor="@color/WHITE"
+		android:id="@+id/enable_offline_voice_recognition_switch"/>
+	<TextView
+		android:id="@+id/textView12"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:paddingStart="@dimen/padding"
+		android:paddingBottom="@dimen/half_padding"
+		android:text="@string/config_notice_voice_offline"
+		android:textSize="@dimen/text_sz_list_small"
+		android:textColor="@color/WHITE"
+		android:gravity="left"/>
+
+	<TextView
+		android:id="@+id/damping_rate_textview"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:textSize="@dimen/text_sz_list"
+		android:textColor="@color/WHITE"
+		android:text="@string/config_title_damping_rate"/>
+	<SeekBar
+		android:id="@+id/damping_rate_seekbar"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:paddingBottom="@dimen/half_padding"	/>
+
+	<Switch
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:textSize="@dimen/text_sz_list"
+		android:text="@string/config_title_voice_enable_script"
+		android:textColor="@color/WHITE"
+		android:id="@+id/enable_voice_recognition_script_switch"
+		android:paddingBottom="@dimen/quater_padding"/>
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:paddingStart="@dimen/padding"
+		android:text="@string/config_summary_voice_enable_script"
+		android:textSize="@dimen/text_sz_list_small"
+		android:textColor="@color/WHITE"
+		android:gravity="left"/>
+	<ScrollView
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:padding="@dimen/half_padding"
+			android:text="@string/config_notice_voice_enable_script"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/RED"/>
+	</ScrollView>
+
+</LinearLayout>
