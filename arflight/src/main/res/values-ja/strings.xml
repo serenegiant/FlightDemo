@@ -74,6 +74,7 @@
 	<string name="stick_text_back">後</string>
 
 	<string name="config_app_title_color">機体色設定</string>
+	<string name="config_app_title_voice">音声認識</string>
 	<string name="config_app_title_others">その他</string>
 	<string name="config_app_title_license">ライセンス</string>
 

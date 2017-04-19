@@ -48,13 +48,60 @@
 		android:layout_height="wrap_content"
 		android:paddingBottom="@dimen/quater_padding"
 		android:textSize="@dimen/text_sz_list"
-		android:text="@string/config_title_app_button_hide"
+		android:text="@string/config_title_voice_offline"
 		android:textColor="@color/WHITE"
-		android:id="@+id/icon_auto_hide_switch"/>
+		android:id="@+id/enable_offline_voice_recognition_switch"/>
+	<TextView
+		android:id="@+id/textView12"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:paddingStart="@dimen/padding"
+		android:paddingBottom="@dimen/half_padding"
+		android:text="@string/config_notice_voice_offline"
+		android:textSize="@dimen/text_sz_list_small"
+		android:textColor="@color/WHITE"
+		android:gravity="left"/>
 
+	<TextView
+		android:id="@+id/damping_rate_textview"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:textSize="@dimen/text_sz_list"
+		android:textColor="@color/WHITE"
+		android:text="@string/config_title_damping_rate"/>
+	<SeekBar
+		android:id="@+id/damping_rate_seekbar"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:paddingBottom="@dimen/half_padding"	/>
+
+	<Switch
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:textSize="@dimen/text_sz_list"
+		android:text="@string/config_title_voice_enable_script"
+		android:textColor="@color/WHITE"
+		android:id="@+id/enable_voice_recognition_script_switch"
+		android:paddingBottom="@dimen/quater_padding"/>
+	<TextView
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:paddingStart="@dimen/padding"
+		android:text="@string/config_summary_voice_enable_script"
+		android:textSize="@dimen/text_sz_list_small"
+		android:textColor="@color/WHITE"
+		android:gravity="left"/>
 	<ScrollView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content">
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_horizontal"
+			android:padding="@dimen/half_padding"
+			android:text="@string/config_notice_voice_enable_script"
+			android:textSize="@dimen/text_sz_list"
+			android:textColor="@color/RED"/>
 	</ScrollView>
 
 </LinearLayout>

@@ -65,20 +65,26 @@ public class ConfigAppFragment extends BaseFragment {
 
 	private static PagerAdapterConfig[] PAGER_CONFIG_APP;
 	static {
-		PAGER_CONFIG_APP = new PagerAdapterConfig[3];
+		PAGER_CONFIG_APP = new PagerAdapterConfig[4];
 		PAGER_CONFIG_APP[0] = new PagerAdapterConfig(R.string.config_app_title_color, R.layout.config_app_color, new PagerAdapterItemHandler() {
 			@Override
 			public void initialize(final BaseFragment parent, final View view) {
 				((ConfigAppFragment)parent).initColor(view);
 			}
 		});
-		PAGER_CONFIG_APP[1] = new PagerAdapterConfig(R.string.config_app_title_others, R.layout.config_app_others, new PagerAdapterItemHandler() {
+		PAGER_CONFIG_APP[1] = new PagerAdapterConfig(R.string.config_app_title_voice, R.layout.config_app_voice, new PagerAdapterItemHandler() {
+			@Override
+			public void initialize(final BaseFragment parent, final View view) {
+				((ConfigAppFragment)parent).initVoice(view);
+			}
+		});
+		PAGER_CONFIG_APP[2] = new PagerAdapterConfig(R.string.config_app_title_others, R.layout.config_app_others, new PagerAdapterItemHandler() {
 			@Override
 			public void initialize(final BaseFragment parent, final View view) {
 				((ConfigAppFragment)parent).initOthers(view);
 			}
 		});
-		PAGER_CONFIG_APP[2] = new PagerAdapterConfig(R.string.config_app_title_license, R.layout.config_app_license, new PagerAdapterItemHandler() {
+		PAGER_CONFIG_APP[3] = new PagerAdapterConfig(R.string.config_app_title_license, R.layout.config_app_license, new PagerAdapterItemHandler() {
 			@Override
 			public void initialize(final BaseFragment parent, final View view) {
 				((ConfigAppFragment)parent).initLicense(view);
@@ -141,16 +147,11 @@ public class ConfigAppFragment extends BaseFragment {
 		picker.setColorPickerListener(mColorPickerListener);
 	}
 
-	private void initOthers(final View rootView) {
-// アイコンを自動的に隠す設定
-		mAutoHide = mPref.getBoolean(KEY_AUTO_HIDE, false);
-		Switch sw = (Switch)rootView.findViewById(R.id.icon_auto_hide_switch);
-		sw.setChecked(mAutoHide);
-		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+	private void initVoice(final View rootView) {
 // オフライン音声認識を優先するかどうか(Android>=6)
 		mOfflineVoiceRecognition = mPref.getBoolean(KEY_CONFIG_VOICE_RECOGNITION_PREFER_OFFLINE, false)
 			&& Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
-		sw = (Switch)rootView.findViewById(R.id.enable_offline_voice_recognition_switch);
+		Switch sw = (Switch)rootView.findViewById(R.id.enable_offline_voice_recognition_switch);
 		sw.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M);
 		sw.setChecked(mOfflineVoiceRecognition);
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
@@ -168,6 +169,14 @@ public class ConfigAppFragment extends BaseFragment {
 		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
 	}
 
+	private void initOthers(final View rootView) {
+// アイコンを自動的に隠す設定
+		mAutoHide = mPref.getBoolean(KEY_AUTO_HIDE, false);
+		Switch sw = (Switch)rootView.findViewById(R.id.icon_auto_hide_switch);
+		sw.setChecked(mAutoHide);
+		sw.setOnCheckedChangeListener(mOnCheckedChangeListener);
+	}
+	
 	private void initLicense(final View rootView) {
 	}
 
