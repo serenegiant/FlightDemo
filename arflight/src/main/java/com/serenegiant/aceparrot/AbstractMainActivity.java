@@ -117,6 +117,7 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 		pref.edit()
 			.putBoolean(KEY_SCRIPTS_FIRST_TIME, false)
 			.putBoolean(KEY_CONFIG_VOICE_RECOGNITION_ENABLE_SCRIPT, false)
+			.putBoolean(KEY_CONFIG_GAMEPAD_ENABLE_SCRIPT, false)
 			.apply();
 		new Thread(new Runnable() {
 			@Override

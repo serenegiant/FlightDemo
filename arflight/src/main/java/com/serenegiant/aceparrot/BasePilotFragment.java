@@ -144,6 +144,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 	protected float mGamepadSensitivity = 1.0f;
 	protected float mGamepadScaleX, mGamepadScaleY, mGamepadScaleZ, mGamepadScaleR;
 	protected boolean mAutoHide;
+	private boolean mScriptGamepad;
 
 	@Override
 	public final View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
@@ -163,6 +164,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		mGamepadScaleZ = pref.getFloat(KEY_GAMEPAD_SCALE_Z, 1.0f);
 		mGamepadScaleR = pref.getFloat(KEY_GAMEPAD_SCALE_R, 1.0f);
 		mAutoHide = (mController instanceof ICameraController) && pref.getBoolean(KEY_AUTO_HIDE, false);
+		mScriptGamepad = pref.getBoolean(KEY_CONFIG_GAMEPAD_ENABLE_SCRIPT, false);
 		int layout_id;
 		if (mOperationTouch) {
 			layout_id = R.layout.fragment_pilot_touch;
@@ -786,7 +788,18 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 			updateButtons();
 		}
 	}
-
+	
+	/**
+	 * ゲームパッドからスクリプトを実行する時のヘルパーメソッド
+	 * @param ix
+	 * @return
+	 */
+	private boolean startScriptByGamepad(final int ix) {
+		stopScript();
+		startScript(ix);
+		return mScriptRunning;
+	}
+	
 	/**
 	 * タッチ描画での操縦開始
 	 */
@@ -1172,14 +1185,14 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 					mJoystick.updateState(downs, down_times, analogSticks, false);
 				}
 
-				// 左右の上端ボタン(手前側)を同時押しすると非常停止
+				// L1/R1(左右の上端ボタン,手前側)を同時押しすると非常停止
 				if (((downs[GamePadConst.KEY_RIGHT_RIGHT] || downs[GamePadConst.KEY_RIGHT_1]))
 					&& (downs[GamePadConst.KEY_RIGHT_LEFT] || downs[GamePadConst.KEY_LEFT_1]) ) {
 					emergencyStop();
 					return;
 				}
 
-				// 飛行していない時にL2/R2同時押しするとフラットトリム実行
+				// 飛行していない時にL2/R2(上端ボタン,下側)同時押しするとフラットトリム実行
 				if ((getState() == IFlightController.STATE_STARTED)
 					&& (getAlarm() == DroneStatus.ALARM_NON)
 					&& downs[GamePadConst.KEY_LEFT_2] && downs[GamePadConst.KEY_RIGHT_2]) {
@@ -1188,6 +1201,19 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 					return;
 				}
 
+				// ゲームパッドにスクリプト飛行を割り付ける時, L1 + 右方向パッドでスクリプト実行を試みる
+				if (mScriptGamepad && downs[GamePadConst.KEY_LEFT_1]) {
+					if (downs[GamePadConst.KEY_RIGHT_A] && startScriptByGamepad(0)) {
+						return;
+					} else if (downs[GamePadConst.KEY_RIGHT_B] && startScriptByGamepad(0)) {
+						return;
+					} else if (downs[GamePadConst.KEY_RIGHT_C] && startScriptByGamepad(0)) {
+						return;
+					} else if (downs[GamePadConst.KEY_RIGHT_D] && startScriptByGamepad(0)) {
+						return;
+					}
+				}
+				
 				// L2押しながら左アナログスティックでカメラのpan/tilt
 				if (downs[GamePadConst.KEY_LEFT_2] && (mController instanceof ICameraController)) {
 					if (mCurrentPan > 100) {

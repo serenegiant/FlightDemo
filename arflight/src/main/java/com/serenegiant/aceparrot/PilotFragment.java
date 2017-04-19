@@ -193,6 +193,7 @@ public class PilotFragment extends BasePilotFragment {
 		super.internalOnPause();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected View internalCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState, final int layout_id) {
 		mActionViews.clear();
