@@ -667,7 +667,7 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment
 	
 	/**
 	 * アニメーションキャップ
-	 * @param degree [-90,+90]
+	 * @param degree [-180,+180]
 	 */
 	protected void cap(final int degree) {
 		if (mFlightController != null) {
