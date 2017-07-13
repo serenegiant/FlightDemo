@@ -59,7 +59,6 @@ import android.widget.Toast;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
-import com.serenegiant.arflight.FlightRecorder;
 import com.serenegiant.dialog.SelectFileDialogFragment;
 import com.serenegiant.arflight.drone.AttitudeScreenBase;
 import com.serenegiant.gameengine.v1.IModelView;
@@ -751,18 +750,10 @@ public class PilotFragment extends BasePilotFragment {
 
 			} else if (i == R.id.cap_p45_btn) {
 				setColorFilter(view);
-				if (mFlightController != null) {
-					mFlightController.requestAnimationsCap(45);
-					mFlightRecorder.record(FlightRecorder.CMD_CAP, 45);
-				}
-
+				cap(45);
 			} else if (i == R.id.cap_m45_btn) {
 				setColorFilter(view);
-				if (mFlightController != null) {
-					mFlightController.requestAnimationsCap(-45);
-					mFlightRecorder.record(FlightRecorder.CMD_CAP, -45);
-				}
-
+				cap(-45);
 			} else if (i == R.id.action_button) {
 				setColorFilter(view);
 				actionToggle();
