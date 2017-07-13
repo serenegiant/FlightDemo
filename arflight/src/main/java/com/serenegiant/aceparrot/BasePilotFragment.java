@@ -664,7 +664,18 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment
 			mFlightRecorder.record(FlightRecorder.CMD_FLIP, dir);
 		}
 	}
-
+	
+	/**
+	 * アニメーションキャップ
+	 * @param degree [-90,+90]
+	 */
+	protected void cap(final int degree) {
+		if (mFlightController != null) {
+			mFlightController.requestAnimationsCap(degree);
+			mFlightRecorder.record(FlightRecorder.CMD_CAP, degree);
+		}
+	}
+	
 	/**
 	 * 記録開始
 	 * @param needClear 既存の記録を破棄してから記録開始するかどうか
