@@ -75,8 +75,12 @@ public class VoicePilotFragment extends PilotFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static final String TAG = VoicePilotFragment.class.getSimpleName();
 
-	public static VoicePilotFragment newInstance(final ARDiscoveryDeviceService device, final DeviceInfo info) {
-		if (!BuildConfig.USE_SKYCONTROLLER) throw new RuntimeException("does not support skycontroller now");
+	public static VoicePilotFragment newInstance(
+		final ARDiscoveryDeviceService device, final DeviceInfo info) {
+
+		if (!BuildConfig.USE_SKYCONTROLLER) {
+			throw new RuntimeException("does not support skycontroller now");
+		}
 		final VoicePilotFragment fragment = new VoicePilotFragment();
 		fragment.setDevice(device, info);
 		return fragment;
@@ -94,6 +98,7 @@ public class VoicePilotFragment extends PilotFragment {
 		super();
 		// デフォルトコンストラクタが必要
 	}
+
 	@Override
 	protected void internalOnResume() {
 		super.internalOnResume();

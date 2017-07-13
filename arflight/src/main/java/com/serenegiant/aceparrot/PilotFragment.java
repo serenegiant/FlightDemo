@@ -107,18 +107,18 @@ public class PilotFragment extends BasePilotFragment {
 		return fragment;
 	}
 
-	private ViewGroup mControllerFrame;			// 操作パネル全体
+	protected ViewGroup mControllerFrame;		// 操作パネル全体
 	private TouchableLinearLayout mPilotFrame;	// 操縦パネル
 	private OrientationView mCameraView;		// カメラのPan/Tiltの十字線描画用
 
 	// 上パネル
-	private View mTopPanel;
+	protected View mTopPanel;
 	private TextView mBatteryLabel;			// バッテリー残量表示
 	private ImageButton mFlatTrimBtn;		// フラットトリム
 	private TextView mAlertMessage;			// 非常メッセージ
 	private String mBatteryFmt;
 	// 下パネル
-	private View mBottomPanel;
+	protected View mBottomPanel;
 	protected ImageButton mEmergencyBtn;	// 非常停止ボタン
 	protected ImageButton mTakeOnOffBtn;	// 離陸/着陸ボタン
 	private ImageButton mRecordBtn;			// 記録ボタン
@@ -131,12 +131,12 @@ public class PilotFragment extends BasePilotFragment {
 	private ImageButton mClearButton;		// クリアボタン(タッチ描画操縦)
 	private ImageButton mMoveButton;		// 移動ボタン(タッチ描画操縦)
 	// 右サイドパネル
-	private View mRightSidePanel;
+	protected View mRightSidePanel;
 	private ImageButton mCopilotBtn;		// コパイロットボタン
 	private ImageButton mStillCaptureBtn;
 	private ImageButton mVideoRecordingBtn;
 	// 左サイドパネル
-	private View mLeftSidePanel;
+	protected View mLeftSidePanel;
 	// 操縦用
 	private StickView mRightStickPanel;		// 右スティックパネル
 	private StickView mLeftStickPanel;		// 左スティックパネル

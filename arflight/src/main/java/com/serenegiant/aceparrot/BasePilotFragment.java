@@ -1049,13 +1049,11 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 						|| (mCurrentYaw != yaw)
 						|| (mCurrentAltitude != altitude)) {
 
-							mCurrentRoll = mAttitude.x();
-							mCurrentPitch = mAttitude.y();
-							mCurrentYaw = yaw;
-							mCurrentAltitude = altitude;
-							if (mModelView != null) {
-								mModelView.setAttitude(mCurrentRoll, mCurrentPitch, yaw, altitude);
-							}
+						mCurrentRoll = mAttitude.x();
+						mCurrentPitch = mAttitude.y();
+						mCurrentYaw = yaw;
+						mCurrentAltitude = altitude;
+						updateAttitude(mCurrentRoll, mCurrentPitch, yaw, altitude);
 					}
 				}
 			}
@@ -1070,6 +1068,12 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment imp
 		}
 	};
 
+	protected void updateAttitude(final float roll, final float pitch, final float yaw, final float gaz) {
+		if (mModelView != null) {
+			mModelView.setAttitude(roll, pitch, yaw, gaz);
+		}
+	}
+	
 	/** アラート表示の更新処理をUIスレッドで実行するためのRunnable */
 	private final Runnable mUpdateAlarmMessageTask = new Runnable() {
 		@Override
