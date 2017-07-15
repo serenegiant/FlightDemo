@@ -42,7 +42,7 @@
 	android:layout_height="match_parent"
 	android:background="@color/BLACK"
 	android:foreground="?android:windowContentOverlay"
-	tools:context=".BaseConnectionFragment"
+	tools:context=".AbstractConnectionFragment"
 	>
 
 	<com.serenegiant.widget.PlayerTextureView

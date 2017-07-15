@@ -911,6 +911,11 @@ public abstract class BaseAutoPilotFragment extends BasePilotFragment implements
 		}
 	}
 
+	@Override
+	protected void onSendMove(final float roll, final float pitch, final float gaz, final float yaw) {
+		
+	}
+
 	protected void setMove(final float roll, final float pitch, final float gaz, final float yaw, final float decay_rate) {
 //		if (DEBUG) Log.v(TAG, String.format("ControlTask#setMove:%f,%f,%f,%f", roll, pitch, gaz, yaw));
 		if (mControlTask != null) {

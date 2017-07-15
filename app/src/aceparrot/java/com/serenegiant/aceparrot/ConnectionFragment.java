@@ -46,7 +46,7 @@ import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 
 import java.io.IOException;
 
-public class ConnectionFragment extends BaseConnectionFragment {
+public class ConnectionFragment extends AbstractConnectionFragment {
 
 	public static ConnectionFragment newInstance() {
 		return new ConnectionFragment();

@@ -42,6 +42,7 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.support.annotation.LayoutRes;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -66,16 +67,16 @@ import jp.co.rediscovery.arflight.ARDeviceServiceAdapter;
 import jp.co.rediscovery.arflight.DeviceInfo;
 import jp.co.rediscovery.arflight.ManagerFragment;
 
-public abstract class BaseConnectionFragment extends BaseFragment {
+public abstract class AbstractConnectionFragment extends BaseFragment {
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
-	private static String TAG = BaseConnectionFragment.class.getSimpleName();
+	private static String TAG = AbstractConnectionFragment.class.getSimpleName();
 
 	private PlayerTextureView mVideoView;
 	protected ImageButton mDownloadBtn, mPilotBtn, mVoicePilotBtn, mGalleyBrn, mScriptBtn;
 	private MediaPlayer mMediaPlayer;
 	protected ListView mDeviceListView;
 
-	public BaseConnectionFragment() {
+	public AbstractConnectionFragment() {
 		super();
 		// Required empty public constructor
 	}
@@ -85,7 +86,13 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
 		loadArguments(savedInstanceState);
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
-		final View rootView = local_inflater.inflate(R.layout.fragment_connection, container, false);
+		return internalCreateView(local_inflater, container, savedInstanceState, R.layout.fragment_connection);
+	}
+
+	protected View internalCreateView(final LayoutInflater inflater,
+		final ViewGroup container, final Bundle savedInstanceState, @LayoutRes final int layout_id) {
+
+		final View rootView = inflater.inflate(layout_id, container, false);
 		initView(rootView);
 		return rootView;
 	}
@@ -151,7 +158,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	 * Viewを初期化
 	 * @param rootView
 	 */
-	private void initView(final View rootView) {
+	protected void initView(final View rootView) {
 
 		final ARDeviceServiceAdapter adapter = new ARDeviceServiceAdapter(getActivity(), R.layout.list_item_deviceservice);
 
@@ -304,7 +311,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
 		public void onClick(final View view) {
-			BaseConnectionFragment.this.onClick(view, mDeviceListView.getCheckedItemPosition());
+			AbstractConnectionFragment.this.onClick(view, mDeviceListView.getCheckedItemPosition());
 		}
 	};
 
@@ -314,7 +321,7 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 		@Override
 		public boolean onLongClick(final View view) {
 			if ((mPilotBtn != null) && (mPilotBtn.getVisibility() != View.VISIBLE)) return false;
-			return BaseConnectionFragment.this.onLongClick(view, mDeviceListView.getCheckedItemPosition());
+			return AbstractConnectionFragment.this.onLongClick(view, mDeviceListView.getCheckedItemPosition());
 		}
 	};
 

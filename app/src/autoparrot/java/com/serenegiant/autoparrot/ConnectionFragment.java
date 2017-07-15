@@ -45,8 +45,8 @@ import android.view.View;
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryService;
+import com.serenegiant.aceparrot.AbstractConnectionFragment;
 import com.serenegiant.aceparrot.BaseBridgeFragment;
-import com.serenegiant.aceparrot.BaseConnectionFragment;
 import com.serenegiant.aceparrot.BuildConfig;
 import com.serenegiant.aceparrot.ConfigAppFragment;
 import com.serenegiant.aceparrot.R;
@@ -56,7 +56,7 @@ import java.io.IOException;
 import jp.co.rediscovery.arflight.ARDeviceServiceAdapter;
 import jp.co.rediscovery.arflight.ManagerFragment;
 
-public class ConnectionFragment extends BaseConnectionFragment {
+public class ConnectionFragment extends AbstractConnectionFragment {
 
 	public static ConnectionFragment newInstance() {
 		return new ConnectionFragment();

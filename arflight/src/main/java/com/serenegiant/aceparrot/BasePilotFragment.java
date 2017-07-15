@@ -48,6 +48,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.IntDef;
+import android.support.annotation.LayoutRes;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
@@ -254,7 +255,8 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment
 		}
 	}
 
-	protected abstract View internalCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState, final int layout_id);
+	protected abstract View internalCreateView(final LayoutInflater inflater,
+		final ViewGroup container, final Bundle savedInstanceState, @LayoutRes final int layout_id);
 
 	@Override
 	protected void startVideoStreaming() {
