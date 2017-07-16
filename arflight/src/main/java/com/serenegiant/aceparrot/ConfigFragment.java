@@ -54,7 +54,6 @@ import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 import com.serenegiant.arflight.BuildConfig;
 import com.serenegiant.arflight.R;
-import com.serenegiant.widget.ColorPickerView;
 import com.serenegiant.widget.RelativeRadioGroup;
 
 import jp.co.rediscovery.arflight.DeviceInfo;
@@ -555,41 +554,6 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 	}
 
 	/**
-	 * アイコン設定画面の準備
-	 * @param root
-	 */
-	private void initConfigIcon(final View root) {
-		if (DEBUG) Log.v(TAG, "initConfigInfo:");
-		final RelativeRadioGroup group = (RelativeRadioGroup)root.findViewById(R.id.icon_radiogroup);
-		switch (mPref.getInt(KEY_ICON_TYPE, 100)) {
-		case 1:		// 001
-			group.check(R.id.icon_001_radiobutton);
-			break;
-		case 2:		// 002
-			group.check(R.id.icon_002_radiobutton);
-			break;
-//		case 0:
-		default:	// 通常
-			group.check(R.id.icon_000_radiobutton);
-			break;
-		}
-		group.setOnCheckedChangeListener(mOnRelativeRadioButtonCheckedChangeListener);
-	}
-
-	private int mColor;
-	/**
-	 * 機体色選択画面の準備
-	 * @param root
-	 */
-	private void initConfigColor(final View root) {
-		mColor = mPref.getInt(KEY_COLOR, getResources().getColor(R.color.RED));
-		final ColorPickerView picker = (ColorPickerView)root.findViewById(R.id.color_picker);
-		picker.setColor(mColor);
-		picker.showAlpha(false);
-		picker.setColorPickerListener(mColorPickerListener);
-	}
-
-	/**
 	 * ドローン情報画面の準備
 	 * @param root
 	 */
@@ -965,10 +929,6 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 
 			} else if (i == R.id.operation_touch_checkbox) {
 				mPref.edit().putBoolean(KEY_OPERATION_TOUCH, isChecked).apply();
-
-//			case R.id.usb_driver_checkbox:
-//				mPref.edit().putBoolean(KEY_GAMEPAD_USE_DRIVER, isChecked).apply();
-//				break;
 			}
 		}
 	};
@@ -995,16 +955,7 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 
 	/**ラジオグループで選択が変更された時の処理 */
 	private void onCheckedChanged(final int checkedId) {
-		if (checkedId == R.id.icon_000_radiobutton) {
-			mPref.edit().putInt(KEY_ICON_TYPE, 0).apply();
-
-		} else if (checkedId == R.id.icon_001_radiobutton) {
-			mPref.edit().putInt(KEY_ICON_TYPE, 1).apply();
-
-		} else if (checkedId == R.id.icon_002_radiobutton) {
-			mPref.edit().putInt(KEY_ICON_TYPE, 2).apply();
-
-		} else if (checkedId == R.id.operation_normal_radiobutton) {
+		if (checkedId == R.id.operation_normal_radiobutton) {
 			mPref.edit().putInt(KEY_OPERATION_TYPE, 0).apply();
 
 		} else if (checkedId == R.id.operation_reverse_radiobutton) {
@@ -1031,25 +982,12 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 		}
 	}
 
-	private final ColorPickerView.ColorPickerListener mColorPickerListener
-		= new ColorPickerView.ColorPickerListener() {
-		@Override
-		public void onColorChanged(final ColorPickerView view, final int color) {
-			if (mColor != color) {
-				if (DEBUG) Log.v(TAG, "onColorChanged:color=" + color);
-				mColor = color;
-				mPref.edit().putInt(KEY_COLOR, color).apply();
-				TextureHelper.clearTexture(getActivity());
-			}
-		}
-	};
-
 	private static PagerAdapterConfig[] PAGER_CONFIG_MINIDRONE;
 	private static PagerAdapterConfig[] PAGER_CONFIG_BEBOP;
 	private static PagerAdapterConfig[] PAGER_CONFIG_BEBOP2;
 	static {
 		// Minidrone(RollingSpider用)
-		PAGER_CONFIG_MINIDRONE = new PagerAdapterConfig[8];
+		PAGER_CONFIG_MINIDRONE = new PagerAdapterConfig[6];
 		PAGER_CONFIG_MINIDRONE[0] = new PagerAdapterConfig(R.string.config_title_flight, R.layout.config_flight, new PagerAdapterItemHandler() {
 			@Override
 			public void initialize(final BaseFragment parent, final View view) {
@@ -1080,26 +1018,14 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 				((ConfigFragment)parent).initConfigAutopilot(view);
 			}
 		});
-		PAGER_CONFIG_MINIDRONE[5] = new PagerAdapterConfig(R.string.config_title_icon, R.layout.config_icon, new PagerAdapterItemHandler() {
-			@Override
-			public void initialize(final BaseFragment parent, final View view) {
-				((ConfigFragment)parent).initConfigIcon(view);
-			}
-		});
-		PAGER_CONFIG_MINIDRONE[6] = new PagerAdapterConfig(R.string.config_title_color, R.layout.config_color, new PagerAdapterItemHandler() {
-			@Override
-			public void initialize(final BaseFragment parent, final View view) {
-				((ConfigFragment)parent).initConfigColor(view);
-			}
-		});
-		PAGER_CONFIG_MINIDRONE[7] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new PagerAdapterItemHandler() {
+		PAGER_CONFIG_MINIDRONE[5] = new PagerAdapterConfig(R.string.config_title_info, R.layout.config_info, new PagerAdapterItemHandler() {
 			@Override
 			public void initialize(final BaseFragment parent, final View view) {
 				((ConfigFragment)parent).initConfigInfo(view);
 			}
 		});
 // ここからbebop用
-		PAGER_CONFIG_BEBOP = new PagerAdapterConfig[9];
+		PAGER_CONFIG_BEBOP = new PagerAdapterConfig[7];
 		PAGER_CONFIG_BEBOP[0] = PAGER_CONFIG_MINIDRONE[0];
 		PAGER_CONFIG_BEBOP[1] = new PagerAdapterConfig(R.string.config_title_drone, R.layout.config_bebop, new PagerAdapterItemHandler() {
 			@Override
@@ -1117,10 +1043,8 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 			}
 		});
 		PAGER_CONFIG_BEBOP[6] = PAGER_CONFIG_MINIDRONE[5];
-		PAGER_CONFIG_BEBOP[7] = PAGER_CONFIG_MINIDRONE[6];
-		PAGER_CONFIG_BEBOP[8] = PAGER_CONFIG_MINIDRONE[7];
 // ここからbebop2用
-		PAGER_CONFIG_BEBOP2 = new PagerAdapterConfig[8];
+		PAGER_CONFIG_BEBOP2 = new PagerAdapterConfig[6];
 		PAGER_CONFIG_BEBOP2[0] = PAGER_CONFIG_MINIDRONE[0];
 		PAGER_CONFIG_BEBOP2[1] = PAGER_CONFIG_MINIDRONE[2];
 		PAGER_CONFIG_BEBOP2[2] = PAGER_CONFIG_MINIDRONE[3];
@@ -1132,8 +1056,6 @@ public class ConfigFragment extends BaseFlightControllerFragment {
 			}
 		});
 		PAGER_CONFIG_BEBOP2[5] = PAGER_CONFIG_MINIDRONE[5];
-		PAGER_CONFIG_BEBOP2[6] = PAGER_CONFIG_MINIDRONE[6];
-		PAGER_CONFIG_BEBOP2[7] = PAGER_CONFIG_MINIDRONE[7];
 	}
 
 	private static PagerAdapterConfig[] getConfigs(final ARDISCOVERY_PRODUCT_ENUM product) {
