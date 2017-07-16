@@ -62,8 +62,8 @@ public abstract class AbstractConnectionFragment extends BaseConnectionFragment 
 	private static final boolean DEBUG = false;	// FIXME 実働時はfalseにすること
 	private static String TAG = AbstractConnectionFragment.class.getSimpleName();
 
+	protected ImageButton mDownloadBtn, mPilotBtn, mGalleyBrn;
 	private PlayerTextureView mVideoView;
-	protected ImageButton mDownloadBtn, mPilotBtn, mVoicePilotBtn, mGalleyBrn, mScriptBtn;
 	private MediaPlayer mMediaPlayer;
 	protected ListView mDeviceListView;
 
@@ -73,19 +73,13 @@ public abstract class AbstractConnectionFragment extends BaseConnectionFragment 
 	}
 
 	@Override
-	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-//		if (DEBUG) Log.v(TAG, "onCreateView:");
-		loadArguments(savedInstanceState);
-		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
-		return internalCreateView(local_inflater, container, savedInstanceState, R.layout.fragment_connection);
-	}
-
-	@Override
 	protected View internalCreateView(final LayoutInflater inflater,
-		final ViewGroup container, final Bundle savedInstanceState, @LayoutRes final int layout_id) {
+		final ViewGroup container, final Bundle savedInstanceState,
+			@LayoutRes final int layout_id) {
 
 		final View rootView = inflater.inflate(layout_id, container, false);
 		initView(rootView);
+		updateButtons(false);
 		return rootView;
 	}
 
@@ -130,7 +124,8 @@ public abstract class AbstractConnectionFragment extends BaseConnectionFragment 
 	 */
 	protected void initView(final View rootView) {
 
-		final ARDeviceServiceAdapter adapter = new ARDeviceServiceAdapter(getActivity(), R.layout.list_item_deviceservice);
+		final ARDeviceServiceAdapter adapter = new ARDeviceServiceAdapter(
+			getActivity(), R.layout.list_item_deviceservice);
 
 		mDeviceListView = (ListView)rootView.findViewById(R.id.list);
 		final View empty_view = rootView.findViewById(R.id.empty_view);
@@ -153,22 +148,10 @@ public abstract class AbstractConnectionFragment extends BaseConnectionFragment 
 			mPilotBtn.setOnLongClickListener(mOnLongClickListener);
 		}
 
-		mVoicePilotBtn = (ImageButton)rootView.findViewById(R.id.voice_pilot_button);
-		if (mVoicePilotBtn != null) {
-			mVoicePilotBtn.setOnClickListener(mOnClickListener);
-			mVoicePilotBtn.setOnLongClickListener(mOnLongClickListener);
-		}
-
 		mGalleyBrn = (ImageButton)rootView.findViewById(R.id.gallery_button);
 		if (mGalleyBrn != null) {
 			mGalleyBrn.setOnClickListener(mOnClickListener);
 			mGalleyBrn.setOnLongClickListener(mOnLongClickListener);
-		}
-
-		mScriptBtn = (ImageButton)rootView.findViewById(R.id.script_button);
-		if (mScriptBtn != null) {
-			mScriptBtn.setOnClickListener(mOnClickListener);
-			mScriptBtn.setOnLongClickListener(mOnLongClickListener);
 		}
 
 		ImageButton button = (ImageButton)rootView.findViewById(R.id.config_show_btn);
@@ -180,7 +163,7 @@ public abstract class AbstractConnectionFragment extends BaseConnectionFragment 
 	protected void updateButtonsOnUiThread(final boolean visible) {
 		if (!visible) {
 			try {
-				final ARDeviceServiceAdapter adapter = (ARDeviceServiceAdapter)mDeviceListView.getAdapter();
+				final ARDeviceServiceAdapter adapter = getDeviceAdapter();
 				adapter.clear();
 			} catch (final Exception e) {
 				Log.w(TAG, e);
@@ -193,11 +176,7 @@ public abstract class AbstractConnectionFragment extends BaseConnectionFragment 
 		if (mPilotBtn != null) {
 			mPilotBtn.setVisibility(visibility);
 		}
-		if (mVoicePilotBtn != null) {
-			mVoicePilotBtn.setVisibility(visibility);
-		}
 	}
-
 
 	private void clearCheck(final ViewGroup parent) {
 		final int n = parent.getChildCount();
@@ -209,7 +188,7 @@ public abstract class AbstractConnectionFragment extends BaseConnectionFragment 
 		}
 	}
 
-	private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
+	protected final View.OnClickListener mOnClickListener = new View.OnClickListener() {
 		@Override
 		public void onClick(final View view) {
 			AbstractConnectionFragment.this.onClick(view, mDeviceListView.getCheckedItemPosition());
@@ -218,7 +197,7 @@ public abstract class AbstractConnectionFragment extends BaseConnectionFragment 
 
 	protected abstract void onClick(final View view, final int position);
 
-	private final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
+	protected final View.OnLongClickListener mOnLongClickListener = new View.OnLongClickListener() {
 		@Override
 		public boolean onLongClick(final View view) {
 			if ((mPilotBtn != null) && (mPilotBtn.getVisibility() != View.VISIBLE)) return false;

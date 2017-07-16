@@ -41,6 +41,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.view.View;
+import android.widget.ImageButton;
 
 import com.parrot.arsdk.ardiscovery.ARDISCOVERY_PRODUCT_ENUM;
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
@@ -62,8 +63,23 @@ public class ConnectionFragment extends AbstractConnectionFragment {
 		return new ConnectionFragment();
 	}
 
+	private ImageButton mScriptBtn;
+
 	public ConnectionFragment() {
 		super();
+	}
+
+	/**
+	 * Viewを初期化
+	 * @param rootView
+	 */
+	protected void initView(final View rootView) {
+		super.initView(rootView);
+		mScriptBtn = (ImageButton)rootView.findViewById(R.id.script_button);
+		if (mScriptBtn != null) {
+			mScriptBtn.setOnClickListener(mOnClickListener);
+			mScriptBtn.setOnLongClickListener(mOnLongClickListener);
+		}
 	}
 
 	@Override
@@ -88,10 +104,18 @@ public class ConnectionFragment extends AbstractConnectionFragment {
 	protected void updateButtonsOnUiThread(final boolean visible) {
 		super.updateButtonsOnUiThread(visible);
 		final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
-		mDownloadBtn.setVisibility(visibility);
-		mPilotBtn.setVisibility(visibility);
-		mGalleyBrn.setVisibility(visibility);
-		mScriptBtn.setVisibility(visibility);
+		if (mDownloadBtn != null) {
+			mDownloadBtn.setVisibility(visibility);
+		}
+		if (mPilotBtn != null) {
+			mPilotBtn.setVisibility(visibility);
+		}
+		if (mGalleyBrn != null) {
+			mGalleyBrn.setVisibility(visibility);
+		}
+		if (mScriptBtn != null) {
+			mScriptBtn.setVisibility(visibility);
+		}
 	}
 
 	@Override

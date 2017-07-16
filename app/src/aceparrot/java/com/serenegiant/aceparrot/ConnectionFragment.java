@@ -41,6 +41,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.view.View;
+import android.widget.ImageButton;
 
 import com.parrot.arsdk.ardiscovery.ARDiscoveryDeviceService;
 
@@ -52,8 +53,38 @@ public class ConnectionFragment extends AbstractConnectionFragment {
 		return new ConnectionFragment();
 	}
 
+	private ImageButton mVoicePilotBtn, mScriptBtn;
+
 	public ConnectionFragment() {
 		super();
+	}
+
+	/**
+	 * Viewを初期化
+	 * @param rootView
+	 */
+	protected void initView(final View rootView) {
+		super.initView(rootView);
+		mVoicePilotBtn = (ImageButton)rootView.findViewById(R.id.voice_pilot_button);
+		if (mVoicePilotBtn != null) {
+			mVoicePilotBtn.setOnClickListener(mOnClickListener);
+			mVoicePilotBtn.setOnLongClickListener(mOnLongClickListener);
+		}
+
+		mScriptBtn = (ImageButton)rootView.findViewById(R.id.script_button);
+		if (mScriptBtn != null) {
+			mScriptBtn.setOnClickListener(mOnClickListener);
+			mScriptBtn.setOnLongClickListener(mOnLongClickListener);
+		}
+	}
+
+	@Override
+	protected void updateButtonsOnUiThread(final boolean visible) {
+		super.updateButtonsOnUiThread(visible);
+		final int visibility = visible ? View.VISIBLE : View.INVISIBLE;
+		if (mVoicePilotBtn != null) {
+			mVoicePilotBtn.setVisibility(visibility);
+		}
 	}
 
 	protected void onClick(final View view, final int position) {
@@ -101,7 +132,11 @@ public class ConnectionFragment extends AbstractConnectionFragment {
 	}
 
 	@Override
-	protected void setDataSource(final Context context, final MediaPlayer media_player) throws IOException {
-		media_player.setDataSource(context, Uri.parse("android.resource://" + getActivity().getPackageName() + "/" + R.raw.into_the_sky));
+	protected void setDataSource(final Context context,
+		final MediaPlayer media_player) throws IOException {
+
+		media_player.setDataSource(context,
+			Uri.parse("android.resource://" + getActivity().getPackageName()
+				+ "/" + R.raw.into_the_sky));
 	}
 }

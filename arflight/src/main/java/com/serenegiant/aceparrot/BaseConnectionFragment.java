@@ -35,11 +35,14 @@ public abstract class BaseConnectionFragment extends BaseFragment {
 	}
 
 	@Override
-	public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+	public View onCreateView(final LayoutInflater inflater,
+		final ViewGroup container, final Bundle savedInstanceState) {
+
 //		if (DEBUG) Log.v(TAG, "onCreateView:");
 		loadArguments(savedInstanceState);
 		final LayoutInflater local_inflater = getThemedLayoutInflater(inflater);
-		return internalCreateView(local_inflater, container, savedInstanceState, R.layout.fragment_connection);
+		return internalCreateView(local_inflater, container, savedInstanceState,
+			R.layout.fragment_connection);
 	}
 
 	protected abstract View internalCreateView(final LayoutInflater inflater,
