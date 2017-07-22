@@ -96,6 +96,7 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 	private ActionBarDrawerToggle mDrawerToggle;
 	private final Handler mUiHandler = new Handler();
 	/*package*/Joystick mJoystick;
+	private Handler mAsyncHandler;
 
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
@@ -168,6 +169,16 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 		releaseJoystick();
 		hideProgress();
 		NetworkChangedReceiver.disable(getApplicationContext());
+		mUiHandler.removeCallbacksAndMessages(null);
+		if (mAsyncHandler != null) {
+			mAsyncHandler.removeCallbacksAndMessages(null);
+			try {
+				mAsyncHandler.getLooper().quit();
+			} catch (final Exception e) {
+				// ignore
+			}
+			mAsyncHandler = null;
+		}
 		super.onDestroy();
 	}
 
@@ -236,6 +247,63 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 		return super.onOptionsItemSelected(item);
 	}
 
+//================================================================================
+	/**
+	 * UIスレッド上での実行要求を削除する
+	 * @param task
+	 */
+	protected void removeFromUIThread(final Runnable task) {
+		if (task != null) {
+			mUiHandler.removeCallbacks(task);
+		}
+	}
+
+	/**
+	 * 指定時間後に指定したタスクをUIスレッド上で実行する。
+	 * @param task UIスレッド上で行う処理
+	 * @param delay_msec 0以下ならrunOnUiThreadと同じ
+	 */
+	protected void runOnUiThread(final Runnable task, final long delay_msec) {
+		if (task != null) {
+			mUiHandler.removeCallbacks(task);
+			if (delay_msec <= 0) {
+				mUiHandler.post(task);
+			} else if (task != null) {
+				mUiHandler.postDelayed(task, delay_msec);
+			}
+		}
+	}
+
+	/**
+	 * プライベートスレッドでの実行待ちタスクを削除する
+	 * @param task
+	 */
+	protected void removeEvent(final Runnable task) {
+		if (task != null) {
+			if (mAsyncHandler != null) {
+				mAsyncHandler.removeCallbacks(task);
+			}
+		}
+	}
+	/**
+	 * 指定時間後に指定したタスクをプライベートスレッド上で実行する
+	 * @param task
+	 * @param delay_msec
+	 */
+	protected void queueEvent(final Runnable task, final long delay_msec) {
+		if (task != null) {
+			if (mAsyncHandler != null) {
+				mAsyncHandler.removeCallbacks(task);
+				if (delay_msec <= 0) {
+					mAsyncHandler.post(task);
+				} else {
+					mAsyncHandler.postDelayed(task, delay_msec);
+				}
+			}
+		}
+	}
+
+//================================================================================
 	public void setSideMenuView(final View side_menu_view) {
 		if ((mSideMenuFrame != null) && (side_menu_view != null)) {
 			mSideMenuFrame.addView(side_menu_view);
@@ -265,7 +333,7 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 					super.onDrawerClosed(drawerView);
 					if (DEBUG) Log.v(TAG, "onDrawerClosed:");
 					// ドローワーが閉じた時の処理
-					mUiHandler.removeCallbacks(mHideSideMenuTask);
+					removeFromUIThread(mHideSideMenuTask);
 					mSideMenuFrame.reset();    // サイドメニューのアニメーションをリセット
 				}
 
@@ -274,8 +342,8 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 					super.onDrawerOpened(drawerView);
 					if (DEBUG) Log.v(TAG, "onDrawerOpened:");
 					// ドローワーが開いた時の処理
-					mUiHandler.removeCallbacks(mHideSideMenuTask);
-					mUiHandler.postDelayed(mHideSideMenuTask, TIMEOUT_HIDE_SIDE_MENU);
+					removeFromUIThread(mHideSideMenuTask);
+					runOnUiThread(mHideSideMenuTask, TIMEOUT_HIDE_SIDE_MENU);
 				}
 
 //				@Override
@@ -326,7 +394,7 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 		public void run() {
 			if (DEBUG) Log.v(TAG, "mShowSideMenuTask#run");
 			mDrawerLayout.openDrawer(Gravity.LEFT);
-			mUiHandler.postDelayed(mHideSideMenuTask, TIMEOUT_HIDE_SIDE_MENU);
+			runOnUiThread(mHideSideMenuTask, TIMEOUT_HIDE_SIDE_MENU);
 		}
 	};
 
@@ -338,8 +406,8 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 		@Override
 		public void onSideMenuShow(View view) {
 			if (DEBUG) Log.v(TAG, "onSideMenuShow:");
-			mUiHandler.removeCallbacks(mHideSideMenuTask);
-			mUiHandler.postDelayed(mHideSideMenuTask, TIMEOUT_HIDE_SIDE_MENU);
+			removeFromUIThread(mHideSideMenuTask);
+			runOnUiThread(mHideSideMenuTask, TIMEOUT_HIDE_SIDE_MENU);
 		}
 
 		@Override
@@ -366,11 +434,11 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 	/*package*/void openSideMenu() {
 		if (DEBUG) Log.v(TAG, "openSideMenu:");
 		if (mSideMenuFrame != null) {
-			mUiHandler.removeCallbacks(mShowSideMenuTask);
-			mUiHandler.removeCallbacks(mHideSideMenuTask);
+			removeFromUIThread(mShowSideMenuTask);
+			removeFromUIThread(mHideSideMenuTask);
 			if (mDrawerLayout.getDrawerLockMode(Gravity.LEFT) == DrawerLayout.LOCK_MODE_UNLOCKED) {
 				mDrawerToggle.setDrawerIndicatorEnabled(true);
-				mUiHandler.post(mShowSideMenuTask);
+				runOnUiThread(mShowSideMenuTask, 0);
 			}
 		}
 	}
@@ -381,8 +449,8 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 	public void closeSideMenu() {
 		if (DEBUG) Log.v(TAG, "closeSideMenu:");
 		if (mSideMenuFrame != null) {
-			mUiHandler.removeCallbacks(mShowSideMenuTask);
-			mUiHandler.removeCallbacks(mHideSideMenuTask);
+			removeFromUIThread(mShowSideMenuTask);
+			removeFromUIThread(mHideSideMenuTask);
 			mDrawerLayout.closeDrawers();
 		}
 	}

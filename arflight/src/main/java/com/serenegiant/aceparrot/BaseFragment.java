@@ -110,7 +110,9 @@ public class BaseFragment extends Fragment implements MessageDialogFragment.Mess
 	public void onDestroy() {
 		if (DEBUG) Log.v(TAG, "onDestroy:");
 		cancelToast();
+		mUIHandler.removeCallbacksAndMessages(null);
 		if (mAsyncHandler != null) {
+			mAsyncHandler.removeCallbacksAndMessages(null);
 			try {
 				mAsyncHandler.getLooper().quit();
 			} catch (final Exception e) {
