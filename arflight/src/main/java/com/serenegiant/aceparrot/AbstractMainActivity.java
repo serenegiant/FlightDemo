@@ -62,6 +62,7 @@ import com.serenegiant.gamepad.Joystick;
 import com.serenegiant.net.NetworkChangedReceiver;
 import com.serenegiant.arflight.R;
 import com.serenegiant.utils.BuildCheck;
+import com.serenegiant.utils.HandlerThreadHandler;
 import com.serenegiant.widget.ISideMenuView;
 import com.serenegiant.widget.SideMenuFrameLayout;
 
@@ -128,6 +129,7 @@ public abstract class AbstractMainActivity extends Activity implements IMainActi
 			}
 		}).start();
 		mJoystick = Joystick.getInstance(this);
+		mAsyncHandler = HandlerThreadHandler.createHandler(TAG);
 	}
 
 	protected abstract Fragment createConnectionFragment();
