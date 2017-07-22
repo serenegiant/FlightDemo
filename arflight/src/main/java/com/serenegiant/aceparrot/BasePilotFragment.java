@@ -1597,21 +1597,26 @@ public abstract class BasePilotFragment extends BaseFlightControllerFragment
 		public void run() {
 			final Activity activity = getActivity();
 			if (activity instanceof IMainActivity) {
-				final IGamePad j1 = getGamepad();
-				if (j1 == null) {
-					final IGamePad joystick = ((IMainActivity)activity).getJoystick();
-					mJoystick = joystick != null ? new WeakReference<IGamePad>(joystick) : null;
-				}
-				final IGamePad j2 = getRemoteGamepad();
-				if (j2 == null) {
-					final IGamePad joystick = ((IMainActivity)activity).getRemoteJoystick();
-					mRemoteJoystick = joystick != null ? new WeakReference<IGamePad>(joystick) : null;
-				}
-				runOnUiThread(this, (j1 == null) ? 1000 : 3000);
+				runOnUiThread(mJoystickCheckTask, updateJoystic() ? 1000 : 3000);
 			}
 		}
 	};
 
+	protected boolean updateJoystic() {
+		final Activity activity = getActivity();
+		final IGamePad j1 = getGamepad();
+		if (j1 == null) {
+			final IGamePad joystick = ((IMainActivity)activity).getJoystick();
+			mJoystick = joystick != null ? new WeakReference<IGamePad>(joystick) : null;
+		}
+		final IGamePad j2 = getRemoteGamepad();
+		if (j2 == null) {
+			final IGamePad joystick = ((IMainActivity)activity).getRemoteJoystick();
+			mRemoteJoystick = joystick != null ? new WeakReference<IGamePad>(joystick) : null;
+		}
+		return (j1 == null);
+	}
+	
 	private int mSurfaceId = 0;
 	private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
 		@Override
