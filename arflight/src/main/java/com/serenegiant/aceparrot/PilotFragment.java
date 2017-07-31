@@ -1445,7 +1445,12 @@ public class PilotFragment extends BasePilotFragment {
 		removeFromUIThread(mHeartBeatShowTask);
 		removeFromUIThread(mHearBeatHideTask);
 		if (mHeartBeatView != null) {
-			runOnUiThread(mHearBeatHideTask);
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					mHeartBeatView.setVisibility(View.INVISIBLE);
+				}
+			});
 		}
 	}
 
