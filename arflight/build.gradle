@@ -48,8 +48,8 @@ android {
 	defaultConfig {
 		minSdkVersion 18
 		targetSdkVersion versionTarget
-		versionCode 1
-		versionName "1.0"
+		versionCode appVersionCode
+		versionName appVersionName
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
 	}
 	buildTypes {
@@ -61,18 +61,18 @@ android {
 }
 
 dependencies {
-	compile fileTree(dir: 'libs', include: ['*.jar'])
+	api fileTree(dir: 'libs', include: ['*.jar'])
 
-	compile("com.serenegiant:common:${commonLibVersion}") {
+	implementation("com.serenegiant:common:${commonLibVersion}") {
 		exclude group: 'com.android.support'
 	}
-	compile "com.serenegiant:gamepad:${gamepadLibVersion}"
-	compile("jp.co.rediscovery:arflight:${arflightLibVersion}") {
+	implementation "com.serenegiant:gamepad:${gamepadLibVersion}"
+	api("jp.co.rediscovery:arflight:${arflightLibVersion}") {
 		exclude group: 'com.android.support'
 	}
-	compile 'jp.co.rediscovery.widget:drone-notice-view:1.1.1'
+	api 'jp.co.rediscovery.widget:drone-notice-view:1.1.1'
 
-	compile project(':graphics_common')
-	compile project(':scriptengine')
-	compile project(':gameengine')
+	api project(':graphics_common')
+	api project(':scriptengine')
+	api project(':gameengine')
 }

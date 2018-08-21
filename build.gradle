@@ -38,10 +38,12 @@
 
 buildscript {
 	repositories {
+		google()
+//		maven { url 'https://maven.google.com' }
 		jcenter()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:2.3.1'
+		classpath 'com.android.tools.build:gradle:3.1.4'
 
 		// NOTE: Do not place your application dependencies here; they belong
 		// in the individual module build.gradle files
@@ -50,11 +52,13 @@ buildscript {
 
 allprojects {
 	repositories {
+		google()
+		jcenter()
 		maven { url 'http://raw.github.com/saki4510t/libcommon/master/repository/' }
 		maven { url 'http://raw.github.com/saki4510t/AndroGamepad/master/repository/' }
 		maven { url 'http://raw.github.com/saki4510t/dronenotice/master/repository/' }
 		maven { url 'http://raw.github.com/rediscovery-of-the-wheel/FirstFlight/master/repository/' }
-		jcenter()
+//		maven { url 'https://maven.google.com' }
 	}
 }
 
@@ -63,14 +67,18 @@ task clean(type: Delete) {
 }
 
 ext {
-	supportLibVersion = '25.3.1'  // variable that can be referenced to keep support libs consistent
-	commonLibVersion= '1.5.53'
+	javaSourceCompatibility = JavaVersion.VERSION_1_8
+	javaTargetCompatibility = JavaVersion.VERSION_1_8
+
+	supportLibVersion = '27.1.1'  // variable that can be referenced to keep support libs consistent
+
+	commonLibVersion= '2.9.2'
 	gamepadLibVersion='0.1.2'
-	arflightLibVersion = '0.4.1'
-	versionBuildTool = '25'
-	versionCompiler = 25
-	versionTarget = 23
-	versionNameString = '1.1.0'
-	javaSourceCompatibility = JavaVersion.VERSION_1_7
-	javaTargetCompatibility = JavaVersion.VERSION_1_7
+	arflightLibVersion = '0.5.1'
+	versionBuildTool = '27.0.3'
+	versionCompiler = 27
+	versionTarget = 27
+
+	appVersionCode = 61
+	appVersionName = '0.75.0'
 }

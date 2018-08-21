@@ -50,8 +50,8 @@ android {
 		targetSdkVersion versionTarget
 		manifestPlaceholders = [appName:"@string/app_name"]
 		buildConfigField "boolean", "USE_SKYCONTROLLER", "${project.property("USE_SKYCONTROLLER")}"
-		versionCode 61
-		versionName '0.75.0'
+		versionCode appVersionCode
+		versionName appVersionName
 	}
 
 	applicationVariants.all { variant ->
@@ -106,12 +106,15 @@ android {
 		}
 	}
 
+	flavorDimensions "arflight"
 	productFlavors {
 		aceparrot {
+			dimension "arflight"
 			applicationId "com.serenegiant.aceparrot"
 			signingConfig signingConfigs.aceparrot_releaseKey
 		}
 		autoparrot {
+			dimension "arflight"
 			applicationId "com.serenegiant.autoparrot"
 			signingConfig signingConfigs.autoparrot_releaseKey
 		}
@@ -127,8 +130,8 @@ android {
 }
 
 dependencies {
-	compile fileTree(dir: 'libs', include: ['*.jar'])
+	implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-	compile project(':arflight')
-	autoparrotCompile project(':opencv')
+	implementation project(':arflight')
+	autoparrotImplementation project(':opencv')
 }
